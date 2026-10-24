@@ -237,12 +237,12 @@ public partial class Hud : CanvasLayer
     // --------------------------------------------------------------- fenêtres
 
     /// <summary>Fenêtre du compte rendu de combat.</summary>
-    public void ShowBattle(BattleReport report, Action? onClose = null)
+    public void ShowBattle(BattleReport report)
     {
         string text = (report.AttackerWon ? "Victoire !" : "Défaite...")
             + $"\n\nVos pertes : {BattleReport.DescribeLosses(report.AttackerLosses)}"
             + $"\nPertes ennemies : {BattleReport.DescribeLosses(report.DefenderLosses)}";
-        ShowDialog(report.Title, text, "OK", onClose);
+        ShowDialog(report.Title, text, "OK", null);
     }
 
     /// <summary>Fenêtre de fin de partie, avec un bouton pour recommencer.</summary>
@@ -254,30 +254,43 @@ public partial class Hud : CanvasLayer
         ShowDialog(outcome == GameOutcome.Victory ? "Victoire" : "Défaite", text, "Nouvelle partie", newGame);
     }
 
-    /// <summary>True tant qu'une fenêtre est ouverte (le jeu ignore alors les commandes de la carte).</summary>
-    public bool IsDialogOpen => _openDialogs > 0;
-    private int _openDialogs;
+    /// <summary>True tant qu'une fenêtre est ouverte ou en attente (le jeu ignore alors les commandes de la carte).</summary>
+    public bool IsDialogOpen => _dialogOpen || _pendingDialogs.Count > 0;
 
+    private bool _dialogOpen;
+    private readonly Queue<(string Title, string Text, string Button, Action? OnClose)> _pendingDialogs = new();
+
+    /// <summary>Les fenêtres s'affichent l'une après l'autre (ex. : compte rendu du combat, puis fin de partie).</summary>
     private void ShowDialog(string title, string text, string button, Action? onClose)
     {
+        _pendingDialogs.Enqueue((title, text, button, onClose));
+        if (!_dialogOpen)
+            OpenNextDialog();
+    }
+
+    private void OpenNextDialog()
+    {
+        if (!_pendingDialogs.TryDequeue(out var next))
+            return;
         var dialog = new AcceptDialog
         {
-            Title = title,
-            DialogText = text,
-            OkButtonText = button,
+            Title = next.Title,
+            DialogText = next.Text,
+            OkButtonText = next.Button,
             Exclusive = true,
             Unresizable = true,
         };
-        _openDialogs++;
+        _dialogOpen = true;
         bool closed = false;
         void Close()
         {
             if (closed)
                 return;
             closed = true;
-            _openDialogs--;
+            _dialogOpen = false;
             dialog.QueueFree();
-            onClose?.Invoke();
+            next.OnClose?.Invoke();
+            OpenNextDialog();
         }
         dialog.Confirmed += Close;
         dialog.Canceled += Close;

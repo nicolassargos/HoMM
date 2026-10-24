@@ -197,13 +197,60 @@ public class GameStateTests
         state.Map.AddObject(guard);
 
         state.SetDestination(start.Offset(1, 0));
+        state.TakeEvents();
         state.StepAlongPath();
 
-        var report = state.TakeLastBattle();
-        Assert.NotNull(report);
-        Assert.True(report!.AttackerWon);
+        var events = state.TakeEvents();
+        Assert.IsType<HeroMoved>(events[0]);
+        var battle = Assert.IsType<BattleFought>(events[1]);
+        Assert.True(battle.Report.AttackerWon);
+        Assert.Equal(3, battle.EnemyCount);
+        Assert.Same(guard, battle.Guard);
         Assert.Null(state.Map.ObjectAt(guard.Position));
         Assert.Equal(GameOutcome.Playing, state.Outcome);
+    }
+
+    [Fact]
+    public void Les_evenements_ne_sont_rendus_qu_une_fois()
+    {
+        var state = new GameState(7, TestData.Creatures);
+        state.EndTurn();
+
+        Assert.Equal(new DayStarted(1, false), Assert.Single(state.TakeEvents()));
+        Assert.Empty(state.TakeEvents());
+    }
+
+    [Fact]
+    public void Chaque_pas_et_chaque_visite_donnent_un_evenement()
+    {
+        var state = new GameState(7, TestData.Creatures);
+        var pile = NearestSafePile(state);
+        state.SetDestination(pile.Position);
+        int steps = state.Path!.Count;
+        while (state.StepAlongPath()) { }
+
+        var events = state.TakeEvents();
+        Assert.Equal(pile.Position, Hero(state).Position); // le tas le plus proche est atteint dès le premier jour
+        Assert.Equal(steps, events.OfType<HeroMoved>().Count());
+        var visit = Assert.IsType<ObjectVisited>(events[^1]);
+        Assert.Same(pile, visit.Object);
+        Assert.True(visit.Removed);
+    }
+
+    [Fact]
+    public void Vaincre_le_dernier_monstre_fait_gagner_la_partie()
+    {
+        var state = new GameState(7, TestData.Creatures);
+        foreach (var g in state.Map.Objects.OfType<MonsterGuard>().ToList())
+            state.Map.RemoveObject(g);
+        var start = Hero(state).Position;
+        state.Map.AddObject(new MonsterGuard(start.Offset(2, 0), TestData.Creatures.Get("gobelin"), 1));
+
+        state.SetDestination(start.Offset(1, 0));
+        state.StepAlongPath();
+
+        Assert.Equal(GameOutcome.Victory, state.Outcome);
+        Assert.Equal(new GameEnded(GameOutcome.Victory), state.TakeEvents().OfType<GameEnded>().Single());
     }
 
     [Fact]
@@ -216,7 +263,10 @@ public class GameStateTests
         state.SetDestination(start.Offset(1, 0));
         state.StepAlongPath();
 
-        Assert.False(state.TakeLastBattle()!.AttackerWon);
+        var events = state.TakeEvents();
+        Assert.False(events.OfType<BattleFought>().Single().Report.AttackerWon);
+        Assert.Single(events.OfType<HeroDefeated>());
+        Assert.Equal(new GameEnded(GameOutcome.Defeat), events[^1]);
         Assert.Null(state.CurrentHero);
         Assert.Equal(GameOutcome.Defeat, state.Outcome);
     }

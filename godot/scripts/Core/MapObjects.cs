@@ -155,3 +155,6 @@ public sealed class MonsterGuard : MapObject
     private static string Of(string word) =>
         "AEIOUYÉÈÊaeiouyéèê".Contains(word[0]) ? $"d'{word}" : $"de {word}";
 }
+
+/// <summary>Un héros a visité un objet (tas, coffre, mine). <paramref name="Removed"/> : l'objet a disparu de la carte.</summary>
+public sealed record ObjectVisited(Hero Hero, MapObject Object, bool Removed) : GameEvent;

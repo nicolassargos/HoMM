@@ -186,27 +186,40 @@ public partial class Main : Node2D
         _actors.Hovered = HoveredCell();
         _hud.Refresh(_actors.Hovered);
 
-        if (!_walking)
-            return;
-        _stepTimer -= delta;
-        if (_stepTimer > 0)
-            return;
-        _stepTimer = StepDuration;
-        if (!_state.StepAlongPath() || _state.Path == null)
-            _walking = false;
-        FollowHero();
-
-        if (_state.TakeLastBattle() is { } battle)
+        if (_walking)
         {
-            _walking = false;
-            _hud.ShowBattle(battle, ShowGameOverIfFinished);
+            _stepTimer -= delta;
+            if (_stepTimer <= 0)
+            {
+                _stepTimer = StepDuration;
+                if (!_state.StepAlongPath() || _state.Path == null)
+                    _walking = false;
+            }
         }
+
+        HandleEvents();
     }
 
-    private void ShowGameOverIfFinished()
+    /// <summary>Montre à l'écran ce que les règles viennent de faire.</summary>
+    private void HandleEvents()
     {
-        if (_state.Outcome != GameOutcome.Playing)
-            _hud.ShowGameOver(_state.Outcome, () => GetTree().ReloadCurrentScene());
+        foreach (var e in _state.TakeEvents())
+        {
+            switch (e)
+            {
+                case HeroMoved:
+                    FollowHero();
+                    break;
+                case BattleFought battle:
+                    _walking = false;
+                    _hud.ShowBattle(battle.Report);
+                    break;
+                case GameEnded end:
+                    _walking = false;
+                    _hud.ShowGameOver(end.Outcome, () => GetTree().ReloadCurrentScene());
+                    break;
+            }
+        }
     }
 
     private void ScrollCamera(float delta)

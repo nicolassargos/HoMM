@@ -37,3 +37,9 @@ public sealed class Hero
         Owner.Fog.Reveal(Position, VisionRadius);
     }
 }
+
+/// <summary>Un héros a avancé d'une case.</summary>
+public sealed record HeroMoved(Hero Hero, Cell From, Cell To) : GameEvent;
+
+/// <summary>Un héros a perdu un combat et disparaît.</summary>
+public sealed record HeroDefeated(Hero Hero) : GameEvent;

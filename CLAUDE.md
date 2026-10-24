@@ -13,6 +13,7 @@ La vision du jeu et les étapes prévues sont dans `PLAN.md` : le lire avant de 
 
 ## Organisation
 - `godot/scripts/Core/` : règles en C# pur, **sans dépendance à Godot** (testables). Y mettre toute la logique de jeu.
+- Règles → affichage : `GameState` ajoute des événements (type de base dans `GameEvents.cs`, chaque événement défini dans le fichier de ce qu'il concerne) que `Main` lit avec `TakeEvents()` et montre à son rythme. L'affichage ne modifie l'état qu'en appelant les méthodes de `GameState`. Toute nouvelle action visible (animation, fenêtre, son) passe par un événement.
 - `godot/scripts/Game/` : affichage, interface, commandes (Godot). Une classe Godot par fichier, nom du fichier = nom de la classe.
 - `tests/HoMM.Core.Tests/` : tests xUnit des règles.
 - `prototype-python/` : ancien prototype, gardé pour mémoire, ne plus le faire évoluer.

@@ -51,10 +51,9 @@ public sealed class GameState
     /// <summary>Chemin prévu pour le héros, ou null.</summary>
     public List<Cell>? Path { get; private set; }
 
-    /// <summary>Le dernier combat, en attendant que l'interface l'affiche (voir <see cref="TakeLastBattle"/>).</summary>
-    public BattleReport? LastBattle { get; private set; }
-
     public List<string> Messages { get; } = new();
+
+    private readonly List<GameEvent> _events = new();
 
     public IEnumerable<Hero> AllHeroes => Players.SelectMany(p => p.Heroes);
 
@@ -68,11 +67,24 @@ public sealed class GameState
             Messages.RemoveAt(0);
     }
 
-    public BattleReport? TakeLastBattle()
+    /// <summary>
+    /// Les événements survenus depuis le dernier appel, du plus ancien au plus récent.
+    /// La file est vidée : chaque événement n'est rendu qu'une fois.
+    /// </summary>
+    public IReadOnlyList<GameEvent> TakeEvents()
     {
-        var report = LastBattle;
-        LastBattle = null;
-        return report;
+        var events = _events.ToList();
+        _events.Clear();
+        return events;
+    }
+
+    private void Emit(GameEvent e) => _events.Add(e);
+
+    private void EndGame(GameOutcome outcome)
+    {
+        Outcome = outcome;
+        Path = null;
+        Emit(new GameEnded(outcome));
     }
 
     // ------------------------------------------------------------------ tours
@@ -95,6 +107,7 @@ public sealed class GameState
         {
             Path = null;
             CurrentHero = CurrentPlayer.Heroes.FirstOrDefault();
+            Emit(new TurnStarted(CurrentPlayer));
         }
     }
 
@@ -108,6 +121,7 @@ public sealed class GameState
         if (newWeek)
             foreach (var guard in Map.Objects.OfType<MonsterGuard>())
                 guard.GrowWeekly();
+        Emit(new DayStarted(Day, newWeek));
 
         foreach (var player in Players)
         {
@@ -141,7 +155,7 @@ public sealed class GameState
 
     /// <summary>
     /// Fait avancer le héros d'une case. Renvoie false s'il ne peut plus avancer.
-    /// Entrer à côté d'un monstre déclenche un combat (voir <see cref="LastBattle"/>) et arrête la marche.
+    /// Entrer à côté d'un monstre déclenche un combat (événement <see cref="BattleFought"/>) et arrête la marche.
     /// </summary>
     public bool StepAlongPath()
     {
@@ -160,7 +174,9 @@ public sealed class GameState
         }
 
         Path.RemoveAt(0);
+        var from = hero.Position;
         hero.StepTo(Map, next);
+        Emit(new HeroMoved(hero, from, next));
 
         bool fought = false;
         foreach (var guard in Map.GuardsAround(next).ToList())
@@ -178,6 +194,7 @@ public sealed class GameState
             AddMessage(obj.Visit(hero));
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
+            Emit(new ObjectVisited(hero, obj, obj.RemovedOnVisit));
         }
         if (Path is { Count: 0 })
             Path = null;
@@ -188,9 +205,10 @@ public sealed class GameState
     private bool Fight(Hero hero, MonsterGuard guard)
     {
         string enemy = guard.Name;
+        int enemyCount = guard.Count;
         var report = Battle.Resolve(hero.Army, guard.Army);
         report.Title = $"Combat contre {LowerFirst(enemy)}";
-        LastBattle = report;
+        Emit(new BattleFought(hero, guard, enemyCount, report));
 
         if (report.AttackerWon)
         {
@@ -198,8 +216,8 @@ public sealed class GameState
             AddMessage($"Victoire contre {LowerFirst(enemy)} ! Pertes : {BattleReport.DescribeLosses(report.AttackerLosses)}.");
             if (!Map.Objects.OfType<MonsterGuard>().Any())
             {
-                Outcome = GameOutcome.Victory;
                 AddMessage("La région est libérée de ses monstres. Victoire !");
+                EndGame(GameOutcome.Victory);
             }
             return true;
         }
@@ -215,10 +233,11 @@ public sealed class GameState
         Path = null;
         if (CurrentHero == hero)
             CurrentHero = hero.Owner.Heroes.FirstOrDefault();
+        Emit(new HeroDefeated(hero));
         if (hero.Owner == Players[0] && hero.Owner.IsDefeated)
         {
-            Outcome = GameOutcome.Defeat;
             AddMessage("Vous n'avez plus de héros. Défaite...");
+            EndGame(GameOutcome.Defeat);
         }
     }
 

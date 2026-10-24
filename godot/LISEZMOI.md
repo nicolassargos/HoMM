@@ -14,7 +14,7 @@ L'éditeur Godot n'est pas nécessaire pour développer, seulement pour lancer l
 ## Lancer le jeu
 
 **Avec le script** : double-cliquez sur `godot\lancer.bat`.
-Si Godot n'est pas dans `C:\Godot\Godot_v4.7.2-stable_mono_win64\`, modifiez la ligne `set GODOT=...` du script.
+Le script cherche Godot dans `C:\Godot\` (directement ou dans le sous-dossier `Godot_v4.7.2-stable_mono_win64\`). Ailleurs, définissez la variable d'environnement `GODOT` avec le chemin complet de l'exe.
 
 **À la main**, dans un terminal ouvert dans le dossier `godot` :
 

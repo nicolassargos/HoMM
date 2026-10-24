@@ -251,6 +251,9 @@ public sealed class GameState
 
     // ------------------------------------------------------------------ villes
 
+    /// <summary>Le héros qui se trouve dans la ville (sur sa case), s'il y en a un.</summary>
+    public Hero? VisitingHero(Town town) => AllHeroes.FirstOrDefault(h => h.Position == town.Position);
+
     /// <summary>Construit un bâtiment dans une ville du joueur courant.</summary>
     public BuildResult Build(Town town, string buildingId)
     {

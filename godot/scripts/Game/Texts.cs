@@ -100,6 +100,40 @@ public static class Texts
         ? $"Assaut de {town.Name}"
         : $"Combat contre {Enemy(battle)}";
 
+    // -------------------------------------------------------------- villes
+
+    /// <summary>Un coût : « 2500 or, 10 bois », ou « Gratuit ».</summary>
+    public static string Cost(IReadOnlyDictionary<ResourceType, int> cost) =>
+        cost.Count == 0 ? "Gratuit" : string.Join(", ", cost.Select(c => $"{c.Value} {Resource(c.Key)}"));
+
+    /// <summary>Le texte du bouton de construction, selon ce que disent les règles.</summary>
+    public static string BuildStatus(BuildResult result, Town town, BuildingType building) => result switch
+    {
+        BuildResult.Ok => "Construire",
+        BuildResult.AlreadyBuilt => "Construit",
+        BuildResult.AlreadyBuiltToday => "Un bâtiment par jour",
+        BuildResult.MissingRequirement => "Requiert : " + string.Join(", ",
+            town.Buildings.Where(b => building.Requires.Contains(b.Id) && !town.Has(b.Id)).Select(b => b.Name)),
+        BuildResult.NotEnoughResources => "Ressources insuffisantes",
+        BuildResult.NotOwner => "Ville ennemie",
+        _ => result.ToString(),
+    };
+
+    /// <summary>Ce qu'apporte un bâtiment, en une ligne.</summary>
+    public static string BuildingEffect(Town town, BuildingType building) => building switch
+    {
+        { Dwelling: not null } when town.DwellingCreature(building) is { } creature => town.Has(building.Id)
+            ? Dwelling(creature, town.Available.GetValueOrDefault(creature))
+            : $"Produit des {creature.Plural} (+{creature.Growth} par semaine)",
+        { DailyGold: > 0 } => $"+{building.DailyGold} or par jour",
+        { Tavern: true } => "Permet de recruter des héros",
+        _ => "",
+    };
+
+    /// <summary>Ce que produit une habitation : « 14 Piquiers disponibles (+14 par semaine) ».</summary>
+    public static string Dwelling(CreatureType creature, int available) =>
+        $"{available} {Creature(creature, available)} disponible{(available > 1 ? "s" : "")} (+{creature.Growth} par semaine)";
+
     public static string GameOverTitle(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire" : "Défaite";
 
     public static string GameOverText(GameOutcome outcome) => outcome == GameOutcome.Victory

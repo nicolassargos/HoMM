@@ -6,32 +6,32 @@ using HoMM.Core;
 namespace HoMM.Game;
 
 /// <summary>
-/// Point d'entrée du jeu : crée la partie, les calques de la carte, la caméra et l'interface,
-/// puis gère les commandes du joueur.
+/// Point d'entrée du jeu : crée la partie, les calques de la carte, la caméra, le panneau
+/// et l'écran de ville, puis relie les commandes du joueur aux règles.
 ///
 /// Commandes :
 ///   Clic gauche sur une case : affiche le chemin. Second clic : le héros part.
 ///   Espace : continuer le chemin tracé.        Clic droit / Échap : annuler le chemin.
 ///   Flèches / ZQSD / souris au bord : défilement.   C : recentrer sur le héros.
-///   Entrée ou bouton : fin du tour.
+///   Clic sur sa ville quand le héros y est : écran de ville.   Entrée ou bouton : fin du tour.
 ///
 /// Lancer avec une graine fixe : ajouter « -- --seed=42 » à la ligne de commande.
 /// </summary>
 public partial class Main : Node2D
 {
-    private const int T = MapRenderer.TileSize;
     private const double StepDuration = 0.09; // secondes par case pendant la marche
-    private const float ScrollSpeed = 700;
 
     private GameState _state = null!;
     private ActorLayer _actors = null!;
-    private Camera2D _camera = null!;
+    private MapCamera _camera = null!;
     private Hud _hud = null!;
+    private TownScreen _townScreen = null!;
 
-    private Vector2 _viewSize;   // taille de la zone de carte visible, en pixels
-    private Vector2 _cameraPos;  // coin haut-gauche de la carte visible, en pixels
     private bool _walking;
     private double _stepTimer;
+
+    /// <summary>Ville à ouvrir dès que les fenêtres (compte rendu de combat…) sont fermées.</summary>
+    private Town? _townToOpen;
 
     public override void _Ready()
     {
@@ -42,22 +42,25 @@ public partial class Main : Node2D
             _state.CurrentPlayer.Fog.Reveal(new Cell(_state.Map.Width / 2, _state.Map.Height / 2), _state.Map.Width + _state.Map.Height);
 
         var screen = GetViewportRect().Size;
-        _viewSize = new Vector2(screen.X - Hud.PanelWidth, screen.Y - Hud.TopBarHeight);
 
         AddChild(new TerrainLayer { Map = _state.Map });
         _actors = new ActorLayer { State = _state };
         AddChild(_actors);
         AddChild(new FogLayer { State = _state });
 
-        _camera = new Camera2D { AnchorMode = Camera2D.AnchorModeEnum.FixedTopLeft };
-        AddChild(_camera);
-        _camera.MakeCurrent();
-
         _hud = new Hud();
         AddChild(_hud);
         _hud.Build(_state, screen);
         _hud.EndTurnPressed += EndTurn;
-        _hud.Minimap.Clicked += cell => MoveCameraTo(cell * T - _viewSize / 2);
+
+        _camera = new MapCamera();
+        AddChild(_camera);
+        _camera.Setup(_state.Map, screen, _hud.Minimap);
+        _hud.Minimap.Clicked += cells => _camera.CenterOn(cells);
+
+        _townScreen = new TownScreen();
+        AddChild(_townScreen);
+        _townScreen.Build(_state, screen);
 
         CenterOnHero();
     }
@@ -76,49 +79,16 @@ public partial class Main : Node2D
         Godot.FileAccess.GetFileAsString("res://data/creatures.json"),
         Godot.FileAccess.GetFileAsString("res://data/buildings.json"));
 
-    /// <summary>Les commandes de la carte sont ignorées pendant une fenêtre ou une fois la partie finie.</summary>
-    private bool CanAct => !_walking && !_hud.IsDialogOpen && _state.Outcome == GameOutcome.Playing;
+    /// <summary>Le joueur regarde la carte (pas de fenêtre ni d'écran de ville ouverts).</summary>
+    private bool OnMap => !_hud.IsDialogOpen && !_townScreen.IsOpen;
 
-    // ------------------------------------------------------------------ caméra
-
-    private void MoveCameraTo(Vector2 topLeft)
-    {
-        var mapSize = new Vector2(_state.Map.Width, _state.Map.Height) * T;
-        _cameraPos = topLeft.Clamp(Vector2.Zero, (mapSize - _viewSize).Max(Vector2.Zero));
-        // La caméra montre aussi la barre du haut : on la décale d'autant
-        _camera.Position = _cameraPos - new Vector2(0, Hud.TopBarHeight);
-        _hud.Minimap.VisibleCells = new Rect2(_cameraPos / T, _viewSize / T);
-    }
+    /// <summary>Les commandes de la carte sont ignorées pendant la marche, hors de la carte, ou une fois la partie finie.</summary>
+    private bool CanAct => !_walking && OnMap && _state.Outcome == GameOutcome.Playing;
 
     private void CenterOnHero()
     {
-        if (_state.CurrentHero is not { } current)
-            return;
-        var hero = current.Position;
-        MoveCameraTo(new Vector2(hero.X + 0.5f, hero.Y + 0.5f) * T - _viewSize / 2);
-    }
-
-    /// <summary>Recentre la vue quand le héros approche du bord.</summary>
-    private void FollowHero()
-    {
-        if (_state.CurrentHero is not { } hero)
-            return;
-        var onScreen = ActorLayer.ToPixels(hero.Position) - _cameraPos;
-        const float margin = 3 * T;
-        if (onScreen.X < margin || onScreen.Y < margin
-            || onScreen.X > _viewSize.X - margin || onScreen.Y > _viewSize.Y - margin)
-            CenterOnHero();
-    }
-
-    /// <summary>Case sous la souris, ou null si la souris est sur l'interface ou hors de la carte.</summary>
-    private Cell? HoveredCell()
-    {
-        var mouse = GetViewport().GetMousePosition();
-        if (mouse.X >= _viewSize.X || mouse.Y < Hud.TopBarHeight)
-            return null;
-        var world = GetGlobalMousePosition();
-        var cell = new Cell(Mathf.FloorToInt(world.X / T), Mathf.FloorToInt(world.Y / T));
-        return _state.Map.InBounds(cell) ? cell : null;
+        if (_state.CurrentHero is { } hero)
+            _camera.CenterOn(hero.Position);
     }
 
     // ------------------------------------------------------------------ règles
@@ -134,6 +104,13 @@ public partial class Main : Node2D
     {
         if (!CanAct || !_state.CurrentPlayer.Fog.IsExplored(cell))
             return;
+        // Clic sur sa ville, avec le héros dedans : on ouvre l'écran de ville
+        if (_state.CurrentHero is { } hero && hero.Position == cell
+            && _state.Map.ObjectAt(cell) is Town town && town.Owner == _state.CurrentPlayer)
+        {
+            _townScreen.Open(town);
+            return;
+        }
         if (_state.Path is { Count: > 0 } path && path[^1] == cell)
             StartWalking();
         else
@@ -159,10 +136,12 @@ public partial class Main : Node2D
 
     public override void _UnhandledInput(InputEvent e)
     {
+        if (!OnMap)
+            return;
         switch (e)
         {
             case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left }:
-                if (HoveredCell() is { } cell)
+                if (_camera.HoveredCell() is { } cell)
                     ClickCell(cell);
                 break;
             case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Right }:
@@ -183,8 +162,9 @@ public partial class Main : Node2D
 
     public override void _Process(double delta)
     {
-        ScrollCamera((float)delta);
-        _actors.Hovered = HoveredCell();
+        if (OnMap)
+            _camera.Scroll((float)delta);
+        _actors.Hovered = OnMap ? _camera.HoveredCell() : null;
         _hud.Refresh(_actors.Hovered);
 
         if (_walking)
@@ -199,50 +179,44 @@ public partial class Main : Node2D
         }
 
         HandleEvents();
+
+        if (_townToOpen != null && !_hud.IsDialogOpen && _state.Outcome == GameOutcome.Playing)
+        {
+            _townScreen.Open(_townToOpen);
+            _townToOpen = null;
+        }
     }
 
     /// <summary>Montre à l'écran ce que les règles viennent de faire.</summary>
     private void HandleEvents()
     {
+        var viewer = _state.Players[0];
         foreach (var e in _state.TakeEvents())
         {
-            if (Texts.Message(e, _state.Players[0]) is { } message)
+            if (Texts.Message(e, viewer) is { } message)
                 _hud.AddMessage(message);
 
             switch (e)
             {
-                case HeroMoved:
-                    FollowHero();
+                case HeroMoved moved:
+                    _camera.Follow(moved.To);
                     break;
                 case BattleFought battle:
                     _walking = false;
                     _hud.ShowBattle(battle);
                     break;
+                case TownEntered entered when entered.Hero.Owner == viewer:
+                    _townToOpen = entered.Town;
+                    break;
+                case TownCaptured captured when captured.Hero.Owner == viewer:
+                    _townToOpen = captured.Town;
+                    break;
                 case GameEnded end:
                     _walking = false;
+                    _townScreen.Close();
                     _hud.ShowGameOver(end.Outcome, () => GetTree().ReloadCurrentScene());
                     break;
             }
         }
-    }
-
-    private void ScrollCamera(float delta)
-    {
-        var direction = Vector2.Zero;
-        var mouse = GetViewport().GetMousePosition();
-        bool edges = GetWindow().HasFocus() && GetViewport().GetVisibleRect().HasPoint(mouse);
-
-        // Touches physiques : ZQSD sur un clavier AZERTY = WASD sur un clavier QWERTY
-        if (Input.IsKeyPressed(Key.Left) || Input.IsPhysicalKeyPressed(Key.A) || (edges && mouse.X < 4))
-            direction.X -= 1;
-        if (Input.IsKeyPressed(Key.Right) || Input.IsPhysicalKeyPressed(Key.D) || (edges && mouse.X > _viewSize.X - 4 && mouse.X < _viewSize.X))
-            direction.X += 1;
-        if (Input.IsKeyPressed(Key.Up) || Input.IsPhysicalKeyPressed(Key.W) || (edges && mouse.Y < 4))
-            direction.Y -= 1;
-        if (Input.IsKeyPressed(Key.Down) || Input.IsPhysicalKeyPressed(Key.S) || (edges && mouse.Y > GetViewportRect().Size.Y - 4 && mouse.X < _viewSize.X))
-            direction.Y += 1;
-
-        if (direction != Vector2.Zero)
-            MoveCameraTo(_cameraPos + direction * ScrollSpeed * delta);
     }
 }

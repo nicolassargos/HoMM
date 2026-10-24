@@ -53,12 +53,13 @@ public sealed class Town : MapObject
             return BuildResult.NotOwner;
         if (Has(building.Id))
             return BuildResult.AlreadyBuilt;
-        if (BuiltToday)
-            return BuildResult.AlreadyBuiltToday;
+        // Les raisons durables d'abord : c'est ce que le joueur a besoin de savoir
         if (building.Requires.Any(r => !Has(r)))
             return BuildResult.MissingRequirement;
         if (!player.CanAfford(building.Cost))
             return BuildResult.NotEnoughResources;
+        if (BuiltToday)
+            return BuildResult.AlreadyBuiltToday;
         return BuildResult.Ok;
     }
 

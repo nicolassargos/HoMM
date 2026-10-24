@@ -89,6 +89,7 @@ public class TownTests
         var entered = Assert.IsType<TownEntered>(state.TakeEvents()[^1]);
         Assert.Same(town, entered.Town);
         Assert.Equal(town.Position, state.CurrentHero!.Position);
+        Assert.Same(state.CurrentHero, state.VisitingHero(town));
     }
 
     [Fact]
@@ -119,6 +120,8 @@ public class TownTests
         Assert.Equal(new BuildingBuilt(town, B("taverne")), state.TakeEvents().OfType<BuildingBuilt>().Single());
 
         Assert.Equal(BuildResult.AlreadyBuiltToday, state.Build(town, "tour-archers"));
+        // Ce qui manque durablement passe avant « un bâtiment par jour »
+        Assert.Equal(BuildResult.MissingRequirement, state.Build(town, "caserne"));
         state.EndTurn();
         Assert.Equal(BuildResult.Ok, state.Build(town, "tour-archers"));
     }

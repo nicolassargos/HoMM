@@ -45,11 +45,16 @@ Découpage :
    `godot/data/buildings.json` (salle du village → hôtel de ville → grand hôtel de ville,
    taverne, 7 habitations avec prérequis), un bâtiment par jour, revenus en or,
    créatures disponibles chaque semaine. La ville est dessinée sur la carte.
-2. Recrutement : acheter les créatures disponibles, vers la garnison (ou le héros présent) ;
-   échanger des troupes entre le héros et la garnison.
-3. Écran de ville (plein écran) ; découper `Main.cs` (caméra, commandes).
+2. ✅ Écran de ville (plein écran) : bâtiments (coût, effet, prérequis, bouton Construire),
+   garnison et héros présent. S'ouvre en entrant dans sa ville (ou en la prenant), ou en
+   cliquant sur sa ville quand le héros y est. `Main.cs` découpé : caméra dans `MapCamera.cs`,
+   outils d'interface dans `Ui.cs`.
+3. Recrutement : acheter les créatures disponibles, vers la garnison (ou le héros présent) ;
+   échanger des troupes entre le héros et la garnison (dans l'écran de ville).
 4. Second héros recruté à la taverne, et passage d'un héros à l'autre.
-5. Équilibrage : relever `MaxGuardTier`, vérifier que la victoire est atteignable,
+5. **Ville sur 3×3 cases avec une entrée** (important) : la ville occupe 9 cases
+   infranchissables, le héros y entre par une case d'entrée. À faire avant la fin de l'étape 2.
+6. Équilibrage : relever `MaxGuardTier`, vérifier que la victoire est atteignable,
    ajuster la garnison de la ville neutre (aujourd'hui facile : 0 à 4 pertes).
 
 ### 3. Progression du héros

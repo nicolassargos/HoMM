@@ -37,6 +37,7 @@ Pour le développement, `-- --reveal` retire le brouillard de guerre.
 | Annuler le chemin | Clic droit ou Échap |
 | Faire défiler la carte | Flèches, ZQSD, souris au bord de l'écran, clic sur la mini-carte |
 | Recentrer sur le héros | C |
+| Écran de ville | Entrer dans sa ville, ou clic sur sa ville quand le héros y est (Échap pour revenir) |
 | Fin du tour | Bouton « Fin du tour » ou Entrée |
 
 Points verts : cases atteignables aujourd'hui. Points rouges : il faudra les jours suivants.
@@ -64,10 +65,13 @@ Le code est séparé en deux parties :
   - `Player.cs`, `Hero.cs` : trésor, mines, héros, armée, points de mouvement
   - `GameState.cs` : la partie (joueurs et tours, calendrier, déplacement, combats, victoire et défaite, journal)
 - `scripts/Game/` : **l'affichage et les commandes avec Godot**
-  - `Main.cs` : point d'entrée, caméra, souris et clavier
+  - `Main.cs` : point d'entrée, relie les commandes du joueur aux règles et les événements à l'affichage
+  - `MapCamera.cs` : caméra de la carte (défilement, recentrage)
   - `TerrainLayer.cs`, `ActorLayer.cs`, `FogLayer.cs` : les calques de la carte
   - `MapRenderer.cs` : dessin des tuiles, objets et du héros (à remplacer plus tard par des images)
-  - `Hud.cs`, `Minimap.cs`, `ResourceIcon.cs` : l'interface
+  - `Hud.cs`, `Minimap.cs`, `ResourceIcon.cs` : le panneau et la barre du haut
+  - `TownScreen.cs` : l'écran de ville
+  - `Ui.cs` : couleurs et outils communs à l'interface
   - `Texts.cs` : tous les textes affichés (noms, date, journal). Sans Godot, donc testé avec les règles
 - `scenes/Main.tscn` : la seule scène, un nœud vide qui porte `Main.cs`.
 - `data/creatures.json`, `data/buildings.json` : les créatures et les bâtiments (modifiables sans toucher au code).

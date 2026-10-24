@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using HoMM.Core;
+using static HoMM.Game.Ui;
 
 namespace HoMM.Game;
 
@@ -13,11 +14,6 @@ public partial class Hud : CanvasLayer
 {
     public const int PanelWidth = 256;
     public const int TopBarHeight = 32;
-
-    private static readonly Color PanelColor = MapRenderer.Rgb(40, 32, 24);
-    private static readonly Color BorderColor = MapRenderer.Rgb(190, 160, 90);
-    private static readonly Color TextColor = MapRenderer.Rgb(240, 228, 200);
-    private static readonly Color SoftTextColor = MapRenderer.Rgb(180, 168, 140);
 
     private readonly Dictionary<ResourceType, Label> _resourceLabels = new();
     private GameState _state = null!;
@@ -132,19 +128,9 @@ public partial class Hud : CanvasLayer
         y += 60;
 
         // ---- Bouton de fin de tour et journal
-        var endTurn = new Button
-        {
-            Text = "Fin du tour",
-            Position = new Vector2(margin + 8, screenSize.Y - 60),
-            Size = new Vector2(innerWidth - 16, 42),
-            FocusMode = Control.FocusModeEnum.None, // sinon Espace/Entrée « cliqueraient » le bouton
-        };
-        endTurn.AddThemeFontSizeOverride("font_size", 22);
-        endTurn.AddThemeColorOverride("font_color", TextColor);
-        endTurn.AddThemeColorOverride("font_hover_color", Colors.White);
-        endTurn.AddThemeStyleboxOverride("normal", Box(MapRenderer.Rgb(90, 66, 30), BorderColor, 2, 2, 2, 2, radius: 6));
-        endTurn.AddThemeStyleboxOverride("hover", Box(MapRenderer.Rgb(120, 90, 40), BorderColor, 2, 2, 2, 2, radius: 6));
-        endTurn.AddThemeStyleboxOverride("pressed", Box(MapRenderer.Rgb(70, 50, 20), BorderColor, 2, 2, 2, 2, radius: 6));
+        var endTurn = MakeButton("Fin du tour", 22);
+        endTurn.Position = new Vector2(margin + 8, screenSize.Y - 60);
+        endTurn.Size = new Vector2(innerWidth - 16, 42);
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
         panel.AddChild(endTurn);
 
@@ -316,35 +302,4 @@ public partial class Hud : CanvasLayer
         dialog.PopupCentered(new Vector2I(360, 0));
     }
 
-    // ------------------------------------------------------------------ outils
-
-    private static T At<T>(T control, float x, float y) where T : Control
-    {
-        control.Position = new Vector2(x, y);
-        return control;
-    }
-
-    private static Label MakeLabel(string text, int fontSize, Color color)
-    {
-        var label = new Label { Text = text, MouseFilter = Control.MouseFilterEnum.Ignore };
-        label.AddThemeFontSizeOverride("font_size", fontSize);
-        label.AddThemeColorOverride("font_color", color);
-        return label;
-    }
-
-    private static StyleBoxFlat Box(Color background, Color? border,
-        int left = 0, int top = 0, int right = 0, int bottom = 0, int radius = 0)
-    {
-        var box = new StyleBoxFlat { BgColor = background };
-        if (border is { } b)
-        {
-            box.BorderColor = b;
-            box.BorderWidthLeft = left;
-            box.BorderWidthTop = top;
-            box.BorderWidthRight = right;
-            box.BorderWidthBottom = bottom;
-        }
-        box.SetCornerRadiusAll(radius);
-        return box;
-    }
 }

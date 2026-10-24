@@ -47,8 +47,32 @@ public sealed class GameState
     /// <summary>Jour écoulé depuis le début (0 = premier jour).</summary>
     public int Day { get; private set; }
 
-    /// <summary>Chemin prévu pour le héros, ou null.</summary>
-    public List<Cell>? Path { get; private set; }
+    /// <summary>Chemin prévu pour le héros sélectionné, ou null. Chaque héros garde le sien.</summary>
+    public List<Cell>? Path
+    {
+        get => CurrentHero is { } hero ? _paths.GetValueOrDefault(hero) : null;
+        private set
+        {
+            if (CurrentHero is not { } hero)
+                return;
+            if (value == null)
+                _paths.Remove(hero);
+            else
+                _paths[hero] = value;
+        }
+    }
+
+    private readonly Dictionary<Hero, List<Cell>> _paths = new();
+
+    /// <summary>Prix d'un héros à la taverne, en or (comme dans Heroes 3).</summary>
+    public const int HeroCost = 2500;
+
+    /// <summary>Nombre maximal de héros par joueur.</summary>
+    public const int MaxHeroesPerPlayer = 8;
+
+    /// <summary>Les héros qu'on peut recruter dans les tavernes, dans l'ordre (données de jeu, comme les noms de villes).</summary>
+    private static readonly string[] HeroNames =
+        { "Dame Isolde", "Sire Gauvain", "Dame Morgane", "Sire Perceval", "Dame Viviane", "Sire Tristan", "Dame Enide", "Sire Yvain" };
 
     private readonly List<GameEvent> _events = new();
 
@@ -89,10 +113,9 @@ public sealed class GameState
 
         if (_currentPlayer <= previous)
             NewDay();
-        // Le chemin prévu est gardé d'un jour à l'autre, sauf si c'est au tour d'un autre joueur
+        // Les chemins prévus sont gardés d'un jour à l'autre (chaque héros a le sien)
         if (_currentPlayer != previous)
         {
-            Path = null;
             CurrentHero = CurrentPlayer.Heroes.FirstOrDefault();
             Emit(new TurnStarted(CurrentPlayer));
         }
@@ -135,10 +158,31 @@ public sealed class GameState
         // Un clic sur les murs d'une ville mène à son entrée
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        Path = Pathfinder.FindPath(Map, hero.Position, target);
+        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero));
     }
 
     public void ClearPath() => Path = null;
+
+    /// <summary>Les cases des autres héros : on ne peut pas les traverser.</summary>
+    private HashSet<Cell> OtherHeroCells(Hero hero) =>
+        AllHeroes.Where(h => h != hero).Select(h => h.Position).ToHashSet();
+
+    /// <summary>Sélectionne un héros du joueur courant (son chemin prévu est retrouvé).</summary>
+    public void SelectHero(Hero hero)
+    {
+        if (hero.Owner == CurrentPlayer && hero.Owner.Heroes.Contains(hero))
+            CurrentHero = hero;
+    }
+
+    /// <summary>Le héros suivant du joueur courant (pour passer de l'un à l'autre).</summary>
+    public void SelectNextHero()
+    {
+        var heroes = CurrentPlayer.Heroes;
+        if (heroes.Count == 0)
+            return;
+        int index = CurrentHero is { } hero ? heroes.IndexOf(hero) : -1;
+        CurrentHero = heroes[(index + 1) % heroes.Count];
+    }
 
     public bool CanStartWalking =>
         Outcome == GameOutcome.Playing && CurrentHero is { } hero && Path is { Count: > 0 } && hero.CanStepTo(Map, Path[0]);
@@ -153,6 +197,10 @@ public sealed class GameState
             return false;
         var hero = CurrentHero!;
         var next = Path![0];
+
+        // Un autre héros est sur le chemin : on s'arrête (le chemin reste prévu)
+        if (AllHeroes.Any(h => h != hero && h.Position == next))
+            return false;
 
         // Attaque directe d'un monstre voisin : le héros reste sur sa case
         if (Map.ObjectAt(next) is MonsterGuard target)
@@ -224,7 +272,7 @@ public sealed class GameState
     private void RemoveHero(Hero hero)
     {
         hero.Owner.Heroes.Remove(hero);
-        Path = null;
+        _paths.Remove(hero);
         if (CurrentHero == hero)
             CurrentHero = hero.Owner.Heroes.FirstOrDefault();
         Emit(new HeroDefeated(hero));
@@ -307,6 +355,49 @@ public sealed class GameState
             return false;
         Emit(new StackTransferred(town, hero, type, count, fromGarrison));
         return true;
+    }
+
+    /// <summary>Peut-on recruter un héros dans cette ville ?</summary>
+    public HireResult CanHireHero(Town town)
+    {
+        if (town.Owner != CurrentPlayer || Outcome != GameOutcome.Playing)
+            return HireResult.NotOwner;
+        if (!town.Buildings.Any(b => b.Tavern && town.Has(b.Id)))
+            return HireResult.NoTavern;
+        if (CurrentPlayer.Heroes.Count >= MaxHeroesPerPlayer)
+            return HireResult.TooManyHeroes;
+        if (NextHeroName() == null)
+            return HireResult.NoHeroLeft;
+        if (VisitingHero(town) != null)
+            return HireResult.TownOccupied;
+        if (CurrentPlayer.Resources.GetValueOrDefault(ResourceType.Gold) < HeroCost)
+            return HireResult.NotEnoughGold;
+        return HireResult.Ok;
+    }
+
+    /// <summary>
+    /// Recrute un héros à la taverne d'une ville : il apparaît à l'entrée de la ville avec quelques
+    /// créatures du premier niveau, et devient le héros sélectionné.
+    /// </summary>
+    public HireResult HireHero(Town town)
+    {
+        var result = CanHireHero(town);
+        if (result != HireResult.Ok)
+            return result;
+        CurrentPlayer.Resources[ResourceType.Gold] -= HeroCost;
+        var hero = new Hero(NextHeroName()!, CurrentPlayer, town.Position);
+        var firstTier = Creatures.All.Where(c => c.Faction == town.Faction).OrderBy(c => c.Tier).First();
+        hero.Army.Add(firstTier, 12);
+        CurrentHero = hero;
+        Emit(new HeroHired(hero, town));
+        return HireResult.Ok;
+    }
+
+    /// <summary>Le premier nom de héros pas encore utilisé dans la partie.</summary>
+    private string? NextHeroName()
+    {
+        var used = AllHeroes.Select(h => h.Name).ToHashSet();
+        return HeroNames.FirstOrDefault(n => !used.Contains(n));
     }
 
     /// <summary>Le héros qui se trouve dans la ville (sur sa case), s'il y en a un.</summary>

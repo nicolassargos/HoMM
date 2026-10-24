@@ -24,6 +24,8 @@ public partial class Hud : CanvasLayer
     private Label _army = null!;
     private Label _mines = null!;
     private HFlowContainer _towns = null!;
+    private HFlowContainer _heroes = null!;
+    private string? _heroesKey;
     private string? _townsKey;
 
     // Prévision de combat mise en cache : la simulation n'est refaite que si quelque chose change
@@ -39,6 +41,9 @@ public partial class Hud : CanvasLayer
 
     /// <summary>Le joueur a cliqué sur une de ses villes dans la liste.</summary>
     public event Action<Town>? TownClicked;
+
+    /// <summary>Le joueur a cliqué sur un de ses héros dans la liste.</summary>
+    public event Action<Hero>? HeroClicked;
 
     public void Build(GameState state, Vector2 screenSize)
     {
@@ -120,6 +125,13 @@ public partial class Hud : CanvasLayer
         panel.AddChild(_army);
         y += 122;
 
+        // La liste des héros du joueur : un clic sélectionne le héros (celui en cours est mis en valeur)
+        _heroes = new HFlowContainer { Position = new Vector2(margin, y), Size = new Vector2(innerWidth, 28) };
+        _heroes.AddThemeConstantOverride("h_separation", 6);
+        _heroes.AddThemeConstantOverride("v_separation", 4);
+        panel.AddChild(_heroes);
+        y += 34;
+
         // La liste des villes du joueur : un bouton par ville ouvre son écran
         _towns = new HFlowContainer { Position = new Vector2(margin, y), Size = new Vector2(innerWidth, 28) };
         _towns.AddThemeConstantOverride("h_separation", 6);
@@ -134,10 +146,10 @@ public partial class Hud : CanvasLayer
         y += 40;
 
         _hover = At(MakeLabel("", 13, SoftTextColor), margin, y);
-        _hover.Size = new Vector2(innerWidth, 54);
+        _hover.Size = new Vector2(innerWidth, 48);
         _hover.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         panel.AddChild(_hover);
-        y += 60;
+        y += 52;
 
         // ---- Bouton de fin de tour et journal
         var endTurn = MakeButton("Fin du tour", 22);
@@ -181,6 +193,7 @@ public partial class Hud : CanvasLayer
             _army.Text = "";
         }
 
+        RefreshHeroes(player);
         RefreshTowns(player);
         var income = player.DailyIncome();
         _mines.Text = $"Mines : {player.Mines.Count}\n"
@@ -192,6 +205,31 @@ public partial class Hud : CanvasLayer
         string log = string.Join("\n", _messages.TakeLast(4));
         if (_log.Text != log)
             _log.Text = log;
+    }
+
+    /// <summary>Reconstruit les boutons des héros, seulement quand la liste ou la sélection change.</summary>
+    private void RefreshHeroes(Player player)
+    {
+        string key = string.Join("|", player.Heroes.Select(h => h.Name)) + "#" + _state.CurrentHero?.Name;
+        if (key == _heroesKey)
+            return;
+        _heroesKey = key;
+
+        foreach (var child in _heroes.GetChildren())
+        {
+            _heroes.RemoveChild(child);
+            child.QueueFree();
+        }
+        _heroes.AddChild(MakeLabel("Héros :", 13, SoftTextColor));
+        foreach (var hero in player.Heroes)
+        {
+            var button = MakeButton(hero.Name, 13);
+            button.CustomMinimumSize = new Vector2(0, 26);
+            if (hero == _state.CurrentHero) // le héros sélectionné : bordure claire
+                button.AddThemeStyleboxOverride("normal", Box(MapRenderer.Rgb(120, 90, 40), Colors.White, 2, 2, 2, 2, radius: 6));
+            button.Pressed += () => HeroClicked?.Invoke(hero);
+            _heroes.AddChild(button);
+        }
     }
 
     /// <summary>Reconstruit les boutons des villes, seulement quand la liste change.</summary>

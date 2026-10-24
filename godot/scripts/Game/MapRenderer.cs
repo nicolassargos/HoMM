@@ -269,6 +269,20 @@ public static class MapRenderer
         Triangle(ci, c + V(-8, -26), c + V(4, -23 + wave), c + V(-8, -18), PlayerColor);
     }
 
+    /// <summary>L'anneau doré (légèrement pulsant) sous le héros sélectionné.</summary>
+    public static void DrawSelection(CanvasItem ci, Vector2 c, double time)
+    {
+        float pulse = 0.75f + 0.25f * (float)Math.Sin(time * 4);
+        var gold = new Color(1f, 0.85f, 0.3f, pulse);
+        var points = new Vector2[25];
+        for (int i = 0; i < points.Length; i++)
+        {
+            float angle = Mathf.Tau * i / (points.Length - 1);
+            points[i] = c + new Vector2(Mathf.Cos(angle) * 19, Mathf.Sin(angle) * 7);
+        }
+        ci.DrawPolyline(points, gold, 2.5f);
+    }
+
     /// <summary>Marque de chemin : un point, ou une croix pour la destination.</summary>
     public static void DrawPathMarker(CanvasItem ci, Vector2 c, bool reachable, bool isDestination)
     {

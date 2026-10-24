@@ -14,6 +14,7 @@ namespace HoMM.Game;
 ///   Espace : continuer le chemin tracé.        Clic droit / Échap : annuler le chemin.
 ///   Flèches / ZQSD / souris au bord : défilement.   C : recentrer sur le héros.
 ///   Clic sur les murs de sa ville, liste des villes du panneau, ou T : écran de ville.
+///   Clic sur un de ses héros, liste des héros du panneau, ou H : changer de héros.
 ///   Entrée ou bouton : fin du tour.
 ///
 /// Lancer avec une graine fixe : ajouter « -- --seed=42 » à la ligne de commande.
@@ -54,6 +55,7 @@ public partial class Main : Node2D
         _hud.Build(_state, screen);
         _hud.EndTurnPressed += EndTurn;
         _hud.TownClicked += OpenTown;
+        _hud.HeroClicked += SelectHero;
 
         _camera = new MapCamera();
         AddChild(_camera);
@@ -108,6 +110,12 @@ public partial class Main : Node2D
             return;
         // Clic sur sa ville : les murs ouvrent l'écran de ville ; l'entrée y fait entrer le héros
         // (ou ouvre l'écran s'il y est déjà)
+        // Clic sur un autre de ses héros : il devient le héros sélectionné
+        if (_state.CurrentPlayer.Heroes.FirstOrDefault(h => h.Position == cell) is { } clicked && clicked != _state.CurrentHero)
+        {
+            SelectHero(clicked);
+            return;
+        }
         if (_state.Map.OccupantAt(cell) is Town town && town.Owner == _state.CurrentPlayer
             && (cell != town.Position || _state.CurrentHero?.Position == town.Position))
         {
@@ -118,6 +126,15 @@ public partial class Main : Node2D
             StartWalking();
         else
             _state.SetDestination(cell);
+    }
+
+    /// <summary>Sélectionne un héros (liste du panneau, clic sur la carte, touche H) et centre la vue sur lui.</summary>
+    private void SelectHero(Hero hero)
+    {
+        if (!CanAct)
+            return;
+        _state.SelectHero(hero);
+        CenterOnHero();
     }
 
     /// <summary>Ouvre l'écran d'une ville du joueur (depuis la carte, la liste des villes ou la touche T).</summary>
@@ -167,6 +184,10 @@ public partial class Main : Node2D
                     case Key.Escape when !_walking: _state.ClearPath(); break;
                     case Key.C: CenterOnHero(); break;
                     case Key.T when _state.CurrentPlayer.Towns.FirstOrDefault() is { } town: OpenTown(town); break;
+                    case Key.H when CanAct:
+                        _state.SelectNextHero();
+                        CenterOnHero();
+                        break;
                 }
                 break;
         }
@@ -210,7 +231,7 @@ public partial class Main : Node2D
 
             switch (e)
             {
-                case HeroMoved moved:
+                case HeroMoved moved when moved.Hero == _state.CurrentHero:
                     _camera.Follow(moved.To);
                     break;
                 case BattleFought battle:

@@ -40,6 +40,8 @@ Pour le développement, `-- --reveal` retire le brouillard de guerre.
 | Écran de ville | Clic sur les murs de sa ville, sur son nom dans la liste « Villes » du panneau, ou touche T ; aussi en entrant dans la ville (Échap pour revenir) |
 | Recruter | Écran de ville : bouton « Recruter » d'une habitation construite |
 | Échanger des troupes | Écran de ville : clic sur une troupe de la garnison ou du héros |
+| Recruter un héros | Écran de ville : bouton de la taverne (2500 or) |
+| Changer de héros | Clic sur un de ses héros, liste « Héros » du panneau, ou touche H |
 | Fin du tour | Bouton « Fin du tour » ou Entrée |
 
 Points verts : cases atteignables aujourd'hui. Points rouges : il faudra les jours suivants.

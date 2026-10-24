@@ -151,6 +151,19 @@ public static class Texts
         : affordable == 0 ? "Ressources insuffisantes."
         : null;
 
+    /// <summary>Le texte du bouton de la taverne, selon ce que disent les règles.</summary>
+    public static string HireStatus(HireResult result) => result switch
+    {
+        HireResult.Ok => $"Recruter un héros ({GameState.HeroCost} or)",
+        HireResult.TownOccupied => "Un héros est déjà dans la ville",
+        HireResult.NotEnoughGold => $"Il faut {GameState.HeroCost} or",
+        HireResult.TooManyHeroes => $"{GameState.MaxHeroesPerPlayer} héros au maximum",
+        HireResult.NoHeroLeft => "Plus aucun héros à recruter",
+        HireResult.NoTavern => "Il faut une taverne",
+        HireResult.NotOwner => "Ville ennemie",
+        _ => result.ToString(),
+    };
+
     public const string TransferHint = "Cliquez sur une troupe pour la faire passer entre la garnison et le héros.";
 
     public static string GameOverTitle(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire" : "Défaite";
@@ -178,6 +191,8 @@ public static class Texts
         TownEntered entered => $"{entered.Hero.Name} entre dans {entered.Town.Name}.",
         BuildingBuilt built when built.Town.Owner != viewer => null,
         BuildingBuilt built => $"{built.Building.Name} : construit à {built.Town.Name}.",
+        HeroHired hired when hired.Hero.Owner != viewer => null,
+        HeroHired hired => $"{hired.Hero.Name} rejoint vos rangs à {hired.Town.Name} !",
         CreaturesRecruited recruited when recruited.Town.Owner != viewer => null,
         CreaturesRecruited recruited =>
             $"{recruited.Count} {Creature(recruited.Type, recruited.Count)} recruté{(recruited.Count > 1 ? "s" : "")} à {recruited.Town.Name}"

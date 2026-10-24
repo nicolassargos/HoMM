@@ -43,3 +43,9 @@ public sealed record HeroMoved(Hero Hero, Cell From, Cell To) : GameEvent;
 
 /// <summary>Un héros a perdu un combat et disparaît.</summary>
 public sealed record HeroDefeated(Hero Hero) : GameEvent;
+
+/// <summary>Un héros a été recruté à la taverne d'une ville.</summary>
+public sealed record HeroHired(Hero Hero, Town Town) : GameEvent;
+
+/// <summary>Pourquoi un héros peut (ou ne peut pas) être recruté.</summary>
+public enum HireResult { Ok, NotOwner, NoTavern, TooManyHeroes, NoHeroLeft, TownOccupied, NotEnoughGold }

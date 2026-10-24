@@ -35,7 +35,7 @@ On avance étape par étape, sans se presser : chaque étape est jouable et test
 - Écarté pour l'instant : faire résoudre tout un chemin d'un coup par les règles
   (l'affichage devrait alors garder sa propre copie de l'état). À revoir avec l'IA (étape 7).
 
-### 2. Villes (en cours, branche `etape-2-villes`)
+### 2. Villes ✅ (branche `etape-2-villes`)
 Choix faits : la ville est **neutre** au départ, à mi-distance, défendue par une petite
 garnison ; les villes ont une **garnison** (comme dans Heroes) ; bâtiments minimaux ;
 écran de ville en plein écran.
@@ -53,7 +53,10 @@ Découpage :
    coût total) ; les recrues vont dans la garnison, ou chez le héros présent si elle est pleine.
    Un clic sur une troupe la fait passer entre la garnison et le héros (qui garde toujours
    au moins une troupe). Pas encore de partage d'une troupe en deux.
-4. Second héros recruté à la taverne, et passage d'un héros à l'autre.
+4. ✅ Héros recrutés à la taverne (2500 or, 8 héros au maximum, avec 12 créatures du premier
+   niveau), qui apparaissent à l'entrée de la ville (si personne n'y est). Passage d'un héros à
+   l'autre (liste du panneau, clic sur la carte, touche H), anneau doré sous le héros
+   sélectionné. Chaque héros garde son chemin prévu ; les héros ne se traversent pas.
 5. ✅ **Ville sur 3×3 cases avec une entrée** : la ville occupe 9 cases, l'entrée est au
    milieu de la rangée du bas et s'atteint par la case juste en dessous ; les 8 autres sont
    infranchissables. Les objets ont maintenant une « empreinte » (`MapObject.Footprint`),

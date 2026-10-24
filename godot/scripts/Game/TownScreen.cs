@@ -179,6 +179,20 @@ public partial class TownScreen : CanvasLayer
                 recruit.Pressed += () => OpenRecruit(town, creature);
                 content.AddChild(recruit);
             }
+            // La taverne : on peut y recruter un héros
+            if (building.Tavern)
+            {
+                var hire = _state.CanHireHero(town);
+                var hireButton = MakeButton(Texts.HireStatus(hire), 13);
+                hireButton.Disabled = hire != HireResult.Ok;
+                hireButton.ClipText = true;
+                hireButton.Pressed += () =>
+                {
+                    _state.HireHero(town);
+                    Refresh();
+                };
+                content.AddChild(hireButton);
+            }
             return card;
         }
 

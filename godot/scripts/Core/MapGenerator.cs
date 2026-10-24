@@ -11,9 +11,24 @@ namespace HoMM.Core;
 public sealed class MapGenerator
 {
     private readonly Random _rng;
+    private readonly CreatureCatalog? _creatures;
     private AdventureMap _map = null!;
 
-    public MapGenerator(int seed) => _rng = new Random(seed);
+    /// <param name="creatures">Les créatures pour les monstres neutres. Sans catalogue, pas de monstres.</param>
+    public MapGenerator(int seed, CreatureCatalog? creatures = null)
+    {
+        _rng = new Random(seed);
+        _creatures = creatures;
+    }
+
+    /// <summary>Monstres placés n'importe où, en plus de ceux qui gardent les mines et les coffres.</summary>
+    public int WanderingGuardCount { get; init; } = 5;
+
+    /// <summary>
+    /// Niveau maximal des monstres. Limité à 4 tant que le joueur ne peut pas recruter
+    /// (étape 2 : villes), sinon les monstres lointains seraient imbattables.
+    /// </summary>
+    public int MaxGuardTier { get; init; } = 4;
 
     public int MineCount => ResourceInfo.All.Length;
     public int ChestCount { get; init; } = 6;
@@ -26,6 +41,8 @@ public sealed class MapGenerator
         ClearStartArea();
         PaintRoads();
         PlaceObjects();
+        if (_creatures != null)
+            PlaceGuards(_creatures);
         return _map;
     }
 
@@ -144,6 +161,87 @@ public sealed class MapGenerator
             if (next >= free.Count) return;
             _map.AddObject(new ResourcePile(free[next++], pileTypes[_rng.Next(pileTypes.Length)], _rng));
         }
+    }
+
+    /// <summary>Nombre moyen de créatures dans une troupe de monstres, selon leur niveau (1 à 7).</summary>
+    private static readonly int[] GuardBaseCount = { 0, 14, 10, 7, 5, 4, 2, 1 };
+
+    /// <summary>
+    /// Un monstre à côté de chaque mine et de chaque coffre, plus quelques monstres errants.
+    /// Plus on s'éloigne du départ, plus ils sont forts.
+    /// </summary>
+    private void PlaceGuards(CreatureCatalog creatures)
+    {
+        var guarded = _map.Objects.Where(o => o is Mine or TreasureChest)
+            .OrderBy(o => o.Position.Y).ThenBy(o => o.Position.X)
+            .ToList();
+        foreach (var target in guarded)
+        {
+            var spots = Neighbours(target.Position).ToList();
+            Shuffle(spots);
+            foreach (var spot in spots)
+            {
+                if (!CanPlaceGuard(spot))
+                    continue;
+                AddGuard(creatures, spot);
+                break;
+            }
+        }
+
+        var wandering = ReachableCells().Where(CanPlaceGuard)
+            .OrderBy(c => c.Y).ThenBy(c => c.X)
+            .ToList();
+        Shuffle(wandering);
+        int placed = 0;
+        foreach (var cell in wandering)
+        {
+            if (placed == WanderingGuardCount)
+                break;
+            if (!CanPlaceGuard(cell))
+                continue;
+            AddGuard(creatures, cell);
+            placed++;
+        }
+    }
+
+    private static IEnumerable<Cell> Neighbours(Cell c)
+    {
+        for (int dy = -1; dy <= 1; dy++)
+        for (int dx = -1; dx <= 1; dx++)
+            if (dx != 0 || dy != 0)
+                yield return c.Offset(dx, dy);
+    }
+
+    /// <summary>
+    /// Une case libre, assez loin du départ, et assez loin des autres monstres
+    /// pour que leurs zones de contrôle ne se chevauchent pas.
+    /// </summary>
+    private bool CanPlaceGuard(Cell c)
+    {
+        if (!_map.IsPassable(c) || _map.ObjectAt(c) != null)
+            return false;
+        if (Math.Max(Math.Abs(c.X - _map.Start.X), Math.Abs(c.Y - _map.Start.Y)) < 4)
+            return false;
+        for (int dy = -2; dy <= 2; dy++)
+        for (int dx = -2; dx <= 2; dx++)
+            if (_map.ObjectAt(c.Offset(dx, dy)) is MonsterGuard)
+                return false;
+        return true;
+    }
+
+    private void AddGuard(CreatureCatalog creatures, Cell cell)
+    {
+        // 0 au départ, 1 au coin opposé de la carte
+        double farthest = Math.Sqrt(_map.Width * _map.Width + _map.Height * _map.Height);
+        double distance = Math.Sqrt(Math.Pow(cell.X - _map.Start.X, 2) + Math.Pow(cell.Y - _map.Start.Y, 2)) / farthest;
+        int tier = Math.Clamp(1 + (int)(distance * 6), 1, MaxGuardTier);
+
+        var candidates = creatures.All.Where(c => c.Tier == tier).OrderBy(c => c.Id).ToList();
+        if (candidates.Count == 0)
+            return;
+        var type = candidates[_rng.Next(candidates.Count)];
+        int baseCount = GuardBaseCount[tier];
+        _map.AddObject(new MonsterGuard(cell, type, _rng.Next(baseCount, 2 * baseCount + 1)));
     }
 
     private void Shuffle<T>(IList<T> list)

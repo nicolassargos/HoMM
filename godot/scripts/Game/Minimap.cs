@@ -39,7 +39,7 @@ public partial class Minimap : Control
         {
             var cell = new Cell(x, y);
             Color color = MapRenderer.FogColor;
-            if (map.IsExplored(cell))
+            if (State.CurrentPlayer.Fog.IsExplored(cell))
             {
                 color = MapRenderer.TerrainColor(map.GetTerrain(cell));
                 if (map.ObjectAt(cell) is Mine mine)
@@ -48,8 +48,11 @@ public partial class Minimap : Control
             DrawRect(new Rect2(x * CellSize, y * CellSize, CellSize, CellSize), color);
         }
 
-        var hero = State.Hero.Position;
-        DrawRect(new Rect2(hero.X * CellSize - 1, hero.Y * CellSize - 1, CellSize + 2, CellSize + 2), Colors.Yellow);
+        foreach (var h in State.CurrentPlayer.Heroes)
+        {
+            var hero = h.Position;
+            DrawRect(new Rect2(hero.X * CellSize - 1, hero.Y * CellSize - 1, CellSize + 2, CellSize + 2), Colors.Yellow);
+        }
         DrawRect(new Rect2(VisibleCells.Position * CellSize, VisibleCells.Size * CellSize), Colors.White, false, 1);
     }
 }

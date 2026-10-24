@@ -26,6 +26,7 @@ C:\Godot\Godot_v4.7.2-stable_mono_win64\Godot_v4.7.2-stable_mono_win64.exe --pat
 **Avec l'éditeur Godot** : ouvrez Godot, « Importer », choisissez `godot/project.godot`, puis appuyez sur F5.
 
 Pour toujours obtenir la même carte, ajoutez une graine : `lancer.bat -- --seed=42`.
+Pour le développement, `-- --reveal` retire le brouillard de guerre.
 
 ## Commandes
 
@@ -40,24 +41,33 @@ Pour toujours obtenir la même carte, ajoutez une graine : `lancer.bat -- --seed
 
 Points verts : cases atteignables aujourd'hui. Points rouges : il faudra les jours suivants.
 
+Les **monstres** attaquent le héros qui entre sur une case voisine. Survolez-les pour voir le danger estimé du combat.
+Le combat est automatique. Perdre son dernier héros fait perdre la partie ; vaincre tous les monstres la fait gagner.
+
 ## Organisation du code
 
 Le code est séparé en deux parties :
 
 - `scripts/Core/` : **les règles du jeu en C# pur**, sans aucune dépendance à Godot.
   On peut les tester sans lancer le jeu, et les réutiliser ailleurs (générateur de cartes, serveur…).
-  - `MapGenerator.cs` : génération aléatoire de la carte (graine = carte reproductible)
-  - `AdventureMap.cs` : terrain, objets, brouillard de guerre
+  - `MapGenerator.cs` : génération aléatoire de la carte (graine = carte reproductible) ; monstres neutres, plus forts loin du départ
+  - `AdventureMap.cs` : terrain, objets, zones de contrôle des monstres
+  - `FogOfWar.cs` : brouillard de guerre (un par joueur)
   - `Pathfinder.cs` : recherche du chemin (A*) avec coûts de terrain
-  - `MapObjects.cs` : tas de ressources, coffres, mines
-  - `Player.cs`, `Hero.cs` : trésor, mines, points de mouvement
-  - `GameState.cs` : la partie (calendrier, fin de tour, déplacement le long du chemin, journal)
+  - `MapObjects.cs` : tas de ressources, coffres, mines, monstres
+  - `Creature.cs` : types de créatures, lus depuis `data/creatures.json`
+  - `Army.cs` : armées (7 troupes au maximum)
+  - `Battle.cs` : combat automatique
+  - `Player.cs`, `Hero.cs` : trésor, mines, héros, armée, points de mouvement
+  - `GameState.cs` : la partie (joueurs et tours, calendrier, déplacement, combats, victoire et défaite, journal)
 - `scripts/Game/` : **l'affichage et les commandes avec Godot**
   - `Main.cs` : point d'entrée, caméra, souris et clavier
   - `TerrainLayer.cs`, `ActorLayer.cs`, `FogLayer.cs` : les calques de la carte
   - `MapRenderer.cs` : dessin des tuiles, objets et du héros (à remplacer plus tard par des images)
   - `Hud.cs`, `Minimap.cs`, `ResourceIcon.cs` : l'interface
+  - `Texts.cs` : tous les textes affichés (noms, date, journal). Sans Godot, donc testé avec les règles
 - `scenes/Main.tscn` : la seule scène, un nœud vide qui porte `Main.cs`.
+- `data/creatures.json` : les caractéristiques des créatures (modifiables sans toucher au code).
 
 Les tests des règles sont dans `tests/HoMM.Core.Tests` (à la racine du dépôt) : `dotnet test`.
 La solution `HoMM.sln` à la racine s'ouvre dans Visual Studio ou Rider.

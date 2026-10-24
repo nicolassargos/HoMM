@@ -1,0 +1,19 @@
+{
+  "creatures": [
+    { "id": "piquier",  "name": "Piquier",  "plural": "Piquiers",  "faction": "chateau", "tier": 1, "attack": 4,  "defense": 5,  "minDamage": 1,  "maxDamage": 3,  "hitPoints": 10,  "speed": 4,  "growth": 14, "cost": { "Gold": 60 } },
+    { "id": "archer",   "name": "Archer",   "plural": "Archers",   "faction": "chateau", "tier": 2, "attack": 6,  "defense": 3,  "minDamage": 2,  "maxDamage": 3,  "hitPoints": 10,  "speed": 4,  "growth": 9,  "cost": { "Gold": 100 } },
+    { "id": "griffon",  "name": "Griffon",  "plural": "Griffons",  "faction": "chateau", "tier": 3, "attack": 8,  "defense": 8,  "minDamage": 3,  "maxDamage": 6,  "hitPoints": 25,  "speed": 6,  "growth": 7,  "cost": { "Gold": 200 } },
+    { "id": "epeiste",  "name": "Épéiste",  "plural": "Épéistes",  "faction": "chateau", "tier": 4, "attack": 10, "defense": 12, "minDamage": 6,  "maxDamage": 9,  "hitPoints": 35,  "speed": 5,  "growth": 4,  "cost": { "Gold": 300 } },
+    { "id": "moine",    "name": "Moine",    "plural": "Moines",    "faction": "chateau", "tier": 5, "attack": 12, "defense": 7,  "minDamage": 10, "maxDamage": 12, "hitPoints": 30,  "speed": 5,  "growth": 3,  "cost": { "Gold": 400 } },
+    { "id": "cavalier", "name": "Cavalier", "plural": "Cavaliers", "faction": "chateau", "tier": 6, "attack": 15, "defense": 15, "minDamage": 15, "maxDamage": 25, "hitPoints": 100, "speed": 7,  "growth": 2,  "cost": { "Gold": 1000 } },
+    { "id": "ange",     "name": "Ange",     "plural": "Anges",     "faction": "chateau", "tier": 7, "attack": 20, "defense": 20, "minDamage": 50, "maxDamage": 50, "hitPoints": 200, "speed": 12, "growth": 1,  "cost": { "Gold": 3000, "Gems": 1 } },
+
+    { "id": "gobelin",  "name": "Gobelin",  "plural": "Gobelins",  "faction": "neutre",  "tier": 1, "attack": 4,  "defense": 2,  "minDamage": 1,  "maxDamage": 2,  "hitPoints": 5,   "speed": 5,  "growth": 15, "cost": { "Gold": 40 } },
+    { "id": "squelette","name": "Squelette","plural": "Squelettes","faction": "neutre",  "tier": 1, "attack": 5,  "defense": 4,  "minDamage": 1,  "maxDamage": 3,  "hitPoints": 6,   "speed": 4,  "growth": 12, "cost": { "Gold": 60 } },
+    { "id": "loup",     "name": "Loup",     "plural": "Loups",     "faction": "neutre",  "tier": 2, "attack": 7,  "defense": 5,  "minDamage": 2,  "maxDamage": 4,  "hitPoints": 10,  "speed": 6,  "growth": 8,  "cost": { "Gold": 100 } },
+    { "id": "orc",      "name": "Orc",      "plural": "Orcs",      "faction": "neutre",  "tier": 3, "attack": 8,  "defense": 4,  "minDamage": 2,  "maxDamage": 5,  "hitPoints": 15,  "speed": 4,  "growth": 7,  "cost": { "Gold": 150 } },
+    { "id": "ogre",     "name": "Ogre",     "plural": "Ogres",     "faction": "neutre",  "tier": 4, "attack": 13, "defense": 7,  "minDamage": 6,  "maxDamage": 12, "hitPoints": 40,  "speed": 4,  "growth": 4,  "cost": { "Gold": 300 } },
+    { "id": "troll",    "name": "Troll",    "plural": "Trolls",    "faction": "neutre",  "tier": 5, "attack": 14, "defense": 10, "minDamage": 10, "maxDamage": 15, "hitPoints": 45,  "speed": 5,  "growth": 3,  "cost": { "Gold": 500 } },
+    { "id": "dragon",   "name": "Dragon vert","plural": "Dragons verts","faction": "neutre","tier": 7, "attack": 18, "defense": 18, "minDamage": 40, "maxDamage": 50, "hitPoints": 180, "speed": 10, "growth": 1,  "cost": { "Gold": 2400, "Gems": 1 } }
+  ]
+}

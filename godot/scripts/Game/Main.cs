@@ -35,8 +35,11 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
-        _state = new GameState(ReadSeed());
+        _state = new GameState(ReadSeed(), LoadCreatures());
         GD.Print($"Carte générée avec la graine {_state.Seed}");
+        // Option de développement : « -- --reveal » retire le brouillard
+        if (OS.GetCmdlineUserArgs().Contains("--reveal"))
+            _state.CurrentPlayer.Fog.Reveal(new Cell(_state.Map.Width / 2, _state.Map.Height / 2), _state.Map.Width + _state.Map.Height);
 
         var screen = GetViewportRect().Size;
         _viewSize = new Vector2(screen.X - Hud.PanelWidth, screen.Y - Hud.TopBarHeight);
@@ -44,7 +47,7 @@ public partial class Main : Node2D
         AddChild(new TerrainLayer { Map = _state.Map });
         _actors = new ActorLayer { State = _state };
         AddChild(_actors);
-        AddChild(new FogLayer { Map = _state.Map });
+        AddChild(new FogLayer { State = _state });
 
         _camera = new Camera2D { AnchorMode = Camera2D.AnchorModeEnum.FixedTopLeft };
         AddChild(_camera);
@@ -68,6 +71,13 @@ public partial class Main : Node2D
             : Random.Shared.Next(1_000_000);
     }
 
+    /// <summary>Les créatures du jeu, décrites dans data/creatures.json.</summary>
+    private static CreatureCatalog LoadCreatures() =>
+        CreatureCatalog.FromJson(Godot.FileAccess.GetFileAsString("res://data/creatures.json"));
+
+    /// <summary>Les commandes de la carte sont ignorées pendant une fenêtre ou une fois la partie finie.</summary>
+    private bool CanAct => !_walking && !_hud.IsDialogOpen && _state.Outcome == GameOutcome.Playing;
+
     // ------------------------------------------------------------------ caméra
 
     private void MoveCameraTo(Vector2 topLeft)
@@ -81,14 +91,18 @@ public partial class Main : Node2D
 
     private void CenterOnHero()
     {
-        var hero = _state.Hero.Position;
+        if (_state.CurrentHero is not { } current)
+            return;
+        var hero = current.Position;
         MoveCameraTo(new Vector2(hero.X + 0.5f, hero.Y + 0.5f) * T - _viewSize / 2);
     }
 
     /// <summary>Recentre la vue quand le héros approche du bord.</summary>
     private void FollowHero()
     {
-        var onScreen = ActorLayer.ToPixels(_state.Hero.Position) - _cameraPos;
+        if (_state.CurrentHero is not { } hero)
+            return;
+        var onScreen = ActorLayer.ToPixels(hero.Position) - _cameraPos;
         const float margin = 3 * T;
         if (onScreen.X < margin || onScreen.Y < margin
             || onScreen.X > _viewSize.X - margin || onScreen.Y > _viewSize.Y - margin)
@@ -110,14 +124,14 @@ public partial class Main : Node2D
 
     private void EndTurn()
     {
-        if (_walking)
+        if (!CanAct)
             return;
         _state.EndTurn();
     }
 
     private void ClickCell(Cell cell)
     {
-        if (_walking || !_state.Map.IsExplored(cell))
+        if (!CanAct || !_state.CurrentPlayer.Fog.IsExplored(cell))
             return;
         if (_state.Path is { Count: > 0 } path && path[^1] == cell)
             StartWalking();
@@ -127,6 +141,8 @@ public partial class Main : Node2D
 
     private void StartWalking()
     {
+        if (!CanAct)
+            return;
         if (_state.CanStartWalking)
         {
             _walking = true;
@@ -134,7 +150,7 @@ public partial class Main : Node2D
         }
         else if (_state.Path != null)
         {
-            _state.AddMessage("Plus assez de points de mouvement aujourd'hui.");
+            _hud.AddMessage(Texts.NotEnoughMovement);
         }
     }
 
@@ -170,15 +186,43 @@ public partial class Main : Node2D
         _actors.Hovered = HoveredCell();
         _hud.Refresh(_actors.Hovered);
 
-        if (!_walking)
-            return;
-        _stepTimer -= delta;
-        if (_stepTimer > 0)
-            return;
-        _stepTimer = StepDuration;
-        if (!_state.StepAlongPath() || _state.Path == null)
-            _walking = false;
-        FollowHero();
+        if (_walking)
+        {
+            _stepTimer -= delta;
+            if (_stepTimer <= 0)
+            {
+                _stepTimer = StepDuration;
+                if (!_state.StepAlongPath() || _state.Path == null)
+                    _walking = false;
+            }
+        }
+
+        HandleEvents();
+    }
+
+    /// <summary>Montre à l'écran ce que les règles viennent de faire.</summary>
+    private void HandleEvents()
+    {
+        foreach (var e in _state.TakeEvents())
+        {
+            if (Texts.Message(e, _state.Players[0]) is { } message)
+                _hud.AddMessage(message);
+
+            switch (e)
+            {
+                case HeroMoved:
+                    FollowHero();
+                    break;
+                case BattleFought battle:
+                    _walking = false;
+                    _hud.ShowBattle(battle);
+                    break;
+                case GameEnded end:
+                    _walking = false;
+                    _hud.ShowGameOver(end.Outcome, () => GetTree().ReloadCurrentScene());
+                    break;
+            }
+        }
     }
 
     private void ScrollCamera(float delta)

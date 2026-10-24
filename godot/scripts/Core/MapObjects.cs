@@ -116,7 +116,7 @@ public sealed class Mine : MapObject
 
 /// <summary>
 /// Une troupe de monstres neutres. Elle bloque sa case et attaque tout héros qui entre
-/// sur une des 8 cases voisines. Elle grossit de 10 % chaque semaine.
+/// sur une des 8 cases voisines. Elle grossit de 10 % chaque semaine, jusqu'au double de sa taille de départ.
 /// </summary>
 public sealed class MonsterGuard : MapObject
 {
@@ -124,6 +124,7 @@ public sealed class MonsterGuard : MapObject
     {
         Type = type;
         Army.Add(type, count);
+        InitialCount = count;
     }
 
     public CreatureType Type { get; }
@@ -134,9 +135,12 @@ public sealed class MonsterGuard : MapObject
     public override ObjectVisited Visit(Hero hero) =>
         throw new InvalidOperationException("Un monstre se combat (GameState), il ne se visite pas.");
 
+    /// <summary>Taille de la troupe à sa création (la croissance s'arrête au double).</summary>
+    public int InitialCount { get; }
+
     public void GrowWeekly()
     {
         foreach (var stack in Army.Stacks)
-            stack.Count += Math.Max(1, stack.Count / 10);
+            stack.Count = Math.Min(stack.Count + Math.Max(1, stack.Count / 10), 2 * InitialCount);
     }
 }

@@ -306,7 +306,11 @@ public class GuardPlacementTests
         foreach (var g in guards)
         {
             Assert.True(System.Math.Max(System.Math.Abs(g.Position.X - map.Start.X), System.Math.Abs(g.Position.Y - map.Start.Y)) >= 4);
-            Assert.True(g.Type.Tier <= 4);
+            Assert.InRange(g.Type.Tier, 1, 7);
+            // Près du départ, seulement des monstres de niveau 1
+            double distance = System.Math.Sqrt(System.Math.Pow(g.Position.X - map.Start.X, 2) + System.Math.Pow(g.Position.Y - map.Start.Y, 2));
+            if (distance < 8)
+                Assert.Equal(1, g.Type.Tier);
         }
         Assert.False(map.IsGuarded(map.Start));
     }

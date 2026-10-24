@@ -58,8 +58,13 @@ Découpage :
    milieu de la rangée du bas et s'atteint par la case juste en dessous ; les 8 autres sont
    infranchissables. Les objets ont maintenant une « empreinte » (`MapObject.Footprint`),
    réutilisable pour d'autres grands objets. Un clic sur les murs mène à l'entrée.
-6. Équilibrage : relever `MaxGuardTier`, vérifier que la victoire est atteignable,
-   ajuster la garnison de la ville neutre (aujourd'hui facile : 0 à 4 pertes).
+6. ✅ Équilibrage, vérifié par une simulation (`BalanceTests`) qui joue une stratégie simple
+   sur plusieurs cartes : monstres jusqu'au niveau 7 (`MaxGuardTier`), troupes jusqu'à 2 fois
+   plus nombreuses au loin (`GuardSizeGrowth`), croissance hebdomadaire plafonnée au double,
+   garnison de la ville neutre renforcée (3 à 8 pertes au siège). La simulation, optimiste,
+   gagne entre le jour 34 et le jour 102 (souvent vers le jour 50).
+   À noter : sur une carte 40×30, aucun monstre n'est assez loin pour être de niveau 7 ;
+   il faudra de plus grandes cartes (générateur v2, étape 4).
 
 ### 3. Progression du héros
 - Expérience gagnée en combat, niveaux.

@@ -27,10 +27,16 @@ public sealed class MapGenerator
     public int WanderingGuardCount { get; init; } = 5;
 
     /// <summary>
-    /// Niveau maximal des monstres. Limité à 4 tant que le joueur ne peut pas recruter
-    /// (étape 2 : villes), sinon les monstres lointains seraient imbattables.
+    /// Niveau maximal des monstres. Avec le recrutement dans les villes, tous les niveaux
+    /// sont possibles (réglage vérifié par une simulation, voir BalanceTests).
     /// </summary>
-    public int MaxGuardTier { get; init; } = 4;
+    public int MaxGuardTier { get; init; } = 7;
+
+    /// <summary>
+    /// Grossissement des troupes de monstres avec la distance : au coin opposé de la carte,
+    /// une troupe compte (1 + GuardSizeGrowth) fois plus de créatures qu'au départ.
+    /// </summary>
+    public double GuardSizeGrowth { get; init; } = 1.0;
 
     public int MineCount => ResourceInfo.All.Length;
     public int ChestCount { get; init; } = 6;
@@ -72,8 +78,8 @@ public sealed class MapGenerator
         var town = new Town(cell, TownNames[_rng.Next(TownNames.Length)], "chateau", data);
         town.AddBuilding(data.Buildings.Get("salle-village"));
         town.AddBuilding(data.Buildings.Get("corps-de-garde"));
-        town.Garrison.Add(data.Creatures.Get("piquier"), _rng.Next(10, 17));
-        town.Garrison.Add(data.Creatures.Get("archer"), _rng.Next(4, 9));
+        town.Garrison.Add(data.Creatures.Get("piquier"), _rng.Next(15, 25));
+        town.Garrison.Add(data.Creatures.Get("archer"), _rng.Next(6, 11));
         _map.AddObject(town);
     }
 
@@ -283,7 +289,10 @@ public sealed class MapGenerator
             return;
         var type = candidates[_rng.Next(candidates.Count)];
         int baseCount = GuardBaseCount[tier];
-        _map.AddObject(new MonsterGuard(cell, type, _rng.Next(baseCount, 2 * baseCount + 1)));
+        int count = _rng.Next(baseCount, 2 * baseCount + 1);
+        // Les troupes lointaines sont aussi plus nombreuses
+        count = (int)Math.Round(count * (1 + GuardSizeGrowth * distance));
+        _map.AddObject(new MonsterGuard(cell, type, count));
     }
 
     private void Shuffle<T>(IList<T> list)

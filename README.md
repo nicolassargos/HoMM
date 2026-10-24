@@ -4,6 +4,8 @@ Jeu PC fortement inspiré de Heroes of Might and Magic et King's Bounty.
 
 ## Contenu du dépôt
 
-- `prototype-python/` : premier prototype jouable de la carte d'aventure (Python + pygame-ce).
-  Voir son `LISEZMOI.md` pour le lancer.
-- La version principale du jeu sera écrite en **Godot 4 + C#**, avec des cartes générées automatiquement par le code.
+- `godot/` : **le jeu**, en Godot 4.7 + C#. Tout est construit par le code, cartes générées automatiquement.
+  Voir `godot/LISEZMOI.md` pour l'installer et le lancer.
+- `tests/HoMM.Core.Tests/` : tests des règles du jeu (`dotnet test` à la racine).
+- `HoMM.sln` : solution à ouvrir dans Visual Studio ou Rider.
+- `prototype-python/` : le tout premier prototype de la carte d'aventure (Python + pygame-ce), gardé pour mémoire.

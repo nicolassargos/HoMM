@@ -1,9 +1,19 @@
 # HoMM – notes pour Claude
 
-Jeu PC fortement inspiré de Heroes of Might and Magic / King's Bounty. L'utilisateur est francophone : répondre en français, textes du jeu en français.
+Jeu PC fortement inspiré de Heroes of Might and Magic / King's Bounty. L'utilisateur est francophone mais préfère échanger en anglais (un anglais simple et clair). Les textes du jeu, les commentaires, la documentation, les commits et les PR restent en français.
 
 ## Plan
-La vision du jeu et les étapes prévues sont dans `PLAN.md` : le lire avant de commencer une nouvelle fonctionnalité, et le mettre à jour quand les idées changent.
+La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessous. Le suivre pour chaque nouvelle fonctionnalité, et le mettre à jour quand les idées changent ou qu'une étape avance (cocher ✅, noter les décisions prises).
+
+@PLAN.md
+
+## Git
+- Une branche par étape ou par sujet, créée depuis `main` à jour (`git switch main`, `git pull`, `git switch -c <nom>`). Noms en minuscules avec tirets (ex. `etape-2-villes`).
+- Une PR de la branche **directement vers `main`** : pas de PR empilée sur une autre branche.
+- Avant de proposer une PR : `dotnet test` réussi et `dotnet build` (dans `godot/`) sans erreur.
+- Messages de commit et descriptions de PR en français.
+- Après la fusion : revenir sur `main` à jour et supprimer la branche (locale et sur GitHub).
+- Ne pas fusionner une PR ni supprimer de branche sans l'accord de l'utilisateur.
 
 ## Choix techniques
 - Godot 4.7.2 **édition .NET** + C# (.NET 8). Le projet est dans `godot/`.

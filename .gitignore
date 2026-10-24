@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+
+# Godot
+.godot/
+.import/
+export_presets.cfg
+*.translation
+
+# .NET / C#
+.mono/
+bin/
+obj/
+*.user
+.vs/
+.vscode/
+mono_crash.*.json

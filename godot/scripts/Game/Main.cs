@@ -13,7 +13,8 @@ namespace HoMM.Game;
 ///   Clic gauche sur une case : affiche le chemin. Second clic : le héros part.
 ///   Espace : continuer le chemin tracé.        Clic droit / Échap : annuler le chemin.
 ///   Flèches / ZQSD / souris au bord : défilement.   C : recentrer sur le héros.
-///   Clic sur sa ville quand le héros y est : écran de ville.   Entrée ou bouton : fin du tour.
+///   Clic sur les murs de sa ville, liste des villes du panneau, ou T : écran de ville.
+///   Entrée ou bouton : fin du tour.
 ///
 /// Lancer avec une graine fixe : ajouter « -- --seed=42 » à la ligne de commande.
 /// </summary>
@@ -52,6 +53,7 @@ public partial class Main : Node2D
         AddChild(_hud);
         _hud.Build(_state, screen);
         _hud.EndTurnPressed += EndTurn;
+        _hud.TownClicked += OpenTown;
 
         _camera = new MapCamera();
         AddChild(_camera);
@@ -104,17 +106,26 @@ public partial class Main : Node2D
     {
         if (!CanAct || !_state.CurrentPlayer.Fog.IsExplored(cell))
             return;
-        // Clic sur sa ville (n'importe laquelle de ses 9 cases), avec le héros à l'entrée : écran de ville
-        if (_state.CurrentHero is { } hero && _state.Map.OccupantAt(cell) is Town town
-            && hero.Position == town.Position && town.Owner == _state.CurrentPlayer)
+        // Clic sur sa ville : les murs ouvrent l'écran de ville ; l'entrée y fait entrer le héros
+        // (ou ouvre l'écran s'il y est déjà)
+        if (_state.Map.OccupantAt(cell) is Town town && town.Owner == _state.CurrentPlayer
+            && (cell != town.Position || _state.CurrentHero?.Position == town.Position))
         {
-            _townScreen.Open(town);
+            OpenTown(town);
             return;
         }
         if (_state.Path is { Count: > 0 } path && path[^1] == cell)
             StartWalking();
         else
             _state.SetDestination(cell);
+    }
+
+    /// <summary>Ouvre l'écran d'une ville du joueur (depuis la carte, la liste des villes ou la touche T).</summary>
+    private void OpenTown(Town town)
+    {
+        if (!CanAct || town.Owner != _state.CurrentPlayer)
+            return;
+        _townScreen.Open(town);
     }
 
     private void StartWalking()
@@ -155,6 +166,7 @@ public partial class Main : Node2D
                     case Key.Space: StartWalking(); break;
                     case Key.Escape when !_walking: _state.ClearPath(); break;
                     case Key.C: CenterOnHero(); break;
+                    case Key.T when _state.CurrentPlayer.Towns.FirstOrDefault() is { } town: OpenTown(town); break;
                 }
                 break;
         }

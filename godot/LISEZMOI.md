@@ -37,7 +37,7 @@ Pour le développement, `-- --reveal` retire le brouillard de guerre.
 | Annuler le chemin | Clic droit ou Échap |
 | Faire défiler la carte | Flèches, ZQSD, souris au bord de l'écran, clic sur la mini-carte |
 | Recentrer sur le héros | C |
-| Écran de ville | Entrer dans sa ville, ou clic sur sa ville quand le héros y est (Échap pour revenir) |
+| Écran de ville | Clic sur les murs de sa ville, sur son nom dans la liste « Villes » du panneau, ou touche T ; aussi en entrant dans la ville (Échap pour revenir) |
 | Recruter | Écran de ville : bouton « Recruter » d'une habitation construite |
 | Échanger des troupes | Écran de ville : clic sur une troupe de la garnison ou du héros |
 | Fin du tour | Bouton « Fin du tour » ou Entrée |

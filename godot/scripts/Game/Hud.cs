@@ -23,6 +23,8 @@ public partial class Hud : CanvasLayer
     private Label _heroName = null!;
     private Label _army = null!;
     private Label _mines = null!;
+    private HFlowContainer _towns = null!;
+    private string? _townsKey;
 
     // Prévision de combat mise en cache : la simulation n'est refaite que si quelque chose change
     private (Army Enemy, int EnemyCount, int ArmyCount)? _predictionKey;
@@ -34,6 +36,9 @@ public partial class Hud : CanvasLayer
 
     public Minimap Minimap { get; private set; } = null!;
     public event Action? EndTurnPressed;
+
+    /// <summary>Le joueur a cliqué sur une de ses villes dans la liste.</summary>
+    public event Action<Town>? TownClicked;
 
     public void Build(GameState state, Vector2 screenSize)
     {
@@ -115,6 +120,13 @@ public partial class Hud : CanvasLayer
         panel.AddChild(_army);
         y += 122;
 
+        // La liste des villes du joueur : un bouton par ville ouvre son écran
+        _towns = new HFlowContainer { Position = new Vector2(margin, y), Size = new Vector2(innerWidth, 28) };
+        _towns.AddThemeConstantOverride("h_separation", 6);
+        _towns.AddThemeConstantOverride("v_separation", 4);
+        panel.AddChild(_towns);
+        y += 36;
+
         _mines = At(MakeLabel("", 13, SoftTextColor), margin, y);
         _mines.Size = new Vector2(innerWidth, 36);
         _mines.ClipText = true;
@@ -169,8 +181,9 @@ public partial class Hud : CanvasLayer
             _army.Text = "";
         }
 
+        RefreshTowns(player);
         var income = player.DailyIncome();
-        _mines.Text = $"Villes : {player.Towns.Count} · Mines : {player.Mines.Count}\n"
+        _mines.Text = $"Mines : {player.Mines.Count}\n"
             + (income.Count == 0 ? "Revenus : aucun" : $"Revenus : {Texts.Income(income)} /jour");
 
         _hover.Text = DescribeCell(hovered);
@@ -179,6 +192,31 @@ public partial class Hud : CanvasLayer
         string log = string.Join("\n", _messages.TakeLast(4));
         if (_log.Text != log)
             _log.Text = log;
+    }
+
+    /// <summary>Reconstruit les boutons des villes, seulement quand la liste change.</summary>
+    private void RefreshTowns(Player player)
+    {
+        string key = string.Join("|", player.Towns.Select(t => t.Name));
+        if (key == _townsKey)
+            return;
+        _townsKey = key;
+
+        foreach (var child in _towns.GetChildren())
+        {
+            _towns.RemoveChild(child);
+            child.QueueFree();
+        }
+        _towns.AddChild(MakeLabel("Villes :", 13, SoftTextColor));
+        if (player.Towns.Count == 0)
+            _towns.AddChild(MakeLabel("aucune", 13, SoftTextColor));
+        foreach (var town in player.Towns)
+        {
+            var button = MakeButton(town.Name, 13);
+            button.CustomMinimumSize = new Vector2(0, 26);
+            button.Pressed += () => TownClicked?.Invoke(town);
+            _towns.AddChild(button);
+        }
     }
 
     /// <summary>Ajoute une ligne au journal (seules les dernières sont gardées).</summary>

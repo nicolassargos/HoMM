@@ -46,8 +46,8 @@ Découpage :
    taverne, 7 habitations avec prérequis), un bâtiment par jour, revenus en or,
    créatures disponibles chaque semaine. La ville est dessinée sur la carte.
 2. ✅ Écran de ville (plein écran) : bâtiments (coût, effet, prérequis, bouton Construire),
-   garnison et héros présent. S'ouvre en entrant dans sa ville (ou en la prenant), ou en
-   cliquant sur sa ville quand le héros y est. `Main.cs` découpé : caméra dans `MapCamera.cs`,
+   garnison et héros présent. S'ouvre en entrant dans sa ville (ou en la prenant), en
+   cliquant sur ses murs, depuis la liste « Villes » du panneau, ou avec T. `Main.cs` découpé : caméra dans `MapCamera.cs`,
    outils d'interface dans `Ui.cs`.
 3. ✅ Recrutement : bouton « Recruter » sur les habitations construites (nombre au curseur,
    coût total) ; les recrues vont dans la garnison, ou chez le héros présent si elle est pleine.

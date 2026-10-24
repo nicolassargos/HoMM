@@ -7,14 +7,13 @@ namespace HoMM.Core;
 public enum GameOutcome { Playing, Victory, Defeat }
 
 /// <summary>
-/// L'état d'une partie : carte, joueurs, calendrier, chemin choisi, journal.
+/// L'état d'une partie : carte, joueurs, calendrier, chemin choisi.
+/// Les règles ne produisent aucun texte : elles décrivent ce qui se passe par des événements
+/// (voir <see cref="TakeEvents"/>), que l'affichage met en mots.
 /// Prévu pour plusieurs joueurs (tour par tour), même s'il n'y a pour l'instant qu'un humain.
 /// </summary>
 public sealed class GameState
 {
-    private static readonly string[] DayNames = { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche" };
-    private const int MaxMessages = 6;
-
     private int _currentPlayer;
 
     public GameState(int seed, CreatureCatalog creatures)
@@ -30,8 +29,6 @@ public sealed class GameState
         hero.Army.Add(creatures.Get("archer"), 12);
         hero.Army.Add(creatures.Get("griffon"), 4);
         CurrentHero = hero;
-
-        AddMessage("Bienvenue, Sire Roland ! Chassez les monstres de la région.");
     }
 
     public int Seed { get; }
@@ -51,21 +48,9 @@ public sealed class GameState
     /// <summary>Chemin prévu pour le héros, ou null.</summary>
     public List<Cell>? Path { get; private set; }
 
-    public List<string> Messages { get; } = new();
-
     private readonly List<GameEvent> _events = new();
 
     public IEnumerable<Hero> AllHeroes => Players.SelectMany(p => p.Heroes);
-
-    public string DateText =>
-        $"Mois {Day / 28 + 1}, semaine {Day / 7 % 4 + 1}, {DayNames[Day % 7]}";
-
-    public void AddMessage(string text)
-    {
-        Messages.Add(text);
-        if (Messages.Count > MaxMessages)
-            Messages.RemoveAt(0);
-    }
 
     /// <summary>
     /// Les événements survenus depuis le dernier appel, du plus ancien au plus récent.
@@ -128,15 +113,8 @@ public sealed class GameState
             var income = player.DailyIncome();
             foreach (var (resource, amount) in income)
                 player.Resources[resource] += amount;
-            if (player != CurrentPlayer)
-                continue;
-
-            string text = $"Nouveau jour : {DateText}.";
             if (income.Count > 0)
-                text += " Revenus : " + string.Join(", ", income.Select(i => $"+{i.Value} {ResourceInfo.Name(i.Key)}"));
-            if (newWeek)
-                text = "Une nouvelle semaine commence, les monstres sont plus nombreux ! " + text;
-            AddMessage(text);
+                Emit(new IncomeReceived(player, income));
         }
     }
 
@@ -191,10 +169,10 @@ public sealed class GameState
 
         if (Map.ObjectAt(next) is { } obj and not MonsterGuard)
         {
-            AddMessage(obj.Visit(hero));
+            var visit = obj.Visit(hero);
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
-            Emit(new ObjectVisited(hero, obj, obj.RemovedOnVisit));
+            Emit(visit);
         }
         if (Path is { Count: 0 })
             Path = null;
@@ -204,25 +182,18 @@ public sealed class GameState
     /// <summary>Combat automatique. Renvoie true si le héros a gagné.</summary>
     private bool Fight(Hero hero, MonsterGuard guard)
     {
-        string enemy = guard.Name;
         int enemyCount = guard.Count;
         var report = Battle.Resolve(hero.Army, guard.Army);
-        report.Title = $"Combat contre {LowerFirst(enemy)}";
         Emit(new BattleFought(hero, guard, enemyCount, report));
 
         if (report.AttackerWon)
         {
             Map.RemoveObject(guard);
-            AddMessage($"Victoire contre {LowerFirst(enemy)} ! Pertes : {BattleReport.DescribeLosses(report.AttackerLosses)}.");
             if (!Map.Objects.OfType<MonsterGuard>().Any())
-            {
-                AddMessage("La région est libérée de ses monstres. Victoire !");
                 EndGame(GameOutcome.Victory);
-            }
             return true;
         }
 
-        AddMessage($"{hero.Name} a été vaincu par {LowerFirst(enemy)}.");
         RemoveHero(hero);
         return false;
     }
@@ -235,13 +206,8 @@ public sealed class GameState
             CurrentHero = hero.Owner.Heroes.FirstOrDefault();
         Emit(new HeroDefeated(hero));
         if (hero.Owner == Players[0] && hero.Owner.IsDefeated)
-        {
-            AddMessage("Vous n'avez plus de héros. Défaite...");
             EndGame(GameOutcome.Defeat);
-        }
     }
-
-    private static string LowerFirst(string s) => s.Length == 0 ? s : char.ToLower(s[0]) + s[1..];
 
     /// <summary>Pour chaque case du chemin : est-elle atteignable aujourd'hui ?</summary>
     public List<bool> PathReachability()

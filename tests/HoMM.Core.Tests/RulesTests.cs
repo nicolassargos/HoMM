@@ -232,9 +232,11 @@ public class GameStateTests
         var events = state.TakeEvents();
         Assert.Equal(pile.Position, Hero(state).Position); // le tas le plus proche est atteint dès le premier jour
         Assert.Equal(steps, events.OfType<HeroMoved>().Count());
-        var visit = Assert.IsType<ObjectVisited>(events[^1]);
-        Assert.Same(pile, visit.Object);
-        Assert.True(visit.Removed);
+        var found = Assert.IsType<ResourcesFound>(events[^1]);
+        Assert.Same(pile, found.Object);
+        Assert.Equal(pile.Resource, found.Resource);
+        Assert.Equal(pile.Amount, found.Amount);
+        Assert.Null(state.Map.ObjectAt(pile.Position));
     }
 
     [Fact]

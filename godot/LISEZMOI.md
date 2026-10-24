@@ -65,6 +65,7 @@ Le code est séparé en deux parties :
   - `TerrainLayer.cs`, `ActorLayer.cs`, `FogLayer.cs` : les calques de la carte
   - `MapRenderer.cs` : dessin des tuiles, objets et du héros (à remplacer plus tard par des images)
   - `Hud.cs`, `Minimap.cs`, `ResourceIcon.cs` : l'interface
+  - `Texts.cs` : tous les textes affichés (noms, date, journal). Sans Godot, donc testé avec les règles
 - `scenes/Main.tscn` : la seule scène, un nœud vide qui porte `Main.cs`.
 - `data/creatures.json` : les caractéristiques des créatures (modifiables sans toucher au code).
 

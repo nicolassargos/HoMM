@@ -35,3 +35,6 @@ public sealed class Player
         return income;
     }
 }
+
+/// <summary>Un joueur a reçu les revenus de ses mines au début du jour.</summary>
+public sealed record IncomeReceived(Player Player, IReadOnlyDictionary<ResourceType, int> Income) : GameEvent;

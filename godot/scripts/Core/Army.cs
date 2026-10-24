@@ -14,8 +14,6 @@ public sealed class CreatureStack
 
     public CreatureType Type { get; }
     public int Count { get; set; }
-
-    public override string ToString() => $"{Count} {Type.NameFor(Count)}";
 }
 
 /// <summary>Une armée : 7 troupes au maximum, comme dans Heroes.</summary>

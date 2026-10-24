@@ -27,8 +27,6 @@ public sealed record CreatureType
     public Dictionary<ResourceType, int> Cost { get; init; } = new();
 
     public double AverageDamage => (MinDamage + MaxDamage) / 2.0;
-
-    public string NameFor(int count) => count == 1 ? Name : Plural;
 }
 
 /// <summary>Toutes les créatures du jeu, lues depuis le fichier de données.</summary>

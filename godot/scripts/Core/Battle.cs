@@ -11,12 +11,6 @@ public sealed class BattleReport
     public required List<CreatureStack> AttackerLosses { get; init; }
     public required List<CreatureStack> DefenderLosses { get; init; }
     public int Rounds { get; init; }
-
-    /// <summary>Titre lisible, rempli par celui qui lance le combat (« Combat contre une bande de Loups »).</summary>
-    public string Title { get; set; } = "Combat";
-
-    public static string DescribeLosses(List<CreatureStack> losses) =>
-        losses.Count == 0 ? "aucune" : string.Join(", ", losses);
 }
 
 /// <summary>

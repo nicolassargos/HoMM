@@ -24,16 +24,4 @@ public static class TerrainInfo
 
     public static bool IsPassable(TerrainType terrain) =>
         terrain is not (TerrainType.Water or TerrainType.Mountain);
-
-    public static string Name(TerrainType terrain) => terrain switch
-    {
-        TerrainType.Grass => "Herbe",
-        TerrainType.Road => "Route",
-        TerrainType.Forest => "Forêt",
-        TerrainType.Sand => "Sable",
-        TerrainType.Swamp => "Marais",
-        TerrainType.Water => "Eau",
-        TerrainType.Mountain => "Montagne",
-        _ => terrain.ToString(),
-    };
 }

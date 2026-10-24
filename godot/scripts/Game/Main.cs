@@ -150,7 +150,7 @@ public partial class Main : Node2D
         }
         else if (_state.Path != null)
         {
-            _state.AddMessage("Plus assez de points de mouvement aujourd'hui.");
+            _hud.AddMessage(Texts.NotEnoughMovement);
         }
     }
 
@@ -205,6 +205,9 @@ public partial class Main : Node2D
     {
         foreach (var e in _state.TakeEvents())
         {
+            if (Texts.Message(e, _state.Players[0]) is { } message)
+                _hud.AddMessage(message);
+
             switch (e)
             {
                 case HeroMoved:
@@ -212,7 +215,7 @@ public partial class Main : Node2D
                     break;
                 case BattleFought battle:
                     _walking = false;
-                    _hud.ShowBattle(battle.Report);
+                    _hud.ShowBattle(battle);
                     break;
                 case GameEnded end:
                     _walking = false;

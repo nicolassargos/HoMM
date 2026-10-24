@@ -33,6 +33,8 @@ public partial class Hud : CanvasLayer
     private string _predictionText = "";
     private Label _hover = null!;
     private Label _log = null!;
+    private readonly List<string> _messages = new();
+    private const int MaxMessages = 6;
 
     public Minimap Minimap { get; private set; } = null!;
     public event Action? EndTurnPressed;
@@ -152,6 +154,9 @@ public partial class Hud : CanvasLayer
         _log.VerticalAlignment = VerticalAlignment.Bottom;
         _log.ClipText = true;
         panel.AddChild(_log);
+
+        if (state.CurrentHero is { } hero)
+            AddMessage(Texts.Welcome(hero));
     }
 
     /// <summary>Met à jour les textes. Appelé à chaque image : c'est très peu coûteux.</summary>
@@ -159,8 +164,8 @@ public partial class Hud : CanvasLayer
     {
         var player = _state.CurrentPlayer;
         foreach (var (resource, label) in _resourceLabels)
-            label.Text = $"{Capitalize(ResourceInfo.Name(resource))} : {player.Resources[resource]}";
-        _date.Text = _state.DateText;
+            label.Text = $"{Texts.Capitalize(Texts.Resource(resource))} : {player.Resources[resource]}";
+        _date.Text = Texts.Date(_state.Day);
 
         if (_state.CurrentHero is { } hero)
         {
@@ -168,7 +173,7 @@ public partial class Hud : CanvasLayer
             _movementBar.MaxValue = hero.MaxMovement;
             _movementBar.Value = hero.Movement;
             _movementText.Text = $"{hero.Movement} / {hero.MaxMovement}";
-            _army.Text = string.Join("\n", hero.Army.Stacks.Select(s => $"{s.Count}  {s.Type.NameFor(s.Count)}"));
+            _army.Text = string.Join("\n", hero.Army.Stacks.Select(s => $"{s.Count}  {Texts.Creature(s.Type, s.Count)}"));
         }
         else
         {
@@ -181,14 +186,22 @@ public partial class Hud : CanvasLayer
         var income = player.DailyIncome();
         _mines.Text = player.Mines.Count == 0
             ? "Mines : aucune"
-            : $"Mines : {player.Mines.Count} (" + string.Join(", ", income.Select(i => $"+{i.Value} {ResourceInfo.Name(i.Key)}")) + "/jour)";
+            : $"Mines : {player.Mines.Count} (" + Texts.Income(income) + "/jour)";
 
         _hover.Text = DescribeCell(hovered);
 
         // Les derniers messages, du plus ancien au plus récent
-        string log = string.Join("\n", _state.Messages.TakeLast(4));
+        string log = string.Join("\n", _messages.TakeLast(4));
         if (_log.Text != log)
             _log.Text = log;
+    }
+
+    /// <summary>Ajoute une ligne au journal (seules les dernières sont gardées).</summary>
+    public void AddMessage(string text)
+    {
+        _messages.Add(text);
+        if (_messages.Count > MaxMessages)
+            _messages.RemoveAt(0);
     }
 
     private string DescribeCell(Cell? hovered)
@@ -196,16 +209,16 @@ public partial class Hud : CanvasLayer
         if (hovered is not { } cell || !_state.CurrentPlayer.Fog.IsExplored(cell))
             return "";
         var terrain = _state.Map.GetTerrain(cell);
-        string text = TerrainInfo.Name(terrain) + (TerrainInfo.IsPassable(terrain)
+        string text = Texts.Terrain(terrain) + (TerrainInfo.IsPassable(terrain)
             ? $" (coût {TerrainInfo.MoveCost(terrain)})"
             : " (infranchissable)");
         var obj = _state.Map.ObjectAt(cell);
         if (obj is Mine mine)
-            text += $"\n{mine.Name}" + (mine.Owner == _state.CurrentPlayer ? " (à vous)" : mine.Owner != null ? " (ennemie)" : " (libre)");
+            text += $"\n{Texts.MineName(mine)}" + (mine.Owner == _state.CurrentPlayer ? " (à vous)" : mine.Owner != null ? " (ennemie)" : " (libre)");
         else if (obj is MonsterGuard guard)
-            text += $"\n{guard.Name}\n{Prediction(guard)}";
+            text += $"\n{Texts.ObjectName(guard)}\n{Prediction(guard)}";
         else if (obj != null)
-            text += $"\n{obj.Name}";
+            text += $"\n{Texts.ObjectName(obj)}";
         if (obj is not MonsterGuard && _state.Map.IsGuarded(cell))
             text += "\nGardé par un monstre";
         return text;
@@ -237,21 +250,19 @@ public partial class Hud : CanvasLayer
     // --------------------------------------------------------------- fenêtres
 
     /// <summary>Fenêtre du compte rendu de combat.</summary>
-    public void ShowBattle(BattleReport report)
+    public void ShowBattle(BattleFought battle)
     {
+        var report = battle.Report;
         string text = (report.AttackerWon ? "Victoire !" : "Défaite...")
-            + $"\n\nVos pertes : {BattleReport.DescribeLosses(report.AttackerLosses)}"
-            + $"\nPertes ennemies : {BattleReport.DescribeLosses(report.DefenderLosses)}";
-        ShowDialog(report.Title, text, "OK", null);
+            + $"\n\nVos pertes : {Texts.Losses(report.AttackerLosses)}"
+            + $"\nPertes ennemies : {Texts.Losses(report.DefenderLosses)}";
+        ShowDialog(Texts.BattleTitle(battle), text, "OK", null);
     }
 
     /// <summary>Fenêtre de fin de partie, avec un bouton pour recommencer.</summary>
     public void ShowGameOver(GameOutcome outcome, Action newGame)
     {
-        string text = outcome == GameOutcome.Victory
-            ? "Tous les monstres ont été vaincus. La région est à vous !"
-            : "Votre dernier héros est tombé. La partie est perdue.";
-        ShowDialog(outcome == GameOutcome.Victory ? "Victoire" : "Défaite", text, "Nouvelle partie", newGame);
+        ShowDialog(Texts.GameOverTitle(outcome), Texts.GameOverText(outcome), "Nouvelle partie", newGame);
     }
 
     /// <summary>True tant qu'une fenêtre est ouverte ou en attente (le jeu ignore alors les commandes de la carte).</summary>
@@ -299,8 +310,6 @@ public partial class Hud : CanvasLayer
     }
 
     // ------------------------------------------------------------------ outils
-
-    private static string Capitalize(string s) => char.ToUpper(s[0]) + s[1..];
 
     private static T At<T>(T control, float x, float y) where T : Control
     {

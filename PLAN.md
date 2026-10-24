@@ -49,8 +49,10 @@ Découpage :
    garnison et héros présent. S'ouvre en entrant dans sa ville (ou en la prenant), ou en
    cliquant sur sa ville quand le héros y est. `Main.cs` découpé : caméra dans `MapCamera.cs`,
    outils d'interface dans `Ui.cs`.
-3. Recrutement : acheter les créatures disponibles, vers la garnison (ou le héros présent) ;
-   échanger des troupes entre le héros et la garnison (dans l'écran de ville).
+3. ✅ Recrutement : bouton « Recruter » sur les habitations construites (nombre au curseur,
+   coût total) ; les recrues vont dans la garnison, ou chez le héros présent si elle est pleine.
+   Un clic sur une troupe la fait passer entre la garnison et le héros (qui garde toujours
+   au moins une troupe). Pas encore de partage d'une troupe en deux.
 4. Second héros recruté à la taverne, et passage d'un héros à l'autre.
 5. **Ville sur 3×3 cases avec une entrée** (important) : la ville occupe 9 cases
    infranchissables, le héros y entre par une case d'entrée. À faire avant la fin de l'étape 2.

@@ -134,6 +134,25 @@ public static class Texts
     public static string Dwelling(CreatureType creature, int available) =>
         $"{available} {Creature(creature, available)} disponible{(available > 1 ? "s" : "")} (+{creature.Growth} par semaine)";
 
+    public static string RecruitTitle(CreatureType type) => $"Recruter des {type.Plural}";
+
+    /// <summary>« 14 disponibles · 60 or l'unité ».</summary>
+    public static string RecruitInfo(CreatureType type, int available) =>
+        $"{available} disponible{(available > 1 ? "s" : "")} · {Cost(type.Cost)} l'unité";
+
+    /// <summary>« 10 Piquiers pour 600 or ».</summary>
+    public static string RecruitTotal(CreatureType type, int count) =>
+        $"{count} {Creature(type, count)} pour {Cost(type.Cost.ToDictionary(c => c.Key, c => c.Value * count))}";
+
+    /// <summary>Pourquoi on ne peut recruter aucune créature, ou null si on peut.</summary>
+    public static string? CannotRecruit(int available, bool hasRoom, int affordable) =>
+        available == 0 ? "Aucune créature disponible cette semaine."
+        : !hasRoom ? "Pas de place dans la garnison ni chez le héros."
+        : affordable == 0 ? "Ressources insuffisantes."
+        : null;
+
+    public const string TransferHint = "Cliquez sur une troupe pour la faire passer entre la garnison et le héros.";
+
     public static string GameOverTitle(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire" : "Défaite";
 
     public static string GameOverText(GameOutcome outcome) => outcome == GameOutcome.Victory
@@ -159,6 +178,10 @@ public static class Texts
         TownEntered entered => $"{entered.Hero.Name} entre dans {entered.Town.Name}.",
         BuildingBuilt built when built.Town.Owner != viewer => null,
         BuildingBuilt built => $"{built.Building.Name} : construit à {built.Town.Name}.",
+        CreaturesRecruited recruited when recruited.Town.Owner != viewer => null,
+        CreaturesRecruited recruited =>
+            $"{recruited.Count} {Creature(recruited.Type, recruited.Count)} recruté{(recruited.Count > 1 ? "s" : "")} à {recruited.Town.Name}"
+            + (recruited.ToHero ? " (garnison pleine : ils rejoignent le héros)." : "."),
 
         BattleFought battle when battle.Hero.Owner != viewer => null,
         BattleFought { Report.AttackerWon: true } battle =>

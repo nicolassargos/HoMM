@@ -251,6 +251,60 @@ public sealed class GameState
 
     // ------------------------------------------------------------------ villes
 
+    /// <summary>
+    /// Recrute des créatures dans une ville du joueur courant. Elles vont dans la garnison,
+    /// ou chez le héros présent si la garnison n'a plus de place.
+    /// </summary>
+    public RecruitResult Recruit(Town town, CreatureType type, int count)
+    {
+        if (town.Owner != CurrentPlayer || Outcome != GameOutcome.Playing)
+            return RecruitResult.NotOwner;
+        if (count <= 0 || count > town.Available.GetValueOrDefault(type))
+            return RecruitResult.NotAvailable;
+        var cost = type.Cost.ToDictionary(c => c.Key, c => c.Value * count);
+        if (!CurrentPlayer.CanAfford(cost))
+            return RecruitResult.NotEnoughResources;
+
+        var hero = VisitingHero(town);
+        Army destination;
+        if (town.Garrison.CanReceive(type))
+            destination = town.Garrison;
+        else if (hero != null && hero.Owner == CurrentPlayer && hero.Army.CanReceive(type))
+            destination = hero.Army;
+        else
+            return RecruitResult.NoRoom;
+
+        CurrentPlayer.Pay(cost);
+        town.Available[type] -= count;
+        destination.Add(type, count);
+        Emit(new CreaturesRecruited(town, type, count, destination != town.Garrison));
+        return RecruitResult.Ok;
+    }
+
+    /// <summary>
+    /// Fait passer une troupe entre la garnison et le héros présent dans la ville.
+    /// Comme dans Heroes, un héros garde toujours au moins une troupe.
+    /// </summary>
+    public bool TransferStack(Town town, bool fromGarrison, int index)
+    {
+        if (town.Owner != CurrentPlayer || Outcome != GameOutcome.Playing)
+            return false;
+        if (VisitingHero(town) is not { } hero || hero.Owner != CurrentPlayer)
+            return false;
+        var (from, to) = fromGarrison ? (town.Garrison, hero.Army) : (hero.Army, town.Garrison);
+        if (!fromGarrison && hero.Army.Stacks.Count <= 1)
+            return false;
+        if (index < 0 || index >= from.Stacks.Count)
+            return false;
+
+        var stack = from.Stacks[index];
+        var (type, count) = (stack.Type, stack.Count);
+        if (!from.MoveStackTo(index, to))
+            return false;
+        Emit(new StackTransferred(town, hero, type, count, fromGarrison));
+        return true;
+    }
+
     /// <summary>Le héros qui se trouve dans la ville (sur sa case), s'il y en a un.</summary>
     public Hero? VisitingHero(Town town) => AllHeroes.FirstOrDefault(h => h.Position == town.Position);
 

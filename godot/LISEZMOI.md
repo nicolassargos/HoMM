@@ -38,6 +38,8 @@ Pour le développement, `-- --reveal` retire le brouillard de guerre.
 | Faire défiler la carte | Flèches, ZQSD, souris au bord de l'écran, clic sur la mini-carte |
 | Recentrer sur le héros | C |
 | Écran de ville | Entrer dans sa ville, ou clic sur sa ville quand le héros y est (Échap pour revenir) |
+| Recruter | Écran de ville : bouton « Recruter » d'une habitation construite |
+| Échanger des troupes | Écran de ville : clic sur une troupe de la garnison ou du héros |
 | Fin du tour | Bouton « Fin du tour » ou Entrée |
 
 Points verts : cases atteignables aujourd'hui. Points rouges : il faudra les jours suivants.
@@ -70,7 +72,7 @@ Le code est séparé en deux parties :
   - `TerrainLayer.cs`, `ActorLayer.cs`, `FogLayer.cs` : les calques de la carte
   - `MapRenderer.cs` : dessin des tuiles, objets et du héros (à remplacer plus tard par des images)
   - `Hud.cs`, `Minimap.cs`, `ResourceIcon.cs` : le panneau et la barre du haut
-  - `TownScreen.cs` : l'écran de ville
+  - `TownScreen.cs` : l'écran de ville (construire, recruter, échanger des troupes)
   - `Ui.cs` : couleurs et outils communs à l'interface
   - `Texts.cs` : tous les textes affichés (noms, date, journal). Sans Godot, donc testé avec les règles
 - `scenes/Main.tscn` : la seule scène, un nœud vide qui porte `Main.cs`.

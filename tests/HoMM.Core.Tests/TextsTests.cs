@@ -91,6 +91,21 @@ public class TextsTests
     }
 
     [Fact]
+    public void Les_textes_du_recrutement()
+    {
+        var (state, town) = OwnedTown();
+        var piquier = Type("piquier");
+
+        Assert.Equal("Recruter des Piquiers", Texts.RecruitTitle(piquier));
+        Assert.Equal("14 disponibles · 60 or l'unité", Texts.RecruitInfo(piquier, 14));
+        Assert.Equal("10 Piquiers pour 600 or", Texts.RecruitTotal(piquier, 10));
+        Assert.Equal("Ressources insuffisantes.", Texts.CannotRecruit(14, true, 0));
+        Assert.Null(Texts.CannotRecruit(14, true, 3));
+        Assert.Equal("10 Piquiers recrutés à Testville.",
+            Texts.Message(new CreaturesRecruited(town, piquier, 10, false), state.Players[0]));
+    }
+
+    [Fact]
     public void Ce_qu_apporte_chaque_batiment()
     {
         var (_, town) = OwnedTown();

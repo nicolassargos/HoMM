@@ -6,6 +6,9 @@ namespace HoMM.Core;
 /// <summary>Pourquoi un bâtiment peut (ou ne peut pas) être construit.</summary>
 public enum BuildResult { Ok, NotOwner, AlreadyBuilt, AlreadyBuiltToday, MissingRequirement, NotEnoughResources }
 
+/// <summary>Pourquoi un recrutement peut (ou ne peut pas) se faire.</summary>
+public enum RecruitResult { Ok, NotOwner, NotAvailable, NotEnoughResources, NoRoom }
+
 /// <summary>
 /// Une ville : ses bâtiments, ses créatures à recruter et sa garnison.
 /// Le héros y entre en s'arrêtant sur sa case. Une ville qui n'est pas à lui est prise
@@ -81,6 +84,16 @@ public sealed class Town : MapObject
             Available[creature] = Available.GetValueOrDefault(creature) + creature.Growth;
     }
 
+    /// <summary>Combien de créatures de ce type le joueur peut recruter : limité par les disponibles et par ses ressources.</summary>
+    public int MaxRecruitable(CreatureType type, Player player)
+    {
+        int max = Available.GetValueOrDefault(type);
+        foreach (var (resource, price) in type.Cost)
+            if (price > 0)
+                max = System.Math.Min(max, player.Resources.GetValueOrDefault(resource) / price);
+        return max;
+    }
+
     public CreatureType? DwellingCreature(BuildingType building) =>
         building.Dwelling is { } id ? _data.Creatures.Get(id) : null;
 
@@ -124,3 +137,9 @@ public sealed record TownCaptured(Hero Hero, Town Town, Player? PreviousOwner) :
 
 /// <summary>Un bâtiment a été construit dans une ville.</summary>
 public sealed record BuildingBuilt(Town Town, BuildingType Building) : GameEvent;
+
+/// <summary>Des créatures ont été recrutées dans une ville. <paramref name="ToHero"/> : elles ont rejoint le héros présent (garnison pleine).</summary>
+public sealed record CreaturesRecruited(Town Town, CreatureType Type, int Count, bool ToHero) : GameEvent;
+
+/// <summary>Une troupe est passée entre la garnison et le héros présent. <paramref name="ToHero"/> : de la garnison vers le héros.</summary>
+public sealed record StackTransferred(Town Town, Hero Hero, CreatureType Type, int Count, bool ToHero) : GameEvent;

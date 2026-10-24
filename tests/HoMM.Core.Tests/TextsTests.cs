@@ -36,7 +36,7 @@ public class TextsTests
     [Fact]
     public void Le_journal_raconte_les_visites_du_joueur()
     {
-        var state = new GameState(7, TestData.Creatures);
+        var state = new GameState(7, TestData.Data);
         var hero = state.CurrentHero!;
         var player = state.Players[0];
         var mine = state.Map.Objects.OfType<Mine>().First(m => m.Resource == ResourceType.Gold);
@@ -50,7 +50,7 @@ public class TextsTests
     [Fact]
     public void Le_journal_ignore_les_visites_des_autres_joueurs()
     {
-        var state = new GameState(7, TestData.Creatures);
+        var state = new GameState(7, TestData.Data);
         var other = new Player("Bleu", state.Map);
         var mine = state.Map.Objects.OfType<Mine>().First();
 
@@ -60,11 +60,11 @@ public class TextsTests
     [Fact]
     public void Le_titre_du_combat_utilise_le_nombre_de_monstres_au_debut()
     {
-        var state = new GameState(7, TestData.Creatures);
+        var state = new GameState(7, TestData.Data);
         var guard = new MonsterGuard(new Cell(0, 0), Type("loup"), 3);
         var report = new BattleReport { AttackerWon = true, AttackerLosses = new(), DefenderLosses = new() };
 
         Assert.Equal("Combat contre une bande de Loups",
-            Texts.BattleTitle(new BattleFought(state.CurrentHero!, guard, 15, report)));
+            Texts.BattleTitle(new BattleFought(state.CurrentHero!, guard, new[] { new CreatureStack(Type("loup"), 15) }, report)));
     }
 }

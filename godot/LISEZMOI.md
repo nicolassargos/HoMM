@@ -42,7 +42,8 @@ Pour le développement, `-- --reveal` retire le brouillard de guerre.
 Points verts : cases atteignables aujourd'hui. Points rouges : il faudra les jours suivants.
 
 Les **monstres** attaquent le héros qui entre sur une case voisine. Survolez-les pour voir le danger estimé du combat.
-Le combat est automatique. Perdre son dernier héros fait perdre la partie ; vaincre tous les monstres la fait gagner.
+Une **ville neutre** se trouve à mi-distance du départ : battez sa garnison pour la prendre. Elle rapporte de l'or chaque jour.
+Le combat est automatique. Perdre ses héros et ses villes fait perdre la partie ; vaincre tous les monstres la fait gagner.
 
 ## Organisation du code
 
@@ -55,7 +56,9 @@ Le code est séparé en deux parties :
   - `FogOfWar.cs` : brouillard de guerre (un par joueur)
   - `Pathfinder.cs` : recherche du chemin (A*) avec coûts de terrain
   - `MapObjects.cs` : tas de ressources, coffres, mines, monstres
+  - `GameData.cs` : les données du jeu (créatures, bâtiments) lues depuis `data/`
   - `Creature.cs` : types de créatures, lus depuis `data/creatures.json`
+  - `Town.cs` : villes (bâtiments, créatures à recruter, garnison)
   - `Army.cs` : armées (7 troupes au maximum)
   - `Battle.cs` : combat automatique
   - `Player.cs`, `Hero.cs` : trésor, mines, héros, armée, points de mouvement
@@ -67,7 +70,7 @@ Le code est séparé en deux parties :
   - `Hud.cs`, `Minimap.cs`, `ResourceIcon.cs` : l'interface
   - `Texts.cs` : tous les textes affichés (noms, date, journal). Sans Godot, donc testé avec les règles
 - `scenes/Main.tscn` : la seule scène, un nœud vide qui porte `Main.cs`.
-- `data/creatures.json` : les caractéristiques des créatures (modifiables sans toucher au code).
+- `data/creatures.json`, `data/buildings.json` : les créatures et les bâtiments (modifiables sans toucher au code).
 
 Les tests des règles sont dans `tests/HoMM.Core.Tests` (à la racine du dépôt) : `dotnet test`.
 La solution `HoMM.sln` à la racine s'ouvre dans Visual Studio ou Rider.

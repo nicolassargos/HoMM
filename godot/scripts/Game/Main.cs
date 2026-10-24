@@ -35,7 +35,7 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
-        _state = new GameState(ReadSeed(), LoadCreatures());
+        _state = new GameState(ReadSeed(), LoadData());
         GD.Print($"Carte générée avec la graine {_state.Seed}");
         // Option de développement : « -- --reveal » retire le brouillard
         if (OS.GetCmdlineUserArgs().Contains("--reveal"))
@@ -71,9 +71,10 @@ public partial class Main : Node2D
             : Random.Shared.Next(1_000_000);
     }
 
-    /// <summary>Les créatures du jeu, décrites dans data/creatures.json.</summary>
-    private static CreatureCatalog LoadCreatures() =>
-        CreatureCatalog.FromJson(Godot.FileAccess.GetFileAsString("res://data/creatures.json"));
+    /// <summary>Les données du jeu, décrites dans le dossier data/ (créatures, bâtiments).</summary>
+    private static GameData LoadData() => GameData.FromJson(
+        Godot.FileAccess.GetFileAsString("res://data/creatures.json"),
+        Godot.FileAccess.GetFileAsString("res://data/buildings.json"));
 
     /// <summary>Les commandes de la carte sont ignorées pendant une fenêtre ou une fois la partie finie.</summary>
     private bool CanAct => !_walking && !_hud.IsDialogOpen && _state.Outcome == GameOutcome.Playing;

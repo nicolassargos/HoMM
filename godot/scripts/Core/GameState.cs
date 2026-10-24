@@ -16,23 +16,25 @@ public sealed class GameState
 {
     private int _currentPlayer;
 
-    public GameState(int seed, CreatureCatalog creatures)
+    public GameState(int seed, GameData data)
     {
         Seed = seed;
-        Creatures = creatures;
-        Map = new MapGenerator(seed, creatures).Generate();
+        Data = data;
+        Map = new MapGenerator(seed, data).Generate();
 
         var human = new Player("Rouge", Map);
         Players.Add(human);
         var hero = new Hero("Sire Roland", human, Map.Start);
-        hero.Army.Add(creatures.Get("piquier"), 30);
-        hero.Army.Add(creatures.Get("archer"), 12);
-        hero.Army.Add(creatures.Get("griffon"), 4);
+        hero.Army.Add(Creatures.Get("piquier"), 30);
+        hero.Army.Add(Creatures.Get("archer"), 12);
+        hero.Army.Add(Creatures.Get("griffon"), 4);
         CurrentHero = hero;
     }
 
     public int Seed { get; }
-    public CreatureCatalog Creatures { get; }
+    public GameData Data { get; }
+    public CreatureCatalog Creatures => Data.Creatures;
+    public IEnumerable<Town> Towns => Map.Objects.OfType<Town>();
     public AdventureMap Map { get; }
     public List<Player> Players { get; } = new();
     public Player CurrentPlayer => Players[_currentPlayer];
@@ -103,6 +105,12 @@ public sealed class GameState
             hero.NewDay();
 
         bool newWeek = Day % 7 == 0;
+        foreach (var town in Towns)
+        {
+            town.NewDay();
+            if (newWeek)
+                town.NewWeek();
+        }
         if (newWeek)
             foreach (var guard in Map.Objects.OfType<MonsterGuard>())
                 guard.GrowWeekly();
@@ -147,7 +155,7 @@ public sealed class GameState
         {
             hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next));
             Path = null;
-            Fight(hero, target);
+            Fight(hero, target, target.Army);
             return false;
         }
 
@@ -160,11 +168,19 @@ public sealed class GameState
         foreach (var guard in Map.GuardsAround(next).ToList())
         {
             fought = true;
-            if (!Fight(hero, guard))
+            if (!Fight(hero, guard, guard.Army))
                 return false;
             // Le monstre visé a été vaincu : inutile d'aller sur sa case
             if (Path is { Count: > 0 } && Path[^1] == guard.Position)
                 Path = null;
+        }
+
+        // Une ville ennemie ou neutre : il faut d'abord vaincre sa garnison
+        if (Map.ObjectAt(next) is Town { Garrison.IsEmpty: false } town && town.Owner != hero.Owner)
+        {
+            fought = true;
+            if (!Fight(hero, town, town.Garrison))
+                return false;
         }
 
         if (Map.ObjectAt(next) is { } obj and not MonsterGuard)
@@ -179,18 +195,21 @@ public sealed class GameState
         return !fought;
     }
 
-    /// <summary>Combat automatique. Renvoie true si le héros a gagné.</summary>
-    private bool Fight(Hero hero, MonsterGuard guard)
+    /// <summary>Combat automatique contre un monstre ou une garnison. Renvoie true si le héros a gagné.</summary>
+    private bool Fight(Hero hero, MapObject defender, Army defenderArmy)
     {
-        int enemyCount = guard.Count;
-        var report = Battle.Resolve(hero.Army, guard.Army);
-        Emit(new BattleFought(hero, guard, enemyCount, report));
+        var before = defenderArmy.Clone().Stacks;
+        var report = Battle.Resolve(hero.Army, defenderArmy);
+        Emit(new BattleFought(hero, defender, before, report));
 
         if (report.AttackerWon)
         {
-            Map.RemoveObject(guard);
-            if (!Map.Objects.OfType<MonsterGuard>().Any())
-                EndGame(GameOutcome.Victory);
+            if (defender is MonsterGuard guard)
+            {
+                Map.RemoveObject(guard);
+                if (!Map.Objects.OfType<MonsterGuard>().Any())
+                    EndGame(GameOutcome.Victory);
+            }
             return true;
         }
 
@@ -226,7 +245,21 @@ public sealed class GameState
         return result;
     }
 
-    /// <summary>Prévision d'un combat contre ce monstre, sans rien modifier (pour l'interface).</summary>
-    public BattleReport? PredictBattle(MonsterGuard guard) =>
-        CurrentHero is { } hero ? Battle.Resolve(hero.Army.Clone(), guard.Army.Clone()) : null;
+    /// <summary>Prévision d'un combat du héros courant contre cette armée, sans rien modifier (pour l'interface).</summary>
+    public BattleReport? PredictBattle(Army enemy) =>
+        CurrentHero is { } hero ? Battle.Resolve(hero.Army.Clone(), enemy.Clone()) : null;
+
+    // ------------------------------------------------------------------ villes
+
+    /// <summary>Construit un bâtiment dans une ville du joueur courant.</summary>
+    public BuildResult Build(Town town, string buildingId)
+    {
+        var building = Data.Buildings.Get(buildingId);
+        var result = town.CanBuild(building, CurrentPlayer);
+        if (result != BuildResult.Ok || Outcome != GameOutcome.Playing)
+            return result;
+        town.Build(building, CurrentPlayer);
+        Emit(new BuildingBuilt(town, building));
+        return BuildResult.Ok;
+    }
 }

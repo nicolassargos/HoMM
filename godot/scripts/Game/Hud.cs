@@ -29,7 +29,7 @@ public partial class Hud : CanvasLayer
     private Label _mines = null!;
 
     // Prévision de combat mise en cache : la simulation n'est refaite que si quelque chose change
-    private (MonsterGuard Guard, int GuardCount, int ArmyCount)? _predictionKey;
+    private (Army Enemy, int EnemyCount, int ArmyCount)? _predictionKey;
     private string _predictionText = "";
     private Label _hover = null!;
     private Label _log = null!;
@@ -120,10 +120,10 @@ public partial class Hud : CanvasLayer
         y += 122;
 
         _mines = At(MakeLabel("", 13, SoftTextColor), margin, y);
-        _mines.Size = new Vector2(innerWidth, 20);
+        _mines.Size = new Vector2(innerWidth, 36);
         _mines.ClipText = true;
         panel.AddChild(_mines);
-        y += 24;
+        y += 40;
 
         _hover = At(MakeLabel("", 13, SoftTextColor), margin, y);
         _hover.Size = new Vector2(innerWidth, 54);
@@ -184,9 +184,8 @@ public partial class Hud : CanvasLayer
         }
 
         var income = player.DailyIncome();
-        _mines.Text = player.Mines.Count == 0
-            ? "Mines : aucune"
-            : $"Mines : {player.Mines.Count} (" + Texts.Income(income) + "/jour)";
+        _mines.Text = $"Villes : {player.Towns.Count} · Mines : {player.Mines.Count}\n"
+            + (income.Count == 0 ? "Revenus : aucun" : $"Revenus : {Texts.Income(income)} /jour");
 
         _hover.Text = DescribeCell(hovered);
 
@@ -216,7 +215,15 @@ public partial class Hud : CanvasLayer
         if (obj is Mine mine)
             text += $"\n{Texts.MineName(mine)}" + (mine.Owner == _state.CurrentPlayer ? " (à vous)" : mine.Owner != null ? " (ennemie)" : " (libre)");
         else if (obj is MonsterGuard guard)
-            text += $"\n{Texts.ObjectName(guard)}\n{Prediction(guard)}";
+            text += $"\n{Texts.ObjectName(guard)}\n{Prediction(guard.Army)}";
+        else if (obj is Town town && town.Owner == _state.CurrentPlayer)
+            text += $"\n{town.Name} (à vous)";
+        else if (obj is Town other)
+        {
+            text += $"\n{other.Name}" + (other.Owner != null ? " (ennemie)" : " (neutre)");
+            if (!other.Garrison.IsEmpty)
+                text += $"\nGarnison : {Prediction(other.Garrison)}";
+        }
         else if (obj != null)
             text += $"\n{Texts.ObjectName(obj)}";
         if (obj is not MonsterGuard && _state.Map.IsGuarded(cell))
@@ -225,15 +232,15 @@ public partial class Hud : CanvasLayer
     }
 
     /// <summary>Danger estimé d'un combat, en simulant le combat sur des copies des armées.</summary>
-    private string Prediction(MonsterGuard guard)
+    private string Prediction(Army enemy)
     {
         int armyCount = _state.CurrentHero?.Army.TotalCount ?? 0;
-        var key = (guard, guard.Count, armyCount);
+        var key = (enemy, enemy.TotalCount, armyCount);
         if (_predictionKey == key)
             return _predictionText;
         _predictionKey = key;
 
-        var report = _state.PredictBattle(guard);
+        var report = _state.PredictBattle(enemy);
         if (report == null || armyCount == 0)
             _predictionText = "";
         else if (!report.AttackerWon)

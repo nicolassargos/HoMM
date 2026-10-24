@@ -12,7 +12,7 @@ La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessou
 - Une PR de la branche **directement vers `main`** : pas de PR empilée sur une autre branche.
 - Avant de proposer une PR : `dotnet test` réussi et `dotnet build` (dans `godot/`) sans erreur.
 - Messages de commit et descriptions de PR en français.
-- Après la fusion : revenir sur `main` à jour et supprimer la branche (locale et sur GitHub).
+- Après la fusion (faite par l'utilisateur) : revenir sur `main` et récupérer les changements (`git switch main`, puis `git pull`), avant toute nouvelle branche. L'utilisateur supprime lui-même les branches fusionnées.
 - Ne pas fusionner une PR ni supprimer de branche sans l'accord de l'utilisateur.
 
 ## Choix techniques

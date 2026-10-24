@@ -35,15 +35,22 @@ On avance étape par étape, sans se presser : chaque étape est jouable et test
 - Écarté pour l'instant : faire résoudre tout un chemin d'un coup par les règles
   (l'affichage devrait alors garder sa propre copie de l'état). À revoir avec l'IA (étape 7).
 
-### 2. Villes
-- Un type de ville (Château), placé sur la carte.
-- Un bâtiment par jour, payé avec les ressources (les bâtiments décrits dans un fichier de données).
-- Des créatures à recruter, renouvelées chaque semaine (`CreatureType.Growth`, `Cost`).
-- Recrutement d'un second héros.
-- Écran de ville (côté affichage). C'est le bon moment pour découper `Main.cs`
-  (caméra, commandes) qui grossira avec ce nouvel écran.
-- Une fois le recrutement possible : rééquilibrer et relever `MaxGuardTier`, pour que
-  la victoire soit atteignable.
+### 2. Villes (en cours, branche `etape-2-villes`)
+Choix faits : la ville est **neutre** au départ, à mi-distance, défendue par une petite
+garnison ; les villes ont une **garnison** (comme dans Heroes) ; bâtiments minimaux ;
+écran de ville en plein écran.
+
+Découpage :
+1. ✅ La ville et ses bâtiments (règles et tests) : ville neutre à prendre, bâtiments dans
+   `godot/data/buildings.json` (salle du village → hôtel de ville → grand hôtel de ville,
+   taverne, 7 habitations avec prérequis), un bâtiment par jour, revenus en or,
+   créatures disponibles chaque semaine. La ville est dessinée sur la carte.
+2. Recrutement : acheter les créatures disponibles, vers la garnison (ou le héros présent) ;
+   échanger des troupes entre le héros et la garnison.
+3. Écran de ville (plein écran) ; découper `Main.cs` (caméra, commandes).
+4. Second héros recruté à la taverne, et passage d'un héros à l'autre.
+5. Équilibrage : relever `MaxGuardTier`, vérifier que la victoire est atteignable,
+   ajuster la garnison de la ville neutre (aujourd'hui facile : 0 à 4 pertes).
 
 ### 3. Progression du héros
 - Expérience gagnée en combat, niveaux.

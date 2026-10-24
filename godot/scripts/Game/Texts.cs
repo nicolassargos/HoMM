@@ -84,11 +84,21 @@ public static class Texts
         TreasureChest => "Coffre au trésor",
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
+        Town town => town.Name,
         _ => obj.GetType().Name,
     };
 
-    public static string BattleTitle(BattleFought battle) =>
-        $"Combat contre {LowerFirst(MonsterGroup(battle.Guard.Type, battle.EnemyCount))}";
+    /// <summary>L'adversaire d'un combat, tel qu'il était au début : « une bande de Loups », « la garnison de Bellerive ».</summary>
+    public static string Enemy(BattleFought battle) => battle.Defender switch
+    {
+        MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, battle.DefenderArmy.Sum(s => s.Count))),
+        Town town => $"la garnison de {town.Name}",
+        var other => LowerFirst(ObjectName(other)),
+    };
+
+    public static string BattleTitle(BattleFought battle) => battle.Defender is Town town
+        ? $"Assaut de {town.Name}"
+        : $"Combat contre {Enemy(battle)}";
 
     public static string GameOverTitle(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire" : "Défaite";
 
@@ -111,11 +121,15 @@ public static class Texts
             $"{MineName(captured.Mine)} capturée ! +{captured.Mine.DailyProduction} {Resource(captured.Mine.Resource)} par jour.",
         MineAlreadyOwned owned => $"{MineName(owned.Mine)} vous appartient déjà.",
 
+        TownCaptured captured => $"Vous prenez {captured.Town.Name} !",
+        TownEntered entered => $"{entered.Hero.Name} entre dans {entered.Town.Name}.",
+        BuildingBuilt built when built.Town.Owner != viewer => null,
+        BuildingBuilt built => $"{built.Building.Name} : construit à {built.Town.Name}.",
+
         BattleFought battle when battle.Hero.Owner != viewer => null,
         BattleFought { Report.AttackerWon: true } battle =>
-            $"Victoire contre {LowerFirst(MonsterGroup(battle.Guard.Type, battle.EnemyCount))} ! Pertes : {Losses(battle.Report.AttackerLosses)}.",
-        BattleFought battle =>
-            $"{battle.Hero.Name} a été vaincu par {LowerFirst(MonsterGroup(battle.Guard.Type, battle.EnemyCount))}.",
+            $"Victoire contre {Enemy(battle)} ! Pertes : {Losses(battle.Report.AttackerLosses)}.",
+        BattleFought battle => $"{battle.Hero.Name} a été vaincu par {Enemy(battle)}.",
 
         DayStarted { NewWeek: true } day => $"Une nouvelle semaine commence, les monstres sont plus nombreux ! {Date(day.Day)}.",
         DayStarted day => $"Nouveau jour : {Date(day.Day)}.",

@@ -11,14 +11,16 @@ namespace HoMM.Core;
 public sealed class MapGenerator
 {
     private readonly Random _rng;
-    private readonly CreatureCatalog? _creatures;
+    private readonly GameData? _data;
     private AdventureMap _map = null!;
 
-    /// <param name="creatures">Les créatures pour les monstres neutres. Sans catalogue, pas de monstres.</param>
-    public MapGenerator(int seed, CreatureCatalog? creatures = null)
+    private static readonly string[] TownNames = { "Bellerive", "Hautemont", "Valombre", "Clairefont", "Roc-Fleuri", "Mirebois" };
+
+    /// <param name="data">Les données de jeu, pour les villes et les monstres. Sans données : ni ville ni monstre.</param>
+    public MapGenerator(int seed, GameData? data = null)
     {
         _rng = new Random(seed);
-        _creatures = creatures;
+        _data = data;
     }
 
     /// <summary>Monstres placés n'importe où, en plus de ceux qui gardent les mines et les coffres.</summary>
@@ -40,11 +42,43 @@ public sealed class MapGenerator
         PaintTerrain();
         ClearStartArea();
         PaintRoads();
+        if (_data != null)
+            PlaceTown(_data);
         PlaceObjects();
-        if (_creatures != null)
-            PlaceGuards(_creatures);
+        if (_data != null)
+            PlaceGuards(_data.Creatures);
         return _map;
     }
+
+    /// <summary>
+    /// Une ville neutre du Château, à mi-distance du départ : il faut la trouver,
+    /// puis vaincre sa petite garnison pour la prendre.
+    /// </summary>
+    private void PlaceTown(GameData data)
+    {
+        var start = _map.Start;
+        var candidates = ReachableCells()
+            .Where(c => Distance(c, start) is >= 10 and <= 16)
+            .OrderBy(c => c.Y).ThenBy(c => c.X)
+            .ToList();
+        if (candidates.Count == 0)
+            return;
+        var cell = candidates[_rng.Next(candidates.Count)];
+
+        var town = new Town(cell, TownNames[_rng.Next(TownNames.Length)], "chateau", data);
+        town.AddBuilding(data.Buildings.Get("salle-village"));
+        town.AddBuilding(data.Buildings.Get("corps-de-garde"));
+        town.Garrison.Add(data.Creatures.Get("piquier"), _rng.Next(10, 17));
+        town.Garrison.Add(data.Creatures.Get("archer"), _rng.Next(4, 9));
+        _map.AddObject(town);
+    }
+
+    private static double Distance(Cell a, Cell b) => Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
+
+    /// <summary>Distance « en cases » (déplacement en diagonale compris) jusqu'à la ville la plus proche.</summary>
+    private int DistanceToNearestTown(Cell c) => _map.Objects.OfType<Town>()
+        .Select(t => Math.Max(Math.Abs(c.X - t.Position.X), Math.Abs(c.Y - t.Position.Y)))
+        .DefaultIfEmpty(int.MaxValue).Min();
 
     private void PaintTerrain()
     {
@@ -136,6 +170,7 @@ public sealed class MapGenerator
         var free = ReachableCells()
             .Where(c => Math.Abs(c.X - start.X) + Math.Abs(c.Y - start.Y) > 2)
             .Where(c => _map.GetTerrain(c) != TerrainType.Road)
+            .Where(c => _map.ObjectAt(c) == null && DistanceToNearestTown(c) > 1) // l'entrée de la ville reste libre
             .OrderBy(c => c.Y).ThenBy(c => c.X) // ordre stable avant le mélange
             .ToList();
         Shuffle(free);
@@ -213,7 +248,7 @@ public sealed class MapGenerator
     }
 
     /// <summary>
-    /// Une case libre, assez loin du départ, et assez loin des autres monstres
+    /// Une case libre, assez loin du départ et des villes, et assez loin des autres monstres
     /// pour que leurs zones de contrôle ne se chevauchent pas.
     /// </summary>
     private bool CanPlaceGuard(Cell c)
@@ -221,6 +256,8 @@ public sealed class MapGenerator
         if (!_map.IsPassable(c) || _map.ObjectAt(c) != null)
             return false;
         if (Math.Max(Math.Abs(c.X - _map.Start.X), Math.Abs(c.Y - _map.Start.Y)) < 4)
+            return false;
+        if (DistanceToNearestTown(c) < 4)
             return false;
         for (int dy = -2; dy <= 2; dy++)
         for (int dx = -2; dx <= 2; dx++)

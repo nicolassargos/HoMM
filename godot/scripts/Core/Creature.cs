@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace HoMM.Core;
 
@@ -42,17 +40,8 @@ public sealed class CreatureCatalog
     public CreatureType Get(string id) =>
         _byId.TryGetValue(id, out var c) ? c : throw new KeyNotFoundException($"Créature inconnue : {id}");
 
-    public static CreatureCatalog FromJson(string json)
-    {
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            Converters = { new JsonStringEnumConverter() },
-        };
-        var file = JsonSerializer.Deserialize<CatalogFile>(json, options)
-                   ?? throw new FormatException("Fichier de créatures vide.");
-        return new CreatureCatalog(file.Creatures);
-    }
+    public static CreatureCatalog FromJson(string json) =>
+        new(GameData.Parse<CatalogFile>(json, "créatures").Creatures);
 
     private sealed record CatalogFile(List<CreatureType> Creatures);
 }

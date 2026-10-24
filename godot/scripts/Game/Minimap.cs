@@ -44,6 +44,8 @@ public partial class Minimap : Control
                 color = MapRenderer.TerrainColor(map.GetTerrain(cell));
                 if (map.ObjectAt(cell) is Mine mine)
                     color = mine.Owner != null ? MapRenderer.PlayerColor : MapRenderer.Rgb(230, 230, 230);
+                else if (map.ObjectAt(cell) is Town town)
+                    color = town.Owner != null ? MapRenderer.PlayerColor : MapRenderer.NeutralColor;
             }
             DrawRect(new Rect2(x * CellSize, y * CellSize, CellSize, CellSize), color);
         }

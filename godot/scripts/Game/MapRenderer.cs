@@ -167,7 +167,34 @@ public static class MapRenderer
             case MonsterGuard guard:
                 DrawMonster(ci, guard, c, time);
                 break;
+
+            case Town town:
+                DrawTown(ci, town, c, time);
+                break;
         }
+    }
+
+    public static readonly Color NeutralColor = Rgb(200, 200, 200);
+
+    /// <summary>Un petit château : deux tours, un donjon, une porte, et le drapeau du propriétaire.</summary>
+    private static void DrawTown(CanvasItem ci, Town town, Vector2 c, double time)
+    {
+        var wall = Rgb(185, 175, 160);
+        var dark = Rgb(120, 112, 100);
+        Ellipse(ci, new Rect2(c + V(-22, 14), 44, 9), new Color(0, 0, 0, 0.45f));
+        ci.DrawRect(new Rect2(c + V(-18, -4), 36, 20), wall);                 // rempart
+        ci.DrawRect(new Rect2(c + V(-22, -12), 10, 28), dark);                // tour gauche
+        ci.DrawRect(new Rect2(c + V(12, -12), 10, 28), dark);                 // tour droite
+        ci.DrawRect(new Rect2(c + V(-7, -18), 14, 22), wall);                 // donjon
+        foreach (float x in new[] { -22f, -17f, 12f, 17f })
+            ci.DrawRect(new Rect2(c + V(x, -15), 3, 3), dark);                // créneaux
+        Ellipse(ci, new Rect2(c + V(-5, 4), 10, 14), Rgb(50, 35, 20));        // porte
+        ci.DrawRect(new Rect2(c + V(-5, 10), 10, 6), Rgb(50, 35, 20));
+
+        var flag = town.Owner != null ? PlayerColor : NeutralColor;
+        float wave = (int)(time * 3) % 2 == 1 ? 2 : 0;
+        ci.DrawLine(c + V(0, -18), c + V(0, -30), Rgb(80, 50, 20), 2);
+        Triangle(ci, c + V(1, -30), c + V(12, -27 + wave), c + V(1, -24), flag);
     }
 
     /// <summary>Couleur d'un monstre selon son niveau : du vert (faible) au rouge sombre (fort).</summary>

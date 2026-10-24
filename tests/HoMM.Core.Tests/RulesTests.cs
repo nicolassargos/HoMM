@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using HoMM.Core;
 using Xunit;
@@ -28,6 +29,14 @@ public class MapGeneratorTests
             Assert.Equal(a.GetTerrain(new Cell(x, y)), b.GetTerrain(new Cell(x, y)));
         Assert.Equal(a.Objects.Select(o => o.Position).OrderBy(p => p.Y).ThenBy(p => p.X),
                      b.Objects.Select(o => o.Position).OrderBy(p => p.Y).ThenBy(p => p.X));
+    }
+
+    [Fact]
+    public void Une_petite_carte_pose_ce_qui_rentre_sans_planter()
+    {
+        var map = new MapGenerator(5).Generate(6, 6);
+        Assert.NotEmpty(map.Objects);
+        Assert.True(map.Objects.Count < ResourceInfo.All.Length + 6 + 28);
     }
 }
 
@@ -60,6 +69,57 @@ public class PathfinderTests
         Assert.NotNull(path);
         Assert.DoesNotContain(path!, c => map.GetTerrain(c) == TerrainType.Water);
         Assert.Contains(new Cell(5, 9), path!);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(42)]
+    [InlineData(2026)]
+    public void Le_chemin_trouve_est_le_moins_cher(int seed)
+    {
+        var map = new MapGenerator(seed).Generate();
+        var best = CheapestCosts(map, map.Start);
+        foreach (var obj in map.Objects)
+        {
+            var path = Pathfinder.FindPath(map, map.Start, obj.Position)!;
+            int cost = 0;
+            var previous = map.Start;
+            foreach (var cell in path)
+            {
+                cost += Pathfinder.StepCost(map, previous, cell);
+                previous = cell;
+            }
+            Assert.Equal(best[obj.Position], cost);
+        }
+    }
+
+    /// <summary>Dijkstra simple (sans estimation), avec les mêmes règles que le Pathfinder.</summary>
+    private static Dictionary<Cell, int> CheapestCosts(AdventureMap map, Cell start)
+    {
+        var best = new Dictionary<Cell, int> { [start] = 0 };
+        var open = new PriorityQueue<Cell, int>();
+        open.Enqueue(start, 0);
+        while (open.TryDequeue(out var cell, out int cost))
+        {
+            if (cost > best[cell] || (cell != start && map.ObjectAt(cell) != null))
+                continue;
+            for (int dx = -1; dx <= 1; dx++)
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                var next = cell.Offset(dx, dy);
+                if ((dx == 0 && dy == 0) || !map.IsPassable(next))
+                    continue;
+                if (dx != 0 && dy != 0 && !(map.IsPassable(cell.Offset(dx, 0)) && map.IsPassable(cell.Offset(0, dy))))
+                    continue;
+                int newCost = cost + Pathfinder.StepCost(map, cell, next);
+                if (newCost < best.GetValueOrDefault(next, int.MaxValue))
+                {
+                    best[next] = newCost;
+                    open.Enqueue(next, newCost);
+                }
+            }
+        }
+        return best;
     }
 
     [Fact]

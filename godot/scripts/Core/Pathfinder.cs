@@ -11,6 +11,9 @@ public static class Pathfinder
         (-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, -1), (-1, 1), (1, 1),
     };
 
+    private static readonly int MinStepCost = TerrainInfo.MoveCost(TerrainType.Road);
+    private static readonly int MinDiagonalCost = (int)(MinStepCost * Math.Sqrt(2));
+
     /// <summary>
     /// Coût pour aller d'une case à une case voisine. Comme dans Heroes, c'est le terrain
     /// de départ qui compte, et un pas en diagonale coûte environ 1,41 fois plus.
@@ -35,8 +38,12 @@ public static class Pathfinder
         double Estimate(Cell c)
         {
             int dx = Math.Abs(c.X - goal.X), dy = Math.Abs(c.Y - goal.Y);
-            // Distance « octile » au coût de la route, le terrain le moins cher
-            return 75 * (Math.Max(dx, dy) + (Math.Sqrt(2) - 1) * Math.Min(dx, dy));
+            // Distance « octile » au coût de la route, le terrain le moins cher.
+            // Le pas en diagonale utilise le même arrondi que StepCost, pour ne jamais
+            // surestimer le coût restant (sinon A* peut rater le meilleur chemin).
+            int diagonals = Math.Min(dx, dy);
+            int straights = Math.Max(dx, dy) - diagonals;
+            return straights * MinStepCost + diagonals * MinDiagonalCost;
         }
 
         var open = new PriorityQueue<(Cell Cell, int Cost), double>();

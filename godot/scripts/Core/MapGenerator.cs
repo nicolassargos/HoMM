@@ -124,16 +124,26 @@ public sealed class MapGenerator
         Shuffle(free);
         int next = 0;
 
+        // Sur une petite carte, on pose ce qui rentre : les mines d'abord, puis les coffres, puis les tas
         foreach (var resource in ResourceInfo.All)
+        {
+            if (next >= free.Count) return;
             _map.AddObject(new Mine(free[next++], resource));
+        }
         for (int i = 0; i < ChestCount; i++)
+        {
+            if (next >= free.Count) return;
             _map.AddObject(new TreasureChest(free[next++], _rng));
+        }
 
         // L'or, le bois et le minerai sont plus fréquents que les gemmes
         var pileTypes = new[] { ResourceType.Gold, ResourceType.Gold, ResourceType.Wood, ResourceType.Wood,
                                 ResourceType.Ore, ResourceType.Ore, ResourceType.Gems };
         for (int i = 0; i < PileCount; i++)
+        {
+            if (next >= free.Count) return;
             _map.AddObject(new ResourcePile(free[next++], pileTypes[_rng.Next(pileTypes.Length)], _rng));
+        }
     }
 
     private void Shuffle<T>(IList<T> list)

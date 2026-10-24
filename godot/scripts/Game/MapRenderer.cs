@@ -169,32 +169,52 @@ public static class MapRenderer
                 break;
 
             case Town town:
-                DrawTown(ci, town, c, time);
+                // La ville couvre 3×3 cases : l'entrée (o) est au milieu de la rangée du bas
+                DrawTown(ci, town, o + V(T / 2f, -T / 2f), time);
                 break;
         }
     }
 
     public static readonly Color NeutralColor = Rgb(200, 200, 200);
 
-    /// <summary>Un petit château : deux tours, un donjon, une porte, et le drapeau du propriétaire.</summary>
+    /// <summary>
+    /// Un château sur 3×3 cases (<paramref name="c"/> en est le centre) : remparts, quatre tours,
+    /// un donjon, la porte sur la case d'entrée (milieu du bas), et le drapeau du propriétaire.
+    /// </summary>
     private static void DrawTown(CanvasItem ci, Town town, Vector2 c, double time)
     {
         var wall = Rgb(185, 175, 160);
         var dark = Rgb(120, 112, 100);
-        Ellipse(ci, new Rect2(c + V(-22, 14), 44, 9), new Color(0, 0, 0, 0.45f));
-        ci.DrawRect(new Rect2(c + V(-18, -4), 36, 20), wall);                 // rempart
-        ci.DrawRect(new Rect2(c + V(-22, -12), 10, 28), dark);                // tour gauche
-        ci.DrawRect(new Rect2(c + V(12, -12), 10, 28), dark);                 // tour droite
-        ci.DrawRect(new Rect2(c + V(-7, -18), 14, 22), wall);                 // donjon
-        foreach (float x in new[] { -22f, -17f, 12f, 17f })
-            ci.DrawRect(new Rect2(c + V(x, -15), 3, 3), dark);                // créneaux
-        Ellipse(ci, new Rect2(c + V(-5, 4), 10, 14), Rgb(50, 35, 20));        // porte
-        ci.DrawRect(new Rect2(c + V(-5, 10), 10, 6), Rgb(50, 35, 20));
+        var roof = Rgb(150, 50, 45);
+        const float h = 1.5f * T; // demi-côté du carré de 3×3 cases
+
+        Ellipse(ci, new Rect2(c + V(-h + 2, h - 18), 2 * h - 4, 22), new Color(0, 0, 0, 0.4f));
+        ci.DrawRect(new Rect2(c + V(-h + 10, -h + 30), 2 * h - 20, 2 * h - 44), wall);       // cour et remparts
+        ci.DrawRect(new Rect2(c + V(-h + 10, -h + 30), 2 * h - 20, 2 * h - 44), dark, false, 2);
+
+        // Quatre tours aux coins, avec un toit pointu
+        foreach (var corner in new[] { V(-h + 6, -h + 22), V(h - 26, -h + 22), V(-h + 6, h - 50), V(h - 26, h - 50) })
+        {
+            ci.DrawRect(new Rect2(c + corner, 20, 34), dark);
+            Triangle(ci, c + corner + V(-3, 0), c + corner + V(10, -16), c + corner + V(23, 0), roof);
+        }
+
+        // Le donjon au centre
+        ci.DrawRect(new Rect2(c + V(-20, -h + 20), 40, 64), wall);
+        ci.DrawRect(new Rect2(c + V(-20, -h + 20), 40, 64), dark, false, 2);
+        Triangle(ci, c + V(-24, -h + 20), c + V(0, -h - 4), c + V(24, -h + 20), roof);
+        foreach (float x in new[] { -12f, 4f })
+            ci.DrawRect(new Rect2(c + V(x, -h + 34), 8, 12), Rgb(40, 30, 25));             // fenêtres
+
+        // La porte, sur la case d'entrée (milieu de la rangée du bas)
+        Ellipse(ci, new Rect2(c + V(-14, h - 44), 28, 26), Rgb(50, 35, 20));
+        ci.DrawRect(new Rect2(c + V(-14, h - 31), 28, 17), Rgb(50, 35, 20));
+        ci.DrawRect(new Rect2(c + V(-10, h - 14), 20, 14), Rgb(150, 125, 85));             // chemin d'accès
 
         var flag = town.Owner != null ? PlayerColor : NeutralColor;
-        float wave = (int)(time * 3) % 2 == 1 ? 2 : 0;
-        ci.DrawLine(c + V(0, -18), c + V(0, -30), Rgb(80, 50, 20), 2);
-        Triangle(ci, c + V(1, -30), c + V(12, -27 + wave), c + V(1, -24), flag);
+        float wave = (int)(time * 3) % 2 == 1 ? 3 : 0;
+        ci.DrawLine(c + V(0, -h - 4), c + V(0, -h - 26), Rgb(80, 50, 20), 2);
+        Triangle(ci, c + V(1, -h - 26), c + V(20, -h - 21 + wave), c + V(1, -h - 15), flag);
     }
 
     /// <summary>Couleur d'un monstre selon son niveau : du vert (faible) au rouge sombre (fort).</summary>

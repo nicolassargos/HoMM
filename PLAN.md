@@ -54,8 +54,10 @@ Découpage :
    Un clic sur une troupe la fait passer entre la garnison et le héros (qui garde toujours
    au moins une troupe). Pas encore de partage d'une troupe en deux.
 4. Second héros recruté à la taverne, et passage d'un héros à l'autre.
-5. **Ville sur 3×3 cases avec une entrée** (important) : la ville occupe 9 cases
-   infranchissables, le héros y entre par une case d'entrée. À faire avant la fin de l'étape 2.
+5. ✅ **Ville sur 3×3 cases avec une entrée** : la ville occupe 9 cases, l'entrée est au
+   milieu de la rangée du bas et s'atteint par la case juste en dessous ; les 8 autres sont
+   infranchissables. Les objets ont maintenant une « empreinte » (`MapObject.Footprint`),
+   réutilisable pour d'autres grands objets. Un clic sur les murs mène à l'entrée.
 6. Équilibrage : relever `MaxGuardTier`, vérifier que la victoire est atteignable,
    ajuster la garnison de la ville neutre (aujourd'hui facile : 0 à 4 pertes).
 

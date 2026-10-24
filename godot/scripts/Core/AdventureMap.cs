@@ -7,7 +7,8 @@ namespace HoMM.Core;
 public sealed class AdventureMap
 {
     private readonly TerrainType[,] _terrain;
-    private readonly Dictionary<Cell, MapObject> _objects = new();
+    private readonly Dictionary<Cell, MapObject> _objects = new();   // par case de visite
+    private readonly Dictionary<Cell, MapObject> _occupied = new();  // toutes les cases couvertes
 
     public AdventureMap(int width, int height)
     {
@@ -28,11 +29,34 @@ public sealed class AdventureMap
     public void SetTerrain(Cell c, TerrainType terrain) => _terrain[c.X, c.Y] = terrain;
 
     public int MoveCost(Cell c) => TerrainInfo.MoveCost(GetTerrain(c));
-    public bool IsPassable(Cell c) => InBounds(c) && TerrainInfo.IsPassable(GetTerrain(c));
 
+    /// <summary>
+    /// Peut-on marcher sur cette case ? Non pour l'eau, la montagne, et les cases occupées
+    /// par un grand objet en dehors de son entrée (les murs d'une ville).
+    /// </summary>
+    public bool IsPassable(Cell c) =>
+        InBounds(c) && TerrainInfo.IsPassable(GetTerrain(c))
+        && !(OccupantAt(c) is { } occupant && occupant.Position != c);
+
+    /// <summary>L'objet qu'on visite sur cette case (la case d'entrée, pour une ville).</summary>
     public MapObject? ObjectAt(Cell c) => _objects.GetValueOrDefault(c);
-    public void AddObject(MapObject obj) => _objects[obj.Position] = obj;
-    public void RemoveObject(MapObject obj) => _objects.Remove(obj.Position);
+
+    /// <summary>L'objet qui occupe cette case, même s'il ne se visite pas par là (les murs d'une ville).</summary>
+    public MapObject? OccupantAt(Cell c) => _occupied.GetValueOrDefault(c);
+
+    public void AddObject(MapObject obj)
+    {
+        _objects[obj.Position] = obj;
+        foreach (var cell in obj.Footprint)
+            _occupied[cell] = obj;
+    }
+
+    public void RemoveObject(MapObject obj)
+    {
+        _objects.Remove(obj.Position);
+        foreach (var cell in obj.Footprint)
+            _occupied.Remove(cell);
+    }
 
     /// <summary>
     /// Les monstres sur les 8 cases autour de <paramref name="c"/>. Comme dans Heroes, un monstre

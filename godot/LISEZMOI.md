@@ -45,7 +45,7 @@ Pour le développement, `-- --reveal` retire le brouillard de guerre.
 Points verts : cases atteignables aujourd'hui. Points rouges : il faudra les jours suivants.
 
 Les **monstres** attaquent le héros qui entre sur une case voisine. Survolez-les pour voir le danger estimé du combat.
-Une **ville neutre** se trouve à mi-distance du départ : battez sa garnison pour la prendre. Elle rapporte de l'or chaque jour.
+Une **ville neutre** (3×3 cases, entrée en bas au milieu) se trouve à mi-distance du départ : battez sa garnison pour la prendre. Elle rapporte de l'or chaque jour.
 Le combat est automatique. Perdre ses héros et ses villes fait perdre la partie ; vaincre tous les monstres la fait gagner.
 
 ## Organisation du code

@@ -48,6 +48,62 @@ public class TownTests
     }
 
     [Fact]
+    public void La_ville_occupe_3x3_cases_et_ne_s_ouvre_que_par_son_entree()
+    {
+        var (state, town) = GameWithTownNearby();
+        var map = state.Map;
+
+        Assert.Equal(9, town.Footprint.Count());
+        foreach (var cell in town.Footprint)
+        {
+            Assert.Same(town, map.OccupantAt(cell));
+            Assert.Equal(cell == town.Position, map.IsPassable(cell));
+        }
+
+        // Le chemin finit par la case d'approche (juste sous l'entrée), puis l'entrée
+        var path = Pathfinder.FindPath(map, state.CurrentHero!.Position, town.Position)!;
+        Assert.Equal(town.Approach, path[^2]);
+        Assert.Equal(town.Position, path[^1]);
+    }
+
+    [Fact]
+    public void Un_clic_sur_les_murs_mene_a_l_entree()
+    {
+        var (state, town) = GameWithTownNearby();
+        var wall = town.Position.Offset(0, -2);
+
+        state.SetDestination(wall);
+
+        Assert.Equal(town.Position, state.Path![^1]);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(42)]
+    [InlineData(2026)]
+    [InlineData(5)]
+    [InlineData(13)]
+    public void La_ville_generee_laisse_tout_accessible(int seed)
+    {
+        var map = new MapGenerator(seed, TestData.Data).Generate();
+        var town = map.Objects.OfType<Town>().Single();
+
+        foreach (var cell in town.Footprint)
+        {
+            Assert.True(map.InBounds(cell));
+            Assert.True(TerrainInfo.IsPassable(map.GetTerrain(cell)));
+            if (cell != town.Position)
+                Assert.Null(map.ObjectAt(cell));
+        }
+        Assert.True(map.IsPassable(town.Approach));
+        Assert.Null(map.ObjectAt(town.Approach));
+
+        // Les murs de la ville ne coupent l'accès à rien
+        foreach (var obj in map.Objects.Where(o => o is not MonsterGuard))
+            Assert.NotNull(Pathfinder.FindPath(map, map.Start, obj.Position));
+    }
+
+    [Fact]
     public void Vaincre_la_garnison_donne_la_ville()
     {
         var (state, town) = GameWithTownNearby(garrisonPiquiers: 3);

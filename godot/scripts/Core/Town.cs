@@ -33,6 +33,23 @@ public sealed class Town : MapObject
     public Army Garrison { get; } = new();
     public override bool RemovedOnVisit => false;
 
+    /// <summary>
+    /// La ville occupe 3×3 cases. <see cref="MapObject.Position"/> est l'entrée, au milieu
+    /// de la rangée du bas : le héros y entre par la case juste en dessous.
+    /// </summary>
+    public override IEnumerable<Cell> Footprint => FootprintAt(Position);
+
+    /// <summary>Les 9 cases d'une ville dont l'entrée serait en <paramref name="entrance"/>.</summary>
+    public static IEnumerable<Cell> FootprintAt(Cell entrance)
+    {
+        for (int dy = -2; dy <= 0; dy++)
+        for (int dx = -1; dx <= 1; dx++)
+            yield return entrance.Offset(dx, dy);
+    }
+
+    /// <summary>La case d'où l'on entre dans la ville (juste sous l'entrée).</summary>
+    public Cell Approach => Position.Offset(0, 1);
+
     /// <summary>Un seul bâtiment par jour, comme dans Heroes.</summary>
     public bool BuiltToday { get; private set; }
 

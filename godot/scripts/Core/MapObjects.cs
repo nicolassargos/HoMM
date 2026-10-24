@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace HoMM.Core;
 
@@ -14,7 +15,17 @@ public abstract class MapObject
 {
     protected MapObject(Cell position) => Position = position;
 
+    /// <summary>La case où le héros s'arrête pour visiter l'objet (l'entrée, pour une ville).</summary>
     public Cell Position { get; }
+
+    /// <summary>
+    /// Toutes les cases occupées par l'objet. Par défaut, seulement sa case ; une ville en occupe 3×3.
+    /// Les cases autres que <see cref="Position"/> sont infranchissables.
+    /// </summary>
+    public virtual IEnumerable<Cell> Footprint
+    {
+        get { yield return Position; }
+    }
 
     /// <summary>L'objet disparaît-il de la carte après la visite ?</summary>
     public virtual bool RemovedOnVisit => true;

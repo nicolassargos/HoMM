@@ -104,9 +104,9 @@ public partial class Main : Node2D
     {
         if (!CanAct || !_state.CurrentPlayer.Fog.IsExplored(cell))
             return;
-        // Clic sur sa ville, avec le héros dedans : on ouvre l'écran de ville
-        if (_state.CurrentHero is { } hero && hero.Position == cell
-            && _state.Map.ObjectAt(cell) is Town town && town.Owner == _state.CurrentPlayer)
+        // Clic sur sa ville (n'importe laquelle de ses 9 cases), avec le héros à l'entrée : écran de ville
+        if (_state.CurrentHero is { } hero && _state.Map.OccupantAt(cell) is Town town
+            && hero.Position == town.Position && town.Owner == _state.CurrentPlayer)
         {
             _townScreen.Open(town);
             return;

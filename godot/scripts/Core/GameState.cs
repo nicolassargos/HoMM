@@ -130,8 +130,12 @@ public sealed class GameState
 
     public void SetDestination(Cell target)
     {
-        if (CurrentHero is { } hero && Outcome == GameOutcome.Playing)
-            Path = Pathfinder.FindPath(Map, hero.Position, target);
+        if (CurrentHero is not { } hero || Outcome != GameOutcome.Playing)
+            return;
+        // Un clic sur les murs d'une ville mène à son entrée
+        if (Map.OccupantAt(target) is { } occupant)
+            target = occupant.Position;
+        Path = Pathfinder.FindPath(Map, hero.Position, target);
     }
 
     public void ClearPath() => Path = null;

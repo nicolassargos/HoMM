@@ -197,7 +197,7 @@ public partial class Hud : CanvasLayer
         string text = Texts.Terrain(terrain) + (TerrainInfo.IsPassable(terrain)
             ? $" (coût {TerrainInfo.MoveCost(terrain)})"
             : " (infranchissable)");
-        var obj = _state.Map.ObjectAt(cell);
+        var obj = _state.Map.OccupantAt(cell);
         if (obj is Mine mine)
             text += $"\n{Texts.MineName(mine)}" + (mine.Owner == _state.CurrentPlayer ? " (à vous)" : mine.Owner != null ? " (ennemie)" : " (libre)");
         else if (obj is MonsterGuard guard)

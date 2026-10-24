@@ -57,8 +57,12 @@ public sealed class MapGenerator
     private void PlaceTown(GameData data)
     {
         var start = _map.Start;
-        var candidates = ReachableCells()
+        var reachable = ReachableCells();
+        // L'entrée : ses 9 cases sur un terrain où l'on peut bâtir, et la case d'approche accessible depuis le départ
+        var candidates = reachable
             .Where(c => Distance(c, start) is >= 10 and <= 16)
+            .Where(c => reachable.Contains(c.Offset(0, 1)))
+            .Where(c => Town.FootprintAt(c).All(f => _map.IsPassable(f) && _map.ObjectAt(f) == null))
             .OrderBy(c => c.Y).ThenBy(c => c.X)
             .ToList();
         if (candidates.Count == 0)
@@ -75,9 +79,10 @@ public sealed class MapGenerator
 
     private static double Distance(Cell a, Cell b) => Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
 
-    /// <summary>Distance « en cases » (déplacement en diagonale compris) jusqu'à la ville la plus proche.</summary>
+    /// <summary>Distance « en cases » (déplacement en diagonale compris) jusqu'à la case la plus proche d'une ville (murs compris).</summary>
     private int DistanceToNearestTown(Cell c) => _map.Objects.OfType<Town>()
-        .Select(t => Math.Max(Math.Abs(c.X - t.Position.X), Math.Abs(c.Y - t.Position.Y)))
+        .SelectMany(t => t.Footprint.Append(t.Approach))
+        .Select(f => Math.Max(Math.Abs(c.X - f.X), Math.Abs(c.Y - f.Y)))
         .DefaultIfEmpty(int.MaxValue).Min();
 
     private void PaintTerrain()

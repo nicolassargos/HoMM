@@ -1,6 +1,6 @@
 # HoMM – notes pour Claude
 
-Jeu PC fortement inspiré de Heroes of Might and Magic / King's Bounty. L'utilisateur est francophone : répondre en français, textes du jeu en français.
+Jeu PC fortement inspiré de Heroes of Might and Magic / King's Bounty. L'utilisateur est francophone mais préfère échanger en anglais (un anglais simple et clair). Les textes du jeu, les commentaires, la documentation, les commits et les PR restent en français.
 
 ## Plan
 La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessous. Le suivre pour chaque nouvelle fonctionnalité, et le mettre à jour quand les idées changent ou qu'une étape avance (cocher ✅, noter les décisions prises).

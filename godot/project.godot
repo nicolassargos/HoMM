@@ -1,0 +1,26 @@
+; Fichier de configuration du projet Godot.
+; Tout le jeu est construit par le code C# (dossier scripts/), l'éditeur n'est pas nécessaire.
+
+config_version=5
+
+[application]
+
+config/name="HoMM"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[dotnet]
+
+project/assembly_name="HoMM"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

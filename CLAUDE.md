@@ -2,6 +2,9 @@
 
 Jeu PC fortement inspiré de Heroes of Might and Magic / King's Bounty. L'utilisateur est francophone : répondre en français, textes du jeu en français.
 
+## Plan
+La vision du jeu et les étapes prévues sont dans `PLAN.md` : le lire avant de commencer une nouvelle fonctionnalité, et le mettre à jour quand les idées changent.
+
 ## Choix techniques
 - Godot 4.7.2 **édition .NET** + C# (.NET 8). Le projet est dans `godot/`.
 - Utiliser l'éditeur Godot le moins possible : tout est construit par le code (scène unique `scenes/Main.tscn`).

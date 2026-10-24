@@ -2,12 +2,13 @@ using System.Collections.Generic;
 
 namespace HoMM.Core;
 
-/// <summary>Un joueur : son trésor et ses mines.</summary>
+/// <summary>Un joueur : son trésor, ses mines, ses héros et son brouillard de guerre.</summary>
 public sealed class Player
 {
-    public Player(string name)
+    public Player(string name, AdventureMap map)
     {
         Name = name;
+        Fog = new FogOfWar(map.Width, map.Height);
         Resources = new Dictionary<ResourceType, int>
         {
             [ResourceType.Gold] = 2500,
@@ -18,8 +19,13 @@ public sealed class Player
     }
 
     public string Name { get; }
+    public FogOfWar Fog { get; }
     public Dictionary<ResourceType, int> Resources { get; }
     public List<Mine> Mines { get; } = new();
+    public List<Hero> Heroes { get; } = new();
+
+    /// <summary>Un joueur sans héros a perdu (les villes compteront aussi à l'étape 2).</summary>
+    public bool IsDefeated => Heroes.Count == 0;
 
     public Dictionary<ResourceType, int> DailyIncome()
     {

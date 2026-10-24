@@ -31,9 +31,10 @@ public partial class ActorLayer : Node2D
                 MapRenderer.DrawPathMarker(this, ToPixels(path[i]) + half, reachable[i], i == path.Count - 1);
         }
 
-        MapRenderer.DrawHero(this, ToPixels(State.Hero.Position) + half + new Vector2(0, 4), _time);
+        foreach (var hero in State.AllHeroes)
+            MapRenderer.DrawHero(this, ToPixels(hero.Position) + half + new Vector2(0, 4), _time);
 
-        if (Hovered is { } h && State.Map.IsExplored(h))
+        if (Hovered is { } h && State.CurrentPlayer.Fog.IsExplored(h))
             DrawRect(new Rect2(ToPixels(h), t, t), Colors.White, false, 1);
     }
 

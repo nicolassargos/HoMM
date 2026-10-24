@@ -133,50 +133,215 @@ public class PathfinderTests
 
 public class GameStateTests
 {
+    private static Player Human(GameState state) => state.Players[0];
+    private static Hero Hero(GameState state) => state.CurrentHero!;
+
+    /// <summary>Le tas de ressources le plus proche qu'on peut atteindre sans croiser de monstre.</summary>
+    private static ResourcePile NearestSafePile(GameState state) => state.Map.Objects.OfType<ResourcePile>()
+        .Select(p => (Pile: p, Path: Pathfinder.FindPath(state.Map, Hero(state).Position, p.Position)))
+        .Where(x => x.Path != null && !x.Path.Any(state.Map.IsGuarded))
+        .OrderBy(x => x.Path!.Count)
+        .First().Pile;
+
     [Fact]
     public void Une_mine_capturee_rapporte_a_chaque_fin_de_tour()
     {
-        var state = new GameState(7);
+        var state = new GameState(7, TestData.Creatures);
         var mine = state.Map.Objects.OfType<Mine>().First(m => m.Resource == ResourceType.Gold);
-        mine.Visit(state.Player);
-        int gold = state.Player.Resources[ResourceType.Gold];
+        mine.Visit(Hero(state));
+        int gold = Human(state).Resources[ResourceType.Gold];
 
         state.EndTurn();
 
-        Assert.Equal(gold + 1000, state.Player.Resources[ResourceType.Gold]);
+        Assert.Equal(gold + 1000, Human(state).Resources[ResourceType.Gold]);
     }
 
     [Fact]
     public void La_fin_du_tour_rend_les_points_de_mouvement()
     {
-        var state = new GameState(7);
-        var target = state.Map.Objects.First().Position;
-        state.SetDestination(target);
+        var state = new GameState(7, TestData.Creatures);
+        state.SetDestination(NearestSafePile(state).Position);
         while (state.StepAlongPath()) { }
-        Assert.True(state.Hero.Movement < state.Hero.MaxMovement);
+        Assert.True(Hero(state).Movement < Hero(state).MaxMovement);
 
         state.EndTurn();
 
-        Assert.Equal(state.Hero.MaxMovement, state.Hero.Movement);
+        Assert.Equal(Hero(state).MaxMovement, Hero(state).Movement);
         Assert.Equal(1, state.Day);
     }
 
     [Fact]
     public void Ramasser_un_tas_ajoute_la_ressource_et_le_retire_de_la_carte()
     {
-        var state = new GameState(7);
-        var pile = state.Map.Objects.OfType<ResourcePile>()
-            .OrderBy(p => Pathfinder.FindPath(state.Map, state.Hero.Position, p.Position)!.Count).First();
-        int before = state.Player.Resources[pile.Resource];
+        var state = new GameState(7, TestData.Creatures);
+        var pile = NearestSafePile(state);
+        int before = Human(state).Resources[pile.Resource];
 
         state.SetDestination(pile.Position);
-        for (int day = 0; day < 10 && state.Hero.Position != pile.Position; day++)
+        for (int day = 0; day < 10 && Hero(state).Position != pile.Position; day++)
         {
             while (state.StepAlongPath()) { }
             state.EndTurn();
         }
 
-        Assert.Equal(before + pile.Amount, state.Player.Resources[pile.Resource]);
+        Assert.Equal(before + pile.Amount, Human(state).Resources[pile.Resource]);
         Assert.Null(state.Map.ObjectAt(pile.Position));
     }
+
+    [Fact]
+    public void Entrer_a_cote_d_un_monstre_declenche_le_combat()
+    {
+        var state = new GameState(7, TestData.Creatures);
+        var start = Hero(state).Position;
+        var guard = new MonsterGuard(start.Offset(2, 0), TestData.Creatures.Get("gobelin"), 3);
+        state.Map.AddObject(guard);
+
+        state.SetDestination(start.Offset(1, 0));
+        state.StepAlongPath();
+
+        var report = state.TakeLastBattle();
+        Assert.NotNull(report);
+        Assert.True(report!.AttackerWon);
+        Assert.Null(state.Map.ObjectAt(guard.Position));
+        Assert.Equal(GameOutcome.Playing, state.Outcome);
+    }
+
+    [Fact]
+    public void Perdre_son_seul_heros_fait_perdre_la_partie()
+    {
+        var state = new GameState(7, TestData.Creatures);
+        var start = Hero(state).Position;
+        state.Map.AddObject(new MonsterGuard(start.Offset(2, 0), TestData.Creatures.Get("dragon"), 50));
+
+        state.SetDestination(start.Offset(1, 0));
+        state.StepAlongPath();
+
+        Assert.False(state.TakeLastBattle()!.AttackerWon);
+        Assert.Null(state.CurrentHero);
+        Assert.Equal(GameOutcome.Defeat, state.Outcome);
+    }
+
+    [Fact]
+    public void Les_monstres_grossissent_chaque_semaine()
+    {
+        var state = new GameState(7, TestData.Creatures);
+        var guard = state.Map.Objects.OfType<MonsterGuard>().First();
+        int before = guard.Count;
+
+        for (int i = 0; i < 7; i++)
+            state.EndTurn();
+
+        Assert.True(guard.Count > before);
+    }
+}
+
+public class GuardPlacementTests
+{
+    [Theory]
+    [InlineData(1)]
+    [InlineData(42)]
+    [InlineData(2026)]
+    public void Les_monstres_gardent_mines_et_coffres_sans_bloquer_le_depart(int seed)
+    {
+        var map = new MapGenerator(seed, TestData.Creatures).Generate();
+        var guards = map.Objects.OfType<MonsterGuard>().ToList();
+        Assert.NotEmpty(guards);
+
+        // Presque toutes les mines et tous les coffres ont un gardien à côté
+        var valuables = map.Objects.Where(o => o is Mine or TreasureChest).ToList();
+        Assert.True(valuables.Count(o => map.IsGuarded(o.Position)) >= valuables.Count - 2);
+
+        foreach (var g in guards)
+        {
+            Assert.True(System.Math.Max(System.Math.Abs(g.Position.X - map.Start.X), System.Math.Abs(g.Position.Y - map.Start.Y)) >= 4);
+            Assert.True(g.Type.Tier <= 4);
+        }
+        Assert.False(map.IsGuarded(map.Start));
+    }
+
+    [Fact]
+    public void Le_chemin_contourne_un_monstre_quand_c_est_possible()
+    {
+        var map = new AdventureMap(10, 10);
+        for (int y = 0; y < 10; y++)
+        for (int x = 0; x < 10; x++)
+            map.SetTerrain(new Cell(x, y), TerrainType.Grass);
+        map.AddObject(new MonsterGuard(new Cell(5, 5), TestData.Creatures.Get("loup"), 10));
+
+        var path = Pathfinder.FindPath(map, new Cell(0, 5), new Cell(9, 5));
+
+        Assert.NotNull(path);
+        Assert.DoesNotContain(path!, map.IsGuarded);
+    }
+}
+
+public class BattleTests
+{
+    private static Army ArmyOf(string id, int count)
+    {
+        var army = new Army();
+        army.Add(TestData.Creatures.Get(id), count);
+        return army;
+    }
+
+    [Fact]
+    public void Les_creatures_sont_lues_depuis_le_fichier_de_donnees()
+    {
+        var piquier = TestData.Creatures.Get("piquier");
+        Assert.Equal("Piquiers", piquier.Plural);
+        Assert.Equal(10, piquier.HitPoints);
+        Assert.Equal(60, piquier.Cost[ResourceType.Gold]);
+        Assert.Equal(7, TestData.Creatures.All.Count(c => c.Faction == "chateau"));
+    }
+
+    [Fact]
+    public void Une_grosse_armee_bat_une_petite_avec_des_pertes()
+    {
+        var hero = ArmyOf("piquier", 50);
+        var monsters = ArmyOf("gobelin", 20);
+
+        var report = Battle.Resolve(hero, monsters);
+
+        Assert.True(report.AttackerWon);
+        Assert.True(monsters.IsEmpty);
+        Assert.InRange(hero.TotalCount, 1, 49);
+        Assert.Equal(50 - hero.TotalCount, report.AttackerLosses.Sum(s => s.Count));
+        Assert.Equal(20, report.DefenderLosses.Sum(s => s.Count));
+    }
+
+    [Fact]
+    public void Le_combat_donne_toujours_le_meme_resultat()
+    {
+        var a = Battle.Resolve(ArmyOf("archer", 15), ArmyOf("loup", 12));
+        var b = Battle.Resolve(ArmyOf("archer", 15), ArmyOf("loup", 12));
+        Assert.Equal(a.AttackerWon, b.AttackerWon);
+        Assert.Equal(a.AttackerLosses.Sum(s => s.Count), b.AttackerLosses.Sum(s => s.Count));
+    }
+
+    [Fact]
+    public void L_attaque_et_la_defense_modifient_les_degats()
+    {
+        Assert.Equal(1.0, Battle.DamageModifier(5, 5));
+        Assert.Equal(1.5, Battle.DamageModifier(15, 5), 3);
+        Assert.Equal(0.75, Battle.DamageModifier(5, 15), 3);
+        Assert.Equal(0.3, Battle.DamageModifier(0, 100), 3);
+    }
+
+    [Fact]
+    public void Une_armee_a_7_troupes_au_maximum()
+    {
+        var army = new Army();
+        var types = TestData.Creatures.All.Take(8).ToList();
+        for (int i = 0; i < 7; i++)
+            Assert.True(army.Add(types[i], 1));
+        Assert.False(army.Add(types[7], 1));
+        Assert.True(army.Add(types[0], 5));
+        Assert.Equal(6, army.Stacks[0].Count);
+    }
+}
+
+internal static class TestData
+{
+    public static readonly CreatureCatalog Creatures = CreatureCatalog.FromJson(
+        System.IO.File.ReadAllText(System.IO.Path.Combine(System.AppContext.BaseDirectory, "data", "creatures.json")));
 }

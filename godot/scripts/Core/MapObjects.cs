@@ -30,8 +30,8 @@ public abstract class MapObject
 
     public abstract string Name { get; }
 
-    /// <summary>Applique l'effet de l'objet et renvoie le message à afficher.</summary>
-    public abstract string Visit(Player player);
+    /// <summary>Applique l'effet de l'objet au héros (et à son joueur) et renvoie le message à afficher.</summary>
+    public abstract string Visit(Hero hero);
 }
 
 public sealed class ResourcePile : MapObject
@@ -51,9 +51,9 @@ public sealed class ResourcePile : MapObject
     public int Amount { get; }
     public override string Name => $"Tas de {ResourceInfo.Name(Resource)}";
 
-    public override string Visit(Player player)
+    public override string Visit(Hero hero)
     {
-        player.Resources[Resource] += Amount;
+        hero.Owner.Resources[Resource] += Amount;
         return $"Vous trouvez {Amount} {ResourceInfo.Name(Resource)}.";
     }
 }
@@ -68,9 +68,9 @@ public sealed class TreasureChest : MapObject
     public int Gold { get; }
     public override string Name => "Coffre au trésor";
 
-    public override string Visit(Player player)
+    public override string Visit(Hero hero)
     {
-        player.Resources[ResourceType.Gold] += Gold;
+        hero.Owner.Resources[ResourceType.Gold] += Gold;
         return $"Un coffre au trésor ! +{Gold} or.";
     }
 }
@@ -100,8 +100,9 @@ public sealed class Mine : MapObject
         _ => "Mine",
     };
 
-    public override string Visit(Player player)
+    public override string Visit(Hero hero)
     {
+        var player = hero.Owner;
         if (Owner == player)
             return $"{Name} vous appartient déjà.";
         Owner?.Mines.Remove(this);
@@ -109,4 +110,48 @@ public sealed class Mine : MapObject
         player.Mines.Add(this);
         return $"{Name} capturée ! +{DailyProduction} {ResourceInfo.Name(Resource)} par jour.";
     }
+}
+
+/// <summary>
+/// Une troupe de monstres neutres. Elle bloque sa case et attaque tout héros qui entre
+/// sur une des 8 cases voisines. Elle grossit de 10 % chaque semaine.
+/// </summary>
+public sealed class MonsterGuard : MapObject
+{
+    public MonsterGuard(Cell position, CreatureType type, int count) : base(position)
+    {
+        Type = type;
+        Army.Add(type, count);
+    }
+
+    public CreatureType Type { get; }
+    public Army Army { get; } = new();
+    public int Count => Army.TotalCount;
+
+    /// <summary>« Quelques Loups », « Une bande d'Archers »… On ne voit pas le nombre exact, comme dans Heroes.</summary>
+    public override string Name => Count switch
+    {
+        < 5 => $"Quelques {Type.Plural}",
+        < 10 => $"Plusieurs {Type.Plural}",
+        < 20 => $"Une bande {Of(Type.Plural)}",
+        < 50 => $"Beaucoup {Of(Type.Plural)}",
+        < 100 => $"Une horde {Of(Type.Plural)}",
+        < 250 => $"Une multitude {Of(Type.Plural)}",
+        < 500 => $"Une nuée {Of(Type.Plural)}",
+        < 1000 => $"Des milliers {Of(Type.Plural)}",
+        _ => $"Une légion {Of(Type.Plural)}",
+    };
+
+    /// <summary>Le combat est géré par <see cref="GameState"/>, pas par une simple visite.</summary>
+    public override string Visit(Hero hero) =>
+        throw new InvalidOperationException("Un monstre se combat (GameState), il ne se visite pas.");
+
+    public void GrowWeekly()
+    {
+        foreach (var stack in Army.Stacks)
+            stack.Count += Math.Max(1, stack.Count / 10);
+    }
+
+    private static string Of(string word) =>
+        "AEIOUYÉÈÊaeiouyéèê".Contains(word[0]) ? $"d'{word}" : $"de {word}";
 }

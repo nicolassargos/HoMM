@@ -163,7 +163,43 @@ public static class MapRenderer
                 var flag = mine.Owner != null ? PlayerColor : Rgb(200, 200, 200);
                 Triangle(ci, c + V(-13, -20), c + V(-2, -16), c + V(-13, -12), flag);
                 break;
+
+            case MonsterGuard guard:
+                DrawMonster(ci, guard, c, time);
+                break;
         }
+    }
+
+    /// <summary>Couleur d'un monstre selon son niveau : du vert (faible) au rouge sombre (fort).</summary>
+    private static Color MonsterColor(int tier) => tier switch
+    {
+        1 => Rgb(120, 150, 70),
+        2 => Rgb(150, 130, 60),
+        3 => Rgb(170, 100, 50),
+        4 => Rgb(170, 60, 40),
+        5 => Rgb(140, 40, 60),
+        6 => Rgb(110, 30, 90),
+        _ => Rgb(70, 20, 80),
+    };
+
+    /// <summary>Une bête stylisée avec cornes et yeux, et l'initiale de la créature.</summary>
+    private static void DrawMonster(CanvasItem ci, MonsterGuard guard, Vector2 c, double time)
+    {
+        var body = MonsterColor(guard.Type.Tier);
+        float breath = (float)Math.Sin(time * 3 + guard.Position.X) * 1.0f;
+        Ellipse(ci, new Rect2(c + V(-15, 10), 30, 8), new Color(0, 0, 0, 0.5f));
+        Ellipse(ci, new Rect2(c + V(-14, -10 - breath), 28, 26 + breath), body);
+        Triangle(ci, c + V(-12, -6), c + V(-6, -10), c + V(-14, -20), Rgb(230, 220, 190));
+        Triangle(ci, c + V(12, -6), c + V(6, -10), c + V(14, -20), Rgb(230, 220, 190));
+        ci.DrawCircle(c + V(-5, -2), 3, Rgb(255, 230, 80));
+        ci.DrawCircle(c + V(5, -2), 3, Rgb(255, 230, 80));
+        ci.DrawCircle(c + V(-5, -2), 1.2f, Colors.Black);
+        ci.DrawCircle(c + V(5, -2), 1.2f, Colors.Black);
+
+        var font = ThemeDB.FallbackFont;
+        string letter = guard.Type.Name[..1];
+        ci.DrawCircle(c + V(13, 13), 7, Rgb(30, 25, 20));
+        ci.DrawString(font, c + V(9, 17), letter, HorizontalAlignment.Left, -1, 11, Colors.White);
     }
 
     // --------------------------------------------------------------------- héros

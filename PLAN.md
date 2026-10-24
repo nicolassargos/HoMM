@@ -13,12 +13,16 @@ Une direction, pas un contrat : les idées peuvent changer.
 - **Projet personnel**, sans échéance : on privilégie le plaisir et la simplicité.
 
 ## Étapes
-1. **Armées, monstres neutres, combat automatique**
+1. **Armées, monstres neutres, combat automatique** ✅ (branche `etape-1-armees`)
    - Le héros a une armée de 7 emplacements maximum (« 12 archers »).
-   - Les créatures sont décrites dans un fichier de données, pas dans le code.
-   - Des monstres gardent les objets et les passages.
-   - Le combat est résolu par une formule, avec des pertes des deux côtés.
-   - Perdre son armée = fin de partie.
+   - Les créatures sont décrites dans `godot/data/creatures.json` (Château + neutres).
+   - Des monstres gardent les mines et les coffres, d'autres errent ; ils attaquent
+     le héros qui entre sur une case voisine, et grossissent de 10 % par semaine.
+   - Le combat est une simulation simplifiée sans hasard, avec des pertes des deux côtés.
+   - Perdre son dernier héros = défaite ; vaincre tous les monstres = victoire.
+   - À savoir : sans recrutement, l'armée de départ ne bat qu'environ 5 monstres sur 15.
+     La victoire deviendra possible avec les villes (étape 2). Les monstres sont limités
+     au niveau 4 en attendant.
 2. **Villes**
    - Un type de ville, placé sur la carte.
    - Un bâtiment par jour, payé avec les ressources.

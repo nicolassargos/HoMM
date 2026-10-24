@@ -11,6 +11,12 @@ public static class Pathfinder
         (-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, -1), (-1, 1), (1, 1),
     };
 
+    /// <summary>
+    /// Coût ajouté (pour la recherche seulement) quand le chemin entre dans la zone d'un monstre :
+    /// le chemin contourne les monstres quand c'est possible, et ne les traverse que sinon.
+    /// </summary>
+    public const int GuardPenalty = 100_000;
+
     private static readonly int MinStepCost = TerrainInfo.MoveCost(TerrainType.Road);
     private static readonly int MinDiagonalCost = (int)(MinStepCost * Math.Sqrt(2));
 
@@ -28,7 +34,8 @@ public static class Pathfinder
     /// <summary>
     /// Renvoie les cases à parcourir, de la première après <paramref name="start"/> jusqu'à
     /// <paramref name="goal"/> incluse, ou null s'il n'y a pas de chemin.
-    /// Un objet bloque le passage : on peut seulement s'arrêter dessus.
+    /// Un objet bloque le passage : on peut seulement s'arrêter dessus. Le chemin évite
+    /// si possible les cases gardées par un monstre (voir <see cref="GuardPenalty"/>).
     /// </summary>
     public static List<Cell>? FindPath(AdventureMap map, Cell start, Cell goal)
     {
@@ -69,7 +76,7 @@ public static class Pathfinder
                 // Pas de diagonale qui « coupe » un coin infranchissable
                 if (dx != 0 && dy != 0 && !(map.IsPassable(cell.Offset(dx, 0)) && map.IsPassable(cell.Offset(0, dy))))
                     continue;
-                int newCost = cost + StepCost(map, cell, next);
+                int newCost = cost + StepCost(map, cell, next) + (map.IsGuarded(next) ? GuardPenalty : 0);
                 if (newCost < bestCost.GetValueOrDefault(next, int.MaxValue))
                 {
                     bestCost[next] = newCost;

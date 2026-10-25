@@ -1,0 +1,16 @@
+{
+  "buildings": [
+    { "id": "salle-village",       "name": "Salle du village",       "faction": "chateau", "cost": {},                                          "requires": [],                                      "dailyGold": 500 },
+    { "id": "hotel-ville",         "name": "Hôtel de ville",         "faction": "chateau", "cost": { "Gold": 2500 },                            "requires": ["salle-village", "taverne"],            "dailyGold": 1000 },
+    { "id": "grand-hotel-ville",   "name": "Grand hôtel de ville",   "faction": "chateau", "cost": { "Gold": 5000, "Wood": 10, "Ore": 10 },     "requires": ["hotel-ville", "caserne"],              "dailyGold": 2000 },
+    { "id": "taverne",             "name": "Taverne",                "faction": "chateau", "cost": { "Gold": 500, "Wood": 5 },                  "requires": [],                                      "tavern": true },
+
+    { "id": "corps-de-garde",      "name": "Corps de garde",         "faction": "chateau", "cost": { "Gold": 500, "Ore": 10 },                  "requires": [],                                      "dwelling": "piquier" },
+    { "id": "tour-archers",        "name": "Tour des archers",       "faction": "chateau", "cost": { "Gold": 1000, "Wood": 5, "Ore": 5 },       "requires": ["corps-de-garde"],                      "dwelling": "archer" },
+    { "id": "tour-griffons",       "name": "Tour des griffons",      "faction": "chateau", "cost": { "Gold": 1000, "Ore": 5 },                  "requires": ["tour-archers"],                        "dwelling": "griffon" },
+    { "id": "caserne",             "name": "Caserne",                "faction": "chateau", "cost": { "Gold": 2000, "Ore": 5 },                  "requires": ["tour-archers"],                        "dwelling": "epeiste" },
+    { "id": "monastere",           "name": "Monastère",              "faction": "chateau", "cost": { "Gold": 3000, "Wood": 5, "Ore": 5, "Gems": 2 }, "requires": ["caserne"],                         "dwelling": "moine" },
+    { "id": "terrain-entrainement","name": "Terrain d'entraînement", "faction": "chateau", "cost": { "Gold": 2000, "Wood": 10 },                 "requires": ["tour-griffons", "caserne"],            "dwelling": "cavalier" },
+    { "id": "portail-gloire",      "name": "Portail de gloire",      "faction": "chateau", "cost": { "Gold": 10000, "Gems": 5 },                "requires": ["monastere", "terrain-entrainement"],   "dwelling": "ange" }
+  ]
+}

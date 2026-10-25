@@ -84,11 +84,87 @@ public static class Texts
         TreasureChest => "Coffre au trésor",
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
+        Town town => town.Name,
         _ => obj.GetType().Name,
     };
 
-    public static string BattleTitle(BattleFought battle) =>
-        $"Combat contre {LowerFirst(MonsterGroup(battle.Guard.Type, battle.EnemyCount))}";
+    /// <summary>L'adversaire d'un combat, tel qu'il était au début : « une bande de Loups », « la garnison de Bellerive ».</summary>
+    public static string Enemy(BattleFought battle) => battle.Defender switch
+    {
+        MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, battle.DefenderArmy.Sum(s => s.Count))),
+        Town town => $"la garnison de {town.Name}",
+        var other => LowerFirst(ObjectName(other)),
+    };
+
+    public static string BattleTitle(BattleFought battle) => battle.Defender is Town town
+        ? $"Assaut de {town.Name}"
+        : $"Combat contre {Enemy(battle)}";
+
+    // -------------------------------------------------------------- villes
+
+    /// <summary>Un coût : « 2500 or, 10 bois », ou « Gratuit ».</summary>
+    public static string Cost(IReadOnlyDictionary<ResourceType, int> cost) =>
+        cost.Count == 0 ? "Gratuit" : string.Join(", ", cost.Select(c => $"{c.Value} {Resource(c.Key)}"));
+
+    /// <summary>Le texte du bouton de construction, selon ce que disent les règles.</summary>
+    public static string BuildStatus(BuildResult result, Town town, BuildingType building) => result switch
+    {
+        BuildResult.Ok => "Construire",
+        BuildResult.AlreadyBuilt => "Construit",
+        BuildResult.AlreadyBuiltToday => "Un bâtiment par jour",
+        BuildResult.MissingRequirement => "Requiert : " + string.Join(", ",
+            town.Buildings.Where(b => building.Requires.Contains(b.Id) && !town.Has(b.Id)).Select(b => b.Name)),
+        BuildResult.NotEnoughResources => "Ressources insuffisantes",
+        BuildResult.NotOwner => "Ville ennemie",
+        _ => result.ToString(),
+    };
+
+    /// <summary>Ce qu'apporte un bâtiment, en une ligne.</summary>
+    public static string BuildingEffect(Town town, BuildingType building) => building switch
+    {
+        { Dwelling: not null } when town.DwellingCreature(building) is { } creature => town.Has(building.Id)
+            ? Dwelling(creature, town.Available.GetValueOrDefault(creature))
+            : $"Produit des {creature.Plural} (+{creature.Growth} par semaine)",
+        { DailyGold: > 0 } => $"+{building.DailyGold} or par jour",
+        { Tavern: true } => "Permet de recruter des héros",
+        _ => "",
+    };
+
+    /// <summary>Ce que produit une habitation : « 14 Piquiers disponibles (+14 par semaine) ».</summary>
+    public static string Dwelling(CreatureType creature, int available) =>
+        $"{available} {Creature(creature, available)} disponible{(available > 1 ? "s" : "")} (+{creature.Growth} par semaine)";
+
+    public static string RecruitTitle(CreatureType type) => $"Recruter des {type.Plural}";
+
+    /// <summary>« 14 disponibles · 60 or l'unité ».</summary>
+    public static string RecruitInfo(CreatureType type, int available) =>
+        $"{available} disponible{(available > 1 ? "s" : "")} · {Cost(type.Cost)} l'unité";
+
+    /// <summary>« 10 Piquiers pour 600 or ».</summary>
+    public static string RecruitTotal(CreatureType type, int count) =>
+        $"{count} {Creature(type, count)} pour {Cost(type.Cost.ToDictionary(c => c.Key, c => c.Value * count))}";
+
+    /// <summary>Pourquoi on ne peut recruter aucune créature, ou null si on peut.</summary>
+    public static string? CannotRecruit(int available, bool hasRoom, int affordable) =>
+        available == 0 ? "Aucune créature disponible cette semaine."
+        : !hasRoom ? "Pas de place dans la garnison ni chez le héros."
+        : affordable == 0 ? "Ressources insuffisantes."
+        : null;
+
+    /// <summary>Le texte du bouton de la taverne, selon ce que disent les règles.</summary>
+    public static string HireStatus(HireResult result) => result switch
+    {
+        HireResult.Ok => $"Recruter un héros ({GameState.HeroCost} or)",
+        HireResult.TownOccupied => "Un héros est déjà dans la ville",
+        HireResult.NotEnoughGold => $"Il faut {GameState.HeroCost} or",
+        HireResult.TooManyHeroes => $"{GameState.MaxHeroesPerPlayer} héros au maximum",
+        HireResult.NoHeroLeft => "Plus aucun héros à recruter",
+        HireResult.NoTavern => "Il faut une taverne",
+        HireResult.NotOwner => "Ville ennemie",
+        _ => result.ToString(),
+    };
+
+    public const string TransferHint = "Cliquez sur une troupe pour la faire passer entre la garnison et le héros.";
 
     public static string GameOverTitle(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire" : "Défaite";
 
@@ -111,11 +187,21 @@ public static class Texts
             $"{MineName(captured.Mine)} capturée ! +{captured.Mine.DailyProduction} {Resource(captured.Mine.Resource)} par jour.",
         MineAlreadyOwned owned => $"{MineName(owned.Mine)} vous appartient déjà.",
 
+        TownCaptured captured => $"Vous prenez {captured.Town.Name} !",
+        TownEntered entered => $"{entered.Hero.Name} entre dans {entered.Town.Name}.",
+        BuildingBuilt built when built.Town.Owner != viewer => null,
+        BuildingBuilt built => $"{built.Building.Name} : construit à {built.Town.Name}.",
+        HeroHired hired when hired.Hero.Owner != viewer => null,
+        HeroHired hired => $"{hired.Hero.Name} rejoint vos rangs à {hired.Town.Name} !",
+        CreaturesRecruited recruited when recruited.Town.Owner != viewer => null,
+        CreaturesRecruited recruited =>
+            $"{recruited.Count} {Creature(recruited.Type, recruited.Count)} recruté{(recruited.Count > 1 ? "s" : "")} à {recruited.Town.Name}"
+            + (recruited.ToHero ? " (garnison pleine : ils rejoignent le héros)." : "."),
+
         BattleFought battle when battle.Hero.Owner != viewer => null,
         BattleFought { Report.AttackerWon: true } battle =>
-            $"Victoire contre {LowerFirst(MonsterGroup(battle.Guard.Type, battle.EnemyCount))} ! Pertes : {Losses(battle.Report.AttackerLosses)}.",
-        BattleFought battle =>
-            $"{battle.Hero.Name} a été vaincu par {LowerFirst(MonsterGroup(battle.Guard.Type, battle.EnemyCount))}.",
+            $"Victoire contre {Enemy(battle)} ! Pertes : {Losses(battle.Report.AttackerLosses)}.",
+        BattleFought battle => $"{battle.Hero.Name} a été vaincu par {Enemy(battle)}.",
 
         DayStarted { NewWeek: true } day => $"Une nouvelle semaine commence, les monstres sont plus nombreux ! {Date(day.Day)}.",
         DayStarted day => $"Nouveau jour : {Date(day.Day)}.",

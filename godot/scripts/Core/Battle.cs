@@ -125,7 +125,7 @@ public static class Battle
 }
 
 /// <summary>
-/// Un combat a eu lieu. <paramref name="EnemyCount"/> est le nombre de monstres au début du combat
-/// (le monstre lui-même a pu être modifié ou retiré depuis).
+/// Un combat a eu lieu contre <paramref name="Defender"/> (un monstre, ou la garnison d'une ville).
+/// <paramref name="DefenderArmy"/> est l'armée adverse au début du combat (elle a pu changer depuis).
 /// </summary>
-public sealed record BattleFought(Hero Hero, MonsterGuard Guard, int EnemyCount, BattleReport Report) : GameEvent;
+public sealed record BattleFought(Hero Hero, MapObject Defender, IReadOnlyList<CreatureStack> DefenderArmy, BattleReport Report) : GameEvent;

@@ -43,6 +43,23 @@ public sealed class Army
         return true;
     }
 
+    /// <summary>L'armée peut-elle accueillir ces créatures (troupe du même type, ou place libre) ?</summary>
+    public bool CanReceive(CreatureType type) =>
+        _stacks.Any(s => s.Type == type) || _stacks.Count < MaxStacks;
+
+    /// <summary>Fait passer toute une troupe dans une autre armée (fusionnée si même type). Renvoie false s'il n'y a pas de place.</summary>
+    public bool MoveStackTo(int index, Army target)
+    {
+        if (index < 0 || index >= _stacks.Count || target == this)
+            return false;
+        var stack = _stacks[index];
+        if (!target.CanReceive(stack.Type))
+            return false;
+        target.Add(stack.Type, stack.Count);
+        _stacks.RemoveAt(index);
+        return true;
+    }
+
     /// <summary>Retire les troupes vides (après un combat).</summary>
     public void RemoveEmpty() => _stacks.RemoveAll(s => s.Count <= 0);
 

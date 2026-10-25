@@ -36,10 +36,11 @@ public static class Pathfinder
     /// <paramref name="goal"/> incluse, ou null s'il n'y a pas de chemin.
     /// Un objet bloque le passage : on peut seulement s'arrêter dessus. Le chemin évite
     /// si possible les cases gardées par un monstre (voir <see cref="GuardPenalty"/>).
+    /// <paramref name="blocked"/> : cases interdites en plus (les autres héros).
     /// </summary>
-    public static List<Cell>? FindPath(AdventureMap map, Cell start, Cell goal)
+    public static List<Cell>? FindPath(AdventureMap map, Cell start, Cell goal, IReadOnlySet<Cell>? blocked = null)
     {
-        if (start == goal || !map.IsPassable(goal))
+        if (start == goal || !map.IsPassable(goal) || blocked?.Contains(goal) == true)
             return null;
 
         double Estimate(Cell c)
@@ -71,7 +72,7 @@ public static class Pathfinder
             foreach (var (dx, dy) in Directions)
             {
                 var next = cell.Offset(dx, dy);
-                if (!map.IsPassable(next))
+                if (!map.IsPassable(next) || blocked?.Contains(next) == true)
                     continue;
                 // Pas de diagonale qui « coupe » un coin infranchissable
                 if (dx != 0 && dy != 0 && !(map.IsPassable(cell.Offset(dx, 0)) && map.IsPassable(cell.Offset(0, dy))))

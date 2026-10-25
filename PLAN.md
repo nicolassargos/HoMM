@@ -35,15 +35,39 @@ On avance étape par étape, sans se presser : chaque étape est jouable et test
 - Écarté pour l'instant : faire résoudre tout un chemin d'un coup par les règles
   (l'affichage devrait alors garder sa propre copie de l'état). À revoir avec l'IA (étape 7).
 
-### 2. Villes
-- Un type de ville (Château), placé sur la carte.
-- Un bâtiment par jour, payé avec les ressources (les bâtiments décrits dans un fichier de données).
-- Des créatures à recruter, renouvelées chaque semaine (`CreatureType.Growth`, `Cost`).
-- Recrutement d'un second héros.
-- Écran de ville (côté affichage). C'est le bon moment pour découper `Main.cs`
-  (caméra, commandes) qui grossira avec ce nouvel écran.
-- Une fois le recrutement possible : rééquilibrer et relever `MaxGuardTier`, pour que
-  la victoire soit atteignable.
+### 2. Villes ✅ (branche `etape-2-villes`)
+Choix faits : la ville est **neutre** au départ, à mi-distance, défendue par une petite
+garnison ; les villes ont une **garnison** (comme dans Heroes) ; bâtiments minimaux ;
+écran de ville en plein écran.
+
+Découpage :
+1. ✅ La ville et ses bâtiments (règles et tests) : ville neutre à prendre, bâtiments dans
+   `godot/data/buildings.json` (salle du village → hôtel de ville → grand hôtel de ville,
+   taverne, 7 habitations avec prérequis), un bâtiment par jour, revenus en or,
+   créatures disponibles chaque semaine. La ville est dessinée sur la carte.
+2. ✅ Écran de ville (plein écran) : bâtiments (coût, effet, prérequis, bouton Construire),
+   garnison et héros présent. S'ouvre en entrant dans sa ville (ou en la prenant), en
+   cliquant sur ses murs, depuis la liste « Villes » du panneau, ou avec T. `Main.cs` découpé : caméra dans `MapCamera.cs`,
+   outils d'interface dans `Ui.cs`.
+3. ✅ Recrutement : bouton « Recruter » sur les habitations construites (nombre au curseur,
+   coût total) ; les recrues vont dans la garnison, ou chez le héros présent si elle est pleine.
+   Un clic sur une troupe la fait passer entre la garnison et le héros (qui garde toujours
+   au moins une troupe). Pas encore de partage d'une troupe en deux.
+4. ✅ Héros recrutés à la taverne (2500 or, 8 héros au maximum, avec 12 créatures du premier
+   niveau), qui apparaissent à l'entrée de la ville (si personne n'y est). Passage d'un héros à
+   l'autre (liste du panneau, clic sur la carte, touche H), anneau doré sous le héros
+   sélectionné. Chaque héros garde son chemin prévu ; les héros ne se traversent pas.
+5. ✅ **Ville sur 3×3 cases avec une entrée** : la ville occupe 9 cases, l'entrée est au
+   milieu de la rangée du bas et s'atteint par la case juste en dessous ; les 8 autres sont
+   infranchissables. Les objets ont maintenant une « empreinte » (`MapObject.Footprint`),
+   réutilisable pour d'autres grands objets. Un clic sur les murs mène à l'entrée.
+6. ✅ Équilibrage, vérifié par une simulation (`BalanceTests`) qui joue une stratégie simple
+   sur plusieurs cartes : monstres jusqu'au niveau 7 (`MaxGuardTier`), troupes jusqu'à 2 fois
+   plus nombreuses au loin (`GuardSizeGrowth`), croissance hebdomadaire plafonnée au double,
+   garnison de la ville neutre renforcée (3 à 8 pertes au siège). La simulation, optimiste,
+   gagne entre le jour 34 et le jour 102 (souvent vers le jour 50).
+   À noter : sur une carte 40×30, aucun monstre n'est assez loin pour être de niveau 7 ;
+   il faudra de plus grandes cartes (générateur v2, étape 4).
 
 ### 3. Progression du héros
 - Expérience gagnée en combat, niveaux.

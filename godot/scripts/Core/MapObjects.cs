@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace HoMM.Core;
 
@@ -14,7 +15,17 @@ public abstract class MapObject
 {
     protected MapObject(Cell position) => Position = position;
 
+    /// <summary>La case où le héros s'arrête pour visiter l'objet (l'entrée, pour une ville).</summary>
     public Cell Position { get; }
+
+    /// <summary>
+    /// Toutes les cases occupées par l'objet. Par défaut, seulement sa case ; une ville en occupe 3×3.
+    /// Les cases autres que <see cref="Position"/> sont infranchissables.
+    /// </summary>
+    public virtual IEnumerable<Cell> Footprint
+    {
+        get { yield return Position; }
+    }
 
     /// <summary>L'objet disparaît-il de la carte après la visite ?</summary>
     public virtual bool RemovedOnVisit => true;
@@ -105,7 +116,7 @@ public sealed class Mine : MapObject
 
 /// <summary>
 /// Une troupe de monstres neutres. Elle bloque sa case et attaque tout héros qui entre
-/// sur une des 8 cases voisines. Elle grossit de 10 % chaque semaine.
+/// sur une des 8 cases voisines. Elle grossit de 10 % chaque semaine, jusqu'au double de sa taille de départ.
 /// </summary>
 public sealed class MonsterGuard : MapObject
 {
@@ -113,6 +124,7 @@ public sealed class MonsterGuard : MapObject
     {
         Type = type;
         Army.Add(type, count);
+        InitialCount = count;
     }
 
     public CreatureType Type { get; }
@@ -123,9 +135,12 @@ public sealed class MonsterGuard : MapObject
     public override ObjectVisited Visit(Hero hero) =>
         throw new InvalidOperationException("Un monstre se combat (GameState), il ne se visite pas.");
 
+    /// <summary>Taille de la troupe à sa création (la croissance s'arrête au double).</summary>
+    public int InitialCount { get; }
+
     public void GrowWeekly()
     {
         foreach (var stack in Army.Stacks)
-            stack.Count += Math.Max(1, stack.Count / 10);
+            stack.Count = Math.Min(stack.Count + Math.Max(1, stack.Count / 10), 2 * InitialCount);
     }
 }

@@ -36,7 +36,7 @@ public class TextsTests
     [Fact]
     public void Le_journal_raconte_les_visites_du_joueur()
     {
-        var state = new GameState(7, TestData.Creatures);
+        var state = new GameState(7, TestData.Data);
         var hero = state.CurrentHero!;
         var player = state.Players[0];
         var mine = state.Map.Objects.OfType<Mine>().First(m => m.Resource == ResourceType.Gold);
@@ -50,7 +50,7 @@ public class TextsTests
     [Fact]
     public void Le_journal_ignore_les_visites_des_autres_joueurs()
     {
-        var state = new GameState(7, TestData.Creatures);
+        var state = new GameState(7, TestData.Data);
         var other = new Player("Bleu", state.Map);
         var mine = state.Map.Objects.OfType<Mine>().First();
 
@@ -60,11 +60,60 @@ public class TextsTests
     [Fact]
     public void Le_titre_du_combat_utilise_le_nombre_de_monstres_au_debut()
     {
-        var state = new GameState(7, TestData.Creatures);
+        var state = new GameState(7, TestData.Data);
         var guard = new MonsterGuard(new Cell(0, 0), Type("loup"), 3);
         var report = new BattleReport { AttackerWon = true, AttackerLosses = new(), DefenderLosses = new() };
 
         Assert.Equal("Combat contre une bande de Loups",
-            Texts.BattleTitle(new BattleFought(state.CurrentHero!, guard, 15, report)));
+            Texts.BattleTitle(new BattleFought(state.CurrentHero!, guard, new[] { new CreatureStack(Type("loup"), 15) }, report)));
+    }
+
+    private static (GameState State, Town Town) OwnedTown()
+    {
+        var state = new GameState(7, TestData.Data);
+        var town = new Town(new Cell(0, 0), "Testville", "chateau", TestData.Data);
+        town.AddBuilding(TestData.Data.Buildings.Get("salle-village"));
+        town.AddBuilding(TestData.Data.Buildings.Get("corps-de-garde"));
+        town.SetOwner(state.Players[0]);
+        return (state, town);
+    }
+
+    [Fact]
+    public void Le_bouton_de_construction_dit_ce_qui_manque()
+    {
+        var (state, town) = OwnedTown();
+        var training = TestData.Data.Buildings.Get("terrain-entrainement");
+        var result = town.CanBuild(training, state.Players[0]);
+
+        Assert.Equal("Requiert : Tour des griffons, Caserne", Texts.BuildStatus(result, town, training));
+        Assert.Equal("2500 or", Texts.Cost(TestData.Data.Buildings.Get("hotel-ville").Cost));
+        Assert.Equal("Gratuit", Texts.Cost(TestData.Data.Buildings.Get("salle-village").Cost));
+    }
+
+    [Fact]
+    public void Les_textes_du_recrutement()
+    {
+        var (state, town) = OwnedTown();
+        var piquier = Type("piquier");
+
+        Assert.Equal("Recruter des Piquiers", Texts.RecruitTitle(piquier));
+        Assert.Equal("14 disponibles · 60 or l'unité", Texts.RecruitInfo(piquier, 14));
+        Assert.Equal("10 Piquiers pour 600 or", Texts.RecruitTotal(piquier, 10));
+        Assert.Equal("Ressources insuffisantes.", Texts.CannotRecruit(14, true, 0));
+        Assert.Null(Texts.CannotRecruit(14, true, 3));
+        Assert.Equal("10 Piquiers recrutés à Testville.",
+            Texts.Message(new CreaturesRecruited(town, piquier, 10, false), state.Players[0]));
+    }
+
+    [Fact]
+    public void Ce_qu_apporte_chaque_batiment()
+    {
+        var (_, town) = OwnedTown();
+        var b = TestData.Data.Buildings;
+
+        Assert.Equal("14 Piquiers disponibles (+14 par semaine)", Texts.BuildingEffect(town, b.Get("corps-de-garde")));
+        Assert.Equal("Produit des Archers (+9 par semaine)", Texts.BuildingEffect(town, b.Get("tour-archers")));
+        Assert.Equal("+1000 or par jour", Texts.BuildingEffect(town, b.Get("hotel-ville")));
+        Assert.Equal("Permet de recruter des héros", Texts.BuildingEffect(town, b.Get("taverne")));
     }
 }

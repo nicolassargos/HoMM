@@ -37,12 +37,18 @@ Pour le développement, `-- --reveal` retire le brouillard de guerre.
 | Annuler le chemin | Clic droit ou Échap |
 | Faire défiler la carte | Flèches, ZQSD, souris au bord de l'écran, clic sur la mini-carte |
 | Recentrer sur le héros | C |
+| Écran de ville | Clic sur les murs de sa ville, sur son nom dans la liste « Villes » du panneau, ou touche T ; aussi en entrant dans la ville (Échap pour revenir) |
+| Recruter | Écran de ville : bouton « Recruter » d'une habitation construite |
+| Échanger des troupes | Écran de ville : clic sur une troupe de la garnison ou du héros |
+| Recruter un héros | Écran de ville : bouton de la taverne (2500 or) |
+| Changer de héros | Clic sur un de ses héros, liste « Héros » du panneau, ou touche H |
 | Fin du tour | Bouton « Fin du tour » ou Entrée |
 
 Points verts : cases atteignables aujourd'hui. Points rouges : il faudra les jours suivants.
 
 Les **monstres** attaquent le héros qui entre sur une case voisine. Survolez-les pour voir le danger estimé du combat.
-Le combat est automatique. Perdre son dernier héros fait perdre la partie ; vaincre tous les monstres la fait gagner.
+Une **ville neutre** (3×3 cases, entrée en bas au milieu) se trouve à mi-distance du départ : battez sa garnison pour la prendre. Elle rapporte de l'or chaque jour.
+Le combat est automatique. Perdre ses héros et ses villes fait perdre la partie ; vaincre tous les monstres la fait gagner.
 
 ## Organisation du code
 
@@ -55,19 +61,24 @@ Le code est séparé en deux parties :
   - `FogOfWar.cs` : brouillard de guerre (un par joueur)
   - `Pathfinder.cs` : recherche du chemin (A*) avec coûts de terrain
   - `MapObjects.cs` : tas de ressources, coffres, mines, monstres
+  - `GameData.cs` : les données du jeu (créatures, bâtiments) lues depuis `data/`
   - `Creature.cs` : types de créatures, lus depuis `data/creatures.json`
+  - `Town.cs` : villes (bâtiments, créatures à recruter, garnison)
   - `Army.cs` : armées (7 troupes au maximum)
   - `Battle.cs` : combat automatique
   - `Player.cs`, `Hero.cs` : trésor, mines, héros, armée, points de mouvement
   - `GameState.cs` : la partie (joueurs et tours, calendrier, déplacement, combats, victoire et défaite, journal)
 - `scripts/Game/` : **l'affichage et les commandes avec Godot**
-  - `Main.cs` : point d'entrée, caméra, souris et clavier
+  - `Main.cs` : point d'entrée, relie les commandes du joueur aux règles et les événements à l'affichage
+  - `MapCamera.cs` : caméra de la carte (défilement, recentrage)
   - `TerrainLayer.cs`, `ActorLayer.cs`, `FogLayer.cs` : les calques de la carte
   - `MapRenderer.cs` : dessin des tuiles, objets et du héros (à remplacer plus tard par des images)
-  - `Hud.cs`, `Minimap.cs`, `ResourceIcon.cs` : l'interface
+  - `Hud.cs`, `Minimap.cs`, `ResourceIcon.cs` : le panneau et la barre du haut
+  - `TownScreen.cs` : l'écran de ville (construire, recruter, échanger des troupes)
+  - `Ui.cs` : couleurs et outils communs à l'interface
   - `Texts.cs` : tous les textes affichés (noms, date, journal). Sans Godot, donc testé avec les règles
 - `scenes/Main.tscn` : la seule scène, un nœud vide qui porte `Main.cs`.
-- `data/creatures.json` : les caractéristiques des créatures (modifiables sans toucher au code).
+- `data/creatures.json`, `data/buildings.json` : les créatures et les bâtiments (modifiables sans toucher au code).
 
 Les tests des règles sont dans `tests/HoMM.Core.Tests` (à la racine du dépôt) : `dotnet test`.
 La solution `HoMM.sln` à la racine s'ouvre dans Visual Studio ou Rider.

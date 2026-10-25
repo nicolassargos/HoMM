@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using HoMM.Core;
+using static HoMM.Game.Ui;
 
 namespace HoMM.Game;
 
@@ -14,11 +15,6 @@ public partial class Hud : CanvasLayer
     public const int PanelWidth = 256;
     public const int TopBarHeight = 32;
 
-    private static readonly Color PanelColor = MapRenderer.Rgb(40, 32, 24);
-    private static readonly Color BorderColor = MapRenderer.Rgb(190, 160, 90);
-    private static readonly Color TextColor = MapRenderer.Rgb(240, 228, 200);
-    private static readonly Color SoftTextColor = MapRenderer.Rgb(180, 168, 140);
-
     private readonly Dictionary<ResourceType, Label> _resourceLabels = new();
     private GameState _state = null!;
     private Label _date = null!;
@@ -27,9 +23,13 @@ public partial class Hud : CanvasLayer
     private Label _heroName = null!;
     private Label _army = null!;
     private Label _mines = null!;
+    private HFlowContainer _towns = null!;
+    private HFlowContainer _heroes = null!;
+    private string? _heroesKey;
+    private string? _townsKey;
 
     // Prévision de combat mise en cache : la simulation n'est refaite que si quelque chose change
-    private (MonsterGuard Guard, int GuardCount, int ArmyCount)? _predictionKey;
+    private (Army Enemy, int EnemyCount, int ArmyCount)? _predictionKey;
     private string _predictionText = "";
     private Label _hover = null!;
     private Label _log = null!;
@@ -38,6 +38,12 @@ public partial class Hud : CanvasLayer
 
     public Minimap Minimap { get; private set; } = null!;
     public event Action? EndTurnPressed;
+
+    /// <summary>Le joueur a cliqué sur une de ses villes dans la liste.</summary>
+    public event Action<Town>? TownClicked;
+
+    /// <summary>Le joueur a cliqué sur un de ses héros dans la liste.</summary>
+    public event Action<Hero>? HeroClicked;
 
     public void Build(GameState state, Vector2 screenSize)
     {
@@ -119,32 +125,36 @@ public partial class Hud : CanvasLayer
         panel.AddChild(_army);
         y += 122;
 
+        // La liste des héros du joueur : un clic sélectionne le héros (celui en cours est mis en valeur)
+        _heroes = new HFlowContainer { Position = new Vector2(margin, y), Size = new Vector2(innerWidth, 28) };
+        _heroes.AddThemeConstantOverride("h_separation", 6);
+        _heroes.AddThemeConstantOverride("v_separation", 4);
+        panel.AddChild(_heroes);
+        y += 34;
+
+        // La liste des villes du joueur : un bouton par ville ouvre son écran
+        _towns = new HFlowContainer { Position = new Vector2(margin, y), Size = new Vector2(innerWidth, 28) };
+        _towns.AddThemeConstantOverride("h_separation", 6);
+        _towns.AddThemeConstantOverride("v_separation", 4);
+        panel.AddChild(_towns);
+        y += 36;
+
         _mines = At(MakeLabel("", 13, SoftTextColor), margin, y);
-        _mines.Size = new Vector2(innerWidth, 20);
+        _mines.Size = new Vector2(innerWidth, 36);
         _mines.ClipText = true;
         panel.AddChild(_mines);
-        y += 24;
+        y += 40;
 
         _hover = At(MakeLabel("", 13, SoftTextColor), margin, y);
-        _hover.Size = new Vector2(innerWidth, 54);
+        _hover.Size = new Vector2(innerWidth, 48);
         _hover.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         panel.AddChild(_hover);
-        y += 60;
+        y += 52;
 
         // ---- Bouton de fin de tour et journal
-        var endTurn = new Button
-        {
-            Text = "Fin du tour",
-            Position = new Vector2(margin + 8, screenSize.Y - 60),
-            Size = new Vector2(innerWidth - 16, 42),
-            FocusMode = Control.FocusModeEnum.None, // sinon Espace/Entrée « cliqueraient » le bouton
-        };
-        endTurn.AddThemeFontSizeOverride("font_size", 22);
-        endTurn.AddThemeColorOverride("font_color", TextColor);
-        endTurn.AddThemeColorOverride("font_hover_color", Colors.White);
-        endTurn.AddThemeStyleboxOverride("normal", Box(MapRenderer.Rgb(90, 66, 30), BorderColor, 2, 2, 2, 2, radius: 6));
-        endTurn.AddThemeStyleboxOverride("hover", Box(MapRenderer.Rgb(120, 90, 40), BorderColor, 2, 2, 2, 2, radius: 6));
-        endTurn.AddThemeStyleboxOverride("pressed", Box(MapRenderer.Rgb(70, 50, 20), BorderColor, 2, 2, 2, 2, radius: 6));
+        var endTurn = MakeButton("Fin du tour", 22);
+        endTurn.Position = new Vector2(margin + 8, screenSize.Y - 60);
+        endTurn.Size = new Vector2(innerWidth - 16, 42);
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
         panel.AddChild(endTurn);
 
@@ -183,10 +193,11 @@ public partial class Hud : CanvasLayer
             _army.Text = "";
         }
 
+        RefreshHeroes(player);
+        RefreshTowns(player);
         var income = player.DailyIncome();
-        _mines.Text = player.Mines.Count == 0
-            ? "Mines : aucune"
-            : $"Mines : {player.Mines.Count} (" + Texts.Income(income) + "/jour)";
+        _mines.Text = $"Mines : {player.Mines.Count}\n"
+            + (income.Count == 0 ? "Revenus : aucun" : $"Revenus : {Texts.Income(income)} /jour");
 
         _hover.Text = DescribeCell(hovered);
 
@@ -194,6 +205,56 @@ public partial class Hud : CanvasLayer
         string log = string.Join("\n", _messages.TakeLast(4));
         if (_log.Text != log)
             _log.Text = log;
+    }
+
+    /// <summary>Reconstruit les boutons des héros, seulement quand la liste ou la sélection change.</summary>
+    private void RefreshHeroes(Player player)
+    {
+        string key = string.Join("|", player.Heroes.Select(h => h.Name)) + "#" + _state.CurrentHero?.Name;
+        if (key == _heroesKey)
+            return;
+        _heroesKey = key;
+
+        foreach (var child in _heroes.GetChildren())
+        {
+            _heroes.RemoveChild(child);
+            child.QueueFree();
+        }
+        _heroes.AddChild(MakeLabel("Héros :", 13, SoftTextColor));
+        foreach (var hero in player.Heroes)
+        {
+            var button = MakeButton(hero.Name, 13);
+            button.CustomMinimumSize = new Vector2(0, 26);
+            if (hero == _state.CurrentHero) // le héros sélectionné : bordure claire
+                button.AddThemeStyleboxOverride("normal", Box(MapRenderer.Rgb(120, 90, 40), Colors.White, 2, 2, 2, 2, radius: 6));
+            button.Pressed += () => HeroClicked?.Invoke(hero);
+            _heroes.AddChild(button);
+        }
+    }
+
+    /// <summary>Reconstruit les boutons des villes, seulement quand la liste change.</summary>
+    private void RefreshTowns(Player player)
+    {
+        string key = string.Join("|", player.Towns.Select(t => t.Name));
+        if (key == _townsKey)
+            return;
+        _townsKey = key;
+
+        foreach (var child in _towns.GetChildren())
+        {
+            _towns.RemoveChild(child);
+            child.QueueFree();
+        }
+        _towns.AddChild(MakeLabel("Villes :", 13, SoftTextColor));
+        if (player.Towns.Count == 0)
+            _towns.AddChild(MakeLabel("aucune", 13, SoftTextColor));
+        foreach (var town in player.Towns)
+        {
+            var button = MakeButton(town.Name, 13);
+            button.CustomMinimumSize = new Vector2(0, 26);
+            button.Pressed += () => TownClicked?.Invoke(town);
+            _towns.AddChild(button);
+        }
     }
 
     /// <summary>Ajoute une ligne au journal (seules les dernières sont gardées).</summary>
@@ -212,11 +273,19 @@ public partial class Hud : CanvasLayer
         string text = Texts.Terrain(terrain) + (TerrainInfo.IsPassable(terrain)
             ? $" (coût {TerrainInfo.MoveCost(terrain)})"
             : " (infranchissable)");
-        var obj = _state.Map.ObjectAt(cell);
+        var obj = _state.Map.OccupantAt(cell);
         if (obj is Mine mine)
             text += $"\n{Texts.MineName(mine)}" + (mine.Owner == _state.CurrentPlayer ? " (à vous)" : mine.Owner != null ? " (ennemie)" : " (libre)");
         else if (obj is MonsterGuard guard)
-            text += $"\n{Texts.ObjectName(guard)}\n{Prediction(guard)}";
+            text += $"\n{Texts.ObjectName(guard)}\n{Prediction(guard.Army)}";
+        else if (obj is Town town && town.Owner == _state.CurrentPlayer)
+            text += $"\n{town.Name} (à vous)";
+        else if (obj is Town other)
+        {
+            text += $"\n{other.Name}" + (other.Owner != null ? " (ennemie)" : " (neutre)");
+            if (!other.Garrison.IsEmpty)
+                text += $"\nGarnison : {Prediction(other.Garrison)}";
+        }
         else if (obj != null)
             text += $"\n{Texts.ObjectName(obj)}";
         if (obj is not MonsterGuard && _state.Map.IsGuarded(cell))
@@ -225,15 +294,15 @@ public partial class Hud : CanvasLayer
     }
 
     /// <summary>Danger estimé d'un combat, en simulant le combat sur des copies des armées.</summary>
-    private string Prediction(MonsterGuard guard)
+    private string Prediction(Army enemy)
     {
         int armyCount = _state.CurrentHero?.Army.TotalCount ?? 0;
-        var key = (guard, guard.Count, armyCount);
+        var key = (enemy, enemy.TotalCount, armyCount);
         if (_predictionKey == key)
             return _predictionText;
         _predictionKey = key;
 
-        var report = _state.PredictBattle(guard);
+        var report = _state.PredictBattle(enemy);
         if (report == null || armyCount == 0)
             _predictionText = "";
         else if (!report.AttackerWon)
@@ -309,35 +378,4 @@ public partial class Hud : CanvasLayer
         dialog.PopupCentered(new Vector2I(360, 0));
     }
 
-    // ------------------------------------------------------------------ outils
-
-    private static T At<T>(T control, float x, float y) where T : Control
-    {
-        control.Position = new Vector2(x, y);
-        return control;
-    }
-
-    private static Label MakeLabel(string text, int fontSize, Color color)
-    {
-        var label = new Label { Text = text, MouseFilter = Control.MouseFilterEnum.Ignore };
-        label.AddThemeFontSizeOverride("font_size", fontSize);
-        label.AddThemeColorOverride("font_color", color);
-        return label;
-    }
-
-    private static StyleBoxFlat Box(Color background, Color? border,
-        int left = 0, int top = 0, int right = 0, int bottom = 0, int radius = 0)
-    {
-        var box = new StyleBoxFlat { BgColor = background };
-        if (border is { } b)
-        {
-            box.BorderColor = b;
-            box.BorderWidthLeft = left;
-            box.BorderWidthTop = top;
-            box.BorderWidthRight = right;
-            box.BorderWidthBottom = bottom;
-        }
-        box.SetCornerRadiusAll(radius);
-        return box;
-    }
 }

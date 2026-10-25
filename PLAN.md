@@ -35,7 +35,7 @@ On avance étape par étape, sans se presser : chaque étape est jouable et test
 - Écarté pour l'instant : faire résoudre tout un chemin d'un coup par les règles
   (l'affichage devrait alors garder sa propre copie de l'état). À revoir avec l'IA (étape 7).
 
-### 2. Villes ✅ (branche `etape-2-villes`)
+### 2. Villes ✅ (PR #6)
 Choix faits : la ville est **neutre** au départ, à mi-distance, défendue par une petite
 garnison ; les villes ont une **garnison** (comme dans Heroes) ; bâtiments minimaux ;
 écran de ville en plein écran.
@@ -71,8 +71,22 @@ Découpage :
 
 ### 3. Progression du héros
 - Expérience gagnée en combat, niveaux.
-- Les 4 caractéristiques : attaque, défense, puissance, savoir.
+- Les 5 caractéristiques : attaque, défense, puissance, savoir, **charisme**.
 - L'attaque et la défense du héros s'ajoutent à celles des créatures dans `Battle`.
+- **Charisme** (comme le commandement de King's Bounty) : chaque créature a un coût de
+  commandement (dans `creatures.json`, 1 pour les créatures les plus faibles, bien plus pour
+  un Ange). Une troupe est obéissante si nombre × coût ≤ charisme × 10 : avec un charisme
+  de 10, un héros commande au plus 100 créatures à 1 point dans une même troupe. La limite
+  s'applique à chaque troupe séparément, pas à toute l'armée.
+  - Dépasser la limite est permis, mais risqué : au début de chaque combat, une troupe
+    trop nombreuse peut se révolter, avec un risque qui grandit avec le dépassement
+    (environ 50 % à deux fois la limite). Elle combat alors dans le camp ennemi, et si elle
+    survit, elle quitte l'armée. Le compte rendu du combat le signale.
+  - Le risque est tiré au sort avec la graine de la partie (le combat lui-même reste sans hasard).
+  - L'interface prévient avant de dépasser la limite (recrutement, échange de troupes) et
+    montre les troupes à risque.
+  - Les garnisons des villes n'ont pas de limite.
+  - Le charisme augmente un peu à chaque niveau, et certains choix de niveau donnent plus.
 - Artefacts plus tard.
 
 ### 4. Parties complètes

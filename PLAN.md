@@ -78,6 +78,15 @@ charisme 10. Le coût de commandement est de 1 à 20 (`commandCost` dans `creatu
 Les troupes révoltées sont retirées de l'armée et combattent les monstres sans le bonus du
 héros ; leurs pertes ne donnent pas d'expérience.
 Au niveau supérieur, une fenêtre montre chaque caractéristique avant et après.
+Le Paysan (1 PV, 3 or) remplace le Piquier comme unité de base du Château. L'Ange a 2000 PV, défense 30 et
+105 de dégâts : il tue 200 paysans d'un coup, et il faut au moins mille paysans pour le vaincre (test `AngelTests`).
+Courbe du Château (paysans nécessaires pour vaincre une unité, héros de départ) : Paysan 1,
+Archer 6, Griffon 13, Épéiste 26, Moine 50, Cavalier 99, Ange 1632 (test `UnitCurveTests`).
+Départ : 30 paysans, 15 archers, 4 griffons.
+Prix : 3 or par paysan équivalent (Archer 18, Griffon 40, Épéiste 80, Moine 150, Cavalier 300,
+Ange 4900 et 1 gemme). Croissance hebdomadaire doublée (28, 18, 14, 8, 6, 4, 2) : une croissance
+égale en valeur est impossible pour l'Ange. Revenus des villes : 150, 300, 600 or par jour. Mines d'or : 250 or par jour (au lieu de 1000).
+La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance et les monstres qui la freinent.
 Reste à faire : les « choix de niveau » qui donnent plus de charisme (tirage aléatoire pour l'instant).
 
 - Expérience gagnée en combat, niveaux.
@@ -109,7 +118,7 @@ Reste à faire : les « choix de niveau » qui donnent plus de charisme (tirage 
 ### 5. Graphismes
 - Remplacer les formes dessinées par un pack d'images (possible dès l'étape 2).
 - Seul `MapRenderer.cs` (et l'interface) change. Les images sont trouvées par convention
-  à partir des identifiants, par exemple `res://art/creatures/piquier.png` :
+  à partir des identifiants, par exemple `res://art/creatures/paysan.png` :
   pas de chemins d'images dans les fichiers de règles.
 
 ### 6. Combat tactique
@@ -136,3 +145,8 @@ Reste à faire : les « choix de niveau » qui donnent plus de charisme (tirage 
 - Rester proche des règles et des chiffres de Heroes 3, ou inventer les nôtres ?
   (Pour l'instant : proche de Heroes 3.)
 - Thème de la première faction : médiéval classique (le Château, utilisé pour l'instant) ou autre chose ?
+
+## Idées à garder
+- **Capacités propres à chaque unité** (à faire après l'étape 3, à prévoir avec le combat tactique) :
+  premier coup, tir à distance, vol, etc. Pour que chaque unité ait un rôle distinct,
+  pas seulement des chiffres différents. Demandé par l'utilisateur.

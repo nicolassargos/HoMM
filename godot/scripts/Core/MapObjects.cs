@@ -96,7 +96,7 @@ public sealed class Mine : MapObject
 
     public int DailyProduction => Resource switch
     {
-        ResourceType.Gold => 1000,
+        ResourceType.Gold => 250,
         ResourceType.Gems => 1,
         _ => 2,
     };

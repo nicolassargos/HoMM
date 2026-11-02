@@ -28,12 +28,12 @@ public class RecruitTests
         var (state, town, player) = OwnedTown(heroInside: false);
         int gold = player.Resources[ResourceType.Gold];
 
-        Assert.Equal(RecruitResult.Ok, state.Recruit(town, C("piquier"), 10));
+        Assert.Equal(RecruitResult.Ok, state.Recruit(town, C("paysan"), 10));
 
-        Assert.Equal(gold - 600, player.Resources[ResourceType.Gold]);
-        Assert.Equal(4, town.Available[C("piquier")]);
+        Assert.Equal(gold - 30, player.Resources[ResourceType.Gold]);
+        Assert.Equal(18, town.Available[C("paysan")]);
         Assert.Equal(10, town.Garrison.Stacks.Single().Count);
-        Assert.Equal(new CreaturesRecruited(town, C("piquier"), 10, false),
+        Assert.Equal(new CreaturesRecruited(town, C("paysan"), 10, false),
             state.TakeEvents().OfType<CreaturesRecruited>().Single());
     }
 
@@ -42,11 +42,11 @@ public class RecruitTests
     {
         var (state, town, player) = OwnedTown(heroInside: false);
 
-        Assert.Equal(RecruitResult.NotAvailable, state.Recruit(town, C("piquier"), 15));
+        Assert.Equal(RecruitResult.NotAvailable, state.Recruit(town, C("paysan"), 29));
         Assert.Equal(RecruitResult.NotAvailable, state.Recruit(town, C("archer"), 1));
-        player.Resources[ResourceType.Gold] = 100;
-        Assert.Equal(1, town.MaxRecruitable(C("piquier"), player));
-        Assert.Equal(RecruitResult.NotEnoughResources, state.Recruit(town, C("piquier"), 2));
+        player.Resources[ResourceType.Gold] = 5;
+        Assert.Equal(1, town.MaxRecruitable(C("paysan"), player));
+        Assert.Equal(RecruitResult.NotEnoughResources, state.Recruit(town, C("paysan"), 2));
         Assert.True(town.Garrison.IsEmpty);
     }
 
@@ -54,12 +54,12 @@ public class RecruitTests
     public void Garnison_pleine_les_recrues_rejoignent_le_heros_present()
     {
         var (state, town, _) = OwnedTown(heroInside: true);
-        foreach (var other in TestData.Creatures.All.Where(c => c.Id != "piquier").Take(Army.MaxStacks))
+        foreach (var other in TestData.Creatures.All.Where(c => c.Id != "paysan").Take(Army.MaxStacks))
             town.Garrison.Add(other, 1);
 
-        Assert.Equal(RecruitResult.Ok, state.Recruit(town, C("piquier"), 5));
+        Assert.Equal(RecruitResult.Ok, state.Recruit(town, C("paysan"), 5));
 
-        Assert.Equal(35, state.CurrentHero!.Army.Stacks.Single(s => s.Type == C("piquier")).Count);
+        Assert.Equal(35, state.CurrentHero!.Army.Stacks.Single(s => s.Type == C("paysan")).Count);
         Assert.True(state.TakeEvents().OfType<CreaturesRecruited>().Single().ToHero);
     }
 
@@ -67,10 +67,10 @@ public class RecruitTests
     public void Sans_place_on_ne_recrute_pas()
     {
         var (state, town, _) = OwnedTown(heroInside: false);
-        foreach (var other in TestData.Creatures.All.Where(c => c.Id != "piquier").Take(Army.MaxStacks))
+        foreach (var other in TestData.Creatures.All.Where(c => c.Id != "paysan").Take(Army.MaxStacks))
             town.Garrison.Add(other, 1);
 
-        Assert.Equal(RecruitResult.NoRoom, state.Recruit(town, C("piquier"), 5));
+        Assert.Equal(RecruitResult.NoRoom, state.Recruit(town, C("paysan"), 5));
     }
 
     [Fact]
@@ -78,12 +78,12 @@ public class RecruitTests
     {
         var (state, town, _) = OwnedTown(heroInside: true);
         var hero = state.CurrentHero!;
-        town.Garrison.Add(C("piquier"), 10);
+        town.Garrison.Add(C("paysan"), 10);
         town.Garrison.Add(C("moine"), 2);
 
-        // Les piquiers de la garnison rejoignent ceux du héros
+        // Les paysans de la garnison rejoignent ceux du héros
         Assert.True(state.TransferStack(town, fromGarrison: true, index: 0));
-        Assert.Equal(40, hero.Army.Stacks.Single(s => s.Type == C("piquier")).Count);
+        Assert.Equal(40, hero.Army.Stacks.Single(s => s.Type == C("paysan")).Count);
         Assert.Equal(C("moine"), town.Garrison.Stacks.Single().Type);
 
         // Et les archers du héros vont dans la garnison
@@ -110,7 +110,7 @@ public class RecruitTests
     public void Pas_d_echange_sans_heros_dans_la_ville()
     {
         var (state, town, _) = OwnedTown(heroInside: false);
-        town.Garrison.Add(C("piquier"), 10);
+        town.Garrison.Add(C("paysan"), 10);
 
         Assert.False(state.TransferStack(town, fromGarrison: true, index: 0));
     }

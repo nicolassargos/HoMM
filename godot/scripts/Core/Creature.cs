@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace HoMM.Core;
 
-/// <summary>Un type de créature (Piquier, Loup…). Les valeurs viennent de data/creatures.json.</summary>
+/// <summary>Un type de créature (Paysan, Loup…). Les valeurs viennent de data/creatures.json.</summary>
 public sealed record CreatureType
 {
     public string Id { get; init; } = "";

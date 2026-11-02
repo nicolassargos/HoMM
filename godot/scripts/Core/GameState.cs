@@ -27,8 +27,8 @@ public sealed class GameState
         var human = new Player("Rouge", Map);
         Players.Add(human);
         var hero = new Hero("Sire Roland", human, Map.Start);
-        hero.Army.Add(Creatures.Get("piquier"), 30);
-        hero.Army.Add(Creatures.Get("archer"), 12);
+        hero.Army.Add(Creatures.Get("paysan"), 30);
+        hero.Army.Add(Creatures.Get("archer"), 15);
         hero.Army.Add(Creatures.Get("griffon"), 4);
         CurrentHero = hero;
     }

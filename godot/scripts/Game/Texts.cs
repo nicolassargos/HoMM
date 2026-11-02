@@ -97,7 +97,7 @@ public static class Texts
         var other => LowerFirst(ObjectName(other)),
     };
 
-    /// <summary>« Révolte : 40 Piquiers refusent d'obéir… », ou null s'il n'y a pas eu de révolte.</summary>
+    /// <summary>« Révolte : 40 Paysans refusent d'obéir… », ou null s'il n'y a pas eu de révolte.</summary>
     public static string? Revolt(BattleReport report) => report.Rebels.Count == 0 ? null
         : $"Révolte : {string.Join(", ", report.Rebels.Select(Stack))} refusent d'obéir et combattent l'ennemi"
           + (report.RebelSurvivors.Count > 0 ? ", les survivants quittent l'armée." : ".");
@@ -194,7 +194,7 @@ public static class Texts
         _ => "",
     };
 
-    /// <summary>Ce que produit une habitation : « 14 Piquiers disponibles (+14 par semaine) ».</summary>
+    /// <summary>Ce que produit une habitation : « 14 Paysans disponibles (+14 par semaine) ».</summary>
     public static string Dwelling(CreatureType creature, int available) =>
         $"{available} {Creature(creature, available)} disponible{(available > 1 ? "s" : "")} (+{creature.Growth} par semaine)";
 
@@ -204,7 +204,7 @@ public static class Texts
     public static string RecruitInfo(CreatureType type, int available) =>
         $"{available} disponible{(available > 1 ? "s" : "")} · {Cost(type.Cost)} l'unité";
 
-    /// <summary>« 10 Piquiers pour 600 or ».</summary>
+    /// <summary>« 10 Paysans pour 600 or ».</summary>
     public static string RecruitTotal(CreatureType type, int count) =>
         $"{count} {Creature(type, count)} pour {Cost(type.Cost.ToDictionary(c => c.Key, c => c.Value * count))}";
 

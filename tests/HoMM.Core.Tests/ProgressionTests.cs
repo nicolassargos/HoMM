@@ -18,30 +18,30 @@ public class ProgressionTests
     [Fact]
     public void Une_troupe_sous_la_limite_ne_se_revolte_pas()
     {
-        // Charisme 10 : limite de 100 points. 100 piquiers (1 point chacun) tout juste.
-        var piquier = TestData.Creatures.Get("piquier");
+        // Charisme 10 : limite de 100 points. 100 paysans (1 point chacun) tout juste.
+        var paysan = TestData.Creatures.Get("paysan");
 
-        Assert.False(Command.IsOverLimit(piquier, 100, 10));
-        Assert.True(Command.IsOverLimit(piquier, 101, 10));
-        Assert.Equal(0, Command.RevoltChance(piquier, 100, 10));
+        Assert.False(Command.IsOverLimit(paysan, 100, 10));
+        Assert.True(Command.IsOverLimit(paysan, 101, 10));
+        Assert.Equal(0, Command.RevoltChance(paysan, 100, 10));
     }
 
     [Fact]
     public void La_chance_de_revolte_vaut_la_moitie_a_deux_fois_la_limite()
     {
-        var piquier = TestData.Creatures.Get("piquier");
+        var paysan = TestData.Creatures.Get("paysan");
 
-        Assert.Equal(0.5, Command.RevoltChance(piquier, 200, 10), precision: 6);
-        Assert.Equal(Command.MaxRevoltChance, Command.RevoltChance(piquier, 1000, 10));
+        Assert.Equal(0.5, Command.RevoltChance(paysan, 200, 10), precision: 6);
+        Assert.Equal(Command.MaxRevoltChance, Command.RevoltChance(paysan, 1000, 10));
     }
 
     [Fact]
     public void Un_ange_coute_beaucoup_plus_de_commandement()
     {
         var ange = TestData.Creatures.Get("ange");
-        var piquier = TestData.Creatures.Get("piquier");
+        var paysan = TestData.Creatures.Get("paysan");
 
-        Assert.True(ange.CommandCost > 10 * piquier.CommandCost);
+        Assert.True(ange.CommandCost > 10 * paysan.CommandCost);
     }
 
     [Fact]
@@ -81,8 +81,8 @@ public class ProgressionTests
         for (int i = 0; i < 15; i++)
             strong.LevelUp(HeroStat.Attack);
 
-        var plain = Battle.Resolve(ArmyOf("archer", 10), ArmyOf("ogre", 10), weak);
-        var boosted = Battle.Resolve(ArmyOf("archer", 10), ArmyOf("ogre", 10), strong);
+        var plain = Battle.Resolve(ArmyOf("archer", 40), ArmyOf("ogre", 10), weak);
+        var boosted = Battle.Resolve(ArmyOf("archer", 40), ArmyOf("ogre", 10), strong);
 
         Assert.True(boosted.DefenderLosses.Sum(s => s.Count) > plain.DefenderLosses.Sum(s => s.Count));
     }
@@ -90,7 +90,7 @@ public class ProgressionTests
     [Fact]
     public void Les_troupes_revoltees_combattent_sans_compter_dans_les_pertes_ennemies()
     {
-        var hero = ArmyOf("piquier", 30);
+        var hero = ArmyOf("paysan", 30);
         var rebels = ArmyOf("gobelin", 5);
 
         var report = Battle.Resolve(hero, new Army(), null, rebels);
@@ -106,7 +106,7 @@ public class ProgressionTests
     public void L_experience_vient_de_la_valeur_des_monstres_tues()
     {
         var gobelins = ArmyOf("gobelin", 10);
-        var report = Battle.Resolve(ArmyOf("piquier", 40), gobelins);
+        var report = Battle.Resolve(ArmyOf("paysan", 40), gobelins);
 
         // Un gobelin vaut 40 or
         Assert.Equal(report.DefenderLosses.Sum(s => s.Count) * 40, report.Experience);

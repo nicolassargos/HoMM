@@ -238,6 +238,9 @@ public partial class Main : Node2D
                     _walking = false;
                     _hud.ShowBattle(battle);
                     break;
+                case HeroLeveledUp levelUp when levelUp.Hero.Owner == viewer:
+                    _hud.ShowLevelUp(levelUp);
+                    break;
                 case TownEntered entered when entered.Hero.Owner == viewer:
                     _townToOpen = entered.Town;
                     break;

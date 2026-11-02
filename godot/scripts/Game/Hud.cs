@@ -22,6 +22,7 @@ public partial class Hud : CanvasLayer
     private ProgressBar _movementBar = null!;
     private Label _heroName = null!;
     private Label _army = null!;
+    private Label _stats = null!;
     private Label _mines = null!;
     private HFlowContainer _towns = null!;
     private HFlowContainer _heroes = null!;
@@ -118,6 +119,11 @@ public partial class Hud : CanvasLayer
         panel.AddChild(_movementText);
         y += 34;
 
+        _stats = At(MakeLabel("", 12, SoftTextColor), margin, y);
+        _stats.Size = new Vector2(innerWidth, 64);
+        panel.AddChild(_stats);
+        y += 68;
+
         panel.AddChild(At(MakeLabel("Armée", 14, SoftTextColor), margin, y));
         y += 20;
         _army = At(MakeLabel("", 13, TextColor), margin + 8, y);
@@ -183,13 +189,15 @@ public partial class Hud : CanvasLayer
             _movementBar.MaxValue = hero.MaxMovement;
             _movementBar.Value = hero.Movement;
             _movementText.Text = $"{hero.Movement} / {hero.MaxMovement}";
-            _army.Text = string.Join("\n", hero.Army.Stacks.Select(s => $"{s.Count}  {Texts.Creature(s.Type, s.Count)}"));
+            _stats.Text = Texts.HeroStats(hero);
+            _army.Text = string.Join("\n", hero.Army.Stacks.Select(s => Texts.ArmyLine(s, hero.Charisma)));
         }
         else
         {
             _heroName.Text = "Aucun héros";
             _movementBar.Value = 0;
             _movementText.Text = "";
+            _stats.Text = "";
             _army.Text = "";
         }
 
@@ -329,6 +337,10 @@ public partial class Hud : CanvasLayer
     }
 
     /// <summary>Fenêtre de fin de partie, avec un bouton pour recommencer.</summary>
+    /// <summary>Fenêtre de niveau : ce qui a changé sur le héros.</summary>
+    public void ShowLevelUp(HeroLeveledUp levelUp) =>
+        ShowDialog(Texts.LevelUpTitle(levelUp), Texts.LevelUpSummary(levelUp), "OK", null);
+
     public void ShowGameOver(GameOutcome outcome, Action newGame)
     {
         ShowDialog(Texts.GameOverTitle(outcome), Texts.GameOverText(outcome), "Nouvelle partie", newGame);

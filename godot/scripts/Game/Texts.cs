@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HoMM.Core;
@@ -96,9 +97,72 @@ public static class Texts
         var other => LowerFirst(ObjectName(other)),
     };
 
+    /// <summary>« Révolte : 40 Piquiers refusent d'obéir… », ou null s'il n'y a pas eu de révolte.</summary>
+    public static string? Revolt(BattleReport report) => report.Rebels.Count == 0 ? null
+        : $"Révolte : {string.Join(", ", report.Rebels.Select(Stack))} refusent d'obéir et combattent l'ennemi"
+          + (report.RebelSurvivors.Count > 0 ? ", les survivants quittent l'armée." : ".");
+
     public static string BattleTitle(BattleFought battle) => battle.Defender is Town town
         ? $"Assaut de {town.Name}"
         : $"Combat contre {Enemy(battle)}";
+
+    // ------------------------------------------------------------ héros
+
+    public static string StatName(HeroStat stat) => stat switch
+    {
+        HeroStat.Attack => "attaque",
+        HeroStat.Defense => "défense",
+        HeroStat.Power => "puissance",
+        HeroStat.Knowledge => "savoir",
+        _ => throw new ArgumentOutOfRangeException(nameof(stat)),
+    };
+
+    /// <summary>Les caractéristiques du héros, sur quatre lignes.</summary>
+    public static string HeroStats(Hero hero) =>
+        $"Niveau {hero.Level} · expérience {hero.Experience} / {Hero.ExperienceForLevel(hero.Level + 1)}\n"
+        + $"Attaque {hero.Attack} · défense {hero.Defense}\n"
+        + $"Puissance {hero.Power} · savoir {hero.Knowledge} · charisme {hero.Charisma}\n"
+        + $"Commandement max. par troupe : {Command.Limit(hero.Charisma)}";
+
+    /// <summary>« 12 Archers », avec une marque si la troupe risque de se révolter.</summary>
+    public static string ArmyLine(CreatureStack stack, int charisma) =>
+        Stack(stack) + (Command.IsOverLimit(stack.Type, stack.Count, charisma) ? "  (révolte ?)" : "");
+
+    /// <summary>Avertissement avant de dépasser la limite de commandement d'une troupe.</summary>
+    public static string CommandWarning(int limit) =>
+        $"Attention : au-delà de {limit} points de commandement, cette troupe risque de se révolter au combat.";
+
+    public static string LevelUp(HeroLeveledUp levelUp) =>
+        $"{levelUp.Hero.Name} passe au niveau {levelUp.After.Level} ! +1 {StatName(levelUp.Stat)}, +1 charisme.";
+
+    /// <summary>Le titre de la fenêtre de niveau : « Niveau 2 atteint ! ».</summary>
+    public static string LevelUpTitle(HeroLeveledUp levelUp) => $"Niveau {levelUp.After.Level} atteint !";
+
+    /// <summary>
+    /// Le contenu de la fenêtre de niveau : chaque caractéristique avec sa valeur d'avant et d'après,
+    /// et le commandement maximal par troupe qui en découle.
+    /// </summary>
+    public static string LevelUpSummary(HeroLeveledUp levelUp)
+    {
+        var before = levelUp.Before;
+        var after = levelUp.After;
+        return string.Join("\n", new[]
+        {
+            $"{levelUp.Hero.Name} passe au niveau {after.Level}.",
+            "",
+            Change("Attaque", before.Attack, after.Attack),
+            Change("Défense", before.Defense, after.Defense),
+            Change("Puissance", before.Power, after.Power),
+            Change("Savoir", before.Knowledge, after.Knowledge),
+            Change("Charisme", before.Charisma, after.Charisma),
+            Change("Commandement max. par troupe", Command.Limit(before.Charisma), Command.Limit(after.Charisma)),
+        });
+    }
+
+    /// <summary>« Attaque : 1 → 2 (+1) », ou « Défense : 1 (inchangée) ».</summary>
+    private static string Change(string label, int before, int after) => before == after
+        ? $"{label} : {after} (inchangée)"
+        : $"{label} : {before} → {after} (+{after - before})";
 
     // -------------------------------------------------------------- villes
 
@@ -199,9 +263,12 @@ public static class Texts
             + (recruited.ToHero ? " (garnison pleine : ils rejoignent le héros)." : "."),
 
         BattleFought battle when battle.Hero.Owner != viewer => null,
-        BattleFought { Report.AttackerWon: true } battle =>
-            $"Victoire contre {Enemy(battle)} ! Pertes : {Losses(battle.Report.AttackerLosses)}.",
-        BattleFought battle => $"{battle.Hero.Name} a été vaincu par {Enemy(battle)}.",
+        BattleFought { Report.AttackerWon: true } battle => Join(
+            Revolt(battle.Report),
+            $"Victoire contre {Enemy(battle)} ! Pertes : {Losses(battle.Report.AttackerLosses)}. +{battle.Report.Experience} expérience."),
+        BattleFought battle => Join(Revolt(battle.Report), $"{battle.Hero.Name} a été vaincu par {Enemy(battle)}."),
+        HeroLeveledUp levelUp when levelUp.Hero.Owner != viewer => null,
+        HeroLeveledUp levelUp => LevelUp(levelUp),
 
         DayStarted { NewWeek: true } day => $"Une nouvelle semaine commence, les monstres sont plus nombreux ! {Date(day.Day)}.",
         DayStarted day => $"Nouveau jour : {Date(day.Day)}.",
@@ -213,6 +280,9 @@ public static class Texts
     };
 
     // ------------------------------------------------------------- outils
+
+    /// <summary>Assemble des phrases qui ne sont pas vides, séparées par un espace.</summary>
+    private static string Join(params string?[] parts) => string.Join(" ", parts.Where(p => p != null));
 
     public static string Capitalize(string s) => s.Length == 0 ? s : char.ToUpper(s[0]) + s[1..];
 

@@ -22,21 +22,22 @@ public sealed class Hero
     public int Id { get; internal set; }
     public string Name { get; }
     public Player Owner { get; }
-    public Cell Position { get; private set; }
+    public Cell Position { get; internal set; }
     public Army Army { get; } = new();
     public int MaxMovement { get; set; } = DefaultMovement;
-    public int Movement { get; private set; }
+    public int Movement { get; internal set; }
     public int VisionRadius { get; set; } = 5;
 
     // Caractéristiques. Attaque et défense s'ajoutent à celles des créatures en combat.
-    public int Attack { get; private set; } = 1;
-    public int Defense { get; private set; } = 1;
-    public int Power { get; private set; } = 1;
-    public int Knowledge { get; private set; } = 1;
-    public int Charisma { get; private set; } = StartingCharisma;
+    // (internal set : remises telles quelles au chargement d'une partie)
+    public int Attack { get; internal set; } = 1;
+    public int Defense { get; internal set; } = 1;
+    public int Power { get; internal set; } = 1;
+    public int Knowledge { get; internal set; } = 1;
+    public int Charisma { get; internal set; } = StartingCharisma;
 
-    public int Level { get; private set; } = 1;
-    public int Experience { get; private set; }
+    public int Level { get; internal set; } = 1;
+    public int Experience { get; internal set; }
 
     /// <summary>Niveau et caractéristiques actuels (copie figée, pour comparer avant et après un niveau).</summary>
     public HeroStatistics Statistics => new(Level, Attack, Defense, Power, Knowledge, Charisma);

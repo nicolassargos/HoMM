@@ -39,6 +39,8 @@ public partial class Hud : CanvasLayer
 
     public Minimap Minimap { get; private set; } = null!;
     public event Action? EndTurnPressed;
+    public event Action? SavePressed;
+    public event Action? LoadPressed;
 
     /// <summary>Le joueur a cliqué sur une de ses villes dans la liste.</summary>
     public event Action<Town>? TownClicked;
@@ -164,8 +166,23 @@ public partial class Hud : CanvasLayer
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
         panel.AddChild(endTurn);
 
+        // Sauvegarder et charger (aussi avec F5 et F9)
+        float half = (innerWidth - 16 - 8) / 2;
+        var save = MakeButton("Sauvegarder", 14);
+        save.Position = new Vector2(margin + 8, endTurn.Position.Y - 40);
+        save.Size = new Vector2(half, 32);
+        save.TooltipText = "F5";
+        save.Pressed += () => SavePressed?.Invoke();
+        panel.AddChild(save);
+        var load = MakeButton("Charger", 14);
+        load.Position = new Vector2(margin + 8 + half + 8, save.Position.Y);
+        load.Size = save.Size;
+        load.TooltipText = "F9";
+        load.Pressed += () => LoadPressed?.Invoke();
+        panel.AddChild(load);
+
         _log = At(MakeLabel("", 13, TextColor), margin, y);
-        _log.Size = new Vector2(innerWidth, endTurn.Position.Y - 10 - y);
+        _log.Size = new Vector2(innerWidth, save.Position.Y - 10 - y);
         _log.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _log.VerticalAlignment = VerticalAlignment.Bottom;
         _log.ClipText = true;

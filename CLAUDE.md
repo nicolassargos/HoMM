@@ -31,4 +31,4 @@ La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessou
 ## Commandes
 - Tests : `dotnet test` (à la racine)
 - Compiler : `dotnet build` (dans `godot/`)
-- Lancer : `godot\lancer.bat` (Godot attendu dans `C:\Godot\`), option `-- --seed=42` pour une carte fixe
+- Lancer : `godot\lancer.bat` (Godot attendu dans `C:\Godot\`), option `-- --seed=42` pour une carte fixe, `-- --load` pour reprendre la partie sauvegardée

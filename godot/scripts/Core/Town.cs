@@ -29,7 +29,8 @@ public sealed class Town : MapObject
     /// <summary>Nom propre de la ville (donnée de jeu, comme le nom d'un héros).</summary>
     public string Name { get; }
     public string Faction { get; }
-    public Player? Owner { get; private set; }
+    /// <summary>Le propriétaire (voir <see cref="SetOwner"/>). Le chargement d'une partie le remet directement.</summary>
+    public Player? Owner { get; internal set; }
     public Army Garrison { get; } = new();
     public override bool RemovedOnVisit => false;
 
@@ -51,7 +52,7 @@ public sealed class Town : MapObject
     public Cell Approach => Position.Offset(0, 1);
 
     /// <summary>Un seul bâtiment par jour, comme dans Heroes.</summary>
-    public bool BuiltToday { get; private set; }
+    public bool BuiltToday { get; internal set; }
 
     /// <summary>Créatures prêtes à être recrutées, par type (elles s'accumulent de semaine en semaine).</summary>
     public Dictionary<CreatureType, int> Available { get; } = new();
@@ -100,6 +101,9 @@ public sealed class Town : MapObject
         if (DwellingCreature(building) is { } creature)
             Available[creature] = Available.GetValueOrDefault(creature) + creature.Growth;
     }
+
+    /// <summary>Remet un bâtiment sans offrir de créatures (chargement d'une partie : elles sont dans <see cref="Available"/>).</summary>
+    internal void RestoreBuilding(string buildingId) => _built.Add(_data.Buildings.Get(buildingId).Id);
 
     /// <summary>Combien de créatures de ce type le joueur peut recruter : limité par les disponibles et par ses ressources.</summary>
     public int MaxRecruitable(CreatureType type, Player player)

@@ -19,6 +19,9 @@ public sealed record CreatureType
     public int HitPoints { get; init; }
     public int Speed { get; init; }
 
+    /// <summary>Points de commandement qu'occupe une créature (étape 3 : charisme). Plus elle est forte, plus elle coûte.</summary>
+    public int CommandCost { get; init; }
+
     /// <summary>Créatures produites chaque semaine par leur habitation (étape 2 : villes).</summary>
     public int Growth { get; init; }
 

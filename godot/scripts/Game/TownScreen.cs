@@ -139,9 +139,12 @@ public partial class TownScreen : CanvasLayer
             _buildings.AddChild(BuildingCard(town, building));
 
         var hero = _state.VisitingHero(town);
-        FillArmyRow(_garrisonRow, town.Garrison, index => _state.TransferStack(town, fromGarrison: true, index));
+        // Info-bulle d'avertissement si la troupe ferait dépasser la limite de commandement du héros
+        FillArmyRow(_garrisonRow, town.Garrison, index => _state.TransferStack(town, fromGarrison: true, index),
+            stack => OverLimitWarning(hero, stack.Type, stack.Count + (hero?.Army.Stacks.FirstOrDefault(s => s.Type == stack.Type)?.Count ?? 0)));
         _heroLabel.Text = hero != null ? $"Héros présent : {hero.Name}" : "Aucun héros dans la ville";
-        FillArmyRow(_heroRow, hero?.Army, index => _state.TransferStack(town, fromGarrison: false, index));
+        FillArmyRow(_heroRow, hero?.Army, index => _state.TransferStack(town, fromGarrison: false, index),
+            stack => OverLimitWarning(hero, stack.Type, stack.Count));
         _hint.Visible = hero != null;
     }
 
@@ -212,7 +215,13 @@ public partial class TownScreen : CanvasLayer
     // ---------------------------------------------------------------- armées
 
     /// <summary>Les 7 emplacements d'une armée. Un clic sur une troupe appelle <paramref name="onClick"/> avec son numéro.</summary>
-    private void FillArmyRow(HBoxContainer row, Army? army, Func<int, bool> onClick)
+    /// <summary>L'avertissement de commandement pour une troupe du héros, ou null si tout va bien.</summary>
+    private static string? OverLimitWarning(Hero? hero, CreatureType type, int count) =>
+        hero != null && Command.IsOverLimit(type, count, hero.Charisma) ? Texts.CommandWarning(Command.Limit(hero.Charisma)) : null;
+
+    /// <summary>Les 7 emplacements d'une armée. Un clic sur une troupe appelle <paramref name="onClick"/> avec son numéro.
+    /// <paramref name="warning"/> donne l'avertissement affiché au survol d'une troupe, ou null.</summary>
+    private void FillArmyRow(HBoxContainer row, Army? army, Func<int, bool> onClick, Func<CreatureStack, string?>? warning = null)
     {
         Clear(row);
         for (int i = 0; i < Army.MaxStacks; i++)
@@ -220,6 +229,7 @@ public partial class TownScreen : CanvasLayer
             var stack = army != null && i < army.Stacks.Count ? army.Stacks[i] : null;
             var slot = new PanelContainer { CustomMinimumSize = new Vector2(SlotWidth, SlotHeight) };
             slot.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, stack != null ? BorderColor : DimColor, 1, 1, 1, 1, radius: 4));
+            slot.TooltipText = stack != null ? warning?.Invoke(stack) ?? "" : "";
             var label = MakeLabel(stack != null ? $"{stack.Count}\n{Texts.Creature(stack.Type, stack.Count)}" : "", 14, TextColor);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             label.VerticalAlignment = VerticalAlignment.Center;
@@ -308,7 +318,10 @@ public partial class TownScreen : CanvasLayer
         if (_recruitType is not { } type)
             return;
         int count = (int)_recruitSlider.Value;
-        _recruitTotal.Text = problem ?? Texts.RecruitTotal(type, count);
+        string text = problem ?? Texts.RecruitTotal(type, count);
+        if (problem == null && _town is { } town && _state.RecruitOverloads(town, type, count) is { } risky)
+            text += "\n" + Texts.CommandWarning(Command.Limit(risky.Charisma));
+        _recruitTotal.Text = text;
         _recruitButton.Disabled = count == 0;
     }
 

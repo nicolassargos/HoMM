@@ -15,11 +15,13 @@ public enum GameOutcome { Playing, Victory, Defeat }
 public sealed class GameState
 {
     private int _currentPlayer;
+    private readonly Random _rng;
 
     public GameState(int seed, GameData data)
     {
         Seed = seed;
         Data = data;
+        _rng = new Random(seed);
         Map = new MapGenerator(seed, data).Generate();
 
         var human = new Player("Rouge", Map);
@@ -250,12 +252,14 @@ public sealed class GameState
     /// <summary>Combat automatique contre un monstre ou une garnison. Renvoie true si le héros a gagné.</summary>
     private bool Fight(Hero hero, MapObject defender, Army defenderArmy)
     {
+        var rebels = RollRevolts(hero);
         var before = defenderArmy.Clone().Stacks;
-        var report = Battle.Resolve(hero.Army, defenderArmy);
+        var report = Battle.Resolve(hero.Army, defenderArmy, hero, rebels);
         Emit(new BattleFought(hero, defender, before, report));
 
         if (report.AttackerWon)
         {
+            GainExperience(hero, report.Experience);
             if (defender is MonsterGuard guard)
             {
                 Map.RemoveObject(guard);
@@ -267,6 +271,36 @@ public sealed class GameState
 
         RemoveHero(hero);
         return false;
+    }
+
+    /// <summary>
+    /// Au début d'un combat, les troupes trop nombreuses pour le charisme peuvent se révolter :
+    /// elles sortent de l'armée et renvoyées dans un second groupe (combattent contre le héros).
+    /// </summary>
+    private Army RollRevolts(Hero hero)
+    {
+        var rebels = new Army();
+        for (int i = hero.Army.Stacks.Count - 1; i >= 0; i--)
+        {
+            var stack = hero.Army.Stacks[i];
+            double chance = Command.RevoltChance(stack.Type, stack.Count, hero.Charisma);
+            if (chance > 0 && _rng.NextDouble() < chance)
+                hero.Army.MoveStackTo(i, rebels);
+        }
+        return rebels;
+    }
+
+    /// <summary>Ajoute de l'expérience et fait passer le héros au niveau suivant tant qu'il a assez.</summary>
+    private void GainExperience(Hero hero, int amount)
+    {
+        hero.AddExperience(amount);
+        while (hero.Experience >= Hero.ExperienceForLevel(hero.Level + 1))
+        {
+            var stat = (HeroStat)_rng.Next(Enum.GetValues<HeroStat>().Length);
+            var before = hero.Statistics;
+            hero.LevelUp(stat);
+            Emit(new HeroLeveledUp(hero, stat, before, hero.Statistics));
+        }
     }
 
     private void RemoveHero(Hero hero)
@@ -297,9 +331,21 @@ public sealed class GameState
         return result;
     }
 
+    /// <summary>
+    /// Les recrues iraient-elles chez le héros de la ville (garnison pleine) et lui feraient-elles dépasser
+    /// la limite de commandement de la troupe ? Renvoie ce héros, sinon null. Ne modifie rien.
+    /// </summary>
+    public Hero? RecruitOverloads(Town town, CreatureType type, int count)
+    {
+        if (town.Garrison.CanReceive(type) || VisitingHero(town) is not { } hero)
+            return null;
+        int inArmy = hero.Army.Stacks.FirstOrDefault(s => s.Type == type)?.Count ?? 0;
+        return Command.IsOverLimit(type, inArmy + count, hero.Charisma) ? hero : null;
+    }
+
     /// <summary>Prévision d'un combat du héros courant contre cette armée, sans rien modifier (pour l'interface).</summary>
     public BattleReport? PredictBattle(Army enemy) =>
-        CurrentHero is { } hero ? Battle.Resolve(hero.Army.Clone(), enemy.Clone()) : null;
+        CurrentHero is { } hero ? Battle.Resolve(hero.Army.Clone(), enemy.Clone(), hero) : null;
 
     // ------------------------------------------------------------------ villes
 

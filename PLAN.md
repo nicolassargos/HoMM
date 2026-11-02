@@ -69,7 +69,17 @@ Découpage :
    À noter : sur une carte 40×30, aucun monstre n'est assez loin pour être de niveau 7 ;
    il faudra de plus grandes cartes (générateur v2, étape 4).
 
-### 3. Progression du héros
+### 3. Progression du héros ✅ (en cours de PR)
+Choix faits : le niveau donne +1 charisme et +1 à une caractéristique tirée au sort (graine
+de la partie) parmi attaque, défense, puissance, savoir ; la puissance et le savoir n'ont
+pas encore d'effet (la magie viendra à l'étape 8). Expérience = valeur en or des monstres
+tués ; niveau n atteint à 1000 × (n-1) × n / 2 points. Un héros commence avec 1/1/1/1 et
+charisme 10. Le coût de commandement est de 1 à 20 (`commandCost` dans `creatures.json`).
+Les troupes révoltées sont retirées de l'armée et combattent les monstres sans le bonus du
+héros ; leurs pertes ne donnent pas d'expérience.
+Au niveau supérieur, une fenêtre montre chaque caractéristique avant et après.
+Reste à faire : les « choix de niveau » qui donnent plus de charisme (tirage aléatoire pour l'instant).
+
 - Expérience gagnée en combat, niveaux.
 - Les 5 caractéristiques : attaque, défense, puissance, savoir, **charisme**.
 - L'attaque et la défense du héros s'ajoutent à celles des créatures dans `Battle`.

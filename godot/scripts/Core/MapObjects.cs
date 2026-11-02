@@ -15,6 +15,9 @@ public abstract class MapObject
 {
     protected MapObject(Cell position) => Position = position;
 
+    /// <summary>Identifiant stable sur la carte, donné à l'ajout (voir <see cref="AdventureMap.AddObject"/>).</summary>
+    public int Id { get; internal set; }
+
     /// <summary>La case où le héros s'arrête pour visiter l'objet (l'entrée, pour une ville).</summary>
     public Cell Position { get; }
 

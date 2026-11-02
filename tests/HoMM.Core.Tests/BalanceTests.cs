@@ -62,8 +62,8 @@ internal static class BalanceSimulation
     public static Army StartingArmy()
     {
         var army = new Army();
-        army.Add(TestData.Creatures.Get("piquier"), 30);
-        army.Add(TestData.Creatures.Get("archer"), 12);
+        army.Add(TestData.Creatures.Get("paysan"), 30);
+        army.Add(TestData.Creatures.Get("archer"), 15);
         army.Add(TestData.Creatures.Get("griffon"), 4);
         return army;
     }

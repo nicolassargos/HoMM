@@ -33,7 +33,7 @@ public class HeroTests
         Assert.NotSame(roland, hired);
         Assert.Equal("Dame Isolde", hired.Name);
         Assert.Equal(town.Position, hired.Position);
-        Assert.Equal(12, hired.Army.Stacks.Single(s => s.Type.Id == "piquier").Count);
+        Assert.Equal(12, hired.Army.Stacks.Single(s => s.Type.Id == "paysan").Count);
         Assert.Equal(hired.MaxMovement, hired.Movement);
         Assert.Equal(new HeroHired(hired, town), state.TakeEvents().OfType<HeroHired>().Single());
     }

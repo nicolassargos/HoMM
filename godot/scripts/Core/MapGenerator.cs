@@ -78,7 +78,7 @@ public sealed class MapGenerator
         var town = new Town(cell, TownNames[_rng.Next(TownNames.Length)], "chateau", data);
         town.AddBuilding(data.Buildings.Get("salle-village"));
         town.AddBuilding(data.Buildings.Get("corps-de-garde"));
-        town.Garrison.Add(data.Creatures.Get("piquier"), _rng.Next(15, 25));
+        town.Garrison.Add(data.Creatures.Get("paysan"), _rng.Next(15, 25));
         town.Garrison.Add(data.Creatures.Get("archer"), _rng.Next(6, 11));
         _map.AddObject(town);
     }

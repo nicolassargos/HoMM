@@ -9,15 +9,15 @@ public class TownTests
     private static BuildingType B(string id) => TestData.Data.Buildings.Get(id);
 
     /// <summary>Une partie avec une ville de test juste à côté du héros (deux cases à droite).</summary>
-    private static (GameState State, Town Town) GameWithTownNearby(int garrisonPiquiers = 0, string garrisonId = "piquier")
+    private static (GameState State, Town Town) GameWithTownNearby(int garrisonPaysans = 0, string garrisonId = "paysan")
     {
         var state = new GameState(7, TestData.Data);
         var cell = state.CurrentHero!.Position.Offset(2, 0);
         var town = new Town(cell, "Testville", "chateau", TestData.Data);
         town.AddBuilding(B("salle-village"));
         town.AddBuilding(B("corps-de-garde"));
-        if (garrisonPiquiers > 0)
-            town.Garrison.Add(TestData.Creatures.Get(garrisonId), garrisonPiquiers);
+        if (garrisonPaysans > 0)
+            town.Garrison.Add(TestData.Creatures.Get(garrisonId), garrisonPaysans);
         state.Map.AddObject(town);
         return (state, town);
     }
@@ -106,7 +106,7 @@ public class TownTests
     [Fact]
     public void Vaincre_la_garnison_donne_la_ville()
     {
-        var (state, town) = GameWithTownNearby(garrisonPiquiers: 3);
+        var (state, town) = GameWithTownNearby(garrisonPaysans: 3);
         var player = state.Players[0];
         state.TakeEvents();
 
@@ -125,7 +125,7 @@ public class TownTests
     [Fact]
     public void Perdre_contre_la_garnison_laisse_la_ville_neutre()
     {
-        var (state, town) = GameWithTownNearby(garrisonPiquiers: 40, garrisonId: "ange");
+        var (state, town) = GameWithTownNearby(garrisonPaysans: 40, garrisonId: "ange");
 
         WalkTo(state, town.Position);
 
@@ -158,7 +158,7 @@ public class TownTests
 
         state.EndTurn();
 
-        Assert.Equal(gold + 500, player.Resources[ResourceType.Gold]);
+        Assert.Equal(gold + 150, player.Resources[ResourceType.Gold]);
     }
 
     [Fact]
@@ -201,10 +201,10 @@ public class TownTests
     public void L_hotel_de_ville_remplace_la_salle_du_village()
     {
         var (_, town) = GameWithTownNearby();
-        Assert.Equal(500, town.DailyGold);
+        Assert.Equal(150, town.DailyGold);
         town.AddBuilding(B("taverne"));
         town.AddBuilding(B("hotel-ville"));
-        Assert.Equal(1000, town.DailyGold);
+        Assert.Equal(300, town.DailyGold);
     }
 
     [Fact]
@@ -212,9 +212,9 @@ public class TownTests
     {
         var (state, town) = GameWithTownNearby();
         town.SetOwner(state.Players[0]);
-        var piquier = TestData.Creatures.Get("piquier");
+        var paysan = TestData.Creatures.Get("paysan");
         var archer = TestData.Creatures.Get("archer");
-        Assert.Equal(14, town.Available[piquier]); // une semaine offerte à la construction
+        Assert.Equal(14, town.Available[paysan]); // une semaine offerte à la construction
 
         Assert.Equal(BuildResult.Ok, state.Build(town, "tour-archers"));
         Assert.Equal(9, town.Available[archer]);
@@ -222,7 +222,7 @@ public class TownTests
         for (int i = 0; i < 7; i++)
             state.EndTurn();
 
-        Assert.Equal(28, town.Available[piquier]);
+        Assert.Equal(28, town.Available[paysan]);
         Assert.Equal(18, town.Available[archer]);
     }
 

@@ -343,17 +343,17 @@ public class BattleTests
     [Fact]
     public void Les_creatures_sont_lues_depuis_le_fichier_de_donnees()
     {
-        var piquier = TestData.Creatures.Get("piquier");
-        Assert.Equal("Piquiers", piquier.Plural);
-        Assert.Equal(10, piquier.HitPoints);
-        Assert.Equal(60, piquier.Cost[ResourceType.Gold]);
+        var paysan = TestData.Creatures.Get("paysan");
+        Assert.Equal("Paysans", paysan.Plural);
+        Assert.Equal(1, paysan.HitPoints);
+        Assert.Equal(3, paysan.Cost[ResourceType.Gold]);
         Assert.Equal(7, TestData.Creatures.All.Count(c => c.Faction == "chateau"));
     }
 
     [Fact]
     public void Une_grosse_armee_bat_une_petite_avec_des_pertes()
     {
-        var hero = ArmyOf("piquier", 50);
+        var hero = ArmyOf("archer", 50);
         var monsters = ArmyOf("gobelin", 20);
 
         var report = Battle.Resolve(hero, monsters);

@@ -66,8 +66,8 @@ Découpage :
    plus nombreuses au loin (`GuardSizeGrowth`), croissance hebdomadaire plafonnée au double,
    garnison de la ville neutre renforcée (3 à 8 pertes au siège). La simulation, optimiste,
    gagne entre le jour 34 et le jour 102 (souvent vers le jour 50).
-   À noter : sur une carte 40×30, aucun monstre n'est assez loin pour être de niveau 7 ;
-   il faudra de plus grandes cartes (générateur v2, étape 4).
+   À noter : sur une carte 40×30, aucun monstre n'est assez loin pour être de niveau 7
+   (réglé par le générateur v2, étape 4).
 
 ### 3. Progression du héros ✅
 Choix faits : le niveau donne +1 charisme et +1 à une caractéristique choisie parmi les quatre
@@ -111,11 +111,20 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
 - ✅ Identifiants stables : joueurs, héros et objets de carte ont un `Id`, retrouvable avec
   `PlayerById`, `HeroById`, `ObjectById`. Les données (`DataValidation`) sont vérifiées au chargement.
 - ✅ Conditions de victoire et de défaite (choisies au lancement de la partie) : vaincre tous les
-  monstres, ou prendre toutes les villes, avec ou sans limite de jours (100 au plus). Perdre tous ses
+  monstres, ou prendre toutes les villes, avec ou sans limite de jours (150 au plus). Perdre tous ses
   héros reste une défaite dans tous les cas (`GameRules`, `ChooseRules`).
   Plus tard : condition « Trouver le trésor » (demandée par l'utilisateur).
-- Générateur v2 : zones, gardiens de plus en plus forts loin du départ, villes neutres,
-  monstres qui gardent les passages.
+- ✅ Générateur v2 : carte de 54 × 40 découpée en zones (3 × 3) séparées par des montagnes ou des
+  rivières. Des passages (3 cases de large) relient toutes les zones, plus quelques-uns au hasard ;
+  chacun est gardé par un monstre qu'on ne peut pas contourner. Le niveau d'une zone est le nombre de
+  passages à franchir depuis le départ : il donne la force des monstres (niveau 1 près du départ,
+  Dragons dans la zone la plus lointaine). Une ville neutre pour trois zones : la première juste après
+  la zone de départ, les autres plus loin avec des garnisons plus fortes. Une mine par zone (au moins
+  une de chaque ressource) ; coffres, tas et monstres errants en proportion de la taille de la carte.
+  Les monstres sont maintenant seulement des créatures neutres (un Ange gardien était imbattable).
+  Aucun objet ni monstre ne coupe le chemin vers un autre objet. La sortie de la zone de départ reste
+  à la portée de l'armée de départ (il n'y a pas de ville avant). La simulation gagne vers le jour 82
+  (de 76 à 120 environ ; sur 60 graines, une seule n'est pas gagnée en 200 jours).
 - Sauvegarde et chargement. Il faudra donner des identifiants aux objets, héros et joueurs
   (aujourd'hui ils se référencent directement).
 

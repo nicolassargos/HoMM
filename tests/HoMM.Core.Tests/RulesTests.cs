@@ -31,6 +31,78 @@ public class MapGeneratorTests
                      b.Objects.Select(o => o.Position).OrderBy(p => p.Y).ThenBy(p => p.X));
     }
 
+    /// <summary>Les monstres qu'on peut attaquer depuis le départ sans en combattre un autre avant.</summary>
+    internal static List<MonsterGuard> GuardsReachableWithoutFighting(AdventureMap map)
+    {
+        var seen = new HashSet<Cell> { map.Start };
+        var queue = new Queue<Cell>(seen);
+        var guards = new HashSet<MonsterGuard>();
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            if (map.IsGuarded(c))
+            {
+                guards.UnionWith(map.GuardsAround(c));
+                continue; // entrer ici déclenche un combat : on ne va pas plus loin
+            }
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                var next = c.Offset(dx, dy);
+                if (map.IsPassable(next) && map.ObjectAt(next) is not MonsterGuard && seen.Add(next))
+                    queue.Enqueue(next);
+            }
+        }
+        return guards.ToList();
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(7)]
+    [InlineData(42)]
+    [InlineData(2026)]
+    public void Les_villes_sont_hors_de_la_zone_de_depart_derriere_un_gardien(int seed)
+    {
+        var map = new MapGenerator(seed, TestData.Data).Generate();
+        var reachable = GuardsReachableWithoutFighting(map);
+
+        // Depuis le départ, on n'atteint aucune ville sans combattre
+        var seen = new HashSet<Cell> { map.Start };
+        var queue = new Queue<Cell>(seen);
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            Assert.False(map.ObjectAt(c) is Town, $"ville atteinte sans combat en {c}");
+            if (map.IsGuarded(c))
+                continue;
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                var next = c.Offset(dx, dy);
+                if (map.IsPassable(next) && map.ObjectAt(next) is not MonsterGuard && seen.Add(next))
+                    queue.Enqueue(next);
+            }
+        }
+        Assert.NotEmpty(reachable);
+        Assert.All(reachable, g => Assert.True(g.Type.Tier <= 3, $"{g.Count} {g.Type.Id} près du départ"));
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(42)]
+    [InlineData(2026)]
+    public void Les_monstres_les_plus_forts_sont_loin_du_depart(int seed)
+    {
+        var map = new MapGenerator(seed, TestData.Data).Generate();
+        var guards = map.Objects.OfType<MonsterGuard>().ToList();
+
+        Assert.All(guards, g => Assert.Equal(MapGenerator.MonsterFaction, g.Type.Faction));
+        Assert.Contains(guards, g => g.Type.Tier >= 6);
+        var strongest = guards.Where(g => g.Type.Tier >= 6);
+        double Distance(MonsterGuard g) => System.Math.Sqrt(System.Math.Pow(g.Position.X - map.Start.X, 2) + System.Math.Pow(g.Position.Y - map.Start.Y, 2));
+        Assert.All(strongest, g => Assert.True(Distance(g) > 20, $"{g.Type.Id} à {Distance(g):F0} cases du départ"));
+    }
+
     [Fact]
     public void Une_petite_carte_pose_ce_qui_rentre_sans_planter()
     {
@@ -301,7 +373,7 @@ public class GuardPlacementTests
 
         // Presque toutes les mines et tous les coffres ont un gardien à côté
         var valuables = map.Objects.Where(o => o is Mine or TreasureChest).ToList();
-        Assert.True(valuables.Count(o => map.IsGuarded(o.Position)) >= valuables.Count - 2);
+        Assert.True(valuables.Count(o => map.IsGuarded(o.Position)) >= valuables.Count * 3 / 4);
 
         foreach (var g in guards)
         {

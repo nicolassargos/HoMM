@@ -22,7 +22,7 @@ public class BalanceTests
         foreach (int seed in Seeds)
         {
             var result = BalanceSimulation.Play(seed);
-            Assert.True(result.TownTaken, $"graine {seed} : ville non prise");
+            Assert.True(result.TownTaken, $"graine {seed} : aucune ville prise");
             Assert.True(result.VictoryDay is >= 20 and <= 150, $"graine {seed} : victoire au jour {result.VictoryDay}");
         }
     }
@@ -33,7 +33,7 @@ public class BalanceTests
         foreach (int seed in Seeds)
         {
             var map = new MapGenerator(seed, TestData.Data).Generate();
-            var nearest = map.Objects.OfType<MonsterGuard>()
+            var nearest = MapGeneratorTests.GuardsReachableWithoutFighting(map)
                 .OrderBy(g => Math.Abs(g.Position.X - map.Start.X) + Math.Abs(g.Position.Y - map.Start.Y))
                 .Take(2);
             foreach (var guard in nearest)
@@ -43,7 +43,11 @@ public class BalanceTests
     }
 }
 
-/// <summary>Une partie jouée par une stratégie simple, sans déplacements (voir <see cref="BalanceTests"/>).</summary>
+/// <summary>
+/// Une partie jouée par une stratégie simple, sans déplacements (voir <see cref="BalanceTests"/>).
+/// Le héros attaque le monstre ou la ville la moins coûteuse, où qu'ils soient : il ne recrute
+/// qu'une fois une ville prise.
+/// </summary>
 internal static class BalanceSimulation
 {
     public sealed record Result(bool TownTaken, int VictoryDay, List<int> GoldByWeek);
@@ -75,30 +79,27 @@ internal static class BalanceSimulation
         var hero = new Hero("Test", player, map.Start);
         foreach (var stack in StartingArmy().Stacks)
             hero.Army.Add(stack.Type, stack.Count);
-        var town = map.Objects.OfType<Town>().Single();
-
-        // On commence par prendre la ville
-        if (!Battle.Resolve(hero.Army, town.Garrison).AttackerWon)
-            return new Result(false, -1, new List<int>());
-        town.SetOwner(player);
-
+        // Le héros doit d'abord se frayer un chemin jusqu'à une ville : avant, il ne peut pas recruter
         var goldByWeek = new List<int>();
         for (int day = 1; day <= MaxDays; day++)
         {
             NewDay(map, player, hero, day);
             if (day % 7 == 0)
                 goldByWeek.Add(player.Resources[ResourceType.Gold]);
-            BuildAndRecruit(town, player);
-            if (day % 7 == 1) // une fois par semaine, le héros passe prendre la garnison
-                while (town.Garrison.Stacks.Count > 0 && town.Garrison.MoveStackTo(0, hero.Army)) { }
+            foreach (var town in player.Towns)
+            {
+                BuildAndRecruit(town, player);
+                if (day % 7 == 1) // une fois par semaine, le héros passe prendre la garnison
+                    while (town.Garrison.Stacks.Count > 0 && town.Garrison.MoveStackTo(0, hero.Army)) { }
+            }
 
             if (day % FightEveryDays != 0)
                 continue;
             if (!map.Objects.OfType<MonsterGuard>().Any())
-                return new Result(true, day, goldByWeek);
-            FightSafestGuard(map, hero);
+                return new Result(player.Towns.Count > 0, day, goldByWeek);
+            FightSafest(map, hero);
         }
-        return new Result(true, -1, goldByWeek);
+        return new Result(player.Towns.Count > 0, -1, goldByWeek);
     }
 
     private static void NewDay(AdventureMap map, Player player, Hero hero, int day)
@@ -139,23 +140,33 @@ internal static class BalanceSimulation
         }
     }
 
-    /// <summary>Combat contre le monstre qui coûte le moins de pertes, s'il en vaut la peine. Prend ce qu'il gardait.</summary>
-    private static void FightSafestGuard(AdventureMap map, Hero hero)
+    /// <summary>
+    /// Combat contre le monstre ou la garnison de ville qui coûte le moins de pertes, s'il en vaut la peine.
+    /// Prend ce que le monstre gardait, ou la ville.
+    /// </summary>
+    private static void FightSafest(AdventureMap map, Hero hero)
     {
         static double Hp(IEnumerable<CreatureStack> stacks) => stacks.Sum(s => s.Count * s.Type.HitPoints);
 
-        var best = map.Objects.OfType<MonsterGuard>()
-            .Select(g => (Guard: g, Report: Battle.Resolve(hero.Army.Clone(), g.Army.Clone())))
+        var targets = map.Objects.OfType<MonsterGuard>().Select(g => (Target: (MapObject)g, Army: g.Army))
+            .Concat(map.Objects.OfType<Town>().Where(t => t.Owner != hero.Owner).Select(t => (Target: (MapObject)t, Army: t.Garrison)));
+        var best = targets
+            .Select(x => (x.Target, x.Army, Report: Battle.Resolve(hero.Army.Clone(), x.Army.Clone())))
             .Where(x => x.Report.AttackerWon)
-            .Select(x => (x.Guard, Loss: Hp(x.Report.AttackerLosses) / Hp(hero.Army.Stacks)))
+            .Select(x => (x.Target, x.Army, Loss: Hp(x.Report.AttackerLosses) / Hp(hero.Army.Stacks)))
             .OrderBy(x => x.Loss)
             .FirstOrDefault();
-        if (best.Guard == null || best.Loss > MaxLossRatio)
+        if (best.Target == null || best.Loss > MaxLossRatio)
             return;
 
-        Battle.Resolve(hero.Army, best.Guard.Army);
-        map.RemoveObject(best.Guard);
-        foreach (var obj in map.Objects.Where(o => o is Mine or TreasureChest && IsNear(o.Position, best.Guard.Position)).ToList())
+        Battle.Resolve(hero.Army, best.Army);
+        if (best.Target is Town town)
+        {
+            town.SetOwner(hero.Owner);
+            return;
+        }
+        map.RemoveObject(best.Target);
+        foreach (var obj in map.Objects.Where(o => o is Mine or TreasureChest && IsNear(o.Position, best.Target.Position)).ToList())
         {
             obj.Visit(hero);
             if (obj.RemovedOnVisit)

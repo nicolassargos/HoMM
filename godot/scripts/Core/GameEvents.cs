@@ -16,5 +16,8 @@ public sealed record DayStarted(int Day, bool NewWeek) : GameEvent;
 /// <summary>C'est au tour d'un autre joueur.</summary>
 public sealed record TurnStarted(Player Player) : GameEvent;
 
-/// <summary>La partie est finie.</summary>
-public sealed record GameEnded(GameOutcome Outcome) : GameEvent;
+/// <summary>La partie est finie, pour cette raison.</summary>
+public sealed record GameEnded(GameOutcome Outcome, GameEndReason Reason) : GameEvent;
+
+/// <summary>Les conditions de la partie ont été choisies (au premier jour).</summary>
+public sealed record RulesChosen(GameRules Rules) : GameEvent;

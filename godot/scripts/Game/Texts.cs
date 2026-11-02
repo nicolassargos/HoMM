@@ -252,9 +252,26 @@ public static class Texts
 
     public static string GameOverTitle(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire" : "Défaite";
 
-    public static string GameOverText(GameOutcome outcome) => outcome == GameOutcome.Victory
-        ? "Tous les monstres ont été vaincus. La région est à vous !"
-        : "Votre dernier héros est tombé. La partie est perdue.";
+    public static string GameOverText(GameEnded end) => end.Reason switch
+    {
+        GameEndReason.GuardsCleared => "Tous les monstres ont été vaincus. La région est à vous !",
+        GameEndReason.TownsCaptured => "Toutes les villes sont à vous. La région est à vous !",
+        GameEndReason.HeroesLost => "Votre dernier héros est tombé. La partie est perdue.",
+        _ => "Le temps est écoulé avant la victoire. La partie est perdue.",
+    };
+
+    /// <summary>Ce qu'il faut faire pour gagner, avec la date limite s'il y en a une.</summary>
+    public static string Objective(GameRules rules)
+    {
+        string goal = rules.Victory == VictoryCondition.ClearGuards
+            ? "Vaincre tous les monstres"
+            : "Prendre toutes les villes";
+        return rules.DayLimit is { } limit ? $"{goal} avant la fin de {Date(limit)}" : goal;
+    }
+
+    public static string RulesTitle => "Conditions de la partie";
+
+    public static string RulesText => "Comment gagner cette partie ? Perdre tous ses héros reste une défaite dans tous les cas.";
 
     // ------------------------------------------------------------- journal
 
@@ -294,8 +311,11 @@ public static class Texts
         DayStarted day => $"Nouveau jour : {Date(day.Day)}.",
         IncomeReceived income when income.Player == viewer => $"Revenus : {Income(income.Income)}.",
         TurnStarted turn => $"Au tour du joueur {turn.Player.Name}.",
-        GameEnded { Outcome: GameOutcome.Victory } => "La région est libérée de ses monstres. Victoire !",
-        GameEnded => "Vous n'avez plus de héros. Défaite...",
+        RulesChosen chosen => $"Objectif : {Objective(chosen.Rules)}.",
+        GameEnded { Reason: GameEndReason.GuardsCleared } => "La région est libérée de ses monstres. Victoire !",
+        GameEnded { Reason: GameEndReason.TownsCaptured } => "Toutes les villes sont à vous. Victoire !",
+        GameEnded { Reason: GameEndReason.HeroesLost } => "Vous n'avez plus de héros. Défaite...",
+        GameEnded => "Il est trop tard pour gagner. Défaite...",
         _ => null,
     };
 

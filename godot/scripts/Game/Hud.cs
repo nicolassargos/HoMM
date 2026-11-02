@@ -341,10 +341,39 @@ public partial class Hud : CanvasLayer
     public void ShowLevelUp(HeroLeveledUp levelUp) =>
         ShowDialog(Texts.LevelUpTitle(levelUp), Texts.LevelUpSummary(levelUp), "OK", null);
 
-    public void ShowGameOver(GameOutcome outcome, Action newGame)
+    public void ShowGameOver(GameEnded end, Action newGame)
     {
-        ShowDialog(Texts.GameOverTitle(outcome), Texts.GameOverText(outcome), "Nouvelle partie", newGame);
+        ShowDialog(Texts.GameOverTitle(end.Outcome), Texts.GameOverText(end), "Nouvelle partie", newGame);
     }
+
+    /// <summary>Choix des conditions de la partie, au lancement : un bouton par choix. Fermer la fenêtre prend le premier.</summary>
+    public void ShowRulesChoice(IReadOnlyList<GameRules> options, Action<GameRules> choose) => Enqueue(done =>
+    {
+        var dialog = new AcceptDialog
+        {
+            Title = Texts.RulesTitle,
+            DialogText = Texts.RulesText,
+            Exclusive = true,
+            Unresizable = true,
+        };
+        dialog.GetOkButton().Hide();
+        bool chosen = false;
+        void Choose(GameRules rules)
+        {
+            if (chosen)
+                return;
+            chosen = true;
+            choose(rules);
+            dialog.QueueFree();
+            done();
+        }
+        for (int i = 0; i < options.Count; i++)
+            dialog.AddButton(Texts.Objective(options[i]), false, i.ToString());
+        dialog.CustomAction += action => Choose(options[int.Parse(action.ToString())]);
+        dialog.Canceled += () => Choose(options[0]);
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(560, 0));
+    });
 
     /// <summary>True tant qu'une fenêtre est ouverte ou en attente (le jeu ignore alors les commandes de la carte).</summary>
     public bool IsDialogOpen => _dialogOpen || _pendingDialogs.Count > 0;

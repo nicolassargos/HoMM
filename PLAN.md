@@ -110,7 +110,10 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
 ### 4. Parties complètes (en cours)
 - ✅ Identifiants stables : joueurs, héros et objets de carte ont un `Id`, retrouvable avec
   `PlayerById`, `HeroById`, `ObjectById`. Les données (`DataValidation`) sont vérifiées au chargement.
-- Conditions de victoire et de défaite (choisies au lancement de la partie).
+- ✅ Conditions de victoire et de défaite (choisies au lancement de la partie) : vaincre tous les
+  monstres, ou prendre toutes les villes, avec ou sans limite de jours (100 au plus). Perdre tous ses
+  héros reste une défaite dans tous les cas (`GameRules`, `ChooseRules`).
+  Plus tard : condition « Trouver le trésor » (demandée par l'utilisateur).
 - Générateur v2 : zones, gardiens de plus en plus forts loin du départ, villes neutres,
   monstres qui gardent les passages.
 - Sauvegarde et chargement. Il faudra donner des identifiants aux objets, héros et joueurs

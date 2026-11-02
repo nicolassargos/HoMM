@@ -252,7 +252,7 @@ public class GameStateTests
         state.StepAlongPath();
 
         Assert.Equal(GameOutcome.Victory, state.Outcome);
-        Assert.Equal(new GameEnded(GameOutcome.Victory), state.TakeEvents().OfType<GameEnded>().Single());
+        Assert.Equal(new GameEnded(GameOutcome.Victory, GameEndReason.GuardsCleared), state.TakeEvents().OfType<GameEnded>().Single());
     }
 
     [Fact]
@@ -268,7 +268,7 @@ public class GameStateTests
         var events = state.TakeEvents();
         Assert.False(events.OfType<BattleFought>().Single().Report.AttackerWon);
         Assert.Single(events.OfType<HeroDefeated>());
-        Assert.Equal(new GameEnded(GameOutcome.Defeat), events[^1]);
+        Assert.Equal(new GameEnded(GameOutcome.Defeat, GameEndReason.HeroesLost), events[^1]);
         Assert.Null(state.CurrentHero);
         Assert.Equal(GameOutcome.Defeat, state.Outcome);
     }

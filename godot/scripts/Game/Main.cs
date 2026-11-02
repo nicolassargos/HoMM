@@ -238,6 +238,9 @@ public partial class Main : Node2D
                     _walking = false;
                     _hud.ShowBattle(battle);
                     break;
+                case HeroLevelChoice choice when choice.Hero.Owner == viewer:
+                    _hud.ShowLevelChoice(choice, stat => _state.ChooseStat(choice, stat));
+                    break;
                 case HeroLeveledUp levelUp when levelUp.Hero.Owner == viewer:
                     _hud.ShowLevelUp(levelUp);
                     break;

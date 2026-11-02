@@ -16,6 +16,7 @@ public sealed class GameState
 {
     private int _currentPlayer;
     private readonly Random _rng;
+    private readonly List<HeroLevelChoice> _pendingChoices = new();
 
     public GameState(int seed, GameData data)
     {
@@ -259,7 +260,7 @@ public sealed class GameState
 
         if (report.AttackerWon)
         {
-            GainExperience(hero, report.Experience);
+            GrantExperience(hero, report.Experience);
             if (defender is MonsterGuard guard)
             {
                 Map.RemoveObject(guard);
@@ -290,23 +291,43 @@ public sealed class GameState
         return rebels;
     }
 
-    /// <summary>Ajoute de l'expérience et fait passer le héros au niveau suivant tant qu'il a assez.</summary>
-    private void GainExperience(Hero hero, int amount)
+    /// <summary>
+    /// Ajoute de l'expérience. Chaque niveau atteint crée un choix (<see cref="HeroLevelChoice"/>) :
+    /// le héros ne monte vraiment de niveau qu'une fois la caractéristique choisie (<see cref="ChooseStat"/>).
+    /// </summary>
+    public void GrantExperience(Hero hero, int amount)
     {
         hero.AddExperience(amount);
-        while (hero.Experience >= Hero.ExperienceForLevel(hero.Level + 1))
+        while (hero.Experience >= Hero.ExperienceForLevel(NextLevelAfterPending(hero)))
         {
-            var stat = (HeroStat)_rng.Next(Enum.GetValues<HeroStat>().Length);
-            var before = hero.Statistics;
-            hero.LevelUp(stat);
-            Emit(new HeroLeveledUp(hero, stat, before, hero.Statistics));
+            var choice = new HeroLevelChoice(hero, NextLevelAfterPending(hero), Enum.GetValues<HeroStat>());
+            _pendingChoices.Add(choice);
+            Emit(choice);
         }
     }
+
+    /// <summary>Le joueur choisit la caractéristique gagnée à ce niveau. Renvoie false si ce choix n'est pas proposé.</summary>
+    public bool ChooseStat(HeroLevelChoice choice, HeroStat stat)
+    {
+        if (!_pendingChoices.Contains(choice) || !choice.Options.Contains(stat))
+            return false;
+        _pendingChoices.Remove(choice);
+        var before = choice.Hero.Statistics;
+        choice.Hero.LevelUp(stat);
+        Emit(new HeroLeveledUp(choice.Hero, stat, before, choice.Hero.Statistics));
+        return true;
+    }
+
+    /// <summary>Le niveau que le héros atteindra avec son prochain choix (niveaux en attente compris).</summary>
+    private int NextLevelAfterPending(Hero hero) =>
+        hero.Level + _pendingChoices.Count(c => c.Hero == hero) + 1;
+
 
     private void RemoveHero(Hero hero)
     {
         hero.Owner.Heroes.Remove(hero);
         _paths.Remove(hero);
+        _pendingChoices.RemoveAll(c => c.Hero == hero);
         if (CurrentHero == hero)
             CurrentHero = hero.Owner.Heroes.FirstOrDefault();
         Emit(new HeroDefeated(hero));

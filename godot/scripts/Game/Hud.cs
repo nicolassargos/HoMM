@@ -350,44 +350,83 @@ public partial class Hud : CanvasLayer
     public bool IsDialogOpen => _dialogOpen || _pendingDialogs.Count > 0;
 
     private bool _dialogOpen;
-    private readonly Queue<(string Title, string Text, string Button, Action? OnClose)> _pendingDialogs = new();
+
+    /// <summary>Chaque fenêtre en attente : une action qui l'ouvre et reçoit l'action à appeler quand elle est fermée.</summary>
+    private readonly Queue<Action<Action>> _pendingDialogs = new();
 
     /// <summary>Les fenêtres s'affichent l'une après l'autre (ex. : compte rendu du combat, puis fin de partie).</summary>
-    private void ShowDialog(string title, string text, string button, Action? onClose)
+    private void ShowDialog(string title, string text, string button, Action? onClose) => Enqueue(done =>
     {
-        _pendingDialogs.Enqueue((title, text, button, onClose));
-        if (!_dialogOpen)
-            OpenNextDialog();
-    }
-
-    private void OpenNextDialog()
-    {
-        if (!_pendingDialogs.TryDequeue(out var next))
-            return;
         var dialog = new AcceptDialog
         {
-            Title = next.Title,
-            DialogText = next.Text,
-            OkButtonText = next.Button,
+            Title = title,
+            DialogText = text,
+            OkButtonText = button,
             Exclusive = true,
             Unresizable = true,
         };
-        _dialogOpen = true;
         bool closed = false;
         void Close()
         {
             if (closed)
                 return;
             closed = true;
-            _dialogOpen = false;
             dialog.QueueFree();
-            next.OnClose?.Invoke();
-            OpenNextDialog();
+            onClose?.Invoke();
+            done();
         }
         dialog.Confirmed += Close;
         dialog.Canceled += Close;
         AddChild(dialog);
         dialog.PopupCentered(new Vector2I(360, 0));
+    });
+
+    /// <summary>Choix de la caractéristique d'un niveau : un bouton par caractéristique proposée. Fermer la fenêtre prend la première.</summary>
+    public void ShowLevelChoice(HeroLevelChoice choice, Action<HeroStat> choose) => Enqueue(done =>
+    {
+        var dialog = new AcceptDialog
+        {
+            Title = Texts.LevelChoiceTitle(choice),
+            DialogText = Texts.LevelChoiceText(choice),
+            Exclusive = true,
+            Unresizable = true,
+        };
+        dialog.GetOkButton().Hide();
+        bool chosen = false;
+        void Choose(HeroStat stat)
+        {
+            if (chosen)
+                return;
+            chosen = true;
+            choose(stat);
+            dialog.QueueFree();
+            done();
+        }
+        foreach (var stat in choice.Options)
+            dialog.AddButton(Texts.StatChoice(choice.Hero, stat), false, stat.ToString());
+        dialog.CustomAction += action => Choose(Enum.Parse<HeroStat>(action.ToString()));
+        dialog.Canceled += () => Choose(choice.Options[0]);
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(560, 0));
+    });
+
+    private void Enqueue(Action<Action> open)
+    {
+        _pendingDialogs.Enqueue(open);
+        if (!_dialogOpen)
+            OpenNextDialog();
+    }
+
+    private void OpenNextDialog()
+    {
+        if (!_pendingDialogs.TryDequeue(out var open))
+            return;
+        _dialogOpen = true;
+        open(() =>
+        {
+            _dialogOpen = false;
+            OpenNextDialog();
+        });
     }
 
 }

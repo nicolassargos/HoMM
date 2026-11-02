@@ -66,6 +66,7 @@ public partial class Main : Node2D
         AddChild(_townScreen);
         _townScreen.Build(_state, screen);
 
+        _hud.ShowRulesChoice(GameRules.Options, rules => _state.ChooseRules(rules));
         CenterOnHero();
     }
 
@@ -253,7 +254,7 @@ public partial class Main : Node2D
                 case GameEnded end:
                     _walking = false;
                     _townScreen.Close();
-                    _hud.ShowGameOver(end.Outcome, () => GetTree().ReloadCurrentScene());
+                    _hud.ShowGameOver(end, () => GetTree().ReloadCurrentScene());
                     break;
             }
         }

@@ -49,6 +49,9 @@ public sealed class GameState
 
     public GameOutcome Outcome { get; private set; } = GameOutcome.Playing;
 
+    /// <summary>Conditions de victoire et de défaite de la partie (voir <see cref="ChooseRules"/>).</summary>
+    public GameRules Rules { get; private set; } = GameRules.Default;
+
     /// <summary>Jour écoulé depuis le début (0 = premier jour).</summary>
     public int Day { get; private set; }
 
@@ -100,11 +103,39 @@ public sealed class GameState
 
     private void Emit(GameEvent e) => _events.Add(e);
 
-    private void EndGame(GameOutcome outcome)
+    private void EndGame(GameOutcome outcome, GameEndReason reason)
     {
         Outcome = outcome;
         Path = null;
-        Emit(new GameEnded(outcome));
+        Emit(new GameEnded(outcome, reason));
+    }
+
+    /// <summary>
+    /// Choisit les conditions de la partie. Ce n'est possible qu'au premier jour, avant toute action
+    /// (renvoie false sinon).
+    /// </summary>
+    public bool ChooseRules(GameRules rules)
+    {
+        if (Day > 0)
+            return false;
+        Rules = rules;
+        Emit(new RulesChosen(rules));
+        return true;
+    }
+
+    /// <summary>Vérifie la victoire après chaque changement qui peut la donner (monstre vaincu, ville prise).</summary>
+    private void CheckVictory()
+    {
+        if (Outcome != GameOutcome.Playing)
+            return;
+        GameEndReason? reason = Rules.Victory switch
+        {
+            VictoryCondition.ClearGuards when !Map.Objects.OfType<MonsterGuard>().Any() => GameEndReason.GuardsCleared,
+            VictoryCondition.CaptureTowns when Towns.Any() && Towns.All(t => t.Owner == Players[0]) => GameEndReason.TownsCaptured,
+            _ => null,
+        };
+        if (reason is { } won)
+            EndGame(GameOutcome.Victory, won);
     }
 
     // ------------------------------------------------------------------ tours
@@ -121,7 +152,11 @@ public sealed class GameState
         while (CurrentPlayer.IsDefeated && _currentPlayer != previous);
 
         if (_currentPlayer <= previous)
+        {
             NewDay();
+            if (Outcome != GameOutcome.Playing)
+                return;
+        }
         // Les chemins prévus sont gardés d'un jour à l'autre (chaque héros a le sien)
         if (_currentPlayer != previous)
         {
@@ -156,6 +191,9 @@ public sealed class GameState
             if (income.Count > 0)
                 Emit(new IncomeReceived(player, income));
         }
+
+        if (Rules.DayLimit is { } limit && Day > limit)
+            EndGame(GameOutcome.Defeat, GameEndReason.TimeOut);
     }
 
     // ------------------------------------------------------------- déplacement
@@ -250,6 +288,7 @@ public sealed class GameState
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
             Emit(visit);
+            CheckVictory();
         }
         if (Path is { Count: 0 })
             Path = null;
@@ -268,11 +307,8 @@ public sealed class GameState
         {
             GrantExperience(hero, report.Experience);
             if (defender is MonsterGuard guard)
-            {
                 Map.RemoveObject(guard);
-                if (!Map.Objects.OfType<MonsterGuard>().Any())
-                    EndGame(GameOutcome.Victory);
-            }
+            CheckVictory();
             return true;
         }
 
@@ -338,7 +374,7 @@ public sealed class GameState
             CurrentHero = hero.Owner.Heroes.FirstOrDefault();
         Emit(new HeroDefeated(hero));
         if (hero.Owner == Players[0] && hero.Owner.IsDefeated)
-            EndGame(GameOutcome.Defeat);
+            EndGame(GameOutcome.Defeat, GameEndReason.HeroesLost);
     }
 
     /// <summary>Pour chaque case du chemin : est-elle atteignable aujourd'hui ?</summary>

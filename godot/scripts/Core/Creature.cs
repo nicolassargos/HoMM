@@ -34,11 +34,16 @@ public sealed record CreatureType
 public sealed class CreatureCatalog
 {
     private readonly Dictionary<string, CreatureType> _byId;
+    private readonly List<CreatureType> _all;
 
-    public CreatureCatalog(IEnumerable<CreatureType> creatures) =>
-        _byId = creatures.ToDictionary(c => c.Id);
+    public CreatureCatalog(IEnumerable<CreatureType> creatures)
+    {
+        _all = creatures.ToList();
+        _byId = _all.GroupBy(c => c.Id).ToDictionary(g => g.Key, g => g.First());
+    }
 
-    public IReadOnlyCollection<CreatureType> All => _byId.Values;
+    /// <summary>Toutes les entrées du fichier, y compris les doublons (vérifiés par <see cref="DataValidation"/>).</summary>
+    public IReadOnlyCollection<CreatureType> All => _all;
 
     public CreatureType Get(string id) =>
         _byId.TryGetValue(id, out var c) ? c : throw new KeyNotFoundException($"Créature inconnue : {id}");

@@ -11,6 +11,9 @@ public sealed class GameData
 {
     public GameData(CreatureCatalog creatures, BuildingCatalog buildings)
     {
+        var errors = DataValidation.Check(creatures.All, buildings.All);
+        if (errors.Count > 0)
+            throw new FormatException("Données du jeu invalides :" + System.Environment.NewLine + "- " + string.Join(System.Environment.NewLine + "- ", errors));
         Creatures = creatures;
         Buildings = buildings;
     }
@@ -56,11 +59,16 @@ public sealed record BuildingType
 public sealed class BuildingCatalog
 {
     private readonly Dictionary<string, BuildingType> _byId;
+    private readonly List<BuildingType> _all;
 
-    public BuildingCatalog(IEnumerable<BuildingType> buildings) =>
-        _byId = buildings.ToDictionary(b => b.Id);
+    public BuildingCatalog(IEnumerable<BuildingType> buildings)
+    {
+        _all = buildings.ToList();
+        _byId = _all.GroupBy(b => b.Id).ToDictionary(g => g.Key, g => g.First());
+    }
 
-    public IReadOnlyCollection<BuildingType> All => _byId.Values;
+    /// <summary>Toutes les entrées du fichier, y compris les doublons (vérifiés par <see cref="DataValidation"/>).</summary>
+    public IReadOnlyCollection<BuildingType> All => _all;
 
     public BuildingType Get(string id) =>
         _byId.TryGetValue(id, out var b) ? b : throw new KeyNotFoundException($"Bâtiment inconnu : {id}");

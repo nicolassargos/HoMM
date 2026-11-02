@@ -32,19 +32,26 @@ public class TownTests
     [InlineData(1)]
     [InlineData(42)]
     [InlineData(2026)]
-    public void La_carte_a_une_ville_neutre_gardee_a_mi_distance(int seed)
+    public void La_carte_a_des_villes_neutres_mieux_gardees_au_loin(int seed)
     {
         var map = new MapGenerator(seed, TestData.Data).Generate();
-        var town = Assert.Single(map.Objects.OfType<Town>());
+        var towns = map.Objects.OfType<Town>()
+            .OrderBy(t => Pathfinder.FindPath(map, map.Start, t.Position)!.Count)
+            .ToList();
 
-        Assert.Null(town.Owner);
-        Assert.False(town.Garrison.IsEmpty);
-        Assert.True(town.Has("salle-village"));
-        Assert.True(town.Has("corps-de-garde"));
-        double distance = System.Math.Sqrt(System.Math.Pow(town.Position.X - map.Start.X, 2) + System.Math.Pow(town.Position.Y - map.Start.Y, 2));
-        Assert.InRange(distance, 10, 16);
-        Assert.NotNull(Pathfinder.FindPath(map, map.Start, town.Position));
-        Assert.False(map.IsGuarded(town.Position));
+        Assert.True(towns.Count >= 2);
+        Assert.Equal(towns.Count, towns.Select(t => t.Name).Distinct().Count());
+        foreach (var town in towns)
+        {
+            Assert.Null(town.Owner);
+            Assert.False(town.Garrison.IsEmpty);
+            Assert.True(town.Has("salle-village"));
+            Assert.True(town.Has("corps-de-garde"));
+            Assert.False(map.IsGuarded(town.Position));
+        }
+        // La ville la plus proche a la plus petite garnison
+        static int Strength(Town t) => t.Garrison.Stacks.Sum(s => s.Count * s.Type.HitPoints);
+        Assert.All(towns.Skip(1), t => Assert.True(Strength(towns[0]) <= Strength(t)));
     }
 
     [Fact]
@@ -86,17 +93,18 @@ public class TownTests
     public void La_ville_generee_laisse_tout_accessible(int seed)
     {
         var map = new MapGenerator(seed, TestData.Data).Generate();
-        var town = map.Objects.OfType<Town>().Single();
-
-        foreach (var cell in town.Footprint)
+        foreach (var town in map.Objects.OfType<Town>())
         {
-            Assert.True(map.InBounds(cell));
-            Assert.True(TerrainInfo.IsPassable(map.GetTerrain(cell)));
-            if (cell != town.Position)
-                Assert.Null(map.ObjectAt(cell));
+            foreach (var cell in town.Footprint)
+            {
+                Assert.True(map.InBounds(cell));
+                Assert.True(TerrainInfo.IsPassable(map.GetTerrain(cell)));
+                if (cell != town.Position)
+                    Assert.Null(map.ObjectAt(cell));
+            }
+            Assert.True(map.IsPassable(town.Approach));
+            Assert.Null(map.ObjectAt(town.Approach));
         }
-        Assert.True(map.IsPassable(town.Approach));
-        Assert.Null(map.ObjectAt(town.Approach));
 
         // Les murs de la ville ne coupent l'accès à rien
         foreach (var obj in map.Objects.Where(o => o is not MonsterGuard))

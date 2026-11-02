@@ -20,7 +20,7 @@ public sealed record GameRules(VictoryCondition Victory, int? DayLimit = null)
     {
         new GameRules(VictoryCondition.ClearGuards),
         new GameRules(VictoryCondition.CaptureTowns),
-        new GameRules(VictoryCondition.ClearGuards, DayLimit: 100),
+        new GameRules(VictoryCondition.ClearGuards, DayLimit: 150),
     };
 
     public static GameRules Default => Options[0];

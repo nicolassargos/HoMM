@@ -44,16 +44,23 @@ public class ConditionsTests
         // Les monstres et la garnison ne sont pas le sujet : on les retire pour aller droit à la ville
         foreach (var guard in state.Map.Objects.OfType<MonsterGuard>().ToList())
             state.Map.RemoveObject(guard);
-        var town = state.Towns.Single();
-        for (int i = town.Garrison.Stacks.Count - 1; i >= 0; i--)
-            town.Garrison.MoveStackTo(i, new Army());
+        var towns = state.Towns.ToList();
+        Assert.True(towns.Count >= 2);
+        foreach (var town in towns)
+            for (int i = town.Garrison.Stacks.Count - 1; i >= 0; i--)
+                town.Garrison.MoveStackTo(i, new Army());
 
         var hero = state.CurrentHero!;
         hero.MaxMovement = 100_000;
-        hero.NewDay();
-        state.SetDestination(town.Position);
-        for (int i = 0; i < 500 && state.CanStartWalking; i++)
-            state.StepAlongPath();
+        foreach (var town in towns)
+        {
+            Assert.Equal(GameOutcome.Playing, state.Outcome);
+            hero.NewDay();
+            state.SetDestination(town.Position);
+            for (int i = 0; i < 500 && state.CanStartWalking; i++)
+                state.StepAlongPath();
+            Assert.Same(state.CurrentPlayer, town.Owner);
+        }
 
         Assert.Equal(GameOutcome.Victory, state.Outcome);
         Assert.Contains(state.TakeEvents(), e => e is GameEnded { Reason: GameEndReason.TownsCaptured });

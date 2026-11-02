@@ -41,7 +41,7 @@ public class TextsTests
         var player = state.Players[0];
         var mine = state.Map.Objects.OfType<Mine>().First(m => m.Resource == ResourceType.Gold);
 
-        Assert.Equal("Mine d'or capturée ! +1000 or par jour.", Texts.Message(mine.Visit(hero), player));
+        Assert.Equal("Mine d'or capturée ! +250 or par jour.", Texts.Message(mine.Visit(hero), player));
         Assert.Equal("Mine d'or vous appartient déjà.", Texts.Message(mine.Visit(hero), player));
         Assert.Equal("Vous trouvez 7 bois.",
             Texts.Message(new ResourcesFound(hero, mine, ResourceType.Wood, 7), player));
@@ -111,8 +111,8 @@ public class TextsTests
         var (_, town) = OwnedTown();
         var b = TestData.Data.Buildings;
 
-        Assert.Equal("14 Paysans disponibles (+14 par semaine)", Texts.BuildingEffect(town, b.Get("corps-de-garde")));
-        Assert.Equal("Produit des Archers (+9 par semaine)", Texts.BuildingEffect(town, b.Get("tour-archers")));
+        Assert.Equal("28 Paysans disponibles (+28 par semaine)", Texts.BuildingEffect(town, b.Get("corps-de-garde")));
+        Assert.Equal("Produit des Archers (+18 par semaine)", Texts.BuildingEffect(town, b.Get("tour-archers")));
         Assert.Equal("+300 or par jour", Texts.BuildingEffect(town, b.Get("hotel-ville")));
         Assert.Equal("Permet de recruter des héros", Texts.BuildingEffect(town, b.Get("taverne")));
     }

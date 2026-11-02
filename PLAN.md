@@ -84,8 +84,8 @@ Courbe du Château (paysans nécessaires pour vaincre une unité, héros de dép
 Archer 6, Griffon 13, Épéiste 26, Moine 50, Cavalier 99, Ange 1632 (test `UnitCurveTests`).
 Départ : 30 paysans, 15 archers, 4 griffons.
 Prix : 3 or par paysan équivalent (Archer 18, Griffon 40, Épéiste 80, Moine 150, Cavalier 300,
-Ange 4900 et 1 gemme). Croissance hebdomadaire inchangée (14, 9, 7, 4, 3, 2, 1) : une croissance
-égale en valeur est impossible pour l'Ange. Revenus des villes : 150, 300, 600 or par jour.
+Ange 4900 et 1 gemme). Croissance hebdomadaire doublée (28, 18, 14, 8, 6, 4, 2) : une croissance
+égale en valeur est impossible pour l'Ange. Revenus des villes : 150, 300, 600 or par jour. Mines d'or : 250 or par jour (au lieu de 1000).
 La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance et les monstres qui la freinent.
 Reste à faire : les « choix de niveau » qui donnent plus de charisme (tirage aléatoire pour l'instant).
 

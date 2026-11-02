@@ -214,16 +214,16 @@ public class TownTests
         town.SetOwner(state.Players[0]);
         var paysan = TestData.Creatures.Get("paysan");
         var archer = TestData.Creatures.Get("archer");
-        Assert.Equal(14, town.Available[paysan]); // une semaine offerte à la construction
+        Assert.Equal(28, town.Available[paysan]); // une semaine offerte à la construction
 
         Assert.Equal(BuildResult.Ok, state.Build(town, "tour-archers"));
-        Assert.Equal(9, town.Available[archer]);
+        Assert.Equal(18, town.Available[archer]);
 
         for (int i = 0; i < 7; i++)
             state.EndTurn();
 
-        Assert.Equal(28, town.Available[paysan]);
-        Assert.Equal(18, town.Available[archer]);
+        Assert.Equal(56, town.Available[paysan]);
+        Assert.Equal(36, town.Available[archer]);
     }
 
     [Fact]

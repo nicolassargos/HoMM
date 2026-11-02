@@ -46,7 +46,7 @@ public class BalanceTests
 /// <summary>Une partie jouée par une stratégie simple, sans déplacements (voir <see cref="BalanceTests"/>).</summary>
 internal static class BalanceSimulation
 {
-    public sealed record Result(bool TownTaken, int VictoryDay);
+    public sealed record Result(bool TownTaken, int VictoryDay, List<int> GoldByWeek);
 
     /// <summary>Ordre de construction : les habitations d'abord, puis l'économie.</summary>
     private static readonly string[] BuildOrder =
@@ -79,12 +79,15 @@ internal static class BalanceSimulation
 
         // On commence par prendre la ville
         if (!Battle.Resolve(hero.Army, town.Garrison).AttackerWon)
-            return new Result(false, -1);
+            return new Result(false, -1, new List<int>());
         town.SetOwner(player);
 
+        var goldByWeek = new List<int>();
         for (int day = 1; day <= MaxDays; day++)
         {
             NewDay(map, player, hero, day);
+            if (day % 7 == 0)
+                goldByWeek.Add(player.Resources[ResourceType.Gold]);
             BuildAndRecruit(town, player);
             if (day % 7 == 1) // une fois par semaine, le héros passe prendre la garnison
                 while (town.Garrison.Stacks.Count > 0 && town.Garrison.MoveStackTo(0, hero.Army)) { }
@@ -92,10 +95,10 @@ internal static class BalanceSimulation
             if (day % FightEveryDays != 0)
                 continue;
             if (!map.Objects.OfType<MonsterGuard>().Any())
-                return new Result(true, day);
+                return new Result(true, day, goldByWeek);
             FightSafestGuard(map, hero);
         }
-        return new Result(true, -1);
+        return new Result(true, -1, goldByWeek);
     }
 
     private static void NewDay(AdventureMap map, Player player, Hero hero, int day)

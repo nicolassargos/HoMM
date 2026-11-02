@@ -271,6 +271,14 @@ public static class Texts
 
     public static string RulesTitle => "Conditions de la partie";
 
+    // ------------------------------------------------------------- sauvegarde
+
+    public static string GameSaved => "Partie sauvegardée.";
+    public static string SaveFailed => "Impossible d'enregistrer la partie.";
+    public static string GameLoaded => "Partie chargée.";
+    public static string NoSave => "Aucune partie sauvegardée.";
+    public static string LoadFailed => "Cette sauvegarde ne peut pas être chargée (fichier abîmé ou d'une autre version du jeu).";
+
     public static string RulesText => "Comment gagner cette partie ? Perdre tous ses héros reste une défaite dans tous les cas.";
 
     // ------------------------------------------------------------- journal

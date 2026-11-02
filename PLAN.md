@@ -107,7 +107,7 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   - Le charisme augmente un peu à chaque niveau, et certains choix de niveau donnent plus.
 - Artefacts plus tard.
 
-### 4. Parties complètes (en cours)
+### 4. Parties complètes ✅
 - ✅ Identifiants stables : joueurs, héros et objets de carte ont un `Id`, retrouvable avec
   `PlayerById`, `HeroById`, `ObjectById`. Les données (`DataValidation`) sont vérifiées au chargement.
 - ✅ Conditions de victoire et de défaite (choisies au lancement de la partie) : vaincre tous les
@@ -125,8 +125,12 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   Aucun objet ni monstre ne coupe le chemin vers un autre objet. La sortie de la zone de départ reste
   à la portée de l'armée de départ (il n'y a pas de ville avant). La simulation gagne vers le jour 82
   (de 76 à 120 environ ; sur 60 graines, une seule n'est pas gagnée en 200 jours).
-- Sauvegarde et chargement. Il faudra donner des identifiants aux objets, héros et joueurs
-  (aujourd'hui ils se référencent directement).
+- ✅ Sauvegarde et chargement (F5 / F9, ou boutons du panneau ; `-- --load` au lancement) : toute la
+  partie en JSON dans `user://sauvegarde.json` (`GameState.Save` / `GameState.Load`), terrain compris,
+  pour ne pas dépendre du générateur. Le hasard de la partie (`GameRandom`) est enregistré : une partie
+  chargée continue exactement comme l'originale. Les choix de niveau en attente sont reproposés.
+  Une sauvegarde abîmée ou d'une autre version (`SaveVersion`) est refusée sans perdre la partie en cours.
+  Une seule sauvegarde pour l'instant.
 
 ### 5. Graphismes
 - Remplacer les formes dessinées par un pack d'images (possible dès l'étape 2).

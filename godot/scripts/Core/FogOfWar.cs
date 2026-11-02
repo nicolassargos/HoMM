@@ -22,6 +22,27 @@ public sealed class FogOfWar
 
     public bool IsExplored(Cell c) => InBounds(c) && _explored[c.X, c.Y];
 
+    /// <summary>Les cases explorées, ligne par ligne : « 1 » explorée, « 0 » non (pour la sauvegarde).</summary>
+    public string Export()
+    {
+        var chars = new char[Width * Height];
+        for (int y = 0; y < Height; y++)
+        for (int x = 0; x < Width; x++)
+            chars[y * Width + x] = _explored[x, y] ? '1' : '0';
+        return new string(chars);
+    }
+
+    /// <summary>Remet les cases explorées enregistrées par <see cref="Export"/>.</summary>
+    public void Import(string cells)
+    {
+        if (cells.Length != Width * Height)
+            throw new System.FormatException("brouillard de taille incorrecte");
+        for (int y = 0; y < Height; y++)
+        for (int x = 0; x < Width; x++)
+            _explored[x, y] = cells[y * Width + x] == '1';
+        Version++;
+    }
+
     public void Reveal(Cell center, int radius)
     {
         bool changed = false;

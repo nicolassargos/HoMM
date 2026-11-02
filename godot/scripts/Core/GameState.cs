@@ -12,21 +12,16 @@ public enum GameOutcome { Playing, Victory, Defeat }
 /// (voir <see cref="TakeEvents"/>), que l'affichage met en mots.
 /// Prévu pour plusieurs joueurs (tour par tour), même s'il n'y a pour l'instant qu'un humain.
 /// </summary>
-public sealed class GameState
+public sealed partial class GameState
 {
     private int _currentPlayer;
-    private readonly Random _rng;
+    private readonly GameRandom _rng;
     private readonly List<HeroLevelChoice> _pendingChoices = new();
     private int _nextPlayerId = 1;
     private int _nextHeroId = 1;
 
-    public GameState(int seed, GameData data)
+    public GameState(int seed, GameData data) : this(seed, data, new MapGenerator(seed, data).Generate())
     {
-        Seed = seed;
-        Data = data;
-        _rng = new Random(seed);
-        Map = new MapGenerator(seed, data).Generate();
-
         var human = new Player("Rouge", Map) { Id = _nextPlayerId++ };
         Players.Add(human);
         var hero = new Hero("Sire Roland", human, Map.Start) { Id = _nextHeroId++ };
@@ -34,6 +29,15 @@ public sealed class GameState
         hero.Army.Add(Creatures.Get("archer"), 15);
         hero.Army.Add(Creatures.Get("griffon"), 4);
         CurrentHero = hero;
+    }
+
+    /// <summary>Une partie sur une carte déjà faite, sans joueur (pour le chargement, voir <see cref="Load"/>).</summary>
+    private GameState(int seed, GameData data, AdventureMap map)
+    {
+        Seed = seed;
+        Data = data;
+        _rng = new GameRandom(seed);
+        Map = map;
     }
 
     public int Seed { get; }

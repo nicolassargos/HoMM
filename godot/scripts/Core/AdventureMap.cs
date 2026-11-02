@@ -51,6 +51,8 @@ public sealed class AdventureMap
     {
         if (obj.Id == 0)
             obj.Id = _nextObjectId++;
+        else
+            _nextObjectId = System.Math.Max(_nextObjectId, obj.Id + 1); // objet chargé : il garde son identifiant
         _byId[obj.Id] = obj;
         _objects[obj.Position] = obj;
         foreach (var cell in obj.Footprint)

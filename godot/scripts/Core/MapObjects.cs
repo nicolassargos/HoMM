@@ -45,15 +45,20 @@ public sealed record ResourcesFound(Hero Hero, MapObject Object, ResourceType Re
 
 public sealed class ResourcePile : MapObject
 {
-    public ResourcePile(Cell position, ResourceType resource, Random rng) : base(position)
-    {
-        Resource = resource;
-        Amount = resource switch
+    public ResourcePile(Cell position, ResourceType resource, Random rng)
+        : this(position, resource, resource switch
         {
             ResourceType.Gold => rng.Next(5, 11) * 100,
             ResourceType.Gems => rng.Next(3, 7),
             _ => rng.Next(5, 11),
-        };
+        })
+    {
+    }
+
+    public ResourcePile(Cell position, ResourceType resource, int amount) : base(position)
+    {
+        Resource = resource;
+        Amount = amount;
     }
 
     public ResourceType Resource { get; }
@@ -70,8 +75,11 @@ public sealed class TreasureChest : MapObject
 {
     private static readonly int[] PossibleGold = { 1000, 1500, 2000 };
 
-    public TreasureChest(Cell position, Random rng) : base(position) =>
-        Gold = PossibleGold[rng.Next(PossibleGold.Length)];
+    public TreasureChest(Cell position, Random rng) : this(position, PossibleGold[rng.Next(PossibleGold.Length)])
+    {
+    }
+
+    public TreasureChest(Cell position, int gold) : base(position) => Gold = gold;
 
     public int Gold { get; }
 
@@ -94,7 +102,8 @@ public sealed class Mine : MapObject
     public Mine(Cell position, ResourceType resource) : base(position) => Resource = resource;
 
     public ResourceType Resource { get; }
-    public Player? Owner { get; private set; }
+    /// <summary>Le propriétaire, changé par une visite (ou au chargement d'une partie).</summary>
+    public Player? Owner { get; internal set; }
     public override bool RemovedOnVisit => false;
 
     public int DailyProduction => Resource switch
@@ -123,11 +132,16 @@ public sealed class Mine : MapObject
 /// </summary>
 public sealed class MonsterGuard : MapObject
 {
-    public MonsterGuard(Cell position, CreatureType type, int count) : base(position)
+    public MonsterGuard(Cell position, CreatureType type, int count) : this(position, type, count, count)
+    {
+    }
+
+    /// <summary>Une troupe qui a déjà grossi ou subi des pertes (partie chargée).</summary>
+    public MonsterGuard(Cell position, CreatureType type, int initialCount, int count) : base(position)
     {
         Type = type;
         Army.Add(type, count);
-        InitialCount = count;
+        InitialCount = initialCount;
     }
 
     public CreatureType Type { get; }

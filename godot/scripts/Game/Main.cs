@@ -16,8 +16,10 @@ namespace HoMM.Game;
 ///   Clic sur les murs de sa ville, liste des villes du panneau, ou T : écran de ville.
 ///   Clic sur un de ses héros, liste des héros du panneau, ou H : changer de héros.
 ///   Entrée ou bouton : fin du tour.
+///   F5 / F9 (ou boutons du panneau) : sauvegarder / charger la partie.
 ///
-/// Lancer avec une graine fixe : ajouter « -- --seed=42 » à la ligne de commande.
+/// Lancer avec une graine fixe : ajouter « -- --seed=42 » à la ligne de commande ;
+/// reprendre la partie sauvegardée : « -- --load ».
 /// </summary>
 public partial class Main : Node2D
 {
@@ -35,10 +37,18 @@ public partial class Main : Node2D
     /// <summary>Ville à ouvrir dès que les fenêtres (compte rendu de combat…) sont fermées.</summary>
     private Town? _townToOpen;
 
+    /// <summary>Le fichier de sauvegarde (dans le dossier de l'utilisateur, géré par Godot).</summary>
+    private const string SavePath = "user://sauvegarde.json";
+
+    /// <summary>Partie chargée, reprise par la scène relancée (voir <see cref="LoadGame"/>).</summary>
+    private static GameState? _loadedState;
+
     public override void _Ready()
     {
-        _state = new GameState(ReadSeed(), LoadData());
-        GD.Print($"Carte générée avec la graine {_state.Seed}");
+        var loaded = _loadedState ?? (OS.GetCmdlineUserArgs().Contains("--load") ? ReadSave(LoadData()) : null);
+        _loadedState = null;
+        _state = loaded ?? new GameState(ReadSeed(), LoadData());
+        GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
         // Option de développement : « -- --reveal » retire le brouillard
         if (OS.GetCmdlineUserArgs().Contains("--reveal"))
             _state.CurrentPlayer.Fog.Reveal(new Cell(_state.Map.Width / 2, _state.Map.Height / 2), _state.Map.Width + _state.Map.Height);
@@ -54,6 +64,8 @@ public partial class Main : Node2D
         AddChild(_hud);
         _hud.Build(_state, screen);
         _hud.EndTurnPressed += EndTurn;
+        _hud.SavePressed += SaveGame;
+        _hud.LoadPressed += LoadGame;
         _hud.TownClicked += OpenTown;
         _hud.HeroClicked += SelectHero;
 
@@ -66,7 +78,13 @@ public partial class Main : Node2D
         AddChild(_townScreen);
         _townScreen.Build(_state, screen);
 
-        _hud.ShowRulesChoice(GameRules.Options, rules => _state.ChooseRules(rules));
+        if (loaded == null)
+            _hud.ShowRulesChoice(GameRules.Options, rules => _state.ChooseRules(rules));
+        else
+        {
+            _hud.AddMessage(Texts.GameLoaded);
+            _hud.AddMessage(Texts.Message(new RulesChosen(_state.Rules), _state.Players[0])!);
+        }
         CenterOnHero();
     }
 
@@ -103,6 +121,60 @@ public partial class Main : Node2D
         if (!CanAct)
             return;
         _state.EndTurn();
+    }
+
+    /// <summary>Enregistre la partie (sur la carte, hors marche).</summary>
+    private void SaveGame()
+    {
+        if (!CanAct)
+            return;
+        using var file = Godot.FileAccess.Open(SavePath, Godot.FileAccess.ModeFlags.Write);
+        if (file == null)
+        {
+            GD.PrintErr($"Sauvegarde impossible : {Godot.FileAccess.GetOpenError()}");
+            _hud.AddMessage(Texts.SaveFailed);
+            return;
+        }
+        file.StoreString(_state.Save());
+        _hud.AddMessage(Texts.GameSaved);
+    }
+
+    /// <summary>
+    /// Charge la partie enregistrée : elle est d'abord lue (une sauvegarde abîmée ne fait pas perdre
+    /// la partie en cours), puis la scène est relancée avec elle.
+    /// </summary>
+    private void LoadGame()
+    {
+        if (_walking || !OnMap)
+            return;
+        if (!Godot.FileAccess.FileExists(SavePath))
+        {
+            _hud.AddMessage(Texts.NoSave);
+            return;
+        }
+        _loadedState = ReadSave(_state.Data);
+        if (_loadedState == null)
+        {
+            _hud.AddMessage(Texts.LoadFailed);
+            return;
+        }
+        GetTree().ReloadCurrentScene();
+    }
+
+    /// <summary>La partie enregistrée, ou null s'il n'y en a pas ou si elle ne peut pas être chargée.</summary>
+    private static GameState? ReadSave(GameData data)
+    {
+        if (!Godot.FileAccess.FileExists(SavePath))
+            return null;
+        try
+        {
+            return GameState.Load(Godot.FileAccess.GetFileAsString(SavePath), data);
+        }
+        catch (FormatException e)
+        {
+            GD.PrintErr($"Chargement impossible : {e.Message}");
+            return null;
+        }
     }
 
     private void ClickCell(Cell cell)
@@ -184,6 +256,8 @@ public partial class Main : Node2D
                     case Key.Space: StartWalking(); break;
                     case Key.Escape when !_walking: _state.ClearPath(); break;
                     case Key.C: CenterOnHero(); break;
+                    case Key.F5: SaveGame(); break;
+                    case Key.F9: LoadGame(); break;
                     case Key.T when _state.CurrentPlayer.Towns.FirstOrDefault() is { } town: OpenTown(town); break;
                     case Key.H when CanAct:
                         _state.SelectNextHero();

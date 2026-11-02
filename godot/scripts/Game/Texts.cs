@@ -135,6 +135,26 @@ public static class Texts
     public static string LevelUp(HeroLeveledUp levelUp) =>
         $"{levelUp.Hero.Name} passe au niveau {levelUp.After.Level} ! +1 {StatName(levelUp.Stat)}, +1 charisme.";
 
+    /// <summary>Le titre de la fenêtre de choix : « Niveau 2 : choisissez une caractéristique ».</summary>
+    public static string LevelChoiceTitle(HeroLevelChoice choice) =>
+        $"Niveau {choice.Level} : choisissez une caractéristique";
+
+    public static string LevelChoiceText(HeroLevelChoice choice) =>
+        $"{choice.Hero.Name} progresse. Le charisme augmente de 1 dans tous les cas.";
+
+    /// <summary>Le bouton d'un choix : « Attaque (actuelle : 2) ».</summary>
+    public static string StatChoice(Hero hero, HeroStat stat) =>
+        $"{Capitalize(StatName(stat))} (actuelle : {StatValue(hero, stat)})";
+
+    private static int StatValue(Hero hero, HeroStat stat) => stat switch
+    {
+        HeroStat.Attack => hero.Attack,
+        HeroStat.Defense => hero.Defense,
+        HeroStat.Power => hero.Power,
+        HeroStat.Knowledge => hero.Knowledge,
+        _ => throw new ArgumentOutOfRangeException(nameof(stat)),
+    };
+
     /// <summary>Le titre de la fenêtre de niveau : « Niveau 2 atteint ! ».</summary>
     public static string LevelUpTitle(HeroLeveledUp levelUp) => $"Niveau {levelUp.After.Level} atteint !";
 

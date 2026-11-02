@@ -69,9 +69,9 @@ Découpage :
    À noter : sur une carte 40×30, aucun monstre n'est assez loin pour être de niveau 7 ;
    il faudra de plus grandes cartes (générateur v2, étape 4).
 
-### 3. Progression du héros ✅ (en cours de PR)
-Choix faits : le niveau donne +1 charisme et +1 à une caractéristique tirée au sort (graine
-de la partie) parmi attaque, défense, puissance, savoir ; la puissance et le savoir n'ont
+### 3. Progression du héros ✅
+Choix faits : le niveau donne +1 charisme et +1 à une caractéristique choisie parmi les quatre
+(attaque, défense, puissance, savoir) ; la puissance et le savoir n'ont
 pas encore d'effet (la magie viendra à l'étape 8). Expérience = valeur en or des monstres
 tués ; niveau n atteint à 1000 × (n-1) × n / 2 points. Un héros commence avec 1/1/1/1 et
 charisme 10. Le coût de commandement est de 1 à 20 (`commandCost` dans `creatures.json`).
@@ -87,7 +87,6 @@ Prix : 3 or par paysan équivalent (Archer 18, Griffon 40, Épéiste 80, Moine 1
 Ange 4900 et 1 gemme). Croissance hebdomadaire doublée (28, 18, 14, 8, 6, 4, 2) : une croissance
 égale en valeur est impossible pour l'Ange. Revenus des villes : 150, 300, 600 or par jour. Mines d'or : 250 or par jour (au lieu de 1000).
 La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance et les monstres qui la freinent.
-Reste à faire : les « choix de niveau » qui donnent plus de charisme (tirage aléatoire pour l'instant).
 
 - Expérience gagnée en combat, niveaux.
 - Les 5 caractéristiques : attaque, défense, puissance, savoir, **charisme**.

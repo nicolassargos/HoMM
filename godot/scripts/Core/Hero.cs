@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HoMM.Core;
 
 /// <summary>Un héros qui se déplace sur la carte d'aventure avec son armée.</summary>
@@ -85,6 +87,9 @@ public sealed record HeroDefeated(Hero Hero) : GameEvent;
 
 /// <summary>Un héros a été recruté à la taverne d'une ville.</summary>
 public sealed record HeroHired(Hero Hero, Town Town) : GameEvent;
+
+/// <summary>Un héros peut passer au niveau <paramref name="Level"/> : le joueur choisit une des <paramref name="Options"/>.</summary>
+public sealed record HeroLevelChoice(Hero Hero, int Level, IReadOnlyList<HeroStat> Options) : GameEvent;
 
 /// <summary>Un héros passe au niveau supérieur et gagne une caractéristique. <paramref name="Before"/> et <paramref name="After"/> permettent d'afficher ce qui a changé.</summary>
 public sealed record HeroLeveledUp(Hero Hero, HeroStat Stat, HeroStatistics Before, HeroStatistics After) : GameEvent;

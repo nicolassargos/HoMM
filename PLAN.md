@@ -107,7 +107,9 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   - Le charisme augmente un peu à chaque niveau, et certains choix de niveau donnent plus.
 - Artefacts plus tard.
 
-### 4. Parties complètes
+### 4. Parties complètes (en cours)
+- ✅ Identifiants stables : joueurs, héros et objets de carte ont un `Id`, retrouvable avec
+  `PlayerById`, `HeroById`, `ObjectById`. Les données (`DataValidation`) sont vérifiées au chargement.
 - Conditions de victoire et de défaite (choisies au lancement de la partie).
 - Générateur v2 : zones, gardiens de plus en plus forts loin du départ, villes neutres,
   monstres qui gardent les passages.

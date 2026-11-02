@@ -17,6 +17,8 @@ public sealed class GameState
     private int _currentPlayer;
     private readonly Random _rng;
     private readonly List<HeroLevelChoice> _pendingChoices = new();
+    private int _nextPlayerId = 1;
+    private int _nextHeroId = 1;
 
     public GameState(int seed, GameData data)
     {
@@ -25,9 +27,9 @@ public sealed class GameState
         _rng = new Random(seed);
         Map = new MapGenerator(seed, data).Generate();
 
-        var human = new Player("Rouge", Map);
+        var human = new Player("Rouge", Map) { Id = _nextPlayerId++ };
         Players.Add(human);
-        var hero = new Hero("Sire Roland", human, Map.Start);
+        var hero = new Hero("Sire Roland", human, Map.Start) { Id = _nextHeroId++ };
         hero.Army.Add(Creatures.Get("paysan"), 30);
         hero.Army.Add(Creatures.Get("archer"), 15);
         hero.Army.Add(Creatures.Get("griffon"), 4);
@@ -80,6 +82,10 @@ public sealed class GameState
     private readonly List<GameEvent> _events = new();
 
     public IEnumerable<Hero> AllHeroes => Players.SelectMany(p => p.Heroes);
+
+    public Hero? HeroById(int id) => AllHeroes.FirstOrDefault(h => h.Id == id);
+
+    public Player? PlayerById(int id) => Players.FirstOrDefault(p => p.Id == id);
 
     /// <summary>
     /// Les événements survenus depuis le dernier appel, du plus ancien au plus récent.
@@ -452,7 +458,7 @@ public sealed class GameState
         if (result != HireResult.Ok)
             return result;
         CurrentPlayer.Resources[ResourceType.Gold] -= HeroCost;
-        var hero = new Hero(NextHeroName()!, CurrentPlayer, town.Position);
+        var hero = new Hero(NextHeroName()!, CurrentPlayer, town.Position) { Id = _nextHeroId++ };
         var firstTier = Creatures.All.Where(c => c.Faction == town.Faction).OrderBy(c => c.Tier).First();
         hero.Army.Add(firstTier, 12);
         CurrentHero = hero;

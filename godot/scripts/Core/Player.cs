@@ -6,6 +6,9 @@ namespace HoMM.Core;
 /// <summary>Un joueur : son trésor, ses mines, ses villes, ses héros et son brouillard de guerre.</summary>
 public sealed class Player
 {
+    /// <summary>Identifiant stable du joueur dans la partie.</summary>
+    public int Id { get; internal set; }
+
     public Player(string name, AdventureMap map)
     {
         Name = name;

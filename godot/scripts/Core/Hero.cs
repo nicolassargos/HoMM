@@ -18,6 +18,8 @@ public sealed class Hero
         owner.Fog.Reveal(position, VisionRadius);
     }
 
+    /// <summary>Identifiant stable du héros dans la partie (donné par <see cref="GameState"/>).</summary>
+    public int Id { get; internal set; }
     public string Name { get; }
     public Player Owner { get; }
     public Cell Position { get; private set; }

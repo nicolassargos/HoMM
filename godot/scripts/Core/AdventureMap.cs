@@ -8,6 +8,8 @@ public sealed class AdventureMap
 {
     private readonly TerrainType[,] _terrain;
     private readonly Dictionary<Cell, MapObject> _objects = new();   // par case de visite
+    private readonly Dictionary<int, MapObject> _byId = new();
+    private int _nextObjectId = 1;
     private readonly Dictionary<Cell, MapObject> _occupied = new();  // toutes les cases couvertes
 
     public AdventureMap(int width, int height)
@@ -44,8 +46,12 @@ public sealed class AdventureMap
     /// <summary>L'objet qui occupe cette case, même s'il ne se visite pas par là (les murs d'une ville).</summary>
     public MapObject? OccupantAt(Cell c) => _occupied.GetValueOrDefault(c);
 
+    /// <summary>Ajoute un objet. Il reçoit l'identifiant suivant, s'il n'en a pas encore.</summary>
     public void AddObject(MapObject obj)
     {
+        if (obj.Id == 0)
+            obj.Id = _nextObjectId++;
+        _byId[obj.Id] = obj;
         _objects[obj.Position] = obj;
         foreach (var cell in obj.Footprint)
             _occupied[cell] = obj;
@@ -53,10 +59,13 @@ public sealed class AdventureMap
 
     public void RemoveObject(MapObject obj)
     {
+        _byId.Remove(obj.Id);
         _objects.Remove(obj.Position);
         foreach (var cell in obj.Footprint)
             _occupied.Remove(cell);
     }
+
+    public MapObject? ObjectById(int id) => _byId.GetValueOrDefault(id);
 
     /// <summary>
     /// Les monstres sur les 8 cases autour de <paramref name="c"/>. Comme dans Heroes, un monstre

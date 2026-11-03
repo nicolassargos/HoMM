@@ -114,6 +114,13 @@ public sealed class TacticalBattle
 
     public IEnumerable<BattleUnit> Alive(BattleSide side) => _units.Where(u => u.IsAlive && u.Side == side);
 
+    /// <summary>Qui joue encore dans ce round, dans l'ordre : la troupe active, puis les suivantes, puis celles qui attendent.</summary>
+    public IReadOnlyList<BattleUnit> TurnOrder =>
+        (Active is { } active ? new[] { active } : Array.Empty<BattleUnit>())
+            .Concat(_queue.Where(u => u.IsAlive && u != Active))
+            .Concat(_waiting.Where(u => u.IsAlive && u != Active))
+            .Distinct().ToList();
+
     public BattleUnit? UnitAt(Hex hex) => _units.FirstOrDefault(u => u.IsAlive && u.Position == hex);
 
     // ------------------------------------------------------------------ placement

@@ -39,7 +39,7 @@ Décision de l'utilisateur, valable pour toutes les sessions :
 - Outils : `tools/art/generer.py` (prix, génération, choix ; `choisir` retrouve aussi un candidat archivé),
   `tools/art/apercu.py` (page de choix dans `en-cours/`), `tools/art/zoom.py` (agrandir une capture).
   Captures du jeu : `godot` avec `-- --capture=chemin.png` (et `--reveal`, `--zoom`, `--terrain-test`,
-  `--town`, `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--ground=réglage:valeur` selon le besoin).
+  `--town`, `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
 
 ## Commandes
 - Tests : `dotnet test` (à la racine)

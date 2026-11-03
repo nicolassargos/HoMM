@@ -108,6 +108,18 @@
     { "name": "objects/obelisk", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 3, "seed": 902,
       "prompt": "ancient stone obelisk with glowing blue runes carved on it, standing on a small stone base" },
     { "name": "artifacts/plastron-des-rois", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 3, "seed": 904,
-      "prompt": "front view of a legendary golden breastplate chest armour with shoulder plates, engraved royal crown on the chest and a red gem, metal torso armour piece, no shield, item icon" }
+      "prompt": "front view of a legendary golden breastplate chest armour with shoulder plates, engraved royal crown on the chest and a red gem, metal torso armour piece, no shield, item icon" },
+    { "name": "cursors/pointer", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 2, "seed": 911,
+      "prompt": "medieval golden gauntlet hand pointing up-left like a mouse cursor arrow, game cursor icon" },
+    { "name": "cursors/move", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 2, "seed": 912,
+      "prompt": "small brown leather boot seen from the side, game cursor icon" },
+    { "name": "cursors/attack", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 2, "seed": 913,
+      "prompt": "two crossed steel swords with golden hilts, game cursor icon" },
+    { "name": "cursors/visit", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 2, "seed": 914,
+      "prompt": "open hand in a golden gauntlet reaching forward, game cursor icon" },
+    { "name": "cursors/blocked", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 2, "seed": 915,
+      "prompt": "bold red cross X mark, game cursor icon" },
+    { "name": "cursors/hero", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 2, "seed": 916,
+      "prompt": "small steel knight helmet with a blue plume, game cursor icon" }
   ]
 }

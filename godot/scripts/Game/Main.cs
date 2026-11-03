@@ -107,6 +107,9 @@ public partial class Main : Node2D
             _camera.CenterOn(hidden);
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
             _camera.CenterOn(firstObelisk.Position);
+        // Développement : « --cursor-preview=dossier » enregistre les curseurs en images
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--cursor-preview=")) is { } preview)
+            MapCursor.SavePreview(preview["--cursor-preview=".Length..]);
         // Développement : « --dig-test » enfouit le trésor sous le héros et le fait creuser (fenêtre du trésor)
         if (OS.GetCmdlineUserArgs().Contains("--dig-test"))
         {
@@ -400,6 +403,7 @@ public partial class Main : Node2D
         if (OnMap)
             _camera.Scroll((float)delta);
         _actors.Hovered = OnMap ? _camera.HoveredCell() : null;
+        UpdateCursor();
         _hud.Refresh(_actors.Hovered);
 
         if (_walking)
@@ -420,6 +424,24 @@ public partial class Main : Node2D
             _townScreen.Open(_townToOpen);
             _townToOpen = null;
         }
+    }
+
+    /// <summary>Remet le curseur normal en quittant (sinon Godot signale une image de curseur non libérée).</summary>
+    public override void _ExitTree() => Input.SetCustomMouseCursor(null);
+
+    /// <summary>Ce qui a décidé du curseur la dernière fois : on ne le recalcule que si cela change.</summary>
+    private (Cell?, int, Cell, int, int, bool)? _cursorKey;
+
+    /// <summary>Le curseur de la souris selon la case survolée (botte et jours, épées, main, croix, casque).</summary>
+    private void UpdateCursor()
+    {
+        var hero = _state.CurrentHero;
+        var key = (_actors.Hovered, hero?.Id ?? 0, hero?.Position ?? default, hero?.Movement ?? 0, _state.Map.Objects.Count, CanAct);
+        if (key == _cursorKey)
+            return;
+        _cursorKey = key;
+        var (kind, days) = CanAct || _actors.Hovered == null ? MapCursor.Choose(_state, _actors.Hovered) : (CursorKind.Pointer, 0);
+        MapCursor.Show(kind, days);
     }
 
     /// <summary>Le héros courant creuse sur sa case (touche F, ou bouton des options).</summary>

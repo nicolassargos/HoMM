@@ -20,7 +20,21 @@ public sealed partial class GameState
     private int _nextPlayerId = 1;
     private int _nextHeroId = 1;
 
-    public GameState(int seed, GameData data) : this(seed, data, new MapGenerator(seed, data).Generate())
+    public GameState(int seed, GameData data) : this(seed, data, new MapGenerator(seed, data).Generate()) => AddStartingPlayer();
+
+    /// <summary>
+    /// Une partie sur une carte faite à la main (pour les tests, et plus tard un éditeur de cartes), avec le joueur
+    /// humain et son héros de départ sur <see cref="AdventureMap.Start"/>.
+    /// </summary>
+    public static GameState ForMap(AdventureMap map, GameData data, int seed = 0)
+    {
+        var state = new GameState(seed, data, map);
+        state.AddStartingPlayer();
+        return state;
+    }
+
+    /// <summary>Le joueur humain et son héros de départ, avec sa petite armée.</summary>
+    private void AddStartingPlayer()
     {
         var human = new Player("Rouge", Map) { Id = _nextPlayerId++ };
         Players.Add(human);
@@ -405,6 +419,35 @@ public sealed partial class GameState
     }
 
     /// <summary>Pour chaque case du chemin : est-elle atteignable aujourd'hui ?</summary>
+    /// <summary>
+    /// Combien de jours faut-il au héros courant pour aller jusqu'à <paramref name="target"/> (1 = aujourd'hui), en
+    /// suivant le chemin qu'il prendrait ; null si on ne peut pas y aller. Ne change rien (pour le curseur).
+    /// Comme en marchant : quand le mouvement restant ne suffit pas pour le pas suivant, il faut attendre le lendemain.
+    /// </summary>
+    public int? DaysTo(Cell target)
+    {
+        if (CurrentHero is not { } hero)
+            return null;
+        if (Map.OccupantAt(target) is { } occupant)
+            target = occupant.Position;
+        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero)) is not { } path)
+            return null;
+        int days = 1, movement = hero.Movement;
+        var previous = hero.Position;
+        foreach (var cell in path)
+        {
+            int cost = Pathfinder.StepCost(Map, previous, cell);
+            if (cost > movement)
+            {
+                days++;
+                movement = hero.MaxMovement;
+            }
+            movement -= cost;
+            previous = cell;
+        }
+        return days;
+    }
+
     public List<bool> PathReachability()
     {
         var result = new List<bool>();

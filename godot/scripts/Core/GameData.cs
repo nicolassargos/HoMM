@@ -9,20 +9,23 @@ namespace HoMM.Core;
 /// <summary>Les données du jeu, lues depuis les fichiers du dossier data/ (créatures, bâtiments…).</summary>
 public sealed class GameData
 {
-    public GameData(CreatureCatalog creatures, BuildingCatalog buildings)
+    public GameData(CreatureCatalog creatures, BuildingCatalog buildings, ArtifactCatalog? artifacts = null)
     {
         var errors = DataValidation.Check(creatures.All, buildings.All);
         if (errors.Count > 0)
             throw new FormatException("Données du jeu invalides :" + System.Environment.NewLine + "- " + string.Join(System.Environment.NewLine + "- ", errors));
         Creatures = creatures;
         Buildings = buildings;
+        Artifacts = artifacts ?? ArtifactCatalog.Empty;
     }
 
     public CreatureCatalog Creatures { get; }
     public BuildingCatalog Buildings { get; }
+    public ArtifactCatalog Artifacts { get; }
 
-    public static GameData FromJson(string creaturesJson, string buildingsJson) =>
-        new(CreatureCatalog.FromJson(creaturesJson), BuildingCatalog.FromJson(buildingsJson));
+    public static GameData FromJson(string creaturesJson, string buildingsJson, string? artifactsJson = null) =>
+        new(CreatureCatalog.FromJson(creaturesJson), BuildingCatalog.FromJson(buildingsJson),
+            artifactsJson != null ? ArtifactCatalog.FromJson(artifactsJson) : null);
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {

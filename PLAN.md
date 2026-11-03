@@ -113,7 +113,20 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
 - ✅ Conditions de victoire et de défaite (choisies au lancement de la partie) : vaincre tous les
   monstres, ou prendre toutes les villes, avec ou sans limite de jours (150 au plus). Perdre tous ses
   héros reste une défaite dans tous les cas (`GameRules`, `ChooseRules`).
-  Plus tard : condition « Trouver le trésor » (demandée par l'utilisateur).
+  ✅ On peut **cocher plusieurs façons de gagner** (vaincre les monstres, prendre les villes, trouver le trésor) :
+  la première accomplie l'emporte ; la limite de jours est une case à part. `VictoryCondition` est une combinaison
+  (les anciennes sauvegardes se lisent toujours).
+  ✅ Condition « Trouver le trésor » (demandée par l'utilisateur), comme dans Heroes 2 : le trésor est un artefact
+  légendaire, le **Plastron des Rois** (`data/artifacts.json`), **enfoui** (invisible, il ne bloque rien) dans la zone
+  la plus dangereuse, le plus loin possible du départ (`AdventureMap.Treasure`). **6 obélisques** dans des zones
+  différentes : la première visite de chacun dévoile un morceau de la **carte au trésor** (touche M), un dessin du pays
+  autour du trésor avec une croix. Pour le prendre, il faut **creuser** (touche F, ou bouton des options) sur la bonne
+  case, avec une journée entière de mouvement, qui est dépensée. Déterré dans une partie « Trouver le trésor », il fait
+  gagner ; dans les autres, il donne +5 attaque, +5 défense, +5 charisme. Au début, le message de l'objectif dit dans
+  quelle partie de la carte il est enfoui. Images : obélisque (`art/objects/obelisk.png`) et Plastron
+  (`art/artifacts/plastron-des-rois.png`), montré en grand quand on le déterre et en petit dans le panneau.
+  Premier artefact du jeu : un héros porte ses artefacts (sauvegardés), leurs
+  bonus s'ajoutent à ses caractéristiques.
 - ✅ Générateur v2 : carte de 54 × 40 découpée en zones (3 × 3) séparées par des montagnes ou des
   rivières. Des passages (3 cases de large) relient toutes les zones, plus quelques-uns au hasard ;
   chacun est gardé par un monstre qu'on ne peut pas contourner. Le niveau d'une zone est le nombre de

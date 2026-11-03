@@ -25,6 +25,8 @@ public partial class Hud : CanvasLayer
     private ProgressBar _movementBar = null!;
     private Label _heroName = null!;
     private TextureRect _portrait = null!;
+    private HBoxContainer _artifacts = null!;
+    private string? _artifactsKey;
 
     /// <summary>Taille du portrait du héros dans le panneau (l'image fait 64 × 64, affichée telle quelle).</summary>
     private const int PortraitSize = 64;
@@ -47,6 +49,8 @@ public partial class Hud : CanvasLayer
     public Minimap Minimap { get; private set; } = null!;
     public event Action? EndTurnPressed;
     public event Action? SavePressed;
+    public event Action? DigPressed;
+    public event Action? TreasureMapPressed;
     public event Action? LoadPressed;
 
     /// <summary>Le joueur a cliqué sur une de ses villes dans la liste.</summary>
@@ -123,6 +127,14 @@ public partial class Hud : CanvasLayer
         _heroName.ClipText = true;
         panel.AddChild(_heroName);
         panel.AddChild(At(MakeLabel("Mouvement", 14, SoftTextColor), textX, y + 42));
+        // Les artefacts du héros : de petites images à droite de « Mouvement » (le nom au survol)
+        _artifacts = new HBoxContainer
+        {
+            Position = new Vector2(textX, y + 30), Size = new Vector2(PanelWidth - margin - textX, 34),
+            Alignment = BoxContainer.AlignmentMode.End,
+        };
+        _artifacts.AddThemeConstantOverride("separation", 2);
+        panel.AddChild(_artifacts);
         y += PortraitSize + 12;
 
         _movementBar = new ProgressBar
@@ -226,6 +238,7 @@ public partial class Hud : CanvasLayer
         {
             _heroName.Text = hero.Name;
             _portrait.Texture = Art.Portrait(hero.Name);
+            RefreshArtifacts(hero);
             _movementBar.MaxValue = hero.MaxMovement;
             _movementBar.Value = hero.Movement;
             _movementText.Text = $"{hero.Movement} / {hero.MaxMovement}";
@@ -236,6 +249,7 @@ public partial class Hud : CanvasLayer
         {
             _heroName.Text = "Aucun héros";
             _portrait.Texture = null;
+            RefreshArtifacts(null);
             _movementBar.Value = 0;
             _movementText.Text = "";
             _stats.Text = "";
@@ -278,6 +292,31 @@ public partial class Hud : CanvasLayer
                 MarkSelected(button);
             button.Pressed += () => HeroClicked?.Invoke(hero);
             _heroes.AddChild(button);
+        }
+    }
+
+    /// <summary>Les images des artefacts du héros, reconstruites seulement quand la liste change.</summary>
+    private void RefreshArtifacts(Hero? hero)
+    {
+        string key = hero == null ? "" : $"{hero.Id}:{string.Join(",", hero.Artifacts.Select(a => a.Id))}";
+        if (key == _artifactsKey)
+            return;
+        _artifactsKey = key;
+        foreach (var child in _artifacts.GetChildren())
+        {
+            _artifacts.RemoveChild(child);
+            child.QueueFree();
+        }
+        foreach (var artifact in hero?.Artifacts ?? new List<ArtifactType>())
+        {
+            if (Art.Get($"artifacts/{artifact.Id}") is not { } image)
+                continue;
+            _artifacts.AddChild(new TextureRect
+            {
+                Texture = image, CustomMinimumSize = image.GetSize(),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest, TooltipText = Texts.ArtifactTooltip(artifact),
+            });
         }
     }
 
@@ -410,40 +449,192 @@ public partial class Hud : CanvasLayer
         // chaque bouton ajouté se place à gauche des précédents
         dialog.AddButton(Texts.LoadButton, false, "load");
         dialog.AddButton(Texts.SaveButton, false, "save");
-        dialog.CustomAction += action => Close(action.ToString() == "save" ? SavePressed : LoadPressed);
+        dialog.AddButton(Texts.TreasureMapButton, false, "map");
+        dialog.AddButton(Texts.DigButton, false, "dig");
+        dialog.CustomAction += action => Close(action.ToString() switch
+        {
+            "save" => SavePressed,
+            "load" => LoadPressed,
+            "map" => TreasureMapPressed,
+            _ => DigPressed,
+        });
         dialog.Confirmed += () => Close(null);
         dialog.Canceled += () => Close(null);
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(420, 0));
+        dialog.PopupCentered(new Vector2I(640, 0));
     });
 
-    /// <summary>Choix des conditions de la partie, au lancement : un bouton par choix. Fermer la fenêtre prend le premier.</summary>
-    public void ShowRulesChoice(IReadOnlyList<GameRules> options, Action<GameRules> choose) => Enqueue(done =>
+    /// <summary>
+    /// Choix des conditions de la partie, au lancement : une case à cocher par façon de gagner (la première accomplie
+    /// l'emporte) et une pour la limite de jours. Fermer la fenêtre garde ce qui est coché.
+    /// </summary>
+    public void ShowRulesChoice(Action<GameRules> choose) => Enqueue(done =>
     {
         var dialog = new AcceptDialog
         {
             Title = Texts.RulesTitle,
-            DialogText = Texts.RulesText,
+            OkButtonText = Texts.StartButton,
             Exclusive = true,
             Unresizable = true,
         };
-        dialog.GetOkButton().Hide();
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", 6);
+        var intro = MakeLabel(Texts.RulesText, 15, TextColor);
+        intro.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        intro.CustomMinimumSize = new Vector2(480, 0);
+        content.AddChild(intro);
+        var goals = new System.Collections.Generic.Dictionary<VictoryCondition, CheckBox>();
+        foreach (var condition in GameRules.Choices)
+        {
+            var box = MakeCheckBox(Texts.Goal(condition), condition == GameRules.Default.Victory);
+            goals[condition] = box;
+            content.AddChild(box);
+        }
+        content.AddChild(new HSeparator());
+        var limit = MakeCheckBox(Texts.DayLimitChoice, false);
+        content.AddChild(limit);
+        dialog.AddChild(content);
+
+        // il faut au moins une façon de gagner
+        void Update() => dialog.GetOkButton().Disabled = !goals.Values.Any(b => b.ButtonPressed);
+        foreach (var box in goals.Values)
+            box.Toggled += _ => Update();
+
         bool chosen = false;
-        void Choose(GameRules rules)
+        void Choose()
         {
             if (chosen)
                 return;
             chosen = true;
-            choose(rules);
+            var victory = goals.Where(g => g.Value.ButtonPressed).Aggregate(VictoryCondition.None, (all, g) => all | g.Key);
+            choose(new GameRules(victory == VictoryCondition.None ? GameRules.Default.Victory : victory,
+                limit.ButtonPressed ? GameRules.StandardDayLimit : null));
             dialog.QueueFree();
             done();
         }
-        for (int i = 0; i < options.Count; i++)
-            dialog.AddButton(Texts.Objective(options[i]), false, i.ToString());
-        dialog.CustomAction += action => Choose(options[int.Parse(action.ToString())]);
-        dialog.Canceled += () => Choose(options[0]);
+        dialog.Confirmed += Choose;
+        dialog.Canceled += Choose;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(560, 0));
+        dialog.PopupCentered(new Vector2I(540, 0));
+    });
+
+    /// <summary>Une case à cocher aux couleurs du jeu.</summary>
+    private static CheckBox MakeCheckBox(string text, bool pressed)
+    {
+        var box = new CheckBox { Text = text, ButtonPressed = pressed, FocusMode = Control.FocusModeEnum.None };
+        SetFontSize(box, 15);
+        box.AddThemeColorOverride("font_color", TextColor);
+        box.AddThemeColorOverride("font_pressed_color", TextColor);
+        box.AddThemeColorOverride("font_hover_color", Colors.White);
+        box.AddThemeColorOverride("font_hover_pressed_color", Colors.White);
+        // la case elle-même, dessinée claire sur le fond sombre (cochée ou non)
+        box.AddThemeIconOverride("checked", CheckIcon(true));
+        box.AddThemeIconOverride("unchecked", CheckIcon(false));
+        return box;
+    }
+
+    private static Texture2D? _checked, _unchecked;
+
+    /// <summary>Une case à cocher en pixel art : un cadre clair, et un carré doré dedans quand elle est cochée.</summary>
+    private static Texture2D CheckIcon(bool on)
+    {
+        if ((on ? _checked : _unchecked) is { } cached)
+            return cached;
+        const int size = 18;
+        var image = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+        image.Fill(DarkPanelColor);
+        for (int i = 0; i < size; i++)
+            for (int w = 0; w < 2; w++)
+            {
+                image.SetPixel(i, w, TextColor);
+                image.SetPixel(i, size - 1 - w, TextColor);
+                image.SetPixel(w, i, TextColor);
+                image.SetPixel(size - 1 - w, i, TextColor);
+            }
+        if (on)
+            image.FillRect(new Rect2I(5, 5, size - 10, size - 10), BorderColor);
+        var texture = ImageTexture.CreateFromImage(image);
+        if (on)
+            _checked = texture;
+        else
+            _unchecked = texture;
+        return texture;
+    }
+
+    /// <summary>La carte au trésor : les morceaux dévoilés par les obélisques visités, et la croix.</summary>
+    public void ShowTreasureMap(GameState state, Player viewer) => Enqueue(done =>
+    {
+        var dialog = new AcceptDialog { Title = Texts.TreasureMapTitle, OkButtonText = "OK", Exclusive = true, Unresizable = true };
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", 8);
+        var pieces = state.TreasureMapPieces(viewer);
+        var text = MakeLabel(state.Map.Treasure == null ? Texts.TreasureGone
+            : Texts.TreasureMapText(pieces.Count(p => p), pieces.Count), 14, TextColor);
+        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        text.CustomMinimumSize = new Vector2(TreasureMapView.Columns * TreasureMapView.CellSize, 0);
+        content.AddChild(text);
+        if (state.Map.Treasure != null)
+        {
+            var view = new TreasureMapView { State = state, Viewer = viewer };
+            var center = new CenterContainer();
+            center.AddChild(view);
+            content.AddChild(center);
+        }
+        dialog.AddChild(content);
+        bool closed = false;
+        void Close()
+        {
+            if (closed)
+                return;
+            closed = true;
+            dialog.QueueFree();
+            done();
+        }
+        dialog.Confirmed += Close;
+        dialog.Canceled += Close;
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(320, 0));
+    });
+
+    /// <summary>Un message dans une fenêtre, qu'on ferme avec OK (le trésor déterré…).</summary>
+    public void ShowMessage(string title, string text) => ShowDialog(title, text, "OK", null);
+
+    /// <summary>Le trésor est déterré : l'image de l'artefact en grand (×3, pixels nets), puis ce qu'il apporte.</summary>
+    public void ShowArtifactFound(string title, string text, ArtifactType artifact) => Enqueue(done =>
+    {
+        var dialog = new AcceptDialog { Title = title, OkButtonText = "OK", Exclusive = true, Unresizable = true };
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", 10);
+        if (Art.Get($"artifacts/{artifact.Id}") is { } image)
+        {
+            var center = new CenterContainer();
+            center.AddChild(new TextureRect
+            {
+                Texture = image, CustomMinimumSize = image.GetSize() * 3,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+            });
+            content.AddChild(center);
+        }
+        var label = MakeLabel(text, 15, TextColor);
+        label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        label.HorizontalAlignment = HorizontalAlignment.Center;
+        label.CustomMinimumSize = new Vector2(380, 0);
+        content.AddChild(label);
+        dialog.AddChild(content);
+        bool closed = false;
+        void Close()
+        {
+            if (closed)
+                return;
+            closed = true;
+            dialog.QueueFree();
+            done();
+        }
+        dialog.Confirmed += Close;
+        dialog.Canceled += Close;
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(420, 0));
     });
 
     /// <summary>True tant qu'une fenêtre est ouverte ou en attente (le jeu ignore alors les commandes de la carte).</summary>

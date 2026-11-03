@@ -565,6 +565,19 @@ public sealed class MapGenerator
             return false;
         }
 
+        // Le trésor d'abord, enfoui dans la zone la plus dangereuse, le plus loin possible du départ (sans hasard,
+        // pour ne pas changer le reste de la carte). Rien n'est posé sur sa case.
+        var reachable = WalkableFromStart();
+        var treasureSpot = free.Where(reachable.Contains)
+            .Where(c => _zones.Count == 0 || ZoneAt(c).Level == MaxLevel)
+            .OrderByDescending(c => SquaredDistance(c, start)).ThenBy(c => c.Y).ThenBy(c => c.X)
+            .Cast<Cell?>().FirstOrDefault();
+        if (treasureSpot is { } spot)
+        {
+            _map.Treasure = spot;
+            free.Remove(spot);
+        }
+
         foreach (var resource in mines)
             if (!Place(c => new Mine(c, resource)))
                 return;
@@ -578,6 +591,44 @@ public sealed class MapGenerator
         for (int i = 0; i < Scaled(PileCount); i++)
             if (!Place(c => new ResourcePile(c, pileTypes[_rng.Next(pileTypes.Length)], _rng)))
                 return;
+
+        PlaceObelisks(free, next);
+    }
+
+    /// <summary>Nombre d'obélisques : autant de morceaux de la carte au trésor.</summary>
+    public int ObeliskCount { get; init; } = 6;
+
+    /// <summary>
+    /// Les obélisques, chacun dans une zone différente si possible (des plus proches du départ aux plus lointaines),
+    /// mais pas dans celle du trésor. Parmi les cases libres qui restent, sans nouveau tirage au hasard.
+    /// </summary>
+    private void PlaceObelisks(List<Cell> free, int next)
+    {
+        var remaining = free.Skip(next).ToList();
+        int? treasureZone = _map.Treasure is { } t && _zones.Count > 0 ? ZoneAt(t).Index : null;
+        var zones = _zones.Where(z => z.Index != treasureZone).OrderBy(z => z.Level).ThenBy(z => z.Index).Select(z => (int?)z.Index).ToList();
+        if (zones.Count == 0)
+            zones.Add(null);
+        int placed = 0;
+        // un tour par zone, puis d'autres tours s'il manque des obélisques
+        for (int round = 0; round < ObeliskCount && placed < ObeliskCount; round++)
+            foreach (var zone in zones)
+            {
+                if (placed == ObeliskCount)
+                    break;
+                foreach (var cell in remaining.Where(c => zone == null || ZoneAt(c).Index == zone).ToList())
+                {
+                    remaining.Remove(cell);
+                    var obelisk = new Obelisk(cell);
+                    _map.AddObject(obelisk);
+                    if (AllObjectsReachable())
+                    {
+                        placed++;
+                        break;
+                    }
+                    _map.RemoveObject(obelisk);
+                }
+            }
     }
 
     /// <summary>Nombre moyen de créatures dans une troupe de monstres, selon leur niveau (1 à 7).</summary>
@@ -642,7 +693,7 @@ public sealed class MapGenerator
     /// </summary>
     private bool CanPlaceGuard(Cell c)
     {
-        if (!_map.IsPassable(c) || _map.ObjectAt(c) != null || _reserved.Contains(c))
+        if (!_map.IsPassable(c) || _map.ObjectAt(c) != null || _reserved.Contains(c) || c == _map.Treasure)
             return false;
         if (Math.Max(Math.Abs(c.X - _map.Start.X), Math.Abs(c.Y - _map.Start.Y)) < 4)
             return false;
@@ -666,11 +717,12 @@ public sealed class MapGenerator
         return false;
     }
 
-    /// <summary>Peut-on encore atteindre tous les objets (sauf les monstres) depuis le départ ?</summary>
+    /// <summary>Peut-on encore atteindre tous les objets (sauf les monstres) et le trésor enfoui depuis le départ ?</summary>
     private bool AllObjectsReachable()
     {
         var reachable = WalkableFromStart();
-        return _map.Objects.All(o => o is MonsterGuard || reachable.Contains(o.Position));
+        return _map.Objects.All(o => o is MonsterGuard || reachable.Contains(o.Position))
+            && (_map.Treasure is not { } treasure || reachable.Contains(treasure));
     }
 
     /// <summary>

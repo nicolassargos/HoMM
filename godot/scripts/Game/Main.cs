@@ -73,6 +73,8 @@ public partial class Main : Node2D
         _hud.Build(_state, screen);
         _hud.EndTurnPressed += EndTurn;
         _hud.SavePressed += SaveGame;
+        _hud.DigPressed += Dig;
+        _hud.TreasureMapPressed += () => _hud.ShowTreasureMap(_state, _state.Players[0]);
         _hud.LoadPressed += LoadGame;
         _hud.TownClicked += OpenTown;
         _hud.HeroClicked += SelectHero;
@@ -90,15 +92,34 @@ public partial class Main : Node2D
         if (loaded != null)
         {
             _hud.AddMessage(Texts.GameLoaded);
-            _hud.AddMessage(Texts.Message(new RulesChosen(_state.Rules), _state.Players[0])!);
+            var treasure = _state.Rules.Has(VictoryCondition.FindTreasure) ? _state.TreasureDirection() : null;
+            _hud.AddMessage(Texts.Message(new RulesChosen(_state.Rules, treasure), _state.Players[0])!);
         }
         else if (_capturePath == null || OS.GetCmdlineUserArgs().Contains("--rules")) // une capture montre la carte, sauf avec --rules
-            _hud.ShowRulesChoice(GameRules.Options, rules => _state.ChooseRules(rules));
+            _hud.ShowRulesChoice(rules => _state.ChooseRules(rules));
         if (OS.GetCmdlineUserArgs().Contains("--zoom")) // développement : partir zoomé
             _camera.ZoomBy(+1);
         if (_capturePath != null && OS.GetCmdlineUserArgs().Contains("--town"))
             ShowTownForCapture();
         CenterOnHero();
+        // Développement : « --center=treasure » centre la vue sur le trésor (pour une capture d'écran)
+        if (OS.GetCmdlineUserArgs().Contains("--center=treasure") && _state.Map.Treasure is { } hidden)
+            _camera.CenterOn(hidden);
+        if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
+            _camera.CenterOn(firstObelisk.Position);
+        // Développement : « --dig-test » enfouit le trésor sous le héros et le fait creuser (fenêtre du trésor)
+        if (OS.GetCmdlineUserArgs().Contains("--dig-test"))
+        {
+            _state.Map.Treasure = _state.CurrentHero!.Position;
+            _state.Dig();
+        }
+        // Développement : « --treasure-map » montre la carte au trésor (avec deux morceaux dévoilés)
+        if (OS.GetCmdlineUserArgs().Contains("--treasure-map"))
+        {
+            foreach (var obelisk in _state.Obelisks.Take(2))
+                _state.Players[0].Obelisks.Add(obelisk.Id);
+            _hud.ShowTreasureMap(_state, _state.Players[0]);
+        }
     }
 
     /// <summary>
@@ -178,7 +199,8 @@ public partial class Main : Node2D
     /// <summary>Les données du jeu, décrites dans le dossier data/ (créatures, bâtiments).</summary>
     private static GameData LoadData() => GameData.FromJson(
         Godot.FileAccess.GetFileAsString("res://data/creatures.json"),
-        Godot.FileAccess.GetFileAsString("res://data/buildings.json"));
+        Godot.FileAccess.GetFileAsString("res://data/buildings.json"),
+        Godot.FileAccess.GetFileAsString("res://data/artifacts.json"));
 
     /// <summary>Le joueur regarde la carte (pas de fenêtre ni d'écran de ville ouverts).</summary>
     private bool OnMap => !_hud.IsDialogOpen && !_townScreen.IsOpen;
@@ -343,6 +365,8 @@ public partial class Main : Node2D
                     case Key.Plus or Key.KpAdd or Key.Equal: _camera.ZoomBy(+1); break;
                     case Key.Minus or Key.KpSubtract: _camera.ZoomBy(-1); break;
                     case Key.F5: SaveGame(); break;
+                    case Key.F: Dig(); break;
+                    case Key.M: _hud.ShowTreasureMap(_state, _state.Players[0]); break;
                     case Key.F9: LoadGame(); break;
                     case Key.T when _state.CurrentPlayer.Towns.FirstOrDefault() is { } town: OpenTown(town); break;
                     case Key.H when CanAct:
@@ -398,6 +422,15 @@ public partial class Main : Node2D
         }
     }
 
+    /// <summary>Le héros courant creuse sur sa case (touche F, ou bouton des options).</summary>
+    private void Dig()
+    {
+        if (!CanAct)
+            return;
+        if (_state.Dig() == DigResult.NeedsFullDay)
+            _hud.AddMessage(Texts.DigNeedsFullDay);
+    }
+
     /// <summary>Montre à l'écran ce que les règles viennent de faire.</summary>
     private void HandleEvents()
     {
@@ -427,6 +460,14 @@ public partial class Main : Node2D
                     break;
                 case TownCaptured captured when captured.Hero.Owner == viewer:
                     _townToOpen = captured.Town;
+                    break;
+                case ObeliskVisited { FirstVisit: true } obelisk when obelisk.Hero.Owner == viewer:
+                    _walking = false;
+                    _hud.ShowTreasureMap(_state, viewer);
+                    break;
+                case TreasureDug dug when dug.Hero.Owner == viewer:
+                    _walking = false;
+                    _hud.ShowArtifactFound(Texts.TreasureDugTitle, Texts.TreasureDugText(dug), dug.Artifact);
                     break;
                 case GameEnded end:
                     _walking = false;

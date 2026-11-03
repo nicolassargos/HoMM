@@ -85,6 +85,7 @@ public static class Texts
     {
         ResourcePile pile => $"Tas de {Resource(pile.Resource)}",
         TreasureChest => "Coffre au trésor",
+        Obelisk => "Obélisque",
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
         Town town => town.Name,
@@ -125,6 +126,9 @@ public static class Texts
         + $"Attaque {hero.Attack} · défense {hero.Defense}\n"
         + $"Puissance {hero.Power} · savoir {hero.Knowledge} · charisme {hero.Charisma}\n"
         + $"Commandement max. par troupe : {Command.Limit(hero.Charisma)}";
+
+    /// <summary>L'info-bulle d'un artefact : son nom et ses bonus.</summary>
+    public static string ArtifactTooltip(ArtifactType artifact) => $"{artifact.Name} : {Bonus(artifact)}";
 
     /// <summary>« 12 Archers », avec une marque si la troupe risque de se révolter.</summary>
     public static string ArmyLine(CreatureStack stack, int charisma) =>
@@ -259,19 +263,68 @@ public static class Texts
         GameEndReason.GuardsCleared => "Tous les monstres ont été vaincus. La région est à vous !",
         GameEndReason.TownsCaptured => "Toutes les villes sont à vous. La région est à vous !",
         GameEndReason.HeroesLost => "Votre dernier héros est tombé. La partie est perdue.",
+        GameEndReason.TreasureFound => "Vous avez déterré le Plastron des Rois : la région vous reconnaît pour son roi !",
         _ => "Le temps est écoulé avant la victoire. La partie est perdue.",
     };
 
     /// <summary>Ce qu'il faut faire pour gagner, avec la date limite s'il y en a une.</summary>
     public static string Objective(GameRules rules)
     {
-        string goal = rules.Victory == VictoryCondition.ClearGuards
-            ? "Vaincre tous les monstres"
-            : "Prendre toutes les villes";
-        return rules.DayLimit is { } limit ? $"{goal} avant la fin de {Date(limit)}" : goal;
+        // plusieurs façons de gagner : la première accomplie l'emporte
+        string goal = Capitalize(string.Join(", ou ", GameRules.Choices.Where(rules.Has).Select(c => Goal(c).ToLowerInvariant())));
+        return rules.DayLimit is { } limit ? $"{goal}, avant la fin de {Date(limit)}" : goal;
     }
 
+    /// <summary>Une façon de gagner, telle qu'on la coche au début de la partie.</summary>
+    public static string Goal(VictoryCondition condition) => condition switch
+    {
+        VictoryCondition.ClearGuards => "Vaincre tous les monstres",
+        VictoryCondition.CaptureTowns => "Prendre toutes les villes",
+        _ => "Trouver le trésor enfoui",
+    };
+
+    public static string DayLimitChoice => $"Limite : gagner avant la fin de {Date(GameRules.StandardDayLimit)}";
+    public static string StartButton => "Commencer";
+
+    // ------------------------------------------------------------------ trésor
+
+    public static string TreasureMapTitle => "Carte au trésor";
+    public static string DigButton => "Creuser (F)";
+    public static string TreasureMapButton => "Carte au trésor (M)";
+    public static string DigNeedsFullDay => "Pour creuser, il faut une journée entière de mouvement (au début du tour).";
+    public static string TreasureGone => "Le trésor a déjà été déterré.";
+
+    public static string TreasureMapText(int found, int total) => total == 0
+        ? "Il n'y a pas d'obélisque sur cette carte."
+        : $"Morceaux trouvés : {found} sur {total}. Chaque obélisque en dévoile un. Creusez (touche F) là où est la croix.";
+
+    /// <summary>« +5 attaque, +5 défense, +5 charisme »</summary>
+    public static string Bonus(ArtifactType artifact) => string.Join(", ", new[]
+    {
+        (artifact.Attack, "attaque"), (artifact.Defense, "défense"), (artifact.Power, "puissance"),
+        (artifact.Knowledge, "savoir"), (artifact.Charisma, "charisme"),
+    }.Where(b => b.Item1 != 0).Select(b => $"+{b.Item1} {b.Item2}"));
+
+    public static string TreasureDugTitle => "Le trésor !";
+
+    public static string TreasureDugText(TreasureDug dug) =>
+        $"{dug.Hero.Name} déterre le {dug.Artifact.Name}, l'armure légendaire des anciens rois.\n{Bonus(dug.Artifact)}.";
+
     public static string RulesTitle => "Conditions de la partie";
+
+    /// <summary>« au nord-est », « à l'ouest », « au centre »…</summary>
+    public static string Where(Compass direction) => direction switch
+    {
+        Compass.North => "au nord",
+        Compass.NorthEast => "au nord-est",
+        Compass.East => "à l'est",
+        Compass.SouthEast => "au sud-est",
+        Compass.South => "au sud",
+        Compass.SouthWest => "au sud-ouest",
+        Compass.West => "à l'ouest",
+        Compass.NorthWest => "au nord-ouest",
+        _ => "au centre",
+    };
 
     // ------------------------------------------------------------- sauvegarde
 
@@ -287,7 +340,7 @@ public static class Texts
     public static string NoSave => "Aucune partie sauvegardée.";
     public static string LoadFailed => "Cette sauvegarde ne peut pas être chargée (fichier abîmé ou d'une autre version du jeu).";
 
-    public static string RulesText => "Comment gagner cette partie ? Perdre tous ses héros reste une défaite dans tous les cas.";
+    public static string RulesText => "Comment gagner cette partie ? Cochez une ou plusieurs façons : la première accomplie l'emporte. Perdre tous ses héros reste une défaite.";
 
     // ------------------------------------------------------------- journal
 
@@ -327,7 +380,14 @@ public static class Texts
         DayStarted day => $"Nouveau jour : {Date(day.Day)}.",
         IncomeReceived income when income.Player == viewer => $"Revenus : {Income(income.Income)}.",
         TurnStarted turn => $"Au tour du joueur {turn.Player.Name}.",
+        RulesChosen { Treasure: { } where } chosen =>
+            $"Objectif : {Objective(chosen.Rules)}. Le trésor est enfoui {Where(where)} de la carte : les obélisques en dévoilent la carte (touche M).",
         RulesChosen chosen => $"Objectif : {Objective(chosen.Rules)}.",
+        GameEnded { Reason: GameEndReason.TreasureFound } => "Le trésor est à vous. Victoire !",
+        ObeliskVisited { FirstVisit: true } => "Un obélisque ! Un morceau de la carte au trésor apparaît.",
+        ObeliskVisited => "Vous avez déjà lu cet obélisque.",
+        NothingDug dug => $"{dug.Hero.Name} creuse… il n'y a rien ici.",
+        TreasureDug dug => $"{dug.Hero.Name} déterre le {dug.Artifact.Name} ! {Bonus(dug.Artifact)}.",
         GameEnded { Reason: GameEndReason.GuardsCleared } => "La région est libérée de ses monstres. Victoire !",
         GameEnded { Reason: GameEndReason.TownsCaptured } => "Toutes les villes sont à vous. Victoire !",
         GameEnded { Reason: GameEndReason.HeroesLost } => "Vous n'avez plus de héros. Défaite...",

@@ -15,9 +15,9 @@ public partial class TownScreen : CanvasLayer
 {
     private const int Margin = 24;
     private const int Columns = 4;
-    private const int CardHeight = 112;
+    private const int CardHeight = 118;
     private const int SlotWidth = 150;
-    private const int SlotHeight = 64;
+    private const int SlotHeight = 58;
 
     private GameState _state = null!;
     private Town? _town;
@@ -33,6 +33,7 @@ public partial class TownScreen : CanvasLayer
 
     // Fenêtre de recrutement
     private Control _recruitOverlay = null!;
+    private TextureRect _recruitPicture = null!;
     private Label _recruitTitle = null!;
     private Label _recruitInfo = null!;
     private HSlider _recruitSlider = null!;
@@ -67,27 +68,34 @@ public partial class TownScreen : CanvasLayer
         back.Pressed += Close;
         root.AddChild(back);
 
-        root.AddChild(At(MakeLabel("Bâtiments", 18, TextColor), Margin, 86));
-        _buildings = new GridContainer { Columns = Columns, Position = new Vector2(Margin, 114) };
+        // Le reste se suit de haut en bas : les armées restent sous les bâtiments, quelle que soit leur hauteur
+        var page = new VBoxContainer { Position = new Vector2(Margin, 86) };
+        page.AddThemeConstantOverride("separation", 4);
+        root.AddChild(page);
+        page.AddChild(MakeLabel("Bâtiments", 18, TextColor));
+        _buildings = new GridContainer { Columns = Columns };
         _buildings.AddThemeConstantOverride("h_separation", 10);
-        _buildings.AddThemeConstantOverride("v_separation", 10);
-        root.AddChild(_buildings);
+        _buildings.AddThemeConstantOverride("v_separation", 6);
+        page.AddChild(_buildings);
 
-        float armiesY = 114 + 3 * (CardHeight + 10) + 8;
-        root.AddChild(At(MakeLabel("Garnison", 18, TextColor), Margin, armiesY));
-        _hint = At(MakeLabel(Texts.TransferHint, 13, SoftTextColor), Margin + 120, armiesY + 4);
-        root.AddChild(_hint);
-        _garrisonRow = MakeRow(root, armiesY + 26);
-        _heroLabel = At(MakeLabel("", 18, TextColor), Margin, armiesY + 100);
-        root.AddChild(_heroLabel);
-        _heroRow = MakeRow(root, armiesY + 126);
+        var garrisonTitle = new HBoxContainer();
+        garrisonTitle.AddThemeConstantOverride("separation", 24);
+        garrisonTitle.AddChild(MakeLabel("Garnison", 18, TextColor));
+        _hint = MakeLabel(Texts.TransferHint, 13, SoftTextColor);
+        _hint.VerticalAlignment = VerticalAlignment.Center;
+        garrisonTitle.AddChild(_hint);
+        page.AddChild(garrisonTitle);
+        _garrisonRow = MakeRow(page);
+        _heroLabel = MakeLabel("", 18, TextColor);
+        page.AddChild(_heroLabel);
+        _heroRow = MakeRow(page);
 
         BuildRecruitWindow(root);
     }
 
-    private static HBoxContainer MakeRow(Control parent, float y)
+    private static HBoxContainer MakeRow(Control parent)
     {
-        var row = new HBoxContainer { Position = new Vector2(Margin, y) };
+        var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 8);
         parent.AddChild(row);
         return row;
@@ -157,60 +165,90 @@ public partial class TownScreen : CanvasLayer
         // le cadre est teinté : normal si construit, vert si on peut construire, terne sinon
         var tint = built ? Colors.White : result == BuildResult.Ok ? new Color(0.7f, 1.15f, 0.7f) : new Color(0.6f, 0.58f, 0.55f);
 
+        // Largeur fixe : les textes trop longs vont à la ligne ou sont coupés, la carte ne s'élargit jamais
         float width = (_screen.X - 2 * Margin - (Columns - 1) * 10) / Columns;
-        var card = new PanelContainer { CustomMinimumSize = new Vector2(width, CardHeight) };
+        var card = new PanelContainer { CustomMinimumSize = new Vector2(width, CardHeight), Size = new Vector2(width, CardHeight) };
         card.AddThemeStyleboxOverride("panel", Frame(DarkPanelColor));
         card.SelfModulate = tint;
 
         var content = new VBoxContainer();
-        content.AddThemeConstantOverride("separation", 2);
-        var margin = new MarginContainer();
-        foreach (var side in new[] { "left", "right", "top", "bottom" })
-            margin.AddThemeConstantOverride($"margin_{side}", 8);
-        margin.AddChild(content);
-        card.AddChild(margin);
+        content.AddThemeConstantOverride("separation", 4);
+        card.AddChild(content);
 
-        content.AddChild(MakeLabel(building.Name, 16, built ? TextColor : SoftTextColor));
-        content.AddChild(MakeLabel(Texts.BuildingEffect(town, building), 12, SoftTextColor));
+        // En haut : l'image de la créature d'une habitation, puis le nom et l'effet du bâtiment
+        var header = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        header.AddThemeConstantOverride("separation", 8);
+        if (town.DwellingCreature(building) is { } dwellingCreature && CreatureImage(dwellingCreature) is { } picture)
+        {
+            picture.SizeFlagsVertical = Control.SizeFlags.ShrinkBegin;
+            header.AddChild(picture);
+        }
+        var words = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        words.AddThemeConstantOverride("separation", 0);
+        var title = MakeLabel(building.Name, 16, built ? TextColor : SoftTextColor);
+        title.ClipText = true;
+        words.AddChild(title);
+        var effect = MakeLabel(Texts.BuildingEffect(town, building), 12, SoftTextColor);
+        effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        words.AddChild(effect);
+        if (!built)
+        {
+            var cost = MakeLabel("Coût : " + Texts.Cost(building.Cost), 12, SoftTextColor);
+            cost.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            words.AddChild(cost);
+        }
+        header.AddChild(words);
+        content.AddChild(header);
 
+        // En bas : « Construit » et l'action possible (recruter, engager un héros), ou le bouton Construire
+        var bottom = new HBoxContainer();
+        bottom.AddThemeConstantOverride("separation", 8);
+        content.AddChild(bottom);
+        Button? action = null;
         if (built)
         {
-            content.AddChild(MakeLabel("✓ Construit", 12, GoodColor));
+            var done = MakeLabel("✓ Construit", 12, GoodColor);
+            done.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            done.SizeFlagsStretchRatio = 0.8f;
+            done.VerticalAlignment = VerticalAlignment.Center;
+            bottom.AddChild(done);
             // Une habitation construite : on peut y recruter
             if (town.DwellingCreature(building) is { } creature)
             {
-                var recruit = MakeButton("Recruter", 13);
-                recruit.Disabled = town.Available.GetValueOrDefault(creature) == 0;
-                recruit.Pressed += () => OpenRecruit(town, creature);
-                content.AddChild(recruit);
+                action = MakeButton("Recruter", 13);
+                action.Disabled = town.Available.GetValueOrDefault(creature) == 0;
+                action.Pressed += () => OpenRecruit(town, creature);
             }
             // La taverne : on peut y recruter un héros
-            if (building.Tavern)
+            else if (building.Tavern)
             {
                 var hire = _state.CanHireHero(town);
-                var hireButton = MakeButton(Texts.HireStatus(hire), 13);
-                hireButton.Disabled = hire != HireResult.Ok;
-                hireButton.ClipText = true;
-                hireButton.Pressed += () =>
+                action = MakeButton(Texts.HireStatus(hire), 13);
+                action.Disabled = hire != HireResult.Ok;
+                action.Pressed += () =>
                 {
                     _state.HireHero(town);
                     Refresh();
                 };
-                content.AddChild(hireButton);
             }
-            return card;
         }
-
-        content.AddChild(MakeLabel("Coût : " + Texts.Cost(building.Cost), 12, SoftTextColor));
-        var button = MakeButton(Texts.BuildStatus(result, town, building), 13);
-        button.Disabled = result != BuildResult.Ok;
-        button.ClipText = true;
-        button.Pressed += () =>
+        else
         {
-            _state.Build(town, building.Id);
-            Refresh();
-        };
-        content.AddChild(button);
+            action = MakeButton(Texts.BuildStatus(result, town, building), 13);
+            action.Disabled = result != BuildResult.Ok;
+            action.Pressed += () =>
+            {
+                _state.Build(town, building.Id);
+                Refresh();
+            };
+        }
+        if (action != null)
+        {
+            action.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill; // la place laissée par « Construit »
+            action.ClipText = true;
+            action.TooltipText = action.Text; // le texte entier, s'il est coupé
+            bottom.AddChild(action);
+        }
         return card;
     }
 
@@ -237,7 +275,18 @@ public partial class TownScreen : CanvasLayer
             var label = MakeLabel(stack != null ? $"{stack.Count}\n{Texts.Creature(stack.Type, stack.Count)}" : "", 14, TextColor);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             label.VerticalAlignment = VerticalAlignment.Center;
-            slot.AddChild(label);
+            if (stack != null && CreatureImage(stack.Type) is { } picture)
+            {
+                var line = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+                line.AddThemeConstantOverride("separation", 2);
+                line.AddChild(picture);
+                label.HorizontalAlignment = HorizontalAlignment.Left;
+                label.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+                line.AddChild(label);
+                slot.AddChild(line);
+            }
+            else
+                slot.AddChild(label);
 
             if (stack != null)
             {
@@ -268,6 +317,13 @@ public partial class TownScreen : CanvasLayer
 
         _recruitTitle = At(MakeLabel("", 22, TextColor), 20, 14);
         window.AddChild(_recruitTitle);
+        _recruitPicture = new TextureRect
+        {
+            Position = new Vector2(size.X - 20 - 72, 14), Size = new Vector2(72, 72),
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+            TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        window.AddChild(_recruitPicture);
         _recruitInfo = At(MakeLabel("", 14, SoftTextColor), 20, 50);
         window.AddChild(_recruitInfo);
 
@@ -307,6 +363,7 @@ public partial class TownScreen : CanvasLayer
         int max = hasRoom ? town.MaxRecruitable(type, player) : 0;
 
         _recruitTitle.Text = Texts.RecruitTitle(type);
+        _recruitPicture.Texture = Art.Get($"creatures/{type.Id}"); // agrandie ×3
         _recruitInfo.Text = Texts.RecruitInfo(type, available);
         _recruitSlider.MinValue = 0;
         _recruitSlider.MaxValue = max;

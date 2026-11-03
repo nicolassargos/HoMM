@@ -64,6 +64,20 @@
     { "name": "decor/peak", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 4, "seed": 514,
       "prompt": "one jagged grey rocky mountain peak with a white snowy tip and dark shadowed side, wide base, fantasy strategy game map decoration" },
     { "name": "decor/peak-small", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 4, "seed": 515,
-      "prompt": "one small jagged grey rocky hill peak with a dark shadowed side, wide base, fantasy strategy game map decoration" }
+      "prompt": "one small jagged grey rocky hill peak with a dark shadowed side, wide base, fantasy strategy game map decoration" },
+    { "name": "creatures/paysan", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 2, "seed": 601,
+      "prompt": "medieval peasant with a pitchfork, brown tunic and straw hat, front view, clear silhouette" },
+    { "name": "creatures/archer", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 2, "seed": 602,
+      "prompt": "medieval archer with a longbow, green hood and leather vest, front view, clear silhouette" },
+    { "name": "creatures/griffon", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 2, "seed": 603,
+      "prompt": "griffin with an eagle head, brown wings spread and a lion body, side view, clear silhouette" },
+    { "name": "creatures/epeiste", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 2, "seed": 604,
+      "prompt": "medieval swordsman knight with a sword and a blue shield, steel armor, front view, clear silhouette" },
+    { "name": "creatures/moine", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 2, "seed": 605,
+      "prompt": "monk in a brown robe holding a glowing wooden staff, front view, clear silhouette" },
+    { "name": "creatures/cavalier", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 2, "seed": 606,
+      "prompt": "armored knight on a white horse holding a lance, blue banner, side view, clear silhouette" },
+    { "name": "creatures/ange", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 2, "seed": 607,
+      "prompt": "angel warrior with large white wings, golden armor and a flaming sword, front view, clear silhouette" }
   ]
 }

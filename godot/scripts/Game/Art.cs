@@ -8,6 +8,8 @@ namespace HoMM.Game;
 /// <summary>
 /// Les images du jeu (étape 5), trouvées par convention à partir des identifiants, sans chemin dans les règles :
 ///   art/terrain/grass.png (variantes : grass-2.png, grass-3.png…)
+///   art/decor/pine.png, oak.png, autumn.png, peak.png, peak-small.png (variantes aussi) : arbres et
+///   sommets posés sur l'herbe (<see cref="DecorLayer"/>)
 ///   art/objects/pile-gold.png, chest.png, mine-gold.png, town.png
 ///   art/creatures/paysan.png, art/heroes/hero.png, art/icons/gold.png
 /// Une image absente renvoie null : le dessin par formes (<see cref="MapRenderer"/>) prend alors le relais.
@@ -18,7 +20,7 @@ public static class Art
     public const string Root = "res://art/";
 
     private static readonly Dictionary<string, Texture2D?> Cache = new();
-    private static readonly Dictionary<TerrainType, Texture2D[]> TerrainVariants = new();
+    private static readonly Dictionary<string, Texture2D[]> Variants = new();
 
     /// <summary>L'image <c>art/{name}.png</c>, ou null si elle n'existe pas.</summary>
     public static Texture2D? Get(string name)
@@ -58,21 +60,34 @@ public static class Art
     /// Une image du terrain, choisie parmi ses variantes (grass, grass-2, grass-3…) selon <paramref name="pick"/>.
     /// Null si le terrain n'a pas d'image.
     /// </summary>
-    public static Texture2D? Terrain(TerrainType terrain, int pick)
+    public static Texture2D? Terrain(TerrainType terrain, int pick) => Variant($"terrain/{Name(terrain)}", pick);
+
+    /// <summary>
+    /// Une image choisie parmi les variantes de <paramref name="name"/> (name, name-2, name-3…) selon
+    /// <paramref name="pick"/>. Null s'il n'y en a aucune.
+    /// </summary>
+    public static Texture2D? Variant(string name, int pick)
     {
-        if (!TerrainVariants.TryGetValue(terrain, out var variants))
+        var variants = VariantsOf(name);
+        return variants.Length == 0 ? null : variants[Math.Abs(pick) % variants.Length];
+    }
+
+    /// <summary>Toutes les variantes de <paramref name="name"/> (name, name-2, name-3…), peut-être aucune.</summary>
+    public static Texture2D[] VariantsOf(string name)
+    {
+        if (!Variants.TryGetValue(name, out var variants))
         {
             var found = new List<Texture2D>();
-            if (Get($"terrain/{Name(terrain)}") is { } first)
+            if (Get(name) is { } first)
             {
                 found.Add(first);
-                for (int i = 2; Get($"terrain/{Name(terrain)}-{i}") is { } next; i++)
+                for (int i = 2; Get($"{name}-{i}") is { } next; i++)
                     found.Add(next);
             }
             variants = found.ToArray();
-            TerrainVariants[terrain] = variants;
+            Variants[name] = variants;
         }
-        return variants.Length == 0 ? null : variants[Math.Abs(pick) % variants.Length];
+        return variants;
     }
 
     /// <summary>

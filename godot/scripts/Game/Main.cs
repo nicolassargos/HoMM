@@ -60,6 +60,7 @@ public partial class Main : Node2D
         var screen = GetViewportRect().Size;
 
         AddChild(new TerrainLayer { Map = _state.Map });
+        AddChild(new DecorLayer { Map = _state.Map });
         _actors = new ActorLayer { State = _state };
         AddChild(_actors);
         AddChild(new FogLayer { State = _state });

@@ -10,7 +10,7 @@ On avance étape par étape, sans se presser : chaque étape est jouable et test
 - **Combat** : résolution automatique d'abord, écran de combat tactique plus tard.
 - **Adversaires IA** : prévus, mais plus tard. D'ici là, chaque carte a un objectif simple
   (vaincre les gardiens, prendre les villes neutres…) pour que la partie ait une fin.
-- **Graphismes** : packs d'images gratuits (CC0, itch.io) une fois le jeu jouable.
+- **Graphismes** : pixel art façon premier Heroes, généré avec Retro Diffusion (étape 5).
 - **Projet personnel**, sans échéance : on privilégie le plaisir et la simplicité.
 
 ## Étapes
@@ -137,6 +137,15 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
 - Seul `MapRenderer.cs` (et l'interface) change. Les images sont trouvées par convention
   à partir des identifiants, par exemple `res://art/creatures/paysan.png` :
   pas de chemins d'images dans les fichiers de règles.
+- ✅ Images de la carte : pixel art façon premier Heroes, généré avec Retro Diffusion (API payante, choisie
+  par l'utilisateur à la place d'un pack gratuit). Images de 24 px affichées ×2 (cases de 48 px), pixels nets.
+  `tools/art/generer.py` estime le prix (gratuit), génère des candidats dans `art-candidats/` (non suivi)
+  et installe le candidat choisi ; `tools/art/apercu.py` fait une page de choix. Les images à produire et
+  leurs descriptions sont dans `tools/art/assets.json`. Une image absente garde le dessin par formes.
+  Les forêts ont des sapins dessinés par-dessus leur image, en attendant mieux.
+  `-- --capture=fichier.png` enregistre une image de l'écran puis quitte (pour comparer).
+- À faire : interface (cadres, police pixel), portraits des créatures dans la ville, transitions entre
+  terrains, forêts et montagnes dessinées comme des objets posés sur le sol (comme le premier Heroes).
 
 ### 6. Combat tactique
 - Écran de combat sur grille hexagonale.

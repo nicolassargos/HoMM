@@ -26,7 +26,8 @@ C:\Godot\Godot_v4.7.2-stable_mono_win64\Godot_v4.7.2-stable_mono_win64.exe --pat
 **Avec l'éditeur Godot** : ouvrez Godot, « Importer », choisissez `godot/project.godot`, puis appuyez sur F5.
 
 Pour toujours obtenir la même carte, ajoutez une graine : `lancer.bat -- --seed=42`.
-Pour le développement, `-- --reveal` retire le brouillard de guerre.
+Pour le développement, `-- --reveal` retire le brouillard de guerre, et `-- --capture=apercu.png`
+enregistre une image de l'écran après un instant puis quitte (pour vérifier les graphismes).
 
 ## Commandes
 

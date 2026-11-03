@@ -20,6 +20,7 @@ namespace HoMM.Game;
 ///
 /// Lancer avec une graine fixe : ajouter « -- --seed=42 » à la ligne de commande ;
 /// reprendre la partie sauvegardée : « -- --load ».
+/// Développement : « -- --capture=apercu.png » enregistre une image de l'écran après un instant, puis quitte.
 /// </summary>
 public partial class Main : Node2D
 {
@@ -78,13 +79,14 @@ public partial class Main : Node2D
         AddChild(_townScreen);
         _townScreen.Build(_state, screen);
 
-        if (loaded == null)
-            _hud.ShowRulesChoice(GameRules.Options, rules => _state.ChooseRules(rules));
-        else
+        _capturePath = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture="))?["--capture=".Length..];
+        if (loaded != null)
         {
             _hud.AddMessage(Texts.GameLoaded);
             _hud.AddMessage(Texts.Message(new RulesChosen(_state.Rules), _state.Players[0])!);
         }
+        else if (_capturePath == null) // une capture d'écran montre la carte, pas la fenêtre de choix
+            _hud.ShowRulesChoice(GameRules.Options, rules => _state.ChooseRules(rules));
         CenterOnHero();
     }
 
@@ -268,8 +270,25 @@ public partial class Main : Node2D
         }
     }
 
+    /// <summary>Option de développement : fichier où enregistrer une image de l'écran (voir <see cref="Capture"/>).</summary>
+    private string? _capturePath;
+    private double _captureTimer = 1.0;
+
+    /// <summary>Enregistre une image de l'écran (pour vérifier les graphismes sans jouer), puis quitte.</summary>
+    private void Capture(double delta)
+    {
+        _captureTimer -= delta;
+        if (_captureTimer > 0)
+            return;
+        var error = GetViewport().GetTexture().GetImage().SavePng(_capturePath!);
+        GD.Print(error == Error.Ok ? $"Image enregistrée : {_capturePath}" : $"Image non enregistrée : {error}");
+        GetTree().Quit();
+    }
+
     public override void _Process(double delta)
     {
+        if (_capturePath != null)
+            Capture(delta);
         if (OnMap)
             _camera.Scroll((float)delta);
         _actors.Hovered = OnMap ? _camera.HoveredCell() : null;

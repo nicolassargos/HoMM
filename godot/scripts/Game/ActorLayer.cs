@@ -10,6 +10,9 @@ public partial class ActorLayer : Node2D
     public Cell? Hovered { get; set; }
     private double _time;
 
+    // Pixel art : les images agrandies restent nettes
+    public override void _Ready() => TextureFilter = TextureFilterEnum.Nearest;
+
     public override void _Process(double delta)
     {
         _time += delta;

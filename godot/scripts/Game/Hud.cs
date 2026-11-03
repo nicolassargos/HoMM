@@ -15,6 +15,9 @@ public partial class Hud : CanvasLayer
     public const int PanelWidth = 256;
     public const int TopBarHeight = 32;
 
+    /// <summary>Hauteur du journal, en bas de la carte (quatre ou cinq lignes).</summary>
+    private const int LogHeight = 92;
+
     private readonly Dictionary<ResourceType, Label> _resourceLabels = new();
     private GameState _state = null!;
     private Label _date = null!;
@@ -65,7 +68,7 @@ public partial class Hud : CanvasLayer
         {
             resources.AddChild(new ResourceIcon { Resource = resource, CustomMinimumSize = new Vector2(18, TopBarHeight) });
             var label = MakeLabel("", 16, TextColor);
-            label.CustomMinimumSize = new Vector2(120, 0);
+            label.CustomMinimumSize = new Vector2(100, 0);
             label.VerticalAlignment = VerticalAlignment.Center;
             resources.AddChild(label);
             _resourceLabels[resource] = label;
@@ -74,9 +77,23 @@ public partial class Hud : CanvasLayer
         _date = MakeLabel("", 16, TextColor);
         _date.HorizontalAlignment = HorizontalAlignment.Right;
         _date.VerticalAlignment = VerticalAlignment.Center;
-        _date.Position = new Vector2(panelX - 316, 0);
-        _date.Size = new Vector2(300, TopBarHeight);
+        _date.Position = new Vector2(panelX - 216, 0);
+        _date.Size = new Vector2(200, TopBarHeight);
         topBar.AddChild(_date);
+
+        // Sauvegarder et charger (aussi avec F5 et F9)
+        var save = MakeButton("Sauvegarder", 13);
+        save.Position = new Vector2(panelX - 438, 3);
+        save.Size = new Vector2(110, TopBarHeight - 6);
+        save.TooltipText = "F5";
+        save.Pressed += () => SavePressed?.Invoke();
+        topBar.AddChild(save);
+        var load = MakeButton("Charger", 13);
+        load.Position = new Vector2(save.Position.X + save.Size.X + 6, 3);
+        load.Size = new Vector2(90, TopBarHeight - 6);
+        load.TooltipText = "F9";
+        load.Pressed += () => LoadPressed?.Invoke();
+        topBar.AddChild(load);
 
         // ---- Panneau de droite
         var panel = new Panel { Position = new Vector2(panelX, 0), Size = new Vector2(PanelWidth, screenSize.Y) };
@@ -122,9 +139,9 @@ public partial class Hud : CanvasLayer
         y += 34;
 
         _stats = At(MakeLabel("", 12, SoftTextColor), margin, y);
-        _stats.Size = new Vector2(innerWidth, 64);
+        _stats.Size = new Vector2(innerWidth, 82);
         panel.AddChild(_stats);
-        y += 68;
+        y += 86;
 
         panel.AddChild(At(MakeLabel("Armée", 14, SoftTextColor), margin, y));
         y += 20;
@@ -166,27 +183,22 @@ public partial class Hud : CanvasLayer
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
         panel.AddChild(endTurn);
 
-        // Sauvegarder et charger (aussi avec F5 et F9)
-        float half = (innerWidth - 16 - 8) / 2;
-        var save = MakeButton("Sauvegarder", 14);
-        save.Position = new Vector2(margin + 8, endTurn.Position.Y - 40);
-        save.Size = new Vector2(half, 32);
-        save.TooltipText = "F5";
-        save.Pressed += () => SavePressed?.Invoke();
-        panel.AddChild(save);
-        var load = MakeButton("Charger", 14);
-        load.Position = new Vector2(margin + 8 + half + 8, save.Position.Y);
-        load.Size = save.Size;
-        load.TooltipText = "F9";
-        load.Pressed += () => LoadPressed?.Invoke();
-        panel.AddChild(load);
-
-        _log = At(MakeLabel("", 13, TextColor), margin, y);
-        _log.Size = new Vector2(innerWidth, save.Position.Y - 10 - y);
+        // ---- Journal : en bas de la carte, sur un fond transparent (les clics passent à travers)
+        var logBox = new Panel
+        {
+            Position = new Vector2(8, screenSize.Y - 8 - LogHeight),
+            Size = new Vector2(Math.Min(620, panelX - 16), LogHeight),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        logBox.AddThemeStyleboxOverride("panel", Box(new Color(PanelColor, 0.75f), BorderColor, 1, 1, 1, 1, radius: 4));
+        AddChild(logBox);
+        _log = At(MakeLabel("", 13, TextColor), 10, 4);
+        _log.Size = logBox.Size - new Vector2(20, 8);
         _log.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _log.VerticalAlignment = VerticalAlignment.Bottom;
         _log.ClipText = true;
-        panel.AddChild(_log);
+        _log.MouseFilter = Control.MouseFilterEnum.Ignore;
+        logBox.AddChild(_log);
 
         if (state.CurrentHero is { } hero)
             AddMessage(Texts.Welcome(hero));

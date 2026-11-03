@@ -5,8 +5,8 @@ using HoMM.Core;
 namespace HoMM.Game;
 
 /// <summary>
-/// Dessin procédural des tuiles, des objets et du héros (aucune image nécessaire).
-/// Plus tard, on pourra remplacer ces fonctions par de vrais sprites.
+/// Dessin des tuiles, des objets et du héros. Chaque élément utilise son image quand elle existe
+/// (voir <see cref="Art"/>), sinon un dessin par formes (aucune image nécessaire).
 /// Toutes les méthodes s'appellent depuis le _Draw() d'un CanvasItem.
 /// </summary>
 public static class MapRenderer
@@ -67,6 +67,14 @@ public static class MapRenderer
 
     public static void DrawTile(CanvasItem ci, TerrainType terrain, Vector2 o, Random rng)
     {
+        if (Art.Terrain(terrain, rng.Next()) is { } image)
+        {
+            ci.DrawTextureRect(image, new Rect2(o, T, T), false);
+            // en attendant des forêts dessinées comme objets : des sapins par-dessus l'image, pour qu'on les reconnaisse
+            if (terrain == TerrainType.Forest)
+                DrawTrees(ci, o, rng, outlined: true);
+            return;
+        }
         var baseColor = TerrainColor(terrain);
         ci.DrawRect(new Rect2(o, T, T), Vary(baseColor, rng, 6));
 
@@ -86,12 +94,7 @@ public static class MapRenderer
                 break;
 
             case TerrainType.Forest:
-                for (int i = 0; i < 3; i++)
-                {
-                    var p = o + V(rng.Next(8, T - 8), rng.Next(14, T - 4));
-                    ci.DrawRect(new Rect2(p + V(-2, 0), 4, 6), Rgb(80, 55, 30));
-                    Triangle(ci, p + V(0, -18), p + V(-10, 2), p + V(10, 2), Vary(Rgb(30, 80, 35), rng, 15));
-                }
+                DrawTrees(ci, o, rng, outlined: false);
                 break;
 
             case TerrainType.Water:
@@ -111,10 +114,32 @@ public static class MapRenderer
         }
     }
 
+    /// <summary>Trois sapins sur une case ; <paramref name="outlined"/> les détoure de sombre (sur une image de forêt).</summary>
+    private static void DrawTrees(CanvasItem ci, Vector2 o, Random rng, bool outlined)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            var p = o + V(rng.Next(8, T - 8), rng.Next(14, T - 4));
+            if (outlined)
+            {
+                ci.DrawRect(new Rect2(p + V(-3, -1), 6, 8), Rgb(25, 20, 12));
+                Triangle(ci, p + V(0, -21), p + V(-12, 3), p + V(12, 3), Rgb(12, 30, 15));
+            }
+            ci.DrawRect(new Rect2(p + V(-2, 0), 4, 6), Rgb(80, 55, 30));
+            var green = outlined ? Rgb(50, 115, 50) : Rgb(30, 80, 35);
+            Triangle(ci, p + V(0, -18), p + V(-10, 2), p + V(10, 2), Vary(green, rng, 15));
+        }
+    }
+
     // ---------------------------------------------------------------- ressources
 
     public static void DrawResourceIcon(CanvasItem ci, ResourceType resource, Vector2 c, float r = 7)
     {
+        if (Art.Get($"icons/{Art.Name(resource)}") is { } image)
+        {
+            Art.DrawSprite(ci, image, new Rect2(c - V(2 * r, 2 * r), 4 * r, 4 * r));
+            return;
+        }
         var color = ResourceColor(resource);
         switch (resource)
         {
@@ -136,9 +161,32 @@ public static class MapRenderer
 
     // -------------------------------------------------------------------- objets
 
+    /// <summary>L'image d'un objet de la carte, s'il en a une.</summary>
+    private static Texture2D? ObjectImage(MapObject obj) => obj switch
+    {
+        ResourcePile pile => Art.Get($"objects/pile-{Art.Name(pile.Resource)}"),
+        TreasureChest => Art.Get("objects/chest"),
+        Mine mine => Art.Get($"objects/mine-{Art.Name(mine.Resource)}"),
+        MonsterGuard guard => Art.Get($"creatures/{guard.Type.Id}"),
+        Town => Art.Get("objects/town"),
+        _ => null,
+    };
+
     public static void DrawObject(CanvasItem ci, MapObject obj, Vector2 o, double time)
     {
         var c = o + V(T / 2f, T / 2f);
+        if (ObjectImage(obj) is { } image)
+        {
+            // Une ville occupe 3×3 cases : son entrée (o) est au milieu de la rangée du bas
+            var area = obj is Town ? new Rect2(o + V(-T, -2 * T), 3 * T, 3 * T) : new Rect2(o, T, T);
+            Art.DrawSprite(ci, image, area);
+            // Le drapeau du propriétaire reste dessiné par-dessus
+            if (obj is Mine mine)
+                DrawFlag(ci, c + V(-14, -2), mine.Owner != null ? PlayerColor : NeutralColor, 0);
+            else if (obj is Town town)
+                DrawFlag(ci, area.Position + V(1.5f * T, 4), town.Owner != null ? PlayerColor : NeutralColor, time);
+            return;
+        }
         switch (obj)
         {
             case ResourcePile pile:
@@ -159,9 +207,7 @@ public static class MapRenderer
                 Triangle(ci, c + V(-20, 16), c + V(0, -14), c + V(20, 16), Rgb(90, 80, 70));
                 Ellipse(ci, new Rect2(c + V(-7, 2), 14, 14), Rgb(20, 15, 10));
                 DrawResourceIcon(ci, mine.Resource, c + V(13, 12), 6);
-                ci.DrawLine(c + V(-14, -2), c + V(-14, -20), Rgb(60, 40, 20), 2);
-                var flag = mine.Owner != null ? PlayerColor : Rgb(200, 200, 200);
-                Triangle(ci, c + V(-13, -20), c + V(-2, -16), c + V(-13, -12), flag);
+                DrawFlag(ci, c + V(-14, -2), mine.Owner != null ? PlayerColor : NeutralColor, 0);
                 break;
 
             case MonsterGuard guard:
@@ -176,6 +222,14 @@ public static class MapRenderer
     }
 
     public static readonly Color NeutralColor = Rgb(200, 200, 200);
+
+    /// <summary>Un drapeau sur son mât, planté en <paramref name="foot"/> (il flotte si <paramref name="time"/> avance).</summary>
+    private static void DrawFlag(CanvasItem ci, Vector2 foot, Color color, double time)
+    {
+        float wave = (int)(time * 3) % 2 == 1 ? 3 : 0;
+        ci.DrawLine(foot, foot + V(0, -18), Rgb(60, 40, 20), 2);
+        Triangle(ci, foot + V(1, -18), foot + V(12, -14 + wave), foot + V(1, -10), color);
+    }
 
     /// <summary>
     /// Un château sur 3×3 cases (<paramref name="c"/> en est le centre) : remparts, quatre tours,
@@ -254,6 +308,11 @@ public static class MapRenderer
     /// <summary>Un cavalier très stylisé avec son étendard.</summary>
     public static void DrawHero(CanvasItem ci, Vector2 c, double time)
     {
+        if (Art.Get("heroes/hero") is { } image)
+        {
+            Art.DrawSprite(ci, image, new Rect2(c - V(T / 2f, T / 2f + 4), T, T));
+            return;
+        }
         var horse = Rgb(240, 235, 225);
         Ellipse(ci, new Rect2(c + V(-14, 10), 28, 8), new Color(0, 0, 0, 0.5f));
         Ellipse(ci, new Rect2(c + V(-13, -2), 26, 14), horse);

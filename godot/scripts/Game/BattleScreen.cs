@@ -27,6 +27,9 @@ public partial class BattleScreen : CanvasLayer
     private Label _title = null!;
     private Label _message = null!;
     private HBoxContainer _order = null!;
+
+    /// <summary>Hauteur de la bande de l'ordre de jeu, en bas de l'écran.</summary>
+    private const int OrderHeight = 64;
     private BattleFieldView _field = null!;
     private Button _waitButton = null!, _defendButton = null!, _autoButton = null!, _fleeButton = null!;
 
@@ -42,39 +45,70 @@ public partial class BattleScreen : CanvasLayer
         root.AddThemeStyleboxOverride("panel", Frame(DarkPanelColor));
         AddChild(root);
 
-        _title = At(MakeLabel("", 20, TextColor), 24, 12);
+        // En bas, sur une ligne (comme dans Heroes V) : le round, l'ordre de jeu complet (une bande de portraits),
+        // et les boutons à droite
+        float barY = screenSize.Y - 10 - OrderHeight;
+        // les boutons, en une rangée à droite qui prend la largeur de leurs textes
+        var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.End };
+        buttons.AddThemeConstantOverride("separation", 6);
+        _waitButton = AddButton(buttons, Texts.BattleWait, () => Player(b => b.Wait()));
+        _defendButton = AddButton(buttons, Texts.BattleDefend, () => Player(b => b.Defend()));
+        _autoButton = AddButton(buttons, Texts.BattleAuto, () => _auto = true);
+        _fleeButton = AddButton(buttons, Texts.BattleFlee, () => Player(b => b.Flee()));
+        float buttonsWidth = buttons.GetCombinedMinimumSize().X;
+        buttons.Position = new Vector2(screenSize.X - 16 - buttonsWidth, barY + (OrderHeight - 40) / 2f);
+        buttons.Size = new Vector2(buttonsWidth, 40);
+        root.AddChild(buttons);
+
+        _title = At(MakeLabel("", 16, TextColor), 16, barY);
+        _title.Size = new Vector2(RoundWidth, OrderHeight);
+        _title.VerticalAlignment = VerticalAlignment.Center;
+        _title.MouseFilter = Control.MouseFilterEnum.Pass; // pour son info-bulle (l'adversaire)
         root.AddChild(_title);
-        // l'ordre de jeu, à droite du titre (la troupe qui joue la plus à gauche)
-        _order = new HBoxContainer { Position = new Vector2(screenSize.X - 24 - 700, 6), Size = new Vector2(700, 48), Alignment = BoxContainer.AlignmentMode.End };
+        _order = new HBoxContainer
+        {
+            Position = new Vector2(16 + RoundWidth + 8, barY),
+            Size = new Vector2(buttons.Position.X - 16 - RoundWidth - 8 - 16, OrderHeight),
+            ClipContents = true,
+        };
         _order.AddThemeConstantOverride("separation", 4);
         root.AddChild(_order);
 
+        // Le champ de bataille, centré dessous (de la place reste de chaque côté : héros, machines de guerre…),
+        // sous la ligne de la dernière action
         _field = new BattleFieldView();
         var size = BattleFieldView.FieldSize;
-        _field.Position = new Vector2((screenSize.X - size.X) / 2, 62);
+        const float bandHeight = 32, bandGap = 6;
+        float top = 10 + bandHeight + bandGap;
+        _field.Position = new Vector2((screenSize.X - size.X) / 2, top + (barY - 8 - top - size.Y) / 2);
         _field.Clicked += OnClicked;
         root.AddChild(_field);
 
-        float y = screenSize.Y - 52;
-        _message = At(MakeLabel("", 14, TextColor), 24, y + 8);
-        _message.Size = new Vector2(screenSize.X - 24 - 4 * 136 - 24, 30);
+        // La dernière action, sur une ligne au-dessus du champ
+        var band = new Panel
+        {
+            Position = new Vector2(_field.Position.X, _field.Position.Y - bandGap - bandHeight),
+            Size = new Vector2(size.X, bandHeight),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        band.AddThemeStyleboxOverride("panel", Box(PanelColor, BorderColor, 1, 1, 1, 1));
+        root.AddChild(band);
+        _message = At(MakeLabel("", 14, TextColor), 10, 4);
+        _message.Size = band.Size - new Vector2(20, 8);
         _message.ClipText = true;
-        root.AddChild(_message);
-        float x = screenSize.X - 24 - 4 * 136;
-        _waitButton = AddButton(root, Texts.BattleWait, ref x, y, () => Player(b => b.Wait()));
-        _defendButton = AddButton(root, Texts.BattleDefend, ref x, y, () => Player(b => b.Defend()));
-        _autoButton = AddButton(root, Texts.BattleAuto, ref x, y, () => _auto = true);
-        _fleeButton = AddButton(root, Texts.BattleFlee, ref x, y, () => Player(b => b.Flee()));
+        _message.VerticalAlignment = VerticalAlignment.Center;
+        band.AddChild(_message);
     }
 
-    private static Button AddButton(Control parent, string text, ref float x, float y, Action pressed)
+    /// <summary>Largeur de « Round 2 », au début de la ligne du bas.</summary>
+    private const float RoundWidth = 96;
+
+    private static Button AddButton(Control parent, string text, Action pressed)
     {
-        var button = MakeButton(text, 15);
-        button.Position = new Vector2(x, y);
-        button.Size = new Vector2(130, 40);
+        var button = MakeButton(text, 14);
+        button.CustomMinimumSize = new Vector2(96, 40);
         button.Pressed += pressed;
         parent.AddChild(button);
-        x += 136;
         return button;
     }
 
@@ -86,7 +120,8 @@ public partial class BattleScreen : CanvasLayer
         _auto = auto;
         _wait = 0.5;
         _opponent = enemy;
-        _title.Text = Texts.BattleTitle(enemy);
+        _title.Text = Texts.BattleRound(1);
+        _title.TooltipText = Texts.BattleTitle(enemy);
         _message.Text = "";
         _field.Start(battle, terrain);
         Visible = true;
@@ -119,10 +154,11 @@ public partial class BattleScreen : CanvasLayer
 
     private void Show(System.Collections.Generic.List<BattleAction> actions)
     {
-        _field.Show(actions);
-        foreach (var action in actions)
+        _field.Show(actions, action =>
+        {
             if (Texts.BattleMessage(action) is { } text)
                 _message.Text = text;
+        });
     }
 
     public override void _Process(double delta)
@@ -155,7 +191,7 @@ public partial class BattleScreen : CanvasLayer
         var battle = _battle!;
         var unit = battle.Active;
         bool mine = IsPlayerTurn;
-        _title.Text = $"{Texts.BattleTitle(_opponent)} · {Texts.BattleRound(battle.Round)}";
+        _title.Text = Texts.BattleRound(battle.Round);
         foreach (var button in new[] { _waitButton, _defendButton, _fleeButton })
             button.Disabled = !mine;
         _waitButton.Disabled = !mine || unit!.HasWaited;
@@ -185,11 +221,17 @@ public partial class BattleScreen : CanvasLayer
 
     private string? _orderKey;
 
-    /// <summary>La barre de l'ordre de jeu : les images des troupes qui vont jouer dans ce round, la première encadrée.</summary>
+    /// <summary>
+    /// L'ordre de jeu complet, de gauche à droite : d'abord les troupes qui jouent encore dans ce round (la première
+    /// encadrée d'or), puis, après « Round suivant » et plus pâles, celles qui ont déjà joué. Chaque case : l'image de
+    /// la créature et son nombre, sur la couleur du camp.
+    /// </summary>
     private void RefreshOrder(TacticalBattle battle)
     {
-        var order = battle.TurnOrder;
-        string key = string.Join(",", order.Select(u => $"{u.Id}:{u.Count}"));
+        var coming = battle.TurnOrder;
+        var played = battle.InitiativeOrder.Where(u => !coming.Contains(u)).ToList();
+        string key = string.Join(",", coming.Select(u => $"{u.Id}:{_field.ShownCount(u)}")) + "|"
+            + string.Join(",", played.Select(u => $"{u.Id}:{_field.ShownCount(u)}"));
         if (key == _orderKey)
             return;
         _orderKey = key;
@@ -198,19 +240,41 @@ public partial class BattleScreen : CanvasLayer
             _order.RemoveChild(child);
             child.QueueFree();
         }
-        foreach (var (unit, i) in order.Take(12).Select((u, i) => (u, i)))
+        // les troupes tuées restent affichées tant que le coup n'est pas montré
+        foreach (var (unit, i) in coming.Where(u => _field.ShownCount(u) > 0).Select((u, i) => (u, i)))
+            _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), i == 0, dim: false));
+        var next = played.Where(u => _field.ShownCount(u) > 0).ToList();
+        if (next.Count > 0)
         {
-            var slot = new PanelContainer { CustomMinimumSize = new Vector2(54, 46) };
-            slot.AddThemeStyleboxOverride("panel", Box(unit.Side == BattleSide.Attacker ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30),
-                i == 0 ? MapRenderer.Rgb(240, 200, 80) : DimColor, 2, 2, 2, 2));
-            slot.TooltipText = Texts.Stack(unit.Stack);
-            if (CreatureImage(unit.Type) is { } picture)
-            {
-                picture.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
-                slot.AddChild(picture);
-            }
-            _order.AddChild(slot);
+            var label = MakeLabel(Texts.BattleNextRound, 12, SoftTextColor);
+            label.VerticalAlignment = VerticalAlignment.Center;
+            label.CustomMinimumSize = new Vector2(0, OrderHeight);
+            _order.AddChild(label);
+            foreach (var unit in next)
+                _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), false, dim: true));
         }
+    }
+
+    private static Control OrderSlot(BattleUnit unit, int count, bool active, bool dim)
+    {
+        var slot = new PanelContainer { CustomMinimumSize = new Vector2(58, OrderHeight), TooltipText = Texts.Stack(new CreatureStack(unit.Type, count)) };
+        var side = unit.Side == BattleSide.Attacker ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30);
+        int border = active ? 3 : 1;
+        slot.AddThemeStyleboxOverride("panel", Box(side, active ? MapRenderer.Rgb(240, 200, 80) : DimColor, border, border, border, border));
+        if (dim)
+            slot.Modulate = new Color(1, 1, 1, 0.5f);
+        var column = new VBoxContainer();
+        column.AddThemeConstantOverride("separation", 0);
+        if (CreatureImage(unit.Type) is { } picture)
+        {
+            picture.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+            column.AddChild(picture);
+        }
+        var number = MakeLabel(count.ToString(), 12, TextColor);
+        number.HorizontalAlignment = HorizontalAlignment.Center;
+        column.AddChild(number);
+        slot.AddChild(column);
+        return slot;
     }
 
     private void Close()

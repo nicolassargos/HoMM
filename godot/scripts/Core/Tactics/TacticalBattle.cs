@@ -114,6 +114,10 @@ public sealed class TacticalBattle
 
     public IEnumerable<BattleUnit> Alive(BattleSide side) => _units.Where(u => u.IsAlive && u.Side == side);
 
+    /// <summary>Toutes les troupes vivantes dans l'ordre d'initiative : de la plus rapide à la plus lente (l'ordre d'un round).</summary>
+    public IReadOnlyList<BattleUnit> InitiativeOrder =>
+        _units.Where(u => u.IsAlive).OrderByDescending(u => u.Type.Speed).ThenBy(u => u.Side).ThenBy(u => u.Slot).ToList();
+
     /// <summary>Qui joue encore dans ce round, dans l'ordre : la troupe active, puis les suivantes, puis celles qui attendent.</summary>
     public IReadOnlyList<BattleUnit> TurnOrder =>
         (Active is { } active ? new[] { active } : Array.Empty<BattleUnit>())

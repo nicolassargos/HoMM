@@ -15,7 +15,7 @@ namespace HoMM.Game;
 public partial class BattleFieldView : Control
 {
     /// <summary>Taille d'une case : largeur (écart entre deux colonnes) et hauteur (pointe à pointe).</summary>
-    public const float HexWidth = 70, HexHeight = 80;
+    public const float HexWidth = 73, HexHeight = 84;
     private const float RowStep = HexHeight * 0.75f;
     private const int SpriteScale = 3;
 
@@ -56,6 +56,7 @@ public partial class BattleFieldView : Control
         CustomMinimumSize = FieldSize;
         Size = FieldSize;
         TextureFilter = TextureFilterEnum.Nearest;
+        ClipContents = true; // le sol est fait de cases entières : la dernière dépasserait
         MouseFilter = MouseFilterEnum.Stop;
     }
 
@@ -105,11 +106,23 @@ public partial class BattleFieldView : Control
 
     public bool IsAnimating => _animations.Count > 0;
 
-    /// <summary>Ajoute au dessin ce que le combat vient de faire (déplacements, coups).</summary>
-    public void Show(IEnumerable<BattleAction> actions)
+    /// <summary>Le nombre de créatures affiché pour une troupe (il change au moment du coup, pas avant).</summary>
+    public int ShownCount(BattleUnit unit) => _shown.TryGetValue(unit, out var shown) ? shown.Count : unit.Count;
+
+    /// <summary>
+    /// Ajoute au dessin ce que le combat vient de faire (déplacements, coups). <paramref name="begin"/> est appelé quand
+    /// chaque action commence à être montrée (pour raconter le coup au bon moment).
+    /// </summary>
+    public void Show(IEnumerable<BattleAction> actions, Action<BattleAction>? begin = null)
     {
         foreach (var action in actions)
         {
+            var told = action;
+            _animations.Enqueue(_ =>
+            {
+                begin?.Invoke(told);
+                return true;
+            });
             switch (action)
             {
                 case UnitMoved moved:

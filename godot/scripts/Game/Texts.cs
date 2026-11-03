@@ -123,6 +123,7 @@ public static class Texts
 
     public static string BattleTitle(string opponent) => $"Combat contre {opponent}";
     public static string BattleRound(int round) => $"Round {round}";
+    public static string BattleNextRound => "Round suivant :";
 
     /// <summary>« 12 Archers tirent sur 30 Paysans : 18 dégâts, 18 tués. », ou null pour ce qui ne se raconte pas.</summary>
     public static string? BattleMessage(BattleAction action) => action switch

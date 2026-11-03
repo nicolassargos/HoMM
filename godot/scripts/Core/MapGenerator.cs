@@ -339,8 +339,19 @@ public sealed class MapGenerator
         if (!previous.ContainsKey(to))
             return;
         for (var c = to; c != from; c = previous[c])
-            _map.SetTerrain(c, TerrainType.Road);
-        _map.SetTerrain(from, TerrainType.Road);
+            PaveRoad(c);
+        PaveRoad(from);
+    }
+
+    /// <summary>
+    /// Pose la route sur une case. Le terrain reste (sable, marais…), sauf l'eau et la montagne, qui deviennent
+    /// de l'herbe pour qu'on puisse y passer, et la forêt, pour que les arbres ne cachent pas la route.
+    /// </summary>
+    private void PaveRoad(Cell c)
+    {
+        _map.SetRoad(c, true);
+        if (_map.GetTerrain(c) is TerrainType.Water or TerrainType.Mountain or TerrainType.Forest)
+            _map.SetTerrain(c, TerrainType.Grass);
     }
 
     /// <summary>Le danger d'une case, de 0 (départ) à 1 (zone la plus lointaine).</summary>
@@ -400,7 +411,7 @@ public sealed class MapGenerator
         var candidates = AllCells()
             .Where(c => _zoneOf[c.X, c.Y] == zone.Index)
             .Where(c => Around(c.Offset(0, -1), 2).All(Free))
-            .Where(c => Town.FootprintAt(c).All(f => _map.GetTerrain(f) != TerrainType.Road))
+            .Where(c => Town.FootprintAt(c).All(f => !_map.HasRoad(f)))
             .OrderBy(c => SquaredDistance(c, zone.Center)).ThenBy(c => c.Y).ThenBy(c => c.X)
             .Take(5).ToList();
         if (candidates.Count == 0)
@@ -528,7 +539,7 @@ public sealed class MapGenerator
         var start = _map.Start;
         var free = ReachableCells()
             .Where(c => Math.Abs(c.X - start.X) + Math.Abs(c.Y - start.Y) > 2)
-            .Where(c => _map.GetTerrain(c) != TerrainType.Road)
+            .Where(c => !_map.HasRoad(c))
             .Where(c => _map.ObjectAt(c) == null && DistanceToNearestTown(c) > 1) // l'entrée de la ville reste libre
             .Where(c => !_reserved.Contains(c)) // les passages restent libres
             .OrderBy(c => c.Y).ThenBy(c => c.X) // ordre stable avant le mélange

@@ -25,7 +25,6 @@ public partial class SmoothGround : ColorRect
     public static int Rank(TerrainType terrain) => terrain switch
     {
         TerrainType.Water => 0,
-        TerrainType.Road => 1,
         TerrainType.Sand => 2,
         TerrainType.Swamp => 3,
         _ => 4, // herbe (et le sol des forêts et des montagnes)
@@ -51,6 +50,16 @@ public partial class SmoothGround : ColorRect
         }
     }
 
+    /// <summary>L'image de la route (art/terrain/road.png), ou sa couleur unie.</summary>
+    private static Texture2D RoadTile(Vector2I size)
+    {
+        if (Art.GetImage("terrain/road") is { } image && image.GetSize() == size)
+            return ImageTexture.CreateFromImage(image);
+        var plain = Image.CreateEmpty(size.X, size.Y, false, Image.Format.Rgba8);
+        plain.Fill(MapRenderer.RoadColor);
+        return ImageTexture.CreateFromImage(plain);
+    }
+
     /// <summary>
     /// Le sol de la carte, ou null s'il manque le shader ou les images des terrains
     /// (le sol est alors dessiné case par case, sans bords).
@@ -65,10 +74,20 @@ public partial class SmoothGround : ColorRect
             return null;
         var size = grass.GetSize();
 
-        // Deux couches par terrain : l'image et sa variante (terrain/grass-2.png), ou deux fois l'image
+        // Deux couches par numéro de terrain : l'image et sa variante (terrain/grass-2.png), ou deux fois l'image.
+        // Les numéros sans terrain (le 1, ancienne route) ont des couches vides, pour que la couche = numéro × 2.
         var tiles = new Godot.Collections.Array<Image>();
-        foreach (var terrain in terrains)
+        int maxId = terrains.Max(t => (int)t);
+        for (int id = 0; id <= maxId; id++)
         {
+            if (!Enum.IsDefined(typeof(TerrainType), id))
+            {
+                var empty = Image.CreateEmpty(size.X, size.Y, false, Image.Format.Rgba8);
+                tiles.Add(empty);
+                tiles.Add(empty);
+                continue;
+            }
+            var terrain = (TerrainType)id;
             var image = Art.GetImage($"terrain/{Art.Name(terrain)}");
             if (image == null || image.GetSize() != size)
             {
@@ -87,18 +106,19 @@ public partial class SmoothGround : ColorRect
         tileArray.CreateFromImages(tiles);
 
         // Le terrain de chaque case ; les forêts et les montagnes ont un sol d'herbe (leur décor est dessiné à part)
-        var cells = Image.CreateEmpty(map.Width, map.Height, false, Image.Format.R8);
+        var cells = Image.CreateEmpty(map.Width, map.Height, false, Image.Format.Rg8);
         for (int y = 0; y < map.Height; y++)
         for (int x = 0; x < map.Width; x++)
         {
             var terrain = map.GetTerrain(new Cell(x, y));
             var ground = DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
-            cells.SetPixel(x, y, new Color((int)ground / 255f, 0, 0));
+            cells.SetPixel(x, y, new Color((int)ground / 255f, map.HasRoad(new Cell(x, y)) ? 1 : 0, 0));
         }
 
         var material = new ShaderMaterial { Shader = new Shader { Code = Godot.FileAccess.GetFileAsString(ShaderPath) } };
         material.SetShaderParameter("terrain_map", ImageTexture.CreateFromImage(cells));
         material.SetShaderParameter("tiles", tileArray);
+        material.SetShaderParameter("road_tile", RoadTile(size));
         material.SetShaderParameter("variants", Variants);
         material.SetShaderParameter("map_cells", new Vector2I(map.Width, map.Height));
         var ranks = new int[8];

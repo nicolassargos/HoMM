@@ -7,6 +7,7 @@ namespace HoMM.Core;
 public sealed class AdventureMap
 {
     private readonly TerrainType[,] _terrain;
+    private readonly bool[,] _road;
     private readonly Dictionary<Cell, MapObject> _objects = new();   // par case de visite
     private readonly Dictionary<int, MapObject> _byId = new();
     private int _nextObjectId = 1;
@@ -17,6 +18,7 @@ public sealed class AdventureMap
         Width = width;
         Height = height;
         _terrain = new TerrainType[width, height];
+        _road = new bool[width, height];
     }
 
     public int Width { get; }
@@ -30,7 +32,12 @@ public sealed class AdventureMap
     public TerrainType GetTerrain(Cell c) => _terrain[c.X, c.Y];
     public void SetTerrain(Cell c, TerrainType terrain) => _terrain[c.X, c.Y] = terrain;
 
-    public int MoveCost(Cell c) => TerrainInfo.MoveCost(GetTerrain(c));
+    /// <summary>Une route passe-t-elle sur cette case ? La route est posée sur le terrain, sans le remplacer.</summary>
+    public bool HasRoad(Cell c) => _road[c.X, c.Y];
+    public void SetRoad(Cell c, bool road) => _road[c.X, c.Y] = road;
+
+    /// <summary>Coût pour quitter cette case : celui de la route s'il y en a une, sinon celui du terrain.</summary>
+    public int MoveCost(Cell c) => HasRoad(c) ? TerrainInfo.RoadCost : TerrainInfo.MoveCost(GetTerrain(c));
 
     /// <summary>
     /// Peut-on marcher sur cette case ? Non pour l'eau, la montagne, et les cases occupées

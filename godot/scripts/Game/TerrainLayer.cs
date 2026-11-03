@@ -31,6 +31,11 @@ public partial class TerrainLayer : Node2D
         var rng = new Random(1);
         for (int y = 0; y < Map.Height; y++)
         for (int x = 0; x < Map.Width; x++)
-            MapRenderer.DrawTile(this, Map.GetTerrain(new Cell(x, y)), new Vector2(x, y) * MapRenderer.TileSize, rng);
+        {
+            var o = new Vector2(x, y) * MapRenderer.TileSize;
+            MapRenderer.DrawTile(this, Map.GetTerrain(new Cell(x, y)), o, rng);
+            if (Map.HasRoad(new Cell(x, y)))
+                MapRenderer.DrawRoad(this, o, rng);
+        }
     }
 }

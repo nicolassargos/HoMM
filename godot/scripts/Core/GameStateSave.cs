@@ -14,7 +14,11 @@ namespace HoMM.Core;
 public sealed partial class GameState
 {
     /// <summary>Version du format. À augmenter si le format change (une ancienne sauvegarde est alors refusée).</summary>
-    public const int SaveVersion = 1;
+    /// <summary>
+    /// Version 2 : les routes sont une couche à part (<see cref="MapData.Roads"/>). Une sauvegarde de la version 1
+    /// (où la route était un terrain, le numéro 1) est encore lue : ses routes deviennent de l'herbe avec une route.
+    /// </summary>
+    public const int SaveVersion = 2;
 
     private static readonly JsonSerializerOptions SaveOptions = new()
     {
@@ -31,8 +35,12 @@ public sealed partial class GameState
         ulong Random, int NextPlayerId, int NextHeroId,
         MapData Map, List<PlayerData> Players, List<HeroData> Heroes, List<ChoiceData> Choices);
 
-    /// <summary>Le terrain : une ligne de chiffres par rangée de la carte (le numéro du terrain).</summary>
-    private sealed record MapData(int Width, int Height, Cell Start, List<string> Terrain, List<ObjectData> Objects);
+    /// <summary>
+    /// Le terrain : une ligne de chiffres par rangée de la carte (le numéro du terrain). Les routes : une ligne
+    /// par rangée, « 1 » pour une case avec une route, « 0 » sinon (absentes dans la version 1).
+    /// </summary>
+    private sealed record MapData(int Width, int Height, Cell Start, List<string> Terrain, List<ObjectData> Objects,
+        List<string>? Roads = null);
 
     /// <summary>Un objet de la carte. <paramref name="Kind"/> dit lequel ; seuls ses champs sont remplis.</summary>
     private sealed record ObjectData(
@@ -79,8 +87,11 @@ public sealed partial class GameState
         var terrain = new List<string>();
         for (int y = 0; y < Map.Height; y++)
             terrain.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => (char)('0' + (int)Map.GetTerrain(new Cell(x, y))))));
+        var roads = new List<string>();
+        for (int y = 0; y < Map.Height; y++)
+            roads.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => Map.HasRoad(new Cell(x, y)) ? '1' : '0')));
         var objects = Map.Objects.OrderBy(o => o.Id).Select(SaveObject).ToList();
-        return new MapData(Map.Width, Map.Height, Map.Start, terrain, objects);
+        return new MapData(Map.Width, Map.Height, Map.Start, terrain, objects, roads);
     }
 
     private static ObjectData SaveObject(MapObject obj) => obj switch
@@ -118,7 +129,7 @@ public sealed partial class GameState
         }
         if (save == null)
             throw new FormatException("sauvegarde vide");
-        if (save.Version != SaveVersion)
+        if (save.Version is not (1 or SaveVersion))
             throw new FormatException($"version de sauvegarde inconnue : {save.Version} (attendue : {SaveVersion})");
         try
         {
@@ -211,18 +222,38 @@ public sealed partial class GameState
         return state;
     }
 
+    /// <summary>Le numéro de la route quand elle était un terrain (sauvegardes de la version 1).</summary>
+    private const int OldRoadTerrain = 1;
+
     private static AdventureMap RestoreMap(MapData m)
     {
         var map = new AdventureMap(m.Width, m.Height) { Start = m.Start };
         if (m.Terrain.Count != m.Height || m.Terrain.Any(row => row.Length != m.Width))
             throw new FormatException("terrain de taille incorrecte");
+        if (m.Roads != null && (m.Roads.Count != m.Height || m.Roads.Any(row => row.Length != m.Width)))
+            throw new FormatException("routes de taille incorrecte");
         for (int y = 0; y < m.Height; y++)
         for (int x = 0; x < m.Width; x++)
         {
+            var cell = new Cell(x, y);
             int terrain = m.Terrain[y][x] - '0';
+            // version 1 : le terrain 1 était la route
+            if (terrain == OldRoadTerrain && m.Roads == null)
+            {
+                map.SetTerrain(cell, TerrainType.Grass);
+                map.SetRoad(cell, true);
+                continue;
+            }
             if (!Enum.IsDefined(typeof(TerrainType), terrain))
                 throw new FormatException($"terrain inconnu en ({x}, {y})");
-            map.SetTerrain(new Cell(x, y), (TerrainType)terrain);
+            map.SetTerrain(cell, (TerrainType)terrain);
+            if (m.Roads != null)
+                map.SetRoad(cell, m.Roads[y][x] switch
+                {
+                    '1' => true,
+                    '0' => false,
+                    _ => throw new FormatException($"route illisible en ({x}, {y})"),
+                });
         }
         return map;
     }

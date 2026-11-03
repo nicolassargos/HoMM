@@ -17,7 +17,7 @@ public static class Pathfinder
     /// </summary>
     public const int GuardPenalty = 100_000;
 
-    private static readonly int MinStepCost = TerrainInfo.MoveCost(TerrainType.Road);
+    private static readonly int MinStepCost = TerrainInfo.RoadCost;
     private static readonly int MinDiagonalCost = (int)(MinStepCost * Math.Sqrt(2));
 
     /// <summary>

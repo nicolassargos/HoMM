@@ -29,10 +29,12 @@ public static class Texts
         _ => resource.ToString(),
     };
 
+    /// <summary>Ajouté au nom du terrain quand une route y passe (« Sable, route »).</summary>
+    public static string WithRoad => "route";
+
     public static string Terrain(TerrainType terrain) => terrain switch
     {
         TerrainType.Grass => "Herbe",
-        TerrainType.Road => "Route",
         TerrainType.Forest => "Forêt",
         TerrainType.Sand => "Sable",
         TerrainType.Swamp => "Marais",

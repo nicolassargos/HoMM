@@ -3,7 +3,10 @@ using Xunit;
 
 namespace HoMM.Core.Tests;
 
-/// <summary>Un ange ne doit pas tomber sous un millier de paysans, avec un héros de départ.</summary>
+/// <summary>
+/// Un ange ne doit pas tomber sous un millier de paysans, avec un héros de départ. (Avec ses capacités, il vole et
+/// frappe sans riposte ; avec 1200 PV et 80 de dégâts, il en faut environ 1560.)
+/// </summary>
 public class AngelTests
 {
     private static bool Wins(int peasants, Hero hero)

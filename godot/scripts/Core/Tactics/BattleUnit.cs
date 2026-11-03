@@ -14,7 +14,44 @@ public static class Ability
     /// <summary>Tire aussi bien de près que de loin : pas de dégâts réduits à longue distance (elfes, sorts…).</summary>
     public const string NoRangePenalty = "no-range-penalty";
 
-    public static readonly string[] Known = { Shoots, NoRangePenalty };
+    /// <summary>Vole : passe au-dessus des obstacles et des troupes (sa vitesse, à vol d'oiseau).</summary>
+    public const string Flies = "flies";
+
+    /// <summary>Riposte deux fois par round (Griffon).</summary>
+    public const string DoubleRetaliation = "double-retaliation";
+
+    /// <summary>Sa cible ne peut pas riposter (Ange).</summary>
+    public const string NoRetaliation = "no-retaliation";
+
+    /// <summary>Souffle : l'attaque touche aussi la troupe juste derrière la cible, amie ou ennemie (Dragon).</summary>
+    public const string Breath = "breath";
+
+    /// <summary>Les tirs contre elle font moitié moins de dégâts (bouclier de l'Épéiste, os du Squelette).</summary>
+    public const string RangedResistance = "ranged-resistance";
+
+    /// <summary>Charge : +5 % de dégâts par case parcourue avant d'attaquer (Cavalier).</summary>
+    public const string Charge = "charge";
+
+    /// <summary>+2 de vitesse au premier round (Gobelin : une embuscade).</summary>
+    public const string QuickStart = "quick-start";
+
+    /// <summary>Frappe deux fois (Loup) ; la cible ne riposte qu'une fois.</summary>
+    public const string DoubleAttack = "double-attack";
+
+    /// <summary>Tir court : moitié des dégâts au-delà de 3 cases au lieu de 6 (haches de l'Orc).</summary>
+    public const string ShortRange = "short-range";
+
+    /// <summary>Coup écrasant : ignore 40 % de la défense de la cible (Ogre).</summary>
+    public const string Crushing = "crushing";
+
+    /// <summary>Se régénère : sa créature de tête retrouve tous ses points de vie au début de chacun de ses tours (Troll).</summary>
+    public const string Regenerates = "regenerates";
+
+    public static readonly string[] Known =
+    {
+        Shoots, NoRangePenalty, Flies, DoubleRetaliation, NoRetaliation, Breath, RangedResistance,
+        Charge, QuickStart, DoubleAttack, ShortRange, Crushing, Regenerates,
+    };
 }
 
 /// <summary>
@@ -58,8 +95,23 @@ public sealed class BattleUnit
     public int TopHitPoints { get; private set; }
 
     public bool IsAlive => Stack.Count > 0;
-    public bool CanShoot => Type.Abilities.Contains(Ability.Shoots);
-    public bool HasRangePenalty => !Type.Abilities.Contains(Ability.NoRangePenalty);
+    public bool CanShoot => Has(Ability.Shoots);
+
+    /// <summary>La troupe a-t-elle cette capacité (voir <see cref="Ability"/>) ?</summary>
+    public bool Has(string ability) => Type.Abilities.Contains(ability);
+    public bool HasRangePenalty => !Has(Ability.NoRangePenalty);
+
+    /// <summary>Ripostes par round : une, deux pour <see cref="Ability.DoubleRetaliation"/>.</summary>
+    public int RetaliationsPerRound => Has(Ability.DoubleRetaliation) ? 2 : 1;
+
+    /// <summary>Remet sa créature de tête à pleine santé (régénération).</summary>
+    internal bool Regenerate()
+    {
+        if (!IsAlive || TopHitPoints >= Type.HitPoints)
+            return false;
+        TopHitPoints = Type.HitPoints;
+        return true;
+    }
 
     /// <summary>Ripostes encore possibles dans ce round (une par round).</summary>
     public int RetaliationsLeft { get; internal set; } = 1;

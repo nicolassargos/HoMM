@@ -136,7 +136,8 @@ public partial class BattleFieldView : Control
                         start ??= shown.Position; // d'où elle part : là où elle est dessinée
                         t += delta;
                         var from = step == 0 ? start.Value : points[step - 1];
-                        float k = (float)Math.Min(1, t / 0.09);
+                        // une case de marche en 0,09 s ; un vol prend le temps de toutes les cases survolées
+                        float k = (float)Math.Min(1, t / (0.09 * Math.Max(1, from.DistanceTo(points[step]) / HexWidth)));
                         shown.Position = from.Lerp(points[step], k);
                         if (k < 1)
                             return false;

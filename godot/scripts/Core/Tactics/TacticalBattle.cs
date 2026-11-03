@@ -26,6 +26,9 @@ public sealed record UnitMoved(BattleUnit Unit, IReadOnlyList<Hex> Path) : Battl
 public sealed record UnitStruck(BattleUnit Attacker, BattleUnit Target, int Damage, int Killed, bool Ranged, bool Retaliation) : BattleAction;
 
 public sealed record UnitWaited(BattleUnit Unit) : BattleAction;
+
+/// <summary>La troupe s'est régénérée : sa créature de tête a retrouvé tous ses points de vie.</summary>
+public sealed record UnitRegenerated(BattleUnit Unit) : BattleAction;
 public sealed record UnitDefended(BattleUnit Unit) : BattleAction;
 
 /// <summary>Le héros s'enfuit : <paramref name="Losses"/>, les créatures perdues dans la fuite.</summary>
@@ -46,6 +49,18 @@ public sealed class TacticalBattle
 {
     /// <summary>Au-delà de cette distance, un tireur (sauf capacité <see cref="Ability.NoRangePenalty"/>) fait moitié moins de dégâts.</summary>
     public const int LongRange = 6;
+
+    /// <summary>La même limite pour un tir court (<see cref="Ability.ShortRange"/>).</summary>
+    public const int ShortRange = 3;
+
+    /// <summary>Bonus de charge par case parcourue avant l'attaque (+5 %).</summary>
+    public const double ChargeBonus = 0.05;
+
+    /// <summary>Part de la défense ignorée par un coup écrasant (40 %).</summary>
+    public const double CrushingShare = 0.4;
+
+    /// <summary>Vitesse en plus au premier round (<see cref="Ability.QuickStart"/>).</summary>
+    public const int QuickStartBonus = 2;
 
     /// <summary>Défense en plus quand une troupe se défend (+20 %).</summary>
     public const double DefendBonus = 0.2;
@@ -185,7 +200,7 @@ public sealed class TacticalBattle
         _log.Add(new RoundStarted(Round));
         foreach (var unit in _units)
         {
-            unit.RetaliationsLeft = 1;
+            unit.RetaliationsLeft = unit.RetaliationsPerRound;
             unit.HasWaited = false;
         }
         _queue.Clear();
@@ -223,6 +238,8 @@ public sealed class TacticalBattle
                 Active = next;
                 next.IsDefending = false; // la défense dure jusqu'à son prochain tour
                 _log.Add(new UnitTurn(next));
+                if (next.Has(Ability.Regenerates) && next.Regenerate())
+                    _log.Add(new UnitRegenerated(next));
                 return;
             }
             if (Round >= MaxRounds)
@@ -255,9 +272,29 @@ public sealed class TacticalBattle
 
     // ------------------------------------------------------------------ ce que peut faire la troupe active
 
-    /// <summary>Les cases où la troupe peut aller ce tour-ci (sa vitesse en pas, sans traverser obstacles ni troupes).</summary>
+    /// <summary>La vitesse de la troupe dans ce round (plus rapide au premier round avec <see cref="Ability.QuickStart"/>).</summary>
+    public int SpeedOf(BattleUnit unit) => unit.Type.Speed + (Round == 1 && unit.Has(Ability.QuickStart) ? QuickStartBonus : 0);
+
+    /// <summary>
+    /// Les cases où la troupe peut aller ce tour-ci, avec le chemin pour y aller : sa vitesse en pas, sans traverser
+    /// obstacles ni troupes ; une troupe qui vole va à vol d'oiseau sur toute case libre à sa portée (le chemin est
+    /// alors la seule case d'arrivée).
+    /// </summary>
     public Dictionary<Hex, List<Hex>> Reachable(BattleUnit unit)
     {
+        int speed = SpeedOf(unit);
+        if (unit.Has(Ability.Flies))
+        {
+            var flights = new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
+            for (int r = 0; r < Battlefield.Rows; r++)
+            for (int c = 0; c < Battlefield.Columns; c++)
+            {
+                var hex = new Hex(c, r);
+                if (hex != unit.Position && Field.IsOpen(hex) && UnitAt(hex) == null && unit.Position.DistanceTo(hex) <= speed)
+                    flights[hex] = new List<Hex> { hex };
+            }
+            return flights;
+        }
         var paths = new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
         var queue = new Queue<Hex>();
         queue.Enqueue(unit.Position);
@@ -265,7 +302,7 @@ public sealed class TacticalBattle
         {
             var hex = queue.Dequeue();
             var path = paths[hex];
-            if (path.Count >= unit.Type.Speed)
+            if (path.Count >= speed)
                 continue;
             foreach (var next in hex.Neighbours())
             {
@@ -320,15 +357,40 @@ public sealed class TacticalBattle
             return false;
         if (!Reachable(unit).TryGetValue(from, out var path))
             return false;
+        var start = unit.Position;
         MoveAlong(unit, path);
-        Strike(unit, target, ranged: false, retaliation: false);
-        if (target.IsAlive && unit.IsAlive && target.RetaliationsLeft > 0)
+        // la charge compte les cases parcourues (à vol d'oiseau pour une troupe qui vole)
+        int moved = unit.Has(Ability.Flies) ? start.DistanceTo(from) : path.Count;
+        Melee(unit, target, moved);
+        if (target.IsAlive && unit.IsAlive && target.RetaliationsLeft > 0 && !unit.Has(Ability.NoRetaliation))
         {
             target.RetaliationsLeft--;
             Strike(target, unit, ranged: false, retaliation: true);
         }
+        // deux attaques : la seconde après la riposte
+        if (unit.Has(Ability.DoubleAttack) && target.IsAlive && unit.IsAlive)
+            Melee(unit, target, moved);
         EndTurn();
         return true;
+    }
+
+    /// <summary>Un coup au corps à corps ; avec le souffle, la troupe juste derrière la cible est touchée aussi.</summary>
+    private void Melee(BattleUnit unit, BattleUnit target, int moved)
+    {
+        var behind = Behind(unit.Position, target.Position);
+        Strike(unit, target, ranged: false, retaliation: false, moved);
+        if (unit.Has(Ability.Breath) && behind is { } hex && UnitAt(hex) is { } second && second != unit)
+            Strike(unit, second, ranged: false, retaliation: false, moved);
+    }
+
+    /// <summary>La case juste derrière <paramref name="target"/>, vue depuis sa voisine <paramref name="from"/> (dans la même direction).</summary>
+    public static Hex? Behind(Hex from, Hex target)
+    {
+        var towardTarget = from.Neighbours().ToList().IndexOf(target);
+        if (towardTarget < 0)
+            return null;
+        var behind = target.Neighbours().ElementAt(towardTarget);
+        return Battlefield.InBounds(behind) ? behind : null;
     }
 
     /// <summary>La troupe active tire sur la cible (pas de riposte). Renvoie false si elle ne peut pas tirer.</summary>
@@ -409,10 +471,10 @@ public sealed class TacticalBattle
 
     // ------------------------------------------------------------------ dégâts
 
-    /// <summary>Les dégâts d'un coup, tirés au sort, et les créatures tuées.</summary>
-    private void Strike(BattleUnit from, BattleUnit to, bool ranged, bool retaliation)
+    /// <summary>Les dégâts d'un coup, tirés au sort, et les créatures tuées. <paramref name="moved"/> : cases parcourues (charge).</summary>
+    private void Strike(BattleUnit from, BattleUnit to, bool ranged, bool retaliation, int moved = 0)
     {
-        int damage = RollDamage(from, to, ranged);
+        int damage = RollDamage(from, to, ranged, retaliation ? 0 : moved);
         int killed = to.TakeDamage(damage);
         _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation));
     }
@@ -422,18 +484,25 @@ public sealed class TacticalBattle
     /// on tire pour 10 et on multiplie), puis la règle attaque / défense de Heroes 3. Un tir lointain (avec pénalité)
     /// ou un tireur qui se bat au corps à corps fait moitié moins de dégâts.
     /// </summary>
-    private int RollDamage(BattleUnit from, BattleUnit to, bool ranged)
+    private int RollDamage(BattleUnit from, BattleUnit to, bool ranged, int moved)
     {
         int rolls = Math.Min(from.Count, 10);
         int sum = 0;
         for (int i = 0; i < rolls; i++)
             sum += from.Type.MinDamage + Next(from.Type.MaxDamage - from.Type.MinDamage + 1);
         double damage = from.Count <= 10 ? sum : sum * (double)from.Count / 10;
-        damage *= Battle.DamageModifier(from.Attack, to.Defense);
-        if (ranged && from.HasRangePenalty && from.Position.DistanceTo(to.Position) > LongRange)
+        // un coup écrasant ignore une partie de la défense
+        int defense = from.Has(Ability.Crushing) && !ranged ? (int)Math.Round(to.Defense * (1 - CrushingShare)) : to.Defense;
+        damage *= Battle.DamageModifier(from.Attack, defense);
+        int range = from.Has(Ability.ShortRange) ? ShortRange : LongRange;
+        if (ranged && from.HasRangePenalty && from.Position.DistanceTo(to.Position) > range)
+            damage *= 0.5;
+        if (ranged && to.Has(Ability.RangedResistance))
             damage *= 0.5;
         if (!ranged && from.CanShoot)
             damage *= 0.5;
+        if (!ranged && from.Has(Ability.Charge))
+            damage *= 1 + ChargeBonus * moved;
         return Math.Max(1, (int)Math.Round(damage));
     }
 

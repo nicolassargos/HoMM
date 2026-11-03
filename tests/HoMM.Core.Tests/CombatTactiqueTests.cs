@@ -157,7 +157,9 @@ public class CombatTactiqueTests
     public void Les_degats_sont_tires_entre_le_minimum_et_le_maximum()
     {
         // Ogres (6 à 12 dégâts) contre Épéistes (35 points de vie) : 3 Ogres font entre 18 et 36, avant la règle attaque / défense
-        double modifier = HoMM.Core.Battle.DamageModifier(Creature("ogre").Attack, Creature("epeiste").Defense);
+        // (leur coup écrasant ignore 40 % de la défense)
+        int defense = (int)Math.Round(Creature("epeiste").Defense * (1 - TacticalBattle.CrushingShare));
+        double modifier = HoMM.Core.Battle.DamageModifier(Creature("ogre").Attack, defense);
         var seen = new HashSet<int>();
         for (int seed = 1; seed <= 40; seed++)
         {

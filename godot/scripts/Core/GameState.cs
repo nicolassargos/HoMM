@@ -184,7 +184,7 @@ public sealed partial class GameState
     /// <summary>Fin du tour du joueur courant. Quand tous les joueurs ont joué, un nouveau jour commence.</summary>
     public void EndTurn()
     {
-        if (Outcome != GameOutcome.Playing)
+        if (Outcome != GameOutcome.Playing || CurrentBattle != null)
             return;
 
         int previous = _currentPlayer;
@@ -273,7 +273,8 @@ public sealed partial class GameState
     }
 
     public bool CanStartWalking =>
-        Outcome == GameOutcome.Playing && CurrentHero is { } hero && Path is { Count: > 0 } && hero.CanStepTo(Map, Path[0]);
+        Outcome == GameOutcome.Playing && CurrentBattle == null && CurrentHero is { } hero && Path is { Count: > 0 }
+        && hero.CanStepTo(Map, Path[0]);
 
     /// <summary>
     /// Fait avancer le héros d'une case. Renvoie false s'il ne peut plus avancer.
@@ -295,7 +296,7 @@ public sealed partial class GameState
         {
             hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next));
             Path = null;
-            Fight(hero, target, target.Army);
+            BeginFights(hero, hero.Position, hero.Position, new[] { ((MapObject)target, target.Army) }, visit: false);
             return false;
         }
 
@@ -304,26 +305,23 @@ public sealed partial class GameState
         hero.StepTo(Map, next);
         Emit(new HeroMoved(hero, from, next));
 
-        bool fought = false;
-        foreach (var guard in Map.GuardsAround(next).ToList())
-        {
-            fought = true;
-            if (!Fight(hero, guard, guard.Army))
-                return false;
-            // Le monstre visé a été vaincu : inutile d'aller sur sa case
-            if (Path is { Count: > 0 } && Path[^1] == guard.Position)
-                Path = null;
-        }
-
-        // Une ville ennemie ou neutre : il faut d'abord vaincre sa garnison
+        // Les monstres autour attaquent, puis la garnison d'une ville ennemie ou neutre ; ensuite seulement, la visite
+        var opponents = Map.GuardsAround(next).Select(g => ((MapObject)g, g.Army)).ToList();
         if (Map.ObjectAt(next) is Town { Garrison.IsEmpty: false } town && town.Owner != hero.Owner)
+            opponents.Add((town, town.Garrison));
+        if (opponents.Count > 0)
         {
-            fought = true;
-            if (!Fight(hero, town, town.Garrison))
-                return false;
+            BeginFights(hero, from, next, opponents, visit: true);
+            return false;
         }
+        Visit(hero, next);
+        return true;
+    }
 
-        if (Map.ObjectAt(next) is { } obj and not MonsterGuard)
+    /// <summary>Le héros visite l'objet de la case où il vient d'arriver (s'il y en a un).</summary>
+    private void Visit(Hero hero, Cell cell)
+    {
+        if (Map.ObjectAt(cell) is { } obj and not MonsterGuard)
         {
             var visit = obj.Visit(hero);
             if (obj.RemovedOnVisit)
@@ -333,28 +331,108 @@ public sealed partial class GameState
         }
         if (Path is { Count: 0 })
             Path = null;
-        return !fought;
     }
 
-    /// <summary>Combat automatique contre un monstre ou une garnison. Renvoie true si le héros a gagné.</summary>
-    private bool Fight(Hero hero, MapObject defender, Army defenderArmy)
+    // -------------------------------------------------------------- combats
+
+    /// <summary>
+    /// True (par défaut) : un combat est joué tout de suite en combat rapide (tests, simulation, futures IA).
+    /// L'affichage met false : la partie s'arrête au début de chaque combat (<see cref="CurrentBattle"/>), le joueur
+    /// le joue sur l'écran de combat ou choisit le combat rapide, puis l'affichage appelle <see cref="FinishBattle"/>.
+    /// </summary>
+    public bool QuickBattles { get; set; } = true;
+
+    /// <summary>Le combat en cours (la partie attend qu'il finisse), ou null.</summary>
+    public TacticalBattle? CurrentBattle { get; private set; }
+
+    /// <summary>
+    /// Le pas qui a mené aux combats : le héros, la case d'où il vient (il y revient s'il fuit), celle où il est, ses
+    /// adversaires dans l'ordre, et s'il visite la case une fois les combats gagnés.
+    /// </summary>
+    private sealed record PendingStep(Hero Hero, Cell From, Cell Cell, Queue<(MapObject Defender, Army Army)> Opponents, bool Visit);
+
+    /// <summary>Ce qu'il faut pour faire le bilan du combat en cours.</summary>
+    private sealed record BattleContext(Hero Hero, MapObject Defender, IReadOnlyList<CreatureStack> DefenderArmy);
+
+    private PendingStep? _step;
+    private BattleContext? _battle;
+
+    private void BeginFights(Hero hero, Cell from, Cell cell, IEnumerable<(MapObject Defender, Army Army)> opponents, bool visit)
     {
-        var rebels = RollRevolts(hero);
-        var before = defenderArmy.Clone().Stacks;
-        var report = Battle.Resolve(hero.Army, defenderArmy, hero, rebels, _rng);
-        Emit(new BattleFought(hero, defender, before, report));
+        _step = new PendingStep(hero, from, cell, new Queue<(MapObject, Army)>(opponents), visit);
+        NextFight();
+    }
+
+    /// <summary>Le combat suivant du pas en cours ; quand il n'y en a plus, la visite de la case.</summary>
+    private void NextFight()
+    {
+        if (_step is not { } step)
+            return;
+        if (step.Opponents.Count == 0)
+        {
+            _step = null;
+            if (step.Visit)
+                Visit(step.Hero, step.Cell);
+            return;
+        }
+        var (defender, army) = step.Opponents.Dequeue();
+        var rebels = RollRevolts(step.Hero);
+        _battle = new BattleContext(step.Hero, defender, army.Clone().Stacks);
+        CurrentBattle = new TacticalBattle(step.Hero.Army, army, _rng, step.Hero, rebels);
+        Emit(new BattleStarted(step.Hero, defender, CurrentBattle));
+        if (QuickBattles)
+        {
+            BattleAI.PlayOut(CurrentBattle);
+            FinishBattle();
+        }
+    }
+
+    /// <summary>
+    /// Le combat en cours est fini : son bilan (expérience, monstre retiré, héros perdu, ou fuite), puis la suite du pas
+    /// (le combat suivant, ou la visite de la case). Renvoie false s'il n'y a pas de combat fini à conclure.
+    /// </summary>
+    public bool FinishBattle()
+    {
+        if (CurrentBattle is not { IsOver: true } battle || _battle is not { } context)
+            return false;
+        var report = battle.Report();
+        CurrentBattle = null;
+        _battle = null;
+        var hero = context.Hero;
+        Emit(new BattleFought(hero, context.Defender, context.DefenderArmy, report));
 
         if (report.AttackerWon)
         {
             GrantExperience(hero, report.Experience);
-            if (defender is MonsterGuard guard)
+            if (context.Defender is MonsterGuard guard)
+            {
                 Map.RemoveObject(guard);
+                // Le monstre visé a été vaincu : inutile d'aller sur sa case
+                if (Path is { Count: > 0 } && Path[^1] == guard.Position)
+                    Path = null;
+            }
             CheckVictory();
+            NextFight();
             return true;
         }
 
+        var step = _step;
+        _step = null;
+        if (report.Fled && !hero.Army.IsEmpty && step != null)
+        {
+            // Le héros s'est enfui : il revient sur la case d'où il venait, sans mouvement pour aujourd'hui
+            if (hero.Position != step.From)
+            {
+                var at = hero.Position;
+                hero.Position = step.From;
+                Emit(new HeroMoved(hero, at, step.From));
+            }
+            hero.SpendMovement(hero.Movement);
+            Path = null;
+            return true;
+        }
         RemoveHero(hero);
-        return false;
+        return true;
     }
 
     /// <summary>
@@ -408,6 +486,8 @@ public sealed partial class GameState
 
     private void RemoveHero(Hero hero)
     {
+        if (_step?.Hero == hero)
+            _step = null;
         hero.Owner.Heroes.Remove(hero);
         _paths.Remove(hero);
         _pendingChoices.RemoveAll(c => c.Hero == hero);
@@ -637,3 +717,9 @@ public sealed record NothingDug(Hero Hero) : GameEvent;
 
 /// <summary>Le héros a déterré le trésor : il porte maintenant l'artefact.</summary>
 public sealed record TreasureDug(Hero Hero, ArtifactType Artifact) : GameEvent;
+
+/// <summary>
+/// Un combat commence (contre un monstre, ou la garnison d'une ville). Avec <see cref="GameState.QuickBattles"/> à
+/// false, la partie attend : l'affichage fait jouer <paramref name="Battle"/>, puis appelle <see cref="GameState.FinishBattle"/>.
+/// </summary>
+public sealed record BattleStarted(Hero Hero, MapObject Defender, TacticalBattle Battle) : GameEvent;

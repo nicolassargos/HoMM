@@ -68,6 +68,8 @@ public sealed partial class GameState
     /// <summary>La partie entière, en JSON (les événements pas encore affichés ne sont pas gardés).</summary>
     public string Save()
     {
+        if (CurrentBattle != null)
+            throw new InvalidOperationException("On ne peut pas sauvegarder pendant un combat.");
         var save = new SaveFile(
             SaveVersion, Seed, Day, _currentPlayer, CurrentHero?.Id, Outcome, Rules,
             _rng.State, _nextPlayerId, _nextHeroId,

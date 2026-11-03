@@ -100,6 +100,57 @@ public static class Texts
         var other => LowerFirst(ObjectName(other)),
     };
 
+    /// <summary>L'adversaire d'un combat qui commence : « une bande de Loups », « la garnison de Bellerive ».</summary>
+    public static string Opponent(MapObject defender, Army army) => defender switch
+    {
+        MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, army.TotalCount)),
+        Town town => $"la garnison de {town.Name}",
+        var other => LowerFirst(ObjectName(other)),
+    };
+
+    // ------------------------------------------------------------- combat tactique
+
+    public static string BattleChoiceTitle => "Combat !";
+    public static string BattleChoiceText(string opponent) =>
+        $"Vous affrontez {opponent}. Voulez-vous diriger le combat, ou le laisser se dérouler tout seul ?";
+    public static string TacticalButton => "Combat tactique";
+    public static string QuickButton => "Combat rapide";
+
+    public static string BattleWait => "Attendre";
+    public static string BattleDefend => "Se défendre";
+    public static string BattleAuto => "Auto";
+    public static string BattleFlee => "Fuir";
+
+    public static string BattleTitle(string opponent) => $"Combat contre {opponent}";
+    public static string BattleRound(int round) => $"Round {round}";
+    public static string BattleNextRound => "Round suivant :";
+
+    /// <summary>« 12 Archers tirent sur 30 Paysans : 18 dégâts, 18 tués. », ou null pour ce qui ne se raconte pas.</summary>
+    public static string? BattleMessage(BattleAction action) => action switch
+    {
+        UnitStruck s => $"{Capitalize(Stack(s.Attacker.Stack))} {Verb(s)} {StackAfter(s)} : {s.Damage} dégâts"
+                        + (s.Killed > 0 ? $", {s.Killed} {(s.Killed == 1 ? "tué" : "tués")}." : "."),
+        UnitWaited w => $"{Capitalize(Stack(w.Unit.Stack))} {(w.Unit.Count == 1 ? "attend" : "attendent")}.",
+        UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
+        AttackerFled fled => $"Le héros s'enfuit ! Pertes : {Losses(fled.Losses)}.",
+        BattleEnded { Outcome: BattleOutcome.AttackerWon } => "Victoire !",
+        BattleEnded { Outcome: BattleOutcome.DefenderWon } => "Défaite...",
+        _ => null,
+    };
+
+    private static string Verb(UnitStruck s) => (s.Ranged, s.Retaliation, s.Attacker.Count == 1) switch
+    {
+        (true, _, true) => "tire sur",
+        (true, _, false) => "tirent sur",
+        (_, true, true) => "riposte contre",
+        (_, true, false) => "ripostent contre",
+        (_, _, true) => "attaque",
+        _ => "attaquent",
+    };
+
+    /// <summary>La cible, avec ce qu'elle comptait avant le coup.</summary>
+    private static string StackAfter(UnitStruck s) => Stack(new CreatureStack(s.Target.Type, s.Target.Count + s.Killed));
+
     /// <summary>« Révolte : 40 Paysans refusent d'obéir… », ou null s'il n'y a pas eu de révolte.</summary>
     public static string? Revolt(BattleReport report) => report.Rebels.Count == 0 ? null
         : $"Révolte : {string.Join(", ", report.Rebels.Select(Stack))} refusent d'obéir et combattent l'ennemi"

@@ -236,7 +236,15 @@ Découpage :
    gagne toujours vers le jour 84 (78 à 118 sur 20 cartes, comme avant). Courbe du Château (paysans pour vaincre
    une unité) : Archer 8, Griffon 12, Épéiste 26, Moine 89 (il tire maintenant), Cavalier 91, Ange 1632 : à régler
    de nouveau avec les capacités.
-3. L'écran de combat : affichage, souris, animations, choix combat tactique / rapide.
+3. ✅ L'écran de combat (`BattleScreen`, `BattleFieldView`) : avant chaque combat, le joueur choisit « Combat
+   tactique » ou « Combat rapide ». Champ de 11 × 9 cases sur le sol du terrain, centré (de la place reste de chaque
+   côté pour des héros, des machines de guerre…), troupes ×3 avec leur nombre, cases où la troupe peut aller,
+   curseurs (botte, épées, croix). En bas, sur une ligne comme dans Heroes V : le round, l'ordre de jeu complet
+   (celles qui jouent encore, puis celles qui ont déjà joué) et les boutons ; la dernière action au-dessus du champ. Clic sur une case pour y aller, sur un
+   ennemi pour l'attaquer (du côté le plus proche de la souris) ou tirer. Boutons Attendre, Se défendre, Auto, Fuir.
+   L'IA joue les ennemis à un rythme lisible ; animations de marche, de coup et de dégâts. Les règles s'arrêtent au
+   début d'un combat (`GameState.QuickBattles` à false, `CurrentBattle`, `FinishBattle`) puis reprennent le pas ; en
+   fuyant, le héros revient sur la case d'où il venait, sans mouvement. Pas de sauvegarde pendant un combat.
 4. Les capacités des créatures (tableau ci-dessus), chacune avec ses tests.
 5. Finitions : fonds de champ de bataille selon le terrain, images d'obstacles.
 

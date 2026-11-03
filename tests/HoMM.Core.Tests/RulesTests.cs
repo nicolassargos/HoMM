@@ -274,7 +274,8 @@ public class GameStateTests
 
         var events = state.TakeEvents();
         Assert.IsType<HeroMoved>(events[0]);
-        var battle = Assert.IsType<BattleFought>(events[1]);
+        Assert.IsType<BattleStarted>(events[1]);
+        var battle = Assert.IsType<BattleFought>(events[2]);
         Assert.True(battle.Report.AttackerWon);
         Assert.Equal(3, battle.DefenderArmy.Sum(s => s.Count));
         Assert.Same(guard, battle.Defender);

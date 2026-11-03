@@ -33,6 +33,10 @@ public partial class Main : Node2D
     private MapCamera _camera = null!;
     private Hud _hud = null!;
     private TownScreen _townScreen = null!;
+    private BattleScreen _battleScreen = null!;
+
+    /// <summary>Développement (« --battle-test ») : un combat tout de suite, joué sur l'écran de combat sans demander.</summary>
+    private bool _battleTest;
 
     private bool _walking;
     private double _stepTimer;
@@ -53,6 +57,7 @@ public partial class Main : Node2D
         var loaded = _loadedState ?? (OS.GetCmdlineUserArgs().Contains("--load") ? ReadSave(LoadData()) : null);
         _loadedState = null;
         _state = loaded ?? new GameState(ReadSeed(), LoadData());
+        _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
         // Option de développement : « -- --reveal » retire le brouillard
         if (OS.GetCmdlineUserArgs().Contains("--reveal"))
@@ -84,11 +89,19 @@ public partial class Main : Node2D
         _camera.Setup(_state.Map, screen, _hud.Minimap);
         _hud.Minimap.Clicked += cells => _camera.CenterOn(cells);
 
+        _battleScreen = new BattleScreen();
+        AddChild(_battleScreen);
+        _battleScreen.Build(screen);
+
         _townScreen = new TownScreen();
         AddChild(_townScreen);
         _townScreen.Build(_state, screen);
 
         _capturePath = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture="))?["--capture=".Length..];
+        // Développement : « --capture-delay=3 » attend 3 secondes avant la capture (pour voir un combat avancer)
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture-delay=")) is { } delay
+            && double.TryParse(delay["--capture-delay=".Length..], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double seconds))
+            _captureTimer = seconds;
         if (loaded != null)
         {
             _hud.AddMessage(Texts.GameLoaded);
@@ -110,6 +123,18 @@ public partial class Main : Node2D
         // Développement : « --cursor-preview=dossier » enregistre les curseurs en images
         if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--cursor-preview=")) is { } preview)
             MapCursor.SavePreview(preview["--cursor-preview=".Length..]);
+        // Développement : « --battle-test » : des Orcs et des Loups à deux cases, et le héros y va
+        if (OS.GetCmdlineUserArgs().Contains("--battle-test") && _state.CurrentHero is { } fighter)
+        {
+            _battleTest = true;
+            var at = fighter.Position.Offset(2, 0);
+            foreach (var obj in _state.Map.Objects.Where(o => o.Footprint.Any(c => Math.Abs(c.X - at.X) <= 2 && Math.Abs(c.Y - at.Y) <= 2)).ToList())
+                _state.Map.RemoveObject(obj);
+            var monsters = new MonsterGuard(at, _state.Creatures.Get("orc"), 8);
+            _state.Map.AddObject(monsters);
+            _state.SetDestination(fighter.Position.Offset(1, 0));
+            _state.StepAlongPath();
+        }
         // Développement : « --dig-test » enfouit le trésor sous le héros et le fait creuser (fenêtre du trésor)
         if (OS.GetCmdlineUserArgs().Contains("--dig-test"))
         {
@@ -206,7 +231,7 @@ public partial class Main : Node2D
         Godot.FileAccess.GetFileAsString("res://data/artifacts.json"));
 
     /// <summary>Le joueur regarde la carte (pas de fenêtre ni d'écran de ville ouverts).</summary>
-    private bool OnMap => !_hud.IsDialogOpen && !_townScreen.IsOpen;
+    private bool OnMap => !_hud.IsDialogOpen && !_townScreen.IsOpen && !_battleScreen.IsOpen;
 
     /// <summary>Les commandes de la carte sont ignorées pendant la marche, hors de la carte, ou une fois la partie finie.</summary>
     private bool CanAct => !_walking && OnMap && _state.Outcome == GameOutcome.Playing;
@@ -444,6 +469,29 @@ public partial class Main : Node2D
         MapCursor.Show(kind, days);
     }
 
+    /// <summary>Un combat commence : le joueur choisit de le diriger (écran de combat) ou le combat rapide.</summary>
+    private void StartBattle(BattleStarted started)
+    {
+        string opponent = Texts.Opponent(started.Defender, started.Defender switch
+        {
+            MonsterGuard guard => guard.Army,
+            Town town => town.Garrison,
+            _ => new Army(),
+        });
+        var terrain = _state.Map.GetTerrain(started.Hero.Position);
+        void Tactical() => _battleScreen.Open(started.Battle, opponent, terrain, () => _state.FinishBattle(),
+            auto: _battleTest && OS.GetCmdlineUserArgs().Contains("--battle-auto"));
+        void Quick()
+        {
+            BattleAI.PlayOut(started.Battle);
+            _state.FinishBattle();
+        }
+        if (_battleTest)
+            Tactical();
+        else
+            _hud.ShowBattleChoice(opponent, Tactical, Quick);
+    }
+
     /// <summary>Le héros courant creuse sur sa case (touche F, ou bouton des options).</summary>
     private void Dig()
     {
@@ -466,6 +514,10 @@ public partial class Main : Node2D
             {
                 case HeroMoved moved when moved.Hero == _state.CurrentHero:
                     _camera.Follow(moved.To);
+                    break;
+                case BattleStarted started when started.Hero.Owner == viewer:
+                    _walking = false;
+                    StartBattle(started);
                     break;
                 case BattleFought battle:
                     _walking = false;

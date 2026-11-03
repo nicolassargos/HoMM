@@ -596,6 +596,35 @@ public partial class Hud : CanvasLayer
         dialog.PopupCentered(new Vector2I(320, 0));
     });
 
+    /// <summary>Avant un combat : le diriger (écran de combat) ou le laisser se dérouler (combat rapide).</summary>
+    public void ShowBattleChoice(string opponent, Action tactical, Action quick) => Enqueue(done =>
+    {
+        var dialog = new AcceptDialog
+        {
+            Title = Texts.BattleChoiceTitle,
+            DialogText = Texts.BattleChoiceText(opponent),
+            OkButtonText = Texts.TacticalButton,
+            Exclusive = true,
+            Unresizable = true,
+        };
+        dialog.AddButton(Texts.QuickButton, false, "quick");
+        bool chosen = false;
+        void Choose(Action then)
+        {
+            if (chosen)
+                return;
+            chosen = true;
+            dialog.QueueFree();
+            done();
+            then();
+        }
+        dialog.Confirmed += () => Choose(tactical);
+        dialog.Canceled += () => Choose(tactical);
+        dialog.CustomAction += _ => Choose(quick);
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(480, 0));
+    });
+
     /// <summary>Un message dans une fenêtre, qu'on ferme avec OK (le trésor déterré…).</summary>
     public void ShowMessage(string title, string text) => ShowDialog(title, text, "OK", null);
 

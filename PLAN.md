@@ -229,7 +229,13 @@ Découpage :
 1. ✅ Règles du combat (`Core/Tactics/` : `Hex`, `Battlefield`, `BattleUnit`, `TacticalBattle`), sans affichage :
    placement, obstacles, ordre de jeu, déplacement, attaque, riposte, tir (et pénalités), attente, défense, fuite,
    bilan (`BattleReport`, avec `Fled`). Capacités déjà en place : `shoots` (Archer, Moine, Orc), `no-range-penalty`.
-2. L'IA des troupes, et le combat rapide joué par elle (vérifié par la simulation d'équilibrage).
+2. ✅ L'IA des troupes (`BattleAI` : un tireur tire sur l'ennemi le plus dangereux ; une autre troupe attaque
+   l'ennemi le plus dangereux qu'elle peut atteindre, sinon s'approche du plus proche). Le combat rapide
+   (`Battle.Resolve`) est maintenant le combat tactique joué d'un coup par cette IA, avec le hasard de la partie
+   (une estimation au survol utilise une graine fixe) ; le combat simplifié a disparu. Équilibre : la simulation
+   gagne toujours vers le jour 84 (78 à 118 sur 20 cartes, comme avant). Courbe du Château (paysans pour vaincre
+   une unité) : Archer 8, Griffon 12, Épéiste 26, Moine 89 (il tire maintenant), Cavalier 91, Ange 1632 : à régler
+   de nouveau avec les capacités.
 3. L'écran de combat : affichage, souris, animations, choix combat tactique / rapide.
 4. Les capacités des créatures (tableau ci-dessus), chacune avec ses tests.
 5. Finitions : fonds de champ de bataille selon le terrain, images d'obstacles.

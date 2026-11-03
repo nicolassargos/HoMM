@@ -39,8 +39,8 @@ public sealed record BattleEnded(BattleOutcome Outcome) : BattleAction;
 /// déplace, attaque une troupe voisine (qui riposte une fois par round), tire si elle sait tirer, attend (elle jouera
 /// à la fin du round) ou se défend. Le héros peut aussi s'enfuir, en perdant une grande partie de son armée.
 /// Les dégâts sont tirés au sort (entre les dégâts min et max) avec le hasard de la partie : même graine, même combat.
-/// Les armées sont modifiées pendant le combat (créatures tuées) ; <see cref="Report"/> donne le bilan, comme
-/// <see cref="Battle.Resolve"/>.
+/// Les armées sont modifiées pendant le combat (créatures tuées) ; <see cref="Report"/> donne le bilan.
+/// Le combat rapide (<see cref="Battle.Resolve"/>) le fait jouer d'un coup par <see cref="BattleAI"/>.
 /// </summary>
 public sealed class TacticalBattle
 {

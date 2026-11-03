@@ -81,8 +81,9 @@ public class ProgressionTests
         for (int i = 0; i < 15; i++)
             strong.LevelUp(HeroStat.Attack);
 
-        var plain = Battle.Resolve(ArmyOf("archer", 40), ArmyOf("ogre", 10), weak);
-        var boosted = Battle.Resolve(ArmyOf("archer", 40), ArmyOf("ogre", 10), strong);
+        // assez d'Ogres pour qu'ils ne meurent pas tous : le bonus du héros se voit aux pertes ennemies
+        var plain = Battle.Resolve(ArmyOf("archer", 40), ArmyOf("ogre", 30), weak);
+        var boosted = Battle.Resolve(ArmyOf("archer", 40), ArmyOf("ogre", 30), strong);
 
         Assert.True(boosted.DefenderLosses.Sum(s => s.Count) > plain.DefenderLosses.Sum(s => s.Count));
     }

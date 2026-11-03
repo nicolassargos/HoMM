@@ -59,6 +59,8 @@ public partial class Main : Node2D
             _state.CurrentPlayer.Fog.Reveal(new Cell(_state.Map.Width / 2, _state.Map.Height / 2), _state.Map.Width + _state.Map.Height);
 
         var screen = GetViewportRect().Size;
+        if (OS.GetCmdlineUserArgs().Contains("--terrain-test"))
+            PaintTerrainTest();
 
         AddChild(new TerrainLayer { Map = _state.Map });
         AddChild(new DecorLayer { Map = _state.Map });
@@ -92,6 +94,8 @@ public partial class Main : Node2D
         }
         else if (_capturePath == null || OS.GetCmdlineUserArgs().Contains("--rules")) // une capture montre la carte, sauf avec --rules
             _hud.ShowRulesChoice(GameRules.Options, rules => _state.ChooseRules(rules));
+        if (OS.GetCmdlineUserArgs().Contains("--zoom")) // développement : partir zoomé
+            _camera.ZoomBy(+1);
         if (_capturePath != null && OS.GetCmdlineUserArgs().Contains("--town"))
             ShowTownForCapture();
         CenterOnHero();
@@ -114,6 +118,42 @@ public partial class Main : Node2D
         foreach (var creature in data.Creatures.All.Where(c => c.Faction == "chateau").Take(Army.MaxStacks))
             town.Garrison.Add(creature, 10);
         OpenTown(town);
+    }
+
+    /// <summary>
+    /// Développement (« --terrain-test ») : peint autour du héros un échantillon de toutes les rencontres de
+    /// terrains (rives, chemins, coins, cases seules), pour juger les bords sur une seule image.
+    /// </summary>
+    private void PaintTerrainTest()
+    {
+        string[] rows =
+        {
+            "gggggggggggggggggggggg",
+            "gwwwggrrrrrrgsssgmmmgg",
+            "gwwwgggggrggsssggmmggg",
+            "ggwgggsgggrgggsggggwgg",
+            "gggggwswgggrrggwwwgggg",
+            "gsssggwgggggrggwswgmgg",
+            "gswsggggmmmgrggwwwgggg",
+            "gsssgwgggmgggggggggggg",
+            "ggggwwwggggmgwgwgwgsgg",
+            "grrrrrrrrrrrrrrrrrrrrg",
+            "gfffggMMMggwwwwwwwwggg",
+            "gfgfggMgMggwsssssswggg",
+            "gggggggggggwwwwwwwwggg",
+            "gggggggggggggggggggggg",
+        };
+        var kinds = new System.Collections.Generic.Dictionary<char, TerrainType>
+        {
+            ['g'] = TerrainType.Grass, ['r'] = TerrainType.Road, ['s'] = TerrainType.Sand, ['m'] = TerrainType.Swamp,
+            ['w'] = TerrainType.Water, ['f'] = TerrainType.Forest, ['M'] = TerrainType.Mountain,
+        };
+        var hero = _state.CurrentHero!.Position;
+        int left = Math.Clamp(hero.X - rows[0].Length / 2, 0, _state.Map.Width - rows[0].Length);
+        int top = Math.Clamp(hero.Y - rows.Length / 2, 0, _state.Map.Height - rows.Length);
+        for (int y = 0; y < rows.Length; y++)
+        for (int x = 0; x < rows[y].Length; x++)
+            _state.Map.SetTerrain(new Cell(left + x, top + y), kinds[rows[y][x]]);
     }
 
     /// <summary>Graine passée en argument (--seed=42), sinon une graine au hasard.</summary>
@@ -277,6 +317,12 @@ public partial class Main : Node2D
                 if (!_walking)
                     _state.ClearPath();
                 break;
+            case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelUp } wheel:
+                _camera.ZoomBy(+1, wheel.Position);
+                break;
+            case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelDown } wheel:
+                _camera.ZoomBy(-1, wheel.Position);
+                break;
             case InputEventKey { Pressed: true, Echo: false } key:
                 switch (key.Keycode)
                 {
@@ -284,6 +330,8 @@ public partial class Main : Node2D
                     case Key.Space: StartWalking(); break;
                     case Key.Escape when !_walking: _state.ClearPath(); break;
                     case Key.C: CenterOnHero(); break;
+                    case Key.Plus or Key.KpAdd or Key.Equal: _camera.ZoomBy(+1); break;
+                    case Key.Minus or Key.KpSubtract: _camera.ZoomBy(-1); break;
                     case Key.F5: SaveGame(); break;
                     case Key.F9: LoadGame(); break;
                     case Key.T when _state.CurrentPlayer.Towns.FirstOrDefault() is { } town: OpenTown(town); break;

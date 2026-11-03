@@ -28,6 +28,19 @@ La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessou
 - `tests/HoMM.Core.Tests/` : tests xUnit des règles.
 - `prototype-python/` : ancien prototype, gardé pour mémoire, ne plus le faire évoluer.
 
+## Propositions d'images (dossier `art-candidats/`, non suivi par git)
+Décision de l'utilisateur, valable pour toutes les sessions :
+- `art-candidats/en-cours/` ne contient **que ce qui attend une réponse de l'utilisateur** : captures d'écran
+  de comparaison (`jeu-*.png`), agrandissements (`zoom-*.png`), pages de choix, candidats générés pas encore
+  choisis (`en-cours/candidats/<nom>/`, écrits par `tools/art/generer.py`).
+- Une fois la décision prise, tout part dans `art-candidats/archives/AAAA-MM-JJ-sujet/` avec
+  `python -I tools/art/archiver.py sujet`. Ne rien laisser traîner à la racine de `art-candidats/`.
+- `art-candidats/references/` : images données par l'utilisateur (modèles, captures), à garder telles quelles.
+- Outils : `tools/art/generer.py` (prix, génération, choix ; `choisir` retrouve aussi un candidat archivé),
+  `tools/art/apercu.py` (page de choix dans `en-cours/`), `tools/art/zoom.py` (agrandir une capture).
+  Captures du jeu : `godot` avec `-- --capture=chemin.png` (et `--reveal`, `--zoom`, `--terrain-test`,
+  `--town`, `--rules`, `--ground=réglage:valeur` selon le besoin).
+
 ## Commandes
 - Tests : `dotnet test` (à la racine)
 - Compiler : `dotnet build` (dans `godot/`)

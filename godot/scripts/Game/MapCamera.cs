@@ -5,17 +5,26 @@ namespace HoMM.Game;
 
 /// <summary>
 /// La caméra de la carte d'aventure : position, défilement (clavier, bord de l'écran),
-/// recentrage sur le héros. La zone visible est ce qui reste à côté du panneau et sous la barre du haut.
+/// recentrage sur le héros, zoom. La zone visible est ce qui reste à côté du panneau et sous la barre du haut.
+/// Le zoom garde des pixels d'art entiers : ×1 montre les images ×2 (un pixel d'art = 2 pixels de l'écran),
+/// ×1,5 les montre ×3, comme la carte du premier Heroes.
 /// </summary>
 public partial class MapCamera : Camera2D
 {
     private const int T = MapRenderer.TileSize;
     private const float ScrollSpeed = 700;
 
+    /// <summary>Les niveaux de zoom (molette de la souris, touches + et -).</summary>
+    public static readonly float[] Zooms = { 1f, 1.5f };
+
     private AdventureMap _map = null!;
     private Minimap _minimap = null!;
+    private int _zoomIndex;
 
-    /// <summary>Taille de la zone de carte visible, en pixels.</summary>
+    /// <summary>Taille de la zone de carte visible à l'écran, en pixels de l'écran.</summary>
+    private Vector2 _screenView;
+
+    /// <summary>Taille de la zone de carte visible, en pixels de la carte (elle diminue quand on zoome).</summary>
     public Vector2 ViewSize { get; private set; }
 
     /// <summary>Coin haut-gauche de la carte visible, en pixels.</summary>
@@ -26,16 +35,39 @@ public partial class MapCamera : Camera2D
         _map = map;
         _minimap = minimap;
         AnchorMode = AnchorModeEnum.FixedTopLeft;
-        ViewSize = new Vector2(screenSize.X - Hud.PanelWidth, screenSize.Y - Hud.TopBarHeight);
+        _screenView = new Vector2(screenSize.X - Hud.PanelWidth, screenSize.Y - Hud.TopBarHeight);
+        ViewSize = _screenView;
         MakeCurrent();
+    }
+
+    /// <summary>
+    /// Zoome d'un cran (+1) ou dézoome (-1), en gardant immobile le point de la carte sous
+    /// <paramref name="screenPoint"/> (la souris), ou le centre de la vue.
+    /// </summary>
+    public void ZoomBy(int step, Vector2? screenPoint = null)
+    {
+        int index = Mathf.Clamp(_zoomIndex + step, 0, Zooms.Length - 1);
+        if (index == _zoomIndex)
+            return;
+        // le point fixe, mesuré depuis le coin haut-gauche de la vue
+        var anchor = screenPoint is { } point && point.X < _screenView.X && point.Y >= Hud.TopBarHeight
+            ? point - new Vector2(0, Hud.TopBarHeight)
+            : _screenView / 2;
+        var fixedPoint = TopLeft + anchor / Zooms[_zoomIndex];
+        _zoomIndex = index;
+        Zoom = new Vector2(Zooms[index], Zooms[index]);
+        ViewSize = _screenView / Zooms[index];
+        MoveTo(fixedPoint - anchor / Zooms[index]);
     }
 
     public void MoveTo(Vector2 topLeft)
     {
         var mapSize = new Vector2(_map.Width, _map.Height) * T;
-        TopLeft = topLeft.Clamp(Vector2.Zero, (mapSize - ViewSize).Max(Vector2.Zero));
+        float zoom = Zooms[_zoomIndex];
+        // calé sur les pixels de l'écran, pour que chaque pixel d'art ait toujours la même taille
+        TopLeft = (topLeft.Clamp(Vector2.Zero, (mapSize - ViewSize).Max(Vector2.Zero)) * zoom).Round() / zoom;
         // La caméra montre aussi la barre du haut : on la décale d'autant
-        Position = TopLeft - new Vector2(0, Hud.TopBarHeight);
+        Position = TopLeft - new Vector2(0, Hud.TopBarHeight / zoom);
         _minimap.VisibleCells = new Rect2(TopLeft / T, ViewSize / T);
     }
 
@@ -65,22 +97,22 @@ public partial class MapCamera : Camera2D
         // Touches physiques : ZQSD sur un clavier AZERTY = WASD sur un clavier QWERTY
         if (Input.IsKeyPressed(Key.Left) || Input.IsPhysicalKeyPressed(Key.A) || (edges && mouse.X < 4))
             direction.X -= 1;
-        if (Input.IsKeyPressed(Key.Right) || Input.IsPhysicalKeyPressed(Key.D) || (edges && mouse.X > ViewSize.X - 4 && mouse.X < ViewSize.X))
+        if (Input.IsKeyPressed(Key.Right) || Input.IsPhysicalKeyPressed(Key.D) || (edges && mouse.X > _screenView.X - 4 && mouse.X < _screenView.X))
             direction.X += 1;
         if (Input.IsKeyPressed(Key.Up) || Input.IsPhysicalKeyPressed(Key.W) || (edges && mouse.Y < 4))
             direction.Y -= 1;
-        if (Input.IsKeyPressed(Key.Down) || Input.IsPhysicalKeyPressed(Key.S) || (edges && mouse.Y > screen.Y - 4 && mouse.X < ViewSize.X))
+        if (Input.IsKeyPressed(Key.Down) || Input.IsPhysicalKeyPressed(Key.S) || (edges && mouse.Y > screen.Y - 4 && mouse.X < _screenView.X))
             direction.Y += 1;
 
         if (direction != Vector2.Zero)
-            MoveTo(TopLeft + direction * ScrollSpeed * delta);
+            MoveTo(TopLeft + direction * ScrollSpeed / Zooms[_zoomIndex] * delta); // même vitesse à l'écran quel que soit le zoom
     }
 
     /// <summary>Case sous la souris, ou null si la souris est sur l'interface ou hors de la carte.</summary>
     public Cell? HoveredCell()
     {
         var mouse = GetViewport().GetMousePosition();
-        if (mouse.X >= ViewSize.X || mouse.Y < Hud.TopBarHeight)
+        if (mouse.X >= _screenView.X || mouse.Y < Hud.TopBarHeight)
             return null;
         var world = GetGlobalMousePosition();
         var cell = new Cell(Mathf.FloorToInt(world.X / T), Mathf.FloorToInt(world.Y / T));

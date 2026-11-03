@@ -4,11 +4,13 @@ Les images à produire sont décrites dans assets.json (à côté de ce script).
 la variable d'environnement RETRO_DIFFUSION_API_KEY (jamais écrite dans un fichier du projet).
 
     python -I tools/art/generer.py cout [noms...]       prix estimé, gratuit (rien n'est généré)
-    python -I tools/art/generer.py generer noms...      génère les candidats dans art-candidats/<nom>/
+    python -I tools/art/generer.py generer noms...      génère les candidats dans art-candidats/en-cours/candidats/<nom>/
     python -I tools/art/generer.py choisir nom numero    copie le candidat choisi dans godot/art/<nom>.png
 
 Sans nom, « cout » estime toutes les images. Un nom peut être un préfixe (« terrain/ »).
 Un nom avec « @ » (« terrain/grass@48 ») est un essai : « choisir » le copie à la place de terrain/grass.
+Une image avec « input » part d'une image existante (style rd_tile__tile_variation : variantes d'une case).
+« choisir » cherche le candidat dans art-candidats/en-cours/, puis dans les archives (le plus récent d'abord).
 Seule la bibliothèque standard de Python est utilisée.
 """
 
@@ -25,7 +27,8 @@ import zlib
 API = "https://api.retrodiffusion.ai/v2"
 ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.normpath(os.path.join(ICI, "..", ".."))
-CANDIDATS = os.path.join(RACINE, "art-candidats")
+CANDIDATS = os.path.join(RACINE, "art-candidats", "en-cours", "candidats")
+ARCHIVES = os.path.join(RACINE, "art-candidats", "archives")
 ART = os.path.join(RACINE, "godot", "art")
 
 
@@ -62,6 +65,52 @@ def requete(methode, chemin, corps=None):
         sys.exit(f"Erreur {e.code} de l'API : {e.read().decode('utf-8', 'replace')}")
 
 
+def image_rgb_base64(chemin):
+    """Une image PNG en base64, sans transparence (l'API veut du RGB) : on relit le fichier et on retire le canal alpha."""
+    import struct
+    d = open(chemin, "rb").read()
+    i = 8
+    idat = b""
+    while i < len(d):
+        n, t = struct.unpack(">I4s", d[i:i + 8])
+        c = d[i + 8:i + 8 + n]
+        i += 12 + n
+        if t == b"IHDR":
+            w, h, bd, ct = struct.unpack(">IIBB", c[:10])
+        elif t == b"IDAT":
+            idat += c
+    if bd != 8 or ct not in (2, 6):
+        sys.exit(f"Image non prise en charge (RGB ou RGBA 8 bits attendu) : {chemin}")
+    bpp = 4 if ct == 6 else 3
+    raw = zlib.decompress(idat)
+    lignes = []
+    prec = bytearray(w * bpp)
+    k = 0
+    for _ in range(h):
+        f = raw[k]
+        k += 1
+        ligne = bytearray(raw[k:k + w * bpp])
+        k += w * bpp
+        for x in range(len(ligne)):
+            a = ligne[x - bpp] if x >= bpp else 0
+            b = prec[x]
+            cc = prec[x - bpp] if x >= bpp else 0
+            if f == 1: ligne[x] = (ligne[x] + a) & 255
+            elif f == 2: ligne[x] = (ligne[x] + b) & 255
+            elif f == 3: ligne[x] = (ligne[x] + (a + b) // 2) & 255
+            elif f == 4:
+                p = a + b - cc
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - cc)
+                ligne[x] = (ligne[x] + (a if pa <= pb and pa <= pc else b if pb <= pc else cc)) & 255
+        lignes.append(b"\x00" + b"".join(bytes(ligne[x * bpp:x * bpp + 3]) for x in range(w)))
+        prec = ligne
+    def bloc(t, data):
+        return struct.pack(">I", len(data)) + t + data + struct.pack(">I", zlib.crc32(t + data))
+    png = (b"\x89PNG\r\n\x1a\n" + bloc(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+           + bloc(b"IDAT", zlib.compress(b"".join(lignes))) + bloc(b"IEND", b""))
+    return base64.b64encode(png).decode("ascii")
+
+
 def graine(nom):
     """Une graine fixe par image : relancer donne un résultat proche."""
     return zlib.crc32(nom.encode("utf-8")) % 1_000_000
@@ -80,6 +129,8 @@ def demande(asset, cout_seulement=False):
         corps["remove_bg"] = True
     if asset.get("tile"):
         corps["tile_x"] = corps["tile_y"] = True
+    if asset.get("input"):
+        corps["input_image"] = image_rgb_base64(os.path.join(RACINE, asset["input"]))
     if cout_seulement:
         corps["check_cost"] = True
     return corps
@@ -122,9 +173,12 @@ def generer(assets):
 
 
 def choisir(nom, numero):
-    source = os.path.join(CANDIDATS, *nom.split("/"), f"{numero}.png")
-    if not os.path.exists(source):
-        sys.exit(f"Candidat introuvable : {source}")
+    chemin = os.path.join(*nom.split("/"), f"{numero}.png")
+    lieux = [CANDIDATS] + [os.path.join(ARCHIVES, d, "candidats")
+                           for d in sorted(os.listdir(ARCHIVES), reverse=True)] if os.path.isdir(ARCHIVES) else [CANDIDATS]
+    source = next((os.path.join(l, chemin) for l in lieux if os.path.exists(os.path.join(l, chemin))), None)
+    if source is None:
+        sys.exit(f"Candidat introuvable : {chemin} (ni en cours, ni dans les archives)")
     # « terrain/grass@48 » est un essai d'une autre taille de terrain/grass : il remplace la même image
     cible = os.path.join(ART, *nom.split("@")[0].split("/")) + ".png"
     os.makedirs(os.path.dirname(cible), exist_ok=True)

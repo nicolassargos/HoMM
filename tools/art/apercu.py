@@ -1,8 +1,8 @@
-"""Page de choix des images : art-candidats/apercu.html montre chaque candidat agrandi (pixels nets).
+"""Page de choix des images : art-candidats/en-cours/apercu.html montre chaque candidat agrandi (pixels nets).
 
     python -I tools/art/apercu.py
 
-Les images d'écran de jeu éventuellement posées dans art-candidats/ (jeu-*.png) sont montrées en haut.
+Les images d'écran de jeu posées dans art-candidats/en-cours/ (jeu-*.png) sont montrées en haut.
 Chaque candidat est aussi montré à la taille du jeu (×2) sur l'herbe installée, et le candidat déjà
 installé dans godot/art est marqué « choisi ».
 """
@@ -13,7 +13,7 @@ import json
 import os
 
 ART = None  # dossier godot/art, fixé dans main()
-HERBE = "../godot/art/terrain/grass.png"
+HERBE = "../../godot/art/terrain/grass.png"
 
 
 def scene(asset, chemin, taille):
@@ -40,7 +40,8 @@ def installe(asset):
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.normpath(os.path.join(ICI, "..", ".."))
-CANDIDATS = os.path.join(RACINE, "art-candidats")
+EN_COURS = os.path.join(RACINE, "art-candidats", "en-cours")
+CANDIDATS = os.path.join(EN_COURS, "candidats")
 
 STYLE = """
 body { background:#1e1a14; color:#f0e4c8; font-family:sans-serif; margin:24px; }
@@ -63,7 +64,7 @@ def main():
     parties = [f"<!doctype html><html lang='fr'><head><meta charset='utf-8'><title>Choix des images</title>"
                f"<style>{STYLE}</style></head><body><h1>Choix des images</h1>"
                "<p>Chaque candidat est agrandi ×4, puis montré à la taille du jeu (×2) sur l'herbe. Le candidat déjà installé est encadré en jaune.</p>"]
-    ecrans = sorted(glob.glob(os.path.join(CANDIDATS, "jeu-*.png")))
+    ecrans = sorted(glob.glob(os.path.join(EN_COURS, "jeu-*.png")))
     if ecrans:
         parties.append("<h2>Dans le jeu</h2><div class='row'>")
         for ecran in ecrans:
@@ -79,7 +80,7 @@ def main():
         parties.append(f"<h2>{html.escape(asset['name'])}</h2><p>{html.escape(asset['prompt'])}</p><div class='row'>")
         actuel = installe(asset)
         for image in images:
-            chemin = os.path.relpath(image, CANDIDATS).replace(os.sep, "/")
+            chemin = os.path.relpath(image, EN_COURS).replace(os.sep, "/")
             numero = os.path.splitext(os.path.basename(image))[0]
             with open(image, "rb") as f:
                 choisi = actuel is not None and f.read() == actuel
@@ -87,14 +88,15 @@ def main():
                            f"<figcaption>n°{numero}{' (choisi)' if choisi else ''}</figcaption></figure>")
         parties.append("</div><div class='row' style='margin-top:10px'>")
         for image in images:
-            chemin = os.path.relpath(image, CANDIDATS).replace(os.sep, "/")
+            chemin = os.path.relpath(image, EN_COURS).replace(os.sep, "/")
             numero = os.path.splitext(os.path.basename(image))[0]
             parties.append(f"<figure>{scene(asset, chemin, taille)}<figcaption>n°{numero} dans le jeu</figcaption></figure>")
         parties.append("</div>")
     parties.append("</body></html>")
-    with open(os.path.join(CANDIDATS, "apercu.html"), "w", encoding="utf-8") as f:
+    os.makedirs(EN_COURS, exist_ok=True)
+    with open(os.path.join(EN_COURS, "apercu.html"), "w", encoding="utf-8") as f:
         f.write("\n".join(parties))
-    print(os.path.join(CANDIDATS, "apercu.html"))
+    print(os.path.join(EN_COURS, "apercu.html"))
 
 
 if __name__ == "__main__":

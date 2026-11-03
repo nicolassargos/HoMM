@@ -158,7 +158,20 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   créature sur sa carte d'habitation, dans les emplacements de la garnison et du héros, et en grand (×3) dans la
   fenêtre de recrutement. L'écran de ville se lit maintenant de haut en bas (les armées restent sous les
   bâtiments) et ses cartes gardent leur largeur. `-- --capture=… --town` montre l'écran d'une ville.
-- À faire : transitions entre terrains ; peut-être des portraits plus grands (64 ou 96 px) pour la ville.
+- ✅ Transitions entre terrains, calculées par un shader (`shaders/terrain.gdshader`, `SmoothGround`) : pas d'images
+  de bords à préparer, et changer l'image d'un terrain change aussi ses bords. Chaque pixel d'art part du terrain de
+  sa case ; près d'un autre terrain, les deux se mélangent (en paliers tramés, sur environ 7 pixels d'art) le long
+  d'une ligne ondulée (grandes ondulations et petites encoches), les terrains « au-dessus » débordant un peu plus
+  (rang : eau < route < sable < marais < herbe). Contre l'eau, la rive reste nette, avec contour, berge un peu sombre
+  et écume. Deux images par terrain (`grass-2.png`…), mélangées par un grand bruit doux, et de grandes zones un peu
+  plus claires ou plus sombres, pour que le motif ne se voie pas. Les règles ne changent pas.
+  Essayés puis écartés : bords nets avec taches (trop bruité), mélange large (les cases seules s'effaçaient).
+  Développement : `--terrain-test` peint un échantillon de toutes les rencontres de terrains, `--ground=réglage:valeur`
+  change un réglage du shader sans recompiler.
+- ✅ Zoom de la carte (molette, touches + et -) : ×2 ou ×3 (comme le premier Heroes), pixels d'art toujours entiers.
+  La partie commence à ×2 (choix de l'utilisateur, à revoir lors des réglages fins).
+- À faire : la route comme couche posée sur le terrain (prochaine PR) ; peut-être des portraits plus grands
+  (64 ou 96 px) pour la ville.
 
 ### 6. Combat tactique
 - Écran de combat sur grille hexagonale.

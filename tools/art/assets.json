@@ -78,6 +78,18 @@
     { "name": "creatures/cavalier", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 2, "seed": 606,
       "prompt": "armored knight on a white horse holding a lance, blue banner, side view, clear silhouette" },
     { "name": "creatures/ange", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 2, "seed": 607,
-      "prompt": "angel warrior with large white wings, golden armor and a flaming sword, front view, clear silhouette" }
+      "prompt": "angel warrior with large white wings, golden armor and a flaming sword, front view, clear silhouette" },
+    { "name": "terrain/sand-2", "style": "rd_tile__tile_variation", "size": 24, "tile": true, "variants": 3, "seed": 702,
+      "input": "godot/art/terrain/sand.png",
+      "prompt": "variation of this sand ground tile, same colors and style, slightly different details" },
+    { "name": "terrain/swamp-2", "style": "rd_tile__tile_variation", "size": 24, "tile": true, "variants": 3, "seed": 703,
+      "input": "godot/art/terrain/swamp.png",
+      "prompt": "variation of this swamp ground tile, same colors and style, slightly different details" },
+    { "name": "terrain/water-2", "style": "rd_tile__tile_variation", "size": 24, "tile": true, "variants": 3, "seed": 704,
+      "input": "godot/art/terrain/water.png",
+      "prompt": "variation of this water tile, same colors and style, slightly different ripples" },
+    { "name": "terrain/grass-2@clair", "style": "rd_tile__tile_variation", "size": 24, "tile": true, "variants": 2, "seed": 713,
+      "input": "godot/art/terrain/grass.png",
+      "prompt": "variation of this grass ground tile, slightly lighter and sunnier green, fewer details, same style" }
   ]
 }

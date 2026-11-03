@@ -9,6 +9,9 @@ public partial class TerrainLayer : Node2D
 {
     public AdventureMap Map { get; set; } = null!;
 
+    // Pixel art : les images agrandies restent nettes
+    public override void _Ready() => TextureFilter = TextureFilterEnum.Nearest;
+
     public override void _Draw()
     {
         var rng = new Random(1);

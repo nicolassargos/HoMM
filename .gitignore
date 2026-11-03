@@ -16,3 +16,6 @@ obj/
 .vs/
 .vscode/
 mono_crash.*.json
+
+# Images générées pas encore choisies (tools/art/generer.py)
+art-candidats/

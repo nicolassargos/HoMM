@@ -8,5 +8,7 @@ public partial class ResourceIcon : Control
 {
     public ResourceType Resource { get; set; }
 
+    public override void _Ready() => TextureFilter = TextureFilterEnum.Nearest;
+
     public override void _Draw() => MapRenderer.DrawResourceIcon(this, Resource, Size / 2);
 }

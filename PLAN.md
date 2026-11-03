@@ -154,7 +154,11 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   case de montagne, un petit sommet derrière et un grand devant. Ils débordent sur les cases voisines et sont dessinés de haut en bas, pour
   former des masses continues. Le hasard dépend de la case (même décor à chaque fois). Les règles ne changent pas.
   Essayés puis écartés : une image par case (groupe d'arbres, montagne), qui laissait des trous réguliers.
-- À faire : portraits des créatures dans la ville, transitions entre terrains.
+- ✅ Images des 7 créatures du Château (24 px, comme les monstres). L'écran de ville montre l'image de chaque
+  créature sur sa carte d'habitation, dans les emplacements de la garnison et du héros, et en grand (×3) dans la
+  fenêtre de recrutement. L'écran de ville se lit maintenant de haut en bas (les armées restent sous les
+  bâtiments) et ses cartes gardent leur largeur. `-- --capture=… --town` montre l'écran d'une ville.
+- À faire : transitions entre terrains ; peut-être des portraits plus grands (64 ou 96 px) pour la ville.
 
 ### 6. Combat tactique
 - Écran de combat sur grille hexagonale.

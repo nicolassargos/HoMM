@@ -21,7 +21,8 @@ namespace HoMM.Game;
 /// Lancer avec une graine fixe : ajouter « -- --seed=42 » à la ligne de commande ;
 /// reprendre la partie sauvegardée : « -- --load ».
 /// Développement : « -- --capture=apercu.png » enregistre une image de l'écran après un instant, puis quitte
-/// (avec « --rules », la fenêtre du choix des conditions reste ouverte sur l'image).
+/// (avec « --rules », la fenêtre du choix des conditions reste ouverte sur l'image ; avec « --town », l'écran
+/// d'une ville avec presque tous ses bâtiments).
 /// </summary>
 public partial class Main : Node2D
 {
@@ -91,7 +92,28 @@ public partial class Main : Node2D
         }
         else if (_capturePath == null || OS.GetCmdlineUserArgs().Contains("--rules")) // une capture montre la carte, sauf avec --rules
             _hud.ShowRulesChoice(GameRules.Options, rules => _state.ChooseRules(rules));
+        if (_capturePath != null && OS.GetCmdlineUserArgs().Contains("--town"))
+            ShowTownForCapture();
         CenterOnHero();
+    }
+
+    /// <summary>
+    /// Pour une capture d'écran seulement (« --town ») : donne au joueur la première ville avec presque tous ses bâtiments,
+    /// une armée de chaque créature en garnison, et ouvre son écran.
+    /// </summary>
+    private void ShowTownForCapture()
+    {
+        var player = _state.Players[0];
+        var town = _state.Towns.First();
+        town.SetOwner(player);
+        var data = LoadData();
+        // tous les bâtiments sauf les trois derniers, pour voir aussi des cartes « à construire »
+        foreach (var building in data.Buildings.All.SkipLast(3))
+            if (!town.Has(building.Id))
+                town.AddBuilding(building);
+        foreach (var creature in data.Creatures.All.Where(c => c.Faction == "chateau").Take(Army.MaxStacks))
+            town.Garrison.Add(creature, 10);
+        OpenTown(town);
     }
 
     /// <summary>Graine passée en argument (--seed=42), sinon une graine au hasard.</summary>

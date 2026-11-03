@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using HoMM.Core;
 
 namespace HoMM.Game;
 
@@ -310,6 +311,26 @@ public static class Ui
         theme.SetColor("font_hover_color", "Button", Colors.White);
         theme.SetColor("font_pressed_color", "Button", TextColor);
         theme.SetColor("font_disabled_color", "Button", DimColor);
+    }
+
+    /// <summary>
+    /// L'image d'une créature (art/creatures/{id}.png), agrandie <paramref name="scale"/> fois (pixels nets),
+    /// ou null si elle n'a pas d'image.
+    /// </summary>
+    public static TextureRect? CreatureImage(CreatureType type, int scale = 2)
+    {
+        if (Art.Get($"creatures/{type.Id}") is not { } texture)
+            return null;
+        return new TextureRect
+        {
+            Texture = texture,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.Scale,
+            CustomMinimumSize = texture.GetSize() * scale,
+            TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+        };
     }
 
     /// <summary>Un bouton aux couleurs du jeu. Il ne prend pas le focus, sinon Espace/Entrée le « cliqueraient ».</summary>

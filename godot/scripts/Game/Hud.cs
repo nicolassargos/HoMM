@@ -300,9 +300,8 @@ public partial class Hud : CanvasLayer
         if (hovered is not { } cell || !_state.CurrentPlayer.Fog.IsExplored(cell))
             return "";
         var terrain = _state.Map.GetTerrain(cell);
-        string text = Texts.Terrain(terrain) + (TerrainInfo.IsPassable(terrain)
-            ? $" (coût {TerrainInfo.MoveCost(terrain)})"
-            : " (infranchissable)");
+        string text = Texts.Terrain(terrain) + (_state.Map.HasRoad(cell) ? $", {Texts.WithRoad}" : "")
+            + (TerrainInfo.IsPassable(terrain) ? $" (coût {_state.Map.MoveCost(cell)})" : " (infranchissable)");
         var obj = _state.Map.OccupantAt(cell);
         if (obj is Mine mine)
             text += $"\n{Texts.MineName(mine)}" + (mine.Owner == _state.CurrentPlayer ? " (à vous)" : mine.Owner != null ? " (ennemie)" : " (libre)");

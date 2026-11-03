@@ -137,15 +137,20 @@ public partial class Main : Node2D
             "gswsggggmmmgrggwwwgggg",
             "gsssgwgggmgggggggggggg",
             "ggggwwwggggmgwgwgwgsgg",
-            "grrrrrrrrrrrrrrrrrrrrg",
+            "grrrrrrRRRRRrrqqqqrrrg",
             "gfffggMMMggwwwwwwwwggg",
             "gfgfggMgMggwsssssswggg",
             "gggggggggggwwwwwwwwggg",
             "gggggggggggggggggggggg",
         };
+        // r : route sur l'herbe, R : route sur le sable, q : route dans le marais
+        var roads = new System.Collections.Generic.Dictionary<char, TerrainType>
+        {
+            ['r'] = TerrainType.Grass, ['R'] = TerrainType.Sand, ['q'] = TerrainType.Swamp,
+        };
         var kinds = new System.Collections.Generic.Dictionary<char, TerrainType>
         {
-            ['g'] = TerrainType.Grass, ['r'] = TerrainType.Road, ['s'] = TerrainType.Sand, ['m'] = TerrainType.Swamp,
+            ['g'] = TerrainType.Grass, ['s'] = TerrainType.Sand, ['m'] = TerrainType.Swamp,
             ['w'] = TerrainType.Water, ['f'] = TerrainType.Forest, ['M'] = TerrainType.Mountain,
         };
         var hero = _state.CurrentHero!.Position;
@@ -153,7 +158,12 @@ public partial class Main : Node2D
         int top = Math.Clamp(hero.Y - rows.Length / 2, 0, _state.Map.Height - rows.Length);
         for (int y = 0; y < rows.Length; y++)
         for (int x = 0; x < rows[y].Length; x++)
-            _state.Map.SetTerrain(new Cell(left + x, top + y), kinds[rows[y][x]]);
+        {
+            var cell = new Cell(left + x, top + y);
+            char kind = rows[y][x];
+            _state.Map.SetRoad(cell, roads.ContainsKey(kind));
+            _state.Map.SetTerrain(cell, roads.TryGetValue(kind, out var under) ? under : kinds[kind]);
+        }
     }
 
     /// <summary>Graine passée en argument (--seed=42), sinon une graine au hasard.</summary>

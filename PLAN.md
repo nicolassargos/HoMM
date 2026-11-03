@@ -170,8 +170,13 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   change un réglage du shader sans recompiler.
 - ✅ Zoom de la carte (molette, touches + et -) : ×2 ou ×3 (comme le premier Heroes), pixels d'art toujours entiers.
   La partie commence à ×2 (choix de l'utilisateur, à revoir lors des réglages fins).
-- À faire : la route comme couche posée sur le terrain (prochaine PR) ; peut-être des portraits plus grands
-  (64 ou 96 px) pour la ville.
+- ✅ La route est une couche posée sur le terrain (`AdventureMap.HasRoad`), plus un terrain : une case de route
+  coûte 75 quel que soit le terrain dessous (`TerrainInfo.RoadCost`). Le générateur garde le sable et le marais sous
+  la route ; l'eau, la montagne et la forêt y deviennent de l'herbe. Le shader dessine la route comme un chemin
+  continu au-dessus du sol (virages en quart de cercle, bords un peu ondulés). Sauvegarde version 2 (ligne « roads ») ;
+  une sauvegarde de la version 1 est convertie (l'ancien terrain « route » devient de l'herbe avec une route).
+  Les numéros des terrains ne changent pas (le 1 n'est plus utilisé).
+- À faire : portraits des héros (en cours) ; peut-être des portraits plus grands (64 ou 96 px) pour la ville.
 
 ### 6. Combat tactique
 - Écran de combat sur grille hexagonale.

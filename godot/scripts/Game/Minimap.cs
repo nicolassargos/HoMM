@@ -41,7 +41,7 @@ public partial class Minimap : Control
             Color color = MapRenderer.FogColor;
             if (State.CurrentPlayer.Fog.IsExplored(cell))
             {
-                color = MapRenderer.TerrainColor(map.GetTerrain(cell));
+                color = map.HasRoad(cell) ? MapRenderer.RoadColor : MapRenderer.TerrainColor(map.GetTerrain(cell));
                 if (map.ObjectAt(cell) is Mine mine)
                     color = mine.Owner != null ? MapRenderer.PlayerColor : MapRenderer.Rgb(230, 230, 230);
                 else if (map.OccupantAt(cell) is Town town)

@@ -22,7 +22,6 @@ public static class MapRenderer
     public static Color TerrainColor(TerrainType terrain) => terrain switch
     {
         TerrainType.Grass => Rgb(86, 150, 60),
-        TerrainType.Road => Rgb(170, 140, 95),
         TerrainType.Forest => Rgb(52, 105, 45),
         TerrainType.Sand => Rgb(214, 196, 128),
         TerrainType.Swamp => Rgb(74, 98, 72),
@@ -65,6 +64,17 @@ public static class MapRenderer
 
     // ------------------------------------------------------------------ terrain
 
+    /// <summary>La couleur des routes (minicarte, dessin sans images).</summary>
+    public static readonly Color RoadColor = Rgb(170, 140, 95);
+
+    /// <summary>Une route sur une case, dessinée sans images (quand le shader du sol n'est pas disponible).</summary>
+    public static void DrawRoad(CanvasItem ci, Vector2 o, Random rng)
+    {
+        ci.DrawRect(new Rect2(o + V(T / 4, T / 4), T / 2, T / 2), RoadColor);
+        for (int i = 0; i < 4; i++)
+            ci.DrawCircle(o + V(rng.Next(T / 4, 3 * T / 4), rng.Next(T / 4, 3 * T / 4)), 2, Rgb(140, 115, 80));
+    }
+
     public static void DrawTile(CanvasItem ci, TerrainType terrain, Vector2 o, Random rng)
     {
         // sous les arbres et les montagnes, de l'herbe (le décor est dessiné par-dessus, par DecorLayer)
@@ -89,11 +99,6 @@ public static class MapRenderer
                 if (terrain == TerrainType.Swamp)
                     for (int i = 0; i < 2; i++)
                         Ellipse(ci, new Rect2(o + V(rng.Next(6, T - 14), rng.Next(6, T - 8)), 12, 5), Rgb(60, 90, 110));
-                break;
-
-            case TerrainType.Road:
-                for (int i = 0; i < 8; i++)
-                    ci.DrawCircle(o + V(rng.Next(T), rng.Next(T)), 2, Rgb(140, 115, 80));
                 break;
 
             case TerrainType.Forest:

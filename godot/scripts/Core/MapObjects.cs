@@ -90,6 +90,24 @@ public sealed class TreasureChest : MapObject
     }
 }
 
+/// <summary>Le héros a visité un obélisque. <paramref name="FirstVisit"/> : un nouveau morceau de la carte au trésor.</summary>
+public sealed record ObeliskVisited(Hero Hero, Obelisk Obelisk, bool FirstVisit) : ObjectVisited(Hero, Obelisk);
+
+/// <summary>
+/// Un obélisque : la première visite d'un joueur dévoile un morceau de la carte au trésor (voir
+/// <see cref="GameState.TreasureMapPieces"/>). Il reste sur la carte.
+/// </summary>
+public sealed class Obelisk : MapObject
+{
+    public Obelisk(Cell position) : base(position)
+    {
+    }
+
+    public override bool RemovedOnVisit => false;
+
+    public override ObjectVisited Visit(Hero hero) => new ObeliskVisited(hero, this, hero.Owner.Obelisks.Add(Id));
+}
+
 /// <summary>Le héros a pris une mine. <paramref name="PreviousOwner"/> : son ancien propriétaire, s'il y en avait un.</summary>
 public sealed record MineCaptured(Hero Hero, Mine Mine, Player? PreviousOwner) : ObjectVisited(Hero, Mine);
 

@@ -174,6 +174,7 @@ public static class MapRenderer
     {
         ResourcePile pile => Art.Get($"objects/pile-{Art.Name(pile.Resource)}"),
         TreasureChest => Art.Get("objects/chest"),
+        Obelisk => Art.Get("objects/obelisk"),
         Mine mine => Art.Get($"objects/mine-{Art.Name(mine.Resource)}"),
         MonsterGuard guard => Art.Get($"creatures/{guard.Type.Id}"),
         Town => Art.Get("objects/town"),
@@ -209,6 +210,14 @@ public static class MapRenderer
                 ci.DrawRect(new Rect2(c + V(-3, -4), 6, 7), Rgb(230, 190, 60));
                 if ((int)(time * 2) % 2 == 0) // petit scintillement
                     ci.DrawCircle(c + V(10, -13), 2, Rgb(255, 255, 200));
+                break;
+
+            case Obelisk:
+                // une colonne de pierre avec une rune bleue
+                ci.DrawColoredPolygon(new[] { c + V(-5, -20), c + V(5, -20), c + V(8, 14), c + V(-8, 14) }, Rgb(130, 125, 120));
+                ci.DrawColoredPolygon(new[] { c + V(-5, -20), c + V(0, -26), c + V(5, -20) }, Rgb(160, 155, 150));
+                ci.DrawRect(new Rect2(c + V(-11, 14), 22, 5), Rgb(100, 95, 90));
+                ci.DrawRect(new Rect2(c + V(-2, -10), 4, 12), Rgb(90, 170, 230));
                 break;
 
             case Mine mine:

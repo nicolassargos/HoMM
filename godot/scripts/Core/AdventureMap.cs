@@ -25,6 +25,11 @@ public sealed class AdventureMap
     public int Height { get; }
     public Cell Start { get; set; }
 
+    /// <summary>
+    /// La case où le trésor est enfoui (invisible, il ne bloque rien : il faut creuser), ou null s'il a été déterré.
+    /// </summary>
+    public Cell? Treasure { get; set; }
+
     public IReadOnlyCollection<MapObject> Objects => _objects.Values;
 
     public bool InBounds(Cell c) => c.X >= 0 && c.Y >= 0 && c.X < Width && c.Y < Height;

@@ -104,6 +104,10 @@
     { "name": "heroes/portraits/renaud-le-goupil", "style": "rd_plus__retro", "size": 64, "variants": 3, "seed": 825,
       "prompt": "bust portrait of a sly rogue, thin stubbled face, crooked smile, scar over one eye, dark leather hood, shifty eyes, facing the viewer, characterful imperfect features, not idealized, gritty, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" },
     { "name": "heroes/portraits/brann-le-rouge", "style": "rd_plus__retro", "size": 64, "variants": 3, "seed": 826,
-      "prompt": "bust portrait of a wild barbarian warrior, long tangled red hair and braided beard, war paint, fur mantle, missing teeth, fierce, facing the viewer, characterful imperfect features, not idealized, gritty, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" }
+      "prompt": "bust portrait of a wild barbarian warrior, long tangled red hair and braided beard, war paint, fur mantle, missing teeth, fierce, facing the viewer, characterful imperfect features, not idealized, gritty, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" },
+    { "name": "objects/obelisk", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 3, "seed": 902,
+      "prompt": "ancient stone obelisk with glowing blue runes carved on it, standing on a small stone base" },
+    { "name": "artifacts/plastron-des-rois", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 3, "seed": 904,
+      "prompt": "front view of a legendary golden breastplate chest armour with shoulder plates, engraved royal crown on the chest and a red gem, metal torso armour piece, no shield, item icon" }
   ]
 }

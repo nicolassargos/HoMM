@@ -29,6 +29,9 @@ public sealed class Player
     public List<Town> Towns { get; } = new();
     public List<Hero> Heroes { get; } = new();
 
+    /// <summary>Les obélisques visités (leurs identifiants) : chacun dévoile un morceau de la carte au trésor.</summary>
+    public HashSet<int> Obelisks { get; } = new();
+
     /// <summary>Un joueur sans héros ni ville a perdu.</summary>
     public bool IsDefeated => Heroes.Count == 0 && Towns.Count == 0;
 

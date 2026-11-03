@@ -123,24 +123,44 @@ public sealed partial class GameState
     /// </summary>
     public bool ChooseRules(GameRules rules)
     {
-        if (Day > 0)
+        if (Day > 0 || rules.Victory == VictoryCondition.None)
             return false;
         Rules = rules;
-        Emit(new RulesChosen(rules));
+        Emit(new RulesChosen(rules, rules.Has(VictoryCondition.FindTreasure) ? TreasureDirection() : null));
         return true;
     }
 
-    /// <summary>Vérifie la victoire après chaque changement qui peut la donner (monstre vaincu, ville prise).</summary>
+    /// <summary>Un héros du joueur humain a déterré le trésor (la partie est alors gagnée s'il fallait le trouver).</summary>
+    private bool _treasureFound;
+
+    /// <summary>Dans quelle partie de la carte le trésor est enfoui (grille de 3 × 3), ou null s'il n'y en a pas (ou plus).</summary>
+    public Compass? TreasureDirection()
+    {
+        if (Map.Treasure is not { } treasure)
+            return null;
+        int column = Math.Clamp(treasure.X * 3 / Map.Width, 0, 2);
+        int row = Math.Clamp(treasure.Y * 3 / Map.Height, 0, 2);
+        return (row, column) switch
+        {
+            (0, 0) => Compass.NorthWest, (0, 1) => Compass.North, (0, 2) => Compass.NorthEast,
+            (1, 0) => Compass.West, (1, 1) => Compass.Center, (1, 2) => Compass.East,
+            (2, 0) => Compass.SouthWest, (2, 1) => Compass.South, _ => Compass.SouthEast,
+        };
+    }
+
+    /// <summary>Vérifie la victoire après chaque changement qui peut la donner (monstre vaincu, ville prise, trésor).</summary>
     private void CheckVictory()
     {
         if (Outcome != GameOutcome.Playing)
             return;
-        GameEndReason? reason = Rules.Victory switch
-        {
-            VictoryCondition.ClearGuards when !Map.Objects.OfType<MonsterGuard>().Any() => GameEndReason.GuardsCleared,
-            VictoryCondition.CaptureTowns when Towns.Any() && Towns.All(t => t.Owner == Players[0]) => GameEndReason.TownsCaptured,
-            _ => null,
-        };
+        // La première condition accomplie donne la victoire
+        GameEndReason? reason = null;
+        if (Rules.Has(VictoryCondition.FindTreasure) && _treasureFound)
+            reason = GameEndReason.TreasureFound;
+        else if (Rules.Has(VictoryCondition.CaptureTowns) && Towns.Any() && Towns.All(t => t.Owner == Players[0]))
+            reason = GameEndReason.TownsCaptured;
+        else if (Rules.Has(VictoryCondition.ClearGuards) && !Map.Objects.OfType<MonsterGuard>().Any())
+            reason = GameEndReason.GuardsCleared;
         if (reason is { } won)
             EndGame(GameOutcome.Victory, won);
     }
@@ -509,6 +529,40 @@ public sealed partial class GameState
         return HireResult.Ok;
     }
 
+    // -------------------------------------------------------------- trésor
+
+    /// <summary>Les obélisques de la carte, dans un ordre fixe : le n-ième dévoile le n-ième morceau de la carte au trésor.</summary>
+    public IReadOnlyList<Obelisk> Obelisks => Map.Objects.OfType<Obelisk>().OrderBy(o => o.Id).ToList();
+
+    /// <summary>Pour chaque morceau de la carte au trésor (un par obélisque) : le joueur l'a-t-il dévoilé ?</summary>
+    public IReadOnlyList<bool> TreasureMapPieces(Player player) => Obelisks.Select(o => player.Obelisks.Contains(o.Id)).ToList();
+
+    /// <summary>
+    /// Le héros courant creuse sur sa case. Il faut une journée entière de mouvement, qui est alors dépensée.
+    /// Sur la bonne case, il déterre le trésor : un artefact légendaire, qui fait gagner s'il fallait le trouver.
+    /// </summary>
+    public DigResult Dig()
+    {
+        if (Outcome != GameOutcome.Playing || CurrentHero is not { } hero)
+            return DigResult.NoHero;
+        if (hero.Movement < hero.MaxMovement)
+            return DigResult.NeedsFullDay;
+        hero.SpendMovement(hero.Movement);
+        Path = null;
+        if (Map.Treasure != hero.Position || Data.Artifacts.Treasure is not { } artifact)
+        {
+            Emit(new NothingDug(hero));
+            return DigResult.Nothing;
+        }
+        Map.Treasure = null;
+        hero.Equip(artifact);
+        if (hero.Owner == Players[0])
+            _treasureFound = true;
+        Emit(new TreasureDug(hero, artifact));
+        CheckVictory();
+        return DigResult.Found;
+    }
+
     /// <summary>Le nom du prochain héros que la taverne propose : le premier pas encore utilisé dans la partie.</summary>
     public string? NextHeroName()
     {
@@ -531,3 +585,12 @@ public sealed partial class GameState
         return BuildResult.Ok;
     }
 }
+
+/// <summary>Ce que donne <see cref="GameState.Dig"/>.</summary>
+public enum DigResult { Found, Nothing, NeedsFullDay, NoHero }
+
+/// <summary>Le héros a creusé au mauvais endroit : il n'y a rien.</summary>
+public sealed record NothingDug(Hero Hero) : GameEvent;
+
+/// <summary>Le héros a déterré le trésor : il porte maintenant l'artefact.</summary>
+public sealed record TreasureDug(Hero Hero, ArtifactType Artifact) : GameEvent;

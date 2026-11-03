@@ -20,4 +20,8 @@ public sealed record TurnStarted(Player Player) : GameEvent;
 public sealed record GameEnded(GameOutcome Outcome, GameEndReason Reason) : GameEvent;
 
 /// <summary>Les conditions de la partie ont été choisies (au premier jour).</summary>
-public sealed record RulesChosen(GameRules Rules) : GameEvent;
+/// <summary>
+/// Les conditions de la partie sont choisies. <paramref name="Treasure"/> : dans quelle partie de la carte le trésor
+/// est enfoui, quand le trouver fait gagner (null sinon).
+/// </summary>
+public sealed record RulesChosen(GameRules Rules, Compass? Treasure = null) : GameEvent;

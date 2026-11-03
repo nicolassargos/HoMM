@@ -40,7 +40,7 @@ public sealed partial class GameState
     /// par rangée, « 1 » pour une case avec une route, « 0 » sinon (absentes dans la version 1).
     /// </summary>
     private sealed record MapData(int Width, int Height, Cell Start, List<string> Terrain, List<ObjectData> Objects,
-        List<string>? Roads = null);
+        List<string>? Roads = null, Cell? Treasure = null);
 
     /// <summary>Un objet de la carte. <paramref name="Kind"/> dit lequel ; seuls ses champs sont remplis.</summary>
     private sealed record ObjectData(
@@ -53,12 +53,12 @@ public sealed partial class GameState
     private sealed record StackData(string Creature, int Count);
 
     private sealed record PlayerData(int Id, string Name, Dictionary<ResourceType, int> Resources, string Fog,
-        List<int> Mines, List<int> Towns);
+        List<int> Mines, List<int> Towns, List<int>? Obelisks = null);
 
     private sealed record HeroData(
         int Id, string Name, int Owner, Cell Position, int Movement, int MaxMovement, int VisionRadius,
         int Attack, int Defense, int Power, int Knowledge, int Charisma, int Level, int Experience,
-        List<StackData> Army, List<Cell>? Path);
+        List<StackData> Army, List<Cell>? Path, List<string>? Artifacts = null);
 
     /// <summary>Un niveau gagné dont la caractéristique n'a pas encore été choisie.</summary>
     private sealed record ChoiceData(int Hero, int Level, List<HeroStat> Options);
@@ -73,11 +73,11 @@ public sealed partial class GameState
             _rng.State, _nextPlayerId, _nextHeroId,
             SaveMap(),
             Players.Select(p => new PlayerData(p.Id, p.Name, new Dictionary<ResourceType, int>(p.Resources),
-                p.Fog.Export(), p.Mines.Select(m => m.Id).ToList(), p.Towns.Select(t => t.Id).ToList())).ToList(),
+                p.Fog.Export(), p.Mines.Select(m => m.Id).ToList(), p.Towns.Select(t => t.Id).ToList(), p.Obelisks.OrderBy(id => id).ToList())).ToList(),
             AllHeroes.Select(h => new HeroData(
                 h.Id, h.Name, h.Owner.Id, h.Position, h.Movement, h.MaxMovement, h.VisionRadius,
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
-                Stacks(h.Army), _paths.GetValueOrDefault(h)?.ToList())).ToList(),
+                Stacks(h.Army), _paths.GetValueOrDefault(h)?.ToList(), h.Artifacts.Count > 0 ? h.Artifacts.Select(a => a.Id).ToList() : null)).ToList(),
             _pendingChoices.Select(c => new ChoiceData(c.Hero.Id, c.Level, c.Options.ToList())).ToList());
         return JsonSerializer.Serialize(save, SaveOptions);
     }
@@ -91,13 +91,14 @@ public sealed partial class GameState
         for (int y = 0; y < Map.Height; y++)
             roads.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => Map.HasRoad(new Cell(x, y)) ? '1' : '0')));
         var objects = Map.Objects.OrderBy(o => o.Id).Select(SaveObject).ToList();
-        return new MapData(Map.Width, Map.Height, Map.Start, terrain, objects, roads);
+        return new MapData(Map.Width, Map.Height, Map.Start, terrain, objects, roads, Map.Treasure);
     }
 
     private static ObjectData SaveObject(MapObject obj) => obj switch
     {
         ResourcePile pile => new ObjectData("pile", obj.Id, obj.Position, Resource: pile.Resource, Amount: pile.Amount),
         TreasureChest chest => new ObjectData("chest", obj.Id, obj.Position, Amount: chest.Gold),
+        Obelisk => new ObjectData("obelisk", obj.Id, obj.Position),
         Mine mine => new ObjectData("mine", obj.Id, obj.Position, Resource: mine.Resource, Owner: mine.Owner?.Id),
         MonsterGuard guard => new ObjectData("guard", obj.Id, obj.Position, Creature: guard.Type.Id,
             InitialCount: guard.InitialCount, Amount: guard.Count),
@@ -170,6 +171,7 @@ public sealed partial class GameState
             {
                 "pile" => new ResourcePile(o.Position, o.Resource!.Value, o.Amount!.Value),
                 "chest" => new TreasureChest(o.Position, o.Amount!.Value),
+                "obelisk" => new Obelisk(o.Position),
                 "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null },
                 "guard" => new MonsterGuard(o.Position, data.Creatures.Get(o.Creature!), o.InitialCount!.Value, o.Amount!.Value),
                 "town" => RestoreTown(o, data, id => Owner(id)),
@@ -184,6 +186,8 @@ public sealed partial class GameState
             var player = Owner(p.Id);
             player.Mines.AddRange(p.Mines.Select(id => (Mine)ObjectOrThrow(map, id)));
             player.Towns.AddRange(p.Towns.Select(id => (Town)ObjectOrThrow(map, id)));
+            if (p.Obelisks != null)
+                player.Obelisks.UnionWith(p.Obelisks);
         }
 
         foreach (var h in save.Heroes)
@@ -204,6 +208,9 @@ public sealed partial class GameState
             };
             foreach (var s in h.Army)
                 hero.Army.Add(data.Creatures.Get(s.Creature), s.Count);
+            // ses caractéristiques comptent déjà leurs bonus
+            foreach (var id in h.Artifacts ?? new List<string>())
+                hero.Artifacts.Add(data.Artifacts.Get(id));
             if (h.Path != null)
                 state._paths[hero] = h.Path.ToList();
         }
@@ -227,7 +234,7 @@ public sealed partial class GameState
 
     private static AdventureMap RestoreMap(MapData m)
     {
-        var map = new AdventureMap(m.Width, m.Height) { Start = m.Start };
+        var map = new AdventureMap(m.Width, m.Height) { Start = m.Start, Treasure = m.Treasure };
         if (m.Terrain.Count != m.Height || m.Terrain.Any(row => row.Length != m.Width))
             throw new FormatException("terrain de taille incorrecte");
         if (m.Roads != null && (m.Roads.Count != m.Height || m.Roads.Any(row => row.Length != m.Width)))

@@ -470,7 +470,7 @@ public class BattleTests
 
 internal static class TestData
 {
-    public static readonly GameData Data = GameData.FromJson(Read("creatures.json"), Read("buildings.json"));
+    public static readonly GameData Data = GameData.FromJson(Read("creatures.json"), Read("buildings.json"), Read("artifacts.json"));
     public static CreatureCatalog Creatures => Data.Creatures;
 
     private static string Read(string file) =>

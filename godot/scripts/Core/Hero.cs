@@ -36,6 +36,20 @@ public sealed class Hero
     public int Knowledge { get; internal set; } = 1;
     public int Charisma { get; internal set; } = StartingCharisma;
 
+    /// <summary>Les artefacts que porte le héros (leurs bonus sont déjà comptés dans ses caractéristiques).</summary>
+    public List<ArtifactType> Artifacts { get; } = new();
+
+    /// <summary>Le héros prend un artefact : ses bonus s'ajoutent à ses caractéristiques, pour toujours.</summary>
+    internal void Equip(ArtifactType artifact)
+    {
+        Artifacts.Add(artifact);
+        Attack += artifact.Attack;
+        Defense += artifact.Defense;
+        Power += artifact.Power;
+        Knowledge += artifact.Knowledge;
+        Charisma += artifact.Charisma;
+    }
+
     public int Level { get; internal set; } = 1;
     public int Experience { get; internal set; }
 

@@ -425,15 +425,16 @@ public class BattleTests
     [Fact]
     public void Une_grosse_armee_bat_une_petite_avec_des_pertes()
     {
-        var hero = ArmyOf("archer", 50);
+        // des troupes de corps à corps (des tireurs abattraient les Gobelins avant qu'ils n'arrivent)
+        var hero = ArmyOf("paysan", 200);
         var monsters = ArmyOf("gobelin", 20);
 
         var report = Battle.Resolve(hero, monsters);
 
         Assert.True(report.AttackerWon);
         Assert.True(monsters.IsEmpty);
-        Assert.InRange(hero.TotalCount, 1, 49);
-        Assert.Equal(50 - hero.TotalCount, report.AttackerLosses.Sum(s => s.Count));
+        Assert.InRange(hero.TotalCount, 1, 199);
+        Assert.Equal(200 - hero.TotalCount, report.AttackerLosses.Sum(s => s.Count));
         Assert.Equal(20, report.DefenderLosses.Sum(s => s.Count));
     }
 

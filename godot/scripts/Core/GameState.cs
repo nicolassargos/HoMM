@@ -341,7 +341,7 @@ public sealed partial class GameState
     {
         var rebels = RollRevolts(hero);
         var before = defenderArmy.Clone().Stacks;
-        var report = Battle.Resolve(hero.Army, defenderArmy, hero, rebels);
+        var report = Battle.Resolve(hero.Army, defenderArmy, hero, rebels, _rng);
         Emit(new BattleFought(hero, defender, before, report));
 
         if (report.AttackerWon)

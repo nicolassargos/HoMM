@@ -84,7 +84,10 @@ public sealed partial class GameState
 
     /// <summary>Les héros qu'on peut recruter dans les tavernes, dans l'ordre (données de jeu, comme les noms de villes).</summary>
     private static readonly string[] HeroNames =
-        { "Dame Isolde", "Sire Gauvain", "Dame Morgane", "Sire Perceval", "Dame Viviane", "Sire Tristan", "Dame Enide", "Sire Yvain" };
+        {
+            "Dame Isolde", "Sire Gauvain", "Dame Morgane", "Sire Perceval", "Renaud le Goupil", "Brann le Rouge",
+            "Dame Viviane", "Sire Yvain",
+        };
 
     private readonly List<GameEvent> _events = new();
 
@@ -506,8 +509,8 @@ public sealed partial class GameState
         return HireResult.Ok;
     }
 
-    /// <summary>Le premier nom de héros pas encore utilisé dans la partie.</summary>
-    private string? NextHeroName()
+    /// <summary>Le nom du prochain héros que la taverne propose : le premier pas encore utilisé dans la partie.</summary>
+    public string? NextHeroName()
     {
         var used = AllHeroes.Select(h => h.Name).ToHashSet();
         return HeroNames.FirstOrDefault(n => !used.Contains(n));

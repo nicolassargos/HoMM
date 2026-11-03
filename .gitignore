@@ -19,3 +19,6 @@ mono_crash.*.json
 
 # Images générées pas encore choisies (tools/art/generer.py)
 art-candidats/
+
+# Copies de travail des agents de Claude Code
+.claude/

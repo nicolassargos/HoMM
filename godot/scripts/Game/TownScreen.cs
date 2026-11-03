@@ -183,6 +183,17 @@ public partial class TownScreen : CanvasLayer
             picture.SizeFlagsVertical = Control.SizeFlags.ShrinkBegin;
             header.AddChild(picture);
         }
+        // la taverne montre le héros qu'elle propose
+        else if (building.Tavern && built && _state.NextHeroName() is { } heroName && Art.Portrait(heroName) is { } portrait)
+        {
+            header.AddChild(new TextureRect
+            {
+                Texture = portrait, CustomMinimumSize = portrait.GetSize(),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
+                SizeFlagsVertical = Control.SizeFlags.ShrinkBegin, TooltipText = heroName,
+            });
+        }
         var words = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         words.AddThemeConstantOverride("separation", 0);
         var title = MakeLabel(building.Name, 16, built ? TextColor : SoftTextColor);

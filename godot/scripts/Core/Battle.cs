@@ -12,6 +12,9 @@ public sealed class BattleReport
     public required List<CreatureStack> DefenderLosses { get; init; }
     public int Rounds { get; init; }
 
+    /// <summary>Le héros s'est enfui (combat tactique) : il garde ce qui reste de son armée, sans expérience.</summary>
+    public bool Fled { get; init; }
+
     /// <summary>Troupes révoltées avant le combat : elles combattent dans le camp ennemi.</summary>
     public List<CreatureStack> Rebels { get; init; } = new();
 
@@ -19,7 +22,7 @@ public sealed class BattleReport
     public List<CreatureStack> RebelSurvivors { get; init; } = new();
 
     /// <summary>Expérience gagnée : la valeur en or des créatures ennemies tuées.</summary>
-    public int Experience => Battle.ExperienceFor(DefenderLosses);
+    public int Experience => Fled ? 0 : Battle.ExperienceFor(DefenderLosses);
 }
 
 /// <summary>

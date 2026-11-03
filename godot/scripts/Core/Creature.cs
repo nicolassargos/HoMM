@@ -27,6 +27,9 @@ public sealed record CreatureType
 
     public Dictionary<ResourceType, int> Cost { get; init; } = new();
 
+    /// <summary>Capacités au combat tactique (voir <see cref="Ability"/>) : « shoots »…</summary>
+    public List<string> Abilities { get; init; } = new();
+
     public double AverageDamage => (MinDamage + MaxDamage) / 2.0;
 }
 

@@ -20,6 +20,6 @@ public sealed class GameRandom
         return z ^ (z >> 31);
     }
 
-    /// <summary>Un nombre entre 0 (compris) et 1 (exclu).</summary>
+    /// <summary>Un nombre entre 0 (compris) et 1 (exclu). (Le combat tactique en tire aussi ses dégâts.)</summary>
     public double NextDouble() => (NextULong() >> 11) * (1.0 / (1UL << 53));
 }

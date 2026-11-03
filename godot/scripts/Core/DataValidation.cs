@@ -38,6 +38,8 @@ public static class DataValidation
                 errors.Add($"{c.Id} : points de vie invalides ({c.HitPoints})");
             if (c.Speed < 1)
                 errors.Add($"{c.Id} : vitesse invalide ({c.Speed})");
+            foreach (var ability in c.Abilities.Where(a => !Ability.Known.Contains(a)))
+                errors.Add($"{c.Id} : capacité inconnue ({ability})");
             if (c.Growth < 0)
                 errors.Add($"{c.Id} : croissance négative ({c.Growth})");
             if (c.CommandCost < 1)

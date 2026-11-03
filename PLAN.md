@@ -204,6 +204,36 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
 - Même séparation : le combat (état, actions) dans `Core`, l'écran dans `Game`.
 - Le combat automatique reste disponible en « combat rapide ».
 
+Choix faits (avec l'utilisateur) :
+- **Champ de bataille de 11 × 9 cases**, comme dans Heroes 1 et 2 ; l'attaquant à gauche, le défenseur à droite,
+  2 à 5 obstacles au hasard au milieu (sans jamais couper le champ en deux).
+- **Rounds** : chaque troupe joue une fois, de la plus rapide à la plus lente (à vitesse égale, l'attaquant d'abord).
+  Elle peut **se déplacer** (sa vitesse en cases), **attaquer** une troupe voisine (riposte une fois par round),
+  **tirer** si elle sait tirer (pas de riposte), **attendre** (elle joue à la fin du round) ou **se défendre**
+  (+20 % de défense jusqu'à son prochain tour).
+- **Dégâts tirés au sort** entre le minimum et le maximum (avec le hasard de la partie : même graine, même combat),
+  puis la règle attaque / défense de Heroes 3. Le bonus d'attaque et de défense du héros compte, comme avant.
+- **Tireurs** : un tireur ne peut pas tirer avec un ennemi à côté de lui, et se bat alors à moitié de ses dégâts.
+  Au-delà de 6 cases, un tir fait moitié moins de dégâts, **sauf capacité `no-range-penalty`** (pour de futurs elfes
+  qui tirent partout, ou des druides dont les sorts ne dépendent pas de la distance).
+- **Fuite** : le héros s'enfuit, mais chaque troupe perd entre 50 et 90 % de ses créatures (tiré au sort), sans
+  expérience. La fuite devient un choix tactique.
+- **Combat rapide** : l'IA joue le combat tactique pour les deux camps, d'un coup (le combat simplifié actuel disparaîtra).
+- **Capacités** (première version, à affiner) : Archer et Moine tirent ; Griffon vole et riposte deux fois ; Épéiste
+  a un bouclier (moitié des dégâts des tirs) ; Cavalier charge (+5 % par case parcourue) ; Ange vole et frappe sans
+  riposte ; Gobelin est rapide au premier round ; Squelette encaisse les tirs ; Loup attaque deux fois ; Orc lance des
+  haches (tir court) ; Ogre ignore 40 % de la défense ; Troll se régénère ; Dragon vole et son souffle touche aussi la
+  case derrière. Données : liste `abilities` de `creatures.json`.
+
+Découpage :
+1. ✅ Règles du combat (`Core/Tactics/` : `Hex`, `Battlefield`, `BattleUnit`, `TacticalBattle`), sans affichage :
+   placement, obstacles, ordre de jeu, déplacement, attaque, riposte, tir (et pénalités), attente, défense, fuite,
+   bilan (`BattleReport`, avec `Fled`). Capacités déjà en place : `shoots` (Archer, Moine, Orc), `no-range-penalty`.
+2. L'IA des troupes, et le combat rapide joué par elle (vérifié par la simulation d'équilibrage).
+3. L'écran de combat : affichage, souris, animations, choix combat tactique / rapide.
+4. Les capacités des créatures (tableau ci-dessus), chacune avec ses tests.
+5. Finitions : fonds de champ de bataille selon le terrain, images d'obstacles.
+
 ### 7. Adversaires IA
 - Joueurs ordinateur avec leurs héros et leurs villes.
 - L'IA joue avec les mêmes méthodes de `GameState` que le joueur humain, sans attendre l'affichage.

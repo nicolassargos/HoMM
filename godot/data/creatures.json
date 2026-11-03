@@ -14,6 +14,6 @@
     { "id": "orc",      "name": "Orc",      "plural": "Orcs",      "faction": "neutre",  "tier": 3, "attack": 8,  "defense": 4,  "minDamage": 2,  "maxDamage": 5,  "hitPoints": 15,  "commandCost": 3, "speed": 4,  "growth": 7,  "cost": { "Gold": 150 } },
     { "id": "ogre",     "name": "Ogre",     "plural": "Ogres",     "faction": "neutre",  "tier": 4, "attack": 13, "defense": 7,  "minDamage": 6,  "maxDamage": 12, "hitPoints": 40,  "commandCost": 5, "speed": 4,  "growth": 4,  "cost": { "Gold": 300 } },
     { "id": "troll",    "name": "Troll",    "plural": "Trolls",    "faction": "neutre",  "tier": 5, "attack": 14, "defense": 10, "minDamage": 10, "maxDamage": 15, "hitPoints": 45,  "commandCost": 6, "speed": 5,  "growth": 3,  "cost": { "Gold": 500 } },
-    { "id": "dragon",   "name": "Dragon vert","plural": "Dragons verts","faction": "neutre","tier": 7, "attack": 18, "defense": 18, "minDamage": 40, "maxDamage": 50, "hitPoints": 180, "commandCost": 20, "speed": 10, "growth": 1,  "cost": { "Gold": 2400, "Gems": 1 } }
+    { "id": "dragon",   "name": "Dragon rouge","plural": "Dragons rouges","faction": "neutre","tier": 7, "attack": 18, "defense": 18, "minDamage": 40, "maxDamage": 50, "hitPoints": 180, "commandCost": 20, "speed": 10, "growth": 1,  "cost": { "Gold": 2400, "Gems": 1 } }
   ]
 }

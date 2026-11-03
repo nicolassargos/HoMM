@@ -24,6 +24,10 @@ public partial class Hud : CanvasLayer
     private Label _movementText = null!;
     private ProgressBar _movementBar = null!;
     private Label _heroName = null!;
+    private TextureRect _portrait = null!;
+
+    /// <summary>Taille du portrait du héros dans le panneau (l'image fait 64 × 64, affichée telle quelle).</summary>
+    private const int PortraitSize = 64;
     private Label _army = null!;
     private Label _stats = null!;
     private Label _mines = null!;
@@ -102,11 +106,24 @@ public partial class Hud : CanvasLayer
         minimapFrame.AddChild(Minimap);
 
         float y = minimapFrame.Position.Y + minimapFrame.Size.Y + 12;
-        _heroName = At(MakeLabel("", 22, TextColor), margin, y);
+        // Le portrait du héros (64 × 64, pixels nets), le nom et « Mouvement » à sa droite
+        var portraitFrame = new Panel { Position = new Vector2(margin, y), Size = new Vector2(PortraitSize + 4, PortraitSize + 4) };
+        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
+        panel.AddChild(portraitFrame);
+        _portrait = new TextureRect
+        {
+            Position = new Vector2(2, 2), Size = new Vector2(PortraitSize, PortraitSize),
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+            TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        portraitFrame.AddChild(_portrait);
+        float textX = margin + PortraitSize + 12;
+        _heroName = At(MakeLabel("", 18, TextColor), textX, y + 6);
+        _heroName.Size = new Vector2(PanelWidth - margin - textX, 30);
+        _heroName.ClipText = true;
         panel.AddChild(_heroName);
-        y += 34;
-        panel.AddChild(At(MakeLabel("Mouvement", 14, SoftTextColor), margin, y));
-        y += 22;
+        panel.AddChild(At(MakeLabel("Mouvement", 14, SoftTextColor), textX, y + 42));
+        y += PortraitSize + 12;
 
         _movementBar = new ProgressBar
         {
@@ -157,10 +174,10 @@ public partial class Hud : CanvasLayer
         y += 40;
 
         _hover = At(MakeLabel("", 13, SoftTextColor), margin, y);
-        _hover.Size = new Vector2(innerWidth, 48);
+        _hover.Size = new Vector2(innerWidth, 40);
         _hover.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         panel.AddChild(_hover);
-        y += 52;
+        y += 44;
 
         // ---- Options (sauvegarder, charger) et fin de tour, en bas du panneau
         const float optionsWidth = 78;
@@ -208,6 +225,7 @@ public partial class Hud : CanvasLayer
         if (_state.CurrentHero is { } hero)
         {
             _heroName.Text = hero.Name;
+            _portrait.Texture = Art.Portrait(hero.Name);
             _movementBar.MaxValue = hero.MaxMovement;
             _movementBar.Value = hero.Movement;
             _movementText.Text = $"{hero.Movement} / {hero.MaxMovement}";
@@ -217,6 +235,7 @@ public partial class Hud : CanvasLayer
         else
         {
             _heroName.Text = "Aucun héros";
+            _portrait.Texture = null;
             _movementBar.Value = 0;
             _movementText.Text = "";
             _stats.Text = "";

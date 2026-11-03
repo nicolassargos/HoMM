@@ -90,6 +90,20 @@
       "prompt": "variation of this water tile, same colors and style, slightly different ripples" },
     { "name": "terrain/grass-2@clair", "style": "rd_tile__tile_variation", "size": 24, "tile": true, "variants": 2, "seed": 713,
       "input": "godot/art/terrain/grass.png",
-      "prompt": "variation of this grass ground tile, slightly lighter and sunnier green, fewer details, same style" }
+      "prompt": "variation of this grass ground tile, slightly lighter and sunnier green, fewer details, same style" },
+    { "name": "heroes/portraits/sire-roland", "style": "rd_plus__retro", "size": 64, "variants": 2, "seed": 801,
+      "prompt": "bust portrait of a seasoned male knight with short brown hair and a brown beard, steel armour with a blue tabard, facing the viewer, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" },
+    { "name": "heroes/portraits/dame-isolde", "style": "rd_plus__retro", "size": 64, "variants": 3, "seed": 821,
+      "prompt": "bust portrait of a battle-hardened middle-aged woman knight, weathered face with a scar across the cheek, broken nose, grey-streaked hair tied back, dented steel armour, stern look, facing the viewer, characterful imperfect features, not idealized, gritty, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" },
+    { "name": "heroes/portraits/sire-gauvain", "style": "rd_plus__retro", "size": 64, "variants": 3, "seed": 822,
+      "prompt": "bust portrait of a brutal hulking male knight, shaved head, thick neck, scarred face, crooked teeth, battered armour with a green tabard, menacing look, facing the viewer, characterful imperfect features, not idealized, gritty, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" },
+    { "name": "heroes/portraits/dame-morgane", "style": "rd_plus__retro", "size": 64, "variants": 3, "seed": 823,
+      "prompt": "bust portrait of an old sorceress, gaunt wrinkled face, hooked nose, wild grey hair, dark purple hood, piercing eyes, faint purple magic glow, unsettling, facing the viewer, characterful imperfect features, not idealized, gritty, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" },
+    { "name": "heroes/portraits/sire-perceval", "style": "rd_plus__retro", "size": 64, "variants": 3, "seed": 824,
+      "prompt": "bust portrait of a plain-looking young squire-knight, freckles, big ears, uneven haircut, simple chain mail, nervous but determined, facing the viewer, characterful imperfect features, not idealized, gritty, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" },
+    { "name": "heroes/portraits/renaud-le-goupil", "style": "rd_plus__retro", "size": 64, "variants": 3, "seed": 825,
+      "prompt": "bust portrait of a sly rogue, thin stubbled face, crooked smile, scar over one eye, dark leather hood, shifty eyes, facing the viewer, characterful imperfect features, not idealized, gritty, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" },
+    { "name": "heroes/portraits/brann-le-rouge", "style": "rd_plus__retro", "size": 64, "variants": 3, "seed": 826,
+      "prompt": "bust portrait of a wild barbarian warrior, long tangled red hair and braided beard, war paint, fur mantle, missing teeth, fierce, facing the viewer, characterful imperfect features, not idealized, gritty, medieval fantasy hero, dark plain background, classic 90s strategy game portrait" }
   ]
 }

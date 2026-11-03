@@ -12,6 +12,7 @@ namespace HoMM.Game;
 ///   sommets posés sur l'herbe (<see cref="DecorLayer"/>)
 ///   art/objects/pile-gold.png, chest.png, mine-gold.png, town.png
 ///   art/creatures/paysan.png, art/heroes/hero.png, art/icons/gold.png
+///   art/heroes/portraits/sire-roland.png : le portrait d'un héros, d'après son nom (<see cref="Portrait"/>)
 /// Une image absente renvoie null : le dessin par formes (<see cref="MapRenderer"/>) prend alors le relais.
 /// Les PNG sont lus directement (pas besoin de les importer avec l'éditeur Godot).
 /// </summary>
@@ -50,7 +51,23 @@ public static class Art
         return image;
     }
 
-    /// <summary>Nom d'un terrain dans les fichiers (grass, road…).</summary>
+    /// <summary>Le portrait d'un héros (art/heroes/portraits/{nom en minuscules, sans accents, avec des tirets}), ou null.</summary>
+    public static Texture2D? Portrait(string heroName) => Get($"heroes/portraits/{Slug(heroName)}");
+
+    /// <summary>« Dame Énide » → « dame-enide » : minuscules, sans accents, tirets à la place des espaces.</summary>
+    public static string Slug(string text)
+    {
+        var plain = new System.Text.StringBuilder();
+        foreach (char c in text.Normalize(System.Text.NormalizationForm.FormD).ToLowerInvariant())
+        {
+            if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.NonSpacingMark)
+                continue;
+            plain.Append(char.IsLetterOrDigit(c) ? c : '-');
+        }
+        return string.Join('-', plain.ToString().Split('-', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    /// <summary>Nom d'un terrain dans les fichiers (grass, sand…).</summary>
     public static string Name(TerrainType terrain) => terrain.ToString().ToLowerInvariant();
 
     /// <summary>Nom d'une ressource dans les fichiers (gold, wood…).</summary>

@@ -176,7 +176,12 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   continu au-dessus du sol (virages en quart de cercle, bords un peu ondulés). Sauvegarde version 2 (ligne « roads ») ;
   une sauvegarde de la version 1 est convertie (l'ancien terrain « route » devient de l'herbe avec une route).
   Les numéros des terrains ne changent pas (le 1 n'est plus utilisé).
-- À faire : portraits des héros (en cours) ; peut-être des portraits plus grands (64 ou 96 px) pour la ville.
+- ✅ Portraits des héros (64 × 64, style « retro » de Retro Diffusion, des visages marqués plutôt qu'idéalisés) :
+  dans le panneau, à côté du nom, et dans la taverne (le héros qu'elle propose). Trouvés d'après le nom du héros
+  (`art/heroes/portraits/renaud-le-goupil.png`). Deux nouveaux héros : Renaud le Goupil (voleur) et Brann le Rouge
+  (barbare), à la place de Sire Tristan et Dame Énide. Dame Viviane et Sire Yvain n'ont pas encore de portrait.
+- Plus tard, si besoin : des images plus grandes (64 ou 96 px) pour les créatures dans la ville, le portrait dans la
+  fenêtre de niveau.
 
 ### 6. Combat tactique
 - Écran de combat sur grille hexagonale.
@@ -190,6 +195,15 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
 
 ### 8. Ensuite
 - Magie, autres factions, nouveaux objets sur la carte.
+- **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
+  (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.
+- **Personnalisation des héros** (demandé par l'utilisateur) : à préciser ensemble. Pistes : choisir son héros
+  de départ (nom, portrait), une classe ou un passé (chevalier, voleur, barbare, sorcière…) qui donne des bonus et
+  des caractéristiques de départ différentes, des compétences à choisir en montant de niveau, et l'apparence du
+  héros sur la carte. Les portraits marqués (étape 5) vont dans ce sens.
+- **Habitations sur la carte** (demandé par l'utilisateur) : des lieux semés au hasard où un héros peut acheter des
+  troupes (comme les habitations extérieures de Heroes). À concevoir plus tard : quelles créatures, réserve et
+  croissance, prix, garde éventuelle.
 
 ## Choix à respecter
 - **`GameState` gère plusieurs joueurs** (liste de joueurs, tour par tour), même s'il n'y a

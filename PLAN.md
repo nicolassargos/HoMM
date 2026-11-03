@@ -256,6 +256,24 @@ Découpage :
    Épéiste 26, Moine 58, Cavalier 112, Ange 1560. La simulation gagne toujours vers le jour 84 (78 à 122 sur 20 cartes).
 5. Finitions : fonds de champ de bataille selon le terrain, images d'obstacles.
 
+Ensuite, des images plus détaillées et des animations (demandé par l'utilisateur ; les images de 24 px manquent de
+détails, surtout agrandies au combat), dans cet ordre :
+1. ✅ Les 14 créatures au combat en images détaillées (`art/creatures/battle/{id}.png`, affichées ×2 ; sans image, la
+   petite de la carte ×3). La carte garde ses petites images. Style `rd_tile__tile_object`, une **échelle commune** : un
+   humain fait environ 46 px de haut (à peu près une case), le Gobelin la moitié, l'Ogre plus grand, puis le Troll
+   (orc < ogre < troll) ; l'Ange est grand comme le Troll ; le Cavalier et le Dragon, longs, couvriront 2 cases.
+   Les cadres varient selon la créature (40 × 52 pour un humain, jusqu'à 96 × 80 pour le Cavalier) : Retro Diffusion
+   remplit la hauteur du cadre, pas sa largeur. `tools/art/reduire.py` réduit une image sans la flouter (palette
+   d'origine) et peut la retourner (`--miroir`). Des exemples d'images donnés par l'utilisateur (paysan, orc, gobelin)
+   ont beaucoup aidé : décrire leur allure dans le texte de la demande.
+   Essayés puis écartés : le style « classic » (trop dessin animé), le style « retro » (images carrées seulement,
+   créatures de face et toutes de la même taille), redessiner une figure de King's Bounty (fond vert mêlé à la créature).
+   Les créatures au combat occupent pour l'instant toutes une case : **le Cavalier et le Dragon sur 2 cases** est à faire.
+2. Les animations (styles d'animation de Retro Diffusion, à partir de l'image de combat) : attente, marche, attaque ;
+   d'abord une créature pour essayer, puis les autres (environ 0,14 $ l'animation : il faudra recharger le compte).
+3. Les fonds de champ de bataille et les obstacles (point 5 ci-dessus), dans le même style détaillé.
+4. Plus tard : le héros sur la carte, les bâtiments des villes, et d'autres images plus détaillées.
+
 ### 7. Adversaires IA
 - Joueurs ordinateur avec leurs héros et leurs villes.
 - L'IA joue avec les mêmes méthodes de `GameState` que le joueur humain, sans attendre l'affichage.

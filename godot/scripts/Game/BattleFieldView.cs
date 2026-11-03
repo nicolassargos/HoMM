@@ -19,6 +19,9 @@ public partial class BattleFieldView : Control
     private const float RowStep = HexHeight * 0.75f;
     private const int SpriteScale = 3;
 
+    /// <summary>Agrandissement des images de combat (art/creatures/battle/).</summary>
+    private const int BattleSpriteScale = 2;
+
     public static Vector2 FieldSize => new(Battlefield.Columns * HexWidth + HexWidth / 2, (Battlefield.Rows - 1) * RowStep + HexHeight);
 
     public TacticalBattle Battle { get; private set; } = null!;
@@ -56,7 +59,6 @@ public partial class BattleFieldView : Control
         CustomMinimumSize = FieldSize;
         Size = FieldSize;
         TextureFilter = TextureFilterEnum.Nearest;
-        ClipContents = true; // le sol est fait de cases entières : la dernière dépasserait
         MouseFilter = MouseFilterEnum.Stop;
     }
 
@@ -203,9 +205,13 @@ public partial class BattleFieldView : Control
         if (ground != null)
         {
             var tile = ground.GetSize() * SpriteScale;
+            // des cases entières, la dernière de chaque rangée coupée au bord du champ (les créatures, elles, peuvent dépasser)
             for (float y = 0; y < Size.Y; y += tile.Y)
             for (float x = 0; x < Size.X; x += tile.X)
-                DrawTextureRect(ground, new Rect2(new Vector2(x, y), tile), false);
+            {
+                var part = new Vector2(Math.Min(tile.X, Size.X - x), Math.Min(tile.Y, Size.Y - y));
+                DrawTextureRectRegion(ground, new Rect2(new Vector2(x, y), part), new Rect2(Vector2.Zero, part / SpriteScale));
+            }
         }
         else
             DrawRect(new Rect2(Vector2.Zero, Size), MapRenderer.TerrainColor(_terrain));
@@ -271,9 +277,14 @@ public partial class BattleFieldView : Control
     {
         var foot = shown.Position + new Vector2(0, HexHeight / 2 - 10);
         var tint = shown.Flash > 0 ? new Color(1, 1 - shown.Flash * 0.6f, 1 - shown.Flash * 0.6f) : Colors.White;
-        if (Art.Get($"creatures/{unit.Type.Id}") is { } image)
+        // L'image de combat (64 px, plus détaillée, affichée telle quelle), sinon la petite de la carte ×3
+        var battleImage = Art.Get($"creatures/battle/{unit.Type.Id}");
+        if ((battleImage ?? Art.Get($"creatures/{unit.Type.Id}")) is { } image)
         {
-            var size = image.GetSize() * SpriteScale;
+            // l'image de combat (48 × 64 pour une créature debout, plus large pour un loup, un dragon…) est toujours
+            // agrandie ×2 : les pixels ont la même taille que sur la carte
+            int scale = battleImage != null ? BattleSpriteScale : SpriteScale;
+            var size = image.GetSize() * scale;
             var rect = new Rect2(foot + new Vector2(-size.X / 2, -size.Y), size);
             if (unit.Side == BattleSide.Defender)
             {

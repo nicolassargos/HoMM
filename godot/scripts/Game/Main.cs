@@ -123,6 +123,16 @@ public partial class Main : Node2D
         // Développement : « --cursor-preview=dossier » enregistre les curseurs en images
         if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--cursor-preview=")) is { } preview)
             MapCursor.SavePreview(preview["--cursor-preview=".Length..]);
+        // Développement : « --battle-showcase » : les 7 créatures du Château contre les 7 neutres, sur l'écran de combat
+        // (pour comparer les images ; ce combat ne compte pas dans la partie)
+        if (OS.GetCmdlineUserArgs().Contains("--battle-showcase"))
+        {
+            var castle = new Army();
+            var neutral = new Army();
+            foreach (var creature in _state.Creatures.All.OrderBy(c => c.Tier))
+                (creature.Faction == "chateau" ? castle : neutral).Add(creature, 5);
+            _battleScreen.Open(new TacticalBattle(castle, neutral, new GameRandom(1)), "la vitrine", TerrainType.Grass, () => { });
+        }
         // Développement : « --battle-test » : des Orcs et des Loups à deux cases, et le héros y va
         if (OS.GetCmdlineUserArgs().Contains("--battle-test") && _state.CurrentHero is { } fighter)
         {

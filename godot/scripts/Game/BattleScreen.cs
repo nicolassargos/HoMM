@@ -241,23 +241,27 @@ public partial class BattleScreen : CanvasLayer
             child.QueueFree();
         }
         // les troupes tuées restent affichées tant que le coup n'est pas montré
-        foreach (var (unit, i) in coming.Where(u => _field.ShownCount(u) > 0).Select((u, i) => (u, i)))
-            _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), i == 0, dim: false));
+        var now = coming.Where(u => _field.ShownCount(u) > 0).ToList();
         var next = played.Where(u => _field.ShownCount(u) > 0).ToList();
+        // des cases plus étroites quand il y a beaucoup de troupes, pour que la bande ne déborde pas sur les boutons
+        float label = next.Count > 0 ? 110 : 0;
+        float width = Math.Clamp((_order.Size.X - label - 4 * (now.Count + next.Count)) / Math.Max(1, now.Count + next.Count), 34, 58);
+        foreach (var (unit, i) in now.Select((u, i) => (u, i)))
+            _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), i == 0, dim: false, width));
         if (next.Count > 0)
         {
-            var label = MakeLabel(Texts.BattleNextRound, 12, SoftTextColor);
-            label.VerticalAlignment = VerticalAlignment.Center;
-            label.CustomMinimumSize = new Vector2(0, OrderHeight);
-            _order.AddChild(label);
+            var text = MakeLabel(Texts.BattleNextRound, 12, SoftTextColor);
+            text.VerticalAlignment = VerticalAlignment.Center;
+            text.CustomMinimumSize = new Vector2(0, OrderHeight);
+            _order.AddChild(text);
             foreach (var unit in next)
-                _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), false, dim: true));
+                _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), false, dim: true, width));
         }
     }
 
-    private static Control OrderSlot(BattleUnit unit, int count, bool active, bool dim)
+    private static Control OrderSlot(BattleUnit unit, int count, bool active, bool dim, float width)
     {
-        var slot = new PanelContainer { CustomMinimumSize = new Vector2(58, OrderHeight), TooltipText = Texts.Stack(new CreatureStack(unit.Type, count)) };
+        var slot = new PanelContainer { CustomMinimumSize = new Vector2(width, OrderHeight), TooltipText = Texts.Stack(new CreatureStack(unit.Type, count)) };
         var side = unit.Side == BattleSide.Attacker ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30);
         int border = active ? 3 : 1;
         slot.AddThemeStyleboxOverride("panel", Box(side, active ? MapRenderer.Rgb(240, 200, 80) : DimColor, border, border, border, border));
@@ -265,9 +269,12 @@ public partial class BattleScreen : CanvasLayer
             slot.Modulate = new Color(1, 1, 1, 0.5f);
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 0);
-        if (CreatureImage(unit.Type) is { } picture)
+        // l'image ×2, ou ×1 si la case est étroite
+        if (CreatureImage(unit.Type, width >= 52 ? 2 : 1) is { } picture)
         {
             picture.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+            picture.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+            picture.StretchMode = TextureRect.StretchModeEnum.KeepCentered;
             column.AddChild(picture);
         }
         var number = MakeLabel(count.ToString(), 12, TextColor);

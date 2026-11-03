@@ -54,6 +54,16 @@
     { "name": "ui/panel", "style": "rd_plus__ui_element", "size": 96, "remove_bg": true, "variants": 4, "seed": 401,
       "prompt": "square video game window frame, dark brown carved wood border with thin gold trim and small gold corner ornaments, plain flat dark wood inside, front view, on a solid neutral grey background" },
     { "name": "ui/button", "style": "rd_plus__ui_element", "size": [128, 64], "remove_bg": true, "variants": 4, "seed": 402,
-      "prompt": "wide rectangular video game button, dark brown wood with a thin gold border, plain flat center without text, front view, on a solid neutral grey background" }
+      "prompt": "wide rectangular video game button, dark brown wood with a thin gold border, plain flat center without text, front view, on a solid neutral grey background" },
+    { "name": "decor/pine", "style": "rd_tile__tile_object", "size": [16, 24], "remove_bg": true, "variants": 4, "seed": 511,
+      "prompt": "one single tall dark green pine tree with a short brown trunk, fantasy strategy game map decoration" },
+    { "name": "decor/oak", "style": "rd_tile__tile_object", "size": [16, 24], "remove_bg": true, "variants": 4, "seed": 512,
+      "prompt": "one single round leafy green oak tree with a short brown trunk, fantasy strategy game map decoration" },
+    { "name": "decor/autumn", "style": "rd_tile__tile_object", "size": [16, 24], "remove_bg": true, "variants": 4, "seed": 513,
+      "prompt": "one single round tree with orange and red autumn leaves and a short brown trunk, fantasy strategy game map decoration" },
+    { "name": "decor/peak", "style": "rd_tile__tile_object", "size": 32, "remove_bg": true, "variants": 4, "seed": 514,
+      "prompt": "one jagged grey rocky mountain peak with a white snowy tip and dark shadowed side, wide base, fantasy strategy game map decoration" },
+    { "name": "decor/peak-small", "style": "rd_tile__tile_object", "size": 24, "remove_bg": true, "variants": 4, "seed": 515,
+      "prompt": "one small jagged grey rocky hill peak with a dark shadowed side, wide base, fantasy strategy game map decoration" }
   ]
 }

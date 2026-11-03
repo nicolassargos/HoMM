@@ -142,7 +142,6 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   `tools/art/generer.py` estime le prix (gratuit), génère des candidats dans `art-candidats/` (non suivi)
   et installe le candidat choisi ; `tools/art/apercu.py` fait une page de choix. Les images à produire et
   leurs descriptions sont dans `tools/art/assets.json`. Une image absente garde le dessin par formes.
-  Les forêts ont des sapins dessinés par-dessus leur image, en attendant mieux.
   `-- --capture=fichier.png` enregistre une image de l'écran puis quitte (pour comparer).
 - ✅ Interface : police pixel VT323 (licence OFL, `godot/fonts/`), tailles multipliées par `Ui.FontScale`
   (lissée en petit, nette à partir de 25 px). Cadres et boutons de bois et d'or générés (`art/ui/panel.png`,
@@ -150,8 +149,12 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   à l'échelle 1. Les clous dorés des bords ne sont pas répétés (seule la plus longue bande sans détail l'est).
   Les fenêtres (choix des conditions, niveau, fin de partie) ont le même cadre (`Ui.ApplyTheme`).
   Essayés puis écartés : DotGothic16 (police), les cadres de Kenney (CC0, mais traits blancs trop sobres).
-- À faire : portraits des créatures dans la ville, transitions entre terrains, forêts et montagnes
-  dessinées comme des objets posés sur le sol (comme le premier Heroes).
+- ✅ Forêts et montagnes posées sur l'herbe, comme dans le premier Heroes (`DecorLayer`) : dans chaque case
+  de forêt, 4 ou 5 arbres seuls (sapins, chênes, arbres d'automne, `art/decor/`) semés au hasard ; dans chaque
+  case de montagne, un petit sommet derrière et un grand devant. Ils débordent sur les cases voisines et sont dessinés de haut en bas, pour
+  former des masses continues. Le hasard dépend de la case (même décor à chaque fois). Les règles ne changent pas.
+  Essayés puis écartés : une image par case (groupe d'arbres, montagne), qui laissait des trous réguliers.
+- À faire : portraits des créatures dans la ville, transitions entre terrains.
 
 ### 6. Combat tactique
 - Écran de combat sur grille hexagonale.

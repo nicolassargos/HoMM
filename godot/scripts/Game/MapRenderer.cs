@@ -67,6 +67,9 @@ public static class MapRenderer
 
     public static void DrawTile(CanvasItem ci, TerrainType terrain, Vector2 o, Random rng)
     {
+        // sous les arbres et les montagnes, de l'herbe (le décor est dessiné par-dessus, par DecorLayer)
+        if (DecorLayer.Covers(terrain))
+            terrain = TerrainType.Grass;
         if (Art.Terrain(terrain, rng.Next()) is { } image)
         {
             ci.DrawTextureRect(image, new Rect2(o, T, T), false);

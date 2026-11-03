@@ -428,7 +428,7 @@ public class BattleTests
     {
         // des troupes de corps à corps (des tireurs abattraient les Gobelins avant qu'ils n'arrivent)
         var hero = ArmyOf("paysan", 200);
-        var monsters = ArmyOf("gobelin", 20);
+        var monsters = ArmyOf("gobelin", 60);
 
         var report = Battle.Resolve(hero, monsters);
 
@@ -436,7 +436,7 @@ public class BattleTests
         Assert.True(monsters.IsEmpty);
         Assert.InRange(hero.TotalCount, 1, 199);
         Assert.Equal(200 - hero.TotalCount, report.AttackerLosses.Sum(s => s.Count));
-        Assert.Equal(20, report.DefenderLosses.Sum(s => s.Count));
+        Assert.Equal(60, report.DefenderLosses.Sum(s => s.Count));
     }
 
     [Fact]

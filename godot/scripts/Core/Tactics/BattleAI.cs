@@ -42,10 +42,13 @@ public static class BattleAI
         }
 
         // Attaquer ce tour-ci : l'ennemi le plus dangereux qu'on peut atteindre, en bougeant le moins possible
+        // (une troupe qui charge, au contraire, vient de le plus loin possible)
+        bool charges = unit.Has(Ability.Charge);
         foreach (var enemy in enemies)
         {
-            var from = battle.AttackPositions(unit, enemy)
-                .OrderBy(h => h.DistanceTo(unit.Position)).ThenBy(h => h.Col).ThenBy(h => h.Row)
+            var positions = battle.AttackPositions(unit, enemy).ToList();
+            var from = (charges ? positions.OrderByDescending(h => h.DistanceTo(unit.Position)) : positions.OrderBy(h => h.DistanceTo(unit.Position)))
+                .ThenBy(h => h.Col).ThenBy(h => h.Row)
                 .Cast<Hex?>().FirstOrDefault();
             if (from is { } hex && battle.Attack(enemy, hex))
                 return;

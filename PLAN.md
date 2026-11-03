@@ -80,8 +80,10 @@ héros ; leurs pertes ne donnent pas d'expérience.
 Au niveau supérieur, une fenêtre montre chaque caractéristique avant et après.
 Le Paysan (1 PV, 3 or) remplace le Piquier comme unité de base du Château. L'Ange a 2000 PV, défense 30 et
 105 de dégâts : il tue 200 paysans d'un coup, et il faut au moins mille paysans pour le vaincre (test `AngelTests`).
+(Étape 6 : l'Ange vole et frappe sans riposte ; il a maintenant 1200 PV et 80 de dégâts, choix de l'utilisateur.)
 Courbe du Château (paysans nécessaires pour vaincre une unité, héros de départ) : Paysan 1,
-Archer 6, Griffon 13, Épéiste 26, Moine 50, Cavalier 99, Ange 1632 (test `UnitCurveTests`).
+Archer 6, Griffon 13, Épéiste 26, Moine 50, Cavalier 99, Ange 1632 (test `UnitCurveTests`) ; avec le combat tactique
+et les capacités (étape 6) : Archer 8, Griffon 13, Épéiste 26, Moine 58, Cavalier 112, Ange 1560.
 Départ : 30 paysans, 15 archers, 4 griffons.
 Prix : 3 or par paysan équivalent (Archer 18, Griffon 40, Épéiste 80, Moine 150, Cavalier 300,
 Ange 4900 et 1 gemme). Croissance hebdomadaire doublée (28, 18, 14, 8, 6, 4, 2) : une croissance
@@ -245,7 +247,13 @@ Découpage :
    L'IA joue les ennemis à un rythme lisible ; animations de marche, de coup et de dégâts. Les règles s'arrêtent au
    début d'un combat (`GameState.QuickBattles` à false, `CurrentBattle`, `FinishBattle`) puis reprennent le pas ; en
    fuyant, le héros revient sur la case d'où il venait, sans mouvement. Pas de sauvegarde pendant un combat.
-4. Les capacités des créatures (tableau ci-dessus), chacune avec ses tests.
+4. ✅ Les capacités des créatures (tableau ci-dessus), chacune avec ses tests : `flies`, `double-retaliation`,
+   `no-retaliation`, `breath`, `ranged-resistance`, `charge`, `quick-start`, `double-attack`, `short-range`, `crushing`,
+   `regenerates` (en plus de `shoots` et `no-range-penalty`). L'IA d'un Cavalier charge de loin. Courbe du Château
+   réglée de nouveau (environ ×2 par palier) : Moine 11-12 de dégâts (au lieu de 18-19), Cavalier 120 PV et 22 de
+   dégâts (au lieu de 100 et 19), Griffon 16 PV (au lieu de 12), Ange 1200 PV et 80 de dégâts (au lieu de 2000 et 105 :
+   avec ses capacités, il fallait 2300 paysans). Paysans pour vaincre une unité : Archer 8, Griffon 13,
+   Épéiste 26, Moine 58, Cavalier 112, Ange 1560. La simulation gagne toujours vers le jour 84 (78 à 122 sur 20 cartes).
 5. Finitions : fonds de champ de bataille selon le terrain, images d'obstacles.
 
 ### 7. Adversaires IA

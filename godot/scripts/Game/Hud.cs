@@ -13,7 +13,7 @@ namespace HoMM.Game;
 public partial class Hud : CanvasLayer
 {
     public const int PanelWidth = 256;
-    public const int TopBarHeight = 32;
+    public const int TopBarHeight = 44;
 
     /// <summary>Hauteur du journal, en bas de la carte (quatre ou cinq lignes).</summary>
     private const int LogHeight = 92;
@@ -58,10 +58,10 @@ public partial class Hud : CanvasLayer
 
         // ---- Barre des ressources
         var topBar = new Panel { Position = Vector2.Zero, Size = new Vector2(panelX, TopBarHeight) };
-        topBar.AddThemeStyleboxOverride("panel", Box(PanelColor, BorderColor, bottom: 2));
+        topBar.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         AddChild(topBar);
 
-        var resources = new HBoxContainer { Position = new Vector2(12, 0), Size = new Vector2(600, TopBarHeight) };
+        var resources = new HBoxContainer { Position = new Vector2(16, 0), Size = new Vector2(600, TopBarHeight) };
         resources.AddThemeConstantOverride("separation", 6);
         topBar.AddChild(resources);
         foreach (var resource in ResourceInfo.All)
@@ -77,27 +77,13 @@ public partial class Hud : CanvasLayer
         _date = MakeLabel("", 16, TextColor);
         _date.HorizontalAlignment = HorizontalAlignment.Right;
         _date.VerticalAlignment = VerticalAlignment.Center;
-        _date.Position = new Vector2(panelX - 216, 0);
+        _date.Position = new Vector2(panelX - 222, 0);
         _date.Size = new Vector2(200, TopBarHeight);
         topBar.AddChild(_date);
 
-        // Sauvegarder et charger (aussi avec F5 et F9)
-        var save = MakeButton("Sauvegarder", 13);
-        save.Position = new Vector2(panelX - 438, 3);
-        save.Size = new Vector2(110, TopBarHeight - 6);
-        save.TooltipText = "F5";
-        save.Pressed += () => SavePressed?.Invoke();
-        topBar.AddChild(save);
-        var load = MakeButton("Charger", 13);
-        load.Position = new Vector2(save.Position.X + save.Size.X + 6, 3);
-        load.Size = new Vector2(90, TopBarHeight - 6);
-        load.TooltipText = "F9";
-        load.Pressed += () => LoadPressed?.Invoke();
-        topBar.AddChild(load);
-
         // ---- Panneau de droite
         var panel = new Panel { Position = new Vector2(panelX, 0), Size = new Vector2(PanelWidth, screenSize.Y) };
-        panel.AddThemeStyleboxOverride("panel", Box(PanelColor, BorderColor, left: 3));
+        panel.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         AddChild(panel);
 
         const int margin = 16;
@@ -107,7 +93,7 @@ public partial class Hud : CanvasLayer
         var minimapSize = new Vector2(state.Map.Width, state.Map.Height) * scale;
         var minimapFrame = new Panel
         {
-            Position = new Vector2((PanelWidth - minimapSize.X) / 2 - 2, 10),
+            Position = new Vector2((PanelWidth - minimapSize.X) / 2 - 2, 16),
             Size = minimapSize + new Vector2(4, 4),
         };
         minimapFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
@@ -176,10 +162,17 @@ public partial class Hud : CanvasLayer
         panel.AddChild(_hover);
         y += 52;
 
-        // ---- Bouton de fin de tour et journal
-        var endTurn = MakeButton("Fin du tour", 22);
-        endTurn.Position = new Vector2(margin + 8, screenSize.Y - 60);
-        endTurn.Size = new Vector2(innerWidth - 16, 42);
+        // ---- Options (sauvegarder, charger) et fin de tour, en bas du panneau
+        const float optionsWidth = 78;
+        var options = MakeButton("Options", 13);
+        options.Position = new Vector2(margin, screenSize.Y - 60);
+        options.Size = new Vector2(optionsWidth, 42);
+        options.Pressed += ShowOptions;
+        panel.AddChild(options);
+
+        var endTurn = MakeButton("Fin du tour", 18);
+        endTurn.Position = new Vector2(margin + optionsWidth + 6, screenSize.Y - 60);
+        endTurn.Size = new Vector2(innerWidth - optionsWidth - 6, 42);
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
         panel.AddChild(endTurn);
 
@@ -190,10 +183,10 @@ public partial class Hud : CanvasLayer
             Size = new Vector2(Math.Min(620, panelX - 16), LogHeight),
             MouseFilter = Control.MouseFilterEnum.Ignore,
         };
-        logBox.AddThemeStyleboxOverride("panel", Box(new Color(PanelColor, 0.75f), BorderColor, 1, 1, 1, 1, radius: 4));
+        logBox.AddThemeStyleboxOverride("panel", Frame(new Color(PanelColor, 0.75f)));
         AddChild(logBox);
-        _log = At(MakeLabel("", 13, TextColor), 10, 4);
-        _log.Size = logBox.Size - new Vector2(20, 8);
+        _log = At(MakeLabel("", 13, TextColor), 16, 12);
+        _log.Size = logBox.Size - new Vector2(32, 22);
         _log.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _log.VerticalAlignment = VerticalAlignment.Bottom;
         _log.ClipText = true;
@@ -263,7 +256,7 @@ public partial class Hud : CanvasLayer
             var button = MakeButton(hero.Name, 13);
             button.CustomMinimumSize = new Vector2(0, 26);
             if (hero == _state.CurrentHero) // le héros sélectionné : bordure claire
-                button.AddThemeStyleboxOverride("normal", Box(MapRenderer.Rgb(120, 90, 40), Colors.White, 2, 2, 2, 2, radius: 6));
+                MarkSelected(button);
             button.Pressed += () => HeroClicked?.Invoke(hero);
             _heroes.AddChild(button);
         }
@@ -374,6 +367,37 @@ public partial class Hud : CanvasLayer
     {
         ShowDialog(Texts.GameOverTitle(end.Outcome), Texts.GameOverText(end), "Nouvelle partie", newGame);
     }
+
+    /// <summary>La fenêtre des options : sauvegarder ou charger la partie (aussi avec F5 et F9).</summary>
+    public void ShowOptions() => Enqueue(done =>
+    {
+        var dialog = new AcceptDialog
+        {
+            Title = Texts.OptionsTitle,
+            DialogText = Texts.OptionsText,
+            OkButtonText = Texts.CloseButton,
+            Exclusive = true,
+            Unresizable = true,
+        };
+        bool closed = false;
+        void Close(Action? then)
+        {
+            if (closed)
+                return;
+            closed = true;
+            dialog.QueueFree();
+            done();
+            then?.Invoke();
+        }
+        // chaque bouton ajouté se place à gauche des précédents
+        dialog.AddButton(Texts.LoadButton, false, "load");
+        dialog.AddButton(Texts.SaveButton, false, "save");
+        dialog.CustomAction += action => Close(action.ToString() == "save" ? SavePressed : LoadPressed);
+        dialog.Confirmed += () => Close(null);
+        dialog.Canceled += () => Close(null);
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(420, 0));
+    });
 
     /// <summary>Choix des conditions de la partie, au lancement : un bouton par choix. Fermer la fenêtre prend le premier.</summary>
     public void ShowRulesChoice(IReadOnlyList<GameRules> options, Action<GameRules> choose) => Enqueue(done =>

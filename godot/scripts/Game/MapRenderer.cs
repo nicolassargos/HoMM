@@ -300,7 +300,7 @@ public static class MapRenderer
         var font = ThemeDB.FallbackFont;
         string letter = guard.Type.Name[..1];
         ci.DrawCircle(c + V(13, 13), 7, Rgb(30, 25, 20));
-        ci.DrawString(font, c + V(9, 17), letter, HorizontalAlignment.Left, -1, 11, Colors.White);
+        ci.DrawString(font, c + V(9, 17), letter, HorizontalAlignment.Left, -1, Ui.TextSize(11), Colors.White);
     }
 
     // --------------------------------------------------------------------- héros

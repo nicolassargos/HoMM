@@ -276,6 +276,12 @@ public static class Texts
     public static string GameSaved => "Partie sauvegardée.";
     public static string SaveFailed => "Impossible d'enregistrer la partie.";
     public static string GameLoaded => "Partie chargée.";
+
+    public static string OptionsTitle => "Options";
+    public static string OptionsText => "Une seule sauvegarde : sauvegarder remplace la précédente.";
+    public static string SaveButton => "Sauvegarder (F5)";
+    public static string LoadButton => "Charger (F9)";
+    public static string CloseButton => "Fermer";
     public static string NoSave => "Aucune partie sauvegardée.";
     public static string LoadFailed => "Cette sauvegarde ne peut pas être chargée (fichier abîmé ou d'une autre version du jeu).";
 

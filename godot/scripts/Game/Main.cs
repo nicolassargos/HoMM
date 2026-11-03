@@ -20,7 +20,8 @@ namespace HoMM.Game;
 ///
 /// Lancer avec une graine fixe : ajouter « -- --seed=42 » à la ligne de commande ;
 /// reprendre la partie sauvegardée : « -- --load ».
-/// Développement : « -- --capture=apercu.png » enregistre une image de l'écran après un instant, puis quitte.
+/// Développement : « -- --capture=apercu.png » enregistre une image de l'écran après un instant, puis quitte
+/// (avec « --rules », la fenêtre du choix des conditions reste ouverte sur l'image).
 /// </summary>
 public partial class Main : Node2D
 {
@@ -46,6 +47,8 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
+        Ui.UsePixelFont();
+        Ui.ApplyTheme();
         var loaded = _loadedState ?? (OS.GetCmdlineUserArgs().Contains("--load") ? ReadSave(LoadData()) : null);
         _loadedState = null;
         _state = loaded ?? new GameState(ReadSeed(), LoadData());
@@ -85,7 +88,7 @@ public partial class Main : Node2D
             _hud.AddMessage(Texts.GameLoaded);
             _hud.AddMessage(Texts.Message(new RulesChosen(_state.Rules), _state.Players[0])!);
         }
-        else if (_capturePath == null) // une capture d'écran montre la carte, pas la fenêtre de choix
+        else if (_capturePath == null || OS.GetCmdlineUserArgs().Contains("--rules")) // une capture montre la carte, sauf avec --rules
             _hud.ShowRulesChoice(GameRules.Options, rules => _state.ChooseRules(rules));
         CenterOnHero();
     }

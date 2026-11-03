@@ -53,7 +53,7 @@ public partial class TownScreen : CanvasLayer
 
         // Le fond arrête la souris : la carte en dessous ne reçoit plus les clics
         var root = new Panel { Size = screenSize, MouseFilter = Control.MouseFilterEnum.Stop };
-        root.AddThemeStyleboxOverride("panel", Box(PanelColor, null));
+        root.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         AddChild(root);
 
         _title = At(MakeLabel("", 28, TextColor), Margin, 10);
@@ -154,11 +154,13 @@ public partial class TownScreen : CanvasLayer
     {
         var result = town.CanBuild(building, _state.CurrentPlayer);
         bool built = result == BuildResult.AlreadyBuilt;
-        var border = built ? BorderColor : result == BuildResult.Ok ? GoodColor : DimColor;
+        // le cadre est teinté : normal si construit, vert si on peut construire, terne sinon
+        var tint = built ? Colors.White : result == BuildResult.Ok ? new Color(0.7f, 1.15f, 0.7f) : new Color(0.6f, 0.58f, 0.55f);
 
         float width = (_screen.X - 2 * Margin - (Columns - 1) * 10) / Columns;
         var card = new PanelContainer { CustomMinimumSize = new Vector2(width, CardHeight) };
-        card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, border, 2, 2, 2, 2, radius: 6));
+        card.AddThemeStyleboxOverride("panel", Frame(DarkPanelColor));
+        card.SelfModulate = tint;
 
         var content = new VBoxContainer();
         content.AddThemeConstantOverride("separation", 2);
@@ -228,7 +230,9 @@ public partial class TownScreen : CanvasLayer
         {
             var stack = army != null && i < army.Stacks.Count ? army.Stacks[i] : null;
             var slot = new PanelContainer { CustomMinimumSize = new Vector2(SlotWidth, SlotHeight) };
-            slot.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, stack != null ? BorderColor : DimColor, 1, 1, 1, 1, radius: 4));
+            slot.AddThemeStyleboxOverride("panel", Frame(DarkPanelColor));
+            if (stack == null)
+                slot.SelfModulate = new Color(0.6f, 0.58f, 0.55f);
             slot.TooltipText = stack != null ? warning?.Invoke(stack) ?? "" : "";
             var label = MakeLabel(stack != null ? $"{stack.Count}\n{Texts.Creature(stack.Type, stack.Count)}" : "", 14, TextColor);
             label.HorizontalAlignment = HorizontalAlignment.Center;
@@ -259,7 +263,7 @@ public partial class TownScreen : CanvasLayer
 
         var size = new Vector2(480, 240);
         var window = new Panel { Position = (_screen - size) / 2, Size = size };
-        window.AddThemeStyleboxOverride("panel", Box(PanelColor, BorderColor, 2, 2, 2, 2, radius: 8));
+        window.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         _recruitOverlay.AddChild(window);
 
         _recruitTitle = At(MakeLabel("", 22, TextColor), 20, 14);

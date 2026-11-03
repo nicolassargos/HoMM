@@ -30,7 +30,12 @@ public static class Art
         return texture;
     }
 
-    private static Texture2D? Load(string path)
+    private static Texture2D? Load(string path) => LoadImageFile(path) is { } image ? ImageTexture.CreateFromImage(image) : null;
+
+    /// <summary>L'image <c>art/{name}.png</c> elle-même (pour la retoucher avant de l'afficher), ou null.</summary>
+    public static Image? GetImage(string name) => LoadImageFile($"{Root}{name}.png");
+
+    private static Image? LoadImageFile(string path)
     {
         if (!Godot.FileAccess.FileExists(path))
             return null;
@@ -40,7 +45,7 @@ public static class Art
             GD.PrintErr($"Image illisible : {path}");
             return null;
         }
-        return ImageTexture.CreateFromImage(image);
+        return image;
     }
 
     /// <summary>Nom d'un terrain dans les fichiers (grass, road…).</summary>

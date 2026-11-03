@@ -181,6 +181,9 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   Essayés puis écartés : bords nets avec taches (trop bruité), mélange large (les cases seules s'effaçaient).
   Développement : `--terrain-test` peint un échantillon de toutes les rencontres de terrains, `--ground=réglage:valeur`
   change un réglage du shader sans recompiler.
+- ✅ Curseurs de la souris, comme dans le premier Heroes (`MapCursor`, `art/cursors/`) : gantelet sur l'interface,
+  botte avec le nombre de jours de marche (`GameState.DaysTo`), épées sur un monstre, main sur un objet à visiter,
+  croix là où on ne peut pas aller (ou jamais exploré), casque sur un de ses héros. La case survolée n'est plus encadrée.
 - ✅ Zoom de la carte (molette, touches + et -) : ×2 ou ×3 (comme le premier Heroes), pixels d'art toujours entiers.
   La partie commence à ×2 (choix de l'utilisateur, à revoir lors des réglages fins).
 - ✅ La route est une couche posée sur le terrain (`AdventureMap.HasRoad`), plus un terrain : une case de route

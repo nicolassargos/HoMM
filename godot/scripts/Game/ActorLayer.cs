@@ -3,10 +3,12 @@ using HoMM.Core;
 
 namespace HoMM.Game;
 
-/// <summary>Ce qui bouge : objets, chemin prévu, héros, case survolée. Redessiné à chaque image.</summary>
+/// <summary>Ce qui bouge : objets, chemin prévu, héros. Redessiné à chaque image.</summary>
 public partial class ActorLayer : Node2D
 {
     public GameState State { get; set; } = null!;
+
+    /// <summary>La case sous la souris : le panneau la décrit (elle n'est plus encadrée sur la carte).</summary>
     public Cell? Hovered { get; set; }
     private double _time;
 
@@ -39,9 +41,7 @@ public partial class ActorLayer : Node2D
             MapRenderer.DrawSelection(this, ToPixels(selected.Position) + half + new Vector2(0, 14), _time);
         foreach (var hero in State.AllHeroes)
             MapRenderer.DrawHero(this, ToPixels(hero.Position) + half + new Vector2(0, 4), _time);
-
-        if (Hovered is { } h && State.CurrentPlayer.Fog.IsExplored(h))
-            DrawRect(new Rect2(ToPixels(h), t, t), Colors.White, false, 1);
+        // (la case survolée n'est plus encadrée : le panneau la décrit, cela suffit)
     }
 
     public static Vector2 ToPixels(Cell c) => new Vector2(c.X, c.Y) * MapRenderer.TileSize;

@@ -280,6 +280,24 @@ détails, surtout agrandies au combat), dans cet ordre :
    text v3 », environ 0,03 $, pas mieux tenus, fond transparent) : PixelLab est retenu. L'écran de combat sait déjà jouer
    des feuilles de 8 images (`epeiste-idle.png`, `-walk`, `-attack` : 4 colonnes × 2 rangées) ; sans feuille, l'image fixe.
    **Désormais : PixelLab pour les personnages et les créatures, Retro Diffusion pour les cartes et les portraits.**
+   ✅ **Les créatures refaites une à une avec PixelLab** (choix de l'utilisateur) : d'abord l'image fixe (qui sert aussi
+   d'icône), puis, une fois acceptée, ses animations. Fait : le **Squelette** (bossu, casque rouillé, haillons de
+   mailles, mains griffues, d'après une image de référence ; attente, marche lente, attaque où il saisit l'adversaire).
+   Il paraissait trop contrasté : c'était son contour noir (voir plus bas), maintenant adouci. L'**Ange** (grand,
+   sérieux, sans barbe, longue robe blanche serrée d'une corde ; attente presque immobile, vol à grands battements d'ailes, frappe de la paume ouverte avec un arc de lumière).
+   L'**Archer** (soldat d'armée en armure légère : chapeau de fer, gambison rayé bleu et blanc, col vert, grand arc, d'après
+   une image de référence ; vu de trois quarts et un peu d'en haut, comme le Moine ; il bande l'arc et tire).
+   Ce qui marche (`tools/art/pixellab.py`) : l'image fixe avec le modèle « Pro » (`pro`, 25 candidats pour 0,08 $ à
+   40 × 52), une de nos images pour le style (trait, ombrage) et une image de référence pour le sujet ; **modèles de
+   style : le Moine, le Griffon, le Loup et le Troll** (choix de l'utilisateur ; plus l'Épéiste, à refaire) ; les animations
+   à partir d'un cadre un peu plus grand (48 × 56, 64 × 56 pour une attaque qui va loin), avec `--retour` pour qu'une
+   attaque finisse sur la pose de départ (`--minimax` a donné la meilleure prise). Chaque feuille peut avoir sa propre
+   taille d'image. Écartés : « Bitforge » (`creer`) à cette taille, et une image de style trop forte (elle recopie la
+   créature du modèle). PixelLab ajoute parfois des étincelles cyan à une attaque : les retirer. Il ajoute aussi un
+   **contour noir** (87 % des pixels du bord presque noirs, contre 20 % pour le Moine et 12 % pour l'Ange), même avec une image de style
+   sans contour : `tools/art/adoucir.py entree sortie 0.6 45 2` donne à ce bord (et à la ligne juste à l'intérieur) la
+   couleur voisine assombrie, sans dépense ; à faire sur l'image fixe et sur les feuilles d'animation. Demander dans le
+   texte « vu de trois quarts, un peu d'en haut » (pas de réglage de vue dans le modèle « Pro »).
 3. Les fonds de champ de bataille et les obstacles (point 5 ci-dessus), dans le même style détaillé : étape 10.
 4. Plus tard : le héros sur la carte, les bâtiments des villes, et d'autres images plus détaillées : étape 10.
 

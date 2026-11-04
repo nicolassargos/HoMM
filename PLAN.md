@@ -280,6 +280,42 @@ détails, surtout agrandies au combat), dans cet ordre :
    text v3 », environ 0,03 $, pas mieux tenus, fond transparent) : PixelLab est retenu. L'écran de combat sait déjà jouer
    des feuilles de 8 images (`epeiste-idle.png`, `-walk`, `-attack` : 4 colonnes × 2 rangées) ; sans feuille, l'image fixe.
    **Désormais : PixelLab pour les personnages et les créatures, Retro Diffusion pour les cartes et les portraits.**
+   ✅ **Les créatures refaites une à une avec PixelLab** (choix de l'utilisateur) : d'abord l'image fixe (qui sert aussi
+   d'icône), puis, une fois acceptée, ses animations. Fait : le **Squelette** (bossu, casque rouillé, haillons de
+   mailles, mains griffues, d'après une image de référence ; attente, marche lente, attaque où il saisit l'adversaire).
+   Il paraissait trop contrasté : c'était son contour noir (voir plus bas), maintenant adouci. L'**Ange** (grand,
+   sérieux, sans barbe, longue robe blanche serrée d'une corde ; attente presque immobile, vol à grands battements d'ailes, frappe de la paume ouverte avec un arc de lumière).
+   L'**Archer** (soldat d'armée en armure légère : chapeau de fer, gambison rayé bleu et blanc, col vert, grand arc, d'après
+   une image de référence ; vu de trois quarts et un peu d'en haut, comme le Moine ; il bande l'arc et tire).
+   Le **Paysan** (trapu, capuche et tunique brunes, fourche pointée en avant ; image faite par l'utilisateur sur
+   PixelLab, réduite à ×0,4 : à ×0,5 il était aussi haut que l'Archer, mais deux fois plus massif ; il lève la fourche et la plante devant lui). Son image est élargie à gauche pour que
+   le corps, pas la fourche, soit au centre de la case. Le **Dragon rouge** (dressé sur ses quatre pattes, ailes à
+   demi levées ; attente, envol en planant, long jet de feu ; fait au double puis réduit à ×0,7, environ 90 × 80, pour
+   couvrir ses deux cases). À cette taille, le modèle « Pro » ne rend qu'une image par 0,08 $ ; les animations se font
+   aussi au double (jusqu'à 256 px), puis chaque image est réduite. Le jet de feu touchait le bord du cadre : son bout
+   est effacé en trame. Le **Gobelin** (petit, peau jaune-vert, grandes oreilles, ventre rond, pagne, lance ;
+   d'après l'image d'exemple ; environ 28 px de haut ; il s'accroupit puis plante sa lance). Une marche qui glissait (le
+   corps dérivait de 5 px) a été recentrée image par image. L'**Orc** (trapu, peau verte, grandes défenses, sangles et pagne de cuir,
+   haches ; d'après l'image d'exemple ; environ 41 px de haut, plus massif qu'un humain ; il lance une hache par-dessus
+   l'épaule). L'**Ogre** (homme sauvage énorme, cheveux longs et barbe noirs, pagne de fourrure, grosse
+   massue de bois sans clous ; 58 px de haut, plus grand que l'Archer ; il balaie de sa massue). Fait avec l'ancien Ogre
+   comme image de style pour garder son ombrage doux, et **sans** réduire la palette (16 couleurs faisaient des bandes
+   sur la peau). Une image de référence de pose recopie aussi ses détails (des clous sur la massue) : à éviter.
+   Ce qui marche (`tools/art/pixellab.py`) : l'image fixe avec le modèle « Pro » (`pro`, 25 candidats pour 0,08 $ à
+   40 × 52), une de nos images pour le style (trait, ombrage) et une image de référence pour le sujet ; **modèles de
+   style : le Moine, le Griffon, le Loup et le Troll** (choix de l'utilisateur ; plus l'Épéiste, à refaire) ; les animations
+   à partir d'un cadre un peu plus grand (48 × 56, 64 × 56 pour une attaque qui va loin), avec `--retour` pour qu'une
+   attaque finisse sur la pose de départ (`--minimax` a donné la meilleure prise). Chaque feuille peut avoir sa propre
+   taille d'image. Écartés : « Bitforge » (`creer`) à cette taille, et une image de style trop forte (elle recopie la
+   créature du modèle). PixelLab ajoute parfois des étincelles cyan à une attaque : les retirer. Il ajoute aussi un
+   **contour noir** (87 % des pixels du bord presque noirs, contre 20 % pour le Moine et 12 % pour l'Ange), même avec une image de style
+   sans contour : `tools/art/adoucir.py entree sortie 0.6 45 2` donne à ce bord (et à la ligne juste à l'intérieur) la
+   couleur voisine assombrie, sans dépense ; à faire sur l'image fixe et sur les feuilles d'animation. Demander dans le
+   texte « vu de trois quarts, un peu d'en haut » (pas de réglage de vue dans le modèle « Pro »).
+   Une image générée à ~50 px est brouillonne (trop de détails pour trop peu de pixels) : mieux vaut la **générer au
+   double** (~100 px de haut) puis la réduire de moitié (`reduire.py … 0.5`), comme les paysans de l'utilisateur.
+   Puis `tools/art/palette.py entree sortie 16` ramène à 16 couleurs (le Moine en a 20 ; adoucir et réduire créent
+   des teintes intermédiaires, jusqu'à 250) : gain léger mais net en grand.
 3. Les fonds de champ de bataille et les obstacles (point 5 ci-dessus), dans le même style détaillé : étape 10.
 4. Plus tard : le héros sur la carte, les bâtiments des villes, et d'autres images plus détaillées : étape 10.
 

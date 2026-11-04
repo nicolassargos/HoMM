@@ -7,11 +7,28 @@ La clé d'API est lue dans la variable d'environnement PIXELLAB_API_KEY (jamais 
     python -I tools/art/pixellab.py animer image.png dossier "action" [images] [graine]
         anime image.png (« walking forward », « attacking with a sword »…) : 4 à 16 images (8 par défaut),
         fond transparent ; écrit dossier/1.png, 2.png… et dossier/feuille.png (4 colonnes) ; coûte de l'argent
+        Options (après les autres) : --retour (l'animation finit sur la pose de départ, pour une attaque),
+        --minimax (modèle « PixMiniMax », vue de côté vers la droite), --sujet="…" (ce que montre l'image, pour
+        PixMiniMax), --enrichir (PixelLab détaille lui-même le mouvement décrit)
     python -I tools/art/pixellab.py ui sortie.png largeur hauteur "description" [graine] [modele.png]
         un élément d'interface (bouton, cadre, case…) de 16 px à 512 px, fond transparent ; <modele.png> guide
         le dessin (« concept image ») ; coûte de l'argent
     python -I tools/art/pixellab.py panneau sortie.png largeur hauteur "description" [graine] [style.png]
         un cadre de fenêtre (outil « Create UI panel », de 192 à 688 px) ; <style.png> donne le style ; coûte de l'argent
+    python -I tools/art/pixellab.py creer sortie.png largeur hauteur "description" [graine] [style.png] [force]
+        une image de créature (outil « Bitforge », 16 à 200 px) vue de côté, tournée vers la droite, fond transparent ;
+        <style.png> (une de nos images) donne le style, avec la force <force> de 0 à 100 (50 par défaut) ;
+        coûte de l'argent (environ 0,01 $)
+    python -I tools/art/pixellab.py pro dossier largeur hauteur "description" [graine] [style.png] [modele.jpg…]
+        plusieurs images (modèle « Pro ») d'un coup : 25 pour 42 à 50 px, 16 pour 51 à 64 px, 4 pour 86 à 170 px…
+        écrites dans dossier/1.png, 2.png… et dossier/planche.png ; <style.png> donne le trait, l'ombrage et le détail
+        (pas les couleurs ; « - » pour aucun) ; les <modele> (4 au plus, PNG ou JPEG) montrent le sujet, pas le style ;
+        coûte de l'argent
+    python -I tools/art/pixellab.py retoucher image.png dossier "changement" [graine]
+        modifie une image d'après un texte (« Edit images », Pro), en gardant sa forme et sa pose ; coûte de l'argent
+    python -I tools/art/pixellab.py repeindre image.png sortie.png x y largeur hauteur "description" [graine]
+        repeint seulement le rectangle donné (en pixels de l'image), le reste ne change pas (« Inpaint », Pro) ;
+        coûte de l'argent
 
 La première image rendue est l'image d'entrée elle-même. Seule la bibliothèque standard de Python est utilisée.
 """
@@ -73,15 +90,21 @@ def feuille(chemins, sortie, colonnes=4):
     ecrire(sortie, px)
 
 
-def animer(image, dossier, action, images=8, graine=0):
-    corps = {
-        "first_frame": {"type": "base64", "base64": base64.b64encode(open(image, "rb").read()).decode("ascii"), "format": "png"},
-        "action": action,
-        "frame_count": images,
-        "no_background": True,
-        "seed": graine,
-    }
-    r = requete("POST", "/animate-with-text-v3", corps)
+def animer(image, dossier, action, images=8, graine=0, retour=False, minimax=False, sujet=None, enrichir=False):
+    depart = {"type": "base64", "base64": base64.b64encode(open(image, "rb").read()).decode("ascii"), "format": "png"}
+    corps = {"first_frame": depart, "frame_count": images, "no_background": True, "seed": graine}
+    if retour:
+        corps["last_frame"] = depart
+    if enrichir:
+        corps["enhance_prompt"] = True
+    if minimax:
+        corps.update({"description": action, "view": "side", "direction": "east"})
+        if sujet:
+            corps["subject_description"] = sujet
+        r = requete("POST", "/animate-pixminimax", corps)
+    else:
+        corps["action"] = action
+        r = requete("POST", "/animate-with-text-v3", corps)
     tache = r["background_job_id"]
     while True:
         etat = requete("GET", f"/background-jobs/{tache}")
@@ -109,6 +132,21 @@ def image_base64(chemin):
 def taille_png(chemin):
     d = open(chemin, "rb").read(24)
     return struct.unpack(">II", d[16:24])
+
+
+def taille_image(chemin):
+    """Largeur et hauteur d'une image PNG ou JPEG."""
+    d = open(chemin, "rb").read()
+    if d[1:4] == b"PNG":
+        return struct.unpack(">II", d[16:24])
+    i = 2
+    while i < len(d):
+        marque, longueur = d[i + 1], struct.unpack(">H", d[i + 2:i + 4])[0]
+        if 0xC0 <= marque <= 0xCF and marque not in (0xC4, 0xC8, 0xCC):
+            h, w = struct.unpack(">HH", d[i + 5:i + 9])
+            return w, h
+        i += 2 + longueur
+    sys.exit(f"Taille de {chemin} introuvable")
 
 
 def attendre(tache):
@@ -167,11 +205,140 @@ def panneau(sortie, largeur, hauteur, description, graine=None, style=None):
     print(f"{sortie} : cadre {largeur}×{hauteur} (coût : {cout.get('usd')} $)")
 
 
+def creer(sortie, largeur, hauteur, description, graine=None, style=None, force=50):
+    corps = {
+        "description": description,
+        "negative_description": "background, ground, shadow, text, frame, blurry",
+        "image_size": {"width": largeur, "height": hauteur},
+        "view": "side",
+        "direction": "east",
+        "outline": "single color black outline",
+        "shading": "detailed shading",
+        "detail": "highly detailed",
+        "no_background": True,
+    }
+    if graine is not None:
+        corps["seed"] = graine
+    if style:
+        corps["style_image"] = image_base64(style)
+        corps["style_strength"] = force
+    r = requete("POST", "/create-image-bitforge", corps)
+    if "background_job_id" in r:
+        r = attendre(r["background_job_id"]).get("last_response", r)
+    os.makedirs(os.path.dirname(os.path.abspath(sortie)), exist_ok=True)
+    with open(sortie, "wb") as f:
+        f.write(decoder(r["image"]))
+    cout = r.get("usage") or {}
+    print(f"{sortie} : {largeur}×{hauteur} (coût : {cout.get('usd')} $)")
+
+
+def pro(dossier, largeur, hauteur, description, graine=None, style=None, modeles=()):
+    corps = {"description": description, "image_size": {"width": largeur, "height": hauteur}, "no_background": True}
+    if graine is not None:
+        corps["seed"] = graine
+    if modeles:
+        corps["reference_images"] = []
+        for m in modeles:
+            w, h = taille_image(m)
+            image = image_base64(m)
+            image["format"] = "jpeg" if m.lower().endswith((".jpg", ".jpeg")) else "png"
+            corps["reference_images"].append({"image": image, "size": {"width": w, "height": h},
+                                              "usage_description": "subject reference only (anatomy, costume), not the style"})
+    if style and style != "-":
+        w, h = taille_png(style)
+        corps["style_image"] = {"image": image_base64(style), "size": {"width": w, "height": h}}
+        corps["style_options"] = {"color_palette": False, "outline": True, "detail": True, "shading": True}
+    r = requete("POST", "/generate-image-v2", corps)
+    etat = attendre(r["background_job_id"])
+    os.makedirs(dossier, exist_ok=True)
+    chemins = []
+    for i, img in enumerate(etat["last_response"]["images"], start=1):
+        chemin = os.path.join(dossier, f"{i}.png")
+        with open(chemin, "wb") as f:
+            f.write(decoder(img))
+        chemins.append(chemin)
+    feuille(chemins, os.path.join(dossier, "planche.png"), 4)
+    cout = etat.get("usage") or r.get("usage") or {}
+    print(f"{dossier} : {len(chemins)} images (coût : {cout.get('usd')} $)")
+
+
+def ecrire_images(dossier, images):
+    os.makedirs(dossier, exist_ok=True)
+    chemins = []
+    for i, img in enumerate(images, start=1):
+        chemin = os.path.join(dossier, f"{i}.png")
+        with open(chemin, "wb") as f:
+            f.write(decoder(img))
+        chemins.append(chemin)
+    return chemins
+
+
+def retoucher(image, dossier, changement, graine=None):
+    w, h = taille_png(image)
+    corps = {"method": "edit_with_text", "description": changement, "no_background": True,
+             "edit_images": [{"image": image_base64(image), "width": w, "height": h}],
+             "image_size": {"width": max(w, 32), "height": max(h, 32)}}
+    if graine is not None:
+        corps["seed"] = graine
+    r = requete("POST", "/edit-images-v2", corps)
+    etat = attendre(r["background_job_id"])
+    chemins = ecrire_images(dossier, etat["last_response"]["images"])
+    cout = etat.get("usage") or r.get("usage") or {}
+    print(f"{dossier} : {len(chemins)} image(s) (coût : {cout.get('usd')} $)")
+
+
+def repeindre(image, sortie, x, y, largeur, hauteur, description, graine=None):
+    """Le masque est blanc dans le rectangle (à repeindre), noir ailleurs (gardé)."""
+    from reduire import ecrire
+    w, h = taille_png(image)
+    masque = [[(255, 255, 255, 255) if x <= i < x + largeur and y <= j < y + hauteur else (0, 0, 0, 255)
+               for i in range(w)] for j in range(h)]
+    chemin_masque = os.path.splitext(sortie)[0] + "-masque.png"
+    os.makedirs(os.path.dirname(os.path.abspath(sortie)), exist_ok=True)
+    ecrire(chemin_masque, masque)
+    taille = {"width": w, "height": h}
+    corps = {"description": description, "no_background": True,
+             "inpainting_image": {"image": image_base64(image), "size": taille},
+             "mask_image": {"image": image_base64(chemin_masque), "size": taille}}
+    if graine is not None:
+        corps["seed"] = graine
+    r = requete("POST", "/inpaint-v3", corps)
+    etat = attendre(r["background_job_id"])
+    reponse = etat["last_response"]
+    images = reponse.get("images") or [reponse.get("image")]
+    base, ext = os.path.splitext(sortie)
+    for i, img in enumerate(images, start=1):
+        with open(sortie if len(images) == 1 else f"{base}-{i}{ext}", "wb") as f:
+            f.write(decoder(img))
+    cout = etat.get("usage") or r.get("usage") or {}
+    print(f"{sortie} : {len(images)} image(s) (coût : {cout.get('usd')} $)")
+
+
 def main():
-    if len(sys.argv) < 2 or sys.argv[1] not in ("solde", "animer", "ui", "panneau"):
+    if len(sys.argv) < 2 or sys.argv[1] not in ("solde", "animer", "ui", "panneau", "creer", "pro", "retoucher", "repeindre"):
         sys.exit(__doc__)
-    if sys.argv[1] == "solde":
+    a = sys.argv
+    if a[1] == "solde":
         solde()
+    elif a[1] == "retoucher":
+        if len(a) < 5:
+            sys.exit(__doc__)
+        retoucher(a[2], a[3], a[4], int(a[5]) if len(a) > 5 else None)
+    elif a[1] == "repeindre":
+        if len(a) < 9:
+            sys.exit(__doc__)
+        repeindre(a[2], a[3], int(a[4]), int(a[5]), int(a[6]), int(a[7]), a[8], int(a[9]) if len(a) > 9 else None)
+    elif sys.argv[1] == "creer":
+        a = sys.argv
+        if len(a) < 6:
+            sys.exit(__doc__)
+        creer(a[2], int(a[3]), int(a[4]), a[5], int(a[6]) if len(a) > 6 else None,
+              a[7] if len(a) > 7 else None, int(a[8]) if len(a) > 8 else 50)
+    elif sys.argv[1] == "pro":
+        a = sys.argv
+        if len(a) < 6:
+            sys.exit(__doc__)
+        pro(a[2], int(a[3]), int(a[4]), a[5], int(a[6]) if len(a) > 6 else None, a[7] if len(a) > 7 else None, a[8:])
     elif sys.argv[1] in ("ui", "panneau"):
         if len(sys.argv) < 6:
             sys.exit(__doc__)
@@ -179,10 +346,13 @@ def main():
         (ui if a[1] == "ui" else panneau)(a[2], int(a[3]), int(a[4]), a[5],
                                           int(a[6]) if len(a) > 6 else None, a[7] if len(a) > 7 else None)
     else:
-        if len(sys.argv) < 5:
+        options = [x for x in sys.argv[2:] if x.startswith("--")]
+        a = [x for x in sys.argv[2:] if not x.startswith("--")]
+        if len(a) < 3:
             sys.exit(__doc__)
-        animer(sys.argv[2], sys.argv[3], sys.argv[4],
-               int(sys.argv[5]) if len(sys.argv) > 5 else 8, int(sys.argv[6]) if len(sys.argv) > 6 else 0)
+        sujet = next((x.split("=", 1)[1] for x in options if x.startswith("--sujet=")), None)
+        animer(a[0], a[1], a[2], int(a[3]) if len(a) > 3 else 8, int(a[4]) if len(a) > 4 else 0,
+               "--retour" in options, "--minimax" in options, sujet, "--enrichir" in options)
 
 
 if __name__ == "__main__":

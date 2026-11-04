@@ -76,6 +76,7 @@ public partial class TownScreen : CanvasLayer
         _root.AddChild(_bar);
         _bar.Build(screenSize.X - Hud.PanelWidth, Hud.TopBarHeight);
         var back = MakeButton(Texts.QuitTown, 15);
+        back.TooltipText = Texts.KeyTooltip(Texts.QuitTownTooltip, "Échap");
         back.Position = new Vector2(screenSize.X - Hud.PanelWidth + Px(12), Px(4));
         back.Size = new Vector2(Hud.PanelWidth - Px(24), Px(36));
         back.Pressed += Close;

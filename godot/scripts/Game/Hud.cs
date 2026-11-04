@@ -150,7 +150,7 @@ public partial class Hud : CanvasLayer
         panel.AddChild(_army);
         y += Px(52) + Px(8);
 
-        // les boutons d'action : un nom court et la touche dessous, le nom complet au survol ; Options sur toute la largeur
+        // les boutons d'action : un nom court, le nom complet et la touche au survol ; Options sur toute la largeur
         var actions = new (string Text, string Key, string Tooltip, Action Pressed)[]
         {
             (Texts.NextHeroShort, "H", Texts.NextHeroButton, () => NextHeroPressed?.Invoke()),
@@ -165,13 +165,13 @@ public partial class Hud : CanvasLayer
         for (int i = 0; i < actions.Length; i++)
         {
             var (text, key, tooltip, pressed) = actions[i];
-            var button = FixedButton($"{text}\n{key}", 12, new Vector2(buttonWidth, Px(42)));
-            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(45));
-            button.TooltipText = tooltip;
+            var button = FixedButton(text, 12, new Vector2(buttonWidth, Px(32)));
+            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(35));
+            button.TooltipText = Texts.KeyTooltip(tooltip, key);
             button.Pressed += pressed;
             panel.AddChild(button);
         }
-        y += (actions.Length + columns - 1) / columns * Px(45);
+        y += (actions.Length + columns - 1) / columns * Px(35);
         var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, Px(26)));
         options.Position = new Vector2(margin, y);
         options.TooltipText = Texts.OptionsTooltip;
@@ -180,7 +180,8 @@ public partial class Hud : CanvasLayer
         y += Px(26 + 4);
 
         // la fin du tour : grande, toujours au même endroit
-        var endTurn = MakeButton($"{Texts.EndTurnButton}\nEntrée", 18);
+        var endTurn = MakeButton(Texts.EndTurnButton, 18);
+        endTurn.TooltipText = Texts.KeyTooltip(Texts.EndTurnButton, "Entrée");
         endTurn.Position = new Vector2(margin, y);
         endTurn.Size = new Vector2(inner, Math.Max(Px(44), screenSize.Y - Px(10) - y));
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
@@ -711,9 +712,10 @@ public partial class Hud : CanvasLayer
             then?.Invoke();
         }
         // chaque bouton ajouté se place à gauche des précédents
-        dialog.AddButton(Texts.LoadButton, false, "load");
-        dialog.AddButton(Texts.SaveButton, false, "save");
-        dialog.AddButton(Texts.FullscreenButton, false, "fullscreen");
+        dialog.AddButton(Texts.LoadButton, false, "load").TooltipText = Texts.KeyTooltip(Texts.LoadTooltip, "F9");
+        dialog.AddButton(Texts.SaveButton, false, "save").TooltipText = Texts.KeyTooltip(Texts.SaveTooltip, "F5");
+        dialog.AddButton(Texts.FullscreenButton, false, "fullscreen").TooltipText =
+            Texts.KeyTooltip(Texts.FullscreenTooltip, "F11 ou Alt+Entrée");
         dialog.AddButton(Texts.QuitGameButton, false, "quit");
         dialog.CustomAction += action => Close(action.ToString() switch
         {
@@ -722,6 +724,7 @@ public partial class Hud : CanvasLayer
             "fullscreen" => Main.ToggleFullscreen,
             _ => ConfirmQuit,
         });
+        dialog.GetOkButton().TooltipText = Texts.KeyTooltip(Texts.CloseOptionsTooltip, "Échap");
         dialog.Confirmed += () => Close(null);
         dialog.Canceled += () => Close(null);
         AddChild(dialog);

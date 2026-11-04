@@ -395,6 +395,8 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    tuées et perdues, meilleur héros : `Player.Statistics`, sauvegardés), puis « Nouvelle partie » ou « Revoir la carte ».
    Le jeu démarre en plein écran (en 1920 × 1080, la fenêtre passait sous la barre des tâches) ; F11 ou Alt+Entrée,
    ou le bouton des options, passe en fenêtre agrandie. Les options ont un bouton « Quitter le jeu » (avec confirmation).
+   Échap ouvre les options sur la carte. Les touches ne sont plus écrites sur les boutons (carte, combat, ville,
+   fenêtres) : elles sont dans l'info-bulle (choix de l'utilisateur).
 6. **Menu principal, nouvelle partie, sauvegardes** : menu sauté par toute option de lancement ou `--play` ; taille
    de la carte en cinq choix (le générateur et l'équilibrage à revoir), graine, conditions ; plusieurs sauvegardes et
    la sauvegarde automatique.

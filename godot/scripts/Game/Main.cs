@@ -11,7 +11,7 @@ namespace HoMM.Game;
 ///
 /// Commandes :
 ///   Clic gauche sur une case : affiche le chemin. Second clic : le héros part.
-///   Espace : continuer le chemin tracé.        Clic droit / Échap : annuler le chemin.
+///   Espace : continuer le chemin tracé.        Clic droit : annuler le chemin.   Échap : options.
 ///   Flèches / ZQSD / souris au bord : défilement.   C : recentrer sur le héros.
 ///   Clic sur les murs de sa ville, liste des villes du panneau, ou T : écran de ville.
 ///   Clic sur un de ses héros, liste des héros du panneau, ou H : changer de héros.
@@ -517,7 +517,7 @@ public partial class Main : Node2D
                 {
                     case Key.Enter or Key.KpEnter: EndTurn(); break;
                     case Key.Space: StartWalking(); break;
-                    case Key.Escape when !_walking: _state.ClearPath(); break;
+                    case Key.Escape: _hud.ShowOptions(); break;
                     case Key.C: CenterOnHero(); break;
                     case Key.K: OpenKingdom(); break;
                     case Key.Plus or Key.KpAdd or Key.Equal: _camera.ZoomBy(+1); break;

@@ -397,10 +397,14 @@ public static class Texts
 
     public static string OptionsTitle => "Options";
     public static string OptionsText => "Une seule sauvegarde : sauvegarder remplace la précédente.";
-    public static string SaveButton => "Sauvegarder (F5)";
-    public static string LoadButton => "Charger (F9)";
-    public static string FullscreenButton => "Plein écran (F11)";
+    public static string SaveButton => "Sauvegarder";
+    public static string LoadButton => "Charger";
+    public static string FullscreenButton => "Plein écran";
     public static string QuitGameButton => "Quitter le jeu";
+    public static string SaveTooltip => "Sauvegarder la partie (remplace la sauvegarde précédente)";
+    public static string LoadTooltip => "Reprendre la partie sauvegardée";
+    public static string FullscreenTooltip => "Passer du plein écran à une fenêtre, ou l'inverse";
+    public static string CloseOptionsTooltip => "Revenir à la partie";
     public static string QuitGameTitle => "Quitter le jeu";
     public static string QuitGameText => "Quitter le jeu ? Ce qui n'a pas été sauvegardé sera perdu.";
     public static string QuitGameConfirm => "Quitter";
@@ -594,7 +598,7 @@ public static class Texts
     public static string WalkTooltip => "Avancer sur le chemin tracé";
     public static string CenterTooltip => "Centrer la carte sur le héros";
     public static string DigTooltip => "Creuser ici (il faut une journée entière de mouvement)";
-    public static string OptionsTooltip => "Sauvegarder, charger, plein écran, quitter le jeu";
+    public static string OptionsTooltip => KeyTooltip("Sauvegarder, charger, plein écran, quitter le jeu", "Échap");
     public static string WalkButton => "Avancer";
     public static string CenterButton => "Centrer";
     public static string DigAction => "Creuser";
@@ -706,7 +710,8 @@ public static class Texts
     // ------------------------------------------------------------------ écran de ville (étape 7)
 
     public static string CancelButton => "Annuler";
-    public static string QuitTown => "Quitter (Échap)";
+    public static string QuitTown => "Quitter";
+    public static string QuitTownTooltip => "Revenir à la carte";
 
     /// <summary>Sous le nom de la ville : son revenu et si l'on peut encore construire aujourd'hui.</summary>
     public static string TownHeader(Town town) =>
@@ -766,8 +771,8 @@ public static class Texts
 
     // ------------------------------------------------------------------ écran de combat et bilan (étape 7)
 
-    /// <summary>Le texte d'un bouton du combat avec sa touche : « Attendre (W) ».</summary>
-    public static string WithKey(string text, string key) => $"{text} ({key})";
+    /// <summary>L'info-bulle d'un bouton avec sa touche (la touche n'est plus écrite sur le bouton).</summary>
+    public static string KeyTooltip(string tooltip, string key) => $"{tooltip}\nTouche : {key}";
 
     public static string HeroBonus(Hero hero) => $"Attaque +{hero.Attack} · défense +{hero.Defense}";
     public static string SpellBookLater => "La magie viendra plus tard.";

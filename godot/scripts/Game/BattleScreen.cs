@@ -60,10 +60,10 @@ public partial class BattleScreen : CanvasLayer
         // les boutons, en une rangée à droite qui prend la largeur de leurs textes
         var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.End };
         buttons.AddThemeConstantOverride("separation", (int)Px(6));
-        _waitButton = AddButton(buttons, Texts.WithKey(Texts.BattleWait, "W"), () => Player(b => b.Wait()));
-        _defendButton = AddButton(buttons, Texts.WithKey(Texts.BattleDefend, "D"), () => Player(b => b.Defend()));
-        _autoButton = AddButton(buttons, Texts.WithKey(Texts.BattleAuto, "A"), () => _auto = true);
-        _fleeButton = AddButton(buttons, Texts.WithKey(Texts.BattleFlee, "F"), () => Player(b => b.Flee()));
+        _waitButton = AddButton(buttons, Texts.BattleWait, "W", () => Player(b => b.Wait()));
+        _defendButton = AddButton(buttons, Texts.BattleDefend, "D", () => Player(b => b.Defend()));
+        _autoButton = AddButton(buttons, Texts.BattleAuto, "A", () => _auto = true);
+        _fleeButton = AddButton(buttons, Texts.BattleFlee, "F", () => Player(b => b.Flee()));
         float buttonsWidth = buttons.GetCombinedMinimumSize().X;
         buttons.Position = new Vector2(screenSize.X - Px(16) - buttonsWidth, barY + (OrderHeight - Px(40)) / 2f);
         buttons.Size = new Vector2(buttonsWidth, Px(40));
@@ -196,9 +196,10 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>Largeur de « Round 2 », au début de la ligne du bas.</summary>
     private const float RoundWidth = 144; // en pixels
 
-    private static Button AddButton(Control parent, string text, Action pressed)
+    private static Button AddButton(Control parent, string text, string key, Action pressed)
     {
         var button = MakeButton(text, 14);
+        button.TooltipText = Texts.KeyTooltip(text, key);
         button.CustomMinimumSize = V(96, 40);
         button.Pressed += pressed;
         parent.AddChild(button);

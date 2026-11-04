@@ -38,7 +38,7 @@ public partial class BattleScreen : CanvasLayer
     private HBoxContainer _order = null!;
 
     /// <summary>Hauteur de la bande de l'ordre de jeu, en bas de l'écran.</summary>
-    private const int OrderHeight = 64;
+    private const int OrderHeight = 96; // en pixels
     private BattleFieldView _field = null!;
     private Button _waitButton = null!, _defendButton = null!, _autoButton = null!, _fleeButton = null!;
 
@@ -56,40 +56,41 @@ public partial class BattleScreen : CanvasLayer
 
         // En bas, sur une ligne (comme dans Heroes V) : le round, l'ordre de jeu complet (une bande de portraits),
         // et les boutons à droite
-        float barY = screenSize.Y - 10 - OrderHeight;
+        float barY = screenSize.Y - Px(10) - OrderHeight;
         // les boutons, en une rangée à droite qui prend la largeur de leurs textes
         var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.End };
-        buttons.AddThemeConstantOverride("separation", 6);
+        buttons.AddThemeConstantOverride("separation", (int)Px(6));
         _waitButton = AddButton(buttons, Texts.WithKey(Texts.BattleWait, "W"), () => Player(b => b.Wait()));
         _defendButton = AddButton(buttons, Texts.WithKey(Texts.BattleDefend, "D"), () => Player(b => b.Defend()));
         _autoButton = AddButton(buttons, Texts.WithKey(Texts.BattleAuto, "A"), () => _auto = true);
         _fleeButton = AddButton(buttons, Texts.WithKey(Texts.BattleFlee, "F"), () => Player(b => b.Flee()));
         float buttonsWidth = buttons.GetCombinedMinimumSize().X;
-        buttons.Position = new Vector2(screenSize.X - 16 - buttonsWidth, barY + (OrderHeight - 40) / 2f);
-        buttons.Size = new Vector2(buttonsWidth, 40);
+        buttons.Position = new Vector2(screenSize.X - Px(16) - buttonsWidth, barY + (OrderHeight - Px(40)) / 2f);
+        buttons.Size = new Vector2(buttonsWidth, Px(40));
         root.AddChild(buttons);
 
-        _title = At(MakeLabel("", 16, TextColor), 16, barY);
+        _title = MakeLabel("", 16, TextColor);
+        _title.Position = new Vector2(Px(16), barY);
         _title.Size = new Vector2(RoundWidth, OrderHeight);
         _title.VerticalAlignment = VerticalAlignment.Center;
         _title.MouseFilter = Control.MouseFilterEnum.Pass; // pour son info-bulle (l'adversaire)
         root.AddChild(_title);
         _order = new HBoxContainer
         {
-            Position = new Vector2(16 + RoundWidth + 8, barY),
-            Size = new Vector2(buttons.Position.X - 16 - RoundWidth - 8 - 16, OrderHeight),
+            Position = new Vector2(Px(16 + 8) + RoundWidth, barY),
+            Size = new Vector2(buttons.Position.X - RoundWidth - Px(16 + 8 + 16), OrderHeight),
             ClipContents = true,
         };
-        _order.AddThemeConstantOverride("separation", 4);
+        _order.AddThemeConstantOverride("separation", (int)Px(4));
         root.AddChild(_order);
 
         // Le champ de bataille, centré dessous (de la place reste de chaque côté : héros, machines de guerre…),
         // sous la ligne de la dernière action
         _field = new BattleFieldView();
         var size = BattleFieldView.FieldSize;
-        const float bandHeight = 32, bandGap = 6;
-        float top = 10 + bandHeight + bandGap;
-        _field.Position = new Vector2((screenSize.X - size.X) / 2, top + (barY - 8 - top - size.Y) / 2);
+        float bandHeight = Px(32), bandGap = Px(6);
+        float top = Px(10) + bandHeight + bandGap;
+        _field.Position = new Vector2((screenSize.X - size.X) / 2, top + (barY - Px(8) - top - size.Y) / 2);
         _field.Clicked += OnClicked;
         root.AddChild(_field);
 
@@ -104,13 +105,13 @@ public partial class BattleScreen : CanvasLayer
         root.AddChild(band);
         _message = At(MakeLabel("", 14, TextColor), 10, 4);
         _message.ClipText = true;
-        _message.Size = band.Size - new Vector2(20 + 100, 8);
+        _message.Size = band.Size - V(20 + 100, 8);
         _message.VerticalAlignment = VerticalAlignment.Center;
         band.AddChild(_message);
         // le journal du combat, au bout de la ligne
         var log = MakeButton(Texts.BattleLogButton, 13);
-        log.Position = band.Position + new Vector2(band.Size.X - 96, 2);
-        log.Size = new Vector2(92, bandHeight - 4);
+        log.Position = band.Position + new Vector2(band.Size.X - Px(96), Px(2));
+        log.Size = new Vector2(Px(92), bandHeight - Px(4));
         log.Pressed += ShowLog;
         root.AddChild(log);
 
@@ -123,12 +124,12 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>La fiche d'une troupe, tant que le clic droit reste enfoncé (comme dans Heroes).</summary>
     private void BuildUnitInfo(Control root)
     {
-        _unitInfo = new Panel { Visible = false, Size = new Vector2(240, 10), MouseFilter = Control.MouseFilterEnum.Ignore, ZIndex = 5 };
+        _unitInfo = new Panel { Visible = false, Size = V(240, 10), MouseFilter = Control.MouseFilterEnum.Ignore, ZIndex = 5 };
         _unitInfo.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         root.AddChild(_unitInfo);
         _unitInfoText = At(MakeLabel("", 13, TextColor), 14, 12);
         _unitInfoText.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _unitInfoText.CustomMinimumSize = new Vector2(212, 0);
+        _unitInfoText.CustomMinimumSize = V(212, 0);
         _unitInfo.AddChild(_unitInfoText);
     }
 
@@ -136,9 +137,9 @@ public partial class BattleScreen : CanvasLayer
     {
         _unitInfoText.Text = $"{Texts.Stack(new CreatureStack(unit.Type, _field.ShownCount(unit)))}\n{Texts.UnitStats(unit)}\n"
             + $"{Texts.UnitAbilities(unit)}\n{Texts.UnitState(unit)}";
-        _unitInfo.Size = new Vector2(240, _unitInfoText.GetMinimumSize().Y + 26);
+        _unitInfo.Size = new Vector2(Px(240), _unitInfoText.GetMinimumSize().Y + Px(26));
         // à côté de la souris, sans sortir de l'écran
-        var position = _field.Position + at + new Vector2(16, -_unitInfo.Size.Y / 2);
+        var position = _field.Position + at + new Vector2(Px(16), -_unitInfo.Size.Y / 2);
         _unitInfo.Position = position.Clamp(Vector2.Zero, _screen - _unitInfo.Size);
         _unitInfo.Visible = true;
     }
@@ -156,23 +157,23 @@ public partial class BattleScreen : CanvasLayer
         dialog.Confirmed += dialog.QueueFree;
         dialog.Canceled += dialog.QueueFree;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(360, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(360), 0));
     }
 
     /// <summary>Le journal : tous les messages de ce combat, le plus récent en bas.</summary>
     private void ShowLog()
     {
         var dialog = new AcceptDialog { Title = Texts.BattleLogTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
-        var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(620, 380), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        var scroll = new ScrollContainer { CustomMinimumSize = V(620, 380), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
         var text = MakeLabel(_log.Count == 0 ? Texts.LogEmpty : string.Join("\n", _log), 14, TextColor);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        text.CustomMinimumSize = new Vector2(600, 0);
+        text.CustomMinimumSize = V(600, 0);
         scroll.AddChild(text);
         dialog.AddChild(scroll);
         dialog.Confirmed += dialog.QueueFree;
         dialog.Canceled += dialog.QueueFree;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(660, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(660), 0));
         Callable.From(() => scroll.ScrollVertical = (int)scroll.GetVScrollBar().MaxValue).CallDeferred();
     }
 
@@ -193,12 +194,12 @@ public partial class BattleScreen : CanvasLayer
     }
 
     /// <summary>Largeur de « Round 2 », au début de la ligne du bas.</summary>
-    private const float RoundWidth = 96;
+    private const float RoundWidth = 144; // en pixels
 
     private static Button AddButton(Control parent, string text, Action pressed)
     {
         var button = MakeButton(text, 14);
-        button.CustomMinimumSize = new Vector2(96, 40);
+        button.CustomMinimumSize = V(96, 40);
         button.Pressed += pressed;
         parent.AddChild(button);
         return button;
@@ -360,8 +361,8 @@ public partial class BattleScreen : CanvasLayer
         var now = coming.Where(u => _field.ShownCount(u) > 0).ToList();
         var next = played.Where(u => _field.ShownCount(u) > 0).ToList();
         // des cases plus étroites quand il y a beaucoup de troupes, pour que la bande ne déborde pas sur les boutons
-        float label = next.Count > 0 ? 110 : 0;
-        float width = Math.Clamp((_order.Size.X - label - 4 * (now.Count + next.Count)) / Math.Max(1, now.Count + next.Count), 34, 58);
+        float label = next.Count > 0 ? Px(110) : 0;
+        float width = Math.Clamp((_order.Size.X - label - Px(4) * (now.Count + next.Count)) / Math.Max(1, now.Count + next.Count), Px(34), Px(58));
         foreach (var (unit, i) in now.Select((u, i) => (u, i)))
             _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), i == 0, dim: false, width));
         if (next.Count > 0)
@@ -385,8 +386,8 @@ public partial class BattleScreen : CanvasLayer
             slot.Modulate = new Color(1, 1, 1, 0.5f);
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 0);
-        // l'image ×2, ou ×1 si la case est étroite
-        if (CreatureImage(unit.Type, width >= 52 ? 2 : 1) is { } picture)
+        // l'image ×3, ou ×2 si la case est étroite
+        if (CreatureImage(unit.Type, width >= 78 ? 3 : 2) is { } picture)
         {
             picture.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
             picture.SizeFlagsVertical = Control.SizeFlags.ExpandFill;

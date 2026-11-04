@@ -31,18 +31,18 @@ public partial class HeroScreen : ScreenWindow
     public void Build(GameState state, Vector2 screenSize)
     {
         _state = state;
-        var size = new Vector2(1000, 640);
+        var size = V(1000, 640);
         BuildFrame(screenSize, new Rect2((screenSize - size) / 2 + new Vector2(0, Hud.TopBarHeight / 2f), size));
 
         // le portrait, puis niveau, expérience et mouvement
-        var portraitFrame = new Panel { Position = new Vector2(20, 56), Size = new Vector2(132, 132) };
+        var portraitFrame = new Panel { Position = V(20, 56), Size = new Vector2(64, 64) * PortraitScale + V(4, 4) };
         portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
         Window.AddChild(portraitFrame);
         _portrait = new TextureRect
         {
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
             TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
-            Position = new Vector2(2, 2), Size = new Vector2(64, 64) * PortraitScale,
+            Position = V(2, 2), Size = new Vector2(64, 64) * PortraitScale, // en pixels : le portrait ×2
         };
         portraitFrame.AddChild(_portrait);
         // sous le nom (dans le titre) : la place de la classe (personnalisation des héros, plus tard), puis le niveau
@@ -50,9 +50,9 @@ public partial class HeroScreen : ScreenWindow
         Window.AddChild(_level);
         // l'expérience et le mouvement : un mot, puis une barre avec les nombres dessus
         Window.AddChild(At(MakeLabel(Texts.ExperienceWord, 13, SoftTextColor), 166, 90));
-        (_experienceBar, _experienceText) = Bar(new Vector2(166, 108), MapRenderer.Rgb(150, 120, 50));
+        (_experienceBar, _experienceText) = Bar(V(166, 108), MapRenderer.Rgb(150, 120, 50));
         Window.AddChild(At(MakeLabel(Texts.MovementWord, 13, SoftTextColor), 166, 134));
-        (_movementBar, _movementText) = Bar(new Vector2(166, 152), MapRenderer.Rgb(60, 150, 60));
+        (_movementBar, _movementText) = Bar(V(166, 152), MapRenderer.Rgb(60, 150, 60));
 
         // les caractéristiques, en colonne
         float y = 204;
@@ -60,7 +60,7 @@ public partial class HeroScreen : ScreenWindow
         {
             var name = At(MakeLabel("", 16, TextColor), 24, y);
             var value = At(MakeLabel("", 20, TextColor), 210, y - 2);
-            value.Size = new Vector2(50, 24);
+            value.Size = V(50, 24);
             value.HorizontalAlignment = HorizontalAlignment.Right;
             var effect = At(MakeLabel("", 12, SoftTextColor), 24, y + 20);
             foreach (var label in new[] { name, value, effect })
@@ -73,23 +73,23 @@ public partial class HeroScreen : ScreenWindow
         }
 
         // les artefacts
-        var artifacts = Section(new Vector2(290, 56), new Vector2(330, 380), Texts.ArtifactsHeader);
-        _artifacts = new VBoxContainer { Position = new Vector2(12, 34), Size = new Vector2(306, 330) };
-        _artifacts.AddThemeConstantOverride("separation", 8);
+        var artifacts = Section(V(290, 56), V(330, 380), Texts.ArtifactsHeader);
+        _artifacts = new VBoxContainer { Position = V(12, 34), Size = V(306, 330) };
+        _artifacts.AddThemeConstantOverride("separation", (int)Px(8));
         artifacts.AddChild(_artifacts);
 
         // la magie, à venir
-        var magic = Section(new Vector2(636, 56), new Vector2(344, 380), Texts.MagicHeader);
+        var magic = Section(V(636, 56), V(344, 380), Texts.MagicHeader);
         var later = At(MakeLabel(Texts.MagicLater, 13, SoftTextColor), 12, 40);
         later.AutowrapMode = TextServer.AutowrapMode.WordSmart; // avant la taille : sinon elle se règle sur le texte entier
-        later.CustomMinimumSize = new Vector2(320, 0);
+        later.CustomMinimumSize = V(320, 0);
         magic.AddChild(later);
 
         // l'armée, en grand
-        var army = Section(new Vector2(20, 450), new Vector2(960, 170), Texts.ArmyHeader);
+        var army = Section(V(20, 450), V(960, 170), Texts.ArmyHeader);
         _army = new ArmySlots
         {
-            Position = new Vector2(12, 32), SlotSize = new Vector2(132, 128), ImageScale = 3, CountFontSize = 18,
+            Position = V(12, 32), SlotSize = V(132, 128), ImageScale = 4, CountFontSize = 18,
             ShowCommandPoints = true, DragGroup = this,
         };
         // glisser pour réordonner ou fusionner ; Maj en lâchant, ou clic droit, pour partager
@@ -106,7 +106,7 @@ public partial class HeroScreen : ScreenWindow
 
     private (ProgressBar Bar, Label Text) Bar(Vector2 position, Color fill)
     {
-        var bar = new ProgressBar { Position = position, Size = new Vector2(112, 20), ShowPercentage = false, MinValue = 0 };
+        var bar = new ProgressBar { Position = position, Size = V(112, 20), ShowPercentage = false, MinValue = 0 };
         bar.AddThemeStyleboxOverride("background", Box(MapRenderer.Rgb(20, 16, 12), BorderColor, 1, 1, 1, 1));
         bar.AddThemeStyleboxOverride("fill", Box(fill, null));
         Window.AddChild(bar);
@@ -203,17 +203,17 @@ public partial class HeroScreen : ScreenWindow
         foreach (var artifact in hero.Artifacts)
         {
             var row = new HBoxContainer();
-            row.AddThemeConstantOverride("separation", 10);
+            row.AddThemeConstantOverride("separation", (int)Px(10));
             if (Art.Get($"artifacts/{artifact.Id}") is { } image)
                 row.AddChild(new TextureRect
                 {
                     ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
                     TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
-                    Texture = image, CustomMinimumSize = new Vector2(64, 64),
+                    Texture = image, CustomMinimumSize = new Vector2(96, 96), // l'artefact de 32 pixels, ×3
                 });
             var text = MakeLabel(Texts.ArtifactTooltip(artifact), 14, TextColor);
             text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            text.CustomMinimumSize = new Vector2(220, 0);
+            text.CustomMinimumSize = V(220, 0);
             text.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
             row.AddChild(text);
             _artifacts.AddChild(row);

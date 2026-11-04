@@ -14,7 +14,10 @@ namespace HoMM.Game;
 /// </summary>
 public partial class ArmySlots : HBoxContainer
 {
-    /// <summary>Taille d'un emplacement, et agrandissement de l'image de la créature (son image de la carte, 24 px).</summary>
+    /// <summary>
+    /// Taille d'un emplacement (en pixels de l'écran), et agrandissement de l'image de la créature (son image de la carte,
+    /// 24 px) : un nombre entier, pour des pixels nets.
+    /// </summary>
     public Vector2 SlotSize { get; set; } = new(32, 44);
     public int ImageScale { get; set; } = 1;
     public int CountFontSize { get; set; } = 12;
@@ -53,7 +56,7 @@ public partial class ArmySlots : HBoxContainer
         if (key == _key)
             return;
         _key = key;
-        AddThemeConstantOverride("separation", 2);
+        AddThemeConstantOverride("separation", (int)Px(2));
         Clear(this);
         for (int i = 0; i < Army.MaxStacks; i++)
             AddChild(Slot(i < stacks.Count ? stacks[i] : null, charisma, i));
@@ -80,28 +83,29 @@ public partial class ArmySlots : HBoxContainer
         if (CanDrag)
             slot.MouseDefaultCursorShape = CursorShape.Drag;
         slot.TooltipText = Texts.StackTooltip(stack, charisma);
-        float textHeight = CountFontSize + 4 + (ShowCommandPoints ? 15 : 0);
+        float countHeight = Px(CountFontSize + 4), pointsHeight = Px(15);
+        float textHeight = countHeight + (ShowCommandPoints ? pointsHeight : 0);
         if (picture != null)
         {
             var size = picture.GetSize() * ImageScale;
             slot.AddChild(Picture(picture, new Vector2((SlotSize.X - size.X) / 2, Math.Max(1, (SlotSize.Y - textHeight - size.Y) / 2)), size));
         }
         // le nombre (et les points de commandement) en bas de l'emplacement
-        float bottom = SlotSize.Y - 2;
+        float bottom = SlotSize.Y - Px(2);
         if (ShowCommandPoints && charisma is { } limit)
         {
             var points = MakeLabel(Texts.CommandPoints(stack, limit), 11, risky ? MapRenderer.Rgb(255, 150, 130) : SoftTextColor);
             points.HorizontalAlignment = HorizontalAlignment.Center;
-            points.Position = new Vector2(0, bottom - 15);
-            points.Size = new Vector2(SlotSize.X, 15);
+            points.Position = new Vector2(0, bottom - pointsHeight);
+            points.Size = new Vector2(SlotSize.X, pointsHeight);
             points.MouseFilter = MouseFilterEnum.Ignore;
             slot.AddChild(points);
-            bottom -= 15;
+            bottom -= pointsHeight;
         }
         var count = MakeLabel(stack.Count.ToString(), CountFontSize, risky ? MapRenderer.Rgb(255, 150, 130) : TextColor);
         count.HorizontalAlignment = HorizontalAlignment.Center;
-        count.Position = new Vector2(0, bottom - CountFontSize - 4);
-        count.Size = new Vector2(SlotSize.X, CountFontSize + 4);
+        count.Position = new Vector2(0, bottom - countHeight);
+        count.Size = new Vector2(SlotSize.X, countHeight);
         count.MouseFilter = MouseFilterEnum.Ignore;
         slot.AddChild(count);
         return slot;

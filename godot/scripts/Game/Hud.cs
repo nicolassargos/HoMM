@@ -14,11 +14,12 @@ namespace HoMM.Game;
 /// </summary>
 public partial class Hud : CanvasLayer
 {
-    public const int PanelWidth = 256;
-    public const int TopBarHeight = 44;
+    /// <summary>Largeur de la colonne de droite et hauteurs des bandes, en pixels de l'écran (1920 × 1080).</summary>
+    public const int PanelWidth = 384;
+    public const int TopBarHeight = 66;
 
     /// <summary>Hauteur de la bande sous la carte (survol et dernier message, sur deux lignes).</summary>
-    public const int BottomBarHeight = 52;
+    public const int BottomBarHeight = 78;
 
     private GameState _state = null!;
     private ResourceBar _resourceBar = null!;
@@ -42,9 +43,9 @@ public partial class Hud : CanvasLayer
     private int _heroesOffset, _townsOffset;
     private string? _heroesKey, _townsKey;
 
-    /// <summary>Lignes visibles dans chaque liste (les autres avec les flèches).</summary>
+    /// <summary>Lignes visibles dans chaque liste (les autres avec les flèches) ; leur hauteur en pixels (un portrait de 64).</summary>
     private const int ListRows = 3;
-    private const int RowHeight = 34;
+    private const int RowHeight = 68;
 
     // la bande du bas
     private Label _hover = null!;
@@ -78,6 +79,10 @@ public partial class Hud : CanvasLayer
     /// <summary>Le joueur a cliqué sur un de ses héros dans la liste.</summary>
     public event Action<Hero>? HeroClicked;
 
+    /// <summary>
+    /// Construit l'interface de la carte. Les positions sont en pixels de l'écran ; les écarts et les tailles fixes sont
+    /// écrits dans les unités de l'interface (<see cref="Ui.Px"/>, <see cref="Ui.V"/>).
+    /// </summary>
     public void Build(GameState state, Vector2 screenSize)
     {
         _state = state;
@@ -94,48 +99,53 @@ public partial class Hud : CanvasLayer
         var panel = new Panel { Position = new Vector2(panelX, 0), Size = new Vector2(PanelWidth, screenSize.Y) };
         panel.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         AddChild(panel);
-        const int margin = 8;
+        float margin = Px(8);
         float inner = PanelWidth - 2 * margin;
 
-        // la carte réduite
-        int scale = Math.Min((PanelWidth - 24) / state.Map.Width, 6);
+        // la carte réduite : des cases d'un nombre entier de pixels
+        int scale = (int)Math.Min((PanelWidth - Px(24)) / state.Map.Width, 9);
         var minimapSize = new Vector2(state.Map.Width, state.Map.Height) * scale;
         var minimapFrame = new Panel
         {
-            Position = new Vector2((PanelWidth - minimapSize.X) / 2 - 2, 10),
-            Size = minimapSize + new Vector2(4, 4),
+            Position = new Vector2((PanelWidth - minimapSize.X) / 2 - Px(2), Px(10)),
+            Size = minimapSize + V(4, 4),
         };
         minimapFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
         panel.AddChild(minimapFrame);
-        Minimap = new Minimap { State = state, CellSize = scale, Position = new Vector2(2, 2), Size = minimapSize, ClipContents = true };
+        Minimap = new Minimap { State = state, CellSize = scale, Position = V(2, 2), Size = minimapSize, ClipContents = true };
         minimapFrame.AddChild(Minimap);
-        float y = minimapFrame.Position.Y + minimapFrame.Size.Y + 8;
+        float y = minimapFrame.Position.Y + minimapFrame.Size.Y + Px(8);
 
         // les listes des héros et des villes, côte à côte (comme Heroes 2)
-        float listWidth = (inner - 6) / 2;
-        float listHeight = 20 + ListRows * (RowHeight + 2);
+        float listWidth = (inner - Px(6)) / 2;
+        float listHeight = Px(20) + ListRows * (RowHeight + Px(2));
         (_heroRows, _heroesUp, _heroesDown) = BuildList(panel, Texts.HeroesHeader, margin, y, listWidth, listHeight, step =>
         {
             _heroesOffset += step;
             _heroesKey = null;
         });
-        (_townRows, _townsUp, _townsDown) = BuildList(panel, Texts.TownsHeader, margin + listWidth + 6, y, listWidth, listHeight, step =>
+        (_townRows, _townsUp, _townsDown) = BuildList(panel, Texts.TownsHeader, margin + listWidth + Px(6), y, listWidth, listHeight, step =>
         {
             _townsOffset += step;
             _townsKey = null;
         });
-        y += listHeight + 8;
+        y += listHeight + Px(8);
 
-        y = BuildHeroCard(panel, margin, y, inner) + 6;
+        y = BuildHeroCard(panel, margin, y, inner) + Px(6);
 
-        // son armée, en 7 emplacements
-        panel.AddChild(At(MakeLabel(Texts.ArmyHeader, 12, SoftTextColor), margin, y));
-        y += 16;
+        // son armée, en 7 emplacements (images ×2)
+        panel.AddChild(At(MakeLabel(Texts.ArmyHeader, 12, SoftTextColor), margin / Ui.Scale, y / Ui.Scale));
+        y += Px(16);
         // des emplacements de largeur entière (sinon les arrondis débordent du panneau)
-        float slot = MathF.Floor((inner - 12) / Army.MaxStacks);
-        _army = new ArmySlots { Position = new Vector2(margin + (inner - 12 - slot * Army.MaxStacks) / 2, y), SlotSize = new Vector2(slot, 44) };
+        float gap = Px(2);
+        float slot = MathF.Floor((inner - 6 * gap) / Army.MaxStacks);
+        _army = new ArmySlots
+        {
+            Position = new Vector2(margin + (inner - 6 * gap - slot * Army.MaxStacks) / 2, y),
+            SlotSize = new Vector2(slot, Px(52)), ImageScale = 2,
+        };
         panel.AddChild(_army);
-        y += 44 + 8;
+        y += Px(52) + Px(8);
 
         // les boutons d'action : un nom court et la touche dessous, le nom complet au survol ; Options sur toute la largeur
         var actions = new (string Text, string Key, string Tooltip, Action Pressed)[]
@@ -148,28 +158,28 @@ public partial class Hud : CanvasLayer
             (Texts.TreasureShort, "M", Texts.TreasureMapAction, () => TreasureMapPressed?.Invoke()),
         };
         const int columns = 3;
-        float buttonWidth = (inner - 2 * 4) / columns;
+        float buttonWidth = (inner - 2 * Px(4)) / columns;
         for (int i = 0; i < actions.Length; i++)
         {
             var (text, key, tooltip, pressed) = actions[i];
-            var button = FixedButton($"{text}\n{key}", 12, new Vector2(buttonWidth, 44));
-            button.Position = new Vector2(margin + i % columns * (buttonWidth + 4), y + i / columns * 47);
+            var button = FixedButton($"{text}\n{key}", 12, new Vector2(buttonWidth, Px(42)));
+            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(45));
             button.TooltipText = tooltip;
             button.Pressed += pressed;
             panel.AddChild(button);
         }
-        y += (actions.Length + columns - 1) / columns * 47;
-        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, 28));
+        y += (actions.Length + columns - 1) / columns * Px(45);
+        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, Px(26)));
         options.Position = new Vector2(margin, y);
         options.TooltipText = Texts.OptionsTooltip;
         options.Pressed += ShowOptions;
         panel.AddChild(options);
-        y += 28 + 4;
+        y += Px(26 + 4);
 
         // la fin du tour : grande, toujours au même endroit
         var endTurn = MakeButton($"{Texts.EndTurnButton}\nEntrée", 18);
         endTurn.Position = new Vector2(margin, y);
-        endTurn.Size = new Vector2(inner, Math.Max(44, screenSize.Y - 10 - y));
+        endTurn.Size = new Vector2(inner, Math.Max(Px(44), screenSize.Y - Px(10) - y));
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
         panel.AddChild(endTurn);
 
@@ -177,7 +187,7 @@ public partial class Hud : CanvasLayer
             AddMessage(Texts.Welcome(hero));
     }
 
-    /// <summary>Une liste (héros ou villes) : un titre, des flèches si elle est trop longue, et ses lignes.</summary>
+    /// <summary>Une liste (héros ou villes) : un titre, des flèches si elle est trop longue, et ses lignes (en pixels).</summary>
     private static (VBoxContainer Rows, Button Up, Button Down) BuildList(Control parent, string title, float x, float y,
         float width, float height, Action<int> scroll)
     {
@@ -188,35 +198,38 @@ public partial class Hud : CanvasLayer
         Button Arrow(string text, float ax, int step)
         {
             var arrow = MakeButton(text, 10);
-            arrow.Position = new Vector2(ax, 2);
-            arrow.Size = new Vector2(18, 15);
+            arrow.Position = new Vector2(ax, Px(2));
+            arrow.Size = V(18, 15);
             arrow.Pressed += () => scroll(step);
             box.AddChild(arrow);
             return arrow;
         }
-        var up = Arrow("▲", width - 40, -1);
-        var down = Arrow("▼", width - 20, +1);
-        var rows = new VBoxContainer { Position = new Vector2(2, 19), Size = new Vector2(width - 4, height - 21) };
-        rows.AddThemeConstantOverride("separation", 2);
+        var up = Arrow("▲", width - Px(40), -1);
+        var down = Arrow("▼", width - Px(20), +1);
+        var rows = new VBoxContainer { Position = V(2, 19), Size = new Vector2(width - Px(4), height - Px(21)) };
+        rows.AddThemeConstantOverride("separation", (int)Px(2));
         box.AddChild(rows);
         return (rows, up, down);
     }
 
-    /// <summary>La fiche du héros choisi : portrait, nom, niveau, caractéristiques, mouvement, artefacts. Renvoie le bas.</summary>
+    /// <summary>
+    /// La fiche du héros choisi (en pixels) : portrait ×2 à gauche ; à droite le nom, le niveau, les caractéristiques, le
+    /// mouvement et les artefacts. Renvoie le bas.
+    /// </summary>
     private float BuildHeroCard(Control panel, float x, float y, float width)
     {
-        const int portraitSize = 64;
-        var card = new Panel { Position = new Vector2(x, y), Size = new Vector2(width, 122) };
+        const int portraitSize = 128; // le portrait de 64 pixels, ×2
+        var card = new Panel { Position = new Vector2(x, y), Size = new Vector2(width, portraitSize + Px(12)) };
         card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
         panel.AddChild(card);
-        var portraitFrame = new Panel { Position = new Vector2(4, 4), Size = new Vector2(portraitSize + 4, portraitSize + 4) };
+        var portraitFrame = new Panel { Position = V(4, 4), Size = new Vector2(portraitSize, portraitSize) + V(4, 4) };
         portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
         card.AddChild(portraitFrame);
         _portrait = new TextureRect
         {
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
             TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
-            Position = new Vector2(2, 2), Size = new Vector2(portraitSize, portraitSize),
+            Position = V(2, 2), Size = new Vector2(portraitSize, portraitSize),
         };
         portraitFrame.AddChild(_portrait);
         // un clic sur le portrait ouvre l'écran du héros
@@ -228,23 +241,26 @@ public partial class Hud : CanvasLayer
                 HeroDetailsPressed?.Invoke(shown);
         };
 
-        float textX = portraitSize + 14;
-        _heroName = At(MakeLabel("", 16, TextColor), textX, 2);
-        _heroName.Size = new Vector2(width - textX - 4, 22);
+        float textX = portraitFrame.Size.X + Px(12), textWidth = width - textX - Px(4);
+        _heroName = MakeLabel("", 16, TextColor);
+        _heroName.Position = new Vector2(textX, Px(2));
         _heroName.ClipText = true;
+        _heroName.Size = new Vector2(textWidth, Px(22));
         card.AddChild(_heroName);
-        _heroLevel = At(MakeLabel("", 12, SoftTextColor), textX, 22);
+        _heroLevel = MakeLabel("", 12, SoftTextColor);
+        _heroLevel.Position = new Vector2(textX, Px(22));
         card.AddChild(_heroLevel);
 
-        // les caractéristiques, chacune expliquée au survol : Att, Déf, Pui sur une ligne ; Sav et Cha dessous
+        // les caractéristiques, chacune expliquée au survol : Att, Déf sur une ligne ; Pui, Sav ; puis Cha
         var stats = new (HeroStat? Stat, int Column, int Row)[]
         {
-            (HeroStat.Attack, 0, 0), (HeroStat.Defense, 1, 0), (HeroStat.Power, 2, 0), (HeroStat.Knowledge, 0, 1), (null, 1, 1),
+            (HeroStat.Attack, 0, 0), (HeroStat.Defense, 1, 0), (HeroStat.Power, 0, 1), (HeroStat.Knowledge, 1, 1), (null, 0, 2),
         };
-        float column = (width - textX - 4) / 3;
+        float column = textWidth / 2;
         foreach (var (stat, col, row) in stats)
         {
-            var label = At(MakeLabel("", 12, TextColor), textX + col * column, 38 + row * 15);
+            var label = MakeLabel("", 12, TextColor);
+            label.Position = new Vector2(textX + col * column, Px(38 + row * 14));
             label.MouseFilter = Control.MouseFilterEnum.Stop;
             card.AddChild(label);
             if (stat is { } s)
@@ -255,13 +271,13 @@ public partial class Hud : CanvasLayer
 
         _movementBar = new ProgressBar
         {
-            Position = new Vector2(4, 76), Size = new Vector2(width - 8, 18),
+            Position = new Vector2(textX, Px(82)), Size = new Vector2(textWidth, Px(16)),
             ShowPercentage = false, MinValue = 0, MaxValue = Hero.DefaultMovement,
         };
         _movementBar.AddThemeStyleboxOverride("background", Box(MapRenderer.Rgb(20, 16, 12), BorderColor, 1, 1, 1, 1));
         _movementBar.AddThemeStyleboxOverride("fill", Box(MapRenderer.Rgb(60, 180, 60), null));
         card.AddChild(_movementBar);
-        _movementText = MakeLabel("", 12, TextColor);
+        _movementText = MakeLabel("", 11, TextColor);
         _movementText.HorizontalAlignment = HorizontalAlignment.Center;
         _movementText.VerticalAlignment = VerticalAlignment.Center;
         _movementText.Position = _movementBar.Position;
@@ -269,35 +285,37 @@ public partial class Hud : CanvasLayer
         card.AddChild(_movementText);
 
         // ses artefacts : de petites images (le nom et l'effet au survol)
-        _artifacts = new HBoxContainer { Position = new Vector2(4, 97), Size = new Vector2(width - 8, 22) };
-        _artifacts.AddThemeConstantOverride("separation", 2);
+        _artifacts = new HBoxContainer { Position = new Vector2(textX, Px(100)), Size = new Vector2(textWidth, Px(22)) };
+        _artifacts.AddThemeConstantOverride("separation", (int)Px(2));
         card.AddChild(_artifacts);
         return y + card.Size.Y;
     }
 
-    /// <summary>La bande sous la carte : à gauche ce qui est survolé, à droite le dernier message et le journal.</summary>
+    /// <summary>La bande sous la carte (en pixels) : à gauche ce qui est survolé, à droite le dernier message et le journal.</summary>
     private void BuildBottomBar(Vector2 screenSize, float width)
     {
         var bar = new Panel { Position = new Vector2(0, screenSize.Y - BottomBarHeight), Size = new Vector2(width, BottomBarHeight) };
         bar.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         AddChild(bar);
-        float half = (width - 32 - 90) / 2;
-        _hover = At(MakeLabel("", 13, SoftTextColor), 14, 6);
-        _hover.Size = new Vector2(half, BottomBarHeight - 12);
-        _hover.VerticalAlignment = VerticalAlignment.Center;
+        float half = (width - Px(32 + 90)) / 2;
+        _hover = MakeLabel("", 13, SoftTextColor);
+        _hover.Position = V(14, 6);
         _hover.ClipText = true;
+        _hover.Size = new Vector2(half, BottomBarHeight - Px(12));
+        _hover.VerticalAlignment = VerticalAlignment.Center;
         bar.AddChild(_hover);
-        _lastMessage = At(MakeLabel("", 13, TextColor), 14 + half + 8, 6);
+        _lastMessage = MakeLabel("", 13, TextColor);
+        _lastMessage.Position = new Vector2(Px(14 + 8) + half, Px(6));
         // le retour à la ligne d'abord : sinon la largeur se règle sur le texte entier
         _lastMessage.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _lastMessage.CustomMinimumSize = _lastMessage.Size = new Vector2(half - 8, BottomBarHeight - 12);
+        _lastMessage.CustomMinimumSize = _lastMessage.Size = new Vector2(half - Px(8), BottomBarHeight - Px(12));
         _lastMessage.HorizontalAlignment = HorizontalAlignment.Right;
         _lastMessage.VerticalAlignment = VerticalAlignment.Center;
         _lastMessage.ClipText = true;
         bar.AddChild(_lastMessage);
         var log = MakeButton(Texts.LogButton, 13);
-        log.Position = new Vector2(width - 14 - 84, (BottomBarHeight - 32) / 2f);
-        log.Size = new Vector2(84, 32);
+        log.Position = new Vector2(width - Px(14 + 84), (BottomBarHeight - Px(32)) / 2f);
+        log.Size = V(84, 32);
         log.Pressed += ShowLog;
         bar.AddChild(log);
     }
@@ -370,16 +388,17 @@ public partial class Hud : CanvasLayer
             var row = Row(hero == _state.CurrentHero, Texts.HeroTooltip(hero), () => HeroClicked?.Invoke(hero),
                 () => HeroDetailsPressed?.Invoke(hero));
             if (Art.Portrait(hero.Name) is { } portrait)
-                row.AddChild(Picture(portrait, new Vector2(2, 1), new Vector2(32, 32)));
-            var name = At(MakeLabel(hero.Name, 12, TextColor), 37, 1);
-            name.Size = new Vector2(row.CustomMinimumSize.X - 40, 16);
+                row.AddChild(Picture(portrait, new Vector2(2, 2), new Vector2(64, 64)));
+            var name = MakeLabel(hero.Name, 12, TextColor);
+            name.Position = new Vector2(70, 4);
             name.ClipText = true;
+            name.Size = new Vector2(row.CustomMinimumSize.X - 74, Px(16));
             row.AddChild(name);
-            float barWidth = row.CustomMinimumSize.X - 42;
-            row.AddChild(new ColorRect { Position = new Vector2(37, 22), Size = new Vector2(barWidth, 6), Color = MapRenderer.Rgb(20, 16, 12), MouseFilter = Control.MouseFilterEnum.Ignore });
+            float barWidth = row.CustomMinimumSize.X - 76;
+            row.AddChild(new ColorRect { Position = new Vector2(70, 44), Size = new Vector2(barWidth, Px(6)), Color = MapRenderer.Rgb(20, 16, 12), MouseFilter = Control.MouseFilterEnum.Ignore });
             row.AddChild(new ColorRect
             {
-                Position = new Vector2(37, 22), Size = new Vector2(barWidth * hero.Movement / Math.Max(1, hero.MaxMovement), 6),
+                Position = new Vector2(70, 44), Size = new Vector2(barWidth * hero.Movement / Math.Max(1, hero.MaxMovement), Px(6)),
                 Color = MapRenderer.Rgb(60, 180, 60), MouseFilter = Control.MouseFilterEnum.Ignore,
             });
             _heroRows.AddChild(row);
@@ -403,12 +422,15 @@ public partial class Hud : CanvasLayer
         {
             var row = Row(false, $"{town.Name} · {Texts.TownIncome(town)} par jour", () => TownClicked?.Invoke(town));
             if (Art.Get("objects/town") is { } image)
-                row.AddChild(Picture(image, new Vector2(2, 1), new Vector2(32, 32)));
-            var name = At(MakeLabel(town.Name, 12, TextColor), 37, 1);
-            name.Size = new Vector2(row.CustomMinimumSize.X - 40, 16);
+                row.AddChild(Picture(image, new Vector2(2, 2), new Vector2(64, 64)));
+            var name = MakeLabel(town.Name, 12, TextColor);
+            name.Position = new Vector2(70, 4);
             name.ClipText = true;
+            name.Size = new Vector2(row.CustomMinimumSize.X - 74, Px(16));
             row.AddChild(name);
-            row.AddChild(At(MakeLabel(Texts.TownIncome(town), 11, SoftTextColor), 37, 16));
+            var income = MakeLabel(Texts.TownIncome(town), 11, SoftTextColor);
+            income.Position = new Vector2(70, 34);
+            row.AddChild(income);
             _townRows.AddChild(row);
         }
         _townsUp.Visible = _townsDown.Visible = player.Towns.Count > ListRows;
@@ -446,7 +468,7 @@ public partial class Hud : CanvasLayer
                 continue;
             _artifacts.AddChild(new TextureRect
             {
-                Texture = image, CustomMinimumSize = new Vector2(22, 22),
+                Texture = image, CustomMinimumSize = new Vector2(32, 32),
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
                 TextureFilter = CanvasItem.TextureFilterEnum.Nearest, TooltipText = Texts.ArtifactTooltip(artifact),
             });
@@ -465,10 +487,10 @@ public partial class Hud : CanvasLayer
     private void ShowLog() => Enqueue(done =>
     {
         var dialog = new AcceptDialog { Title = Texts.LogTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
-        var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(620, 360), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        var scroll = new ScrollContainer { CustomMinimumSize = V(620, 360), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
         var text = MakeLabel(_messages.Count == 0 ? Texts.LogEmpty : string.Join("\n", _messages), 14, TextColor);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        text.CustomMinimumSize = new Vector2(600, 0);
+        text.CustomMinimumSize = V(600, 0);
         scroll.AddChild(text);
         dialog.AddChild(scroll);
         bool closed = false;
@@ -483,7 +505,7 @@ public partial class Hud : CanvasLayer
         dialog.Confirmed += Close;
         dialog.Canceled += Close;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(660, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(660), 0));
         // le plus récent en bas : on descend au bout de la liste une fois la fenêtre posée
         Callable.From(() => scroll.ScrollVertical = (int)scroll.GetVScrollBar().MaxValue).CallDeferred();
     });
@@ -553,8 +575,8 @@ public partial class Hud : CanvasLayer
     {
         var report = battle.Report;
         var dialog = new AcceptDialog { Title = Texts.ReportTitle(report), OkButtonText = Texts.ContinueButton, Exclusive = true, Unresizable = true };
-        var content = new VBoxContainer { CustomMinimumSize = new Vector2(560, 0) };
-        content.AddThemeConstantOverride("separation", 8);
+        var content = new VBoxContainer { CustomMinimumSize = V(560, 0) };
+        content.AddThemeConstantOverride("separation", (int)Px(8));
         var subtitle = MakeLabel(Texts.ReportSubtitle(battle), 14, SoftTextColor);
         subtitle.HorizontalAlignment = HorizontalAlignment.Center;
         content.AddChild(subtitle);
@@ -566,7 +588,7 @@ public partial class Hud : CanvasLayer
             var label = MakeLabel(line, 16, color);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            label.CustomMinimumSize = new Vector2(560, 0);
+            label.CustomMinimumSize = V(560, 0);
             content.AddChild(label);
         }
         content.AddChild(LossesRow(Texts.YourLosses, report.AttackerLosses, minus: true));
@@ -584,30 +606,30 @@ public partial class Hud : CanvasLayer
         dialog.Confirmed += Close;
         dialog.Canceled += Close;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(600, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(600), 0));
     });
 
     /// <summary>Une partie du bilan : un titre, puis chaque troupe perdue (image et nombre, sans cadre), ou « aucune ».</summary>
     private static Control LossesRow(string title, IReadOnlyList<CreatureStack> losses, bool minus)
     {
-        var column = new VBoxContainer { CustomMinimumSize = new Vector2(560, 0) };
-        column.AddThemeConstantOverride("separation", 2);
+        var column = new VBoxContainer { CustomMinimumSize = V(560, 0) };
+        column.AddThemeConstantOverride("separation", (int)Px(2));
         var header = MakeLabel(title, 15, SoftTextColor);
         header.HorizontalAlignment = HorizontalAlignment.Center;
         column.AddChild(header);
-        var row = new HFlowContainer { CustomMinimumSize = new Vector2(560, 0), Alignment = FlowContainer.AlignmentMode.Center };
-        row.AddThemeConstantOverride("h_separation", 8);
-        row.AddThemeConstantOverride("v_separation", 4);
+        var row = new HFlowContainer { CustomMinimumSize = V(560, 0), Alignment = FlowContainer.AlignmentMode.Center };
+        row.AddThemeConstantOverride("h_separation", (int)Px(8));
+        row.AddThemeConstantOverride("v_separation", (int)Px(4));
         column.AddChild(row);
         if (losses.Count == 0)
             row.AddChild(MakeLabel(Texts.NoLoss, 13, SoftTextColor));
         foreach (var stack in losses)
         {
-            var slot = new Control { CustomMinimumSize = new Vector2(60, 70), TooltipText = Texts.Stack(stack), MouseFilter = Control.MouseFilterEnum.Stop };
+            var slot = new Control { CustomMinimumSize = V(60, 70), TooltipText = Texts.Stack(stack), MouseFilter = Control.MouseFilterEnum.Stop };
             if (Art.Get($"creatures/{stack.Type.Id}") is { } image)
-                slot.AddChild(Picture(image, new Vector2(6, 2), new Vector2(48, 48)));
+                slot.AddChild(Picture(image, V(6, 2), V(48, 48)));
             var count = At(MakeLabel(minus ? $"−{stack.Count}" : $"{stack.Count}", 13, TextColor), 0, 50);
-            count.Size = new Vector2(60, 18);
+            count.Size = V(60, 18);
             count.HorizontalAlignment = HorizontalAlignment.Center;
             slot.AddChild(count);
             row.AddChild(slot);
@@ -653,7 +675,7 @@ public partial class Hud : CanvasLayer
         dialog.Confirmed += () => Close(null);
         dialog.Canceled += () => Close(null);
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(640, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(640), 0));
     });
 
     /// <summary>
@@ -670,10 +692,10 @@ public partial class Hud : CanvasLayer
             Unresizable = true,
         };
         var content = new VBoxContainer();
-        content.AddThemeConstantOverride("separation", 6);
+        content.AddThemeConstantOverride("separation", (int)Px(6));
         var intro = MakeLabel(Texts.RulesText, 15, TextColor);
         intro.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        intro.CustomMinimumSize = new Vector2(480, 0);
+        intro.CustomMinimumSize = V(480, 0);
         content.AddChild(intro);
         var goals = new System.Collections.Generic.Dictionary<VictoryCondition, CheckBox>();
         foreach (var condition in GameRules.Choices)
@@ -707,7 +729,7 @@ public partial class Hud : CanvasLayer
         dialog.Confirmed += Choose;
         dialog.Canceled += Choose;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(540, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(540), 0));
     });
 
     /// <summary>Une case à cocher aux couleurs du jeu.</summary>
@@ -732,11 +754,11 @@ public partial class Hud : CanvasLayer
     {
         if ((on ? _checked : _unchecked) is { } cached)
             return cached;
-        const int size = 18;
+        int size = (int)Px(18), line = (int)Px(2), inset = (int)Px(5);
         var image = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
         image.Fill(DarkPanelColor);
         for (int i = 0; i < size; i++)
-            for (int w = 0; w < 2; w++)
+            for (int w = 0; w < line; w++)
             {
                 image.SetPixel(i, w, TextColor);
                 image.SetPixel(i, size - 1 - w, TextColor);
@@ -744,7 +766,7 @@ public partial class Hud : CanvasLayer
                 image.SetPixel(size - 1 - w, i, TextColor);
             }
         if (on)
-            image.FillRect(new Rect2I(5, 5, size - 10, size - 10), BorderColor);
+            image.FillRect(new Rect2I(inset, inset, size - 2 * inset, size - 2 * inset), BorderColor);
         var texture = ImageTexture.CreateFromImage(image);
         if (on)
             _checked = texture;
@@ -758,12 +780,12 @@ public partial class Hud : CanvasLayer
     {
         var dialog = new AcceptDialog { Title = Texts.TreasureMapTitle, OkButtonText = "OK", Exclusive = true, Unresizable = true };
         var content = new VBoxContainer();
-        content.AddThemeConstantOverride("separation", 8);
+        content.AddThemeConstantOverride("separation", (int)Px(8));
         var pieces = state.TreasureMapPieces(viewer);
         var text = MakeLabel(state.Map.Treasure == null ? Texts.TreasureGone
             : Texts.TreasureMapText(pieces.Count(p => p), pieces.Count), 14, TextColor);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        text.CustomMinimumSize = new Vector2(TreasureMapView.Columns * TreasureMapView.CellSize, 0);
+        text.CustomMinimumSize = V(TreasureMapView.Columns * TreasureMapView.CellSize, 0);
         content.AddChild(text);
         if (state.Map.Treasure != null)
         {
@@ -785,7 +807,7 @@ public partial class Hud : CanvasLayer
         dialog.Confirmed += Close;
         dialog.Canceled += Close;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(320, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(320), 0));
     });
 
     /// <summary>Avant un combat : le diriger (écran de combat) ou le laisser se dérouler (combat rapide).</summary>
@@ -814,7 +836,7 @@ public partial class Hud : CanvasLayer
         dialog.Canceled += () => Choose(tactical);
         dialog.CustomAction += _ => Choose(quick);
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(480, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(480), 0));
     });
 
     /// <summary>Un message dans une fenêtre, qu'on ferme avec OK (le trésor déterré…).</summary>
@@ -825,13 +847,13 @@ public partial class Hud : CanvasLayer
     {
         var dialog = new AcceptDialog { Title = title, OkButtonText = "OK", Exclusive = true, Unresizable = true };
         var content = new VBoxContainer();
-        content.AddThemeConstantOverride("separation", 10);
+        content.AddThemeConstantOverride("separation", (int)Px(10));
         if (Art.Get($"artifacts/{artifact.Id}") is { } image)
         {
             var center = new CenterContainer();
             center.AddChild(new TextureRect
             {
-                Texture = image, CustomMinimumSize = image.GetSize() * 3,
+                Texture = image, CustomMinimumSize = image.GetSize() * 4,
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
                 TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
             });
@@ -840,7 +862,7 @@ public partial class Hud : CanvasLayer
         var label = MakeLabel(text, 15, TextColor);
         label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         label.HorizontalAlignment = HorizontalAlignment.Center;
-        label.CustomMinimumSize = new Vector2(380, 0);
+        label.CustomMinimumSize = V(380, 0);
         content.AddChild(label);
         dialog.AddChild(content);
         bool closed = false;
@@ -855,7 +877,7 @@ public partial class Hud : CanvasLayer
         dialog.Confirmed += Close;
         dialog.Canceled += Close;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(420, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(420), 0));
     });
 
     /// <summary>True tant qu'une fenêtre est ouverte ou en attente (le jeu ignore alors les commandes de la carte).</summary>
@@ -890,7 +912,7 @@ public partial class Hud : CanvasLayer
         dialog.Confirmed += Close;
         dialog.Canceled += Close;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(360, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(360), 0));
     });
 
     /// <summary>Choix de la caractéristique d'un niveau : un bouton par caractéristique proposée. Fermer la fenêtre prend la première.</summary>
@@ -919,7 +941,7 @@ public partial class Hud : CanvasLayer
         dialog.CustomAction += action => Choose(Enum.Parse<HeroStat>(action.ToString()));
         dialog.Canceled += () => Choose(choice.Options[0]);
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(560, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(560), 0));
     });
 
     private void Enqueue(Action<Action> open)

@@ -24,6 +24,25 @@ public static class Ui
     /// </summary>
     public const float FontScale = 1.3f;
 
+    /// <summary>
+    /// L'échelle de l'interface (1920 × 1080) : les écrans sont décrits dans les unités de l'ancien écran (1280 × 720) et
+    /// <see cref="Px"/>, <see cref="V"/>, <see cref="At{T}"/>, <see cref="TextSize"/> et <see cref="Box"/> les mettent à
+    /// l'échelle. Les images en pixel art, elles, sont toujours agrandies d'un nombre entier de fois (pixels réguliers).
+    /// </summary>
+    public const float Scale = 1.5f;
+
+    /// <summary>Agrandissement des cadres et des boutons (leurs images) : un nombre entier, pour des pixels réguliers.</summary>
+    public const int ArtScale = 2;
+
+    /// <summary>Une longueur de l'interface, mise à l'échelle (arrondie au pixel).</summary>
+    public static float Px(float value) => MathF.Round(value * Scale);
+
+    /// <summary>Une position ou une taille de l'interface, mise à l'échelle.</summary>
+    public static Vector2 V(float x, float y) => new(Px(x), Px(y));
+
+    /// <summary>La taille de l'écran dans les unités de l'interface (1280 × 720 pour un écran de 1920 × 1080).</summary>
+    public static Vector2 Units(Vector2 screen) => screen / Scale;
+
     /// <summary>Taille à partir de laquelle la police reste nette sans lissage (en dessous, elle est lissée).</summary>
     public const int SharpFontSize = 25;
 
@@ -31,7 +50,7 @@ public static class Ui
     private static Font? _smoothFont;
 
     /// <summary>La taille réelle d'un texte prévu à la taille <paramref name="size"/>.</summary>
-    public static int TextSize(int size) => _smoothFont == null ? size : (int)MathF.Round(size * FontScale);
+    public static int TextSize(int size) => (int)MathF.Round(size * Scale * (_smoothFont == null ? 1 : FontScale));
 
     /// <summary>
     /// La police pixel (VT323, licence OFL) devient la police de toute l'interface et des textes de la carte.
@@ -69,9 +88,10 @@ public static class Ui
             control.AddThemeFontOverride("font", size >= SharpFontSize ? _sharpFont : _smoothFont);
     }
 
+    /// <summary>Place un contrôle à (x, y), en unités de l'interface (mises à l'échelle).</summary>
     public static T At<T>(T control, float x, float y) where T : Control
     {
-        control.Position = new Vector2(x, y);
+        control.Position = V(x, y);
         return control;
     }
 
@@ -87,15 +107,17 @@ public static class Ui
         int left = 0, int top = 0, int right = 0, int bottom = 0, int radius = 0)
     {
         var box = new StyleBoxFlat { BgColor = background };
+        // les bords à l'échelle de l'interface (un bord d'un pixel en fait deux)
+        static int Width(int w) => w == 0 ? 0 : Math.Max(1, (int)MathF.Round(w * Scale));
         if (border is { } b)
         {
             box.BorderColor = b;
-            box.BorderWidthLeft = left;
-            box.BorderWidthTop = top;
-            box.BorderWidthRight = right;
-            box.BorderWidthBottom = bottom;
+            box.BorderWidthLeft = Width(left);
+            box.BorderWidthTop = Width(top);
+            box.BorderWidthRight = Width(right);
+            box.BorderWidthBottom = Width(bottom);
         }
-        box.SetCornerRadiusAll(radius);
+        box.SetCornerRadiusAll(Width(radius));
         return box;
     }
 
@@ -134,8 +156,16 @@ public static class Ui
             return;
         _imagesLoaded = true;
         LoadSlices();
-        _frameImage = Art.GetImage("ui/panel") is { } frame ? WithoutRepeatedDetails(frame, FrameCorner) : null;
-        _buttonImage = Art.GetImage("ui/button") is { } button ? WithoutRepeatedDetails(button, ButtonCorner) : null;
+        _frameImage = Art.GetImage("ui/panel") is { } frame ? Enlarged(WithoutRepeatedDetails(frame, FrameCorner)) : null;
+        _buttonImage = Art.GetImage("ui/button") is { } button ? Enlarged(WithoutRepeatedDetails(button, ButtonCorner)) : null;
+    }
+
+    /// <summary>L'image agrandie <see cref="ArtScale"/> fois, pixels nets (chaque pixel devient un carré).</summary>
+    private static Image Enlarged(Image image)
+    {
+        var copy = (Image)image.Duplicate();
+        copy.Resize(image.GetWidth() * ArtScale, image.GetHeight() * ArtScale, Image.Interpolation.Nearest);
+        return copy;
     }
 
     /// <summary>
@@ -149,7 +179,7 @@ public static class Ui
         LoadImages();
         StyleBox box = _frameImage == null
             ? Box(fill, BorderColor, 2, 2, 2, 2)
-            : Sliced(FillInside(_frameImage, fill), FrameCorner, FrameContentX, FrameContentY);
+            : Sliced(FillInside(_frameImage, fill), FrameCorner * ArtScale, (int)Px(FrameContentX), (int)Px(FrameContentY));
         Frames[fill] = box;
         return box;
     }
@@ -160,7 +190,7 @@ public static class Ui
         LoadImages();
         if (_buttonImage == null)
             return Box(flatColor, border, 2, 2, 2, 2, radius: 6);
-        var box = Sliced(_buttonImage, ButtonCorner, ButtonCorner + 8, 5);
+        var box = Sliced(_buttonImage, ButtonCorner * ArtScale, (int)Px(ButtonCorner + 8), (int)Px(5));
         box.ModulateColor = tint;
         return box;
     }
@@ -287,7 +317,7 @@ public static class Ui
     }
 
     /// <summary>Hauteur de la barre de titre des fenêtres (choix des conditions, niveau, fin de partie…).</summary>
-    private const int WindowTitleHeight = 34;
+    private static int WindowTitleHeight => (int)Px(34);
 
     /// <summary>
     /// Habille les contrôles que l'interface ne construit pas elle-même, surtout les fenêtres (AcceptDialog) :
@@ -302,12 +332,12 @@ public static class Ui
         switch (border)
         {
             case StyleBoxTexture texture:
-                texture.SetExpandMarginAll(6);
-                texture.ExpandMarginTop = WindowTitleHeight + 6;
+                texture.SetExpandMarginAll(Px(6));
+                texture.ExpandMarginTop = WindowTitleHeight + Px(6);
                 break;
             case StyleBoxFlat flat:
-                flat.SetExpandMarginAll(6);
-                flat.ExpandMarginTop = WindowTitleHeight + 6;
+                flat.SetExpandMarginAll(Px(6));
+                flat.ExpandMarginTop = WindowTitleHeight + Px(6);
                 break;
         }
         theme.SetStylebox("embedded_border", "Window", border);
@@ -316,9 +346,9 @@ public static class Ui
         theme.SetColor("title_color", "Window", BorderColor);
         theme.SetFontSize("title_font_size", "Window", TextSize(16));
         var inside = Box(PanelColor, null);
-        inside.SetContentMarginAll(14);
+        inside.SetContentMarginAll(Px(14));
         theme.SetStylebox("panel", "AcceptDialog", inside);
-        theme.SetConstant("buttons_separation", "AcceptDialog", 12);
+        theme.SetConstant("buttons_separation", "AcceptDialog", (int)Px(12));
         theme.SetColor("font_color", "Label", TextColor);
 
         theme.SetStylebox("normal", "Button", ButtonBox(Colors.White, MapRenderer.Rgb(90, 66, 30), BorderColor));
@@ -333,8 +363,8 @@ public static class Ui
     }
 
     /// <summary>
-    /// L'image d'une créature (art/creatures/{id}.png), agrandie <paramref name="scale"/> fois (pixels nets),
-    /// ou null si elle n'a pas d'image.
+    /// L'image d'une créature (art/creatures/{id}.png), agrandie <paramref name="scale"/> fois à l'écran (un nombre
+    /// entier : pixels nets), ou null si elle n'a pas d'image.
     /// </summary>
     public static TextureRect? CreatureImage(CreatureType type, int scale = 2)
     {
@@ -401,12 +431,12 @@ public static class Ui
     public static void AskCount(Node parent, string title, Func<int, string> describe, int max, Action<int> chosen)
     {
         var dialog = new ConfirmationDialog { Title = title, Exclusive = true, Unresizable = true, OkButtonText = "OK", CancelButtonText = Texts.CancelButton };
-        var content = new VBoxContainer { CustomMinimumSize = new Vector2(380, 0) };
-        content.AddThemeConstantOverride("separation", 10);
+        var content = new VBoxContainer { CustomMinimumSize = V(380, 0) };
+        content.AddThemeConstantOverride("separation", (int)Px(10));
         var text = MakeLabel("", 15, TextColor);
         content.AddChild(text);
         var slider = new HSlider { MinValue = 1, MaxValue = Math.Max(1, max), Step = 1, Value = Math.Max(1, max / 2), FocusMode = Control.FocusModeEnum.None };
-        slider.CustomMinimumSize = new Vector2(360, 24);
+        slider.CustomMinimumSize = V(360, 24);
         content.AddChild(slider);
         void Update() => text.Text = describe((int)slider.Value);
         slider.ValueChanged += _ => Update();
@@ -419,7 +449,7 @@ public static class Ui
         };
         dialog.Canceled += () => dialog.QueueFree();
         parent.AddChild(dialog);
-        dialog.PopupCentered(new Vector2I(420, 0));
+        dialog.PopupCentered(new Vector2I((int)Px(420), 0));
     }
 
     /// <summary>Retire et libère tous les enfants d'un nœud (pour reconstruire une liste).</summary>

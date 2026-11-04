@@ -772,7 +772,7 @@ public static class Texts
     // ------------------------------------------------------------------ écran de combat et bilan (étape 7)
 
     /// <summary>L'info-bulle d'un bouton avec sa touche (la touche n'est plus écrite sur le bouton).</summary>
-    public static string KeyTooltip(string tooltip, string key) => $"{tooltip}\nTouche : {key}";
+    public static string KeyTooltip(string tooltip, string key) => $"{tooltip} ({key})";
 
     public static string HeroBonus(Hero hero) => $"Attaque +{hero.Attack} · défense +{hero.Defense}";
     public static string SpellBookLater => "La magie viendra plus tard.";

@@ -28,7 +28,7 @@ public partial class ResourceBar : Panel
         {
             resources.AddChild(new ResourceIcon { Resource = resource, CustomMinimumSize = new Vector2(18, height) });
             var label = MakeLabel("", 16, TextColor);
-            label.CustomMinimumSize = new Vector2(92, 0);
+            label.CustomMinimumSize = new Vector2(118, 0);
             label.VerticalAlignment = VerticalAlignment.Center;
             label.MouseFilter = MouseFilterEnum.Stop; // pour son info-bulle
             resources.AddChild(label);

@@ -8,8 +8,9 @@ namespace HoMM.Game;
 
 /// <summary>
 /// Les 7 emplacements d'une armée (étape 7) : l'image de chaque troupe et son nombre, ses caractéristiques au survol,
-/// et une bordure rouge si elle est trop nombreuse pour le charisme du héros (risque de révolte). Servira aussi à
-/// l'écran du héros et à la ville.
+/// et une bordure rouge si elle est trop nombreuse pour le charisme du héros (risque de révolte). Sert au panneau de la
+/// carte, à l'écran du héros et à la ville. Avec un <see cref="DragGroup"/>, on glisse les troupes d'un emplacement à
+/// l'autre (entre les armées du même groupe) ; Maj en lâchant, ou un clic droit, pour partager une troupe.
 /// </summary>
 public partial class ArmySlots : HBoxContainer
 {
@@ -21,8 +22,26 @@ public partial class ArmySlots : HBoxContainer
     /// <summary>Écrire aussi, sous le nombre, les points de commandement de la troupe (« 30 / 100 pts »).</summary>
     public bool ShowCommandPoints { get; set; }
 
-    /// <summary>Le joueur a cliqué sur un emplacement (son numéro, de 0 à 6).</summary>
+    /// <summary>
+    /// Les armées d'un même groupe s'échangent des troupes en les glissant (la garnison et le héros d'une ville) ;
+    /// null : on ne glisse pas.
+    /// </summary>
+    public object? DragGroup { get; set; }
+
+    public bool CanDrag => DragGroup != null;
+    public bool Accepts(ArmySlots source) => DragGroup != null && source.DragGroup == DragGroup;
+
+    /// <summary>Un clic gauche (sans glisser) sur un emplacement (son numéro, de 0 à 6).</summary>
     public event Action<int>? SlotClicked;
+
+    /// <summary>Un clic droit sur une troupe (pour la partager).</summary>
+    public event Action<int>? SlotRightClicked;
+
+    /// <summary>
+    /// Une troupe a été lâchée sur un de nos emplacements : l'armée d'où elle vient, son numéro, l'emplacement visé,
+    /// et si Maj était enfoncée (partager).
+    /// </summary>
+    public event Action<ArmySlots, int, int, bool>? TroopDropped;
 
     private string? _key;
 
@@ -35,35 +54,37 @@ public partial class ArmySlots : HBoxContainer
             return;
         _key = key;
         AddThemeConstantOverride("separation", 2);
-        foreach (var child in GetChildren())
-        {
-            RemoveChild(child);
-            child.QueueFree();
-        }
+        Clear(this);
         for (int i = 0; i < Army.MaxStacks; i++)
             AddChild(Slot(i < stacks.Count ? stacks[i] : null, charisma, i));
     }
 
+    internal void Drop(ArmySlots source, int from, int to, bool split) => TroopDropped?.Invoke(source, from, to, split);
+
     private Control Slot(CreatureStack? stack, int? charisma, int index)
     {
         bool risky = stack != null && charisma is { } c && Command.IsOverLimit(stack.Type, stack.Count, c);
-        var slot = new Panel { CustomMinimumSize = SlotSize, MouseFilter = MouseFilterEnum.Stop };
+        var picture = stack != null ? Art.Get($"creatures/{stack.Type.Id}") : null;
+        var slot = new ArmySlot { Slots = this, Index = index, Picture = picture, CustomMinimumSize = SlotSize, MouseFilter = MouseFilterEnum.Stop };
         slot.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, risky ? MapRenderer.Rgb(220, 80, 60) : DimColor, 1, 1, 1, 1));
         slot.GuiInput += e =>
         {
-            if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
+            // le clic compte au relâchement, s'il n'a pas servi à glisser la troupe
+            if (e is InputEventMouseButton { Pressed: false, ButtonIndex: MouseButton.Left } && !GetViewport().GuiIsDragging())
                 SlotClicked?.Invoke(index);
+            else if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Right } && stack != null)
+                SlotRightClicked?.Invoke(index);
         };
         if (stack == null)
             return slot;
+        if (CanDrag)
+            slot.MouseDefaultCursorShape = CursorShape.Drag;
         slot.TooltipText = Texts.StackTooltip(stack, charisma);
-        if (CreatureImage(stack.Type, ImageScale) is { } image)
+        float textHeight = CountFontSize + 4 + (ShowCommandPoints ? 15 : 0);
+        if (picture != null)
         {
-            var size = image.CustomMinimumSize;
-            float textHeight = CountFontSize + 4 + (ShowCommandPoints ? 15 : 0);
-            image.Position = new Vector2((SlotSize.X - size.X) / 2, Math.Max(1, (SlotSize.Y - textHeight - size.Y) / 2));
-            image.Size = size;
-            slot.AddChild(image);
+            var size = picture.GetSize() * ImageScale;
+            slot.AddChild(Picture(picture, new Vector2((SlotSize.X - size.X) / 2, Math.Max(1, (SlotSize.Y - textHeight - size.Y) / 2)), size));
         }
         // le nombre (et les points de commandement) en bas de l'emplacement
         float bottom = SlotSize.Y - 2;

@@ -164,3 +164,6 @@ public sealed record CreaturesRecruited(Town Town, CreatureType Type, int Count,
 
 /// <summary>Une troupe est passée entre la garnison et le héros présent. <paramref name="ToHero"/> : de la garnison vers le héros.</summary>
 public sealed record StackTransferred(Town Town, Hero Hero, CreatureType Type, int Count, bool ToHero) : GameEvent;
+
+/// <summary>Une troupe a été glissée (déplacée, fusionnée, échangée ou partagée) ; <paramref name="Hero"/> : le héros concerné, s'il y en a un.</summary>
+public sealed record TroopMoved(Hero? Hero) : GameEvent;

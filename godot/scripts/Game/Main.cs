@@ -106,7 +106,7 @@ public partial class Main : Node2D
         // l'écran du héros et le royaume, en grandes fenêtres par-dessus la carte
         _heroScreen = new HeroScreen();
         AddChild(_heroScreen);
-        _heroScreen.Build(screen);
+        _heroScreen.Build(_state, screen);
         _hud.HeroDetailsPressed += OpenHeroScreen;
         _kingdomScreen = new KingdomScreen();
         AddChild(_kingdomScreen);
@@ -215,14 +215,25 @@ public partial class Main : Node2D
         var player = _state.Players[0];
         var town = _state.Towns.First();
         town.SetOwner(player);
-        var data = LoadData();
+        var data = _state.Data; // les créatures de la partie (une autre copie des données ne fusionnerait pas les troupes)
         // tous les bâtiments sauf les trois derniers, pour voir aussi des cartes « à construire »
         foreach (var building in data.Buildings.All.SkipLast(3))
             if (!town.Has(building.Id))
                 town.AddBuilding(building);
-        foreach (var creature in data.Creatures.All.Where(c => c.Faction == "chateau").Take(Army.MaxStacks))
+        foreach (var creature in data.Creatures.All.Where(c => c.Faction == "chateau").Take(4))
             town.Garrison.Add(creature, 10);
+        // le héros dans la ville, pour voir aussi son armée
+        if (_state.CurrentHero is { } hero)
+            hero.Position = town.Position;
         OpenTown(town);
+        // « --town-window=build|recruit|tavern » ouvre cette fenêtre ; « --town-build=id » construit ce bâtiment
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--town-window=")) is { } window)
+            _townScreen.ShowWindow(window["--town-window=".Length..]);
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--town-build=")) is { } build)
+        {
+            town.BuiltToday = false;
+            _state.Build(town, build["--town-build=".Length..]);
+        }
     }
 
     /// <summary>
@@ -610,6 +621,9 @@ public partial class Main : Node2D
                     break;
                 case HeroLeveledUp levelUp when levelUp.Hero.Owner == viewer:
                     _hud.ShowLevelUp(levelUp);
+                    break;
+                case BuildingBuilt built:
+                    _townScreen.ShowBuilt(built); // le nouveau bâtiment apparaît sur la ville
                     break;
                 case TownEntered entered when entered.Hero.Owner == viewer:
                     _townToOpen = entered.Town;

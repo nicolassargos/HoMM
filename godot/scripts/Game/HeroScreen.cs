@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -27,8 +28,9 @@ public partial class HeroScreen : ScreenWindow
     private VBoxContainer _artifacts = null!;
     private ArmySlots _army = null!;
 
-    public void Build(Vector2 screenSize)
+    public void Build(GameState state, Vector2 screenSize)
     {
+        _state = state;
         var size = new Vector2(1000, 640);
         BuildFrame(screenSize, new Rect2((screenSize - size) / 2 + new Vector2(0, Hud.TopBarHeight / 2f), size));
 
@@ -88,8 +90,17 @@ public partial class HeroScreen : ScreenWindow
         _army = new ArmySlots
         {
             Position = new Vector2(12, 32), SlotSize = new Vector2(132, 128), ImageScale = 3, CountFontSize = 18,
-            ShowCommandPoints = true,
+            ShowCommandPoints = true, DragGroup = this,
         };
+        // glisser pour réordonner ou fusionner ; Maj en lâchant, ou clic droit, pour partager
+        _army.TroopDropped += (_, from, to, split) =>
+        {
+            if (split)
+                Split(from, to);
+            else if (_hero != null)
+                _state?.MoveTroop(_hero, from, to);
+        };
+        _army.SlotRightClicked += index => Split(index, null);
         army.AddChild(_army);
     }
 
@@ -115,6 +126,21 @@ public partial class HeroScreen : ScreenWindow
         Window.AddChild(section);
         return section;
     }
+
+    /// <summary>Partage une troupe du héros : combien en mettre à part, vers l'emplacement visé ou le premier libre.</summary>
+    private void Split(int from, int? to)
+    {
+        if (_hero is not { } hero || _state == null || from >= hero.Army.Stacks.Count)
+            return;
+        var stack = hero.Army.Stacks[from];
+        if (stack.Count < 2)
+            return;
+        int slot = to ?? Math.Min(hero.Army.Stacks.Count, Army.MaxStacks - 1);
+        AskCount(this, Texts.SplitTitle(stack.Type), n => Texts.SplitText(stack.Type, n, stack.Count), stack.Count - 1,
+            n => _state.MoveTroop(hero, from, slot, n));
+    }
+
+    private GameState? _state;
 
     /// <summary>Ouvre l'écran pour ce héros.</summary>
     public void Open(Hero hero)

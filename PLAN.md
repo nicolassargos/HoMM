@@ -360,9 +360,20 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    revenus (clic : centrer la carte sur la mine suivante). Les boutons du panneau passent à 3 colonnes (nom court,
    touche dessous, nom complet au survol) avec Options sur toute la largeur. Réorganiser l'armée viendra avec la
    ville (point 3).
-3. **La ville** : ressources en haut, la ville avec ses bâtiments à leur place (positions dans `buildings.json`, boîtes
-   grises pour l'instant) qui apparaissent peu à peu, fenêtres Construire et Recruter, taverne à deux héros, glisser-
-   déposer et clic pour les troupes, partage d'une troupe (règles dans `Core`, avec tests).
+3. ✅ **La ville** (`TownScreen` refait) : la barre des ressources en haut (à la même place que sur la carte), le nom,
+   le revenu et si l'on peut construire ; au centre la ville vue de face, chaque bâtiment construit à sa place
+   (`view` dans `buildings.json` : x, y, largeur, hauteur dans une vue de 1280 × 390 ; `replaces` : l'hôtel de ville
+   remplace la salle du village, à la même place), en boîtes en attendant les images ; des places libres pour la
+   guilde des mages (en haut à gauche) et le marché (en haut à droite). **Un nouveau bâtiment apparaît peu à peu**
+   (il monte du sol et devient net, avec de la poussière), sur l'événement `BuildingBuilt`. Un clic sur un bâtiment
+   l'utilise ; raccourcis Construire, Recruter, Taverne. Fenêtres : Construire (tout l'écran : ce qui reste à bâtir,
+   puis les bâtiments construits), Recruter (sur la vue seulement : les 7 créatures dans l'ordre, ou celle d'une
+   habitation ; « Recruter… » avec le curseur, « Tout »), Taverne (deux héros : `TavernOffers`, `HireHero(ville,
+   nom)`). En bas, la garnison et le héros présent (`ArmySlots`, `ArmySlot`) : glisser une troupe la déplace, la
+   fusionne ou l'échange ; Maj en lâchant ou clic droit pour la partager (`Army.MoveTroop`, `GameState.MoveTroop`,
+   événement `TroopMoved`) ; un clic la fait passer de l'autre côté ; « Tout donner au héros », « Tout laisser en
+   garnison ». Une armée peut maintenant avoir deux troupes de la même créature (gardées par la sauvegarde :
+   `Army.AddStack`). L'écran du héros permet aussi de réordonner et de partager ses troupes. Tests : `TroupesTests`.
 4. **Le combat** : héros et fiches des troupes de chaque côté, journal du combat, touches sur les boutons, bilan
    après chaque combat (combats rapides compris).
 5. **Les fenêtres** : niveau supérieur, recrutement (« Max », avertissement de charisme), fin de partie (la partie

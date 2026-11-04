@@ -295,7 +295,6 @@ public static class Texts
         _ => result.ToString(),
     };
 
-    public const string TransferHint = "Cliquez sur une troupe pour la faire passer entre la garnison et le héros.";
 
     public static string GameOverTitle(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire" : "Défaite";
 
@@ -673,6 +672,67 @@ public static class Texts
         return mines.Count == 0 ? $"Aucune mine {Of(Resource(resource))}."
             : string.Join("\n", mines.Select(m => $"{MineName(m)} en ({m.Position.X}, {m.Position.Y}) : +{m.DailyProduction} par jour"));
     }
+
+    // ------------------------------------------------------------------ écran de ville (étape 7)
+
+    public static string CancelButton => "Annuler";
+    public static string QuitTown => "Quitter (Échap)";
+
+    /// <summary>Sous le nom de la ville : son revenu et si l'on peut encore construire aujourd'hui.</summary>
+    public static string TownHeader(Town town) =>
+        $"revenu +{town.DailyGold} or par jour · construction : {(town.BuiltToday ? "déjà faite aujourd'hui" : "possible aujourd'hui")}";
+
+    public static string BuildButton => "Construire";
+    public static string RecruitButton => "Recruter";
+    public static string TavernButton => "Taverne";
+    public static string GarrisonHeader => "Garnison";
+    public static string VisitingHero(Hero hero) => $"{hero.Name} (en visite)";
+    public static string NoVisitor => "Aucun héros dans la ville";
+    public static string DragHint =>
+        "Glisser une troupe : la déplacer, l'échanger ou la fusionner.\nMaj en lâchant, ou clic droit : la partager.\nUn clic : la faire passer de l'autre côté.";
+    public static string GiveAllToHero => "Tout donner au héros";
+    public static string LeaveAllInGarrison => "Tout laisser en garnison";
+
+    /// <summary>Au survol d'un bâtiment de la vue de la ville : son nom, ce qu'il fait, et ce qu'un clic y fait.</summary>
+    public static string BuildingTooltip(Town town, BuildingType building)
+    {
+        string effect = BuildingEffect(town, building);
+        string click = building.Dwelling != null ? "Clic : recruter" : building.Tavern ? "Clic : la taverne" : building.DailyGold > 0 ? "Clic : construire" : "";
+        return string.Join("\n", new[] { building.Name, effect, click }.Where(s => s.Length > 0));
+    }
+
+    public static string BuildTitle(Town town) => $"Construire à {town.Name}";
+    public static string ToBuild => "À construire (un bâtiment par jour)";
+    public static string BuiltHeader => "Construits";
+    public static string NothingToBuild => "Tous les bâtiments sont construits.";
+    public static string RecruitWindowTitle(Town town) => $"Recruter à {town.Name}";
+    public static string RecruitMore => "Recruter…";
+    public static string RecruitAllButton(int count) => $"Tout ({count})";
+    public static string ToBuildFirst(BuildingType dwelling) => $"{dwelling.Name}\nà construire";
+    public static string GoBuild => "Construire…";
+
+    /// <summary>« niveau 3 · vole » : le niveau d'une créature et ses capacités.</summary>
+    public static string CreatureLevel(CreatureType type) =>
+        string.Join(" · ", new[] { $"niveau {type.Tier}" }.Concat(type.Abilities.Select(AbilityName)));
+
+    /// <summary>Les caractéristiques d'une créature, sur deux lignes.</summary>
+    public static string CreatureStats(CreatureType type) =>
+        $"Att {type.Attack} · Déf {type.Defense} · dégâts {type.MinDamage}–{type.MaxDamage}\nPV {type.HitPoints} · vitesse {type.Speed}";
+
+    /// <summary>« 28 disponibles (+28 par semaine) ».</summary>
+    public static string AvailableLine(CreatureType type, int available) =>
+        $"{available} disponible{(available > 1 ? "s" : "")} (+{type.Growth} par semaine)";
+
+    public static string PriceLine(CreatureType type) => $"Prix : {Cost(type.Cost)}";
+
+    public static string TavernTitle => "Taverne";
+    public static string TavernText => $"Deux héros se proposent. Chacun coûte {GameState.HeroCost} or et arrive avec quelques paysans.";
+    public static string HireButton => "Recruter";
+    public static string NoTavern => "Cette ville n'a pas encore de taverne.";
+
+    public static string SplitTitle(CreatureType type) => $"Partager les {type.Plural}";
+    public static string SplitText(CreatureType type, int moved, int total) =>
+        $"{moved} {Creature(type, moved)} d'un côté, {total - moved} de l'autre.";
 
     public static string Capitalize(string s) => s.Length == 0 ? s : char.ToUpper(s[0]) + s[1..];
 

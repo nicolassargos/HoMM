@@ -9,7 +9,8 @@ la variable d'environnement RETRO_DIFFUSION_API_KEY (jamais écrite dans un fich
 
 Sans nom, « cout » estime toutes les images. Un nom peut être un préfixe (« terrain/ »).
 Un nom avec « @ » (« terrain/grass@48 ») est un essai : « choisir » le copie à la place de terrain/grass.
-Une image avec « input » part d'une image existante (style rd_tile__tile_variation : variantes d'une case).
+Une image avec « input » part d'une image existante (style rd_tile__tile_variation : variantes d'une case ;
+ou un autre style, avec « strength » entre 0 et 1 : plus c'est grand, plus on s'éloigne de l'image d'entrée).
 « choisir » cherche le candidat dans art-candidats/en-cours/, puis dans les archives (le plus récent d'abord).
 Seule la bibliothèque standard de Python est utilisée.
 """
@@ -131,6 +132,8 @@ def demande(asset, cout_seulement=False):
         corps["tile_x"] = corps["tile_y"] = True
     if asset.get("input"):
         corps["input_image"] = image_rgb_base64(os.path.join(RACINE, asset["input"]))
+        if "strength" in asset:
+            corps["strength"] = asset["strength"]  # 0 : garde l'image d'entrée, 1 : s'en éloigne tout à fait
     if cout_seulement:
         corps["check_cost"] = True
     return corps

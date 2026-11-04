@@ -12,6 +12,7 @@ namespace HoMM.Game;
 ///   sommets posés sur l'herbe (<see cref="DecorLayer"/>)
 ///   art/objects/pile-gold.png, chest.png, mine-gold.png, town.png
 ///   art/creatures/paysan.png, art/heroes/hero.png, art/icons/gold.png
+///   art/creatures/battle/paysan.png : la créature au combat, plus grande et plus détaillée (sinon la petite ×3)
 ///   art/heroes/portraits/sire-roland.png : le portrait d'un héros, d'après son nom (<see cref="Portrait"/>)
 /// Une image absente renvoie null : le dessin par formes (<see cref="MapRenderer"/>) prend alors le relais.
 /// Les PNG sont lus directement (pas besoin de les importer avec l'éditeur Godot).

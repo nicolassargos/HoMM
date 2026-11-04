@@ -37,9 +37,10 @@ Décision de l'utilisateur, valable pour toutes les sessions :
   `python -I tools/art/archiver.py sujet`. Ne rien laisser traîner à la racine de `art-candidats/`.
 - `art-candidats/references/` : images données par l'utilisateur (modèles, captures), à garder telles quelles.
 - Outils : `tools/art/generer.py` (prix, génération, choix ; `choisir` retrouve aussi un candidat archivé),
-  `tools/art/apercu.py` (page de choix dans `en-cours/`), `tools/art/zoom.py` (agrandir une capture).
+  `tools/art/apercu.py` (page de choix dans `en-cours/`), `tools/art/zoom.py` (agrandir une capture),
+  `tools/art/reduire.py` (réduire ou retourner une image sans la flouter).
   Captures du jeu : `godot` avec `-- --capture=chemin.png` (et `--reveal`, `--zoom`, `--terrain-test`,
-  `--town`, `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--battle-test` (et `--battle-auto`), `--capture-delay=secondes`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
+  `--town`, `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--battle-test` (et `--battle-auto`), `--battle-showcase`, `--capture-delay=secondes`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
 
 ## Commandes
 - Tests : `dotnet test` (à la racine)

@@ -11,6 +11,9 @@ namespace HoMM.Core;
 /// chargée ne dépend pas du générateur de cartes, qui peut changer d'une version du jeu à l'autre.
 /// Les objets, héros et joueurs se retrouvent par leur identifiant.
 /// </summary>
+/// <summary>Le résumé d'une sauvegarde (voir <see cref="GameState.ReadSummary"/>).</summary>
+public sealed record SaveSummary(int Day, string? HeroName, int HeroLevel, MapSize Size, GameOutcome Outcome);
+
 public sealed partial class GameState
 {
     /// <summary>Version du format. À augmenter si le format change (une ancienne sauvegarde est alors refusée).</summary>
@@ -123,6 +126,28 @@ public sealed partial class GameState
     /// proposés (événements <see cref="HeroLevelChoice"/>). Lève <see cref="FormatException"/> si le fichier
     /// est illisible, d'une autre version, ou ne correspond pas aux données du jeu.
     /// </summary>
+    /// <summary>
+    /// Ce qu'on montre d'une sauvegarde dans la liste (sans recréer la partie) : le jour, le héros du joueur humain
+    /// (le plus avancé), son niveau, la taille de la carte. Null si le fichier est illisible ou d'une autre version.
+    /// </summary>
+    public static SaveSummary? ReadSummary(string json)
+    {
+        try
+        {
+            if (JsonSerializer.Deserialize<SaveFile>(json, SaveOptions) is not { Map: not null, Players.Count: > 0 } save
+                || save.Version is not (1 or SaveVersion))
+                return null;
+            var hero = save.Heroes.Where(h => h.Owner == save.Players[0].Id)
+                .OrderByDescending(h => h.Id == save.CurrentHero).ThenByDescending(h => h.Level).FirstOrDefault();
+            return new SaveSummary(save.Day, hero?.Name, hero?.Level ?? 0,
+                MapSizes.Closest(save.Map.Width, save.Map.Height), save.Outcome);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     public static GameState Load(string json, GameData data)
     {
         SaveFile? save;

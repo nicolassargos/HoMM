@@ -397,9 +397,19 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    ou le bouton des options, passe en fenêtre agrandie. Les options ont un bouton « Quitter le jeu » (avec confirmation).
    Échap ouvre les options sur la carte. Les touches ne sont plus écrites sur les boutons (carte, combat, ville,
    fenêtres) : elles sont dans l'info-bulle (choix de l'utilisateur).
-6. **Menu principal, nouvelle partie, sauvegardes** : menu sauté par toute option de lancement ou `--play` ; taille
-   de la carte en cinq choix (le générateur et l'équilibrage à revoir), graine, conditions ; plusieurs sauvegardes et
-   la sauvegarde automatique.
+6. ✅ **Menu principal, nouvelle partie, sauvegardes** : le menu (`MainMenu` : Nouvelle partie, Continuer, Charger,
+   Réglages avec le plein écran, Quitter) s'ouvre quand le jeu est lancé sans option ; toute option (ou `--play`)
+   entre directement dans une partie, `--menu` le montre quand même. On y revient depuis les options ou la fin de
+   partie (« Menu principal »). Nouvelle partie (`NewGameWindow`) : **taille de la carte** en cinq choix (`MapSize` :
+   36 × 27, 54 × 27, 54 × 40, 72 × 53, 90 × 66, soit 4, 6, 9, 16 et 25 régions ; le générateur s'y adaptait déjà),
+   la graine (vide : au hasard), les façons de gagner et la limite de jours. La simulation d'équilibrage gagne sur les
+   petites cartes (jours 54 à 106) ; sur une grande, vers le jour 146, et pas en 200 jours sur une très grande (bien
+   plus de monstres : à revoir avec l'IA). **Plusieurs sauvegardes** (`SaveFiles`, `SavesWindow` ; dossier
+   `user://sauvegardes/`, un fichier par nom) : nom, jour, héros et niveau, taille de la carte, heure
+   (`GameState.ReadSummary`) ; supprimer, remplacer (avec confirmation). F5 / F9 : la sauvegarde rapide ; une
+   **sauvegarde automatique** à chaque fin de tour. L'ancien fichier unique devient la sauvegarde rapide.
+   Corrigé au passage : le générateur pouvait poser le gardien d'une mine derrière elle, dans un cul-de-sac (on ne
+   pouvait jamais vaincre tous les monstres) ; les monstres qu'aucun chemin n'atteint sont retirés.
 
 ### 8. Adversaires IA
 - Joueurs ordinateur avec leurs héros et leurs villes.

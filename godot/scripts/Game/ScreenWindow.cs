@@ -18,14 +18,18 @@ public partial class ScreenWindow : CanvasLayer
     public bool IsOpen => Visible;
     public event Action? Closed;
 
-    /// <summary>Prépare le voile et le cadre ; <paramref name="window"/> : la place de la fenêtre à l'écran (en pixels).</summary>
-    protected void BuildFrame(Vector2 screenSize, Rect2 window)
+    /// <summary>
+    /// Prépare le voile et le cadre ; <paramref name="window"/> : la place de la fenêtre à l'écran (en pixels). Le voile
+    /// laisse voir la barre des ressources, sauf <paramref name="veilAll"/> (au menu principal, où il n'y en a pas).
+    /// </summary>
+    protected void BuildFrame(Vector2 screenSize, Rect2 window, bool veilAll = false)
     {
+        float top = veilAll ? 0 : Hud.TopBarHeight;
         Layer = 4; // au-dessus de la carte et du panneau, sous l'écran de ville
         Visible = false;
         AddChild(new ColorRect
         {
-            Position = new Vector2(0, Hud.TopBarHeight), Size = screenSize - new Vector2(0, Hud.TopBarHeight),
+            Position = new Vector2(0, top), Size = screenSize - new Vector2(0, top),
             Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Stop,
         });
         var frame = new Panel { Position = window.Position, Size = window.Size };

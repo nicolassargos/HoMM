@@ -452,6 +452,49 @@ public static class Ui
         dialog.PopupCentered(new Vector2I((int)Px(420), 0));
     }
 
+    /// <summary>Une case à cocher aux couleurs du jeu.</summary>
+    public static CheckBox MakeCheckBox(string text, bool pressed)
+    {
+        var box = new CheckBox { Text = text, ButtonPressed = pressed, FocusMode = Control.FocusModeEnum.None };
+        SetFontSize(box, 15);
+        box.AddThemeColorOverride("font_color", TextColor);
+        box.AddThemeColorOverride("font_pressed_color", TextColor);
+        box.AddThemeColorOverride("font_hover_color", Colors.White);
+        box.AddThemeColorOverride("font_hover_pressed_color", Colors.White);
+        // la case elle-même, dessinée claire sur le fond sombre (cochée ou non)
+        box.AddThemeIconOverride("checked", CheckIcon(true));
+        box.AddThemeIconOverride("unchecked", CheckIcon(false));
+        return box;
+    }
+
+    private static Texture2D? _checked, _unchecked;
+
+    /// <summary>Une case à cocher en pixel art : un cadre clair, et un carré doré dedans quand elle est cochée.</summary>
+    private static Texture2D CheckIcon(bool on)
+    {
+        if ((on ? _checked : _unchecked) is { } cached)
+            return cached;
+        int size = (int)Px(18), line = (int)Px(2), inset = (int)Px(5);
+        var image = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+        image.Fill(DarkPanelColor);
+        for (int i = 0; i < size; i++)
+            for (int w = 0; w < line; w++)
+            {
+                image.SetPixel(i, w, TextColor);
+                image.SetPixel(i, size - 1 - w, TextColor);
+                image.SetPixel(w, i, TextColor);
+                image.SetPixel(size - 1 - w, i, TextColor);
+            }
+        if (on)
+            image.FillRect(new Rect2I(inset, inset, size - 2 * inset, size - 2 * inset), BorderColor);
+        var texture = ImageTexture.CreateFromImage(image);
+        if (on)
+            _checked = texture;
+        else
+            _unchecked = texture;
+        return texture;
+    }
+
     /// <summary>Retire et libère tous les enfants d'un nœud (pour reconstruire une liste).</summary>
     public static void Clear(Node node)
     {

@@ -351,7 +351,15 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    derniers). La boîte des messages flottante disparaît ; les options ne gardent que sauvegarder et charger.
    Creuser et la carte au trésor ont leur bouton dans toutes les parties (le trésor est toujours enfoui).
    Le bouton Royaume viendra avec son écran (point 2). `--hover=x,y` simule la souris sur une case (captures).
-2. **L'écran du héros et le royaume** (ils reprennent les pièces de la PR 1).
+2. ✅ **L'écran du héros et le royaume** (`HeroScreen`, `KingdomScreen`, sur une base commune `ScreenWindow` :
+   la carte s'assombrit, Fermer ou Échap). Héros : portrait ×2, niveau, barres d'expérience et de mouvement,
+   caractéristiques en colonne avec leur effet (le détail au survol), artefacts (image et effet ; la silhouette quand
+   il y en aura plus), place réservée à la magie, armée en grand avec les points de commandement. S'ouvre d'un clic
+   sur le portrait du panneau ou d'un double clic dans la liste. Royaume (bouton ou touche K) : héros en portraits
+   (mouvement dessous), villes en images (revenu, ● si l'on peut y construire), détail au survol, bande des mines et
+   revenus (clic : centrer la carte sur la mine suivante). Les boutons du panneau passent à 3 colonnes (nom court,
+   touche dessous, nom complet au survol) avec Options sur toute la largeur. Réorganiser l'armée viendra avec la
+   ville (point 3).
 3. **La ville** : ressources en haut, la ville avec ses bâtiments à leur place (positions dans `buildings.json`, boîtes
    grises pour l'instant) qui apparaissent peu à peu, fenêtres Construire et Recruter, taverne à deux héros, glisser-
    déposer et clic pour les troupes, partage d'une troupe (règles dans `Core`, avec tests).

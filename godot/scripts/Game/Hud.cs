@@ -67,6 +67,10 @@ public partial class Hud : CanvasLayer
     public event Action? NextHeroPressed;
     public event Action? WalkPressed;
     public event Action? CenterPressed;
+    public event Action? KingdomPressed;
+
+    /// <summary>Le joueur veut l'écran d'un héros (clic sur le portrait, double clic dans la liste).</summary>
+    public event Action<Hero>? HeroDetailsPressed;
 
     /// <summary>Le joueur a cliqué sur une de ses villes dans la liste.</summary>
     public event Action<Town>? TownClicked;
@@ -133,27 +137,34 @@ public partial class Hud : CanvasLayer
         panel.AddChild(_army);
         y += 44 + 8;
 
-        // les boutons d'action, avec leur touche
-        var actions = new (string Text, string Key, Action Pressed)[]
+        // les boutons d'action : un nom court et la touche dessous, le nom complet au survol ; Options sur toute la largeur
+        var actions = new (string Text, string Key, string Tooltip, Action Pressed)[]
         {
-            (Texts.NextHeroButton, "H", () => NextHeroPressed?.Invoke()),
-            (Texts.WalkButton, "Espace", () => WalkPressed?.Invoke()),
-            (Texts.CenterButton, "C", () => CenterPressed?.Invoke()),
-            (Texts.DigAction, "F", () => DigPressed?.Invoke()),
-            (Texts.TreasureMapAction, "M", () => TreasureMapPressed?.Invoke()),
-            (Texts.OptionsButton, "", ShowOptions),
+            (Texts.NextHeroShort, "H", Texts.NextHeroButton, () => NextHeroPressed?.Invoke()),
+            (Texts.WalkButton, "Espace", Texts.WalkTooltip, () => WalkPressed?.Invoke()),
+            (Texts.CenterButton, "C", Texts.CenterTooltip, () => CenterPressed?.Invoke()),
+            (Texts.KingdomButton, "K", Texts.KingdomTitle, () => KingdomPressed?.Invoke()),
+            (Texts.DigAction, "F", Texts.DigTooltip, () => DigPressed?.Invoke()),
+            (Texts.TreasureShort, "M", Texts.TreasureMapAction, () => TreasureMapPressed?.Invoke()),
         };
-        const int columns = 2;
-        float buttonWidth = (inner - 4) / columns;
+        const int columns = 3;
+        float buttonWidth = (inner - 2 * 4) / columns;
         for (int i = 0; i < actions.Length; i++)
         {
-            var (text, key, pressed) = actions[i];
-            var button = FixedButton(key.Length > 0 ? $"{text}\n{key}" : text, 12, new Vector2(buttonWidth, 44));
+            var (text, key, tooltip, pressed) = actions[i];
+            var button = FixedButton($"{text}\n{key}", 12, new Vector2(buttonWidth, 44));
             button.Position = new Vector2(margin + i % columns * (buttonWidth + 4), y + i / columns * 47);
+            button.TooltipText = tooltip;
             button.Pressed += pressed;
             panel.AddChild(button);
         }
-        y += (actions.Length + columns - 1) / columns * 47 + 2;
+        y += (actions.Length + columns - 1) / columns * 47;
+        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, 28));
+        options.Position = new Vector2(margin, y);
+        options.TooltipText = Texts.OptionsTooltip;
+        options.Pressed += ShowOptions;
+        panel.AddChild(options);
+        y += 28 + 4;
 
         // la fin du tour : grande, toujours au même endroit
         var endTurn = MakeButton($"{Texts.EndTurnButton}\nEntrée", 18);
@@ -208,6 +219,14 @@ public partial class Hud : CanvasLayer
             Position = new Vector2(2, 2), Size = new Vector2(portraitSize, portraitSize),
         };
         portraitFrame.AddChild(_portrait);
+        // un clic sur le portrait ouvre l'écran du héros
+        portraitFrame.MouseFilter = Control.MouseFilterEnum.Stop;
+        portraitFrame.TooltipText = Texts.HeroScreenHint;
+        portraitFrame.GuiInput += e =>
+        {
+            if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && _state.CurrentHero is { } shown)
+                HeroDetailsPressed?.Invoke(shown);
+        };
 
         float textX = portraitSize + 14;
         _heroName = At(MakeLabel("", 16, TextColor), textX, 2);
@@ -269,10 +288,11 @@ public partial class Hud : CanvasLayer
         _hover.ClipText = true;
         bar.AddChild(_hover);
         _lastMessage = At(MakeLabel("", 13, TextColor), 14 + half + 8, 6);
-        _lastMessage.Size = new Vector2(half - 8, BottomBarHeight - 12);
+        // le retour à la ligne d'abord : sinon la largeur se règle sur le texte entier
+        _lastMessage.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _lastMessage.CustomMinimumSize = _lastMessage.Size = new Vector2(half - 8, BottomBarHeight - 12);
         _lastMessage.HorizontalAlignment = HorizontalAlignment.Right;
         _lastMessage.VerticalAlignment = VerticalAlignment.Center;
-        _lastMessage.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _lastMessage.ClipText = true;
         bar.AddChild(_lastMessage);
         var log = MakeButton(Texts.LogButton, 13);
@@ -347,7 +367,8 @@ public partial class Hud : CanvasLayer
         Clear(_heroRows);
         foreach (var hero in shown)
         {
-            var row = Row(hero == _state.CurrentHero, Texts.HeroTooltip(hero), () => HeroClicked?.Invoke(hero));
+            var row = Row(hero == _state.CurrentHero, Texts.HeroTooltip(hero), () => HeroClicked?.Invoke(hero),
+                () => HeroDetailsPressed?.Invoke(hero));
             if (Art.Portrait(hero.Name) is { } portrait)
                 row.AddChild(Picture(portrait, new Vector2(2, 1), new Vector2(32, 32)));
             var name = At(MakeLabel(hero.Name, 12, TextColor), 37, 1);
@@ -394,34 +415,22 @@ public partial class Hud : CanvasLayer
     }
 
     /// <summary>Une ligne cliquable d'une liste, avec son info-bulle ; <paramref name="selected"/> : bordée de clair.</summary>
-    private Panel Row(bool selected, string tooltip, Action clicked)
+    private Panel Row(bool selected, string tooltip, Action clicked, Action? doubleClicked = null)
     {
         var row = new Panel { CustomMinimumSize = new Vector2(_heroRows.Size.X, RowHeight), TooltipText = tooltip, MouseFilter = Control.MouseFilterEnum.Stop };
         row.AddThemeStyleboxOverride("panel", Box(PanelColor, selected ? Colors.White : DimColor, 1, 1, 1, 1));
         row.GuiInput += e =>
         {
-            if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
+            if (e is not InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)
+                return;
+            if (click.DoubleClick && doubleClicked != null)
+                doubleClicked();
+            else
                 clicked();
         };
         return row;
     }
 
-    /// <summary>Une image à cette taille (le mode « taille libre » d'abord : sinon l'image garderait sa propre taille).</summary>
-    private static TextureRect Picture(Texture2D texture, Vector2 position, Vector2 size) => new()
-    {
-        ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-        TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
-        Texture = texture, Position = position, Size = size,
-    };
-
-    private static void Clear(Node node)
-    {
-        foreach (var child in node.GetChildren())
-        {
-            node.RemoveChild(child);
-            child.QueueFree();
-        }
-    }
 
     /// <summary>Les images des artefacts du héros, reconstruites seulement quand la liste change.</summary>
     private void RefreshArtifacts(Hero? hero)

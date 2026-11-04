@@ -410,6 +410,15 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    **sauvegarde automatique** à chaque fin de tour. L'ancien fichier unique devient la sauvegarde rapide.
    Corrigé au passage : le générateur pouvait poser le gardien d'une mine derrière elle, dans un cul-de-sac (on ne
    pouvait jamais vaincre tous les monstres) ; les monstres qu'aucun chemin n'atteint sont retirés.
+7. **Revue des écrans** (captures de tous les écrans, `art-candidats/en-cours/revue/`, 13 points relevés et corrigés) :
+   une seule sorte de petite fenêtre (`GameDialog` : sans barre de titre de Godot ni croix, le cadre du jeu, le titre en
+   haut à gauche comme les grandes fenêtres, les boutons en bas avec une largeur minimale, Échap annule) ; le voile
+   des grandes fenêtres couvre aussi le haut de la colonne de droite ; la zone visible bien cadrée sur la carte réduite ;
+   les noms des héros et des villes sur deux lignes dans les listes ; « Fin du tour » d'une hauteur ordinaire ; les
+   raccourcis de la ville au-dessus de la vue ; un bouton seulement quand on peut agir, sinon le texte qui dit pourquoi
+   (construire, taverne) ; la fenêtre Construire montre tous les bâtiments ensemble, dans l'ordre (les construits
+   marqués « Construit »), et suit son contenu ; « Fermer » bien à l'intérieur du cadre ; les boutons du niveau supérieur alignés.
+   À faire ensuite : une nouvelle revue des captures avec l'utilisateur.
 
 ### 8. Adversaires IA
 - Joueurs ordinateur avec leurs héros et leurs villes.

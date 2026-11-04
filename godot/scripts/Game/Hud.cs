@@ -185,8 +185,10 @@ public partial class Hud : CanvasLayer
         // la fin du tour : grande, toujours au même endroit
         var endTurn = MakeButton(Texts.EndTurnButton, 18);
         endTurn.TooltipText = Texts.KeyTooltip(Texts.EndTurnButton, "Entrée");
-        endTurn.Position = new Vector2(margin, y);
-        endTurn.Size = new Vector2(inner, Math.Max(Px(44), screenSize.Y - Px(10) - y));
+        // une hauteur ordinaire, en bas de la colonne
+        float endTurnHeight = Px(56);
+        endTurn.Position = new Vector2(margin, Math.Max(y, screenSize.Y - Px(10) - endTurnHeight));
+        endTurn.Size = new Vector2(inner, endTurnHeight);
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
         panel.AddChild(endTurn);
 
@@ -396,16 +398,13 @@ public partial class Hud : CanvasLayer
                 () => HeroDetailsPressed?.Invoke(hero));
             if (Art.Portrait(hero.Name) is { } portrait)
                 row.AddChild(Picture(portrait, new Vector2(2, 2), new Vector2(64, 64)));
-            var name = MakeLabel(hero.Name, 12, TextColor);
-            name.Position = new Vector2(70, 4);
-            name.ClipText = true;
-            name.Size = new Vector2(row.CustomMinimumSize.X - 74, Px(16));
-            row.AddChild(name);
+            row.AddChild(RowName(hero.Name, row.CustomMinimumSize.X));
             float barWidth = row.CustomMinimumSize.X - 76;
-            row.AddChild(new ColorRect { Position = new Vector2(70, 44), Size = new Vector2(barWidth, Px(6)), Color = MapRenderer.Rgb(20, 16, 12), MouseFilter = Control.MouseFilterEnum.Ignore });
+            float barY = RowHeight - Px(10);
+            row.AddChild(new ColorRect { Position = new Vector2(70, barY), Size = new Vector2(barWidth, Px(5)), Color = MapRenderer.Rgb(20, 16, 12), MouseFilter = Control.MouseFilterEnum.Ignore });
             row.AddChild(new ColorRect
             {
-                Position = new Vector2(70, 44), Size = new Vector2(barWidth * hero.Movement / Math.Max(1, hero.MaxMovement), Px(6)),
+                Position = new Vector2(70, barY), Size = new Vector2(barWidth * hero.Movement / Math.Max(1, hero.MaxMovement), Px(5)),
                 Color = MapRenderer.Rgb(60, 180, 60), MouseFilter = Control.MouseFilterEnum.Ignore,
             });
             _heroRows.AddChild(row);
@@ -430,17 +429,24 @@ public partial class Hud : CanvasLayer
             var row = Row(false, $"{town.Name} · {Texts.TownIncome(town)} par jour", () => TownClicked?.Invoke(town));
             if (Art.Get("objects/town") is { } image)
                 row.AddChild(Picture(image, new Vector2(2, 2), new Vector2(64, 64)));
-            var name = MakeLabel(town.Name, 12, TextColor);
-            name.Position = new Vector2(70, 4);
-            name.ClipText = true;
-            name.Size = new Vector2(row.CustomMinimumSize.X - 74, Px(16));
-            row.AddChild(name);
-            var income = MakeLabel(Texts.TownIncome(town), 11, SoftTextColor);
-            income.Position = new Vector2(70, 34);
+            row.AddChild(RowName(town.Name, row.CustomMinimumSize.X));
+            var income = MakeLabel(Texts.TownIncome(town), 10, SoftTextColor);
+            income.Position = new Vector2(70, RowHeight - Px(18));
             row.AddChild(income);
             _townRows.AddChild(row);
         }
         _townsUp.Visible = _townsDown.Visible = player.Towns.Count > ListRows;
+    }
+
+    /// <summary>Le nom d'un héros ou d'une ville dans une ligne de liste : sur deux lignes au plus, à côté de l'image.</summary>
+    private static Label RowName(string text, float rowWidth)
+    {
+        var name = MakeLabel(text, 11, TextColor);
+        name.AutowrapMode = TextServer.AutowrapMode.WordSmart; // avant la taille (sinon elle se règle sur le texte entier)
+        name.MaxLinesVisible = 2;
+        name.Position = new Vector2(70, 2);
+        name.Size = new Vector2(rowWidth - 74, Px(30));
+        return name;
     }
 
     /// <summary>Une ligne cliquable d'une liste, avec son info-bulle ; <paramref name="selected"/> : bordée de clair.</summary>
@@ -493,7 +499,7 @@ public partial class Hud : CanvasLayer
     /// <summary>Le journal : tous les messages récents, le plus récent en bas.</summary>
     private void ShowLog() => Enqueue(done =>
     {
-        var dialog = new AcceptDialog { Title = Texts.LogTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
+        var dialog = new GameDialog { Title = Texts.LogTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
         var scroll = new ScrollContainer { CustomMinimumSize = V(620, 360), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
         var text = MakeLabel(_messages.Count == 0 ? Texts.LogEmpty : string.Join("\n", _messages), 14, TextColor);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
@@ -581,7 +587,7 @@ public partial class Hud : CanvasLayer
     public void ShowBattle(BattleFought battle) => Enqueue(done =>
     {
         var report = battle.Report;
-        var dialog = new AcceptDialog { Title = Texts.ReportTitle(report), OkButtonText = Texts.ContinueButton, Exclusive = true, Unresizable = true };
+        var dialog = new GameDialog { Title = Texts.ReportTitle(report), OkButtonText = Texts.ContinueButton, Exclusive = true, Unresizable = true };
         var content = new VBoxContainer { CustomMinimumSize = V(560, 0) };
         content.AddThemeConstantOverride("separation", (int)Px(8));
         var subtitle = MakeLabel(Texts.ReportSubtitle(battle), 14, SoftTextColor);
@@ -654,7 +660,7 @@ public partial class Hud : CanvasLayer
     public void ShowGameOver(GameEnded end, Action mainMenu) => Enqueue(done =>
     {
         var player = _state.Players[0];
-        var dialog = new AcceptDialog
+        var dialog = new GameDialog
         {
             Title = Texts.GameOverTitle, OkButtonText = Texts.MainMenuButton, Exclusive = true, Unresizable = true,
         };
@@ -699,7 +705,7 @@ public partial class Hud : CanvasLayer
     /// </summary>
     public void ShowOptions() => Enqueue(done =>
     {
-        var dialog = new AcceptDialog
+        var dialog = new GameDialog
         {
             Title = Texts.OptionsTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true,
         };
@@ -747,11 +753,7 @@ public partial class Hud : CanvasLayer
     /// <summary>Quitter le jeu ou revenir au menu : on demande d'abord (ce qui n'est pas sauvegardé serait perdu).</summary>
     private void Confirm(string title, string text, string ok, Action? confirmed) => Enqueue(done =>
     {
-        var dialog = new ConfirmationDialog
-        {
-            Title = title, DialogText = text, OkButtonText = ok,
-            CancelButtonText = Texts.CancelButton, Exclusive = true, Unresizable = true,
-        };
+        var dialog = GameDialog.Confirm(title, text, ok);
         dialog.Confirmed += () => { dialog.QueueFree(); done(); confirmed?.Invoke(); };
         dialog.Canceled += () => { dialog.QueueFree(); done(); };
         AddChild(dialog);
@@ -764,7 +766,7 @@ public partial class Hud : CanvasLayer
     /// </summary>
     public void ShowRulesChoice(Action<GameRules> choose) => Enqueue(done =>
     {
-        var dialog = new AcceptDialog
+        var dialog = new GameDialog
         {
             Title = Texts.RulesTitle,
             OkButtonText = Texts.StartButton,
@@ -815,7 +817,7 @@ public partial class Hud : CanvasLayer
     /// <summary>La carte au trésor : les morceaux dévoilés par les obélisques visités, et la croix.</summary>
     public void ShowTreasureMap(GameState state, Player viewer) => Enqueue(done =>
     {
-        var dialog = new AcceptDialog { Title = Texts.TreasureMapTitle, OkButtonText = "OK", Exclusive = true, Unresizable = true };
+        var dialog = new GameDialog { Title = Texts.TreasureMapTitle, OkButtonText = "OK", Exclusive = true, Unresizable = true };
         var content = new VBoxContainer();
         content.AddThemeConstantOverride("separation", (int)Px(8));
         var pieces = state.TreasureMapPieces(viewer);
@@ -850,7 +852,7 @@ public partial class Hud : CanvasLayer
     /// <summary>Avant un combat : le diriger (écran de combat) ou le laisser se dérouler (combat rapide).</summary>
     public void ShowBattleChoice(string opponent, Action tactical, Action quick) => Enqueue(done =>
     {
-        var dialog = new AcceptDialog
+        var dialog = new GameDialog
         {
             Title = Texts.BattleChoiceTitle,
             DialogText = Texts.BattleChoiceText(opponent),
@@ -882,7 +884,7 @@ public partial class Hud : CanvasLayer
     /// <summary>Le trésor est déterré : l'image de l'artefact en grand (×3, pixels nets), puis ce qu'il apporte.</summary>
     public void ShowArtifactFound(string title, string text, ArtifactType artifact) => Enqueue(done =>
     {
-        var dialog = new AcceptDialog { Title = title, OkButtonText = "OK", Exclusive = true, Unresizable = true };
+        var dialog = new GameDialog { Title = title, OkButtonText = "OK", Exclusive = true, Unresizable = true };
         var content = new VBoxContainer();
         content.AddThemeConstantOverride("separation", (int)Px(10));
         if (Art.Get($"artifacts/{artifact.Id}") is { } image)
@@ -928,7 +930,7 @@ public partial class Hud : CanvasLayer
     /// <summary>Les fenêtres s'affichent l'une après l'autre (ex. : compte rendu du combat, puis fin de partie).</summary>
     private void ShowDialog(string title, string text, string button, Action? onClose) => Enqueue(done =>
     {
-        var dialog = new AcceptDialog
+        var dialog = new GameDialog
         {
             Title = title,
             DialogText = text,
@@ -955,7 +957,7 @@ public partial class Hud : CanvasLayer
     /// <summary>Choix de la caractéristique d'un niveau : un bouton par caractéristique proposée. Fermer la fenêtre prend la première.</summary>
     public void ShowLevelChoice(HeroLevelChoice choice, Action<HeroStat> choose) => Enqueue(done =>
     {
-        var dialog = new AcceptDialog { Title = Texts.LevelChoiceTitle(choice), Exclusive = true, Unresizable = true };
+        var dialog = new GameDialog { Title = Texts.LevelChoiceTitle(choice), Exclusive = true, Unresizable = true };
         dialog.GetOkButton().Hide();
         bool chosen = false;
         void Choose(HeroStat stat)
@@ -994,7 +996,12 @@ public partial class Hud : CanvasLayer
             var button = MakeButton("", 14);
             button.CustomMinimumSize = size;
             button.TooltipText = Texts.StatTooltip(stat, choice.Hero);
-            var lines = new VBoxContainer { Size = size, Alignment = BoxContainer.AlignmentMode.Center, MouseFilter = Control.MouseFilterEnum.Ignore };
+            // les lignes partent du haut (les noms sont alignés d'un bouton à l'autre), avec une marge sur les côtés
+            var lines = new VBoxContainer
+            {
+                Position = V(8, 10), Size = size - V(16, 20), Alignment = BoxContainer.AlignmentMode.Begin,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            };
             lines.AddThemeConstantOverride("separation", (int)Px(2));
             foreach (var (text, fontSize, color) in new[]
                      {
@@ -1006,7 +1013,7 @@ public partial class Hud : CanvasLayer
                 var label = MakeLabel(text, fontSize, color);
                 label.HorizontalAlignment = HorizontalAlignment.Center;
                 label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-                label.CustomMinimumSize = new Vector2(size.X - Px(12), 0);
+                label.CustomMinimumSize = new Vector2(size.X - Px(16), 0);
                 lines.AddChild(label);
             }
             button.AddChild(lines);

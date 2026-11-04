@@ -345,8 +345,9 @@ public static class Ui
         theme.SetConstant("title_height", "Window", WindowTitleHeight);
         theme.SetColor("title_color", "Window", BorderColor);
         theme.SetFontSize("title_font_size", "Window", TextSize(16));
-        var inside = Box(PanelColor, null);
-        inside.SetContentMarginAll(Px(14));
+        // les petites fenêtres (GameDialog) n'ont pas de bordure de Godot : leur fond est le cadre du jeu
+        var inside = (StyleBox)Frame(PanelColor).Duplicate();
+        inside.SetContentMarginAll(Px(24));
         theme.SetStylebox("panel", "AcceptDialog", inside);
         theme.SetConstant("buttons_separation", "AcceptDialog", (int)Px(12));
         theme.SetColor("font_color", "Label", TextColor);
@@ -430,7 +431,8 @@ public static class Ui
     /// </summary>
     public static void AskCount(Node parent, string title, Func<int, string> describe, int max, Action<int> chosen)
     {
-        var dialog = new ConfirmationDialog { Title = title, Exclusive = true, Unresizable = true, OkButtonText = "OK", CancelButtonText = Texts.CancelButton };
+        var dialog = new GameDialog { Title = title, OkButtonText = "OK" };
+        dialog.AddCancelButton(Texts.CancelButton);
         var content = new VBoxContainer { CustomMinimumSize = V(380, 0) };
         content.AddThemeConstantOverride("separation", (int)Px(10));
         var text = MakeLabel("", 15, TextColor);

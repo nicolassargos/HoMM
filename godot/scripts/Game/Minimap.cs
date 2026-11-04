@@ -55,6 +55,10 @@ public partial class Minimap : Control
             var hero = h.Position;
             DrawRect(new Rect2(hero.X * CellSize - 1, hero.Y * CellSize - 1, CellSize + 2, CellSize + 2), Colors.Yellow);
         }
-        DrawRect(new Rect2(VisibleCells.Position * CellSize, VisibleCells.Size * CellSize), Colors.White, false, 1);
+        // la partie visible à l'écran : un cadre blanc, gardé dans la carte (sinon ses bords sortent de la mini-carte)
+        var mapRect = new Rect2(0, 0, map.Width * CellSize, map.Height * CellSize);
+        var visible = new Rect2(VisibleCells.Position * CellSize, VisibleCells.Size * CellSize).Intersection(mapRect);
+        float line = Ui.Px(2);
+        DrawRect(visible.Grow(-line / 2), Colors.White, false, line);
     }
 }

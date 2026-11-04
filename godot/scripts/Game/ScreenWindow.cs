@@ -32,16 +32,23 @@ public partial class ScreenWindow : CanvasLayer
             Position = new Vector2(0, top), Size = screenSize - new Vector2(0, top),
             Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Stop,
         });
+        // la barre des ressources reste visible, mais pas le haut de la colonne de droite (la carte réduite)
+        if (!veilAll)
+            AddChild(new ColorRect
+            {
+                Position = new Vector2(screenSize.X - Hud.PanelWidth, 0), Size = new Vector2(Hud.PanelWidth, top),
+                Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Stop,
+            });
         var frame = new Panel { Position = window.Position, Size = window.Size };
         frame.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         AddChild(frame);
         Window = frame;
-        _title = At(MakeLabel("", 20, TextColor), 20, 12);
+        _title = At(MakeLabel("", 20, TextColor), 24, 18);
         frame.AddChild(_title);
         var close = MakeButton(Texts.CloseButton, 14);
         close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
-        close.Position = new Vector2(window.Size.X - Px(20 + 150), Px(12));
-        close.Size = V(150, 34);
+        close.Position = new Vector2(window.Size.X - Px(22 + 150), Px(18));
+        close.Size = V(150, 32);
         close.Pressed += Close;
         frame.AddChild(close);
     }

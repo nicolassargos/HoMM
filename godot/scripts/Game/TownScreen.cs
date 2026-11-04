@@ -93,13 +93,13 @@ public partial class TownScreen : CanvasLayer
         _view.AddChild(new ColorRect { Size = new Vector2(screenSize.X, Px(ViewHeight * 0.4f)), Color = MapRenderer.Rgb(58, 72, 92), MouseFilter = Control.MouseFilterEnum.Ignore });
         _view.AddChild(new ColorRect { Position = new Vector2(0, Px(ViewHeight * 0.4f)), Size = new Vector2(screenSize.X, Px(ViewHeight * 0.6f)), Color = MapRenderer.Rgb(60, 74, 48), MouseFilter = Control.MouseFilterEnum.Ignore });
 
-        // les raccourcis, en bas à droite de la ville (là où rien n'est bâti)
+        // les raccourcis, à droite de la bande du nom (au-dessus de la vue : ils ne cachent aucun bâtiment)
         float bx = screenSize.X - Px(12 + 3 * 138 - 8);
         foreach (var (text, open) in new (string, Action)[] { (Texts.BuildButton, OpenBuild), (Texts.RecruitButton, () => OpenRecruitWindow(null)), (Texts.TavernButton, OpenTavern) })
         {
             var button = MakeButton(text, 14);
-            button.Position = new Vector2(bx, Px(ViewTop + ViewHeight - 46));
-            button.Size = V(130, 36);
+            button.Position = new Vector2(bx, Hud.TopBarHeight + Px(3));
+            button.Size = V(130, 32);
             button.Pressed += open;
             _root.AddChild(button);
             if (text == Texts.TavernButton)
@@ -381,10 +381,11 @@ public partial class TownScreen : CanvasLayer
         var window = new Panel { Position = (veil.Size - size) / 2, Size = size };
         window.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         veil.AddChild(window);
-        window.AddChild(At(MakeLabel(title, 18, TextColor), 18, 12));
+        window.AddChild(At(MakeLabel(title, 20, TextColor), 24, 18));
         var close = MakeButton(Texts.CloseButton, 14);
-        close.Position = new Vector2(size.X - Px(18 + 110), Px(10));
-        close.Size = V(110, 32);
+        close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
+        close.Position = new Vector2(size.X - Px(22 + 110), Px(18));
+        close.Size = V(110, 30);
         close.Pressed += CloseWindow;
         window.AddChild(close);
         _window = veil;
@@ -398,44 +399,36 @@ public partial class TownScreen : CanvasLayer
         _reopen = null;
     }
 
-    /// <summary>La fenêtre Construire : ce qu'on peut construire (ou ce qui manque), puis les bâtiments construits.</summary>
+    /// <summary>
+    /// La fenêtre Construire : tous les bâtiments de la ville, dans l'ordre des données, ceux qui sont déjà construits
+    /// parmi les autres (marqués « Construit ») ; une carte par bâtiment, 3 par rangée.
+    /// </summary>
     private void OpenBuild()
     {
         if (_town is not { } town)
             return;
-        var window = OpenWindow(V(1000, 600), Texts.BuildTitle(town), overView: false);
-        window.AddChild(At(MakeLabel(Texts.ToBuild, 14, SoftTextColor), 18, 50));
-        var grid = new GridContainer { Columns = 3, Position = V(18, 74) };
+        var buildings = town.Buildings.ToList();
+        int rows = Math.Max(1, (buildings.Count + 2) / 3);
+        // la fenêtre suit son contenu, sans dépasser l'écran (la grille défile alors)
+        float listHeight = Math.Min(rows * 128 - 10, (_screen.Y - Hud.TopBarHeight) / Ui.Scale - 40 - 84 - 20);
+        var window = OpenWindow(V(1000, 84 + listHeight + 20), Texts.BuildTitle(town), overView: false);
+        window.AddChild(At(MakeLabel(Texts.ToBuild, 14, SoftTextColor), 24, 56));
+        var scroll = new ScrollContainer
+        {
+            Position = V(18, 84), Size = V(970, listHeight), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+        };
+        window.AddChild(scroll);
+        var grid = new GridContainer { Columns = 3 };
         grid.AddThemeConstantOverride("h_separation", (int)Px(10));
         grid.AddThemeConstantOverride("v_separation", (int)Px(10));
-        window.AddChild(grid);
-        var toBuild = town.Buildings.Where(b => !town.Has(b.Id)).ToList();
-        if (toBuild.Count == 0)
-            grid.AddChild(MakeLabel(Texts.NothingToBuild, 14, TextColor));
-        foreach (var building in toBuild)
+        scroll.AddChild(grid);
+        foreach (var building in buildings)
             grid.AddChild(BuildCard(town, building));
-
-        float y = 74 + (toBuild.Count + 2) / 3 * 128 + 10;
-        window.AddChild(At(MakeLabel(Texts.BuiltHeader, 14, SoftTextColor), 18, y));
-        var built = new HFlowContainer { Position = V(18, y + 22), Size = V(964, 100) };
-        built.AddThemeConstantOverride("h_separation", (int)Px(6));
-        built.AddThemeConstantOverride("v_separation", (int)Px(6));
-        window.AddChild(built);
-        foreach (var building in town.BuiltBuildings)
-        {
-            var box = new Panel { CustomMinimumSize = V(150, 36), TooltipText = Texts.BuildingTooltip(town, building), MouseFilter = Control.MouseFilterEnum.Stop };
-            box.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
-            var name = At(MakeLabel("✓ " + building.Name, 12, GoodColor), 6, 8);
-            name.Size = V(140, 20);
-            name.ClipText = true;
-            name.MouseFilter = Control.MouseFilterEnum.Ignore;
-            box.AddChild(name);
-            built.AddChild(box);
-        }
     }
 
     private Control BuildCard(Town town, BuildingType building)
     {
+        bool built = town.Has(building.Id);
         var result = town.CanBuild(building, _state.CurrentPlayer);
         var card = new Panel { CustomMinimumSize = V(314, 118) };
         card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, result == BuildResult.Ok ? GoodColor : DimColor, 1, 1, 1, 1));
@@ -454,11 +447,25 @@ public partial class TownScreen : CanvasLayer
         effect.Position = V(x, 26);
         card.AddChild(effect);
         card.AddChild(At(MakeLabel(Texts.Cost(building.Cost), 12, TextColor), x, 62));
-        // un bouton de taille fixe : un long « Requiert : … » ne l'élargit pas
+        if (built)
+        {
+            card.AddThemeStyleboxOverride("panel", Box(PanelColor, DimColor, 1, 1, 1, 1));
+            card.AddChild(At(MakeLabel(Texts.BuiltMark, 13, GoodColor), x, 86));
+            return card;
+        }
+        // un bouton seulement si l'on peut construire ; sinon, pourquoi (ressources, bâtiments requis…)
         string status = Texts.BuildStatus(result, town, building);
-        var action = FixedButton(status, 13, V(298, 30), disabled: result != BuildResult.Ok);
+        if (result != BuildResult.Ok)
+        {
+            var why = MakeLabel(status, 12, result is BuildResult.MissingRequirement ? DimColor : SoftTextColor);
+            why.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            why.CustomMinimumSize = V(306 - x, 0);
+            why.Position = V(x, 84);
+            card.AddChild(why);
+            return card;
+        }
+        var action = FixedButton(status, 13, V(298, 30));
         action.Position = V(8, 82);
-        action.TooltipText = status;
         action.Pressed += () =>
         {
             if (_state.Build(town, building.Id) == BuildResult.Ok)
@@ -476,8 +483,8 @@ public partial class TownScreen : CanvasLayer
     {
         if (_town is not { } town)
             return;
-        var window = OpenWindow(V(only == null ? 1256 : 420, 376), Texts.RecruitWindowTitle(town), overView: true);
-        var row = new HBoxContainer { Position = V(10, 48) };
+        var window = OpenWindow(V(only == null ? 1256 : 420, 386), Texts.RecruitWindowTitle(town), overView: true);
+        var row = new HBoxContainer { Position = V(10, 58) };
         row.AddThemeConstantOverride("separation", (int)Px(8));
         window.AddChild(row);
         var dwellings = town.Buildings.Where(b => b.Dwelling != null)
@@ -556,16 +563,20 @@ public partial class TownScreen : CanvasLayer
     {
         if (_town is not { } town)
             return;
-        var window = OpenWindow(V(620, 330), Texts.TavernTitle, overView: true);
-        var text = At(MakeLabel(Texts.TavernText, 13, SoftTextColor), 18, 48);
+        var status = _state.CanHireHero(town);
+        // si l'on ne peut pas recruter, pourquoi : une fois, sous le texte (pas sur des boutons grisés)
+        float cardsY = status == HireResult.Ok ? 100 : 122;
+        var window = OpenWindow(V(620, cardsY + 240 - (status == HireResult.Ok ? 0 : 42)), Texts.TavernTitle, overView: true);
+        var text = At(MakeLabel(Texts.TavernText, 13, SoftTextColor), 18, 58);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         text.CustomMinimumSize = V(584, 0);
         window.AddChild(text);
-        var status = _state.CanHireHero(town);
+        if (status != HireResult.Ok)
+            window.AddChild(At(MakeLabel(Texts.HireStatus(status), 14, TextColor), 18, 90));
         float x = 18;
         foreach (var name in _state.TavernOffers())
         {
-            var card = new Panel { Position = V(x, 90), Size = V(284, 224) };
+            var card = new Panel { Position = V(x, cardsY), Size = V(284, status == HireResult.Ok ? 224 : 182) };
             card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
             window.AddChild(card);
             if (Art.Portrait(name) is { } portrait)
@@ -574,9 +585,12 @@ public partial class TownScreen : CanvasLayer
             label.Size = V(284, 20);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             card.AddChild(label);
-            // un bouton de taille fixe : un long « Un héros est déjà dans la ville » ne l'élargit pas
-            var hire = FixedButton(status == HireResult.Ok ? $"{Texts.HireButton} ({GameState.HeroCost} or)" : Texts.HireStatus(status), 13,
-                V(264, 32), disabled: status != HireResult.Ok);
+            if (status != HireResult.Ok)
+            {
+                x += 300;
+                continue;
+            }
+            var hire = FixedButton($"{Texts.HireButton} ({GameState.HeroCost} or)", 13, V(264, 32));
             hire.Position = V(10, 180);
             hire.Pressed += () =>
             {
@@ -606,7 +620,7 @@ public partial class TownScreen : CanvasLayer
         window.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         _recruitOverlay.AddChild(window);
 
-        _recruitTitle = At(MakeLabel("", 22, TextColor), 20, 14);
+        _recruitTitle = At(MakeLabel("", 20, TextColor), 20, 14);
         window.AddChild(_recruitTitle);
         // l'image à gauche, et à côté : caractéristiques, disponibles et prix, ce qu'on peut payer, où vont les recrues
         _recruitPicture = Picture(null!, V(20, 52), new Vector2(96, 96)); // ×4

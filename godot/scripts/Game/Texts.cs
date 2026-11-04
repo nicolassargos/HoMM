@@ -189,9 +189,12 @@ public static class Texts
     public static string LevelChoiceText(HeroLevelChoice choice) =>
         $"{choice.Hero.Name} progresse. Le charisme augmente de 1 dans tous les cas.";
 
-    /// <summary>Le bouton d'un choix : « Attaque (actuelle : 2) ».</summary>
-    public static string StatChoice(Hero hero, HeroStat stat) =>
-        $"{Capitalize(StatName(stat))} (actuelle : {StatValue(hero, stat)})";
+    /// <summary>« 2 → 3 » : la caractéristique avant et après ce choix de niveau.</summary>
+    public static string StatChange(Hero hero, HeroStat stat) => $"{StatValue(hero, stat)} → {StatValue(hero, stat) + 1}";
+
+    /// <summary>Ce que le niveau donne dans tous les cas : un point de charisme, et le commandement qui en découle.</summary>
+    public static string CharismaGain(Hero hero) =>
+        $"Charisme : {hero.Charisma} → {hero.Charisma + 1} (commande {Command.Limit(hero.Charisma + 1)} points par troupe).";
 
     private static int StatValue(Hero hero, HeroStat stat) => stat switch
     {
@@ -267,6 +270,11 @@ public static class Texts
 
     public static string RecruitTitle(CreatureType type) => $"Recruter des {type.Plural}";
 
+    /// <summary>Combien on peut en recruter (place et ressources comprises).</summary>
+    public static string Affordable(int max) => $"Vous pouvez en recruter : {max}";
+
+    public static string RecruitDestination => "Les recrues vont dans la garnison ; si elle est pleine, chez le héros présent.";
+
     /// <summary>« 14 disponibles · 60 or l'unité ».</summary>
     public static string RecruitInfo(CreatureType type, int available) =>
         $"{available} disponible{(available > 1 ? "s" : "")} · {Cost(type.Cost)} l'unité";
@@ -296,7 +304,24 @@ public static class Texts
     };
 
 
-    public static string GameOverTitle(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire" : "Défaite";
+    public static string GameOverTitle => "Fin de la partie";
+
+    public static string GameOverHeadline(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire !" : "Défaite…";
+
+    /// <summary>« Partie finie le jour 84 (Mois 3, semaine 4, Dimanche) ».</summary>
+    public static string GameOverDay(int day) => $"Partie finie le jour {day + 1} ({Date(day)}).";
+
+    /// <summary>Les chiffres de la partie du joueur, sur deux lignes.</summary>
+    public static string GameOverStatistics(Player player)
+    {
+        var s = player.Statistics;
+        string heroes = player.Heroes.Count == 0 ? "" : $" · meilleur héros : niveau {player.Heroes.Max(h => h.Level)}";
+        return $"Combats gagnés : {s.BattlesWon} · villes prises : {s.TownsCaptured}{heroes}\n"
+            + $"Créatures ennemies tuées : {s.CreaturesKilled} · créatures perdues : {s.CreaturesLost}";
+    }
+
+    public static string NewGameButton => "Nouvelle partie";
+    public static string ReviewMapButton => "Revoir la carte";
 
     public static string GameOverText(GameEnded end) => end.Reason switch
     {
@@ -372,8 +397,17 @@ public static class Texts
 
     public static string OptionsTitle => "Options";
     public static string OptionsText => "Une seule sauvegarde : sauvegarder remplace la précédente.";
-    public static string SaveButton => "Sauvegarder (F5)";
-    public static string LoadButton => "Charger (F9)";
+    public static string SaveButton => "Sauvegarder";
+    public static string LoadButton => "Charger";
+    public static string FullscreenButton => "Plein écran";
+    public static string QuitGameButton => "Quitter le jeu";
+    public static string SaveTooltip => "Sauvegarder la partie (remplace la sauvegarde précédente)";
+    public static string LoadTooltip => "Reprendre la partie sauvegardée";
+    public static string FullscreenTooltip => "Passer du plein écran à une fenêtre, ou l'inverse";
+    public static string CloseOptionsTooltip => "Revenir à la partie";
+    public static string QuitGameTitle => "Quitter le jeu";
+    public static string QuitGameText => "Quitter le jeu ? Ce qui n'a pas été sauvegardé sera perdu.";
+    public static string QuitGameConfirm => "Quitter";
     public static string CloseButton => "Fermer";
     public static string NoSave => "Aucune partie sauvegardée.";
     public static string LoadFailed => "Cette sauvegarde ne peut pas être chargée (fichier abîmé ou d'une autre version du jeu).";
@@ -564,7 +598,7 @@ public static class Texts
     public static string WalkTooltip => "Avancer sur le chemin tracé";
     public static string CenterTooltip => "Centrer la carte sur le héros";
     public static string DigTooltip => "Creuser ici (il faut une journée entière de mouvement)";
-    public static string OptionsTooltip => "Sauvegarder, charger";
+    public static string OptionsTooltip => KeyTooltip("Sauvegarder, charger, plein écran, quitter le jeu", "Échap");
     public static string WalkButton => "Avancer";
     public static string CenterButton => "Centrer";
     public static string DigAction => "Creuser";
@@ -676,7 +710,8 @@ public static class Texts
     // ------------------------------------------------------------------ écran de ville (étape 7)
 
     public static string CancelButton => "Annuler";
-    public static string QuitTown => "Quitter (Échap)";
+    public static string QuitTown => "Quitter";
+    public static string QuitTownTooltip => "Revenir à la carte";
 
     /// <summary>Sous le nom de la ville : son revenu et si l'on peut encore construire aujourd'hui.</summary>
     public static string TownHeader(Town town) =>
@@ -736,8 +771,8 @@ public static class Texts
 
     // ------------------------------------------------------------------ écran de combat et bilan (étape 7)
 
-    /// <summary>Le texte d'un bouton du combat avec sa touche : « Attendre (W) ».</summary>
-    public static string WithKey(string text, string key) => $"{text} ({key})";
+    /// <summary>L'info-bulle d'un bouton avec sa touche (la touche n'est plus écrite sur le bouton).</summary>
+    public static string KeyTooltip(string tooltip, string key) => $"{tooltip} ({key})";
 
     public static string HeroBonus(Hero hero) => $"Attaque +{hero.Attack} · défense +{hero.Defense}";
     public static string SpellBookLater => "La magie viendra plus tard.";

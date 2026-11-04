@@ -34,7 +34,8 @@ public partial class ScreenWindow : CanvasLayer
         Window = frame;
         _title = At(MakeLabel("", 20, TextColor), 20, 12);
         frame.AddChild(_title);
-        var close = MakeButton($"{Texts.CloseButton} (Échap)", 14);
+        var close = MakeButton(Texts.CloseButton, 14);
+        close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
         close.Position = new Vector2(window.Size.X - Px(20 + 150), Px(12));
         close.Size = V(150, 34);
         close.Pressed += Close;

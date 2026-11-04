@@ -388,8 +388,15 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    pixel art sont toujours agrandies d'un nombre entier de fois, pour des pixels réguliers : carte ×3 et ×4 (zooms
    1,5 et 2 de `MapCamera`), créatures au combat ×3 (cases de 110 × 126, marges de 318), sol et obstacles ×3, héros
    au combat ×4, cadres et boutons ×2, portraits ×1, ×2 ou ×3, créatures de l'interface ×2 à ×4.
-5. **Les fenêtres** : niveau supérieur, recrutement (« Max », avertissement de charisme), fin de partie (la partie
-   compte monstres vaincus, créatures perdues…).
+5. ✅ **Les fenêtres** : niveau supérieur en une seule fenêtre (portrait, gain de charisme, un grand bouton par
+   caractéristique avec avant → après et son effet ; la fenêtre de résumé a disparu, le message reste dans le
+   journal) ; recrutement avec l'image, les caractéristiques, ce qu'on peut payer et où vont les recrues ; fin de
+   partie : victoire ou défaite, pourquoi, le jour, les chiffres de la partie (combats gagnés, villes prises, créatures
+   tuées et perdues, meilleur héros : `Player.Statistics`, sauvegardés), puis « Nouvelle partie » ou « Revoir la carte ».
+   Le jeu démarre en plein écran (en 1920 × 1080, la fenêtre passait sous la barre des tâches) ; F11 ou Alt+Entrée,
+   ou le bouton des options, passe en fenêtre agrandie. Les options ont un bouton « Quitter le jeu » (avec confirmation).
+   Échap ouvre les options sur la carte. Les touches ne sont plus écrites sur les boutons (carte, combat, ville,
+   fenêtres) : elles sont dans l'info-bulle (choix de l'utilisateur).
 6. **Menu principal, nouvelle partie, sauvegardes** : menu sauté par toute option de lancement ou `--play` ; taille
    de la carte en cinq choix (le générateur et l'équilibrage à revoir), graine, conditions ; plusieurs sauvegardes et
    la sauvegarde automatique.

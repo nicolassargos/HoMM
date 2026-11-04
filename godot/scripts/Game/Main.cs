@@ -11,7 +11,7 @@ namespace HoMM.Game;
 ///
 /// Commandes :
 ///   Clic gauche sur une case : affiche le chemin. Second clic : le héros part.
-///   Espace : continuer le chemin tracé.        Clic droit / Échap : annuler le chemin.
+///   Espace : continuer le chemin tracé.        Clic droit : annuler le chemin.   Échap : options.
 ///   Flèches / ZQSD / souris au bord : défilement.   C : recentrer sur le héros.
 ///   Clic sur les murs de sa ville, liste des villes du panneau, ou T : écran de ville.
 ///   Clic sur un de ses héros, liste des héros du panneau, ou H : changer de héros.
@@ -57,8 +57,18 @@ public partial class Main : Node2D
     /// <summary>Partie chargée, reprise par la scène relancée (voir <see cref="LoadGame"/>).</summary>
     private static GameState? _loadedState;
 
+    /// <summary>Le mode de la fenêtre n'est choisi qu'au lancement (pas à chaque nouvelle partie).</summary>
+    private static bool _windowModeSet;
+
     public override void _Ready()
     {
+        // plein écran au lancement (l'écran de 1920 × 1080 passait sous la barre des tâches) ; pas pour une capture
+        if (!_windowModeSet)
+        {
+            _windowModeSet = true;
+            if (!OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--capture=") || a == "--windowed"))
+                DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
+        }
         Ui.UsePixelFont();
         Ui.ApplyTheme();
         var loaded = _loadedState ?? (OS.GetCmdlineUserArgs().Contains("--load") ? ReadSave(LoadData()) : null);
@@ -88,6 +98,7 @@ public partial class Main : Node2D
         _hud.DigPressed += Dig;
         _hud.TreasureMapPressed += () => _hud.ShowTreasureMap(_state, _state.Players[0]);
         _hud.LoadPressed += LoadGame;
+        _hud.QuitPressed += () => GetTree().Quit();
         _hud.TownClicked += OpenTown;
         _hud.HeroClicked += SelectHero;
         _hud.NextHeroPressed += NextHero;
@@ -160,6 +171,15 @@ public partial class Main : Node2D
             _heroScreen.Open(shown);
         if (OS.GetCmdlineUserArgs().Contains("--open=kingdom"))
             _kingdomScreen.Open();
+        // « --open=options » : la fenêtre des options
+        if (OS.GetCmdlineUserArgs().Contains("--open=options"))
+            _hud.ShowOptions();
+        // « --open=end » : la fenêtre de fin de partie (une victoire, sans rien changer)
+        if (OS.GetCmdlineUserArgs().Contains("--open=end"))
+            _hud.ShowGameOver(new GameEnded(GameOutcome.Victory, GameEndReason.GuardsCleared), () => { });
+        // « --open=level » : la fenêtre d'un choix de niveau (sans rien changer)
+        if (OS.GetCmdlineUserArgs().Contains("--open=level") && _state.CurrentHero is { } leveling)
+            _hud.ShowLevelChoice(new HeroLevelChoice(leveling, 2, new[] { HeroStat.Attack, HeroStat.Defense, HeroStat.Power }), _ => { });
         // Développement : « --center=treasure » centre la vue sur le trésor (pour une capture d'écran)
         if (OS.GetCmdlineUserArgs().Contains("--center=treasure") && _state.Map.Treasure is { } hidden)
             _camera.CenterOn(hidden);
@@ -454,6 +474,24 @@ public partial class Main : Node2D
 
     // ------------------------------------------------------------------ boucle
 
+    /// <summary>F11 ou Alt+Entrée, partout (carte, ville, combat) : plein écran ou fenêtre.</summary>
+    public override void _Input(InputEvent e)
+    {
+        if (e is InputEventKey { Pressed: true, Echo: false } key
+            && (key.Keycode == Key.F11 || (key.Keycode is Key.Enter or Key.KpEnter && key.AltPressed)))
+        {
+            ToggleFullscreen();
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    /// <summary>Passe du plein écran à une fenêtre agrandie (avec sa barre de titre), ou l'inverse.</summary>
+    public static void ToggleFullscreen()
+    {
+        bool full = DisplayServer.WindowGetMode() is DisplayServer.WindowMode.Fullscreen or DisplayServer.WindowMode.ExclusiveFullscreen;
+        DisplayServer.WindowSetMode(full ? DisplayServer.WindowMode.Maximized : DisplayServer.WindowMode.Fullscreen);
+    }
+
     public override void _UnhandledInput(InputEvent e)
     {
         if (!OnMap)
@@ -479,7 +517,7 @@ public partial class Main : Node2D
                 {
                     case Key.Enter or Key.KpEnter: EndTurn(); break;
                     case Key.Space: StartWalking(); break;
-                    case Key.Escape when !_walking: _state.ClearPath(); break;
+                    case Key.Escape: _hud.ShowOptions(); break;
                     case Key.C: CenterOnHero(); break;
                     case Key.K: OpenKingdom(); break;
                     case Key.Plus or Key.KpAdd or Key.Equal: _camera.ZoomBy(+1); break;
@@ -618,9 +656,6 @@ public partial class Main : Node2D
                     break;
                 case HeroLevelChoice choice when choice.Hero.Owner == viewer:
                     _hud.ShowLevelChoice(choice, stat => _state.ChooseStat(choice, stat));
-                    break;
-                case HeroLeveledUp levelUp when levelUp.Hero.Owner == viewer:
-                    _hud.ShowLevelUp(levelUp);
                     break;
                 case BuildingBuilt built:
                     _townScreen.ShowBuilt(built); // le nouveau bâtiment apparaît sur la ville

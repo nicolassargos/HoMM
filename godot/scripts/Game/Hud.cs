@@ -65,6 +65,9 @@ public partial class Hud : CanvasLayer
     public event Action? DigPressed;
     public event Action? TreasureMapPressed;
     public event Action? LoadPressed;
+
+    /// <summary>Le joueur quitte le jeu (après confirmation).</summary>
+    public event Action? QuitPressed;
     public event Action? NextHeroPressed;
     public event Action? WalkPressed;
     public event Action? CenterPressed;
@@ -147,7 +150,7 @@ public partial class Hud : CanvasLayer
         panel.AddChild(_army);
         y += Px(52) + Px(8);
 
-        // les boutons d'action : un nom court et la touche dessous, le nom complet au survol ; Options sur toute la largeur
+        // les boutons d'action : un nom court, le nom complet et la touche au survol ; Options sur toute la largeur
         var actions = new (string Text, string Key, string Tooltip, Action Pressed)[]
         {
             (Texts.NextHeroShort, "H", Texts.NextHeroButton, () => NextHeroPressed?.Invoke()),
@@ -162,13 +165,13 @@ public partial class Hud : CanvasLayer
         for (int i = 0; i < actions.Length; i++)
         {
             var (text, key, tooltip, pressed) = actions[i];
-            var button = FixedButton($"{text}\n{key}", 12, new Vector2(buttonWidth, Px(42)));
-            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(45));
-            button.TooltipText = tooltip;
+            var button = FixedButton(text, 12, new Vector2(buttonWidth, Px(32)));
+            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(35));
+            button.TooltipText = Texts.KeyTooltip(tooltip, key);
             button.Pressed += pressed;
             panel.AddChild(button);
         }
-        y += (actions.Length + columns - 1) / columns * Px(45);
+        y += (actions.Length + columns - 1) / columns * Px(35);
         var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, Px(26)));
         options.Position = new Vector2(margin, y);
         options.TooltipText = Texts.OptionsTooltip;
@@ -177,7 +180,8 @@ public partial class Hud : CanvasLayer
         y += Px(26 + 4);
 
         // la fin du tour : grande, toujours au même endroit
-        var endTurn = MakeButton($"{Texts.EndTurnButton}\nEntrée", 18);
+        var endTurn = MakeButton(Texts.EndTurnButton, 18);
+        endTurn.TooltipText = Texts.KeyTooltip(Texts.EndTurnButton, "Entrée");
         endTurn.Position = new Vector2(margin, y);
         endTurn.Size = new Vector2(inner, Math.Max(Px(44), screenSize.Y - Px(10) - y));
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
@@ -639,13 +643,52 @@ public partial class Hud : CanvasLayer
 
     /// <summary>Fenêtre de fin de partie, avec un bouton pour recommencer.</summary>
     /// <summary>Fenêtre de niveau : ce qui a changé sur le héros.</summary>
-    public void ShowLevelUp(HeroLeveledUp levelUp) =>
-        ShowDialog(Texts.LevelUpTitle(levelUp), Texts.LevelUpSummary(levelUp), "OK", null);
 
-    public void ShowGameOver(GameEnded end, Action newGame)
+    /// <summary>
+    /// La fin de la partie (étape 7) : victoire ou défaite, pourquoi, à quel jour, et quelques chiffres de la partie ;
+    /// puis une nouvelle partie, ou revoir la carte (on ne peut plus y jouer).
+    /// </summary>
+    public void ShowGameOver(GameEnded end, Action newGame) => Enqueue(done =>
     {
-        ShowDialog(Texts.GameOverTitle(end.Outcome), Texts.GameOverText(end), "Nouvelle partie", newGame);
-    }
+        var player = _state.Players[0];
+        var dialog = new AcceptDialog
+        {
+            Title = Texts.GameOverTitle, OkButtonText = Texts.NewGameButton, Exclusive = true, Unresizable = true,
+        };
+        dialog.AddButton(Texts.ReviewMapButton, false, "review");
+        var content = new VBoxContainer { CustomMinimumSize = V(520, 0) };
+        content.AddThemeConstantOverride("separation", (int)Px(10));
+        Label Line(string text, int size, Color color)
+        {
+            var label = MakeLabel(text, size, color);
+            label.HorizontalAlignment = HorizontalAlignment.Center;
+            label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            label.CustomMinimumSize = V(520, 0);
+            content.AddChild(label);
+            return label;
+        }
+        Line(Texts.GameOverHeadline(end.Outcome), 28, end.Outcome == GameOutcome.Victory ? BorderColor : MapRenderer.Rgb(220, 110, 90));
+        Line(Texts.GameOverText(end), 15, TextColor);
+        Line(Texts.GameOverDay(_state.Day), 14, SoftTextColor);
+        Line(Texts.GameOverStatistics(player), 14, TextColor);
+        dialog.AddChild(content);
+        bool closed = false;
+        void Close(bool restart)
+        {
+            if (closed)
+                return;
+            closed = true;
+            dialog.QueueFree();
+            done();
+            if (restart)
+                newGame();
+        }
+        dialog.Confirmed += () => Close(restart: true);
+        dialog.CustomAction += _ => Close(restart: false);
+        dialog.Canceled += () => Close(restart: false);
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I((int)Px(580), 0));
+    });
 
     /// <summary>La fenêtre des options : sauvegarder ou charger la partie (aussi avec F5 et F9).</summary>
     public void ShowOptions() => Enqueue(done =>
@@ -669,13 +712,37 @@ public partial class Hud : CanvasLayer
             then?.Invoke();
         }
         // chaque bouton ajouté se place à gauche des précédents
-        dialog.AddButton(Texts.LoadButton, false, "load");
-        dialog.AddButton(Texts.SaveButton, false, "save");
-        dialog.CustomAction += action => Close(action.ToString() == "save" ? SavePressed : LoadPressed);
+        dialog.AddButton(Texts.LoadButton, false, "load").TooltipText = Texts.KeyTooltip(Texts.LoadTooltip, "F9");
+        dialog.AddButton(Texts.SaveButton, false, "save").TooltipText = Texts.KeyTooltip(Texts.SaveTooltip, "F5");
+        dialog.AddButton(Texts.FullscreenButton, false, "fullscreen").TooltipText =
+            Texts.KeyTooltip(Texts.FullscreenTooltip, "F11 ou Alt+Entrée");
+        dialog.AddButton(Texts.QuitGameButton, false, "quit");
+        dialog.CustomAction += action => Close(action.ToString() switch
+        {
+            "save" => SavePressed,
+            "load" => LoadPressed,
+            "fullscreen" => Main.ToggleFullscreen,
+            _ => ConfirmQuit,
+        });
+        dialog.GetOkButton().TooltipText = Texts.KeyTooltip(Texts.CloseOptionsTooltip, "Échap");
         dialog.Confirmed += () => Close(null);
         dialog.Canceled += () => Close(null);
         AddChild(dialog);
         dialog.PopupCentered(new Vector2I((int)Px(640), 0));
+    });
+
+    /// <summary>Quitter le jeu : on demande d'abord, car la partie n'est pas sauvegardée d'elle-même.</summary>
+    private void ConfirmQuit() => Enqueue(done =>
+    {
+        var dialog = new ConfirmationDialog
+        {
+            Title = Texts.QuitGameTitle, DialogText = Texts.QuitGameText, OkButtonText = Texts.QuitGameConfirm,
+            CancelButtonText = Texts.CancelButton, Exclusive = true, Unresizable = true,
+        };
+        dialog.Confirmed += () => { dialog.QueueFree(); done(); QuitPressed?.Invoke(); };
+        dialog.Canceled += () => { dialog.QueueFree(); done(); };
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I((int)Px(480), 0));
     });
 
     /// <summary>
@@ -918,13 +985,7 @@ public partial class Hud : CanvasLayer
     /// <summary>Choix de la caractéristique d'un niveau : un bouton par caractéristique proposée. Fermer la fenêtre prend la première.</summary>
     public void ShowLevelChoice(HeroLevelChoice choice, Action<HeroStat> choose) => Enqueue(done =>
     {
-        var dialog = new AcceptDialog
-        {
-            Title = Texts.LevelChoiceTitle(choice),
-            DialogText = Texts.LevelChoiceText(choice),
-            Exclusive = true,
-            Unresizable = true,
-        };
+        var dialog = new AcceptDialog { Title = Texts.LevelChoiceTitle(choice), Exclusive = true, Unresizable = true };
         dialog.GetOkButton().Hide();
         bool chosen = false;
         void Choose(HeroStat stat)
@@ -936,9 +997,55 @@ public partial class Hud : CanvasLayer
             dialog.QueueFree();
             done();
         }
+        // en haut : le portrait, et ce que le niveau donne dans tous les cas (le charisme)
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", (int)Px(10));
+        var top = new HBoxContainer();
+        top.AddThemeConstantOverride("separation", (int)Px(12));
+        if (Art.Portrait(choice.Hero.Name) is { } portrait)
+            top.AddChild(new TextureRect
+            {
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest, Texture = portrait,
+                CustomMinimumSize = new Vector2(128, 128), // le portrait ×2
+            });
+        var intro = MakeLabel($"{Texts.LevelChoiceText(choice)}\n{Texts.CharismaGain(choice.Hero)}", 15, TextColor);
+        intro.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        intro.CustomMinimumSize = V(380, 0);
+        intro.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        top.AddChild(intro);
+        content.AddChild(top);
+        // un grand bouton par caractéristique proposée : son nom, avant → après, ce qu'elle fait
+        var buttons = new HBoxContainer();
+        buttons.AddThemeConstantOverride("separation", (int)Px(10));
         foreach (var stat in choice.Options)
-            dialog.AddButton(Texts.StatChoice(choice.Hero, stat), false, stat.ToString());
-        dialog.CustomAction += action => Choose(Enum.Parse<HeroStat>(action.ToString()));
+        {
+            var size = V(170, 120);
+            var button = MakeButton("", 14);
+            button.CustomMinimumSize = size;
+            button.TooltipText = Texts.StatTooltip(stat, choice.Hero);
+            var lines = new VBoxContainer { Size = size, Alignment = BoxContainer.AlignmentMode.Center, MouseFilter = Control.MouseFilterEnum.Ignore };
+            lines.AddThemeConstantOverride("separation", (int)Px(2));
+            foreach (var (text, fontSize, color) in new[]
+                     {
+                         (Texts.StatFullName(stat), 16, TextColor),
+                         (Texts.StatChange(choice.Hero, stat), 20, BorderColor),
+                         (Texts.StatEffect(stat, choice.Hero), 12, SoftTextColor),
+                     })
+            {
+                var label = MakeLabel(text, fontSize, color);
+                label.HorizontalAlignment = HorizontalAlignment.Center;
+                label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+                label.CustomMinimumSize = new Vector2(size.X - Px(12), 0);
+                lines.AddChild(label);
+            }
+            button.AddChild(lines);
+            var picked = stat;
+            button.Pressed += () => Choose(picked);
+            buttons.AddChild(button);
+        }
+        content.AddChild(buttons);
+        dialog.AddChild(content);
         dialog.Canceled += () => Choose(choice.Options[0]);
         AddChild(dialog);
         dialog.PopupCentered(new Vector2I((int)Px(560), 0));

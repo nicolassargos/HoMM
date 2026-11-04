@@ -371,15 +371,16 @@ public static class Ui
     /// Un bouton de taille fixe dont le texte (sur une ou plusieurs lignes) est dans une étiquette posée dessus : un
     /// bouton s'élargit pour contenir son propre texte, une étiquette de taille fixe non.
     /// </summary>
-    public static Button FixedButton(string text, int fontSize, Vector2 size)
+    public static Button FixedButton(string text, int fontSize, Vector2 size, bool disabled = false)
     {
         var button = MakeButton("", fontSize);
         button.Size = size;
-        var label = MakeLabel(text, fontSize, TextColor);
+        button.Disabled = disabled;
+        var label = MakeLabel(text, fontSize, disabled ? DimColor : TextColor);
         label.HorizontalAlignment = HorizontalAlignment.Center;
         label.VerticalAlignment = VerticalAlignment.Center;
+        label.ClipText = true; // avant la taille : sinon elle se règle sur le texte entier
         label.Size = size;
-        label.ClipText = true;
         label.MouseFilter = Control.MouseFilterEnum.Ignore;
         button.AddChild(label);
         return button;
@@ -392,6 +393,34 @@ public static class Ui
         TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
         Texture = texture, Position = position, Size = size,
     };
+
+    /// <summary>
+    /// Demande un nombre entre 1 et <paramref name="max"/> avec un curseur (partager une troupe) ; <paramref name="chosen"/>
+    /// est appelé avec ce nombre si le joueur valide.
+    /// </summary>
+    public static void AskCount(Node parent, string title, Func<int, string> describe, int max, Action<int> chosen)
+    {
+        var dialog = new ConfirmationDialog { Title = title, Exclusive = true, Unresizable = true, OkButtonText = "OK", CancelButtonText = Texts.CancelButton };
+        var content = new VBoxContainer { CustomMinimumSize = new Vector2(380, 0) };
+        content.AddThemeConstantOverride("separation", 10);
+        var text = MakeLabel("", 15, TextColor);
+        content.AddChild(text);
+        var slider = new HSlider { MinValue = 1, MaxValue = Math.Max(1, max), Step = 1, Value = Math.Max(1, max / 2), FocusMode = Control.FocusModeEnum.None };
+        slider.CustomMinimumSize = new Vector2(360, 24);
+        content.AddChild(slider);
+        void Update() => text.Text = describe((int)slider.Value);
+        slider.ValueChanged += _ => Update();
+        Update();
+        dialog.AddChild(content);
+        dialog.Confirmed += () =>
+        {
+            chosen((int)slider.Value);
+            dialog.QueueFree();
+        };
+        dialog.Canceled += () => dialog.QueueFree();
+        parent.AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(420, 0));
+    }
 
     /// <summary>Retire et libère tous les enfants d'un nœud (pour reconstruire une liste).</summary>
     public static void Clear(Node node)

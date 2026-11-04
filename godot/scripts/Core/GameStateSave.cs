@@ -209,7 +209,7 @@ public sealed partial class GameState
                 Experience = h.Experience,
             };
             foreach (var s in h.Army)
-                hero.Army.Add(data.Creatures.Get(s.Creature), s.Count);
+                hero.Army.AddStack(data.Creatures.Get(s.Creature), s.Count);
             // ses caractéristiques comptent déjà leurs bonus
             foreach (var id in h.Artifacts ?? new List<string>())
                 hero.Artifacts.Add(data.Artifacts.Get(id));
@@ -279,7 +279,7 @@ public sealed partial class GameState
         foreach (var (creature, count) in o.Available ?? new Dictionary<string, int>())
             town.Available[data.Creatures.Get(creature)] = count;
         foreach (var s in o.Garrison ?? new List<StackData>())
-            town.Garrison.Add(data.Creatures.Get(s.Creature), s.Count);
+            town.Garrison.AddStack(data.Creatures.Get(s.Creature), s.Count);
         return town;
     }
 

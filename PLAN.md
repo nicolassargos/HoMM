@@ -374,8 +374,14 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    événement `TroopMoved`) ; un clic la fait passer de l'autre côté ; « Tout donner au héros », « Tout laisser en
    garnison ». Une armée peut maintenant avoir deux troupes de la même créature (gardées par la sauvegarde :
    `Army.AddStack`). L'écran du héros permet aussi de réordonner et de partager ses troupes. Tests : `TroupesTests`.
-4. **Le combat** : héros et fiches des troupes de chaque côté, journal du combat, touches sur les boutons, bilan
-   après chaque combat (combats rapides compris).
+4. ✅ **Le combat** : le champ s'élargit de chaque côté de la grille 11 × 9 (le sol continue,
+   `BattleFieldView.SideMargin`) : le héros y est dessiné à gauche (son image de la carte en attendant une image de
+   combat, à cheval ou non), un clic montre ses caractéristiques ; cette place servira aussi aux machines de guerre
+   (catapulte, baliste…). Pas de panneaux de côté (choix de l'utilisateur) : un **clic droit maintenu** sur une troupe
+   montre sa fiche (caractéristiques, PV de tête, capacités, ripostes ; pas de dégâts attendus). « Journal » au bout
+   de la ligne de la dernière action ; touches W (attendre), D (se défendre), A (auto), F (fuir), écrites sur les
+   boutons. Le **bilan** s'ouvre après chaque combat, tactique ou rapide : l'expérience gagnée d'abord (et une
+   révolte), puis nos pertes, puis les ennemis tués, en images sans cadre.
 5. **Les fenêtres** : niveau supérieur, recrutement (« Max », avertissement de charisme), fin de partie (la partie
    compte monstres vaincus, créatures perdues…).
 6. **Menu principal, nouvelle partie, sauvegardes** : menu sauté par toute option de lancement ou `--play` ; taille

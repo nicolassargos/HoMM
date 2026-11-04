@@ -734,6 +734,44 @@ public static class Texts
     public static string SplitText(CreatureType type, int moved, int total) =>
         $"{moved} {Creature(type, moved)} d'un côté, {total - moved} de l'autre.";
 
+    // ------------------------------------------------------------------ écran de combat et bilan (étape 7)
+
+    /// <summary>Le texte d'un bouton du combat avec sa touche : « Attendre (W) ».</summary>
+    public static string WithKey(string text, string key) => $"{text} ({key})";
+
+    public static string HeroBonus(Hero hero) => $"Attaque +{hero.Attack} · défense +{hero.Defense}";
+    public static string SpellBookLater => "La magie viendra plus tard.";
+    public static string BattleLogButton => "Journal";
+    public static string BattleLogTitle => "Journal du combat";
+
+    /// <summary>La fiche d'une troupe au combat, sur quelques lignes (ses caractéristiques, bonus du héros compris).</summary>
+    public static string UnitStats(BattleUnit unit) =>
+        $"Attaque {unit.Attack} · défense {unit.Defense}\n"
+        + $"Dégâts {unit.Type.MinDamage}–{unit.Type.MaxDamage} · vitesse {unit.Type.Speed}\n"
+        + $"PV de tête {unit.TopHitPoints} / {unit.Type.HitPoints}";
+
+    public static string UnitAbilities(BattleUnit unit) =>
+        unit.Type.Abilities.Count == 0 ? "Pas de capacité" : Capitalize(string.Join(", ", unit.Type.Abilities.Select(AbilityName)));
+
+    public static string UnitState(BattleUnit unit) =>
+        $"Ripostes : {unit.RetaliationsLeft}" + (unit.IsDefending ? " · se défend" : "");
+
+
+    /// <summary>Le titre du bilan d'un combat.</summary>
+    public static string ReportTitle(BattleReport report) =>
+        report.Fled ? "Fuite" : report.AttackerWon ? "Victoire !" : "Défaite…";
+
+    /// <summary>« contre 12 Loups · 4 rounds ».</summary>
+    public static string ReportSubtitle(BattleFought battle) =>
+        $"{BattleTitle(battle)} · {battle.Report.Rounds} round{(battle.Report.Rounds > 1 ? "s" : "")}";
+
+    public static string YourLosses => "Vos pertes";
+    public static string EnemyLosses => "Ennemis tués";
+    public static string NoLoss => "aucune";
+    public static string ReportExperience(BattleReport report) =>
+        report.Fled ? "Fuite : pas d'expérience." : report.AttackerWon ? $"Expérience : +{report.Experience}" : "";
+    public static string ContinueButton => "Continuer";
+
     public static string Capitalize(string s) => s.Length == 0 ? s : char.ToUpper(s[0]) + s[1..];
 
     public static string LowerFirst(string s) => s.Length == 0 ? s : char.ToLower(s[0]) + s[1..];

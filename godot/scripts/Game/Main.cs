@@ -177,7 +177,7 @@ public partial class Main : Node2D
             foreach (var creature in _state.Creatures.All.OrderBy(c => c.Tier))
                 (creature.Faction == "chateau" ? castle : neutral).Add(creature, 5);
             _battleScreen.Open(new TacticalBattle(castle, neutral, new GameRandom(1)), "la vitrine", TerrainType.Grass, () => { },
-                auto: OS.GetCmdlineUserArgs().Contains("--battle-auto"));
+                auto: OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: _state.CurrentHero);
         }
         // Développement : « --battle-test » : des Orcs et des Loups à deux cases, et le héros y va
         if (OS.GetCmdlineUserArgs().Contains("--battle-test") && _state.CurrentHero is { } fighter)
@@ -573,7 +573,7 @@ public partial class Main : Node2D
         });
         var terrain = _state.Map.GetTerrain(started.Hero.Position);
         void Tactical() => _battleScreen.Open(started.Battle, opponent, terrain, () => _state.FinishBattle(),
-            auto: _battleTest && OS.GetCmdlineUserArgs().Contains("--battle-auto"));
+            auto: _battleTest && OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: started.Hero);
         void Quick()
         {
             BattleAI.PlayOut(started.Battle);

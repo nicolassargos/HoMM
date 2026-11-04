@@ -545,14 +545,74 @@ public partial class Hud : CanvasLayer
 
     // --------------------------------------------------------------- fenêtres
 
-    /// <summary>Fenêtre du compte rendu de combat.</summary>
-    public void ShowBattle(BattleFought battle)
+    /// <summary>
+    /// Le bilan d'un combat (étape 7), après chaque combat, tactique ou rapide : le vainqueur, les pertes des deux camps
+    /// en images, l'expérience gagnée, les révoltes et les pertes d'une fuite.
+    /// </summary>
+    public void ShowBattle(BattleFought battle) => Enqueue(done =>
     {
         var report = battle.Report;
-        string text = (report.AttackerWon ? "Victoire !" : "Défaite...")
-            + $"\n\nVos pertes : {Texts.Losses(report.AttackerLosses)}"
-            + $"\nPertes ennemies : {Texts.Losses(report.DefenderLosses)}";
-        ShowDialog(Texts.BattleTitle(battle), text, "OK", null);
+        var dialog = new AcceptDialog { Title = Texts.ReportTitle(report), OkButtonText = Texts.ContinueButton, Exclusive = true, Unresizable = true };
+        var content = new VBoxContainer { CustomMinimumSize = new Vector2(560, 0) };
+        content.AddThemeConstantOverride("separation", 8);
+        var subtitle = MakeLabel(Texts.ReportSubtitle(battle), 14, SoftTextColor);
+        subtitle.HorizontalAlignment = HorizontalAlignment.Center;
+        content.AddChild(subtitle);
+        // d'abord l'expérience gagnée (et une révolte), puis nos pertes, puis les ennemis tués
+        foreach (var (line, color) in new[] { (Texts.ReportExperience(report), TextColor), (Texts.Revolt(report) ?? "", MapRenderer.Rgb(240, 150, 130)) })
+        {
+            if (line.Length == 0)
+                continue;
+            var label = MakeLabel(line, 16, color);
+            label.HorizontalAlignment = HorizontalAlignment.Center;
+            label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            label.CustomMinimumSize = new Vector2(560, 0);
+            content.AddChild(label);
+        }
+        content.AddChild(LossesRow(Texts.YourLosses, report.AttackerLosses, minus: true));
+        content.AddChild(LossesRow(Texts.EnemyLosses, report.DefenderLosses, minus: false));
+        dialog.AddChild(content);
+        bool closed = false;
+        void Close()
+        {
+            if (closed)
+                return;
+            closed = true;
+            dialog.QueueFree();
+            done();
+        }
+        dialog.Confirmed += Close;
+        dialog.Canceled += Close;
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(600, 0));
+    });
+
+    /// <summary>Une partie du bilan : un titre, puis chaque troupe perdue (image et nombre, sans cadre), ou « aucune ».</summary>
+    private static Control LossesRow(string title, IReadOnlyList<CreatureStack> losses, bool minus)
+    {
+        var column = new VBoxContainer { CustomMinimumSize = new Vector2(560, 0) };
+        column.AddThemeConstantOverride("separation", 2);
+        var header = MakeLabel(title, 15, SoftTextColor);
+        header.HorizontalAlignment = HorizontalAlignment.Center;
+        column.AddChild(header);
+        var row = new HFlowContainer { CustomMinimumSize = new Vector2(560, 0), Alignment = FlowContainer.AlignmentMode.Center };
+        row.AddThemeConstantOverride("h_separation", 8);
+        row.AddThemeConstantOverride("v_separation", 4);
+        column.AddChild(row);
+        if (losses.Count == 0)
+            row.AddChild(MakeLabel(Texts.NoLoss, 13, SoftTextColor));
+        foreach (var stack in losses)
+        {
+            var slot = new Control { CustomMinimumSize = new Vector2(60, 70), TooltipText = Texts.Stack(stack), MouseFilter = Control.MouseFilterEnum.Stop };
+            if (Art.Get($"creatures/{stack.Type.Id}") is { } image)
+                slot.AddChild(Picture(image, new Vector2(6, 2), new Vector2(48, 48)));
+            var count = At(MakeLabel(minus ? $"−{stack.Count}" : $"{stack.Count}", 13, TextColor), 0, 50);
+            count.Size = new Vector2(60, 18);
+            count.HorizontalAlignment = HorizontalAlignment.Center;
+            slot.AddChild(count);
+            row.AddChild(slot);
+        }
+        return column;
     }
 
     /// <summary>Fenêtre de fin de partie, avec un bouton pour recommencer.</summary>

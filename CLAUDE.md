@@ -49,7 +49,7 @@ Décision de l'utilisateur, valable pour toutes les sessions :
   `tools/art/reduire.py` (réduire ou retourner une image sans la flouter), `tools/art/detourer.py` (rendre
   transparent un fond uni), `tools/art/pixellab.py` (PixelLab : solde, animations, éléments d'interface).
   Captures du jeu : `godot` avec `-- --capture=chemin.png` (et `--reveal`, `--zoom`, `--terrain-test`,
-  `--town`, `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--battle-test` (et `--battle-auto`), `--battle-showcase`, `--hover=x,y` (case survolée), `--capture-delay=secondes`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
+  `--town`, `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--battle-test` (et `--battle-auto`), `--battle-showcase`, `--hover=x,y` (case survolée), `--open=hero` ou `kingdom` (écran du héros, royaume), `--capture-delay=secondes`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
 
 ## Commandes
 - Tests : `dotnet test` (à la racine)

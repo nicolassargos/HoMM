@@ -560,6 +560,12 @@ public static class Texts
     };
 
     public static string NextHeroButton => "Héros suivant";
+    public static string NextHeroShort => "Suivant";
+    public static string TreasureShort => "Trésor";
+    public static string WalkTooltip => "Avancer sur le chemin tracé";
+    public static string CenterTooltip => "Centrer la carte sur le héros";
+    public static string DigTooltip => "Creuser ici (il faut une journée entière de mouvement)";
+    public static string OptionsTooltip => "Sauvegarder, charger";
     public static string WalkButton => "Avancer";
     public static string CenterButton => "Centrer";
     public static string DigAction => "Creuser";
@@ -597,6 +603,76 @@ public static class Texts
     public static string Neutral => "neutre";
     public static string Guarded => "gardé par un monstre";
     public static string GarrisonOf(string danger) => $"garnison : {danger}";
+
+    // ------------------------------------------------------------------ écran du héros et royaume (étape 7)
+
+    public static string KingdomButton => "Royaume";
+    public static string HeroScreenHint => "Clic : l'écran du héros";
+    public static string ExperienceWord => "Expérience";
+    public static string MovementWord => "Mouvement";
+    public static string LevelLine(Hero hero) => $"Niveau {hero.Level}";
+    public static string StatFullName(HeroStat? stat) => stat is { } s ? Capitalize(StatName(s)) : "Charisme";
+
+    /// <summary>Sous chaque caractéristique de l'écran du héros : ce qu'elle fait, en quelques mots.</summary>
+    public static string StatEffect(HeroStat? stat, Hero hero) => stat switch
+    {
+        HeroStat.Attack => "+ à l'attaque de chaque troupe",
+        HeroStat.Defense => "+ à la défense de chaque troupe",
+        HeroStat.Power => "force des sorts (plus tard)",
+        HeroStat.Knowledge => "points de sort (plus tard)",
+        _ => $"commande {Command.Limit(hero.Charisma)} points par troupe",
+    };
+
+    public static string ArtifactsHeader => "Artefacts";
+    public static string NoArtifact => "Aucun artefact pour l'instant.";
+    public static string MagicHeader => "Magie";
+    public static string MagicLater =>
+        "La magie viendra plus tard : les points de sort, le livre de sorts et les compétences du héros prendront place ici.";
+
+    /// <summary>« 30 / 100 points » : le commandement d'une troupe.</summary>
+    public static string CommandPoints(CreatureStack stack, int charisma) =>
+        $"{Command.Cost(stack.Type, stack.Count)} / {Command.Limit(charisma)} pts";
+
+    public static string KingdomTitle => "Le royaume";
+    public static string KingdomHeroes(int count) =>
+        $"Héros ({count} / {GameState.MaxHeroesPerPlayer}) · clic : le choisir · double clic : son écran";
+    public static string KingdomTowns => "Villes · clic : ouvrir la ville · ● : on peut y construire aujourd'hui";
+    public static string KingdomMines => "Mines et revenus · clic : centrer la carte sur une mine";
+    public static string KingdomNoTown => "Aucune ville : prenez-en une pour recruter et construire.";
+
+    /// <summary>Le détail d'un héros au survol, dans le royaume.</summary>
+    public static string HeroDetails(Hero hero) =>
+        $"{hero.Name} · niveau {hero.Level}\n"
+        + $"Attaque {hero.Attack} · défense {hero.Defense} · puissance {hero.Power} · savoir {hero.Knowledge} · charisme {hero.Charisma}\n"
+        + $"Mouvement {hero.Movement} / {hero.MaxMovement}\n"
+        + $"Armée : {(hero.Army.IsEmpty ? "aucune" : string.Join(", ", hero.Army.Stacks.Select(Stack)))}";
+
+    /// <summary>Le détail d'une ville au survol, dans le royaume.</summary>
+    public static string TownDetails(Town town)
+    {
+        var available = town.Available.Where(a => a.Value > 0).Select(a => $"{a.Value} {Creature(a.Key, a.Value)}").ToList();
+        return $"{town.Name} · +{town.DailyGold} or par jour\n"
+            + $"Construction : {(town.BuiltToday ? "déjà faite aujourd'hui" : "possible aujourd'hui")}\n"
+            + $"À recruter : {(available.Count == 0 ? "rien" : string.Join(", ", available))}\n"
+            + $"Garnison : {(town.Garrison.IsEmpty ? "aucune" : string.Join(", ", town.Garrison.Stacks.Select(Stack)))}";
+    }
+
+    /// <summary>Dans la bande des mines : « mines 2 · villes 1 » pour l'or, « mines 1 » sinon.</summary>
+    public static string MineCounts(Player player, ResourceType resource)
+    {
+        int mines = player.Mines.Count(m => m.Resource == resource);
+        return resource == ResourceType.Gold && player.Towns.Count > 0 ? $"mines {mines} · villes {player.Towns.Count}" : $"mines {mines}";
+    }
+
+    public static string PerDay(int amount) => amount > 0 ? $"+{amount} par jour" : "rien";
+
+    /// <summary>Où sont les mines d'une ressource (au survol).</summary>
+    public static string MinesWhere(Player player, ResourceType resource)
+    {
+        var mines = player.Mines.Where(m => m.Resource == resource).ToList();
+        return mines.Count == 0 ? $"Aucune mine {Of(Resource(resource))}."
+            : string.Join("\n", mines.Select(m => $"{MineName(m)} en ({m.Position.X}, {m.Position.Y}) : +{m.DailyProduction} par jour"));
+    }
 
     public static string Capitalize(string s) => s.Length == 0 ? s : char.ToUpper(s[0]) + s[1..];
 

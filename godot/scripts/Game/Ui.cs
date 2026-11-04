@@ -385,6 +385,24 @@ public static class Ui
         return button;
     }
 
+    /// <summary>Une image à cette taille (le mode « taille libre » d'abord : sinon l'image garderait sa propre taille).</summary>
+    public static TextureRect Picture(Texture2D texture, Vector2 position, Vector2 size) => new()
+    {
+        ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+        TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
+        Texture = texture, Position = position, Size = size,
+    };
+
+    /// <summary>Retire et libère tous les enfants d'un nœud (pour reconstruire une liste).</summary>
+    public static void Clear(Node node)
+    {
+        foreach (var child in node.GetChildren())
+        {
+            node.RemoveChild(child);
+            child.QueueFree();
+        }
+    }
+
     /// <summary>Marque un bouton comme choisi (le héros sélectionné) : plus clair, et bordé de blanc sans image.</summary>
     public static void MarkSelected(Button button) =>
         button.AddThemeStyleboxOverride("normal", ButtonBox(new Color(1.45f, 1.4f, 1.25f), MapRenderer.Rgb(120, 90, 40), Colors.White));

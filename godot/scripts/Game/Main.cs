@@ -34,6 +34,8 @@ public partial class Main : Node2D
     private Hud _hud = null!;
     private TownScreen _townScreen = null!;
     private BattleScreen _battleScreen = null!;
+    private HeroScreen _heroScreen = null!;
+    private KingdomScreen _kingdomScreen = null!;
 
     /// <summary>Développement (« --battle-test ») : un combat tout de suite, joué sur l'écran de combat sans demander.</summary>
     private bool _battleTest;
@@ -101,6 +103,36 @@ public partial class Main : Node2D
         AddChild(_battleScreen);
         _battleScreen.Build(screen);
 
+        // l'écran du héros et le royaume, en grandes fenêtres par-dessus la carte
+        _heroScreen = new HeroScreen();
+        AddChild(_heroScreen);
+        _heroScreen.Build(screen);
+        _hud.HeroDetailsPressed += OpenHeroScreen;
+        _kingdomScreen = new KingdomScreen();
+        AddChild(_kingdomScreen);
+        _kingdomScreen.Build(_state, screen);
+        _hud.KingdomPressed += OpenKingdom;
+        _kingdomScreen.HeroChosen += hero =>
+        {
+            _kingdomScreen.Close();
+            SelectHero(hero);
+        };
+        _kingdomScreen.HeroDetailsWanted += hero =>
+        {
+            _kingdomScreen.Close();
+            OpenHeroScreen(hero);
+        };
+        _kingdomScreen.TownChosen += town =>
+        {
+            _kingdomScreen.Close();
+            OpenTown(town);
+        };
+        _kingdomScreen.MineChosen += cell =>
+        {
+            _kingdomScreen.Close();
+            _camera.CenterOn(cell);
+        };
+
         _townScreen = new TownScreen();
         AddChild(_townScreen);
         _townScreen.Build(_state, screen);
@@ -123,6 +155,11 @@ public partial class Main : Node2D
         if (_capturePath != null && OS.GetCmdlineUserArgs().Contains("--town"))
             ShowTownForCapture();
         CenterOnHero();
+        // Développement : « --open=hero » ou « --open=kingdom » ouvre cet écran (pour une capture d'écran)
+        if (OS.GetCmdlineUserArgs().Contains("--open=hero") && _state.CurrentHero is { } shown)
+            _heroScreen.Open(shown);
+        if (OS.GetCmdlineUserArgs().Contains("--open=kingdom"))
+            _kingdomScreen.Open();
         // Développement : « --center=treasure » centre la vue sur le trésor (pour une capture d'écran)
         if (OS.GetCmdlineUserArgs().Contains("--center=treasure") && _state.Map.Treasure is { } hidden)
             _camera.CenterOn(hidden);
@@ -259,7 +296,8 @@ public partial class Main : Node2D
         CenterOnHero();
     }
 
-    private bool OnMap => !_hud.IsDialogOpen && !_townScreen.IsOpen && !_battleScreen.IsOpen;
+    private bool OnMap => !_hud.IsDialogOpen && !_townScreen.IsOpen && !_battleScreen.IsOpen
+        && !_heroScreen.IsOpen && !_kingdomScreen.IsOpen;
 
     /// <summary>Les commandes de la carte sont ignorées pendant la marche, hors de la carte, ou une fois la partie finie.</summary>
     private bool CanAct => !_walking && OnMap && _state.Outcome == GameOutcome.Playing;
@@ -366,6 +404,20 @@ public partial class Main : Node2D
         CenterOnHero();
     }
 
+    /// <summary>L'écran du héros (clic sur son portrait, double clic dans une liste).</summary>
+    private void OpenHeroScreen(Hero hero)
+    {
+        if (OnMap)
+            _heroScreen.Open(hero);
+    }
+
+    /// <summary>Le royaume (bouton ou touche K).</summary>
+    private void OpenKingdom()
+    {
+        if (OnMap)
+            _kingdomScreen.Open();
+    }
+
     /// <summary>Ouvre l'écran d'une ville du joueur (depuis la carte, la liste des villes ou la touche T).</summary>
     private void OpenTown(Town town)
     {
@@ -418,6 +470,7 @@ public partial class Main : Node2D
                     case Key.Space: StartWalking(); break;
                     case Key.Escape when !_walking: _state.ClearPath(); break;
                     case Key.C: CenterOnHero(); break;
+                    case Key.K: OpenKingdom(); break;
                     case Key.Plus or Key.KpAdd or Key.Equal: _camera.ZoomBy(+1); break;
                     case Key.Minus or Key.KpSubtract: _camera.ZoomBy(-1); break;
                     case Key.F5: SaveGame(); break;
@@ -457,6 +510,8 @@ public partial class Main : Node2D
             _actors.Hovered = pretend;
         UpdateCursor();
         _hud.Refresh(_actors.Hovered);
+        _heroScreen.Refresh();
+        _kingdomScreen.Refresh();
 
         if (_walking)
         {

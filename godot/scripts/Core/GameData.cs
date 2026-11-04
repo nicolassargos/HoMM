@@ -56,6 +56,18 @@ public sealed record BuildingType
 
     /// <summary>La taverne permet de recruter des héros.</summary>
     public bool Tavern { get; init; }
+
+    /// <summary>
+    /// Le bâtiment que celui-ci remplace (l'hôtel de ville remplace la salle du village) : à l'écran, seul le plus récent
+    /// est dessiné, à la même place.
+    /// </summary>
+    public string? Replaces { get; init; }
+
+    /// <summary>
+    /// Sa place dans la vue de la ville (étape 7) : x, y, largeur, hauteur, en pixels, dans une vue de 1280 × 390.
+    /// Une donnée d'affichage, sans effet sur les règles.
+    /// </summary>
+    public List<int> View { get; init; } = new();
 }
 
 /// <summary>Tous les bâtiments du jeu.</summary>

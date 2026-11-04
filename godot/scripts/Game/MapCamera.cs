@@ -6,16 +6,16 @@ namespace HoMM.Game;
 /// <summary>
 /// La caméra de la carte d'aventure : position, défilement (clavier, bord de l'écran),
 /// recentrage sur le héros, zoom. La zone visible est ce qui reste à côté du panneau et sous la barre du haut.
-/// Le zoom garde des pixels d'art entiers : ×1 montre les images ×2 (un pixel d'art = 2 pixels de l'écran),
-/// ×1,5 les montre ×3, comme la carte du premier Heroes.
+/// Le zoom garde des pixels d'art entiers : ×1,5 montre les images ×3 (un pixel d'art = 3 pixels de l'écran, comme la
+/// carte du premier Heroes), ×2 les montre ×4 (écran de 1920 × 1080).
 /// </summary>
 public partial class MapCamera : Camera2D
 {
     private const int T = MapRenderer.TileSize;
-    private const float ScrollSpeed = 700;
+    private const float ScrollSpeed = 1050;
 
     /// <summary>Les niveaux de zoom (molette de la souris, touches + et -).</summary>
-    public static readonly float[] Zooms = { 1f, 1.5f };
+    public static readonly float[] Zooms = { 1.5f, 2f };
 
     private AdventureMap _map = null!;
     private Minimap _minimap = null!;
@@ -35,8 +35,11 @@ public partial class MapCamera : Camera2D
         _map = map;
         _minimap = minimap;
         AnchorMode = AnchorModeEnum.FixedTopLeft;
-        _screenView = new Vector2(screenSize.X - Hud.PanelWidth, screenSize.Y - Hud.TopBarHeight);
-        ViewSize = _screenView;
+        // la carte visible : entre la barre du haut et la bande du bas, à gauche du panneau
+        _screenView = new Vector2(screenSize.X - Hud.PanelWidth, screenSize.Y - Hud.TopBarHeight - Hud.BottomBarHeight);
+        // le premier niveau de zoom dès le départ (×3 : pixels d'art entiers)
+        Zoom = new Vector2(Zooms[_zoomIndex], Zooms[_zoomIndex]);
+        ViewSize = _screenView / Zooms[_zoomIndex];
         MakeCurrent();
     }
 
@@ -51,6 +54,7 @@ public partial class MapCamera : Camera2D
             return;
         // le point fixe, mesuré depuis le coin haut-gauche de la vue
         var anchor = screenPoint is { } point && point.X < _screenView.X && point.Y >= Hud.TopBarHeight
+                     && point.Y < Hud.TopBarHeight + _screenView.Y
             ? point - new Vector2(0, Hud.TopBarHeight)
             : _screenView / 2;
         var fixedPoint = TopLeft + anchor / Zooms[_zoomIndex];
@@ -112,7 +116,7 @@ public partial class MapCamera : Camera2D
     public Cell? HoveredCell()
     {
         var mouse = GetViewport().GetMousePosition();
-        if (mouse.X >= _screenView.X || mouse.Y < Hud.TopBarHeight)
+        if (mouse.X >= _screenView.X || mouse.Y < Hud.TopBarHeight || mouse.Y >= Hud.TopBarHeight + _screenView.Y)
             return null;
         var world = GetGlobalMousePosition();
         var cell = new Cell(Mathf.FloorToInt(world.X / T), Mathf.FloorToInt(world.Y / T));

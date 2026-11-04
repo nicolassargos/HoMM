@@ -71,7 +71,38 @@ public sealed class MapGenerator
         PlaceObjects();
         if (_data != null)
             PlaceGuards(_data.Creatures);
+        RemoveUnreachableGuards();
         return _map;
+    }
+
+    /// <summary>
+    /// Retire les monstres qu'aucun chemin n'atteint, même en battant les autres monstres (par exemple le gardien
+    /// d'une mine posé derrière elle, dans un cul-de-sac) : on ne pourrait jamais les vaincre tous.
+    /// </summary>
+    private void RemoveUnreachableGuards()
+    {
+        var seen = new HashSet<Cell> { _map.Start };
+        var queue = new Queue<Cell>(seen);
+        while (queue.Count > 0)
+        {
+            var cell = queue.Dequeue();
+            if (cell != _map.Start && _map.ObjectAt(cell) is { } obj && obj is not MonsterGuard)
+                continue; // on visite un objet, on ne le traverse pas
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                var next = cell.Offset(dx, dy);
+                if (!_map.IsPassable(next) || seen.Contains(next))
+                    continue;
+                // pas de diagonale qui coupe un coin infranchissable (comme le Pathfinder)
+                if (dx != 0 && dy != 0 && !(_map.IsPassable(cell.Offset(dx, 0)) && _map.IsPassable(cell.Offset(0, dy))))
+                    continue;
+                seen.Add(next);
+                queue.Enqueue(next);
+            }
+        }
+        foreach (var guard in _map.Objects.OfType<MonsterGuard>().Where(g => !seen.Contains(g.Position)).ToList())
+            _map.RemoveObject(guard);
     }
 
     /// <summary>Nombre d'objets à poser pour cette carte, à partir du nombre prévu pour la carte de référence.</summary>

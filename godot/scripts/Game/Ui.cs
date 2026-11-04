@@ -24,6 +24,25 @@ public static class Ui
     /// </summary>
     public const float FontScale = 1.3f;
 
+    /// <summary>
+    /// L'échelle de l'interface (1920 × 1080) : les écrans sont décrits dans les unités de l'ancien écran (1280 × 720) et
+    /// <see cref="Px"/>, <see cref="V"/>, <see cref="At{T}"/>, <see cref="TextSize"/> et <see cref="Box"/> les mettent à
+    /// l'échelle. Les images en pixel art, elles, sont toujours agrandies d'un nombre entier de fois (pixels réguliers).
+    /// </summary>
+    public const float Scale = 1.5f;
+
+    /// <summary>Agrandissement des cadres et des boutons (leurs images) : un nombre entier, pour des pixels réguliers.</summary>
+    public const int ArtScale = 2;
+
+    /// <summary>Une longueur de l'interface, mise à l'échelle (arrondie au pixel).</summary>
+    public static float Px(float value) => MathF.Round(value * Scale);
+
+    /// <summary>Une position ou une taille de l'interface, mise à l'échelle.</summary>
+    public static Vector2 V(float x, float y) => new(Px(x), Px(y));
+
+    /// <summary>La taille de l'écran dans les unités de l'interface (1280 × 720 pour un écran de 1920 × 1080).</summary>
+    public static Vector2 Units(Vector2 screen) => screen / Scale;
+
     /// <summary>Taille à partir de laquelle la police reste nette sans lissage (en dessous, elle est lissée).</summary>
     public const int SharpFontSize = 25;
 
@@ -31,7 +50,7 @@ public static class Ui
     private static Font? _smoothFont;
 
     /// <summary>La taille réelle d'un texte prévu à la taille <paramref name="size"/>.</summary>
-    public static int TextSize(int size) => _smoothFont == null ? size : (int)MathF.Round(size * FontScale);
+    public static int TextSize(int size) => (int)MathF.Round(size * Scale * (_smoothFont == null ? 1 : FontScale));
 
     /// <summary>
     /// La police pixel (VT323, licence OFL) devient la police de toute l'interface et des textes de la carte.
@@ -69,9 +88,10 @@ public static class Ui
             control.AddThemeFontOverride("font", size >= SharpFontSize ? _sharpFont : _smoothFont);
     }
 
+    /// <summary>Place un contrôle à (x, y), en unités de l'interface (mises à l'échelle).</summary>
     public static T At<T>(T control, float x, float y) where T : Control
     {
-        control.Position = new Vector2(x, y);
+        control.Position = V(x, y);
         return control;
     }
 
@@ -87,15 +107,17 @@ public static class Ui
         int left = 0, int top = 0, int right = 0, int bottom = 0, int radius = 0)
     {
         var box = new StyleBoxFlat { BgColor = background };
+        // les bords à l'échelle de l'interface (un bord d'un pixel en fait deux)
+        static int Width(int w) => w == 0 ? 0 : Math.Max(1, (int)MathF.Round(w * Scale));
         if (border is { } b)
         {
             box.BorderColor = b;
-            box.BorderWidthLeft = left;
-            box.BorderWidthTop = top;
-            box.BorderWidthRight = right;
-            box.BorderWidthBottom = bottom;
+            box.BorderWidthLeft = Width(left);
+            box.BorderWidthTop = Width(top);
+            box.BorderWidthRight = Width(right);
+            box.BorderWidthBottom = Width(bottom);
         }
-        box.SetCornerRadiusAll(radius);
+        box.SetCornerRadiusAll(Width(radius));
         return box;
     }
 
@@ -110,6 +132,15 @@ public static class Ui
     /// </summary>
     private static int FrameCorner = 12, FrameContentX = 14, FrameContentY = 6, ButtonCorner = 6;
 
+    /// <summary>Agrandissement du cadre à l'écran (« panelScale » dans ui.json ; par défaut celui des images).</summary>
+    private static int FrameScale = ArtScale;
+
+    /// <summary>Agrandissement des boutons à l'écran (« buttonScale » dans ui.json ; par défaut celui des images).</summary>
+    private static int ButtonScale = ArtScale;
+
+    /// <summary>Ne répéter que la bande sans détail des bords du bouton (vrai pour l'ancien bouton à clous).</summary>
+    private static bool ButtonPlainBand = true;
+
     private static void LoadSlices()
     {
         const string path = "res://art/ui/ui.json";
@@ -122,6 +153,13 @@ public static class Ui
         FrameContentX = Get("panelContentX", FrameContentX);
         FrameContentY = Get("panelContentY", FrameContentY);
         ButtonCorner = Get("buttonCorner", ButtonCorner);
+        FrameScale = Get("panelScale", FrameScale);
+        ButtonScale = Get("buttonScale", ButtonScale);
+        ButtonPlainBand = Get("buttonPlainBand", ButtonPlainBand ? 1 : 0) != 0;
+        if (values.TryGetValue("panelTexture", out var texture))
+            PanelTexture = texture.AsString();
+        if (values.TryGetValue("panelTextureStrength", out var strength))
+            PanelTextureStrength = (float)strength.AsDouble();
     }
 
     private static readonly Dictionary<Color, StyleBox> Frames = new();
@@ -134,8 +172,28 @@ public static class Ui
             return;
         _imagesLoaded = true;
         LoadSlices();
-        _frameImage = Art.GetImage("ui/panel") is { } frame ? WithoutRepeatedDetails(frame, FrameCorner) : null;
-        _buttonImage = Art.GetImage("ui/button") is { } button ? WithoutRepeatedDetails(button, ButtonCorner) : null;
+        _frameImage = Art.GetImage("ui/panel") is { } frame
+            ? Enlarged(WithLargeMiddle(WithoutRepeatedDetails(frame, FrameCorner), FrameCorner), FrameScale) : null;
+        // un bouton garde tout son milieu (« buttonPlainBand » : seulement la bande sans détail, pour des bords à clous) :
+        // une pierre texturée répétée par petites bandes laissait des raccords visibles
+        _buttonImage = Art.GetImage("ui/button") is { } button
+            ? Enlarged(ButtonPlainBand ? WithoutRepeatedDetails(button, ButtonCorner) : Trimmed(button), ButtonScale) : null;
+    }
+
+    /// <summary>L'image réduite à sa partie non transparente.</summary>
+    private static Image Trimmed(Image source)
+    {
+        var image = source.GetRegion(source.GetUsedRect());
+        image.Convert(Image.Format.Rgba8);
+        return image;
+    }
+
+    /// <summary>L'image agrandie <see cref="ArtScale"/> fois, pixels nets (chaque pixel devient un carré).</summary>
+    private static Image Enlarged(Image image, int scale = ArtScale)
+    {
+        var copy = (Image)image.Duplicate();
+        copy.Resize(image.GetWidth() * scale, image.GetHeight() * scale, Image.Interpolation.Nearest);
+        return copy;
     }
 
     /// <summary>
@@ -149,7 +207,7 @@ public static class Ui
         LoadImages();
         StyleBox box = _frameImage == null
             ? Box(fill, BorderColor, 2, 2, 2, 2)
-            : Sliced(FillInside(_frameImage, fill), FrameCorner, FrameContentX, FrameContentY);
+            : Sliced(FillInside(_frameImage, fill, FrameCorner), FrameCorner * FrameScale, (int)Px(FrameContentX), (int)Px(FrameContentY));
         Frames[fill] = box;
         return box;
     }
@@ -160,7 +218,7 @@ public static class Ui
         LoadImages();
         if (_buttonImage == null)
             return Box(flatColor, border, 2, 2, 2, 2, radius: 6);
-        var box = Sliced(_buttonImage, ButtonCorner, ButtonCorner + 8, 5);
+        var box = Sliced(_buttonImage, ButtonCorner * ButtonScale, (int)Px(ButtonCorner + 8), (int)Px(5));
         box.ModulateColor = tint;
         return box;
     }
@@ -262,7 +320,80 @@ public static class Ui
     /// Une copie de l'image où les pixels transparents entourés par le cadre prennent la couleur <paramref name="fill"/>
     /// (ceux reliés au bord de l'image, à l'extérieur du cadre, restent transparents).
     /// </summary>
-    private static Image FillInside(Image source, Color fill)
+    /// <summary>
+    /// Taille du milieu du cadre (entre les coins), en pixels d'art : la bande sans détail y est répétée, pour que le
+    /// grain du fond (<see cref="Grain"/>) ne revienne que toutes les <see cref="FrameMiddle"/> pixels.
+    /// </summary>
+    private const int FrameMiddle = 64;
+
+    /// <summary>Le cadre avec un milieu de <see cref="FrameMiddle"/> pixels de côté (la bande du milieu répétée).</summary>
+    private static Image WithLargeMiddle(Image image, int corner)
+    {
+        Image Stretch(Image source, bool vertical)
+        {
+            int w = source.GetWidth(), h = source.GetHeight();
+            int band = (vertical ? h : w) - 2 * corner;
+            var result = Image.CreateEmpty(vertical ? w : 2 * corner + FrameMiddle, vertical ? 2 * corner + FrameMiddle : h, false, Image.Format.Rgba8);
+            Rect2I Span(int from, int size) => vertical ? new Rect2I(0, from, w, size) : new Rect2I(from, 0, size, h);
+            Vector2I To(int at) => vertical ? new Vector2I(0, at) : new Vector2I(at, 0);
+            result.BlitRect(source, Span(0, corner), To(0));
+            for (int at = 0; at < FrameMiddle; at += band)
+                result.BlitRect(source, Span(corner, Math.Min(band, FrameMiddle - at)), To(corner + at));
+            result.BlitRect(source, Span(corner + band, corner), To(corner + FrameMiddle));
+            return result;
+        }
+        return Stretch(Stretch(image, vertical: false), vertical: true);
+    }
+
+    /// <summary>
+    /// Le fond un peu texturé des cadres (« panelTexture » dans ui.json) : « doux » (marbrure légère et quelques points),
+    /// « pierre » (grain fin de granit), « cuir » (grandes taches douces), « toile » (tissage très léger) ou « uni ».
+    /// (x, y) en pixels d'art depuis le coin du milieu ; le motif se répète tous les <see cref="FrameMiddle"/> pixels,
+    /// sans raccord visible.
+    /// </summary>
+    private static string PanelTexture = "doux";
+
+    /// <summary>Force du motif du fond (« panelTextureStrength » dans ui.json, 1 par défaut).</summary>
+    private static float PanelTextureStrength = 1;
+
+    private static Color Grain(Color fill, int x, int y)
+    {
+        x = ((x % FrameMiddle) + FrameMiddle) % FrameMiddle;
+        y = ((y % FrameMiddle) + FrameMiddle) % FrameMiddle;
+        static float Hash(int a, int b)
+        {
+            uint h = (uint)(a * 374761393 + b * 668265263);
+            h = (h ^ (h >> 13)) * 1274126177;
+            return (h ^ (h >> 16)) / (float)uint.MaxValue;
+        }
+        // un bruit doux sur des carrés de <cell> pixels, de 0 à 1, qui se répète tous les FrameMiddle pixels
+        float Smooth(int cell, int seed)
+        {
+            int cells = FrameMiddle / cell;
+            float fx = (float)x / cell, fy = (float)y / cell;
+            int x0 = (int)fx, y0 = (int)fy;
+            float tx = fx - x0, ty = fy - y0;
+            tx = tx * tx * (3 - 2 * tx);
+            ty = ty * ty * (3 - 2 * ty);
+            float Corner(int cx, int cy) => Hash(cx % cells + seed, cy % cells - seed);
+            return Mathf.Lerp(Mathf.Lerp(Corner(x0, y0), Corner(x0 + 1, y0), tx),
+                              Mathf.Lerp(Corner(x0, y0 + 1), Corner(x0 + 1, y0 + 1), tx), ty);
+        }
+        float speck = Hash(x + 1000, y + 1000);
+        float factor = PanelTexture switch
+        {
+            "uni" => 1,
+            "pierre" => 1 + 0.06f * (Smooth(8, 7) - 0.5f) + 0.07f * (Hash(x, y) - 0.5f)
+                        - (speck < 0.10f ? 0.07f : 0) + (speck > 0.96f ? 0.06f : 0),
+            "cuir" => 1 + 0.14f * (Smooth(16, 3) - 0.5f) + 0.06f * (Smooth(4, 11) - 0.5f),
+            "toile" => 1 + ((x / 2 + y / 2) % 2 == 0 ? 0.025f : -0.025f) + 0.05f * (Smooth(16, 5) - 0.5f),
+            _ => 1 + 0.10f * (Smooth(8, 0) - 0.5f) - (speck < 0.06f ? 0.08f : 0) + (speck > 0.97f ? 0.07f : 0),
+        };
+        factor = 1 + (factor - 1) * PanelTextureStrength;
+        return new Color(fill.R * factor, fill.G * factor, fill.B * factor, fill.A);
+    }
+
+    private static Image FillInside(Image source, Color fill, int corner)
     {
         var image = (Image)source.Duplicate();
         image.Convert(Image.Format.Rgba8);
@@ -282,12 +413,12 @@ public static class Ui
         for (int y = 0; y < h; y++)
         for (int x = 0; x < w; x++)
             if (!outside[x, y] && image.GetPixel(x, y).A <= 0.5f)
-                image.SetPixel(x, y, fill);
+                image.SetPixel(x, y, Grain(fill, x / FrameScale - corner, y / FrameScale - corner));
         return image;
     }
 
     /// <summary>Hauteur de la barre de titre des fenêtres (choix des conditions, niveau, fin de partie…).</summary>
-    private const int WindowTitleHeight = 34;
+    private static int WindowTitleHeight => (int)Px(34);
 
     /// <summary>
     /// Habille les contrôles que l'interface ne construit pas elle-même, surtout les fenêtres (AcceptDialog) :
@@ -302,12 +433,12 @@ public static class Ui
         switch (border)
         {
             case StyleBoxTexture texture:
-                texture.SetExpandMarginAll(6);
-                texture.ExpandMarginTop = WindowTitleHeight + 6;
+                texture.SetExpandMarginAll(Px(6));
+                texture.ExpandMarginTop = WindowTitleHeight + Px(6);
                 break;
             case StyleBoxFlat flat:
-                flat.SetExpandMarginAll(6);
-                flat.ExpandMarginTop = WindowTitleHeight + 6;
+                flat.SetExpandMarginAll(Px(6));
+                flat.ExpandMarginTop = WindowTitleHeight + Px(6);
                 break;
         }
         theme.SetStylebox("embedded_border", "Window", border);
@@ -315,10 +446,11 @@ public static class Ui
         theme.SetConstant("title_height", "Window", WindowTitleHeight);
         theme.SetColor("title_color", "Window", BorderColor);
         theme.SetFontSize("title_font_size", "Window", TextSize(16));
-        var inside = Box(PanelColor, null);
-        inside.SetContentMarginAll(14);
+        // les petites fenêtres (GameDialog) n'ont pas de bordure de Godot : leur fond est le cadre du jeu
+        var inside = (StyleBox)Frame(PanelColor).Duplicate();
+        inside.SetContentMarginAll(Px(24));
         theme.SetStylebox("panel", "AcceptDialog", inside);
-        theme.SetConstant("buttons_separation", "AcceptDialog", 12);
+        theme.SetConstant("buttons_separation", "AcceptDialog", (int)Px(12));
         theme.SetColor("font_color", "Label", TextColor);
 
         theme.SetStylebox("normal", "Button", ButtonBox(Colors.White, MapRenderer.Rgb(90, 66, 30), BorderColor));
@@ -333,8 +465,8 @@ public static class Ui
     }
 
     /// <summary>
-    /// L'image d'une créature (art/creatures/{id}.png), agrandie <paramref name="scale"/> fois (pixels nets),
-    /// ou null si elle n'a pas d'image.
+    /// L'image d'une créature (art/creatures/{id}.png), agrandie <paramref name="scale"/> fois à l'écran (un nombre
+    /// entier : pixels nets), ou null si elle n'a pas d'image.
     /// </summary>
     public static TextureRect? CreatureImage(CreatureType type, int scale = 2)
     {
@@ -365,6 +497,115 @@ public static class Ui
         button.AddThemeStyleboxOverride("pressed", ButtonBox(new Color(0.75f, 0.7f, 0.65f), MapRenderer.Rgb(70, 50, 20), BorderColor));
         button.AddThemeStyleboxOverride("disabled", ButtonBox(new Color(0.5f, 0.47f, 0.43f), MapRenderer.Rgb(50, 42, 32), DimColor));
         return button;
+    }
+
+    /// <summary>
+    /// Un bouton de taille fixe dont le texte (sur une ou plusieurs lignes) est dans une étiquette posée dessus : un
+    /// bouton s'élargit pour contenir son propre texte, une étiquette de taille fixe non.
+    /// </summary>
+    public static Button FixedButton(string text, int fontSize, Vector2 size, bool disabled = false)
+    {
+        var button = MakeButton("", fontSize);
+        button.Size = size;
+        button.Disabled = disabled;
+        var label = MakeLabel(text, fontSize, disabled ? DimColor : TextColor);
+        label.HorizontalAlignment = HorizontalAlignment.Center;
+        label.VerticalAlignment = VerticalAlignment.Center;
+        label.ClipText = true; // avant la taille : sinon elle se règle sur le texte entier
+        label.Size = size;
+        label.MouseFilter = Control.MouseFilterEnum.Ignore;
+        button.AddChild(label);
+        return button;
+    }
+
+    /// <summary>Une image à cette taille (le mode « taille libre » d'abord : sinon l'image garderait sa propre taille).</summary>
+    public static TextureRect Picture(Texture2D texture, Vector2 position, Vector2 size) => new()
+    {
+        ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+        TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
+        Texture = texture, Position = position, Size = size,
+    };
+
+    /// <summary>
+    /// Demande un nombre entre 1 et <paramref name="max"/> avec un curseur (partager une troupe) ; <paramref name="chosen"/>
+    /// est appelé avec ce nombre si le joueur valide.
+    /// </summary>
+    public static void AskCount(Node parent, string title, Func<int, string> describe, int max, Action<int> chosen)
+    {
+        var dialog = new GameDialog { Title = title, OkButtonText = "OK" };
+        dialog.AddCancelButton(Texts.CancelButton);
+        var content = new VBoxContainer { CustomMinimumSize = V(380, 0) };
+        content.AddThemeConstantOverride("separation", (int)Px(10));
+        var text = MakeLabel("", 15, TextColor);
+        content.AddChild(text);
+        var slider = new HSlider { MinValue = 1, MaxValue = Math.Max(1, max), Step = 1, Value = Math.Max(1, max / 2), FocusMode = Control.FocusModeEnum.None };
+        slider.CustomMinimumSize = V(360, 24);
+        content.AddChild(slider);
+        void Update() => text.Text = describe((int)slider.Value);
+        slider.ValueChanged += _ => Update();
+        Update();
+        dialog.AddChild(content);
+        dialog.Confirmed += () =>
+        {
+            chosen((int)slider.Value);
+            dialog.QueueFree();
+        };
+        dialog.Canceled += () => dialog.QueueFree();
+        parent.AddChild(dialog);
+        dialog.PopupCentered(new Vector2I((int)Px(420), 0));
+    }
+
+    /// <summary>Une case à cocher aux couleurs du jeu.</summary>
+    public static CheckBox MakeCheckBox(string text, bool pressed)
+    {
+        var box = new CheckBox { Text = text, ButtonPressed = pressed, FocusMode = Control.FocusModeEnum.None };
+        SetFontSize(box, 15);
+        box.AddThemeColorOverride("font_color", TextColor);
+        box.AddThemeColorOverride("font_pressed_color", TextColor);
+        box.AddThemeColorOverride("font_hover_color", Colors.White);
+        box.AddThemeColorOverride("font_hover_pressed_color", Colors.White);
+        // la case elle-même, dessinée claire sur le fond sombre (cochée ou non)
+        box.AddThemeIconOverride("checked", CheckIcon(true));
+        box.AddThemeIconOverride("unchecked", CheckIcon(false));
+        return box;
+    }
+
+    private static Texture2D? _checked, _unchecked;
+
+    /// <summary>Une case à cocher en pixel art : un cadre clair, et un carré doré dedans quand elle est cochée.</summary>
+    private static Texture2D CheckIcon(bool on)
+    {
+        if ((on ? _checked : _unchecked) is { } cached)
+            return cached;
+        int size = (int)Px(18), line = (int)Px(2), inset = (int)Px(5);
+        var image = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+        image.Fill(DarkPanelColor);
+        for (int i = 0; i < size; i++)
+            for (int w = 0; w < line; w++)
+            {
+                image.SetPixel(i, w, TextColor);
+                image.SetPixel(i, size - 1 - w, TextColor);
+                image.SetPixel(w, i, TextColor);
+                image.SetPixel(size - 1 - w, i, TextColor);
+            }
+        if (on)
+            image.FillRect(new Rect2I(inset, inset, size - 2 * inset, size - 2 * inset), BorderColor);
+        var texture = ImageTexture.CreateFromImage(image);
+        if (on)
+            _checked = texture;
+        else
+            _unchecked = texture;
+        return texture;
+    }
+
+    /// <summary>Retire et libère tous les enfants d'un nœud (pour reconstruire une liste).</summary>
+    public static void Clear(Node node)
+    {
+        foreach (var child in node.GetChildren())
+        {
+            node.RemoveChild(child);
+            child.QueueFree();
+        }
     }
 
     /// <summary>Marque un bouton comme choisi (le héros sélectionné) : plus clair, et bordé de blanc sans image.</summary>

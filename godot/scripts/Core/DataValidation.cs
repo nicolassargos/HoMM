@@ -69,6 +69,10 @@ public static class DataValidation
                 errors.Add($"{b.Id} : or quotidien négatif");
             if (ReachesItself(b, buildingById))
                 errors.Add($"{b.Id} : prérequis circulaires");
+            if (b.Replaces is { } replaced && !buildingById.ContainsKey(replaced))
+                errors.Add($"{b.Id} : remplace un bâtiment inconnu « {replaced} »");
+            if (b.View.Count is not (0 or 4) || b.View.Skip(2).Any(v => v <= 0))
+                errors.Add($"{b.Id} : place dans la ville invalide (x, y, largeur, hauteur)");
         }
     }
 

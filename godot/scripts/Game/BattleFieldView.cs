@@ -15,12 +15,13 @@ namespace HoMM.Game;
 public partial class BattleFieldView : Control
 {
     /// <summary>Taille d'une case : largeur (écart entre deux colonnes) et hauteur (pointe à pointe).</summary>
-    public const float HexWidth = 73, HexHeight = 84;
+    /// <summary>(Écran de 1920 × 1080 : les cases, les images et les marges sont en pixels de l'écran.)</summary>
+    public const float HexWidth = 110, HexHeight = 126;
     private const float RowStep = HexHeight * 0.75f;
-    private const int SpriteScale = 3;
+    private const int SpriteScale = 4;
 
     /// <summary>Agrandissement des images de combat (art/creatures/battle/).</summary>
-    private const int BattleSpriteScale = 2;
+    private const int BattleSpriteScale = 3;
 
     /// <summary>
     /// Les animations d'une créature : des feuilles de 8 images (4 colonnes, 2 rangées), à côté de son image de combat
@@ -31,12 +32,43 @@ public partial class BattleFieldView : Control
     /// <summary>Images d'animation par seconde.</summary>
     private const double AnimationFps = 10;
 
+    /// <summary>Agrandissement du sol (ses images de 24 pixels) et des obstacles.</summary>
+    private const int GroundScale = 3;
+
     /// <summary>Pendant une attaque animée, le coup porte à ce moment (en secondes), vers la fin du geste.</summary>
     private const double HitDelay = 0.45;
 
     private const string Idle = "idle", Walk = "walk", AttackState = "attack";
 
-    public static Vector2 FieldSize => new(Battlefield.Columns * HexWidth + HexWidth / 2, (Battlefield.Rows - 1) * RowStep + HexHeight);
+    /// <summary>
+    /// La place de chaque côté de la grille (étape 7) : le sol continue, pour les héros (et plus tard les machines de
+    /// guerre : catapulte, baliste…).
+    /// </summary>
+    public const float SideMargin = 318;
+
+    public static Vector2 FieldSize => new(Battlefield.Columns * HexWidth + HexWidth / 2 + 2 * SideMargin, (Battlefield.Rows - 1) * RowStep + HexHeight);
+
+    /// <summary>Le héros de l'attaquant, dessiné à gauche de la grille (null : pas de héros, une vitrine…).</summary>
+    public Hero? AttackerHero { get; set; }
+
+    private const int HeroScale = 4;
+
+    /// <summary>Où est dessiné le héros, à gauche de la grille (pour savoir si on clique dessus).</summary>
+    public Rect2 HeroRect
+    {
+        get
+        {
+            var size = (Art.Get("heroes/hero")?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
+            return new Rect2(new Vector2(SideMargin / 2 - size.X / 2, FieldSize.Y / 2 - size.Y / 2), size);
+        }
+    }
+
+    /// <summary>Un clic sur le héros.</summary>
+    public event Action? HeroClicked;
+
+    /// <summary>Clic droit enfoncé sur une troupe (sa fiche, tant que le bouton reste enfoncé), et relâché.</summary>
+    public event Action<BattleUnit, Vector2>? UnitInfoPressed;
+    public event Action? UnitInfoReleased;
 
     public TacticalBattle Battle { get; private set; } = null!;
     private TerrainType _terrain;
@@ -93,7 +125,7 @@ public partial class BattleFieldView : Control
 
     /// <summary>Le centre d'une case, dans le dessin (les rangées impaires sont décalées d'une demi-case).</summary>
     public static Vector2 Center(Hex hex) =>
-        new(hex.Col * HexWidth + HexWidth / 2 + ((hex.Row & 1) == 1 ? HexWidth / 2 : 0), hex.Row * RowStep + HexHeight / 2);
+        new(SideMargin + hex.Col * HexWidth + HexWidth / 2 + ((hex.Row & 1) == 1 ? HexWidth / 2 : 0), hex.Row * RowStep + HexHeight / 2);
 
     /// <summary>Où dessiner une troupe dont la tête est sur cette case : au milieu de ses cases (2 pour une grande créature).</summary>
     public static Vector2 UnitCenter(BattleUnit unit, Hex head)
@@ -131,8 +163,20 @@ public partial class BattleFieldView : Control
     {
         if (e is InputEventMouseMotion motion)
             Hovered = HexAt(motion.Position);
-        else if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click && HexAt(click.Position) is { } hex)
-            Clicked?.Invoke(hex, click.Position);
+        else if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)
+        {
+            if (AttackerHero != null && HeroRect.HasPoint(click.Position))
+                HeroClicked?.Invoke();
+            else if (HexAt(click.Position) is { } hex)
+                Clicked?.Invoke(hex, click.Position);
+        }
+        else if (e is InputEventMouseButton { ButtonIndex: MouseButton.Right } right)
+        {
+            if (right.Pressed && HexAt(right.Position) is { } hex && Battle.UnitAt(hex) is { } unit && ShownCount(unit) > 0)
+                UnitInfoPressed?.Invoke(unit, right.Position);
+            else if (!right.Pressed)
+                UnitInfoReleased?.Invoke();
+        }
     }
 
     // ------------------------------------------------------------------ animations
@@ -209,9 +253,9 @@ public partial class BattleFieldView : Control
                             var target = _shown[struck.Target];
                             target.Count = Math.Max(0, target.Count - struck.Killed);
                             target.Flash = 1;
-                            _floating.Add(($"-{struck.Damage}", target.Position + new Vector2(0, -50), 0, MapRenderer.Rgb(255, 210, 120)));
+                            _floating.Add(($"-{struck.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 210, 120)));
                             if (struck.Killed > 0)
-                                _floating.Add(($"{struck.Killed} †", target.Position + new Vector2(0, -30), 0, Colors.White));
+                                _floating.Add(($"{struck.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
                         }
                         age += delta;
                         if (age < 0.35)
@@ -247,7 +291,7 @@ public partial class BattleFieldView : Control
             if (age > 1.1f)
                 _floating.RemoveAt(i);
             else
-                _floating[i] = (text, position + new Vector2(0, -30 * (float)delta), age, color);
+                _floating[i] = (text, position + new Vector2(0, -Ui.Px(30) * (float)delta), age, color);
         }
         QueueRedraw();
     }
@@ -262,13 +306,13 @@ public partial class BattleFieldView : Control
         var ground = Art.Terrain(DecorLayer.Covers(_terrain) ? TerrainType.Grass : _terrain, 0);
         if (ground != null)
         {
-            var tile = ground.GetSize() * SpriteScale;
+            var tile = ground.GetSize() * GroundScale;
             // des cases entières, la dernière de chaque rangée coupée au bord du champ (les créatures, elles, peuvent dépasser)
             for (float y = 0; y < Size.Y; y += tile.Y)
             for (float x = 0; x < Size.X; x += tile.X)
             {
                 var part = new Vector2(Math.Min(tile.X, Size.X - x), Math.Min(tile.Y, Size.Y - y));
-                DrawTextureRectRegion(ground, new Rect2(new Vector2(x, y), part), new Rect2(Vector2.Zero, part / SpriteScale));
+                DrawTextureRectRegion(ground, new Rect2(new Vector2(x, y), part), new Rect2(Vector2.Zero, part / GroundScale));
             }
         }
         else
@@ -282,16 +326,20 @@ public partial class BattleFieldView : Control
             var corners = Corners(Center(hex));
             if (Reachable.Contains(hex))
                 DrawColoredPolygon(corners, new Color(1, 1, 0.8f, 0.16f));
-            DrawPolyline(corners.Append(corners[0]).ToArray(), new Color(0, 0, 0, 0.28f), 1);
+            DrawPolyline(corners.Append(corners[0]).ToArray(), new Color(0, 0, 0, 0.28f), Ui.Px(1));
         }
         if (ActiveUnit is { IsAlive: true } active && _shown.TryGetValue(active, out var activeShown) && !IsAnimating)
             foreach (var hex in active.Hexes)
-                DrawHexOutline(Center(hex), MapRenderer.Rgb(240, 200, 80), 3);
+                DrawHexOutline(Center(hex), MapRenderer.Rgb(240, 200, 80), Ui.Px(3));
         if (Hovered is { } hovered)
-            DrawHexOutline(Center(hovered), new Color(1, 1, 1, 0.7f), 2);
+            DrawHexOutline(Center(hovered), new Color(1, 1, 1, 0.7f), Ui.Px(2));
         if (Target is { } target)
             foreach (var hex in Battle.UnitAt(target)?.Hexes ?? new[] { target })
-                DrawHexOutline(Center(hex), MapRenderer.Rgb(220, 60, 40), 3);
+                DrawHexOutline(Center(hex), MapRenderer.Rgb(220, 60, 40), Ui.Px(3));
+
+        // le héros, à gauche de la grille (son image de la carte en attendant une image de combat)
+        if (AttackerHero != null && Art.Get("heroes/hero") is { } heroImage)
+            DrawTextureRect(heroImage, HeroRect, false);
 
         // obstacles et troupes, de haut en bas (ceux du bas passent devant)
         var things = new List<(float Y, Action Draw)>();
@@ -310,7 +358,7 @@ public partial class BattleFieldView : Control
         foreach (var (text, position, age, color) in _floating)
         {
             var faded = new Color(color, Math.Clamp(1.4f - age, 0, 1));
-            DrawString(font, position + new Vector2(-20, 0), text, HorizontalAlignment.Center, 40, Ui.TextSize(18), faded);
+            DrawString(font, position + Ui.V(-20, 0), text, HorizontalAlignment.Center, Ui.Px(40), Ui.TextSize(18), faded);
         }
     }
 
@@ -325,11 +373,11 @@ public partial class BattleFieldView : Control
         var image = _terrain == TerrainType.Forest ? Art.Variant("decor/pine", (int)center.X) : Art.Variant("decor/peak-small", (int)center.X);
         if (image != null)
         {
-            var size = image.GetSize() * 2;
-            DrawTextureRect(image, new Rect2(center + new Vector2(-size.X / 2, HexHeight / 2 - 8 - size.Y), size), false);
+            var size = image.GetSize() * GroundScale;
+            DrawTextureRect(image, new Rect2(center + new Vector2(-size.X / 2, HexHeight / 2 - Ui.Px(8) - size.Y), size), false);
             return;
         }
-        DrawColoredPolygon(new[] { center + new Vector2(-22, 18), center + new Vector2(-8, -16), center + new Vector2(10, -10), center + new Vector2(24, 18) },
+        DrawColoredPolygon(new[] { center + Ui.V(-22, 18), center + Ui.V(-8, -16), center + Ui.V(10, -10), center + Ui.V(24, 18) },
             MapRenderer.Rgb(110, 105, 100));
     }
 
@@ -360,7 +408,7 @@ public partial class BattleFieldView : Control
 
     private void DrawUnit(BattleUnit unit, Shown shown)
     {
-        var foot = shown.Position + new Vector2(0, HexHeight / 2 - 10);
+        var foot = shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10));
         var tint = shown.Flash > 0 ? new Color(1, 1 - shown.Flash * 0.6f, 1 - shown.Flash * 0.6f) : Colors.White;
         // L'image de combat (plus détaillée), sinon la petite de la carte ×3 ; une grande créature est centrée sur ses 2 cases
         var battleImage = Art.Get($"creatures/battle/{unit.Type.Id}");
@@ -384,13 +432,13 @@ public partial class BattleFieldView : Control
                 DrawTextureRectRegion(image, rect, source, tint);
         }
         else
-            DrawCircle(foot + new Vector2(0, -24), 20, unit.Side == BattleSide.Attacker ? MapRenderer.PlayerColor : MapRenderer.NeutralColor);
+            DrawCircle(foot + Ui.V(0, -24), Ui.Px(20), unit.Side == BattleSide.Attacker ? MapRenderer.PlayerColor : MapRenderer.NeutralColor);
 
         // le nombre de créatures, dans une petite boîte à la couleur du camp
         string count = shown.Count.ToString();
-        var box = new Rect2(shown.Position + new Vector2(unit.Side == BattleSide.Attacker ? 6 : -36, HexHeight / 2 - 24), 30, 18);
+        var box = new Rect2(shown.Position + new Vector2(Ui.Px(unit.Side == BattleSide.Attacker ? 6 : -36), HexHeight / 2 - Ui.Px(24)), Ui.Px(30), Ui.Px(18));
         DrawRect(box, unit.Side == BattleSide.Attacker ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30));
         DrawRect(box, MapRenderer.Rgb(230, 200, 120), false, 1);
-        DrawString(ThemeDB.FallbackFont, box.Position + new Vector2(0, 14), count, HorizontalAlignment.Center, box.Size.X, Ui.TextSize(12), Colors.White);
+        DrawString(ThemeDB.FallbackFont, box.Position + Ui.V(0, 14), count, HorizontalAlignment.Center, box.Size.X, Ui.TextSize(12), Colors.White);
     }
 }

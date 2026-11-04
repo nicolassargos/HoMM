@@ -20,7 +20,17 @@ public sealed partial class GameState
     private int _nextPlayerId = 1;
     private int _nextHeroId = 1;
 
-    public GameState(int seed, GameData data) : this(seed, data, new MapGenerator(seed, data).Generate()) => AddStartingPlayer();
+    public GameState(int seed, GameData data) : this(seed, data, MapSize.Normal) { }
+
+    /// <summary>Une nouvelle partie sur une carte générée de cette taille.</summary>
+    public GameState(int seed, GameData data, MapSize size)
+        : this(seed, data, Generate(seed, data, size)) => AddStartingPlayer();
+
+    private static AdventureMap Generate(int seed, GameData data, MapSize size)
+    {
+        var (width, height) = MapSizes.Dimensions(size);
+        return new MapGenerator(seed, data).Generate(width, height);
+    }
 
     /// <summary>
     /// Une partie sur une carte faite à la main (pour les tests, et plus tard un éditeur de cartes), avec le joueur
@@ -324,6 +334,8 @@ public sealed partial class GameState
         if (Map.ObjectAt(cell) is { } obj and not MonsterGuard)
         {
             var visit = obj.Visit(hero);
+            if (visit is TownCaptured)
+                hero.Owner.Statistics.TownsCaptured++;
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
             Emit(visit);
@@ -399,6 +411,12 @@ public sealed partial class GameState
         CurrentBattle = null;
         _battle = null;
         var hero = context.Hero;
+        // les chiffres de la partie
+        var stats = hero.Owner.Statistics;
+        stats.CreaturesLost += report.AttackerLosses.Sum(s => s.Count);
+        stats.CreaturesKilled += report.DefenderLosses.Sum(s => s.Count);
+        if (report.AttackerWon)
+            stats.BattlesWon++;
         Emit(new BattleFought(hero, context.Defender, context.DefenderArmy, report));
 
         if (report.AttackerWon)
@@ -616,6 +634,58 @@ public sealed partial class GameState
         return true;
     }
 
+    /// <summary>
+    /// Glisse une troupe dans une ville (étape 7) : entre la garnison et le héros présent, ou dans la même armée (voir
+    /// <see cref="Army.MoveTroop"/> : déplacer, fusionner, échanger, partager avec <paramref name="count"/>). Le héros
+    /// garde toujours au moins une troupe. Renvoie false si c'est impossible.
+    /// </summary>
+    public bool MoveTroop(Town town, bool fromGarrison, int index, bool toGarrison, int slot, int? count = null)
+    {
+        if (town.Owner != CurrentPlayer || Outcome != GameOutcome.Playing)
+            return false;
+        var hero = VisitingHero(town);
+        if ((!fromGarrison || !toGarrison) && (hero == null || hero.Owner != CurrentPlayer))
+            return false;
+        var from = fromGarrison ? town.Garrison : hero!.Army;
+        var to = toGarrison ? town.Garrison : hero!.Army;
+        return MoveTroop(from, index, to, slot, count, hero);
+    }
+
+    /// <summary>Glisse une troupe dans l'armée d'un héros du joueur courant (réordonner, fusionner, partager).</summary>
+    public bool MoveTroop(Hero hero, int index, int slot, int? count = null)
+    {
+        if (hero.Owner != CurrentPlayer || Outcome != GameOutcome.Playing)
+            return false;
+        return MoveTroop(hero.Army, index, hero.Army, slot, count, hero);
+    }
+
+    private bool MoveTroop(Army from, int index, Army to, int slot, int? count, Hero? hero)
+    {
+        // le héros ne doit pas se retrouver sans troupe : on essaie sur des copies d'abord
+        if (hero != null && from != to && (from == hero.Army || to == hero.Army))
+        {
+            var (fromCopy, toCopy) = (from.Clone(), to.Clone());
+            if (!fromCopy.MoveTroop(index, toCopy, slot, count))
+                return false;
+            if ((from == hero.Army ? fromCopy : toCopy).IsEmpty)
+                return false;
+        }
+        if (!from.MoveTroop(index, to, slot, count))
+            return false;
+        Emit(new TroopMoved(hero));
+        return true;
+    }
+
+    /// <summary>Les héros que la taverne propose (deux, comme dans Heroes 3) : les premiers noms pas encore utilisés.</summary>
+    public IReadOnlyList<string> TavernOffers()
+    {
+        var used = AllHeroes.Select(h => h.Name).ToHashSet();
+        return HeroNames.Where(n => !used.Contains(n)).Take(TavernOfferCount).ToList();
+    }
+
+    /// <summary>Nombre de héros proposés à la taverne.</summary>
+    public const int TavernOfferCount = 2;
+
     /// <summary>Peut-on recruter un héros dans cette ville ?</summary>
     public HireResult CanHireHero(Town town)
     {
@@ -636,15 +706,18 @@ public sealed partial class GameState
 
     /// <summary>
     /// Recrute un héros à la taverne d'une ville : il apparaît à l'entrée de la ville avec quelques
-    /// créatures du premier niveau, et devient le héros sélectionné.
+    /// créatures du premier niveau, et devient le héros sélectionné. <paramref name="name"/> : l'un des héros proposés
+    /// (<see cref="TavernOffers"/>) ; sans nom, le premier.
     /// </summary>
-    public HireResult HireHero(Town town)
+    public HireResult HireHero(Town town, string? name = null)
     {
         var result = CanHireHero(town);
         if (result != HireResult.Ok)
             return result;
+        if (name != null && !TavernOffers().Contains(name))
+            return HireResult.NoHeroLeft;
         CurrentPlayer.Resources[ResourceType.Gold] -= HeroCost;
-        var hero = new Hero(NextHeroName()!, CurrentPlayer, town.Position) { Id = _nextHeroId++ };
+        var hero = new Hero(name ?? NextHeroName()!, CurrentPlayer, town.Position) { Id = _nextHeroId++ };
         var firstTier = Creatures.All.Where(c => c.Faction == town.Faction).OrderBy(c => c.Tier).First();
         hero.Army.Add(firstTier, 12);
         CurrentHero = hero;

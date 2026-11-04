@@ -188,7 +188,7 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   botte avec le nombre de jours de marche (`GameState.DaysTo`), épées sur un monstre, main sur un objet à visiter,
   croix là où on ne peut pas aller (ou jamais exploré), casque sur un de ses héros. La case survolée n'est plus encadrée.
 - ✅ Zoom de la carte (molette, touches + et -) : ×2 ou ×3 (comme le premier Heroes), pixels d'art toujours entiers.
-  La partie commence à ×2 (choix de l'utilisateur, à revoir lors des réglages fins).
+  La partie commence à ×2 (choix de l'utilisateur, à revoir lors des réglages fins). En 1920 × 1080 (étape 7) : ×3 et ×4.
 - ✅ La route est une couche posée sur le terrain (`AdventureMap.HasRoad`), plus un terrain : une case de route
   coûte 75 quel que soit le terrain dessous (`TerrainInfo.RoadCost`). Le générateur garde le sable et le marais sous
   la route ; l'eau, la montagne et la forêt y deviennent de l'herbe. Le shader dessine la route comme un chemin
@@ -343,6 +343,118 @@ Pistes (à valider sur maquettes), en prenant Heroes 2 et 3 comme modèles :
   options, quitter), peut-être une vue d'ensemble du royaume.
 - Combat et fenêtres (niveau, recrutement, fin de partie) revus avec les mêmes règles.
 - Des info-bulles qui expliquent les règles (charisme, coût du déplacement, danger d'un monstre…).
+Décidé sur les maquettes (2026-11-04) :
+- Carte : à droite, la carte réduite, les listes des héros et des villes, le héros choisi (caractéristiques en icônes,
+  mouvement, artefacts ; un clic sur le portrait ouvre l'écran du héros), son armée en 7 emplacements, 7 boutons
+  (héros suivant, avancer, centrer, royaume, creuser, carte au trésor, options : avec la touche écrite dessous) et un
+  grand « Fin du tour ». Pas de bouton « Ville » (la liste des villes le remplace ; la touche T reste). L'objectif de
+  la partie s'affiche au survol de la date. Les revenus restent dans la barre du haut. Sous la carte, une bande :
+  ce qui est survolé, et le dernier message (avec l'historique).
+- Menu principal (nouvelle partie, charger, quitter), seulement quand le jeu est lancé sans option : toute option de
+  test (`--seed`, `--load`, `--town`, `--battle-…`, captures) entre directement dans la partie, et `--play` saute le menu.
+- Ville : la barre des ressources tout en haut, à la même place que sur la carte. Au centre, **la ville vue de face**
+  (comme Heroes 1 et 2) avec chaque bâtiment construit à sa place (`buildings.json`) ; **un nouveau bâtiment apparaît
+  peu à peu** (la « magie » de Heroes, demandée par l'utilisateur). Garder des places libres pour les bâtiments à venir
+  (guilde des mages, marché…). Clic sur un bâtiment pour l'utiliser ; raccourcis Construire, Recruter, Taverne ;
+  construire et recruter s'ouvrent en fenêtres par-dessus la ville. En bas, toujours visibles : la garnison et le héros,
+  avec **glisser-déposer et clic** pour les troupes, et le partage d'une troupe. La taverne propose **deux héros**.
+  Le décor viendra à l'étape 10 (Retro Diffusion) ; d'ici là, des boîtes à la place des bâtiments.
+- Écran du héros (grande fenêtre sur la carte) : portrait, nom, **classe** (place gardée pour l'étape 9), niveau,
+  expérience et mouvement ; **caractéristiques en colonne**, avec ce que fait chacune ; artefacts sur une silhouette ;
+  une section **Magie** à prévoir (points de sort, livre de sorts, compétences : étape 9) ; l'armée en grand, avec les
+  points de commandement de chaque troupe et les troupes à risque ; fiche d'une créature au clic droit.
+- Royaume (touche K) : les héros en **portraits** (mouvement restant dessous) et les villes en **images** (revenu
+  dessous), le détail au survol ; une bande « mines et revenus » en bas (par ressource : mines et revenu du jour).
+- Menu principal : Nouvelle partie, Continuer, Charger, Réglages, Quitter. **Plusieurs sauvegardes** (nom, date dans
+  le jeu, héros, taille de la carte, heure), F5 / F9 gardent une sauvegarde rapide, et une **sauvegarde automatique**
+  au début de chaque tour (une seule, remplacée à chaque fois). Nouvelle partie : **taille de la
+  carte** en cinq choix (très petite à très grande), la **graine**, les façons de gagner et la limite de jours.
+- Combat : le champ et la ligne du bas restent ; à gauche, le héros (portrait, bonus ; plus tard son livre de sorts) et
+  la fiche de la troupe qui joue ; à droite, l'adversaire et la fiche de la troupe survolée (ses caractéristiques
+  seulement : **pas de dégâts attendus**, trop d'aide) ; un journal du combat ; les touches sur les boutons.
+- Fenêtres : un **bilan après chaque combat** (pertes des deux camps en images, expérience, révoltes, fuite) ; niveau
+  supérieur en grands boutons (avant → après, effet) ; recrutement avec « Max » et l'avertissement de charisme ; fin de
+  partie (pourquoi, quelques chiffres, menu principal ou revoir la carte).
+Maquettes : `art-candidats/archives/` (sujet « maquettes-interface » : carte, ville, héros-royaume-menu, combat-fenêtres).
+
+Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs actuels, l'apparence viendra à l'étape 10) :
+1. ✅ **La carte**, avec les pièces communes : barre des ressources (`ResourceBar` : revenus, d'où ils viennent au
+   survol, objectif et progrès au survol de la date), emplacements d'armée (`ArmySlots` : images, nombres,
+   caractéristiques au survol, bordure rouge si risque de révolte) ; la colonne de droite (carte réduite, listes des
+   héros et des villes avec flèches au-delà de trois, fiche du héros choisi avec ses caractéristiques expliquées au
+   survol, armée, 6 boutons avec leur touche, grand « Fin du tour ») ; la bande sous la carte (survol sur deux lignes :
+   terrain, coût et jours de marche, puis l'objet et le danger estimé ; le dernier message ; le journal des 60
+   derniers). La boîte des messages flottante disparaît ; les options ne gardent que sauvegarder et charger.
+   Creuser et la carte au trésor ont leur bouton dans toutes les parties (le trésor est toujours enfoui).
+   Le bouton Royaume viendra avec son écran (point 2). `--hover=x,y` simule la souris sur une case (captures).
+2. ✅ **L'écran du héros et le royaume** (`HeroScreen`, `KingdomScreen`, sur une base commune `ScreenWindow` :
+   la carte s'assombrit, Fermer ou Échap). Héros : portrait ×2, niveau, barres d'expérience et de mouvement,
+   caractéristiques en colonne avec leur effet (le détail au survol), artefacts (image et effet ; la silhouette quand
+   il y en aura plus), place réservée à la magie, armée en grand avec les points de commandement. S'ouvre d'un clic
+   sur le portrait du panneau ou d'un double clic dans la liste. Royaume (bouton ou touche K) : héros en portraits
+   (mouvement dessous), villes en images (revenu, ● si l'on peut y construire), détail au survol, bande des mines et
+   revenus (clic : centrer la carte sur la mine suivante). Les boutons du panneau passent à 3 colonnes (nom court,
+   touche dessous, nom complet au survol) avec Options sur toute la largeur. Réorganiser l'armée viendra avec la
+   ville (point 3).
+3. ✅ **La ville** (`TownScreen` refait) : la barre des ressources en haut (à la même place que sur la carte), le nom,
+   le revenu et si l'on peut construire ; au centre la ville vue de face, chaque bâtiment construit à sa place
+   (`view` dans `buildings.json` : x, y, largeur, hauteur dans une vue de 1280 × 390 ; `replaces` : l'hôtel de ville
+   remplace la salle du village, à la même place), en boîtes en attendant les images ; des places libres pour la
+   guilde des mages (en haut à gauche) et le marché (en haut à droite). **Un nouveau bâtiment apparaît peu à peu**
+   (il monte du sol et devient net, avec de la poussière), sur l'événement `BuildingBuilt`. Un clic sur un bâtiment
+   l'utilise ; raccourcis Construire, Recruter, Taverne. Fenêtres : Construire (tout l'écran : ce qui reste à bâtir,
+   puis les bâtiments construits), Recruter (sur la vue seulement : les 7 créatures dans l'ordre, ou celle d'une
+   habitation ; « Recruter… » avec le curseur, « Tout »), Taverne (deux héros : `TavernOffers`, `HireHero(ville,
+   nom)`). En bas, la garnison et le héros présent (`ArmySlots`, `ArmySlot`) : glisser une troupe la déplace, la
+   fusionne ou l'échange ; Maj en lâchant ou clic droit pour la partager (`Army.MoveTroop`, `GameState.MoveTroop`,
+   événement `TroopMoved`) ; un clic la fait passer de l'autre côté ; « Tout donner au héros », « Tout laisser en
+   garnison ». Une armée peut maintenant avoir deux troupes de la même créature (gardées par la sauvegarde :
+   `Army.AddStack`). L'écran du héros permet aussi de réordonner et de partager ses troupes. Tests : `TroupesTests`.
+4. ✅ **Le combat** : le champ s'élargit de chaque côté de la grille 11 × 9 (le sol continue,
+   `BattleFieldView.SideMargin`) : le héros y est dessiné à gauche (son image de la carte en attendant une image de
+   combat, à cheval ou non), un clic montre ses caractéristiques ; cette place servira aussi aux machines de guerre
+   (catapulte, baliste…). Pas de panneaux de côté (choix de l'utilisateur) : un **clic droit maintenu** sur une troupe
+   montre sa fiche (caractéristiques, PV de tête, capacités, ripostes ; pas de dégâts attendus). « Journal » au bout
+   de la ligne de la dernière action ; touches W (attendre), D (se défendre), A (auto), F (fuir), écrites sur les
+   boutons. Le **bilan** s'ouvre après chaque combat, tactique ou rapide : l'expérience gagnée d'abord (et une
+   révolte), puis nos pertes, puis les ennemis tués, en images sans cadre.
+   ✅ **Écran de 1920 × 1080** (choix de l'utilisateur, une PR à part) : la fenêtre fait 1920 × 1080 (`project.godot`).
+   Les écrans restent décrits dans les unités de l'ancien écran (1280 × 720) et sont mis à l'échelle ×1,5 au même
+   endroit (`Ui.Scale`, `Ui.Px`, `Ui.V`, `At`, `TextSize`, `Box`) : une autre échelle pourra devenir un réglage. Les images en
+   pixel art sont toujours agrandies d'un nombre entier de fois, pour des pixels réguliers : carte ×3 et ×4 (zooms
+   1,5 et 2 de `MapCamera`), créatures au combat ×3 (cases de 110 × 126, marges de 318), sol et obstacles ×3, héros
+   au combat ×4, cadres et boutons ×2, portraits ×1, ×2 ou ×3, créatures de l'interface ×2 à ×4.
+5. ✅ **Les fenêtres** : niveau supérieur en une seule fenêtre (portrait, gain de charisme, un grand bouton par
+   caractéristique avec avant → après et son effet ; la fenêtre de résumé a disparu, le message reste dans le
+   journal) ; recrutement avec l'image, les caractéristiques, ce qu'on peut payer et où vont les recrues ; fin de
+   partie : victoire ou défaite, pourquoi, le jour, les chiffres de la partie (combats gagnés, villes prises, créatures
+   tuées et perdues, meilleur héros : `Player.Statistics`, sauvegardés), puis « Nouvelle partie » ou « Revoir la carte ».
+   Le jeu démarre en plein écran (en 1920 × 1080, la fenêtre passait sous la barre des tâches) ; F11 ou Alt+Entrée,
+   ou le bouton des options, passe en fenêtre agrandie. Les options ont un bouton « Quitter le jeu » (avec confirmation).
+   Échap ouvre les options sur la carte. Les touches ne sont plus écrites sur les boutons (carte, combat, ville,
+   fenêtres) : elles sont dans l'info-bulle (choix de l'utilisateur).
+6. ✅ **Menu principal, nouvelle partie, sauvegardes** : le menu (`MainMenu` : Nouvelle partie, Continuer, Charger,
+   Réglages avec le plein écran, Quitter) s'ouvre quand le jeu est lancé sans option ; toute option (ou `--play`)
+   entre directement dans une partie, `--menu` le montre quand même. On y revient depuis les options ou la fin de
+   partie (« Menu principal »). Nouvelle partie (`NewGameWindow`) : **taille de la carte** en cinq choix (`MapSize` :
+   36 × 27, 54 × 27, 54 × 40, 72 × 53, 90 × 66, soit 4, 6, 9, 16 et 25 régions ; le générateur s'y adaptait déjà),
+   la graine (vide : au hasard), les façons de gagner et la limite de jours. La simulation d'équilibrage gagne sur les
+   petites cartes (jours 54 à 106) ; sur une grande, vers le jour 146, et pas en 200 jours sur une très grande (bien
+   plus de monstres : à revoir avec l'IA). **Plusieurs sauvegardes** (`SaveFiles`, `SavesWindow` ; dossier
+   `user://sauvegardes/`, un fichier par nom) : nom, jour, héros et niveau, taille de la carte, heure
+   (`GameState.ReadSummary`) ; supprimer, remplacer (avec confirmation). F5 / F9 : la sauvegarde rapide ; une
+   **sauvegarde automatique** à chaque fin de tour. L'ancien fichier unique devient la sauvegarde rapide.
+   Corrigé au passage : le générateur pouvait poser le gardien d'une mine derrière elle, dans un cul-de-sac (on ne
+   pouvait jamais vaincre tous les monstres) ; les monstres qu'aucun chemin n'atteint sont retirés.
+7. **Revue des écrans** (captures de tous les écrans, `art-candidats/en-cours/revue/`, 13 points relevés et corrigés) :
+   une seule sorte de petite fenêtre (`GameDialog` : sans barre de titre de Godot ni croix, le cadre du jeu, le titre en
+   haut à gauche comme les grandes fenêtres, les boutons en bas avec une largeur minimale, Échap annule) ; le voile
+   des grandes fenêtres couvre aussi le haut de la colonne de droite ; la zone visible bien cadrée sur la carte réduite ;
+   les noms des héros et des villes sur deux lignes dans les listes ; « Fin du tour » d'une hauteur ordinaire ; les
+   raccourcis de la ville au-dessus de la vue ; un bouton seulement quand on peut agir, sinon le texte qui dit pourquoi
+   (construire, taverne) ; la fenêtre Construire montre tous les bâtiments ensemble, dans l'ordre (les construits
+   marqués « Construit »), et suit son contenu ; « Fermer » bien à l'intérieur du cadre ; les boutons du niveau supérieur alignés.
+   À faire ensuite : une nouvelle revue des captures avec l'utilisateur.
 
 ### 8. Adversaires IA
 - Joueurs ordinateur avec leurs héros et leurs villes.
@@ -368,6 +480,15 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   Premier essai fait (2026-11-04, 0,24 $) : 4 cadres, 4 boutons et un cadre de l'outil « Create UI panel », bien
   découpés en 9 morceaux à l'échelle 1. Le jeu lit la taille des coins et les marges du texte dans `art/ui/ui.json`
   (facultatif). Les bords sont plus épais : il faudra agrandir les boîtes de taille fixe (barre des messages…).
+  ✅ Avancé pendant l'étape 7 (2026-11-04, environ 1,30 $) : les cadres de l'essai étaient trop épais. Des cadres
+  demandés plus petits (64 × 64) ont des bords fins ; choisi le cadre **B2** (argent, une fine bande de bois), affiché
+  ×3, et le bouton **A1** (pierre grise bordée d'argent, 64 × 24, ×3), proches de Heroes 1 et 2. Le fond des cadres a
+  un **grain de pierre** discret calculé par le jeu (pas d'image : `Ui.Grain`, motif qui se répète tous les 64 pixels
+  d'art sans raccord). Réglages dans `art/ui/ui.json` : `panelScale`, `buttonScale`, `buttonPlainBand` (garder tout le
+  milieu du bouton), `panelTexture` (`pierre`, `doux`, `cuir`, `toile`, `uni`), `panelTextureStrength` (4,5).
+  `tools/art/cadre.py` rend transparent le centre uni d'un cadre généré. Essayés puis écartés : les cadres B7 (fil
+  d'or, trop discret), les boutons de pierre de 96 × 32 (biseau trop large pour les petits boutons).
+  À voir : les boîtes intérieures (sections, listes, cartes de la ville) restent unies.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

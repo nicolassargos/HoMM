@@ -18,7 +18,7 @@ public enum CursorKind { Pointer, Move, Attack, Visit, Blocked, Hero }
 public static class MapCursor
 {
     /// <summary>Agrandissement des images : ×2 pour le gantelet de l'interface, 20 % plus petit (×1,6) pour les autres.</summary>
-    private static float ScaleOf(CursorKind kind) => kind == CursorKind.Pointer ? 2f : 1.6f;
+    private static float ScaleOf(CursorKind kind) => (kind == CursorKind.Pointer ? 2f : 1.6f) * Ui.Scale;
 
     private static readonly Dictionary<(CursorKind, int), (Texture2D Texture, Vector2 Hotspot)?> Cache = new();
     private static (CursorKind, int)? _current;
@@ -106,9 +106,10 @@ public static class MapCursor
     /// <summary>Le nombre de jours, en bas à droite : un chiffre blanc bordé de noir, en gros pixels.</summary>
     private static void DrawNumber(Image image, int number)
     {
-        const int dot = 3;
+        int dot = (int)Ui.Px(3); // les gros pixels du chiffre, à l'échelle de l'écran
         var rows = Digits[number];
-        int left = image.GetWidth() - 3 * dot - 3, top = image.GetHeight() - 5 * dot - 3;
+        int margin = (int)Ui.Px(3);
+        int left = image.GetWidth() - 3 * dot - margin, top = image.GetHeight() - 5 * dot - margin;
         // le contour noir, puis le chiffre
         for (int pass = 0; pass < 2; pass++)
             for (int y = 0; y < 5; y++)

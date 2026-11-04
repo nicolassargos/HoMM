@@ -11,15 +11,16 @@ namespace HoMM.Game;
 ///
 /// Commandes :
 ///   Clic gauche sur une case : affiche le chemin. Second clic : le héros part.
-///   Espace : continuer le chemin tracé.        Clic droit / Échap : annuler le chemin.
+///   Espace : continuer le chemin tracé.        Clic droit : annuler le chemin.   Échap : options.
 ///   Flèches / ZQSD / souris au bord : défilement.   C : recentrer sur le héros.
 ///   Clic sur les murs de sa ville, liste des villes du panneau, ou T : écran de ville.
 ///   Clic sur un de ses héros, liste des héros du panneau, ou H : changer de héros.
 ///   Entrée ou bouton : fin du tour.
-///   F5 / F9 (ou boutons du panneau) : sauvegarder / charger la partie.
+///   F5 / F9 : sauvegarde rapide / la reprendre. Échap : options (sauvegarder, charger, menu principal…).
 ///
-/// Lancer avec une graine fixe : ajouter « -- --seed=42 » à la ligne de commande ;
-/// reprendre la partie sauvegardée : « -- --load ».
+/// Lancé sans option, le jeu ouvre le menu principal ; toute option (ou « -- --play ») entre directement dans une
+/// partie. Graine fixe : « -- --seed=42 » ; reprendre la dernière sauvegarde : « -- --load ».
+/// « --menu » (ou « --menu=new », « --menu=load ») montre le menu même avec d'autres options (captures).
 /// Développement : « -- --capture=apercu.png » enregistre une image de l'écran après un instant, puis quitte
 /// (avec « --rules », la fenêtre du choix des conditions reste ouverte sur l'image ; avec « --town », l'écran
 /// d'une ville avec presque tous ses bâtiments).
@@ -34,9 +35,16 @@ public partial class Main : Node2D
     private Hud _hud = null!;
     private TownScreen _townScreen = null!;
     private BattleScreen _battleScreen = null!;
+    private HeroScreen _heroScreen = null!;
+    private KingdomScreen _kingdomScreen = null!;
 
     /// <summary>Développement (« --battle-test ») : un combat tout de suite, joué sur l'écran de combat sans demander.</summary>
     private bool _battleTest;
+
+    /// <summary>Développement (« --hover=x,y ») : la case survolée pour une capture d'écran.</summary>
+    private static readonly Cell? _devHover = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--hover=")) is { } hover
+        && hover["--hover=".Length..].Split(',') is [var hx, var hy] && int.TryParse(hx, out int x) && int.TryParse(hy, out int y)
+        ? new Cell(x, y) : null;
 
     private bool _walking;
     private double _stepTimer;
@@ -44,19 +52,52 @@ public partial class Main : Node2D
     /// <summary>Ville à ouvrir dès que les fenêtres (compte rendu de combat…) sont fermées.</summary>
     private Town? _townToOpen;
 
-    /// <summary>Le fichier de sauvegarde (dans le dossier de l'utilisateur, géré par Godot).</summary>
-    private const string SavePath = "user://sauvegarde.json";
+    private SavesWindow _saves = null!;
+
+    /// <summary>La partie à commencer, choisie dans le menu principal (voir <see cref="ShowMainMenu"/>).</summary>
+    private static GameSetup? _setup;
+
+    /// <summary>
+    /// Montrer le menu principal au prochain lancement de la scène : au démarrage du jeu sans option (« --windowed »
+    /// n'en est pas une pour cela), puis quand le joueur y revient.
+    /// </summary>
+    private static bool _goToMenu = OS.GetCmdlineUserArgs().All(a => a == "--windowed")
+        || OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--menu"));
+
+    /// <summary>La scène ne montre que le menu principal (pas de partie).</summary>
+    private bool _inMenu;
 
     /// <summary>Partie chargée, reprise par la scène relancée (voir <see cref="LoadGame"/>).</summary>
     private static GameState? _loadedState;
 
+    /// <summary>Le mode de la fenêtre n'est choisi qu'au lancement (pas à chaque nouvelle partie).</summary>
+    private static bool _windowModeSet;
+
     public override void _Ready()
     {
+        // plein écran au lancement (l'écran de 1920 × 1080 passait sous la barre des tâches) ; pas pour une capture
+        if (!_windowModeSet)
+        {
+            _windowModeSet = true;
+            if (!OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--capture=") || a == "--windowed"))
+                DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
+        }
         Ui.UsePixelFont();
         Ui.ApplyTheme();
-        var loaded = _loadedState ?? (OS.GetCmdlineUserArgs().Contains("--load") ? ReadSave(LoadData()) : null);
+        _capturePath = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture="))?["--capture=".Length..];
+        if (_goToMenu && _loadedState == null)
+        {
+            _goToMenu = false;
+            ShowMainMenu();
+            return;
+        }
+        var data = LoadData();
+        var loaded = _loadedState
+            ?? (OS.GetCmdlineUserArgs().Contains("--load") && SaveFiles.Latest() is { } latest ? SaveFiles.Read(latest.Path, data) : null);
         _loadedState = null;
-        _state = loaded ?? new GameState(ReadSeed(), LoadData());
+        var setup = _setup;
+        _setup = null;
+        _state = loaded ?? (setup != null ? new GameState(setup.Seed, data, setup.Size) : new GameState(ReadSeed(), data, ReadSize()));
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
         // Option de développement : « -- --reveal » retire le brouillard
@@ -77,12 +118,17 @@ public partial class Main : Node2D
         AddChild(_hud);
         _hud.Build(_state, screen);
         _hud.EndTurnPressed += EndTurn;
-        _hud.SavePressed += SaveGame;
+        _hud.SavePressed += () => _saves.OpenToSave(Texts.SuggestedSaveName(_state.CurrentHero?.Name, _state.Day));
         _hud.DigPressed += Dig;
         _hud.TreasureMapPressed += () => _hud.ShowTreasureMap(_state, _state.Players[0]);
-        _hud.LoadPressed += LoadGame;
+        _hud.LoadPressed += () => _saves.OpenToLoad();
+        _hud.QuitPressed += () => GetTree().Quit();
+        _hud.MainMenuPressed += GoToMainMenu;
         _hud.TownClicked += OpenTown;
         _hud.HeroClicked += SelectHero;
+        _hud.NextHeroPressed += NextHero;
+        _hud.WalkPressed += StartWalking;
+        _hud.CenterPressed += CenterOnHero;
 
         _camera = new MapCamera();
         AddChild(_camera);
@@ -93,11 +139,47 @@ public partial class Main : Node2D
         AddChild(_battleScreen);
         _battleScreen.Build(screen);
 
+        // l'écran du héros et le royaume, en grandes fenêtres par-dessus la carte
+        _heroScreen = new HeroScreen();
+        AddChild(_heroScreen);
+        _heroScreen.Build(_state, screen);
+        _hud.HeroDetailsPressed += OpenHeroScreen;
+        _kingdomScreen = new KingdomScreen();
+        AddChild(_kingdomScreen);
+        _kingdomScreen.Build(_state, screen);
+        _hud.KingdomPressed += OpenKingdom;
+        _kingdomScreen.HeroChosen += hero =>
+        {
+            _kingdomScreen.Close();
+            SelectHero(hero);
+        };
+        _kingdomScreen.HeroDetailsWanted += hero =>
+        {
+            _kingdomScreen.Close();
+            OpenHeroScreen(hero);
+        };
+        _kingdomScreen.TownChosen += town =>
+        {
+            _kingdomScreen.Close();
+            OpenTown(town);
+        };
+        _kingdomScreen.MineChosen += cell =>
+        {
+            _kingdomScreen.Close();
+            _camera.CenterOn(cell);
+        };
+
         _townScreen = new TownScreen();
         AddChild(_townScreen);
         _townScreen.Build(_state, screen);
 
-        _capturePath = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture="))?["--capture=".Length..];
+        // sauvegarder sous un nom, charger une sauvegarde (depuis les options)
+        _saves = new SavesWindow();
+        AddChild(_saves);
+        _saves.Build(screen);
+        _saves.SaveChosen += name => WriteSave(name, Texts.GameSaved);
+        _saves.LoadChosen += entry => LoadSave(entry.Path);
+
         // Développement : « --capture-delay=3 » attend 3 secondes avant la capture (pour voir un combat avancer)
         if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture-delay=")) is { } delay
             && double.TryParse(delay["--capture-delay=".Length..], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double seconds))
@@ -108,6 +190,8 @@ public partial class Main : Node2D
             var treasure = _state.Rules.Has(VictoryCondition.FindTreasure) ? _state.TreasureDirection() : null;
             _hud.AddMessage(Texts.Message(new RulesChosen(_state.Rules, treasure), _state.Players[0])!);
         }
+        else if (setup != null)
+            _state.ChooseRules(setup.Rules);
         else if (_capturePath == null || OS.GetCmdlineUserArgs().Contains("--rules")) // une capture montre la carte, sauf avec --rules
             _hud.ShowRulesChoice(rules => _state.ChooseRules(rules));
         if (OS.GetCmdlineUserArgs().Contains("--zoom")) // développement : partir zoomé
@@ -115,6 +199,23 @@ public partial class Main : Node2D
         if (_capturePath != null && OS.GetCmdlineUserArgs().Contains("--town"))
             ShowTownForCapture();
         CenterOnHero();
+        // Développement : « --open=hero » ou « --open=kingdom » ouvre cet écran (pour une capture d'écran)
+        if (OS.GetCmdlineUserArgs().Contains("--open=hero") && _state.CurrentHero is { } shown)
+            _heroScreen.Open(shown);
+        if (OS.GetCmdlineUserArgs().Contains("--open=kingdom"))
+            _kingdomScreen.Open();
+        // « --open=save » : la fenêtre pour sauvegarder sous un nom
+        if (OS.GetCmdlineUserArgs().Contains("--open=save"))
+            _saves.OpenToSave(Texts.SuggestedSaveName(_state.CurrentHero?.Name, _state.Day));
+        // « --open=options » : la fenêtre des options
+        if (OS.GetCmdlineUserArgs().Contains("--open=options"))
+            _hud.ShowOptions();
+        // « --open=end » : la fenêtre de fin de partie (une victoire, sans rien changer)
+        if (OS.GetCmdlineUserArgs().Contains("--open=end"))
+            _hud.ShowGameOver(new GameEnded(GameOutcome.Victory, GameEndReason.GuardsCleared), () => { });
+        // « --open=level » : la fenêtre d'un choix de niveau (sans rien changer)
+        if (OS.GetCmdlineUserArgs().Contains("--open=level") && _state.CurrentHero is { } leveling)
+            _hud.ShowLevelChoice(new HeroLevelChoice(leveling, 2, new[] { HeroStat.Attack, HeroStat.Defense, HeroStat.Power }), _ => { });
         // Développement : « --center=treasure » centre la vue sur le trésor (pour une capture d'écran)
         if (OS.GetCmdlineUserArgs().Contains("--center=treasure") && _state.Map.Treasure is { } hidden)
             _camera.CenterOn(hidden);
@@ -132,7 +233,7 @@ public partial class Main : Node2D
             foreach (var creature in _state.Creatures.All.OrderBy(c => c.Tier))
                 (creature.Faction == "chateau" ? castle : neutral).Add(creature, 5);
             _battleScreen.Open(new TacticalBattle(castle, neutral, new GameRandom(1)), "la vitrine", TerrainType.Grass, () => { },
-                auto: OS.GetCmdlineUserArgs().Contains("--battle-auto"));
+                auto: OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: _state.CurrentHero);
         }
         // Développement : « --battle-test » : des Orcs et des Loups à deux cases, et le héros y va
         if (OS.GetCmdlineUserArgs().Contains("--battle-test") && _state.CurrentHero is { } fighter)
@@ -170,14 +271,25 @@ public partial class Main : Node2D
         var player = _state.Players[0];
         var town = _state.Towns.First();
         town.SetOwner(player);
-        var data = LoadData();
+        var data = _state.Data; // les créatures de la partie (une autre copie des données ne fusionnerait pas les troupes)
         // tous les bâtiments sauf les trois derniers, pour voir aussi des cartes « à construire »
         foreach (var building in data.Buildings.All.SkipLast(3))
             if (!town.Has(building.Id))
                 town.AddBuilding(building);
-        foreach (var creature in data.Creatures.All.Where(c => c.Faction == "chateau").Take(Army.MaxStacks))
+        foreach (var creature in data.Creatures.All.Where(c => c.Faction == "chateau").Take(4))
             town.Garrison.Add(creature, 10);
+        // le héros dans la ville, pour voir aussi son armée
+        if (_state.CurrentHero is { } hero)
+            hero.Position = town.Position;
         OpenTown(town);
+        // « --town-window=build|recruit|tavern » ouvre cette fenêtre ; « --town-build=id » construit ce bâtiment
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--town-window=")) is { } window)
+            _townScreen.ShowWindow(window["--town-window=".Length..]);
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--town-build=")) is { } build)
+        {
+            town.BuiltToday = false;
+            _state.Build(town, build["--town-build=".Length..]);
+        }
     }
 
     /// <summary>
@@ -227,6 +339,13 @@ public partial class Main : Node2D
     }
 
     /// <summary>Graine passée en argument (--seed=42), sinon une graine au hasard.</summary>
+    /// <summary>Développement : « --size=tiny » (small, normal, large, huge) choisit la taille de la carte.</summary>
+    private static MapSize ReadSize()
+    {
+        var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--size="));
+        return arg != null && Enum.TryParse(arg["--size=".Length..], ignoreCase: true, out MapSize size) ? size : MapSize.Normal;
+    }
+
     private static int ReadSeed()
     {
         var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--seed="));
@@ -242,7 +361,17 @@ public partial class Main : Node2D
         Godot.FileAccess.GetFileAsString("res://data/artifacts.json"));
 
     /// <summary>Le joueur regarde la carte (pas de fenêtre ni d'écran de ville ouverts).</summary>
-    private bool OnMap => !_hud.IsDialogOpen && !_townScreen.IsOpen && !_battleScreen.IsOpen;
+    /// <summary>Passe au héros suivant et centre la vue sur lui (touche H ou bouton).</summary>
+    private void NextHero()
+    {
+        if (!CanAct)
+            return;
+        _state.SelectNextHero();
+        CenterOnHero();
+    }
+
+    private bool OnMap => !_inMenu && !_saves.IsOpen && !_hud.IsDialogOpen && !_townScreen.IsOpen && !_battleScreen.IsOpen
+        && !_heroScreen.IsOpen && !_kingdomScreen.IsOpen;
 
     /// <summary>Les commandes de la carte sont ignorées pendant la marche, hors de la carte, ou une fois la partie finie.</summary>
     private bool CanAct => !_walking && OnMap && _state.Outcome == GameOutcome.Playing;
@@ -260,38 +389,45 @@ public partial class Main : Node2D
         if (!CanAct)
             return;
         _state.EndTurn();
+        // la sauvegarde automatique, au début de chaque tour (une seule, remplacée à chaque fois)
+        if (_state.Outcome == GameOutcome.Playing && _state.CurrentBattle == null && _capturePath == null)
+            SaveFiles.Write(SaveFiles.AutoName, _state);
     }
 
-    /// <summary>Enregistre la partie (sur la carte, hors marche).</summary>
+    /// <summary>F5 : la sauvegarde rapide (sur la carte, hors marche).</summary>
     private void SaveGame()
     {
-        if (!CanAct)
-            return;
-        using var file = Godot.FileAccess.Open(SavePath, Godot.FileAccess.ModeFlags.Write);
-        if (file == null)
-        {
-            GD.PrintErr($"Sauvegarde impossible : {Godot.FileAccess.GetOpenError()}");
-            _hud.AddMessage(Texts.SaveFailed);
-            return;
-        }
-        file.StoreString(_state.Save());
-        _hud.AddMessage(Texts.GameSaved);
+        if (CanAct)
+            WriteSave(SaveFiles.QuickName, Texts.QuickSaved);
     }
 
-    /// <summary>
-    /// Charge la partie enregistrée : elle est d'abord lue (une sauvegarde abîmée ne fait pas perdre
-    /// la partie en cours), puis la scène est relancée avec elle.
-    /// </summary>
+    private void WriteSave(string name, string done)
+    {
+        if (_state.CurrentBattle != null)
+            return;
+        _hud.AddMessage(SaveFiles.Write(name, _state) ? done : Texts.SaveFailed);
+    }
+
+    /// <summary>F9 : reprend la sauvegarde rapide.</summary>
     private void LoadGame()
     {
         if (_walking || !OnMap)
             return;
-        if (!Godot.FileAccess.FileExists(SavePath))
+        if (!SaveFiles.Exists(SaveFiles.QuickName))
         {
-            _hud.AddMessage(Texts.NoSave);
+            _hud.AddMessage(Texts.NoQuickSave);
             return;
         }
-        _loadedState = ReadSave(_state.Data);
+        LoadSave(SaveFiles.List().First(e => e.IsQuick).Path);
+    }
+
+    /// <summary>
+    /// Charge une sauvegarde : elle est d'abord lue (une sauvegarde abîmée ne fait pas perdre la partie en cours),
+    /// puis la scène est relancée avec elle.
+    /// </summary>
+    private void LoadSave(string path)
+    {
+        _loadedState = SaveFiles.Read(path, _state.Data);
         if (_loadedState == null)
         {
             _hud.AddMessage(Texts.LoadFailed);
@@ -300,20 +436,40 @@ public partial class Main : Node2D
         GetTree().ReloadCurrentScene();
     }
 
-    /// <summary>La partie enregistrée, ou null s'il n'y en a pas ou si elle ne peut pas être chargée.</summary>
-    private static GameState? ReadSave(GameData data)
+    /// <summary>Retour au menu principal (fin de partie, ou options) : la scène est relancée sur le menu.</summary>
+    private void GoToMainMenu()
     {
-        if (!Godot.FileAccess.FileExists(SavePath))
-            return null;
-        try
+        _goToMenu = true;
+        GetTree().ReloadCurrentScene();
+    }
+
+    /// <summary>La scène ne montre que le menu principal ; un choix relance la scène sur la partie.</summary>
+    private void ShowMainMenu()
+    {
+        _inMenu = true;
+        var menu = new MainMenu();
+        AddChild(menu);
+        menu.Build(GetViewportRect().Size);
+        menu.NewGame += setup =>
         {
-            return GameState.Load(Godot.FileAccess.GetFileAsString(SavePath), data);
-        }
-        catch (FormatException e)
+            _setup = setup;
+            GetTree().ReloadCurrentScene();
+        };
+        menu.LoadChosen += entry =>
         {
-            GD.PrintErr($"Chargement impossible : {e.Message}");
-            return null;
-        }
+            _loadedState = SaveFiles.Read(entry.Path, LoadData());
+            if (_loadedState == null)
+            {
+                var dialog = new GameDialog { Title = Texts.LoadTitle, DialogText = Texts.LoadFailed, Exclusive = true };
+                menu.AddChild(dialog);
+                dialog.PopupCentered();
+                return;
+            }
+            GetTree().ReloadCurrentScene();
+        };
+        // développement : « --menu=new » ou « --menu=load » ouvre cette fenêtre (captures)
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--menu=")) is { } open)
+            menu.OpenForCapture(open["--menu=".Length..]);
     }
 
     private void ClickCell(Cell cell)
@@ -349,6 +505,20 @@ public partial class Main : Node2D
         CenterOnHero();
     }
 
+    /// <summary>L'écran du héros (clic sur son portrait, double clic dans une liste).</summary>
+    private void OpenHeroScreen(Hero hero)
+    {
+        if (OnMap)
+            _heroScreen.Open(hero);
+    }
+
+    /// <summary>Le royaume (bouton ou touche K).</summary>
+    private void OpenKingdom()
+    {
+        if (OnMap)
+            _kingdomScreen.Open();
+    }
+
     /// <summary>Ouvre l'écran d'une ville du joueur (depuis la carte, la liste des villes ou la touche T).</summary>
     private void OpenTown(Town town)
     {
@@ -373,6 +543,24 @@ public partial class Main : Node2D
     }
 
     // ------------------------------------------------------------------ boucle
+
+    /// <summary>F11 ou Alt+Entrée, partout (carte, ville, combat) : plein écran ou fenêtre.</summary>
+    public override void _Input(InputEvent e)
+    {
+        if (e is InputEventKey { Pressed: true, Echo: false } key
+            && (key.Keycode == Key.F11 || (key.Keycode is Key.Enter or Key.KpEnter && key.AltPressed)))
+        {
+            ToggleFullscreen();
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    /// <summary>Passe du plein écran à une fenêtre agrandie (avec sa barre de titre), ou l'inverse.</summary>
+    public static void ToggleFullscreen()
+    {
+        bool full = DisplayServer.WindowGetMode() is DisplayServer.WindowMode.Fullscreen or DisplayServer.WindowMode.ExclusiveFullscreen;
+        DisplayServer.WindowSetMode(full ? DisplayServer.WindowMode.Maximized : DisplayServer.WindowMode.Fullscreen);
+    }
 
     public override void _UnhandledInput(InputEvent e)
     {
@@ -399,8 +587,9 @@ public partial class Main : Node2D
                 {
                     case Key.Enter or Key.KpEnter: EndTurn(); break;
                     case Key.Space: StartWalking(); break;
-                    case Key.Escape when !_walking: _state.ClearPath(); break;
+                    case Key.Escape: _hud.ShowOptions(); break;
                     case Key.C: CenterOnHero(); break;
+                    case Key.K: OpenKingdom(); break;
                     case Key.Plus or Key.KpAdd or Key.Equal: _camera.ZoomBy(+1); break;
                     case Key.Minus or Key.KpSubtract: _camera.ZoomBy(-1); break;
                     case Key.F5: SaveGame(); break;
@@ -408,10 +597,7 @@ public partial class Main : Node2D
                     case Key.M: _hud.ShowTreasureMap(_state, _state.Players[0]); break;
                     case Key.F9: LoadGame(); break;
                     case Key.T when _state.CurrentPlayer.Towns.FirstOrDefault() is { } town: OpenTown(town); break;
-                    case Key.H when CanAct:
-                        _state.SelectNextHero();
-                        CenterOnHero();
-                        break;
+                    case Key.H: NextHero(); break;
                 }
                 break;
         }
@@ -436,11 +622,17 @@ public partial class Main : Node2D
     {
         if (_capturePath != null)
             Capture(delta);
+        if (_inMenu)
+            return;
         if (OnMap)
             _camera.Scroll((float)delta);
         _actors.Hovered = OnMap ? _camera.HoveredCell() : null;
+        if (_devHover is { } pretend) // développement : « --hover=x,y », comme si la souris était sur cette case
+            _actors.Hovered = pretend;
         UpdateCursor();
         _hud.Refresh(_actors.Hovered);
+        _heroScreen.Refresh();
+        _kingdomScreen.Refresh();
 
         if (_walking)
         {
@@ -491,7 +683,7 @@ public partial class Main : Node2D
         });
         var terrain = _state.Map.GetTerrain(started.Hero.Position);
         void Tactical() => _battleScreen.Open(started.Battle, opponent, terrain, () => _state.FinishBattle(),
-            auto: _battleTest && OS.GetCmdlineUserArgs().Contains("--battle-auto"));
+            auto: _battleTest && OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: started.Hero);
         void Quick()
         {
             BattleAI.PlayOut(started.Battle);
@@ -537,8 +729,8 @@ public partial class Main : Node2D
                 case HeroLevelChoice choice when choice.Hero.Owner == viewer:
                     _hud.ShowLevelChoice(choice, stat => _state.ChooseStat(choice, stat));
                     break;
-                case HeroLeveledUp levelUp when levelUp.Hero.Owner == viewer:
-                    _hud.ShowLevelUp(levelUp);
+                case BuildingBuilt built:
+                    _townScreen.ShowBuilt(built); // le nouveau bâtiment apparaît sur la ville
                     break;
                 case TownEntered entered when entered.Hero.Owner == viewer:
                     _townToOpen = entered.Town;
@@ -557,7 +749,7 @@ public partial class Main : Node2D
                 case GameEnded end:
                     _walking = false;
                     _townScreen.Close();
-                    _hud.ShowGameOver(end, () => GetTree().ReloadCurrentScene());
+                    _hud.ShowGameOver(end, GoToMainMenu);
                     break;
             }
         }

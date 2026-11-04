@@ -72,9 +72,10 @@ internal static class BalanceSimulation
         return army;
     }
 
-    public static Result Play(int seed)
+    public static Result Play(int seed, MapSize size = MapSize.Normal)
     {
-        var map = new MapGenerator(seed, TestData.Data).Generate();
+        var (width, height) = MapSizes.Dimensions(size);
+        var map = new MapGenerator(seed, TestData.Data).Generate(width, height);
         var player = new Player("Rouge", map);
         var hero = new Hero("Test", player, map.Start);
         foreach (var stack in StartingArmy().Stacks)

@@ -1,0 +1,76 @@
+using System;
+using Godot;
+using static HoMM.Game.Ui;
+
+namespace HoMM.Game;
+
+/// <summary>
+/// Une grande fenêtre par-dessus la carte (étape 7 : écran du héros, royaume) : la carte s'assombrit (la barre des
+/// ressources reste visible), un cadre avec un titre et « Fermer » ; Échap ferme aussi.
+/// </summary>
+public partial class ScreenWindow : CanvasLayer
+{
+    /// <summary>Le contenu de la fenêtre : les écrans y ajoutent leurs éléments (coordonnées depuis son coin).</summary>
+    protected Control Window { get; private set; } = null!;
+
+    private Label _title = null!;
+
+    public bool IsOpen => Visible;
+    public event Action? Closed;
+
+    /// <summary>
+    /// Prépare le voile et le cadre ; <paramref name="window"/> : la place de la fenêtre à l'écran (en pixels). Le voile
+    /// laisse voir la barre des ressources, sauf <paramref name="veilAll"/> (au menu principal, où il n'y en a pas).
+    /// </summary>
+    protected void BuildFrame(Vector2 screenSize, Rect2 window, bool veilAll = false)
+    {
+        float top = veilAll ? 0 : Hud.TopBarHeight;
+        Layer = 4; // au-dessus de la carte et du panneau, sous l'écran de ville
+        Visible = false;
+        AddChild(new ColorRect
+        {
+            Position = new Vector2(0, top), Size = screenSize - new Vector2(0, top),
+            Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Stop,
+        });
+        // la barre des ressources reste visible, mais pas le haut de la colonne de droite (la carte réduite)
+        if (!veilAll)
+            AddChild(new ColorRect
+            {
+                Position = new Vector2(screenSize.X - Hud.PanelWidth, 0), Size = new Vector2(Hud.PanelWidth, top),
+                Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Stop,
+            });
+        var frame = new Panel { Position = window.Position, Size = window.Size };
+        frame.AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        AddChild(frame);
+        Window = frame;
+        _title = At(MakeLabel("", 20, TextColor), 24, 18);
+        frame.AddChild(_title);
+        var close = MakeButton(Texts.CloseButton, 14);
+        close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
+        close.Position = new Vector2(window.Size.X - Px(22 + 150), Px(18));
+        close.Size = V(150, 32);
+        close.Pressed += Close;
+        frame.AddChild(close);
+    }
+
+    protected void SetTitle(string title) => _title.Text = title;
+
+    protected void OpenWindow() => Visible = true;
+
+    public void Close()
+    {
+        if (!IsOpen)
+            return;
+        Visible = false;
+        Closed?.Invoke();
+    }
+
+    public override void _UnhandledInput(InputEvent e)
+    {
+        if (IsOpen && e is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape })
+        {
+            Close();
+            GetViewport().SetInputAsHandled();
+        }
+    }
+}

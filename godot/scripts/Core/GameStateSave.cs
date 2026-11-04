@@ -11,6 +11,9 @@ namespace HoMM.Core;
 /// chargée ne dépend pas du générateur de cartes, qui peut changer d'une version du jeu à l'autre.
 /// Les objets, héros et joueurs se retrouvent par leur identifiant.
 /// </summary>
+/// <summary>Le résumé d'une sauvegarde (voir <see cref="GameState.ReadSummary"/>).</summary>
+public sealed record SaveSummary(int Day, string? HeroName, int HeroLevel, MapSize Size, GameOutcome Outcome);
+
 public sealed partial class GameState
 {
     /// <summary>Version du format. À augmenter si le format change (une ancienne sauvegarde est alors refusée).</summary>
@@ -53,7 +56,10 @@ public sealed partial class GameState
     private sealed record StackData(string Creature, int Count);
 
     private sealed record PlayerData(int Id, string Name, Dictionary<ResourceType, int> Resources, string Fog,
-        List<int> Mines, List<int> Towns, List<int>? Obelisks = null);
+        List<int> Mines, List<int> Towns, List<int>? Obelisks = null, StatisticsData? Statistics = null);
+
+    /// <summary>Les chiffres de la partie d'un joueur (absents des anciennes sauvegardes : zéro).</summary>
+    private sealed record StatisticsData(int BattlesWon, int CreaturesKilled, int CreaturesLost, int TownsCaptured);
 
     private sealed record HeroData(
         int Id, string Name, int Owner, Cell Position, int Movement, int MaxMovement, int VisionRadius,
@@ -75,7 +81,8 @@ public sealed partial class GameState
             _rng.State, _nextPlayerId, _nextHeroId,
             SaveMap(),
             Players.Select(p => new PlayerData(p.Id, p.Name, new Dictionary<ResourceType, int>(p.Resources),
-                p.Fog.Export(), p.Mines.Select(m => m.Id).ToList(), p.Towns.Select(t => t.Id).ToList(), p.Obelisks.OrderBy(id => id).ToList())).ToList(),
+                p.Fog.Export(), p.Mines.Select(m => m.Id).ToList(), p.Towns.Select(t => t.Id).ToList(), p.Obelisks.OrderBy(id => id).ToList(),
+                new StatisticsData(p.Statistics.BattlesWon, p.Statistics.CreaturesKilled, p.Statistics.CreaturesLost, p.Statistics.TownsCaptured))).ToList(),
             AllHeroes.Select(h => new HeroData(
                 h.Id, h.Name, h.Owner.Id, h.Position, h.Movement, h.MaxMovement, h.VisionRadius,
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
@@ -119,6 +126,28 @@ public sealed partial class GameState
     /// proposés (événements <see cref="HeroLevelChoice"/>). Lève <see cref="FormatException"/> si le fichier
     /// est illisible, d'une autre version, ou ne correspond pas aux données du jeu.
     /// </summary>
+    /// <summary>
+    /// Ce qu'on montre d'une sauvegarde dans la liste (sans recréer la partie) : le jour, le héros du joueur humain
+    /// (le plus avancé), son niveau, la taille de la carte. Null si le fichier est illisible ou d'une autre version.
+    /// </summary>
+    public static SaveSummary? ReadSummary(string json)
+    {
+        try
+        {
+            if (JsonSerializer.Deserialize<SaveFile>(json, SaveOptions) is not { Map: not null, Players.Count: > 0 } save
+                || save.Version is not (1 or SaveVersion))
+                return null;
+            var hero = save.Heroes.Where(h => h.Owner == save.Players[0].Id)
+                .OrderByDescending(h => h.Id == save.CurrentHero).ThenByDescending(h => h.Level).FirstOrDefault();
+            return new SaveSummary(save.Day, hero?.Name, hero?.Level ?? 0,
+                MapSizes.Closest(save.Map.Width, save.Map.Height), save.Outcome);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     public static GameState Load(string json, GameData data)
     {
         SaveFile? save;
@@ -163,6 +192,13 @@ public sealed partial class GameState
             var player = new Player(p.Name, map) { Id = p.Id };
             foreach (var (resource, amount) in p.Resources)
                 player.Resources[resource] = amount;
+            if (p.Statistics is { } stats)
+            {
+                player.Statistics.BattlesWon = stats.BattlesWon;
+                player.Statistics.CreaturesKilled = stats.CreaturesKilled;
+                player.Statistics.CreaturesLost = stats.CreaturesLost;
+                player.Statistics.TownsCaptured = stats.TownsCaptured;
+            }
             state.Players.Add(player);
         }
         Player Owner(int id) => state.PlayerById(id) ?? throw new KeyNotFoundException($"joueur inconnu : {id}");
@@ -209,7 +245,7 @@ public sealed partial class GameState
                 Experience = h.Experience,
             };
             foreach (var s in h.Army)
-                hero.Army.Add(data.Creatures.Get(s.Creature), s.Count);
+                hero.Army.AddStack(data.Creatures.Get(s.Creature), s.Count);
             // ses caractéristiques comptent déjà leurs bonus
             foreach (var id in h.Artifacts ?? new List<string>())
                 hero.Artifacts.Add(data.Artifacts.Get(id));
@@ -279,7 +315,7 @@ public sealed partial class GameState
         foreach (var (creature, count) in o.Available ?? new Dictionary<string, int>())
             town.Available[data.Creatures.Get(creature)] = count;
         foreach (var s in o.Garrison ?? new List<StackData>())
-            town.Garrison.Add(data.Creatures.Get(s.Creature), s.Count);
+            town.Garrison.AddStack(data.Creatures.Get(s.Creature), s.Count);
         return town;
     }
 

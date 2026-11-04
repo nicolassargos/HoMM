@@ -43,7 +43,7 @@ public partial class KingdomScreen : ScreenWindow
 
         // la bande des mines et revenus
         var strip = new Panel { Position = V(20, 446), Size = new Vector2(size.X - Px(40), Px(110)) };
-        strip.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
+        strip.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         strip.AddChild(At(MakeLabel(Texts.KingdomMines, 15, SoftTextColor), 12, 6));
         Window.AddChild(strip);
         float column = (strip.Size.X - Px(24)) / ResourceInfo.All.Count();
@@ -51,7 +51,7 @@ public partial class KingdomScreen : ScreenWindow
         foreach (var resource in ResourceInfo.All)
         {
             var box = new Panel { Position = new Vector2(Px(12) + i++ * column, Px(36)), Size = new Vector2(column - Px(8), Px(62)), MouseFilter = Control.MouseFilterEnum.Stop };
-            box.AddThemeStyleboxOverride("panel", Box(PanelColor, DimColor, 1, 1, 1, 1));
+            box.AddThemeStyleboxOverride("panel", Plate(PanelColor));
             box.AddChild(new ResourceIcon { Resource = resource, Position = V(8, 8), Size = V(20, 20), MouseFilter = Control.MouseFilterEnum.Ignore });
             var name = At(MakeLabel(Texts.Capitalize(Texts.Resource(resource)), 15, TextColor), 34, 6);
             name.MouseFilter = Control.MouseFilterEnum.Ignore;
@@ -81,7 +81,7 @@ public partial class KingdomScreen : ScreenWindow
     private HBoxContainer Section(float y, float height, string title, out Label titleLabel)
     {
         var section = new Panel { Position = V(20, y), Size = new Vector2(Window.Size.X - Px(40), Px(height)) };
-        section.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
+        section.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         titleLabel = At(MakeLabel(title, 15, SoftTextColor), 12, 6);
         section.AddChild(titleLabel);
         Window.AddChild(section);
@@ -177,7 +177,7 @@ public partial class KingdomScreen : ScreenWindow
     private static Panel Tile(Vector2 size, bool selected, string tooltip, Action clicked, Action? doubleClicked)
     {
         var tile = new Panel { CustomMinimumSize = size, TooltipText = tooltip, MouseFilter = Control.MouseFilterEnum.Stop };
-        tile.AddThemeStyleboxOverride("panel", Box(PanelColor, selected ? Colors.White : DimColor, 1, 1, 1, 1));
+        tile.AddThemeStyleboxOverride("panel", Plate(PanelColor, selected ? Colors.White : null));
         tile.GuiInput += e =>
         {
             if (e is not InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)

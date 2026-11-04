@@ -160,6 +160,8 @@ public static class Ui
             PanelTexture = texture.AsString();
         if (values.TryGetValue("panelTextureStrength", out var strength))
             PanelTextureStrength = (float)strength.AsDouble();
+        if (values.TryGetValue("buttonTextureStrength", out var buttonStrength))
+            ButtonTextureStrength = (float)buttonStrength.AsDouble();
     }
 
     private static readonly Dictionary<Color, StyleBox> Frames = new();
@@ -177,7 +179,7 @@ public static class Ui
         // un bouton garde tout son milieu (« buttonPlainBand » : seulement la bande sans détail, pour des bords à clous) :
         // une pierre texturée répétée par petites bandes laissait des raccords visibles
         _buttonImage = Art.GetImage("ui/button") is { } button
-            ? Enlarged(ButtonPlainBand ? WithoutRepeatedDetails(button, ButtonCorner) : Trimmed(button), ButtonScale) : null;
+            ? Enlarged(ButtonPlainBand ? WithoutRepeatedDetails(button, ButtonCorner) : StoneGrained(WithLargeMiddle(Trimmed(button), ButtonCorner), ButtonCorner), ButtonScale) : null;
     }
 
     /// <summary>L'image réduite à sa partie non transparente.</summary>
@@ -317,10 +319,6 @@ public static class Ui
     }
 
     /// <summary>
-    /// Une copie de l'image où les pixels transparents entourés par le cadre prennent la couleur <paramref name="fill"/>
-    /// (ceux reliés au bord de l'image, à l'extérieur du cadre, restent transparents).
-    /// </summary>
-    /// <summary>
     /// Taille du milieu du cadre (entre les coins), en pixels d'art : la bande sans détail y est répétée, pour que le
     /// grain du fond (<see cref="Grain"/>) ne revienne que toutes les <see cref="FrameMiddle"/> pixels.
     /// </summary>
@@ -356,7 +354,92 @@ public static class Ui
     /// <summary>Force du motif du fond (« panelTextureStrength » dans ui.json, 1 par défaut).</summary>
     private static float PanelTextureStrength = 1;
 
-    private static Color Grain(Color fill, int x, int y)
+    /// <summary>Force du grain sur la pierre des boutons (« buttonTextureStrength » dans ui.json, aucun par défaut).</summary>
+    private static float ButtonTextureStrength = 0;
+
+    /// <summary>
+    /// Le grain sur le milieu uni du bouton (sa pierre), pas sur son bord : les pixels reliés au pixel du milieu et de
+    /// couleur proche. (x, y) comptés depuis le coin du milieu, comme pour les cadres.
+    /// </summary>
+    private static Image StoneGrained(Image image, int corner)
+    {
+        if (ButtonTextureStrength <= 0)
+            return image;
+        int w = image.GetWidth(), h = image.GetHeight();
+        var reference = image.GetPixel(w / 2, h / 2);
+        bool Close(Color c) => c.A > 0.5f && Mathf.Abs(c.R - reference.R) + Mathf.Abs(c.G - reference.G) + Mathf.Abs(c.B - reference.B) < 0.16f;
+        var seen = new bool[w, h];
+        var todo = new Stack<(int X, int Y)>();
+        todo.Push((w / 2, h / 2));
+        while (todo.Count > 0)
+        {
+            var (x, y) = todo.Pop();
+            if (x < 0 || y < 0 || x >= w || y >= h || seen[x, y] || !Close(image.GetPixel(x, y)))
+                continue;
+            seen[x, y] = true;
+            image.SetPixel(x, y, Grain(image.GetPixel(x, y), x - corner, y - corner, ButtonTextureStrength));
+            todo.Push((x + 1, y)); todo.Push((x - 1, y)); todo.Push((x, y + 1)); todo.Push((x, y - 1));
+        }
+        return image;
+    }
+
+    private static readonly Dictionary<(Color, Color?, bool), StyleBox> Insets = new();
+
+    /// <summary>
+    /// Une boîte creusée dans la pierre (sections, listes, cartes) : un biseau d'un pixel d'art, sombre en haut et à
+    /// gauche, clair en bas et à droite, puis une ombre intérieure, et le grain de pierre dans <paramref name="fill"/>.
+    /// <paramref name="outline"/> (héros choisi, bâtiment possible, troupe à risque…) remplace le biseau par un trait
+    /// de cette couleur. Agrandie comme le cadre.
+    /// </summary>
+    public static StyleBox Inset(Color fill, Color? outline = null) => StoneBox(fill, outline, sunken: true);
+
+    /// <summary>
+    /// Une plaque à plat (ce que contient une boîte creusée : lignes d'une liste, cartes de bâtiment ou de créature,
+    /// vignettes du royaume) : le grain de pierre et un trait fin (<paramref name="outline"/>, sinon discret).
+    /// </summary>
+    public static StyleBox Plate(Color fill, Color? outline = null) => StoneBox(fill, outline ?? DimColor, sunken: false);
+
+    private static StyleBox StoneBox(Color fill, Color? outline, bool sunken)
+    {
+        LoadImages(); // les réglages (grain, agrandissement) d'abord
+        if (Insets.TryGetValue((fill, outline, sunken), out var cached))
+            return cached;
+        const int edge = 2;
+        int size = 2 * edge + FrameMiddle;
+        var image = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+        Color dark = fill.Darkened(0.5f), light = fill.Lightened(0.22f), shade = fill.Darkened(0.2f);
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            int ring = Math.Min(Math.Min(x, y), Math.Min(size - 1 - x, size - 1 - y));
+            bool topLeft = x + y < size - 1 && (x == ring || y == ring);
+            Color color = ring switch
+            {
+                0 => outline ?? (topLeft ? dark : light),
+                1 when sunken && topLeft => shade,
+                _ => Grain(fill, x - edge, y - edge),
+            };
+            image.SetPixel(x, y, color);
+        }
+        var box = Sliced(Enlarged(image, FrameScale), edge * FrameScale, (int)Px(6), (int)Px(4));
+        Insets[(fill, outline, sunken)] = box;
+        return box;
+    }
+
+    /// <summary>Un grand fond (l'écran de ville) : seulement le grain de pierre, sans bord.</summary>
+    public static StyleBox Stone(Color fill)
+    {
+        LoadImages();
+        var image = Image.CreateEmpty(FrameMiddle, FrameMiddle, false, Image.Format.Rgba8);
+        for (int y = 0; y < FrameMiddle; y++)
+        for (int x = 0; x < FrameMiddle; x++)
+            image.SetPixel(x, y, Grain(fill, x, y));
+        return Sliced(Enlarged(image, FrameScale), 0, 0, 0);
+    }
+
+    private static Color Grain(Color fill, int x, int y) => Grain(fill, x, y, PanelTextureStrength);
+
+    private static Color Grain(Color fill, int x, int y, float strength)
     {
         x = ((x % FrameMiddle) + FrameMiddle) % FrameMiddle;
         y = ((y % FrameMiddle) + FrameMiddle) % FrameMiddle;
@@ -389,10 +472,14 @@ public static class Ui
             "toile" => 1 + ((x / 2 + y / 2) % 2 == 0 ? 0.025f : -0.025f) + 0.05f * (Smooth(16, 5) - 0.5f),
             _ => 1 + 0.10f * (Smooth(8, 0) - 0.5f) - (speck < 0.06f ? 0.08f : 0) + (speck > 0.97f ? 0.07f : 0),
         };
-        factor = 1 + (factor - 1) * PanelTextureStrength;
+        factor = 1 + (factor - 1) * strength;
         return new Color(fill.R * factor, fill.G * factor, fill.B * factor, fill.A);
     }
 
+    /// <summary>
+    /// Une copie de l'image où les pixels transparents entourés par le cadre prennent la couleur <paramref name="fill"/>
+    /// (ceux reliés au bord de l'image, à l'extérieur du cadre, restent transparents).
+    /// </summary>
     private static Image FillInside(Image source, Color fill, int corner)
     {
         var image = (Image)source.Duplicate();

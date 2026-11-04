@@ -1,1 +1,1 @@
-{ "panelCorner": 7, "panelContentX": 12, "panelContentY": 10, "panelScale": 3, "buttonCorner": 5, "buttonScale": 3, "buttonPlainBand": 0, "panelTexture": "pierre", "panelTextureStrength": 4.5 }
+{ "panelCorner": 7, "panelContentX": 12, "panelContentY": 10, "panelScale": 3, "buttonCorner": 5, "buttonScale": 3, "buttonPlainBand": 0, "panelTexture": "pierre", "panelTextureStrength": 3, "buttonTextureStrength": 1.5 }

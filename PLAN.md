@@ -452,7 +452,16 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   milieu du bouton), `panelTexture` (`pierre`, `doux`, `cuir`, `toile`, `uni`), `panelTextureStrength` (4,5).
   `tools/art/cadre.py` rend transparent le centre uni d'un cadre généré. Essayés puis écartés : les cadres B7 (fil
   d'or, trop discret), les boutons de pierre de 96 × 32 (biseau trop large pour les petits boutons).
-  À voir : les boîtes intérieures (sections, listes, cartes de la ville) restent unies.
+  ✅ Boîtes intérieures (2026-11-04) : une règle, comme dans Heroes 2 : **creusé pour les places, à plat pour les
+  choses**. Les places (emplacements d'armée, listes du panneau, fiche du héros, sections du héros et du royaume,
+  bande des mines, zones sous les cartes de Construire, Recruter, Taverne, liste des sauvegardes, ordre de jeu du
+  combat) sont creusées (`Ui.Inset` : biseau d'un pixel d'art, sombre en haut à gauche, clair en bas à droite, ombre
+  intérieure, grain) ; les choses (lignes des listes, vignettes du royaume, cartes de bâtiment, de créature et de
+  héros) sont des plaques à plat au trait fin (`Ui.Plate`), plus claires que leur creux ; un bâtiment déjà construit
+  est plus sombre. Les traits de couleur (héros choisi, bâtiment possible, troupe à risque) restent. Le fond de l'écran
+  de ville a le grain (`Ui.Stone`). Grain baissé : 3 sur les cadres, 1,5 sur la pierre des boutons
+  (`buttonTextureStrength`). Les coins un peu arrondis du bouton A1 sont gardés (choix de l'utilisateur).
+  À poursuivre : la revue des écrans avec ce nouveau style.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

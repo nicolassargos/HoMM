@@ -82,6 +82,13 @@ public partial class BattleScreen : CanvasLayer
             ClipContents = true,
         };
         _order.AddThemeConstantOverride("separation", (int)Px(4));
+        // l'ordre de jeu (des vignettes à plat) dans une zone creusée
+        var orderArea = new Panel
+        {
+            Position = _order.Position - V(4, 4), Size = _order.Size + V(8, 8), MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        orderArea.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
+        root.AddChild(orderArea);
         root.AddChild(_order);
 
         // Le champ de bataille, centré dessous (de la place reste de chaque côté : héros, machines de guerre…),

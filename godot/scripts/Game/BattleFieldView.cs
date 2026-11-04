@@ -36,7 +36,35 @@ public partial class BattleFieldView : Control
 
     private const string Idle = "idle", Walk = "walk", AttackState = "attack";
 
-    public static Vector2 FieldSize => new(Battlefield.Columns * HexWidth + HexWidth / 2, (Battlefield.Rows - 1) * RowStep + HexHeight);
+    /// <summary>
+    /// La place de chaque côté de la grille (étape 7) : le sol continue, pour les héros (et plus tard les machines de
+    /// guerre : catapulte, baliste…).
+    /// </summary>
+    public const float SideMargin = 212;
+
+    public static Vector2 FieldSize => new(Battlefield.Columns * HexWidth + HexWidth / 2 + 2 * SideMargin, (Battlefield.Rows - 1) * RowStep + HexHeight);
+
+    /// <summary>Le héros de l'attaquant, dessiné à gauche de la grille (null : pas de héros, une vitrine…).</summary>
+    public Hero? AttackerHero { get; set; }
+
+    private const int HeroScale = 3;
+
+    /// <summary>Où est dessiné le héros, à gauche de la grille (pour savoir si on clique dessus).</summary>
+    public Rect2 HeroRect
+    {
+        get
+        {
+            var size = (Art.Get("heroes/hero")?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
+            return new Rect2(new Vector2(SideMargin / 2 - size.X / 2, FieldSize.Y / 2 - size.Y / 2), size);
+        }
+    }
+
+    /// <summary>Un clic sur le héros.</summary>
+    public event Action? HeroClicked;
+
+    /// <summary>Clic droit enfoncé sur une troupe (sa fiche, tant que le bouton reste enfoncé), et relâché.</summary>
+    public event Action<BattleUnit, Vector2>? UnitInfoPressed;
+    public event Action? UnitInfoReleased;
 
     public TacticalBattle Battle { get; private set; } = null!;
     private TerrainType _terrain;
@@ -93,7 +121,7 @@ public partial class BattleFieldView : Control
 
     /// <summary>Le centre d'une case, dans le dessin (les rangées impaires sont décalées d'une demi-case).</summary>
     public static Vector2 Center(Hex hex) =>
-        new(hex.Col * HexWidth + HexWidth / 2 + ((hex.Row & 1) == 1 ? HexWidth / 2 : 0), hex.Row * RowStep + HexHeight / 2);
+        new(SideMargin + hex.Col * HexWidth + HexWidth / 2 + ((hex.Row & 1) == 1 ? HexWidth / 2 : 0), hex.Row * RowStep + HexHeight / 2);
 
     /// <summary>Où dessiner une troupe dont la tête est sur cette case : au milieu de ses cases (2 pour une grande créature).</summary>
     public static Vector2 UnitCenter(BattleUnit unit, Hex head)
@@ -131,8 +159,20 @@ public partial class BattleFieldView : Control
     {
         if (e is InputEventMouseMotion motion)
             Hovered = HexAt(motion.Position);
-        else if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click && HexAt(click.Position) is { } hex)
-            Clicked?.Invoke(hex, click.Position);
+        else if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)
+        {
+            if (AttackerHero != null && HeroRect.HasPoint(click.Position))
+                HeroClicked?.Invoke();
+            else if (HexAt(click.Position) is { } hex)
+                Clicked?.Invoke(hex, click.Position);
+        }
+        else if (e is InputEventMouseButton { ButtonIndex: MouseButton.Right } right)
+        {
+            if (right.Pressed && HexAt(right.Position) is { } hex && Battle.UnitAt(hex) is { } unit && ShownCount(unit) > 0)
+                UnitInfoPressed?.Invoke(unit, right.Position);
+            else if (!right.Pressed)
+                UnitInfoReleased?.Invoke();
+        }
     }
 
     // ------------------------------------------------------------------ animations
@@ -292,6 +332,10 @@ public partial class BattleFieldView : Control
         if (Target is { } target)
             foreach (var hex in Battle.UnitAt(target)?.Hexes ?? new[] { target })
                 DrawHexOutline(Center(hex), MapRenderer.Rgb(220, 60, 40), 3);
+
+        // le héros, à gauche de la grille (son image de la carte en attendant une image de combat)
+        if (AttackerHero != null && Art.Get("heroes/hero") is { } heroImage)
+            DrawTextureRect(heroImage, HeroRect, false);
 
         // obstacles et troupes, de haut en bas (ceux du bas passent devant)
         var things = new List<(float Y, Action Draw)>();

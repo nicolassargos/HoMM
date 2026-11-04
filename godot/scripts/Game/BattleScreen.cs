@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using HoMM.Core;
@@ -12,6 +13,9 @@ namespace HoMM.Game;
 /// coup. Le joueur fait jouer ses troupes à la souris : un clic sur une case pour y aller, sur un ennemi pour
 /// l'attaquer (du côté le plus proche de la souris) ou lui tirer dessus. L'IA joue les troupes ennemies, à un rythme
 /// lisible ; « Auto » la laisse jouer aussi les troupes du joueur jusqu'à la fin.
+/// Étape 7 : le champ s'élargit de chaque côté de la grille (le héros y est dessiné, un clic montre ses
+/// caractéristiques ; plus tard les machines de guerre) ; un clic droit maintenu sur une troupe montre sa fiche ; un
+/// journal du combat ; les touches W (attendre), D (se défendre), A (auto), F (fuir).
 /// </summary>
 public partial class BattleScreen : CanvasLayer
 {
@@ -23,6 +27,11 @@ public partial class BattleScreen : CanvasLayer
     private bool _auto;
     private double _wait;
     private string _opponent = "";
+    private Hero? _hero;
+    private readonly List<string> _log = new();
+
+    private Panel _unitInfo = null!;
+    private Label _unitInfoText = null!;
 
     private Label _title = null!;
     private Label _message = null!;
@@ -51,10 +60,10 @@ public partial class BattleScreen : CanvasLayer
         // les boutons, en une rangée à droite qui prend la largeur de leurs textes
         var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.End };
         buttons.AddThemeConstantOverride("separation", 6);
-        _waitButton = AddButton(buttons, Texts.BattleWait, () => Player(b => b.Wait()));
-        _defendButton = AddButton(buttons, Texts.BattleDefend, () => Player(b => b.Defend()));
-        _autoButton = AddButton(buttons, Texts.BattleAuto, () => _auto = true);
-        _fleeButton = AddButton(buttons, Texts.BattleFlee, () => Player(b => b.Flee()));
+        _waitButton = AddButton(buttons, Texts.WithKey(Texts.BattleWait, "W"), () => Player(b => b.Wait()));
+        _defendButton = AddButton(buttons, Texts.WithKey(Texts.BattleDefend, "D"), () => Player(b => b.Defend()));
+        _autoButton = AddButton(buttons, Texts.WithKey(Texts.BattleAuto, "A"), () => _auto = true);
+        _fleeButton = AddButton(buttons, Texts.WithKey(Texts.BattleFlee, "F"), () => Player(b => b.Flee()));
         float buttonsWidth = buttons.GetCombinedMinimumSize().X;
         buttons.Position = new Vector2(screenSize.X - 16 - buttonsWidth, barY + (OrderHeight - 40) / 2f);
         buttons.Size = new Vector2(buttonsWidth, 40);
@@ -94,10 +103,93 @@ public partial class BattleScreen : CanvasLayer
         band.AddThemeStyleboxOverride("panel", Box(PanelColor, BorderColor, 1, 1, 1, 1));
         root.AddChild(band);
         _message = At(MakeLabel("", 14, TextColor), 10, 4);
-        _message.Size = band.Size - new Vector2(20, 8);
         _message.ClipText = true;
+        _message.Size = band.Size - new Vector2(20 + 100, 8);
         _message.VerticalAlignment = VerticalAlignment.Center;
         band.AddChild(_message);
+        // le journal du combat, au bout de la ligne
+        var log = MakeButton(Texts.BattleLogButton, 13);
+        log.Position = band.Position + new Vector2(band.Size.X - 96, 2);
+        log.Size = new Vector2(92, bandHeight - 4);
+        log.Pressed += ShowLog;
+        root.AddChild(log);
+
+        BuildUnitInfo(root);
+        _field.HeroClicked += ShowHero;
+        _field.UnitInfoPressed += ShowUnitInfo;
+        _field.UnitInfoReleased += () => _unitInfo.Visible = false;
+    }
+
+    /// <summary>La fiche d'une troupe, tant que le clic droit reste enfoncé (comme dans Heroes).</summary>
+    private void BuildUnitInfo(Control root)
+    {
+        _unitInfo = new Panel { Visible = false, Size = new Vector2(240, 10), MouseFilter = Control.MouseFilterEnum.Ignore, ZIndex = 5 };
+        _unitInfo.AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        root.AddChild(_unitInfo);
+        _unitInfoText = At(MakeLabel("", 13, TextColor), 14, 12);
+        _unitInfoText.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _unitInfoText.CustomMinimumSize = new Vector2(212, 0);
+        _unitInfo.AddChild(_unitInfoText);
+    }
+
+    private void ShowUnitInfo(BattleUnit unit, Vector2 at)
+    {
+        _unitInfoText.Text = $"{Texts.Stack(new CreatureStack(unit.Type, _field.ShownCount(unit)))}\n{Texts.UnitStats(unit)}\n"
+            + $"{Texts.UnitAbilities(unit)}\n{Texts.UnitState(unit)}";
+        _unitInfo.Size = new Vector2(240, _unitInfoText.GetMinimumSize().Y + 26);
+        // à côté de la souris, sans sortir de l'écran
+        var position = _field.Position + at + new Vector2(16, -_unitInfo.Size.Y / 2);
+        _unitInfo.Position = position.Clamp(Vector2.Zero, _screen - _unitInfo.Size);
+        _unitInfo.Visible = true;
+    }
+
+    /// <summary>Un clic sur le héros : ses caractéristiques (le livre de sorts viendra avec la magie).</summary>
+    private void ShowHero()
+    {
+        if (_hero is not { } hero)
+            return;
+        var dialog = new AcceptDialog
+        {
+            Title = hero.Name, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true,
+            DialogText = $"{Texts.LevelLine(hero)}\n{Texts.HeroBonus(hero)}\n{Texts.SpellBookLater}",
+        };
+        dialog.Confirmed += dialog.QueueFree;
+        dialog.Canceled += dialog.QueueFree;
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(360, 0));
+    }
+
+    /// <summary>Le journal : tous les messages de ce combat, le plus récent en bas.</summary>
+    private void ShowLog()
+    {
+        var dialog = new AcceptDialog { Title = Texts.BattleLogTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
+        var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(620, 380), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        var text = MakeLabel(_log.Count == 0 ? Texts.LogEmpty : string.Join("\n", _log), 14, TextColor);
+        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        text.CustomMinimumSize = new Vector2(600, 0);
+        scroll.AddChild(text);
+        dialog.AddChild(scroll);
+        dialog.Confirmed += dialog.QueueFree;
+        dialog.Canceled += dialog.QueueFree;
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I(660, 0));
+        Callable.From(() => scroll.ScrollVertical = (int)scroll.GetVScrollBar().MaxValue).CallDeferred();
+    }
+
+    /// <summary>Les touches du combat : W attendre, D se défendre, A auto, F fuir.</summary>
+    public override void _UnhandledInput(InputEvent e)
+    {
+        if (_battle == null || e is not InputEventKey { Pressed: true, Echo: false } key)
+            return;
+        switch (key.Keycode)
+        {
+            case Key.W: Player(b => b.Wait()); break;
+            case Key.D: Player(b => b.Defend()); break;
+            case Key.A: _auto = true; break;
+            case Key.F: Player(b => b.Flee()); break;
+            default: return;
+        }
+        GetViewport().SetInputAsHandled();
     }
 
     /// <summary>Largeur de « Round 2 », au début de la ligne du bas.</summary>
@@ -113,9 +205,13 @@ public partial class BattleScreen : CanvasLayer
     }
 
     /// <summary>Ouvre l'écran pour ce combat ; <paramref name="finished"/> est appelé quand il est fini et montré.</summary>
-    public void Open(TacticalBattle battle, string enemy, TerrainType terrain, Action finished, bool auto = false)
+    public void Open(TacticalBattle battle, string enemy, TerrainType terrain, Action finished, bool auto = false, Hero? hero = null)
     {
         _battle = battle;
+        _hero = hero;
+        _log.Clear();
+        _unitInfo.Visible = false;
+        _field.AttackerHero = hero;
         _finished = finished;
         _auto = auto;
         _wait = 0.5;
@@ -173,7 +269,10 @@ public partial class BattleScreen : CanvasLayer
         _field.Show(actions, action =>
         {
             if (Texts.BattleMessage(action) is { } text)
+            {
                 _message.Text = text;
+                _log.Add(text);
+            }
         });
     }
 

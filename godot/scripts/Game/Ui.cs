@@ -103,8 +103,26 @@ public static class Ui
     // Les cadres (art/ui/panel.png) et boutons (art/ui/button.png) sont découpés en 9 morceaux : les coins
     // restent tels quels, les bords et le centre sont répétés (jamais étirés), à l'échelle 1, pixels nets.
 
-    /// <summary>Taille des coins du cadre et du bouton dans leurs images (en pixels).</summary>
-    private const int FrameCorner = 12, ButtonCorner = 6;
+    /// <summary>
+    /// Taille des coins du cadre et du bouton dans leurs images, et marges du texte dans un cadre (en pixels). Une image
+    /// d'une autre taille vient avec « art/ui/ui.json » : { "panelCorner": 28, "panelContentX": 20, "panelContentY": 14,
+    /// "buttonCorner": 10 } (chaque valeur est facultative).
+    /// </summary>
+    private static int FrameCorner = 12, FrameContentX = 14, FrameContentY = 6, ButtonCorner = 6;
+
+    private static void LoadSlices()
+    {
+        const string path = "res://art/ui/ui.json";
+        if (!Godot.FileAccess.FileExists(path))
+            return;
+        if (Json.ParseString(Godot.FileAccess.GetFileAsString(path)).AsGodotDictionary() is not { } values)
+            return;
+        int Get(string key, int fallback) => values.TryGetValue(key, out var v) ? v.AsInt32() : fallback;
+        FrameCorner = Get("panelCorner", FrameCorner);
+        FrameContentX = Get("panelContentX", FrameContentX);
+        FrameContentY = Get("panelContentY", FrameContentY);
+        ButtonCorner = Get("buttonCorner", ButtonCorner);
+    }
 
     private static readonly Dictionary<Color, StyleBox> Frames = new();
     private static Image? _frameImage, _buttonImage;
@@ -115,6 +133,7 @@ public static class Ui
         if (_imagesLoaded)
             return;
         _imagesLoaded = true;
+        LoadSlices();
         _frameImage = Art.GetImage("ui/panel") is { } frame ? WithoutRepeatedDetails(frame, FrameCorner) : null;
         _buttonImage = Art.GetImage("ui/button") is { } button ? WithoutRepeatedDetails(button, ButtonCorner) : null;
     }
@@ -130,7 +149,7 @@ public static class Ui
         LoadImages();
         StyleBox box = _frameImage == null
             ? Box(fill, BorderColor, 2, 2, 2, 2)
-            : Sliced(FillInside(_frameImage, fill), FrameCorner, FrameCorner + 2, FrameCorner - 6);
+            : Sliced(FillInside(_frameImage, fill), FrameCorner, FrameContentX, FrameContentY);
         Frames[fill] = box;
         return box;
     }

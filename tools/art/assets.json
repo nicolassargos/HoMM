@@ -241,6 +241,18 @@
     { "name": "creatures/battle/orc@v7", "style": "rd_tile__tile_object", "size": [44, 52], "remove_bg": true, "variants": 4, "seed": 1701,
       "prompt": "stocky hunched orc warrior, olive green skin, big lower tusks jutting up from an underbite, pointed ears, heavy angry brow, brown leather tunic with a belt and metal buckle, leather bracers, holding a jagged cleaver-like blade, big chunky readable shapes, three-quarter view facing right, same size as a man, full body, detailed pixel art battle sprite" },
     { "name": "creatures/battle/gobelin@v7", "style": "rd_tile__tile_object", "size": [36, 40], "remove_bg": true, "variants": 4, "seed": 1702,
-      "prompt": "small grumpy goblin about half the size of a man, yellowish olive skin, long pointed ears, droopy tired eyes, big bulbous nose, small lower fangs, pot belly, skinny arms and legs, big bare feet, ragged cloth and fur loincloth, holding a sharpened wooden stick as a spear, pathetic and mean, not cartoonish, three-quarter view facing right, full body, detailed pixel art battle sprite" }
+      "prompt": "small grumpy goblin about half the size of a man, yellowish olive skin, long pointed ears, droopy tired eyes, big bulbous nose, small lower fangs, pot belly, skinny arms and legs, big bare feet, ragged cloth and fur loincloth, holding a sharpened wooden stick as a spear, pathetic and mean, not cartoonish, three-quarter view facing right, full body, detailed pixel art battle sprite" },
+    { "name": "creatures/battle/epeiste-idle", "style": "rd_advanced_animation__idle", "size": [48, 56], "variants": 1, "seed": 2001,
+      "input": "art-candidats/references/derives/epeiste-48x56.png", "input_background": [255, 0, 255],
+      "spritesheet": true, "frames": 8,
+      "prompt": "medieval swordsman with light padded armour, leather cap, short sword and small round blue shield, side view facing right, standing on guard, breathing gently, idle loop" },
+    { "name": "creatures/battle/epeiste-walk", "style": "rd_advanced_animation__walking", "size": [48, 56], "variants": 1, "seed": 2002,
+      "input": "art-candidats/references/derives/epeiste-48x56.png", "input_background": [255, 0, 255],
+      "spritesheet": true, "frames": 8,
+      "prompt": "medieval swordsman with light padded armour, leather cap, short sword and small round blue shield, side view facing right, walking forward to the right" },
+    { "name": "creatures/battle/epeiste-attack", "style": "rd_advanced_animation__attack", "size": [48, 56], "variants": 1, "seed": 2003,
+      "input": "art-candidats/references/derives/epeiste-48x56.png", "input_background": [255, 0, 255],
+      "spritesheet": true, "frames": 8,
+      "prompt": "medieval swordsman with light padded armour, leather cap, short sword and small round blue shield, side view facing right, slashing forward with his sword" }
   ]
 }

@@ -22,6 +22,20 @@ public partial class BattleFieldView : Control
     /// <summary>Agrandissement des images de combat (art/creatures/battle/).</summary>
     private const int BattleSpriteScale = 2;
 
+    /// <summary>
+    /// Les animations d'une créature : des feuilles de 8 images (4 colonnes, 2 rangées), à côté de son image de combat
+    /// (« epeiste-idle.png », « epeiste-walk.png », « epeiste-attack.png »). Sans feuille, l'image fixe est montrée.
+    /// </summary>
+    private const int AnimationFrames = 8, AnimationColumns = 4, AnimationRows = 2;
+
+    /// <summary>Images d'animation par seconde.</summary>
+    private const double AnimationFps = 10;
+
+    /// <summary>Pendant une attaque animée, le coup porte à ce moment (en secondes), vers la fin du geste.</summary>
+    private const double HitDelay = 0.45;
+
+    private const string Idle = "idle", Walk = "walk", AttackState = "attack";
+
     public static Vector2 FieldSize => new(Battlefield.Columns * HexWidth + HexWidth / 2, (Battlefield.Rows - 1) * RowStep + HexHeight);
 
     public TacticalBattle Battle { get; private set; } = null!;
@@ -34,6 +48,19 @@ public partial class BattleFieldView : Control
         public int Count;
         public float Flash;
         public bool Gone;
+
+        /// <summary>L'animation jouée (attente, marche, attaque) et depuis quand.</summary>
+        public string State = Idle;
+        public double StateTime;
+
+        /// <summary>Décalage de l'attente, pour que les troupes ne respirent pas toutes ensemble.</summary>
+        public double Phase;
+
+        public void Play(string state)
+        {
+            State = state;
+            StateTime = 0;
+        }
     }
 
     private readonly Dictionary<BattleUnit, Shown> _shown = new();
@@ -55,7 +82,7 @@ public partial class BattleFieldView : Control
         _shown.Clear();
         _floating.Clear();
         foreach (var unit in battle.Units)
-            _shown[unit] = new Shown { Position = UnitCenter(unit, unit.Position), Count = unit.Count };
+            _shown[unit] = new Shown { Position = UnitCenter(unit, unit.Position), Count = unit.Count, Phase = unit.Id * 0.37 };
         CustomMinimumSize = FieldSize;
         Size = FieldSize;
         TextureFilter = TextureFilterEnum.Nearest;
@@ -142,7 +169,11 @@ public partial class BattleFieldView : Control
                     Vector2? start = null;
                     _animations.Enqueue(delta =>
                     {
-                        start ??= shown.Position; // d'où elle part : là où elle est dessinée
+                        if (start == null)
+                        {
+                            start = shown.Position; // d'où elle part : là où elle est dessinée
+                            shown.Play(Walk);
+                        }
                         t += delta;
                         var from = step == 0 ? start.Value : points[step - 1];
                         // une case de marche en 0,09 s ; un vol prend le temps de toutes les cases survolées
@@ -151,15 +182,30 @@ public partial class BattleFieldView : Control
                         if (k < 1)
                             return false;
                         t = 0;
-                        return ++step >= points.Count;
+                        if (++step < points.Count)
+                            return false;
+                        shown.Play(Idle);
+                        return true;
                     });
                     break;
                 case UnitStruck struck:
-                    double age = 0;
+                    double age = 0, wind = 0;
+                    bool hit = false;
                     _animations.Enqueue(delta =>
                     {
-                        if (age == 0)
+                        // l'attaquant fait son geste (s'il a une animation d'attaque) ; le coup porte vers la fin
+                        var striker = _shown[struck.Attacker];
+                        if (wind == 0 && Sheet(struck.Attacker, AttackState) != null)
+                            striker.Play(AttackState);
+                        if (striker.State == AttackState && wind < HitDelay)
                         {
+                            wind += delta;
+                            return false;
+                        }
+                        wind = Math.Max(wind, 1e-6);
+                        if (!hit)
+                        {
+                            hit = true;
                             var target = _shown[struck.Target];
                             target.Count = Math.Max(0, target.Count - struck.Killed);
                             target.Flash = 1;
@@ -172,6 +218,8 @@ public partial class BattleFieldView : Control
                             return false;
                         if (_shown[struck.Target].Count == 0)
                             _shown[struck.Target].Gone = true;
+                        if (striker.State == AttackState)
+                            striker.Play(Idle);
                         return true;
                     });
                     break;
@@ -188,7 +236,10 @@ public partial class BattleFieldView : Control
         if (_animations.Count > 0 && _animations.Peek()(delta))
             _animations.Dequeue();
         foreach (var shown in _shown.Values)
+        {
             shown.Flash = Math.Max(0, shown.Flash - (float)delta * 3);
+            shown.StateTime += delta;
+        }
         for (int i = _floating.Count - 1; i >= 0; i--)
         {
             var (text, position, age, color) = _floating[i];
@@ -282,28 +333,55 @@ public partial class BattleFieldView : Control
             MapRenderer.Rgb(110, 105, 100));
     }
 
+    /// <summary>La feuille d'animation d'une créature pour cet état, ou null.</summary>
+    private static Texture2D? Sheet(BattleUnit unit, string state) => Art.Get($"creatures/battle/{unit.Type.Id}-{state}");
+
+    /// <summary>
+    /// L'image d'animation à montrer : en boucle pour l'attente et la marche, une seule fois pour l'attaque. Sans
+    /// feuille pour cet état, celle de l'attente ; sans rien, (null, …) : l'image fixe.
+    /// </summary>
+    private static (Texture2D? Sheet, Rect2 Frame) Frame(BattleUnit unit, Shown shown)
+    {
+        var state = shown.State;
+        var sheet = Sheet(unit, state);
+        if (sheet == null && state != Idle)
+        {
+            state = Idle;
+            sheet = Sheet(unit, Idle);
+        }
+        if (sheet == null)
+            return (null, default);
+        double time = state == Idle ? shown.StateTime + shown.Phase : shown.StateTime;
+        int index = (int)(time * AnimationFps);
+        index = state == AttackState ? Math.Min(index, AnimationFrames - 1) : index % AnimationFrames;
+        var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / AnimationRows);
+        return (sheet, new Rect2(new Vector2(index % AnimationColumns * cell.X, index / AnimationColumns * cell.Y), cell));
+    }
+
     private void DrawUnit(BattleUnit unit, Shown shown)
     {
         var foot = shown.Position + new Vector2(0, HexHeight / 2 - 10);
         var tint = shown.Flash > 0 ? new Color(1, 1 - shown.Flash * 0.6f, 1 - shown.Flash * 0.6f) : Colors.White;
         // L'image de combat (plus détaillée), sinon la petite de la carte ×3 ; une grande créature est centrée sur ses 2 cases
         var battleImage = Art.Get($"creatures/battle/{unit.Type.Id}");
-        if ((battleImage ?? Art.Get($"creatures/{unit.Type.Id}")) is { } image)
+        var (sheet, frame) = Frame(unit, shown);
+        if ((sheet ?? battleImage ?? Art.Get($"creatures/{unit.Type.Id}")) is { } image)
         {
-            // l'image de combat (48 × 64 pour une créature debout, plus large pour un loup, un dragon…) est toujours
-            // agrandie ×2 : les pixels ont la même taille que sur la carte
-            int scale = battleImage != null ? BattleSpriteScale : SpriteScale;
-            var size = image.GetSize() * scale;
+            // l'image de combat (40 × 52 pour une créature debout, plus large pour un loup, un dragon…) est toujours
+            // agrandie ×2 : les pixels ont la même taille que sur la carte ; une image d'animation, posée de même
+            int scale = sheet != null || battleImage != null ? BattleSpriteScale : SpriteScale;
+            var source = sheet != null ? frame : new Rect2(Vector2.Zero, image.GetSize());
+            var size = source.Size * scale;
             var rect = new Rect2(foot + new Vector2(-size.X / 2, -size.Y), size);
             if (unit.Side == BattleSide.Defender)
             {
                 // tourné vers la gauche : dessiné en miroir
                 DrawSetTransform(new Vector2(foot.X * 2, 0), 0, new Vector2(-1, 1));
-                DrawTextureRect(image, new Rect2(new Vector2(foot.X - size.X / 2, rect.Position.Y), size), false, tint);
+                DrawTextureRectRegion(image, new Rect2(new Vector2(foot.X - size.X / 2, rect.Position.Y), size), source, tint);
                 DrawSetTransform(Vector2.Zero, 0, Vector2.One);
             }
             else
-                DrawTextureRect(image, rect, false, tint);
+                DrawTextureRectRegion(image, rect, source, tint);
         }
         else
             DrawCircle(foot + new Vector2(0, -24), 20, unit.Side == BattleSide.Attacker ? MapRenderer.PlayerColor : MapRenderer.NeutralColor);

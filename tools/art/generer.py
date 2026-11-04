@@ -11,6 +11,9 @@ Sans nom, « cout » estime toutes les images. Un nom peut être un préfixe («
 Un nom avec « @ » (« terrain/grass@48 ») est un essai : « choisir » le copie à la place de terrain/grass.
 Une image avec « input » part d'une image existante (style rd_tile__tile_variation : variantes d'une case ;
 ou un autre style, avec « strength » entre 0 et 1 : plus c'est grand, plus on s'éloigne de l'image d'entrée).
+« input_background » ([r, g, b]) remplit le fond transparent de l'image d'entrée de cette couleur.
+Animations (styles rd_advanced_animation__…, à partir d'une image d'entrée) : « spritesheet » (feuille PNG au
+lieu d'un GIF) et « frames » (4, 6, 8, 10, 12 ou 16 images).
 « choisir » cherche le candidat dans art-candidats/en-cours/, puis dans les archives (le plus récent d'abord).
 Seule la bibliothèque standard de Python est utilisée.
 """
@@ -66,8 +69,11 @@ def requete(methode, chemin, corps=None):
         sys.exit(f"Erreur {e.code} de l'API : {e.read().decode('utf-8', 'replace')}")
 
 
-def image_rgb_base64(chemin):
-    """Une image PNG en base64, sans transparence (l'API veut du RGB) : on relit le fichier et on retire le canal alpha."""
+def image_rgb_base64(chemin, fond=None):
+    """
+    Une image PNG en base64, sans transparence (l'API veut du RGB) : on relit le fichier et on retire le canal alpha.
+    Avec <fond> ([r, g, b]), les pixels transparents prennent cette couleur unie (pour animer une créature détourée).
+    """
     import struct
     d = open(chemin, "rb").read()
     i = 8
@@ -103,7 +109,9 @@ def image_rgb_base64(chemin):
                 p = a + b - cc
                 pa, pb, pc = abs(p - a), abs(p - b), abs(p - cc)
                 ligne[x] = (ligne[x] + (a if pa <= pb and pa <= pc else b if pb <= pc else cc)) & 255
-        lignes.append(b"\x00" + b"".join(bytes(ligne[x * bpp:x * bpp + 3]) for x in range(w)))
+        lignes.append(b"\x00" + b"".join(
+            bytes(fond) if fond and bpp == 4 and ligne[x * bpp + 3] < 128 else bytes(ligne[x * bpp:x * bpp + 3])
+            for x in range(w)))
         prec = ligne
     def bloc(t, data):
         return struct.pack(">I", len(data)) + t + data + struct.pack(">I", zlib.crc32(t + data))
@@ -131,9 +139,14 @@ def demande(asset, cout_seulement=False):
     if asset.get("tile"):
         corps["tile_x"] = corps["tile_y"] = True
     if asset.get("input"):
-        corps["input_image"] = image_rgb_base64(os.path.join(RACINE, asset["input"]))
+        corps["input_image"] = image_rgb_base64(os.path.join(RACINE, asset["input"]), asset.get("input_background"))
         if "strength" in asset:
             corps["strength"] = asset["strength"]  # 0 : garde l'image d'entrée, 1 : s'en éloigne tout à fait
+    # animations : une feuille d'images PNG plutôt qu'un GIF, et le nombre d'images
+    if asset.get("spritesheet"):
+        corps["return_spritesheet"] = True
+    if asset.get("frames"):
+        corps["frames_duration"] = asset["frames"]
     if cout_seulement:
         corps["check_cost"] = True
     return corps

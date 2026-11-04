@@ -28,6 +28,14 @@ La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessou
 - `tests/HoMM.Core.Tests/` : tests xUnit des règles.
 - `prototype-python/` : ancien prototype, gardé pour mémoire, ne plus le faire évoluer.
 
+## Services d'images (décision de l'utilisateur, 2026-11-04)
+- **PixelLab** (`tools/art/pixellab.py`, clé dans la variable `PIXELLAB_API_KEY`) : les **personnages et créatures**
+  (images de combat, animations), et des essais pour l'**interface**.
+- **Retro Diffusion** (`tools/art/generer.py`, clé dans `RETRO_DIFFUSION_API_KEY`) : les **cartes** (terrains,
+  décors, objets) et les **portraits** des héros humains.
+- Ne jamais afficher ni écrire les clés. Montrer le prix avant de dépenser (Retro Diffusion : `cout`, gratuit ;
+  PixelLab n'a pas d'estimation gratuite : `solde` avant et après) et attendre l'accord de l'utilisateur.
+
 ## Propositions d'images (dossier `art-candidats/`, non suivi par git)
 Décision de l'utilisateur, valable pour toutes les sessions :
 - `art-candidats/en-cours/` ne contient **que ce qui attend une réponse de l'utilisateur** : captures d'écran
@@ -38,7 +46,8 @@ Décision de l'utilisateur, valable pour toutes les sessions :
 - `art-candidats/references/` : images données par l'utilisateur (modèles, captures), à garder telles quelles.
 - Outils : `tools/art/generer.py` (prix, génération, choix ; `choisir` retrouve aussi un candidat archivé),
   `tools/art/apercu.py` (page de choix dans `en-cours/`), `tools/art/zoom.py` (agrandir une capture),
-  `tools/art/reduire.py` (réduire ou retourner une image sans la flouter).
+  `tools/art/reduire.py` (réduire ou retourner une image sans la flouter), `tools/art/detourer.py` (rendre
+  transparent un fond uni), `tools/art/pixellab.py` (PixelLab : solde, animations, éléments d'interface).
   Captures du jeu : `godot` avec `-- --capture=chemin.png` (et `--reveal`, `--zoom`, `--terrain-test`,
   `--town`, `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--battle-test` (et `--battle-auto`), `--battle-showcase`, `--capture-delay=secondes`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
 

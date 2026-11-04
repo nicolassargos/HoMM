@@ -10,7 +10,8 @@ On avance étape par étape, sans se presser : chaque étape est jouable et test
 - **Combat** : résolution automatique d'abord, écran de combat tactique plus tard.
 - **Adversaires IA** : prévus, mais plus tard. D'ici là, chaque carte a un objectif simple
   (vaincre les gardiens, prendre les villes neutres…) pour que la partie ait une fin.
-- **Graphismes** : pixel art façon premier Heroes, généré avec Retro Diffusion (étape 5).
+- **Graphismes** : pixel art façon premier Heroes, généré avec Retro Diffusion (cartes, portraits) et PixelLab
+  (personnages, créatures, interface).
 - **Projet personnel**, sans échéance : on privilégie le plaisir et la simplicité.
 
 ## Étapes
@@ -254,7 +255,7 @@ Découpage :
    dégâts (au lieu de 100 et 19), Griffon 16 PV (au lieu de 12), Ange 1200 PV et 80 de dégâts (au lieu de 2000 et 105 :
    avec ses capacités, il fallait 2300 paysans). Paysans pour vaincre une unité : Archer 8, Griffon 13,
    Épéiste 26, Moine 58, Cavalier 112, Ange 1560. La simulation gagne toujours vers le jour 84 (78 à 122 sur 20 cartes).
-5. Finitions : fonds de champ de bataille selon le terrain, images d'obstacles.
+5. Finitions (fonds de champ de bataille selon le terrain, images d'obstacles) : reportées à l'étape 10.
 
 Ensuite, des images plus détaillées et des animations (demandé par l'utilisateur ; les images de 24 px manquent de
 détails, surtout agrandies au combat), dans cet ordre :
@@ -274,17 +275,46 @@ détails, surtout agrandies au combat), dans cet ordre :
    de l'IA) comptent la case la plus proche ; le souffle ne touche pas deux fois une grande cible. À l'écran, la créature
    est dessinée au milieu de ses deux cases, et un clic sur une case où irait son arrière l'y amène aussi.
    `--battle-showcase --battle-auto` : le combat de démonstration se joue seul.
-2. Les animations (styles d'animation de Retro Diffusion, à partir de l'image de combat) : attente, marche, attaque ;
-   d'abord une créature pour essayer, puis les autres (environ 0,14 $ l'animation : il faudra recharger le compte).
-3. Les fonds de champ de bataille et les obstacles (point 5 ci-dessus), dans le même style détaillé.
-4. Plus tard : le héros sur la carte, les bâtiments des villes, et d'autres images plus détaillées.
+2. Les animations, **à l'étape 10** (choix de l'utilisateur) : attente, marche, attaque, à partir de l'image de combat.
+   Essai sur l'Épéiste : Retro Diffusion (0,14 $ l'animation, la marche glisse un peu) contre **PixelLab** (« Animate with
+   text v3 », environ 0,03 $, pas mieux tenus, fond transparent) : PixelLab est retenu. L'écran de combat sait déjà jouer
+   des feuilles de 8 images (`epeiste-idle.png`, `-walk`, `-attack` : 4 colonnes × 2 rangées) ; sans feuille, l'image fixe.
+   **Désormais : PixelLab pour les personnages et les créatures, Retro Diffusion pour les cartes et les portraits.**
+3. Les fonds de champ de bataille et les obstacles (point 5 ci-dessus), dans le même style détaillé : étape 10.
+4. Plus tard : le héros sur la carte, les bâtiments des villes, et d'autres images plus détaillées : étape 10.
 
-### 7. Adversaires IA
+### 7. Refonte de l'interface (prochaine étape)
+Décision de l'utilisateur : l'interface actuelle ne convient pas ; on la repense **avant** d'en soigner l'apparence,
+maintenant que l'essentiel des règles est connu (on sait ce qu'il faut montrer). On garde les cadres et couleurs
+actuels : il s'agit de la structure et de la lisibilité, l'apparence viendra à l'étape 10.
+Méthode : d'abord des maquettes simples (boîtes grises) de chaque écran, corrigées par l'utilisateur, puis on les
+construit écran par écran.
+Constats de départ (captures du 2026-11-04) :
+- Carte : le panneau de droite est une colonne de texte (caractéristiques, armée en liste « 30 Paysans », héros et
+  villes en un bouton ou une ligne, terrain survolé mêlé aux informations du héros) ; beaucoup d'actions ne sont que
+  des touches (H, T, M, F, F5, F9) ; la boîte des messages flotte sur la carte ; la barre des ressources ne montre
+  pas les revenus.
+- Ville : une grille de cartes de bâtiments, pas une ville ; bâtiments construits et à construire prennent la même
+  place ; construire, recruter et la taverne sont mêlés ; l'échange de troupes (un clic) n'est expliqué nulle part et
+  on ne peut pas partager une troupe.
+- Partout : presque tout est du texte, peu d'icônes, peu de hiérarchie, pas d'aide sur les règles.
+Pistes (à valider sur maquettes), en prenant Heroes 2 et 3 comme modèles :
+- Carte : à droite, la carte réduite, la liste des héros et celle des villes (portraits), l'armée du héros choisi en
+  7 emplacements avec images, des boutons pour les actions (héros suivant, creuser, carte au trésor, sauvegarder…),
+  une boîte d'état (date, ressources et revenus) ; les messages hors de la carte.
+- Ville : construire, recruter, taverne et échange de troupes bien séparés ; partage d'une troupe.
+- Nouveaux écrans : écran du héros (caractéristiques, armée, artefacts), menu principal (nouvelle partie, charger,
+  options, quitter), peut-être une vue d'ensemble du royaume.
+- Combat et fenêtres (niveau, recrutement, fin de partie) revus avec les mêmes règles.
+- Des info-bulles qui expliquent les règles (charisme, coût du déplacement, danger d'un monstre…).
+
+### 8. Adversaires IA
 - Joueurs ordinateur avec leurs héros et leurs villes.
 - L'IA joue avec les mêmes méthodes de `GameState` que le joueur humain, sans attendre l'affichage.
 - L'affichage rejoue les déplacements des héros ennemis (événements `HeroMoved`) à un rythme lisible.
 
-### 8. Ensuite
+### 9. Contenu
+Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et les nouvelles factions.
 - Magie, autres factions, nouveaux objets sur la carte.
 - **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
   (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.
@@ -295,6 +325,16 @@ détails, surtout agrandies au combat), dans cet ordre :
 - **Habitations sur la carte** (demandé par l'utilisateur) : des lieux semés au hasard où un héros peut acheter des
   troupes (comme les habitations extérieures de Heroes). À concevoir plus tard : quelles créatures, réserve et
   croissance, prix, garde éventuelle.
+
+### 10. Finitions : apparence et détails
+Une fois les écrans fixés (étape 7) et le contenu en place.
+- Interface dessinée avec PixelLab : cadres, boutons, icônes des ressources, cadres des portraits, bandeau de la date.
+  Premier essai fait (2026-11-04, 0,24 $) : 4 cadres, 4 boutons et un cadre de l'outil « Create UI panel », bien
+  découpés en 9 morceaux à l'échelle 1. Le jeu lit la taille des coins et les marges du texte dans `art/ui/ui.json`
+  (facultatif). Les bords sont plus épais : il faudra agrandir les boîtes de taille fixe (barre des messages…).
+- Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
+- Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
+- Petits détails et équilibrage fin.
 
 ## Choix à respecter
 - **`GameState` gère plusieurs joueurs** (liste de joueurs, tour par tour), même s'il n'y a

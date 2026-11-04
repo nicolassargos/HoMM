@@ -1007,7 +1007,7 @@ public partial class Hud : CanvasLayer
                      {
                          (Texts.StatFullName(stat), 16, TextColor),
                          (Texts.StatChange(choice.Hero, stat), 20, BorderColor),
-                         (Texts.StatEffect(stat, choice.Hero), 12, SoftTextColor),
+                         (Texts.StatEffect(stat, choice.Hero), 12, TextColor), // clair : lisible sur la pierre grise
                      })
             {
                 var label = MakeLabel(text, fontSize, color);

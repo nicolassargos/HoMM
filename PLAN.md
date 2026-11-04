@@ -444,6 +444,15 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   Premier essai fait (2026-11-04, 0,24 $) : 4 cadres, 4 boutons et un cadre de l'outil « Create UI panel », bien
   découpés en 9 morceaux à l'échelle 1. Le jeu lit la taille des coins et les marges du texte dans `art/ui/ui.json`
   (facultatif). Les bords sont plus épais : il faudra agrandir les boîtes de taille fixe (barre des messages…).
+  ✅ Avancé pendant l'étape 7 (2026-11-04, environ 1,30 $) : les cadres de l'essai étaient trop épais. Des cadres
+  demandés plus petits (64 × 64) ont des bords fins ; choisi le cadre **B2** (argent, une fine bande de bois), affiché
+  ×3, et le bouton **A1** (pierre grise bordée d'argent, 64 × 24, ×3), proches de Heroes 1 et 2. Le fond des cadres a
+  un **grain de pierre** discret calculé par le jeu (pas d'image : `Ui.Grain`, motif qui se répète tous les 64 pixels
+  d'art sans raccord). Réglages dans `art/ui/ui.json` : `panelScale`, `buttonScale`, `buttonPlainBand` (garder tout le
+  milieu du bouton), `panelTexture` (`pierre`, `doux`, `cuir`, `toile`, `uni`), `panelTextureStrength` (4,5).
+  `tools/art/cadre.py` rend transparent le centre uni d'un cadre généré. Essayés puis écartés : les cadres B7 (fil
+  d'or, trop discret), les boutons de pierre de 96 × 32 (biseau trop large pour les petits boutons).
+  À voir : les boîtes intérieures (sections, listes, cartes de la ville) restent unies.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

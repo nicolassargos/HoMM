@@ -295,7 +295,12 @@ détails, surtout agrandies au combat), dans cet ordre :
    aussi au double (jusqu'à 256 px), puis chaque image est réduite. Le jet de feu touchait le bord du cadre : son bout
    est effacé en trame. Le **Gobelin** (petit, peau jaune-vert, grandes oreilles, ventre rond, pagne, lance ;
    d'après l'image d'exemple ; environ 28 px de haut ; il s'accroupit puis plante sa lance). Une marche qui glissait (le
-   corps dérivait de 5 px) a été recentrée image par image.
+   corps dérivait de 5 px) a été recentrée image par image. L'**Orc** (trapu, peau verte, grandes défenses, sangles et pagne de cuir,
+   haches ; d'après l'image d'exemple ; environ 41 px de haut, plus massif qu'un humain ; il lance une hache par-dessus
+   l'épaule). L'**Ogre** (homme sauvage énorme, cheveux longs et barbe noirs, pagne de fourrure, grosse
+   massue de bois sans clous ; 58 px de haut, plus grand que l'Archer ; il balaie de sa massue). Fait avec l'ancien Ogre
+   comme image de style pour garder son ombrage doux, et **sans** réduire la palette (16 couleurs faisaient des bandes
+   sur la peau). Une image de référence de pose recopie aussi ses détails (des clous sur la massue) : à éviter.
    Ce qui marche (`tools/art/pixellab.py`) : l'image fixe avec le modèle « Pro » (`pro`, 25 candidats pour 0,08 $ à
    40 × 52), une de nos images pour le style (trait, ombrage) et une image de référence pour le sujet ; **modèles de
    style : le Moine, le Griffon, le Loup et le Troll** (choix de l'utilisateur ; plus l'Épéiste, à refaire) ; les animations

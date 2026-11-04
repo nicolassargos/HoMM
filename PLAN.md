@@ -307,6 +307,61 @@ Pistes (à valider sur maquettes), en prenant Heroes 2 et 3 comme modèles :
   options, quitter), peut-être une vue d'ensemble du royaume.
 - Combat et fenêtres (niveau, recrutement, fin de partie) revus avec les mêmes règles.
 - Des info-bulles qui expliquent les règles (charisme, coût du déplacement, danger d'un monstre…).
+Décidé sur les maquettes (2026-11-04) :
+- Carte : à droite, la carte réduite, les listes des héros et des villes, le héros choisi (caractéristiques en icônes,
+  mouvement, artefacts ; un clic sur le portrait ouvre l'écran du héros), son armée en 7 emplacements, 7 boutons
+  (héros suivant, avancer, centrer, royaume, creuser, carte au trésor, options : avec la touche écrite dessous) et un
+  grand « Fin du tour ». Pas de bouton « Ville » (la liste des villes le remplace ; la touche T reste). L'objectif de
+  la partie s'affiche au survol de la date. Les revenus restent dans la barre du haut. Sous la carte, une bande :
+  ce qui est survolé, et le dernier message (avec l'historique).
+- Menu principal (nouvelle partie, charger, quitter), seulement quand le jeu est lancé sans option : toute option de
+  test (`--seed`, `--load`, `--town`, `--battle-…`, captures) entre directement dans la partie, et `--play` saute le menu.
+- Ville : la barre des ressources tout en haut, à la même place que sur la carte. Au centre, **la ville vue de face**
+  (comme Heroes 1 et 2) avec chaque bâtiment construit à sa place (`buildings.json`) ; **un nouveau bâtiment apparaît
+  peu à peu** (la « magie » de Heroes, demandée par l'utilisateur). Garder des places libres pour les bâtiments à venir
+  (guilde des mages, marché…). Clic sur un bâtiment pour l'utiliser ; raccourcis Construire, Recruter, Taverne ;
+  construire et recruter s'ouvrent en fenêtres par-dessus la ville. En bas, toujours visibles : la garnison et le héros,
+  avec **glisser-déposer et clic** pour les troupes, et le partage d'une troupe. La taverne propose **deux héros**.
+  Le décor viendra à l'étape 10 (Retro Diffusion) ; d'ici là, des boîtes à la place des bâtiments.
+- Écran du héros (grande fenêtre sur la carte) : portrait, nom, **classe** (place gardée pour l'étape 9), niveau,
+  expérience et mouvement ; **caractéristiques en colonne**, avec ce que fait chacune ; artefacts sur une silhouette ;
+  une section **Magie** à prévoir (points de sort, livre de sorts, compétences : étape 9) ; l'armée en grand, avec les
+  points de commandement de chaque troupe et les troupes à risque ; fiche d'une créature au clic droit.
+- Royaume (touche K) : les héros en **portraits** (mouvement restant dessous) et les villes en **images** (revenu
+  dessous), le détail au survol ; une bande « mines et revenus » en bas (par ressource : mines et revenu du jour).
+- Menu principal : Nouvelle partie, Continuer, Charger, Réglages, Quitter. **Plusieurs sauvegardes** (nom, date dans
+  le jeu, héros, taille de la carte, heure), F5 / F9 gardent une sauvegarde rapide, et une **sauvegarde automatique**
+  au début de chaque tour (une seule, remplacée à chaque fois). Nouvelle partie : **taille de la
+  carte** en cinq choix (très petite à très grande), la **graine**, les façons de gagner et la limite de jours.
+- Combat : le champ et la ligne du bas restent ; à gauche, le héros (portrait, bonus ; plus tard son livre de sorts) et
+  la fiche de la troupe qui joue ; à droite, l'adversaire et la fiche de la troupe survolée (ses caractéristiques
+  seulement : **pas de dégâts attendus**, trop d'aide) ; un journal du combat ; les touches sur les boutons.
+- Fenêtres : un **bilan après chaque combat** (pertes des deux camps en images, expérience, révoltes, fuite) ; niveau
+  supérieur en grands boutons (avant → après, effet) ; recrutement avec « Max » et l'avertissement de charisme ; fin de
+  partie (pourquoi, quelques chiffres, menu principal ou revoir la carte).
+Maquettes : `art-candidats/archives/` (sujet « maquettes-interface » : carte, ville, héros-royaume-menu, combat-fenêtres).
+
+Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs actuels, l'apparence viendra à l'étape 10) :
+1. ✅ **La carte**, avec les pièces communes : barre des ressources (`ResourceBar` : revenus, d'où ils viennent au
+   survol, objectif et progrès au survol de la date), emplacements d'armée (`ArmySlots` : images, nombres,
+   caractéristiques au survol, bordure rouge si risque de révolte) ; la colonne de droite (carte réduite, listes des
+   héros et des villes avec flèches au-delà de trois, fiche du héros choisi avec ses caractéristiques expliquées au
+   survol, armée, 6 boutons avec leur touche, grand « Fin du tour ») ; la bande sous la carte (survol sur deux lignes :
+   terrain, coût et jours de marche, puis l'objet et le danger estimé ; le dernier message ; le journal des 60
+   derniers). La boîte des messages flottante disparaît ; les options ne gardent que sauvegarder et charger.
+   Creuser et la carte au trésor ont leur bouton dans toutes les parties (le trésor est toujours enfoui).
+   Le bouton Royaume viendra avec son écran (point 2). `--hover=x,y` simule la souris sur une case (captures).
+2. **L'écran du héros et le royaume** (ils reprennent les pièces de la PR 1).
+3. **La ville** : ressources en haut, la ville avec ses bâtiments à leur place (positions dans `buildings.json`, boîtes
+   grises pour l'instant) qui apparaissent peu à peu, fenêtres Construire et Recruter, taverne à deux héros, glisser-
+   déposer et clic pour les troupes, partage d'une troupe (règles dans `Core`, avec tests).
+4. **Le combat** : héros et fiches des troupes de chaque côté, journal du combat, touches sur les boutons, bilan
+   après chaque combat (combats rapides compris).
+5. **Les fenêtres** : niveau supérieur, recrutement (« Max », avertissement de charisme), fin de partie (la partie
+   compte monstres vaincus, créatures perdues…).
+6. **Menu principal, nouvelle partie, sauvegardes** : menu sauté par toute option de lancement ou `--play` ; taille
+   de la carte en cinq choix (le générateur et l'équilibrage à revoir), graine, conditions ; plusieurs sauvegardes et
+   la sauvegarde automatique.
 
 ### 8. Adversaires IA
 - Joueurs ordinateur avec leurs héros et leurs villes.

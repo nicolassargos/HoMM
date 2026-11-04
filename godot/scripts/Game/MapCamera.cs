@@ -35,7 +35,8 @@ public partial class MapCamera : Camera2D
         _map = map;
         _minimap = minimap;
         AnchorMode = AnchorModeEnum.FixedTopLeft;
-        _screenView = new Vector2(screenSize.X - Hud.PanelWidth, screenSize.Y - Hud.TopBarHeight);
+        // la carte visible : entre la barre du haut et la bande du bas, à gauche du panneau
+        _screenView = new Vector2(screenSize.X - Hud.PanelWidth, screenSize.Y - Hud.TopBarHeight - Hud.BottomBarHeight);
         ViewSize = _screenView;
         MakeCurrent();
     }
@@ -51,6 +52,7 @@ public partial class MapCamera : Camera2D
             return;
         // le point fixe, mesuré depuis le coin haut-gauche de la vue
         var anchor = screenPoint is { } point && point.X < _screenView.X && point.Y >= Hud.TopBarHeight
+                     && point.Y < Hud.TopBarHeight + _screenView.Y
             ? point - new Vector2(0, Hud.TopBarHeight)
             : _screenView / 2;
         var fixedPoint = TopLeft + anchor / Zooms[_zoomIndex];
@@ -112,7 +114,7 @@ public partial class MapCamera : Camera2D
     public Cell? HoveredCell()
     {
         var mouse = GetViewport().GetMousePosition();
-        if (mouse.X >= _screenView.X || mouse.Y < Hud.TopBarHeight)
+        if (mouse.X >= _screenView.X || mouse.Y < Hud.TopBarHeight || mouse.Y >= Hud.TopBarHeight + _screenView.Y)
             return null;
         var world = GetGlobalMousePosition();
         var cell = new Cell(Mathf.FloorToInt(world.X / T), Mathf.FloorToInt(world.Y / T));

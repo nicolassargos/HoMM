@@ -32,6 +32,9 @@ public sealed class Player
     /// <summary>Les obélisques visités (leurs identifiants) : chacun dévoile un morceau de la carte au trésor.</summary>
     public HashSet<int> Obelisks { get; } = new();
 
+    /// <summary>Quelques chiffres de la partie (pour la fin de partie).</summary>
+    public PlayerStatistics Statistics { get; } = new();
+
     /// <summary>Un joueur sans héros ni ville a perdu.</summary>
     public bool IsDefeated => Heroes.Count == 0 && Towns.Count == 0;
 
@@ -59,4 +62,20 @@ public sealed class Player
 }
 
 /// <summary>Un joueur a reçu les revenus de ses mines et de ses villes au début du jour.</summary>
+/// <summary>Quelques chiffres de la partie d'un joueur, montrés à la fin de la partie.</summary>
+public sealed class PlayerStatistics
+{
+    /// <summary>Combats gagnés par ses héros.</summary>
+    public int BattlesWon { get; internal set; }
+
+    /// <summary>Créatures ennemies tuées par ses héros.</summary>
+    public int CreaturesKilled { get; internal set; }
+
+    /// <summary>Créatures perdues par ses héros (combats et fuites).</summary>
+    public int CreaturesLost { get; internal set; }
+
+    /// <summary>Villes prises (à un autre joueur ou neutres).</summary>
+    public int TownsCaptured { get; internal set; }
+}
+
 public sealed record IncomeReceived(Player Player, IReadOnlyDictionary<ResourceType, int> Income) : GameEvent;

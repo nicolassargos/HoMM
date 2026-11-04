@@ -324,6 +324,8 @@ public sealed partial class GameState
         if (Map.ObjectAt(cell) is { } obj and not MonsterGuard)
         {
             var visit = obj.Visit(hero);
+            if (visit is TownCaptured)
+                hero.Owner.Statistics.TownsCaptured++;
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
             Emit(visit);
@@ -399,6 +401,12 @@ public sealed partial class GameState
         CurrentBattle = null;
         _battle = null;
         var hero = context.Hero;
+        // les chiffres de la partie
+        var stats = hero.Owner.Statistics;
+        stats.CreaturesLost += report.AttackerLosses.Sum(s => s.Count);
+        stats.CreaturesKilled += report.DefenderLosses.Sum(s => s.Count);
+        if (report.AttackerWon)
+            stats.BattlesWon++;
         Emit(new BattleFought(hero, context.Defender, context.DefenderArmy, report));
 
         if (report.AttackerWon)

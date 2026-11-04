@@ -189,9 +189,12 @@ public static class Texts
     public static string LevelChoiceText(HeroLevelChoice choice) =>
         $"{choice.Hero.Name} progresse. Le charisme augmente de 1 dans tous les cas.";
 
-    /// <summary>Le bouton d'un choix : « Attaque (actuelle : 2) ».</summary>
-    public static string StatChoice(Hero hero, HeroStat stat) =>
-        $"{Capitalize(StatName(stat))} (actuelle : {StatValue(hero, stat)})";
+    /// <summary>« 2 → 3 » : la caractéristique avant et après ce choix de niveau.</summary>
+    public static string StatChange(Hero hero, HeroStat stat) => $"{StatValue(hero, stat)} → {StatValue(hero, stat) + 1}";
+
+    /// <summary>Ce que le niveau donne dans tous les cas : un point de charisme, et le commandement qui en découle.</summary>
+    public static string CharismaGain(Hero hero) =>
+        $"Charisme : {hero.Charisma} → {hero.Charisma + 1} (commande {Command.Limit(hero.Charisma + 1)} points par troupe).";
 
     private static int StatValue(Hero hero, HeroStat stat) => stat switch
     {
@@ -267,6 +270,11 @@ public static class Texts
 
     public static string RecruitTitle(CreatureType type) => $"Recruter des {type.Plural}";
 
+    /// <summary>Combien on peut en recruter (place et ressources comprises).</summary>
+    public static string Affordable(int max) => $"Vous pouvez en recruter : {max}";
+
+    public static string RecruitDestination => "Les recrues vont dans la garnison ; si elle est pleine, chez le héros présent.";
+
     /// <summary>« 14 disponibles · 60 or l'unité ».</summary>
     public static string RecruitInfo(CreatureType type, int available) =>
         $"{available} disponible{(available > 1 ? "s" : "")} · {Cost(type.Cost)} l'unité";
@@ -296,7 +304,24 @@ public static class Texts
     };
 
 
-    public static string GameOverTitle(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire" : "Défaite";
+    public static string GameOverTitle => "Fin de la partie";
+
+    public static string GameOverHeadline(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire !" : "Défaite…";
+
+    /// <summary>« Partie finie le jour 84 (Mois 3, semaine 4, Dimanche) ».</summary>
+    public static string GameOverDay(int day) => $"Partie finie le jour {day + 1} ({Date(day)}).";
+
+    /// <summary>Les chiffres de la partie du joueur, sur deux lignes.</summary>
+    public static string GameOverStatistics(Player player)
+    {
+        var s = player.Statistics;
+        string heroes = player.Heroes.Count == 0 ? "" : $" · meilleur héros : niveau {player.Heroes.Max(h => h.Level)}";
+        return $"Combats gagnés : {s.BattlesWon} · villes prises : {s.TownsCaptured}{heroes}\n"
+            + $"Créatures ennemies tuées : {s.CreaturesKilled} · créatures perdues : {s.CreaturesLost}";
+    }
+
+    public static string NewGameButton => "Nouvelle partie";
+    public static string ReviewMapButton => "Revoir la carte";
 
     public static string GameOverText(GameEnded end) => end.Reason switch
     {

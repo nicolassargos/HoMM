@@ -50,6 +50,7 @@ public partial class TownScreen : CanvasLayer
     private TextureRect _recruitPicture = null!;
     private Label _recruitTitle = null!;
     private Label _recruitInfo = null!;
+    private Label _recruitStats = null!;
     private HSlider _recruitSlider = null!;
     private Label _recruitTotal = null!;
     private Button _recruitButton = null!;
@@ -348,7 +349,7 @@ public partial class TownScreen : CanvasLayer
 
     // ----------------------------------------------------------- les fenêtres
 
-    /// <summary>Développement : ouvre une fenêtre de la ville (« build », « recruit », « tavern ») pour une capture.</summary>
+    /// <summary>Développement : ouvre une fenêtre de la ville (« build », « recruit », « tavern », « count ») pour une capture.</summary>
     public void ShowWindow(string which)
     {
         if (which == "build")
@@ -357,6 +358,9 @@ public partial class TownScreen : CanvasLayer
             OpenRecruitWindow(null);
         else if (which == "tavern")
             OpenTavern();
+        else if (which == "count" && _town is { } town
+                 && town.BuiltBuildings.Select(town.DwellingCreature).FirstOrDefault(c => c != null) is { } creature)
+            OpenRecruit(town, creature);
     }
 
     /// <summary>
@@ -596,22 +600,29 @@ public partial class TownScreen : CanvasLayer
         _recruitOverlay = new ColorRect { Color = new Color(0, 0, 0, 0.6f), Size = _screen, Visible = false, MouseFilter = Control.MouseFilterEnum.Stop };
         _root.AddChild(_recruitOverlay);
 
-        var size = V(480, 240);
+        var size = V(560, 320);
         var window = new Panel { Position = (_screen - size) / 2, Size = size };
         window.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         _recruitOverlay.AddChild(window);
 
         _recruitTitle = At(MakeLabel("", 22, TextColor), 20, 14);
         window.AddChild(_recruitTitle);
-        _recruitPicture = Picture(null!, new Vector2(size.X - Px(20) - 96, Px(14)), new Vector2(96, 96)); // ×4
+        // l'image à gauche, et à côté : caractéristiques, disponibles et prix, ce qu'on peut payer, où vont les recrues
+        _recruitPicture = Picture(null!, V(20, 52), new Vector2(96, 96)); // ×4
         window.AddChild(_recruitPicture);
-        _recruitInfo = At(MakeLabel("", 14, SoftTextColor), 20, 50);
+        _recruitStats = At(MakeLabel("", 13, SoftTextColor), 96, 50);
+        window.AddChild(_recruitStats);
+        _recruitInfo = At(MakeLabel("", 14, TextColor), 96, 92);
         window.AddChild(_recruitInfo);
+        var where = At(MakeLabel(Texts.RecruitDestination, 12, SoftTextColor), 96, 132);
+        where.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        where.CustomMinimumSize = new Vector2(size.X - Px(116), 0);
+        window.AddChild(where);
 
-        _recruitSlider = new HSlider { Position = V(20, 90), Size = new Vector2(size.X - Px(40), Px(24)), Step = 1, FocusMode = Control.FocusModeEnum.None };
+        _recruitSlider = new HSlider { Position = V(20, 176), Size = new Vector2(size.X - Px(40), Px(24)), Step = 1, FocusMode = Control.FocusModeEnum.None };
         _recruitSlider.ValueChanged += _ => UpdateRecruitTotal();
         window.AddChild(_recruitSlider);
-        _recruitTotal = At(MakeLabel("", 16, TextColor), 20, 124);
+        _recruitTotal = At(MakeLabel("", 16, TextColor), 20, 208);
         _recruitTotal.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _recruitTotal.CustomMinimumSize = new Vector2(size.X - Px(40), 0);
         window.AddChild(_recruitTotal);
@@ -645,8 +656,9 @@ public partial class TownScreen : CanvasLayer
         int max = hasRoom ? town.MaxRecruitable(type, player) : 0;
 
         _recruitTitle.Text = Texts.RecruitTitle(type);
-        _recruitPicture.Texture = Art.Get($"creatures/{type.Id}"); // agrandie ×3
-        _recruitInfo.Text = Texts.RecruitInfo(type, available);
+        _recruitPicture.Texture = Art.Get($"creatures/{type.Id}");
+        _recruitStats.Text = Texts.CreatureStats(type);
+        _recruitInfo.Text = $"{Texts.RecruitInfo(type, available)}\n{Texts.Affordable(max)}";
         _recruitSlider.MinValue = 0;
         _recruitSlider.MaxValue = max;
         _recruitSlider.Value = max;

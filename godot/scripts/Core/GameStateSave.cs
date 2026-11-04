@@ -53,7 +53,10 @@ public sealed partial class GameState
     private sealed record StackData(string Creature, int Count);
 
     private sealed record PlayerData(int Id, string Name, Dictionary<ResourceType, int> Resources, string Fog,
-        List<int> Mines, List<int> Towns, List<int>? Obelisks = null);
+        List<int> Mines, List<int> Towns, List<int>? Obelisks = null, StatisticsData? Statistics = null);
+
+    /// <summary>Les chiffres de la partie d'un joueur (absents des anciennes sauvegardes : zéro).</summary>
+    private sealed record StatisticsData(int BattlesWon, int CreaturesKilled, int CreaturesLost, int TownsCaptured);
 
     private sealed record HeroData(
         int Id, string Name, int Owner, Cell Position, int Movement, int MaxMovement, int VisionRadius,
@@ -75,7 +78,8 @@ public sealed partial class GameState
             _rng.State, _nextPlayerId, _nextHeroId,
             SaveMap(),
             Players.Select(p => new PlayerData(p.Id, p.Name, new Dictionary<ResourceType, int>(p.Resources),
-                p.Fog.Export(), p.Mines.Select(m => m.Id).ToList(), p.Towns.Select(t => t.Id).ToList(), p.Obelisks.OrderBy(id => id).ToList())).ToList(),
+                p.Fog.Export(), p.Mines.Select(m => m.Id).ToList(), p.Towns.Select(t => t.Id).ToList(), p.Obelisks.OrderBy(id => id).ToList(),
+                new StatisticsData(p.Statistics.BattlesWon, p.Statistics.CreaturesKilled, p.Statistics.CreaturesLost, p.Statistics.TownsCaptured))).ToList(),
             AllHeroes.Select(h => new HeroData(
                 h.Id, h.Name, h.Owner.Id, h.Position, h.Movement, h.MaxMovement, h.VisionRadius,
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
@@ -163,6 +167,13 @@ public sealed partial class GameState
             var player = new Player(p.Name, map) { Id = p.Id };
             foreach (var (resource, amount) in p.Resources)
                 player.Resources[resource] = amount;
+            if (p.Statistics is { } stats)
+            {
+                player.Statistics.BattlesWon = stats.BattlesWon;
+                player.Statistics.CreaturesKilled = stats.CreaturesKilled;
+                player.Statistics.CreaturesLost = stats.CreaturesLost;
+                player.Statistics.TownsCaptured = stats.TownsCaptured;
+            }
             state.Players.Add(player);
         }
         Player Owner(int id) => state.PlayerById(id) ?? throw new KeyNotFoundException($"joueur inconnu : {id}");

@@ -160,6 +160,12 @@ public partial class Main : Node2D
             _heroScreen.Open(shown);
         if (OS.GetCmdlineUserArgs().Contains("--open=kingdom"))
             _kingdomScreen.Open();
+        // « --open=end » : la fenêtre de fin de partie (une victoire, sans rien changer)
+        if (OS.GetCmdlineUserArgs().Contains("--open=end"))
+            _hud.ShowGameOver(new GameEnded(GameOutcome.Victory, GameEndReason.GuardsCleared), () => { });
+        // « --open=level » : la fenêtre d'un choix de niveau (sans rien changer)
+        if (OS.GetCmdlineUserArgs().Contains("--open=level") && _state.CurrentHero is { } leveling)
+            _hud.ShowLevelChoice(new HeroLevelChoice(leveling, 2, new[] { HeroStat.Attack, HeroStat.Defense, HeroStat.Power }), _ => { });
         // Développement : « --center=treasure » centre la vue sur le trésor (pour une capture d'écran)
         if (OS.GetCmdlineUserArgs().Contains("--center=treasure") && _state.Map.Treasure is { } hidden)
             _camera.CenterOn(hidden);
@@ -618,9 +624,6 @@ public partial class Main : Node2D
                     break;
                 case HeroLevelChoice choice when choice.Hero.Owner == viewer:
                     _hud.ShowLevelChoice(choice, stat => _state.ChooseStat(choice, stat));
-                    break;
-                case HeroLeveledUp levelUp when levelUp.Hero.Owner == viewer:
-                    _hud.ShowLevelUp(levelUp);
                     break;
                 case BuildingBuilt built:
                     _townScreen.ShowBuilt(built); // le nouveau bâtiment apparaît sur la ville

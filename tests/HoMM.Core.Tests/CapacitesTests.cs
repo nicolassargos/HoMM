@@ -220,12 +220,12 @@ public class CapacitesTests
     public void L_ia_d_un_cavalier_charge_de_loin()
     {
         var (battle, knights, target) = Duel(Creature("cavalier"), 3, Creature("paysan"), 20, new Hex(3, 4), new Hex(6, 4));
+        var best = battle.AttackPositions(knights, target).Max(h => h.DistanceTo(new Hex(3, 4)));
 
         BattleAI.PlayTurn(battle);
 
         // il s'arrête à côté de la cible, sur la case la plus loin de son départ
-        var best = target.Position.Neighbours().Where(h => Battlefield.InBounds(h)).Max(h => h.DistanceTo(new Hex(3, 4)));
-        Assert.True(knights.Position.IsNextTo(target.Position));
+        Assert.Equal(1, TacticalBattle.Distance(knights, target));
         Assert.Equal(best, knights.Position.DistanceTo(new Hex(3, 4)));
     }
 }

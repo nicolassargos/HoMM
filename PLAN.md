@@ -268,7 +268,12 @@ détails, surtout agrandies au combat), dans cet ordre :
    ont beaucoup aidé : décrire leur allure dans le texte de la demande.
    Essayés puis écartés : le style « classic » (trop dessin animé), le style « retro » (images carrées seulement,
    créatures de face et toutes de la même taille), redessiner une figure de King's Bounty (fond vert mêlé à la créature).
-   Les créatures au combat occupent pour l'instant toutes une case : **le Cavalier et le Dragon sur 2 cases** est à faire.
+   ✅ **Le Cavalier et le Dragon sur 2 cases** (capacité `two-hex`, comme les grandes créatures de Heroes 3) : la tête
+   devant, l'arrière sur la même rangée, du côté de son camp (au départ, l'arrière sur la colonne du camp). Elles ne vont
+   que là où leurs deux cases tiennent, frappent et se font frapper par l'une ou l'autre ; les distances (tir, approche
+   de l'IA) comptent la case la plus proche ; le souffle ne touche pas deux fois une grande cible. À l'écran, la créature
+   est dessinée au milieu de ses deux cases, et un clic sur une case où irait son arrière l'y amène aussi.
+   `--battle-showcase --battle-auto` : le combat de démonstration se joue seul.
 2. Les animations (styles d'animation de Retro Diffusion, à partir de l'image de combat) : attente, marche, attaque ;
    d'abord une créature pour essayer, puis les autres (environ 0,14 $ l'animation : il faudra recharger le compte).
 3. Les fonds de champ de bataille et les obstacles (point 5 ci-dessus), dans le même style détaillé.

@@ -55,7 +55,7 @@ public partial class BattleFieldView : Control
         _shown.Clear();
         _floating.Clear();
         foreach (var unit in battle.Units)
-            _shown[unit] = new Shown { Position = Center(unit.Position), Count = unit.Count };
+            _shown[unit] = new Shown { Position = UnitCenter(unit, unit.Position), Count = unit.Count };
         CustomMinimumSize = FieldSize;
         Size = FieldSize;
         TextureFilter = TextureFilterEnum.Nearest;
@@ -67,6 +67,13 @@ public partial class BattleFieldView : Control
     /// <summary>Le centre d'une case, dans le dessin (les rangées impaires sont décalées d'une demi-case).</summary>
     public static Vector2 Center(Hex hex) =>
         new(hex.Col * HexWidth + HexWidth / 2 + ((hex.Row & 1) == 1 ? HexWidth / 2 : 0), hex.Row * RowStep + HexHeight / 2);
+
+    /// <summary>Où dessiner une troupe dont la tête est sur cette case : au milieu de ses cases (2 pour une grande créature).</summary>
+    public static Vector2 UnitCenter(BattleUnit unit, Hex head)
+    {
+        var hexes = unit.HexesAt(head).ToList();
+        return hexes.Aggregate(Vector2.Zero, (sum, h) => sum + Center(h)) / hexes.Count;
+    }
 
     private static Vector2[] Corners(Vector2 c)
     {
@@ -129,7 +136,7 @@ public partial class BattleFieldView : Control
             {
                 case UnitMoved moved:
                     var shown = _shown[moved.Unit];
-                    var points = moved.Path.Select(Center).ToList();
+                    var points = moved.Path.Select(h => UnitCenter(moved.Unit, h)).ToList();
                     int step = 0;
                     double t = 0;
                     Vector2? start = null;
@@ -227,11 +234,13 @@ public partial class BattleFieldView : Control
             DrawPolyline(corners.Append(corners[0]).ToArray(), new Color(0, 0, 0, 0.28f), 1);
         }
         if (ActiveUnit is { IsAlive: true } active && _shown.TryGetValue(active, out var activeShown) && !IsAnimating)
-            DrawHexOutline(Center(active.Position), MapRenderer.Rgb(240, 200, 80), 3);
+            foreach (var hex in active.Hexes)
+                DrawHexOutline(Center(hex), MapRenderer.Rgb(240, 200, 80), 3);
         if (Hovered is { } hovered)
             DrawHexOutline(Center(hovered), new Color(1, 1, 1, 0.7f), 2);
         if (Target is { } target)
-            DrawHexOutline(Center(target), MapRenderer.Rgb(220, 60, 40), 3);
+            foreach (var hex in Battle.UnitAt(target)?.Hexes ?? new[] { target })
+                DrawHexOutline(Center(hex), MapRenderer.Rgb(220, 60, 40), 3);
 
         // obstacles et troupes, de haut en bas (ceux du bas passent devant)
         var things = new List<(float Y, Action Draw)>();
@@ -277,7 +286,7 @@ public partial class BattleFieldView : Control
     {
         var foot = shown.Position + new Vector2(0, HexHeight / 2 - 10);
         var tint = shown.Flash > 0 ? new Color(1, 1 - shown.Flash * 0.6f, 1 - shown.Flash * 0.6f) : Colors.White;
-        // L'image de combat (64 px, plus détaillée, affichée telle quelle), sinon la petite de la carte ×3
+        // L'image de combat (plus détaillée), sinon la petite de la carte ×3 ; une grande créature est centrée sur ses 2 cases
         var battleImage = Art.Get($"creatures/battle/{unit.Type.Id}");
         if ((battleImage ?? Art.Get($"creatures/{unit.Type.Id}")) is { } image)
         {

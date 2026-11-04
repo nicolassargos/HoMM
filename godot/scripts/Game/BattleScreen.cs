@@ -145,11 +145,27 @@ public partial class BattleScreen : CanvasLayer
         {
             if (battle.CanShoot(unit, other))
                 Player(b => b.Shoot(other));
-            else if (battle.AttackPositions(unit, other).OrderBy(h => BattleFieldView.Center(h).DistanceSquaredTo(point)).Cast<Hex?>().FirstOrDefault() is { } from)
+            else if (battle.AttackPositions(unit, other).OrderBy(h => BattleFieldView.UnitCenter(unit, h).DistanceSquaredTo(point)).Cast<Hex?>().FirstOrDefault() is { } from)
                 Player(b => b.Attack(other, from));
             return;
         }
-        Player(b => b.Move(hex));
+        if (Destination(battle, unit, hex) is { } head)
+            Player(b => b.Move(head));
+    }
+
+    /// <summary>
+    /// Où va la troupe si le joueur clique sur cette case : la case elle-même, ou pour une grande créature, la tête qui
+    /// met son arrière sur cette case. Null si elle ne peut pas y aller.
+    /// </summary>
+    private static Hex? Destination(TacticalBattle battle, BattleUnit unit, Hex hex)
+    {
+        var reachable = battle.Reachable(unit);
+        if (reachable.ContainsKey(hex) && hex != unit.Position)
+            return hex;
+        foreach (var head in reachable.Keys)
+            if (head != unit.Position && unit.HexesAt(head).Contains(hex))
+                return head;
+        return null;
     }
 
     private void Show(System.Collections.Generic.List<BattleAction> actions)
@@ -198,7 +214,8 @@ public partial class BattleScreen : CanvasLayer
         _autoButton.Disabled = _auto;
 
         _field.ActiveUnit = unit;
-        _field.Reachable = mine ? battle.Reachable(unit!).Keys.ToList() : Array.Empty<Hex>();
+        // pour une grande créature, ses deux cases à chaque arrivée possible
+        _field.Reachable = mine ? battle.Reachable(unit!).Keys.SelectMany(h => unit!.HexesAt(h)).Distinct().ToList() : Array.Empty<Hex>();
         _field.Target = null;
         var cursor = CursorKind.Pointer;
         if (mine && _field.Hovered is { } hovered)
@@ -210,7 +227,7 @@ public partial class BattleScreen : CanvasLayer
                 if (canHit)
                     _field.Target = hovered;
             }
-            else if (battle.Reachable(unit!).ContainsKey(hovered) && hovered != unit!.Position)
+            else if (Destination(battle, unit!, hovered) != null)
                 cursor = CursorKind.Move;
             else
                 cursor = CursorKind.Blocked;

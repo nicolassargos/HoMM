@@ -55,9 +55,10 @@ public static class BattleAI
         }
 
         // Sinon, s'approcher de l'ennemi le plus proche (le plus dangereux s'il y en a plusieurs)
-        var target = enemies.OrderBy(e => e.Position.DistanceTo(unit.Position)).ThenByDescending(Threat).ThenBy(e => e.Id).First();
+        var target = enemies.OrderBy(e => TacticalBattle.Distance(unit, e)).ThenByDescending(Threat).ThenBy(e => e.Id).First();
         var closer = battle.Reachable(unit).Keys
-            .OrderBy(h => h.DistanceTo(target.Position)).ThenBy(h => h.DistanceTo(unit.Position)).ThenBy(h => h.Col).ThenBy(h => h.Row)
+            .OrderBy(h => unit.HexesAt(h).Min(x => target.Hexes.Min(x.DistanceTo))).ThenBy(h => h.DistanceTo(unit.Position))
+            .ThenBy(h => h.Col).ThenBy(h => h.Row)
             .First();
         if (closer == unit.Position || !battle.Move(closer))
             battle.Defend();

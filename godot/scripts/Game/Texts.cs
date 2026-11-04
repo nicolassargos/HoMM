@@ -399,6 +399,11 @@ public static class Texts
     public static string OptionsText => "Une seule sauvegarde : sauvegarder remplace la précédente.";
     public static string SaveButton => "Sauvegarder (F5)";
     public static string LoadButton => "Charger (F9)";
+    public static string FullscreenButton => "Plein écran (F11)";
+    public static string QuitGameButton => "Quitter le jeu";
+    public static string QuitGameTitle => "Quitter le jeu";
+    public static string QuitGameText => "Quitter le jeu ? Ce qui n'a pas été sauvegardé sera perdu.";
+    public static string QuitGameConfirm => "Quitter";
     public static string CloseButton => "Fermer";
     public static string NoSave => "Aucune partie sauvegardée.";
     public static string LoadFailed => "Cette sauvegarde ne peut pas être chargée (fichier abîmé ou d'une autre version du jeu).";
@@ -589,7 +594,7 @@ public static class Texts
     public static string WalkTooltip => "Avancer sur le chemin tracé";
     public static string CenterTooltip => "Centrer la carte sur le héros";
     public static string DigTooltip => "Creuser ici (il faut une journée entière de mouvement)";
-    public static string OptionsTooltip => "Sauvegarder, charger";
+    public static string OptionsTooltip => "Sauvegarder, charger, plein écran, quitter le jeu";
     public static string WalkButton => "Avancer";
     public static string CenterButton => "Centrer";
     public static string DigAction => "Creuser";

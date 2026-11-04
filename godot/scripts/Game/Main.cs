@@ -57,8 +57,18 @@ public partial class Main : Node2D
     /// <summary>Partie chargée, reprise par la scène relancée (voir <see cref="LoadGame"/>).</summary>
     private static GameState? _loadedState;
 
+    /// <summary>Le mode de la fenêtre n'est choisi qu'au lancement (pas à chaque nouvelle partie).</summary>
+    private static bool _windowModeSet;
+
     public override void _Ready()
     {
+        // plein écran au lancement (l'écran de 1920 × 1080 passait sous la barre des tâches) ; pas pour une capture
+        if (!_windowModeSet)
+        {
+            _windowModeSet = true;
+            if (!OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--capture=") || a == "--windowed"))
+                DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
+        }
         Ui.UsePixelFont();
         Ui.ApplyTheme();
         var loaded = _loadedState ?? (OS.GetCmdlineUserArgs().Contains("--load") ? ReadSave(LoadData()) : null);
@@ -88,6 +98,7 @@ public partial class Main : Node2D
         _hud.DigPressed += Dig;
         _hud.TreasureMapPressed += () => _hud.ShowTreasureMap(_state, _state.Players[0]);
         _hud.LoadPressed += LoadGame;
+        _hud.QuitPressed += () => GetTree().Quit();
         _hud.TownClicked += OpenTown;
         _hud.HeroClicked += SelectHero;
         _hud.NextHeroPressed += NextHero;
@@ -160,6 +171,9 @@ public partial class Main : Node2D
             _heroScreen.Open(shown);
         if (OS.GetCmdlineUserArgs().Contains("--open=kingdom"))
             _kingdomScreen.Open();
+        // « --open=options » : la fenêtre des options
+        if (OS.GetCmdlineUserArgs().Contains("--open=options"))
+            _hud.ShowOptions();
         // « --open=end » : la fenêtre de fin de partie (une victoire, sans rien changer)
         if (OS.GetCmdlineUserArgs().Contains("--open=end"))
             _hud.ShowGameOver(new GameEnded(GameOutcome.Victory, GameEndReason.GuardsCleared), () => { });
@@ -459,6 +473,24 @@ public partial class Main : Node2D
     }
 
     // ------------------------------------------------------------------ boucle
+
+    /// <summary>F11 ou Alt+Entrée, partout (carte, ville, combat) : plein écran ou fenêtre.</summary>
+    public override void _Input(InputEvent e)
+    {
+        if (e is InputEventKey { Pressed: true, Echo: false } key
+            && (key.Keycode == Key.F11 || (key.Keycode is Key.Enter or Key.KpEnter && key.AltPressed)))
+        {
+            ToggleFullscreen();
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    /// <summary>Passe du plein écran à une fenêtre agrandie (avec sa barre de titre), ou l'inverse.</summary>
+    public static void ToggleFullscreen()
+    {
+        bool full = DisplayServer.WindowGetMode() is DisplayServer.WindowMode.Fullscreen or DisplayServer.WindowMode.ExclusiveFullscreen;
+        DisplayServer.WindowSetMode(full ? DisplayServer.WindowMode.Maximized : DisplayServer.WindowMode.Fullscreen);
+    }
 
     public override void _UnhandledInput(InputEvent e)
     {

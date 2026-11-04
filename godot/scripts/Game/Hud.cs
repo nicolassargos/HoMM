@@ -65,6 +65,9 @@ public partial class Hud : CanvasLayer
     public event Action? DigPressed;
     public event Action? TreasureMapPressed;
     public event Action? LoadPressed;
+
+    /// <summary>Le joueur quitte le jeu (après confirmation).</summary>
+    public event Action? QuitPressed;
     public event Action? NextHeroPressed;
     public event Action? WalkPressed;
     public event Action? CenterPressed;
@@ -710,11 +713,33 @@ public partial class Hud : CanvasLayer
         // chaque bouton ajouté se place à gauche des précédents
         dialog.AddButton(Texts.LoadButton, false, "load");
         dialog.AddButton(Texts.SaveButton, false, "save");
-        dialog.CustomAction += action => Close(action.ToString() == "save" ? SavePressed : LoadPressed);
+        dialog.AddButton(Texts.FullscreenButton, false, "fullscreen");
+        dialog.AddButton(Texts.QuitGameButton, false, "quit");
+        dialog.CustomAction += action => Close(action.ToString() switch
+        {
+            "save" => SavePressed,
+            "load" => LoadPressed,
+            "fullscreen" => Main.ToggleFullscreen,
+            _ => ConfirmQuit,
+        });
         dialog.Confirmed += () => Close(null);
         dialog.Canceled += () => Close(null);
         AddChild(dialog);
         dialog.PopupCentered(new Vector2I((int)Px(640), 0));
+    });
+
+    /// <summary>Quitter le jeu : on demande d'abord, car la partie n'est pas sauvegardée d'elle-même.</summary>
+    private void ConfirmQuit() => Enqueue(done =>
+    {
+        var dialog = new ConfirmationDialog
+        {
+            Title = Texts.QuitGameTitle, DialogText = Texts.QuitGameText, OkButtonText = Texts.QuitGameConfirm,
+            CancelButtonText = Texts.CancelButton, Exclusive = true, Unresizable = true,
+        };
+        dialog.Confirmed += () => { dialog.QueueFree(); done(); QuitPressed?.Invoke(); };
+        dialog.Canceled += () => { dialog.QueueFree(); done(); };
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I((int)Px(480), 0));
     });
 
     /// <summary>

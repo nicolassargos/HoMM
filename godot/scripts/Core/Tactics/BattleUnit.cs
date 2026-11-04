@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HoMM.Core;
 
@@ -47,10 +49,16 @@ public static class Ability
     /// <summary>Se régénère : sa créature de tête retrouve tous ses points de vie au début de chacun de ses tours (Troll).</summary>
     public const string Regenerates = "regenerates";
 
+    /// <summary>
+    /// Grande créature : occupe 2 cases côte à côte (Cavalier, Dragon), la tête devant et l'arrière derrière, du côté de
+    /// son camp. Elle se déplace, frappe et se fait frapper par ses deux cases.
+    /// </summary>
+    public const string TwoHex = "two-hex";
+
     public static readonly string[] Known =
     {
         Shoots, NoRangePenalty, Flies, DoubleRetaliation, NoRetaliation, Breath, RangedResistance,
-        Charge, QuickStart, DoubleAttack, ShortRange, Crushing, Regenerates,
+        Charge, QuickStart, DoubleAttack, ShortRange, Crushing, Regenerates, TwoHex,
     };
 }
 
@@ -82,7 +90,28 @@ public sealed class BattleUnit
 
     /// <summary>Place de la troupe dans son armée (départage l'ordre de jeu).</summary>
     public int Slot { get; }
+
+    /// <summary>La case de la troupe ; pour une grande créature, celle de sa tête (la case de devant).</summary>
     public Hex Position { get; internal set; }
+
+    /// <summary>Une grande créature, sur 2 cases (<see cref="Ability.TwoHex"/>).</summary>
+    public bool IsLarge => Has(Ability.TwoHex);
+
+    /// <summary>
+    /// Les cases qu'occuperait la troupe avec sa tête sur <paramref name="head"/> : une seule, ou deux pour une grande
+    /// créature (l'arrière sur la même rangée, à gauche pour l'attaquant, à droite pour le défenseur).
+    /// </summary>
+    public IEnumerable<Hex> HexesAt(Hex head)
+    {
+        yield return head;
+        if (IsLarge)
+            yield return new Hex(head.Col + (Side == BattleSide.Attacker ? -1 : 1), head.Row);
+    }
+
+    /// <summary>Les cases qu'occupe la troupe.</summary>
+    public IEnumerable<Hex> Hexes => HexesAt(Position);
+
+    public bool Occupies(Hex hex) => Hexes.Contains(hex);
 
     /// <summary>Une troupe révoltée : elle combat dans le camp du défenseur, sans le bonus du héros.</summary>
     public bool IsRebel { get; }

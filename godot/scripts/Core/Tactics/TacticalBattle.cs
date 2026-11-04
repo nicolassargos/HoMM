@@ -140,7 +140,20 @@ public sealed class TacticalBattle
             .Concat(_waiting.Where(u => u.IsAlive && u != Active))
             .Distinct().ToList();
 
-    public BattleUnit? UnitAt(Hex hex) => _units.FirstOrDefault(u => u.IsAlive && u.Position == hex);
+    /// <summary>La troupe vivante sur cette case (une grande créature est sur ses deux cases).</summary>
+    public BattleUnit? UnitAt(Hex hex) => _units.FirstOrDefault(u => u.IsAlive && u.Occupies(hex));
+
+    /// <summary>La distance entre deux troupes : entre leurs cases les plus proches.</summary>
+    public static int Distance(BattleUnit a, BattleUnit b) => Distance(a.Hexes, b.Hexes);
+
+    private static int Distance(IEnumerable<Hex> a, IEnumerable<Hex> b) => a.Min(x => b.Min(x.DistanceTo));
+
+    /// <summary>La troupe tiendrait-elle avec sa tête sur cette case (cases libres, dans le champ, sans autre troupe) ?</summary>
+    public bool Fits(BattleUnit unit, Hex head) =>
+        unit.HexesAt(head).All(h => Field.IsOpen(h) && (UnitAt(h) is not { } other || other == unit));
+
+    /// <summary>Avec sa tête sur <paramref name="head"/>, la troupe serait-elle à côté de la cible (pour l'attaquer) ?</summary>
+    public static bool Touches(BattleUnit unit, Hex head, BattleUnit target) => Distance(unit.HexesAt(head), target.Hexes) == 1;
 
     // ------------------------------------------------------------------ placement
 
@@ -155,7 +168,9 @@ public sealed class TacticalBattle
             int row = stacks.Count == 1 ? Battlefield.Rows / 2
                 : (int)Math.Round(i * (Battlefield.Rows - 1) / (double)(stacks.Count - 1));
             var (stack, rebel) = stacks[i];
-            _units.Add(new BattleUnit(_units.Count + 1, stack, side, i, new Hex(column, row),
+            // une grande créature a son arrière sur la colonne de son camp, sa tête un pas devant
+            int col = stack.Type.Abilities.Contains(Ability.TwoHex) ? column + (side == BattleSide.Attacker ? 1 : -1) : column;
+            _units.Add(new BattleUnit(_units.Count + 1, stack, side, i, new Hex(col, row),
                 rebel ? 0 : attackBonus, rebel ? 0 : defenseBonus, rebel));
         }
     }
@@ -278,7 +293,7 @@ public sealed class TacticalBattle
     /// <summary>
     /// Les cases où la troupe peut aller ce tour-ci, avec le chemin pour y aller : sa vitesse en pas, sans traverser
     /// obstacles ni troupes ; une troupe qui vole va à vol d'oiseau sur toute case libre à sa portée (le chemin est
-    /// alors la seule case d'arrivée).
+    /// alors la seule case d'arrivée). Pour une grande créature, ce sont les cases de sa tête, où ses deux cases tiennent.
     /// </summary>
     public Dictionary<Hex, List<Hex>> Reachable(BattleUnit unit)
     {
@@ -290,7 +305,7 @@ public sealed class TacticalBattle
             for (int c = 0; c < Battlefield.Columns; c++)
             {
                 var hex = new Hex(c, r);
-                if (hex != unit.Position && Field.IsOpen(hex) && UnitAt(hex) == null && unit.Position.DistanceTo(hex) <= speed)
+                if (hex != unit.Position && Fits(unit, hex) && unit.Position.DistanceTo(hex) <= speed)
                     flights[hex] = new List<Hex> { hex };
             }
             return flights;
@@ -306,7 +321,7 @@ public sealed class TacticalBattle
                 continue;
             foreach (var next in hex.Neighbours())
             {
-                if (paths.ContainsKey(next) || !Field.IsOpen(next) || UnitAt(next) != null)
+                if (paths.ContainsKey(next) || !Fits(unit, next))
                     continue;
                 paths[next] = new List<Hex>(path) { next };
                 queue.Enqueue(next);
@@ -324,15 +339,18 @@ public sealed class TacticalBattle
 
     /// <summary>Un ennemi se tient-il à côté de la troupe ?</summary>
     public bool IsEngaged(BattleUnit unit) =>
-        unit.Position.Neighbours().Any(h => UnitAt(h) is { } other && AreEnemies(unit, other));
+        unit.Hexes.SelectMany(h => h.Neighbours()).Any(h => UnitAt(h) is { } other && AreEnemies(unit, other));
 
-    /// <summary>Les cases d'où la troupe peut attaquer cette cible ce tour-ci (à côté d'elle, et où elle peut aller).</summary>
+    /// <summary>
+    /// Les cases d'où la troupe peut attaquer cette cible ce tour-ci (où elle peut aller, à côté d'elle) ; pour une
+    /// grande créature, la case de sa tête, une de ses deux cases touchant la cible.
+    /// </summary>
     public IEnumerable<Hex> AttackPositions(BattleUnit unit, BattleUnit target)
     {
         if (!AreEnemies(unit, target))
             return Enumerable.Empty<Hex>();
         var reachable = Reachable(unit);
-        return target.Position.Neighbours().Where(reachable.ContainsKey);
+        return reachable.Keys.Where(h => Touches(unit, h, target));
     }
 
     // ------------------------------------------------------------------ actions
@@ -353,7 +371,7 @@ public sealed class TacticalBattle
     /// </summary>
     public bool Attack(BattleUnit target, Hex from)
     {
-        if (Active is not { } unit || !AreEnemies(unit, target) || !from.IsNextTo(target.Position))
+        if (Active is not { } unit || !AreEnemies(unit, target) || !Touches(unit, from, target))
             return false;
         if (!Reachable(unit).TryGetValue(from, out var path))
             return false;
@@ -374,12 +392,16 @@ public sealed class TacticalBattle
         return true;
     }
 
-    /// <summary>Un coup au corps à corps ; avec le souffle, la troupe juste derrière la cible est touchée aussi.</summary>
+    /// <summary>
+    /// Un coup au corps à corps ; avec le souffle, la troupe juste derrière la cible est touchée aussi (dans la direction
+    /// du coup, depuis la case de l'attaquant qui touche la cible, la tête d'abord).
+    /// </summary>
     private void Melee(BattleUnit unit, BattleUnit target, int moved)
     {
-        var behind = Behind(unit.Position, target.Position);
+        var (from, hit) = unit.Hexes.SelectMany(a => target.Hexes.Select(t => (a, t))).First(p => p.a.IsNextTo(p.t));
+        var behind = Behind(from, hit);
         Strike(unit, target, ranged: false, retaliation: false, moved);
-        if (unit.Has(Ability.Breath) && behind is { } hex && UnitAt(hex) is { } second && second != unit)
+        if (unit.Has(Ability.Breath) && behind is { } hex && UnitAt(hex) is { } second && second != unit && second != target)
             Strike(unit, second, ranged: false, retaliation: false, moved);
     }
 
@@ -495,7 +517,7 @@ public sealed class TacticalBattle
         int defense = from.Has(Ability.Crushing) && !ranged ? (int)Math.Round(to.Defense * (1 - CrushingShare)) : to.Defense;
         damage *= Battle.DamageModifier(from.Attack, defense);
         int range = from.Has(Ability.ShortRange) ? ShortRange : LongRange;
-        if (ranged && from.HasRangePenalty && from.Position.DistanceTo(to.Position) > range)
+        if (ranged && from.HasRangePenalty && Distance(from, to) > range)
             damage *= 0.5;
         if (ranged && to.Has(Ability.RangedResistance))
             damage *= 0.5;

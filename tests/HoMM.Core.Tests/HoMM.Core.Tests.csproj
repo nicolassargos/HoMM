@@ -9,6 +9,7 @@
     <Compile Include="../../godot/scripts/Core/**/*.cs" Link="Core/%(RecursiveDir)%(Filename)%(Extension)" />
     <!-- Les textes affichés : côté affichage, mais sans Godot, donc testables -->
     <Compile Include="../../godot/scripts/Game/Texts.cs" Link="Game/Texts.cs" />
+    <Compile Include="../../godot/scripts/Game/SaveEntry.cs" Link="Game/SaveEntry.cs" />
     <!-- Les fichiers de données du jeu (créatures…), copiés à côté des tests -->
     <None Include="../../godot/data/**/*.json" Link="data/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

@@ -68,6 +68,9 @@ public partial class Hud : CanvasLayer
 
     /// <summary>Le joueur quitte le jeu (après confirmation).</summary>
     public event Action? QuitPressed;
+
+    /// <summary>Le joueur revient au menu principal (après confirmation).</summary>
+    public event Action? MainMenuPressed;
     public event Action? NextHeroPressed;
     public event Action? WalkPressed;
     public event Action? CenterPressed;
@@ -648,12 +651,12 @@ public partial class Hud : CanvasLayer
     /// La fin de la partie (étape 7) : victoire ou défaite, pourquoi, à quel jour, et quelques chiffres de la partie ;
     /// puis une nouvelle partie, ou revoir la carte (on ne peut plus y jouer).
     /// </summary>
-    public void ShowGameOver(GameEnded end, Action newGame) => Enqueue(done =>
+    public void ShowGameOver(GameEnded end, Action mainMenu) => Enqueue(done =>
     {
         var player = _state.Players[0];
         var dialog = new AcceptDialog
         {
-            Title = Texts.GameOverTitle, OkButtonText = Texts.NewGameButton, Exclusive = true, Unresizable = true,
+            Title = Texts.GameOverTitle, OkButtonText = Texts.MainMenuButton, Exclusive = true, Unresizable = true,
         };
         dialog.AddButton(Texts.ReviewMapButton, false, "review");
         var content = new VBoxContainer { CustomMinimumSize = V(520, 0) };
@@ -681,7 +684,7 @@ public partial class Hud : CanvasLayer
             dialog.QueueFree();
             done();
             if (restart)
-                newGame();
+                mainMenu();
         }
         dialog.Confirmed += () => Close(restart: true);
         dialog.CustomAction += _ => Close(restart: false);
@@ -690,16 +693,15 @@ public partial class Hud : CanvasLayer
         dialog.PopupCentered(new Vector2I((int)Px(580), 0));
     });
 
-    /// <summary>La fenêtre des options : sauvegarder ou charger la partie (aussi avec F5 et F9).</summary>
+    /// <summary>
+    /// La fenêtre des options (bouton du panneau ou Échap) : sauvegarder, charger, plein écran, menu principal, quitter,
+    /// un bouton par ligne.
+    /// </summary>
     public void ShowOptions() => Enqueue(done =>
     {
         var dialog = new AcceptDialog
         {
-            Title = Texts.OptionsTitle,
-            DialogText = Texts.OptionsText,
-            OkButtonText = Texts.CloseButton,
-            Exclusive = true,
-            Unresizable = true,
+            Title = Texts.OptionsTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true,
         };
         bool closed = false;
         void Close(Action? then)
@@ -711,35 +713,46 @@ public partial class Hud : CanvasLayer
             done();
             then?.Invoke();
         }
-        // chaque bouton ajouté se place à gauche des précédents
-        dialog.AddButton(Texts.LoadButton, false, "load").TooltipText = Texts.KeyTooltip(Texts.LoadTooltip, "F9");
-        dialog.AddButton(Texts.SaveButton, false, "save").TooltipText = Texts.KeyTooltip(Texts.SaveTooltip, "F5");
-        dialog.AddButton(Texts.FullscreenButton, false, "fullscreen").TooltipText =
-            Texts.KeyTooltip(Texts.FullscreenTooltip, "F11 ou Alt+Entrée");
-        dialog.AddButton(Texts.QuitGameButton, false, "quit");
-        dialog.CustomAction += action => Close(action.ToString() switch
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", (int)Px(8));
+        foreach (var (text, tooltip, action) in new (string, string, Action?)[]
+                 {
+                     (Texts.SaveButton, Texts.KeyTooltip(Texts.SaveTooltip, "F5 : sauvegarde rapide"), SavePressed),
+                     (Texts.LoadButton, Texts.KeyTooltip(Texts.LoadTooltip, "F9 : sauvegarde rapide"), LoadPressed),
+                     (Texts.FullscreenButton, Texts.KeyTooltip(Texts.FullscreenTooltip, "F11 ou Alt+Entrée"), Main.ToggleFullscreen),
+                     (Texts.MainMenuButton, Texts.MainMenuTooltip,
+                         () => Confirm(Texts.MainMenuTitle, Texts.MainMenuText, Texts.MainMenuButton, MainMenuPressed)),
+                     (Texts.QuitGameButton, Texts.QuitGameButton,
+                         () => Confirm(Texts.QuitGameTitle, Texts.QuitGameText, Texts.QuitGameConfirm, QuitPressed)),
+                 })
         {
-            "save" => SavePressed,
-            "load" => LoadPressed,
-            "fullscreen" => Main.ToggleFullscreen,
-            _ => ConfirmQuit,
-        });
+            var button = MakeButton(text, 16);
+            button.CustomMinimumSize = V(320, 42);
+            button.TooltipText = tooltip;
+            button.Pressed += () => Close(action);
+            content.AddChild(button);
+        }
+        var note = MakeLabel(Texts.OptionsText, 13, SoftTextColor);
+        note.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        note.CustomMinimumSize = V(320, 0);
+        content.AddChild(note);
+        dialog.AddChild(content);
         dialog.GetOkButton().TooltipText = Texts.KeyTooltip(Texts.CloseOptionsTooltip, "Échap");
         dialog.Confirmed += () => Close(null);
         dialog.Canceled += () => Close(null);
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I((int)Px(640), 0));
+        dialog.PopupCentered(new Vector2I((int)Px(360), 0));
     });
 
-    /// <summary>Quitter le jeu : on demande d'abord, car la partie n'est pas sauvegardée d'elle-même.</summary>
-    private void ConfirmQuit() => Enqueue(done =>
+    /// <summary>Quitter le jeu ou revenir au menu : on demande d'abord (ce qui n'est pas sauvegardé serait perdu).</summary>
+    private void Confirm(string title, string text, string ok, Action? confirmed) => Enqueue(done =>
     {
         var dialog = new ConfirmationDialog
         {
-            Title = Texts.QuitGameTitle, DialogText = Texts.QuitGameText, OkButtonText = Texts.QuitGameConfirm,
+            Title = title, DialogText = text, OkButtonText = ok,
             CancelButtonText = Texts.CancelButton, Exclusive = true, Unresizable = true,
         };
-        dialog.Confirmed += () => { dialog.QueueFree(); done(); QuitPressed?.Invoke(); };
+        dialog.Confirmed += () => { dialog.QueueFree(); done(); confirmed?.Invoke(); };
         dialog.Canceled += () => { dialog.QueueFree(); done(); };
         AddChild(dialog);
         dialog.PopupCentered(new Vector2I((int)Px(480), 0));
@@ -798,49 +811,6 @@ public partial class Hud : CanvasLayer
         AddChild(dialog);
         dialog.PopupCentered(new Vector2I((int)Px(540), 0));
     });
-
-    /// <summary>Une case à cocher aux couleurs du jeu.</summary>
-    private static CheckBox MakeCheckBox(string text, bool pressed)
-    {
-        var box = new CheckBox { Text = text, ButtonPressed = pressed, FocusMode = Control.FocusModeEnum.None };
-        SetFontSize(box, 15);
-        box.AddThemeColorOverride("font_color", TextColor);
-        box.AddThemeColorOverride("font_pressed_color", TextColor);
-        box.AddThemeColorOverride("font_hover_color", Colors.White);
-        box.AddThemeColorOverride("font_hover_pressed_color", Colors.White);
-        // la case elle-même, dessinée claire sur le fond sombre (cochée ou non)
-        box.AddThemeIconOverride("checked", CheckIcon(true));
-        box.AddThemeIconOverride("unchecked", CheckIcon(false));
-        return box;
-    }
-
-    private static Texture2D? _checked, _unchecked;
-
-    /// <summary>Une case à cocher en pixel art : un cadre clair, et un carré doré dedans quand elle est cochée.</summary>
-    private static Texture2D CheckIcon(bool on)
-    {
-        if ((on ? _checked : _unchecked) is { } cached)
-            return cached;
-        int size = (int)Px(18), line = (int)Px(2), inset = (int)Px(5);
-        var image = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
-        image.Fill(DarkPanelColor);
-        for (int i = 0; i < size; i++)
-            for (int w = 0; w < line; w++)
-            {
-                image.SetPixel(i, w, TextColor);
-                image.SetPixel(i, size - 1 - w, TextColor);
-                image.SetPixel(w, i, TextColor);
-                image.SetPixel(size - 1 - w, i, TextColor);
-            }
-        if (on)
-            image.FillRect(new Rect2I(inset, inset, size - 2 * inset, size - 2 * inset), BorderColor);
-        var texture = ImageTexture.CreateFromImage(image);
-        if (on)
-            _checked = texture;
-        else
-            _unchecked = texture;
-        return texture;
-    }
 
     /// <summary>La carte au trésor : les morceaux dévoilés par les obélisques visités, et la croix.</summary>
     public void ShowTreasureMap(GameState state, Player viewer) => Enqueue(done =>

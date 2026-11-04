@@ -20,7 +20,17 @@ public sealed partial class GameState
     private int _nextPlayerId = 1;
     private int _nextHeroId = 1;
 
-    public GameState(int seed, GameData data) : this(seed, data, new MapGenerator(seed, data).Generate()) => AddStartingPlayer();
+    public GameState(int seed, GameData data) : this(seed, data, MapSize.Normal) { }
+
+    /// <summary>Une nouvelle partie sur une carte générée de cette taille.</summary>
+    public GameState(int seed, GameData data, MapSize size)
+        : this(seed, data, Generate(seed, data, size)) => AddStartingPlayer();
+
+    private static AdventureMap Generate(int seed, GameData data, MapSize size)
+    {
+        var (width, height) = MapSizes.Dimensions(size);
+        return new MapGenerator(seed, data).Generate(width, height);
+    }
 
     /// <summary>
     /// Une partie sur une carte faite à la main (pour les tests, et plus tard un éditeur de cartes), avec le joueur

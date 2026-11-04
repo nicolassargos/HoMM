@@ -396,13 +396,13 @@ public static class Texts
     public static string GameLoaded => "Partie chargée.";
 
     public static string OptionsTitle => "Options";
-    public static string OptionsText => "Une seule sauvegarde : sauvegarder remplace la précédente.";
+    public static string OptionsText => "F5 fait une sauvegarde rapide, F9 la reprend. La partie est aussi sauvegardée au début de chaque tour.";
     public static string SaveButton => "Sauvegarder";
     public static string LoadButton => "Charger";
     public static string FullscreenButton => "Plein écran";
     public static string QuitGameButton => "Quitter le jeu";
-    public static string SaveTooltip => "Sauvegarder la partie (remplace la sauvegarde précédente)";
-    public static string LoadTooltip => "Reprendre la partie sauvegardée";
+    public static string SaveTooltip => "Sauvegarder la partie sous un nom";
+    public static string LoadTooltip => "Choisir une partie sauvegardée";
     public static string FullscreenTooltip => "Passer du plein écran à une fenêtre, ou l'inverse";
     public static string CloseOptionsTooltip => "Revenir à la partie";
     public static string QuitGameTitle => "Quitter le jeu";
@@ -410,6 +410,69 @@ public static class Texts
     public static string QuitGameConfirm => "Quitter";
     public static string CloseButton => "Fermer";
     public static string NoSave => "Aucune partie sauvegardée.";
+    public static string NoQuickSave => "Aucune sauvegarde rapide (F5 pour en faire une).";
+    public static string QuickSaved => "Sauvegarde rapide faite (F9 pour la reprendre).";
+
+    // ------------------------------------------------------------- menu principal et sauvegardes (étape 7)
+
+    public static string GameTitle => "HoMM";
+    public static string NewGameTooltip => "Choisir la taille de la carte, la graine et les façons de gagner";
+    public static string LoadGameButton => "Charger";
+    public static string SettingsButton => "Réglages";
+    public static string SettingsTooltip => "Plein écran";
+    public static string SettingsText => "D'autres réglages viendront plus tard.";
+    public static string MainMenuButton => "Menu principal";
+    public static string MainMenuTooltip => "Revenir au menu principal";
+    public static string MainMenuTitle => "Menu principal";
+    public static string MainMenuText => "Revenir au menu principal ? Ce qui n'a pas été sauvegardé sera perdu.";
+
+    public static string NewGameTitle => "Nouvelle partie";
+    public static string MapSizeLabel => "Taille de la carte";
+    public static string MapSizeName(MapSize size) => size switch
+    {
+        MapSize.Tiny => "Très petite",
+        MapSize.Small => "Petite",
+        MapSize.Normal => "Normale",
+        MapSize.Large => "Grande",
+        _ => "Très grande",
+    };
+    public static string MapSizeDetails(MapSize size, int width, int height) =>
+        $"{width} × {height} cases, {width / MapGenerator.ZoneWidth * (height / MapGenerator.ZoneHeight)} régions"
+        + (size >= MapSize.Large ? " : une longue partie" : "");
+    public static string SeedLabel => "Graine";
+    public static string SeedPlaceholder => "au hasard";
+    public static string RandomSeed => "Au hasard";
+    public static string SeedHelp => "La même graine donne la même carte.";
+    public static string GoalsLabel => "Comment gagner";
+    public static string GoalsNote => "La première façon accomplie l'emporte. Perdre tous ses héros reste une défaite.";
+
+    public static string SaveTitle => "Sauvegarder la partie";
+    public static string LoadTitle => "Charger une partie";
+    public static string SaveNameLabel => "Nom :";
+    public static string SaveAction => "Sauvegarder";
+    public static string LoadAction => "Charger";
+    public static string DeleteSave => "Supprimer";
+    public static string OverwriteTitle => "Remplacer la sauvegarde";
+    public static string OverwriteText(string name) => $"Une sauvegarde « {name} » existe déjà. La remplacer ?";
+    public static string DeleteTitle => "Supprimer la sauvegarde";
+    public static string DeleteText(string name) => $"Supprimer « {name} » ? Elle sera perdue.";
+
+    /// <summary>Le nom proposé pour une nouvelle sauvegarde : « Sire Roland, jour 12 ».</summary>
+    public static string SuggestedSaveName(string? hero, int day) => $"{hero ?? "Partie"}, jour {day + 1}";
+
+    public static string SaveDisplayName(SaveEntry entry) =>
+        entry.IsQuick ? "Sauvegarde rapide" : entry.IsAuto ? "Sauvegarde automatique" : entry.Name;
+
+    /// <summary>« Jour 12 (Mois 1, semaine 2, Vendredi) · Sire Roland, niveau 3 · carte normale · le 04/11 à 18:32 ».</summary>
+    public static string SaveDetails(SaveEntry entry)
+    {
+        if (entry.Summary is not { } s)
+            return "Illisible (fichier abîmé ou d'une autre version du jeu)";
+        string hero = s.HeroName == null ? "aucun héros" : $"{s.HeroName}, niveau {s.HeroLevel}";
+        string ended = s.Outcome == GameOutcome.Playing ? "" : " · partie finie";
+        return $"Jour {s.Day + 1} ({Date(s.Day)}) · {hero} · carte {MapSizeName(s.Size).ToLowerInvariant()}{ended}"
+            + $" · le {entry.Written:dd'/'MM} à {entry.Written:HH:mm}";
+    }
     public static string LoadFailed => "Cette sauvegarde ne peut pas être chargée (fichier abîmé ou d'une autre version du jeu).";
 
     public static string RulesText => "Comment gagner cette partie ? Cochez une ou plusieurs façons : la première accomplie l'emporte. Perdre tous ses héros reste une défaite.";

@@ -14,21 +14,21 @@ public partial class ResourceBar : Panel
     private readonly Dictionary<ResourceType, Label> _amounts = new();
     private Label _date = null!;
 
-    /// <summary>Construit la barre, de la largeur donnée.</summary>
+    /// <summary>Construit la barre, de la largeur et de la hauteur données (en pixels de l'écran).</summary>
     public void Build(float width, float height)
     {
         Position = Vector2.Zero;
         Size = new Vector2(width, height);
         AddThemeStyleboxOverride("panel", Frame(PanelColor));
 
-        var resources = new HBoxContainer { Position = new Vector2(16, 0), Size = new Vector2(width - 260, height) };
-        resources.AddThemeConstantOverride("separation", 6);
+        var resources = new HBoxContainer { Position = new Vector2(Px(16), 0), Size = new Vector2(width - Px(260), height) };
+        resources.AddThemeConstantOverride("separation", (int)Px(6));
         AddChild(resources);
         foreach (var resource in ResourceInfo.All)
         {
-            resources.AddChild(new ResourceIcon { Resource = resource, CustomMinimumSize = new Vector2(18, height) });
+            resources.AddChild(new ResourceIcon { Resource = resource, CustomMinimumSize = new Vector2(Px(18), height) });
             var label = MakeLabel("", 16, TextColor);
-            label.CustomMinimumSize = new Vector2(118, 0);
+            label.CustomMinimumSize = new Vector2(Px(118), 0);
             label.VerticalAlignment = VerticalAlignment.Center;
             label.MouseFilter = MouseFilterEnum.Stop; // pour son info-bulle
             resources.AddChild(label);
@@ -38,8 +38,8 @@ public partial class ResourceBar : Panel
         _date = MakeLabel("", 16, TextColor);
         _date.HorizontalAlignment = HorizontalAlignment.Right;
         _date.VerticalAlignment = VerticalAlignment.Center;
-        _date.Position = new Vector2(width - 238, 0);
-        _date.Size = new Vector2(220, height);
+        _date.Position = new Vector2(width - Px(238), 0);
+        _date.Size = new Vector2(Px(220), height);
         _date.MouseFilter = MouseFilterEnum.Stop;
         AddChild(_date);
     }

@@ -31,36 +31,36 @@ public partial class KingdomScreen : ScreenWindow
     public void Build(GameState state, Vector2 screenSize)
     {
         _state = state;
-        var size = new Vector2(1120, 640);
+        var size = V(1120, 640);
         BuildFrame(screenSize, new Rect2((screenSize - size) / 2 + new Vector2(0, Hud.TopBarHeight / 2f), size));
         SetTitle(Texts.KingdomTitle);
 
-        _heroes = Section(56, 170, Texts.KingdomHeroes(0), out var heroesTitle);
+        _heroes = Section(56, 178, Texts.KingdomHeroes(0), out var heroesTitle);
         _heroesTitle = heroesTitle;
-        _towns = Section(238, 190, Texts.KingdomTowns, out _);
+        _towns = Section(244, 194, Texts.KingdomTowns, out _);
         _noTown = At(MakeLabel(Texts.KingdomNoTown, 14, SoftTextColor), 32, 300);
         Window.AddChild(_noTown);
 
         // la bande des mines et revenus
-        var strip = new Panel { Position = new Vector2(20, 440), Size = new Vector2(size.X - 40, 110) };
+        var strip = new Panel { Position = V(20, 446), Size = new Vector2(size.X - Px(40), Px(110)) };
         strip.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
         strip.AddChild(At(MakeLabel(Texts.KingdomMines, 15, SoftTextColor), 12, 6));
         Window.AddChild(strip);
-        float column = (strip.Size.X - 24) / ResourceInfo.All.Count();
+        float column = (strip.Size.X - Px(24)) / ResourceInfo.All.Count();
         int i = 0;
         foreach (var resource in ResourceInfo.All)
         {
-            var box = new Panel { Position = new Vector2(12 + i++ * column, 36), Size = new Vector2(column - 8, 62), MouseFilter = Control.MouseFilterEnum.Stop };
+            var box = new Panel { Position = new Vector2(Px(12) + i++ * column, Px(36)), Size = new Vector2(column - Px(8), Px(62)), MouseFilter = Control.MouseFilterEnum.Stop };
             box.AddThemeStyleboxOverride("panel", Box(PanelColor, DimColor, 1, 1, 1, 1));
-            box.AddChild(new ResourceIcon { Resource = resource, Position = new Vector2(8, 8), Size = new Vector2(20, 20), MouseFilter = Control.MouseFilterEnum.Ignore });
+            box.AddChild(new ResourceIcon { Resource = resource, Position = V(8, 8), Size = V(20, 20), MouseFilter = Control.MouseFilterEnum.Ignore });
             var name = At(MakeLabel(Texts.Capitalize(Texts.Resource(resource)), 15, TextColor), 34, 6);
             name.MouseFilter = Control.MouseFilterEnum.Ignore;
             box.AddChild(name);
             var counts = At(MakeLabel("", 13, SoftTextColor), 10, 34);
             counts.MouseFilter = Control.MouseFilterEnum.Ignore;
             box.AddChild(counts);
-            var income = At(MakeLabel("", 15, TextColor), column - 140, 6);
-            income.Size = new Vector2(120, 22);
+            var income = At(MakeLabel("", 15, TextColor), column / Ui.Scale - 140, 6);
+            income.Size = V(120, 22);
             income.HorizontalAlignment = HorizontalAlignment.Right;
             income.MouseFilter = Control.MouseFilterEnum.Ignore;
             box.AddChild(income);
@@ -80,13 +80,13 @@ public partial class KingdomScreen : ScreenWindow
     /// <summary>Une section (héros ou villes) : un titre et une rangée de vignettes.</summary>
     private HBoxContainer Section(float y, float height, string title, out Label titleLabel)
     {
-        var section = new Panel { Position = new Vector2(20, y), Size = new Vector2(Window.Size.X - 40, height) };
+        var section = new Panel { Position = V(20, y), Size = new Vector2(Window.Size.X - Px(40), Px(height)) };
         section.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
         titleLabel = At(MakeLabel(title, 15, SoftTextColor), 12, 6);
         section.AddChild(titleLabel);
         Window.AddChild(section);
-        var row = new HBoxContainer { Position = new Vector2(12, 32), Size = new Vector2(section.Size.X - 24, height - 40) };
-        row.AddThemeConstantOverride("separation", 10);
+        var row = new HBoxContainer { Position = V(12, 32), Size = new Vector2(section.Size.X - Px(24), Px(height - 40)) };
+        row.AddThemeConstantOverride("separation", (int)Px(10));
         section.AddChild(row);
         return row;
     }
@@ -128,21 +128,21 @@ public partial class KingdomScreen : ScreenWindow
         Clear(_heroes);
         foreach (var hero in player.Heroes)
         {
-            var tile = Tile(new Vector2(100, 128), hero == _state.CurrentHero, Texts.HeroDetails(hero),
+            var tile = Tile(V(100, 142), hero == _state.CurrentHero, Texts.HeroDetails(hero),
                 () => HeroChosen?.Invoke(hero), () => HeroDetailsWanted?.Invoke(hero));
             if (Art.Portrait(hero.Name) is { } portrait)
-                tile.AddChild(Picture(portrait, new Vector2(18, 6), new Vector2(64, 64)));
-            var name = At(MakeLabel(hero.Name, 13, TextColor), 2, 74);
-            name.Size = new Vector2(96, 18);
+                tile.AddChild(Picture(portrait, new Vector2(11, 9), new Vector2(128, 128))); // le portrait ×2
+            var name = At(MakeLabel(hero.Name, 13, TextColor), 2, 94);
+            name.Size = V(96, 18);
             name.HorizontalAlignment = HorizontalAlignment.Center;
             name.ClipText = true;
             name.MouseFilter = Control.MouseFilterEnum.Ignore;
             tile.AddChild(name);
             // le mouvement restant
-            tile.AddChild(new ColorRect { Position = new Vector2(10, 100), Size = new Vector2(80, 8), Color = MapRenderer.Rgb(20, 16, 12), MouseFilter = Control.MouseFilterEnum.Ignore });
+            tile.AddChild(new ColorRect { Position = V(10, 120), Size = V(80, 8), Color = MapRenderer.Rgb(20, 16, 12), MouseFilter = Control.MouseFilterEnum.Ignore });
             tile.AddChild(new ColorRect
             {
-                Position = new Vector2(10, 100), Size = new Vector2(80f * hero.Movement / Math.Max(1, hero.MaxMovement), 8),
+                Position = V(10, 120), Size = new Vector2(Px(80) * hero.Movement / Math.Max(1, hero.MaxMovement), Px(8)),
                 Color = MapRenderer.Rgb(60, 180, 60), MouseFilter = Control.MouseFilterEnum.Ignore,
             });
             _heroes.AddChild(tile);
@@ -155,17 +155,17 @@ public partial class KingdomScreen : ScreenWindow
         _noTown.Visible = player.Towns.Count == 0;
         foreach (var town in player.Towns)
         {
-            var tile = Tile(new Vector2(120, 146), false, Texts.TownDetails(town), () => TownChosen?.Invoke(town), null);
+            var tile = Tile(V(120, 148), false, Texts.TownDetails(town), () => TownChosen?.Invoke(town), null);
             if (Art.Get("objects/town") is { } image)
-                tile.AddChild(Picture(image, new Vector2(12, 6), new Vector2(96, 72)));
-            var name = At(MakeLabel(town.Name, 13, TextColor), 2, 84);
-            name.Size = new Vector2(116, 18);
+                tile.AddChild(Picture(image, new Vector2(18, 9), new Vector2(144, 144))); // l'image de 72 pixels, ×2
+            var name = At(MakeLabel(town.Name, 13, TextColor), 2, 104);
+            name.Size = V(116, 18);
             name.HorizontalAlignment = HorizontalAlignment.Center;
             name.ClipText = true;
             name.MouseFilter = Control.MouseFilterEnum.Ignore;
             tile.AddChild(name);
-            var income = At(MakeLabel(Texts.TownIncome(town) + (town.BuiltToday ? "" : "  ●"), 12, town.BuiltToday ? SoftTextColor : GoodColor), 2, 104);
-            income.Size = new Vector2(116, 16);
+            var income = At(MakeLabel(Texts.TownIncome(town) + (town.BuiltToday ? "" : "  ●"), 12, town.BuiltToday ? SoftTextColor : GoodColor), 2, 124);
+            income.Size = V(116, 16);
             income.HorizontalAlignment = HorizontalAlignment.Center;
             income.MouseFilter = Control.MouseFilterEnum.Ignore;
             tile.AddChild(income);

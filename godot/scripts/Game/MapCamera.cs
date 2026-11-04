@@ -6,16 +6,16 @@ namespace HoMM.Game;
 /// <summary>
 /// La caméra de la carte d'aventure : position, défilement (clavier, bord de l'écran),
 /// recentrage sur le héros, zoom. La zone visible est ce qui reste à côté du panneau et sous la barre du haut.
-/// Le zoom garde des pixels d'art entiers : ×1 montre les images ×2 (un pixel d'art = 2 pixels de l'écran),
-/// ×1,5 les montre ×3, comme la carte du premier Heroes.
+/// Le zoom garde des pixels d'art entiers : ×1,5 montre les images ×3 (un pixel d'art = 3 pixels de l'écran, comme la
+/// carte du premier Heroes), ×2 les montre ×4 (écran de 1920 × 1080).
 /// </summary>
 public partial class MapCamera : Camera2D
 {
     private const int T = MapRenderer.TileSize;
-    private const float ScrollSpeed = 700;
+    private const float ScrollSpeed = 1050;
 
     /// <summary>Les niveaux de zoom (molette de la souris, touches + et -).</summary>
-    public static readonly float[] Zooms = { 1f, 1.5f };
+    public static readonly float[] Zooms = { 1.5f, 2f };
 
     private AdventureMap _map = null!;
     private Minimap _minimap = null!;
@@ -37,7 +37,9 @@ public partial class MapCamera : Camera2D
         AnchorMode = AnchorModeEnum.FixedTopLeft;
         // la carte visible : entre la barre du haut et la bande du bas, à gauche du panneau
         _screenView = new Vector2(screenSize.X - Hud.PanelWidth, screenSize.Y - Hud.TopBarHeight - Hud.BottomBarHeight);
-        ViewSize = _screenView;
+        // le premier niveau de zoom dès le départ (×3 : pixels d'art entiers)
+        Zoom = new Vector2(Zooms[_zoomIndex], Zooms[_zoomIndex]);
+        ViewSize = _screenView / Zooms[_zoomIndex];
         MakeCurrent();
     }
 

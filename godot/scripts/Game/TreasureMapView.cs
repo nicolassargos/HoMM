@@ -25,7 +25,8 @@ public partial class TreasureMapView : Control
 
     public override void _Ready()
     {
-        CustomMinimumSize = new Vector2(Columns * CellSize, Rows * CellSize);
+        // dessinée en unités de l'interface, agrandie à l'échelle de l'écran (des formes, pas d'images en pixel art)
+        CustomMinimumSize = Ui.V(Columns * CellSize, Rows * CellSize);
         MouseFilter = MouseFilterEnum.Ignore;
     }
 
@@ -40,6 +41,7 @@ public partial class TreasureMapView : Control
 
     public override void _Draw()
     {
+        DrawSetTransform(Vector2.Zero, 0, Vector2.One * Ui.Scale);
         var size = new Vector2(Columns, Rows) * CellSize;
         DrawRect(new Rect2(Vector2.Zero, size), Parchment);
         if (State.Map.Treasure is not { } treasure)

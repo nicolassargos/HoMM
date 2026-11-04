@@ -188,7 +188,7 @@ La simulation d'équilibrage n'est pas limitée par l'or : c'est la croissance e
   botte avec le nombre de jours de marche (`GameState.DaysTo`), épées sur un monstre, main sur un objet à visiter,
   croix là où on ne peut pas aller (ou jamais exploré), casque sur un de ses héros. La case survolée n'est plus encadrée.
 - ✅ Zoom de la carte (molette, touches + et -) : ×2 ou ×3 (comme le premier Heroes), pixels d'art toujours entiers.
-  La partie commence à ×2 (choix de l'utilisateur, à revoir lors des réglages fins).
+  La partie commence à ×2 (choix de l'utilisateur, à revoir lors des réglages fins). En 1920 × 1080 (étape 7) : ×3 et ×4.
 - ✅ La route est une couche posée sur le terrain (`AdventureMap.HasRoad`), plus un terrain : une case de route
   coûte 75 quel que soit le terrain dessous (`TerrainInfo.RoadCost`). Le générateur garde le sable et le marais sous
   la route ; l'eau, la montagne et la forêt y deviennent de l'herbe. Le shader dessine la route comme un chemin
@@ -382,6 +382,12 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    de la ligne de la dernière action ; touches W (attendre), D (se défendre), A (auto), F (fuir), écrites sur les
    boutons. Le **bilan** s'ouvre après chaque combat, tactique ou rapide : l'expérience gagnée d'abord (et une
    révolte), puis nos pertes, puis les ennemis tués, en images sans cadre.
+   ✅ **Écran de 1920 × 1080** (choix de l'utilisateur, une PR à part) : la fenêtre fait 1920 × 1080 (`project.godot`).
+   Les écrans restent décrits dans les unités de l'ancien écran (1280 × 720) et sont mis à l'échelle ×1,5 au même
+   endroit (`Ui.Scale`, `Ui.Px`, `Ui.V`, `At`, `TextSize`, `Box`) : une autre échelle pourra devenir un réglage. Les images en
+   pixel art sont toujours agrandies d'un nombre entier de fois, pour des pixels réguliers : carte ×3 et ×4 (zooms
+   1,5 et 2 de `MapCamera`), créatures au combat ×3 (cases de 110 × 126, marges de 318), sol et obstacles ×3, héros
+   au combat ×4, cadres et boutons ×2, portraits ×1, ×2 ou ×3, créatures de l'interface ×2 à ×4.
 5. **Les fenêtres** : niveau supérieur, recrutement (« Max », avertissement de charisme), fin de partie (la partie
    compte monstres vaincus, créatures perdues…).
 6. **Menu principal, nouvelle partie, sauvegardes** : menu sauté par toute option de lancement ou `--play` ; taille

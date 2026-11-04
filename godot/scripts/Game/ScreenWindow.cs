@@ -18,7 +18,7 @@ public partial class ScreenWindow : CanvasLayer
     public bool IsOpen => Visible;
     public event Action? Closed;
 
-    /// <summary>Prépare le voile et le cadre ; <paramref name="window"/> : la place de la fenêtre à l'écran.</summary>
+    /// <summary>Prépare le voile et le cadre ; <paramref name="window"/> : la place de la fenêtre à l'écran (en pixels).</summary>
     protected void BuildFrame(Vector2 screenSize, Rect2 window)
     {
         Layer = 4; // au-dessus de la carte et du panneau, sous l'écran de ville
@@ -35,8 +35,8 @@ public partial class ScreenWindow : CanvasLayer
         _title = At(MakeLabel("", 20, TextColor), 20, 12);
         frame.AddChild(_title);
         var close = MakeButton($"{Texts.CloseButton} (Échap)", 14);
-        close.Position = new Vector2(window.Size.X - 20 - 150, 12);
-        close.Size = new Vector2(150, 34);
+        close.Position = new Vector2(window.Size.X - Px(20 + 150), Px(12));
+        close.Size = V(150, 34);
         close.Pressed += Close;
         frame.AddChild(close);
     }

@@ -17,6 +17,7 @@ namespace HoMM.Game;
 /// </summary>
 public partial class TownScreen : CanvasLayer
 {
+    // en unités de l'interface (×1,5 à l'écran), comme les places des bâtiments dans buildings.json (vue de 1280 × 390)
     private const float ViewTop = 84, ViewHeight = 390;
     private const float ArmyX = 100;
 
@@ -74,65 +75,65 @@ public partial class TownScreen : CanvasLayer
         _root.AddChild(_bar);
         _bar.Build(screenSize.X - Hud.PanelWidth, Hud.TopBarHeight);
         var back = MakeButton(Texts.QuitTown, 15);
-        back.Position = new Vector2(screenSize.X - Hud.PanelWidth + 12, 4);
-        back.Size = new Vector2(Hud.PanelWidth - 24, 36);
+        back.Position = new Vector2(screenSize.X - Hud.PanelWidth + Px(12), Px(4));
+        back.Size = new Vector2(Hud.PanelWidth - Px(24), Px(36));
         back.Pressed += Close;
         _root.AddChild(back);
 
-        _title = At(MakeLabel("", 22, TextColor), 16, Hud.TopBarHeight + 6);
+        _title = At(MakeLabel("", 22, TextColor), 16, Hud.TopBarHeight / Ui.Scale + 6);
         _root.AddChild(_title);
-        _header = At(MakeLabel("", 14, SoftTextColor), 16, Hud.TopBarHeight + 10);
+        _header = At(MakeLabel("", 14, SoftTextColor), 16, Hud.TopBarHeight / Ui.Scale + 10);
         _root.AddChild(_header);
 
         // la ville vue de face : un ciel, un sol, les bâtiments
-        _view = new Control { Position = new Vector2(0, ViewTop), Size = new Vector2(screenSize.X, ViewHeight), ClipContents = true };
+        _view = new Control { Position = new Vector2(0, Px(ViewTop)), Size = new Vector2(screenSize.X, Px(ViewHeight)), ClipContents = true };
         _root.AddChild(_view);
-        _view.AddChild(new ColorRect { Size = new Vector2(screenSize.X, ViewHeight * 0.4f), Color = MapRenderer.Rgb(58, 72, 92), MouseFilter = Control.MouseFilterEnum.Ignore });
-        _view.AddChild(new ColorRect { Position = new Vector2(0, ViewHeight * 0.4f), Size = new Vector2(screenSize.X, ViewHeight * 0.6f), Color = MapRenderer.Rgb(60, 74, 48), MouseFilter = Control.MouseFilterEnum.Ignore });
+        _view.AddChild(new ColorRect { Size = new Vector2(screenSize.X, Px(ViewHeight * 0.4f)), Color = MapRenderer.Rgb(58, 72, 92), MouseFilter = Control.MouseFilterEnum.Ignore });
+        _view.AddChild(new ColorRect { Position = new Vector2(0, Px(ViewHeight * 0.4f)), Size = new Vector2(screenSize.X, Px(ViewHeight * 0.6f)), Color = MapRenderer.Rgb(60, 74, 48), MouseFilter = Control.MouseFilterEnum.Ignore });
 
         // les raccourcis, en bas à droite de la ville (là où rien n'est bâti)
-        float bx = screenSize.X - 12 - 3 * 138 + 8;
+        float bx = screenSize.X - Px(12 + 3 * 138 - 8);
         foreach (var (text, open) in new (string, Action)[] { (Texts.BuildButton, OpenBuild), (Texts.RecruitButton, () => OpenRecruitWindow(null)), (Texts.TavernButton, OpenTavern) })
         {
             var button = MakeButton(text, 14);
-            button.Position = new Vector2(bx, ViewTop + ViewHeight - 46);
-            button.Size = new Vector2(130, 36);
+            button.Position = new Vector2(bx, Px(ViewTop + ViewHeight - 46));
+            button.Size = V(130, 36);
             button.Pressed += open;
             _root.AddChild(button);
             if (text == Texts.TavernButton)
                 _tavernShortcut = button;
-            bx += 138;
+            bx += Px(138);
         }
 
         // la garnison et le héros présent, toujours visibles
         float y = ViewTop + ViewHeight + 8;
         _root.AddChild(At(MakeLabel(Texts.GarrisonHeader, 15, TextColor), 16, y));
-        var townPicture = new Panel { Position = new Vector2(12, y + 22), Size = new Vector2(80, 80) };
+        var townPicture = new Panel { Position = V(12, y + 22), Size = new Vector2(132, 132) };
         townPicture.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
         if (Art.Get("objects/town") is { } image)
-            townPicture.AddChild(Picture(image, new Vector2(4, 4), new Vector2(72, 72)));
+            townPicture.AddChild(Picture(image, new Vector2(30, 30), new Vector2(72, 72))); // l'image de 72 pixels, ×1
         _root.AddChild(townPicture);
-        _garrison = MakeArmy(new Vector2(ArmyX, y + 22));
+        _garrison = MakeArmy(V(ArmyX, y + 22));
         var hint = At(MakeLabel(Texts.DragHint, 13, SoftTextColor), ArmyX + 7 * 86 + 20, y + 26);
         _root.AddChild(hint);
 
         y += 110;
         _visitorLabel = At(MakeLabel("", 15, TextColor), 16, y);
         _root.AddChild(_visitorLabel);
-        var portraitFrame = new Panel { Position = new Vector2(12, y + 22), Size = new Vector2(80, 80) };
+        var portraitFrame = new Panel { Position = V(12, y + 22), Size = new Vector2(132, 132) };
         portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, DimColor, 1, 1, 1, 1));
         _root.AddChild(portraitFrame);
-        _visitorPortrait = Picture(null!, new Vector2(8, 8), new Vector2(64, 64));
+        _visitorPortrait = Picture(null!, new Vector2(2, 2), new Vector2(128, 128)); // le portrait ×2
         portraitFrame.AddChild(_visitorPortrait);
-        _visitor = MakeArmy(new Vector2(ArmyX, y + 22));
+        _visitor = MakeArmy(V(ArmyX, y + 22));
         _giveAll = MakeButton(Texts.GiveAllToHero, 13);
-        _giveAll.Position = new Vector2(ArmyX + 7 * 86 + 20, y + 30);
-        _giveAll.Size = new Vector2(200, 34);
+        _giveAll.Position = V(ArmyX + 7 * 86 + 20, y + 30);
+        _giveAll.Size = V(200, 34);
         _giveAll.Pressed += GiveAll;
         _root.AddChild(_giveAll);
         _leaveAll = MakeButton(Texts.LeaveAllInGarrison, 13);
-        _leaveAll.Position = new Vector2(ArmyX + 7 * 86 + 230, y + 30);
-        _leaveAll.Size = new Vector2(210, 34);
+        _leaveAll.Position = V(ArmyX + 7 * 86 + 230, y + 30);
+        _leaveAll.Size = V(210, 34);
         _leaveAll.Pressed += LeaveAll;
         _root.AddChild(_leaveAll);
 
@@ -141,7 +142,7 @@ public partial class TownScreen : CanvasLayer
 
     private ArmySlots MakeArmy(Vector2 position)
     {
-        var slots = new ArmySlots { Position = position, SlotSize = new Vector2(84, 80), ImageScale = 2, CountFontSize = 14, DragGroup = this };
+        var slots = new ArmySlots { Position = position, SlotSize = V(84, 88), ImageScale = 3, CountFontSize = 14, DragGroup = this };
         slots.SlotClicked += index => Act(() => _state.TransferStack(_town!, fromGarrison: slots == _garrison, index));
         slots.SlotRightClicked += index => Split(slots, index, slots, null);
         slots.TroopDropped += (source, from, to, split) =>
@@ -239,7 +240,7 @@ public partial class TownScreen : CanvasLayer
             return;
         _bar.Refresh(_state, _state.CurrentPlayer);
         _title.Text = town.Name;
-        _header.Position = new Vector2(_title.Position.X + _title.GetMinimumSize().X + 16, _header.Position.Y);
+        _header.Position = new Vector2(_title.Position.X + _title.GetMinimumSize().X + Px(16), _header.Position.Y);
         _header.Text = Texts.TownHeader(town);
         RefreshView(town);
         _tavernShortcut.Disabled = !town.Buildings.Any(b => b.Tavern && town.Has(b.Id));
@@ -285,7 +286,7 @@ public partial class TownScreen : CanvasLayer
 
     private Control BuildingBox(Town town, BuildingType building)
     {
-        var (x, y, w, h) = (building.View[0], building.View[1], building.View[2], building.View[3]);
+        var (x, y, w, h) = (Px(building.View[0]), Px(building.View[1]), Px(building.View[2]), Px(building.View[3]));
         var box = new Panel
         {
             Position = new Vector2(x, y), Size = new Vector2(w, h), PivotOffset = new Vector2(w / 2f, h),
@@ -296,8 +297,8 @@ public partial class TownScreen : CanvasLayer
         var name = MakeLabel(building.Name, 12, TextColor);
         name.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         name.HorizontalAlignment = HorizontalAlignment.Center;
-        name.CustomMinimumSize = new Vector2(w - 8, 0);
-        name.Position = new Vector2(4, h / 2f - 16);
+        name.CustomMinimumSize = new Vector2(w - Px(8), 0);
+        name.Position = new Vector2(Px(4), h / 2f - Px(16));
         name.MouseFilter = Control.MouseFilterEnum.Ignore;
         box.AddChild(name);
         box.GuiInput += e =>
@@ -325,7 +326,7 @@ public partial class TownScreen : CanvasLayer
         Refresh();
         if (!_buildingBoxes.TryGetValue(built.Building.Id, out var box))
             return;
-        box.Scale = new Vector2(1, 0.05f);
+        box.Scale = V(1, 0.05f);
         box.Modulate = new Color(1, 1, 1, 0);
         var tween = box.CreateTween().SetParallel();
         tween.TweenProperty(box, "scale", Vector2.One, 1.4).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
@@ -334,10 +335,10 @@ public partial class TownScreen : CanvasLayer
         var rng = new Random(built.Building.Id.GetHashCode());
         for (int i = 0; i < 14; i++)
         {
-            var foot = box.Position + new Vector2((float)rng.NextDouble() * box.Size.X, box.Size.Y - 4);
-            var dust = new ColorRect { Position = foot, Size = new Vector2(6, 6), Color = MapRenderer.Rgb(190, 175, 140), MouseFilter = Control.MouseFilterEnum.Ignore };
+            var foot = box.Position + new Vector2((float)rng.NextDouble() * box.Size.X, box.Size.Y - Px(4));
+            var dust = new ColorRect { Position = foot, Size = V(6, 6), Color = MapRenderer.Rgb(190, 175, 140), MouseFilter = Control.MouseFilterEnum.Ignore };
             _view.AddChild(dust);
-            var drift = new Vector2((float)(rng.NextDouble() - 0.5) * 80, -(float)rng.NextDouble() * 30);
+            var drift = new Vector2((float)(rng.NextDouble() - 0.5) * Px(80), -(float)rng.NextDouble() * Px(30));
             var puff = dust.CreateTween().SetParallel();
             puff.TweenProperty(dust, "position", foot + drift, 1.2).SetEase(Tween.EaseType.Out);
             puff.TweenProperty(dust, "modulate", new Color(1, 1, 1, 0), 1.2);
@@ -367,8 +368,8 @@ public partial class TownScreen : CanvasLayer
         CloseWindow();
         var veil = new ColorRect
         {
-            Position = new Vector2(0, overView ? ViewTop : Hud.TopBarHeight),
-            Size = new Vector2(_screen.X, overView ? ViewHeight : _screen.Y - Hud.TopBarHeight),
+            Position = new Vector2(0, overView ? Px(ViewTop) : Hud.TopBarHeight),
+            Size = new Vector2(_screen.X, overView ? Px(ViewHeight) : _screen.Y - Hud.TopBarHeight),
             Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Stop,
         };
         _root.AddChild(veil);
@@ -377,8 +378,8 @@ public partial class TownScreen : CanvasLayer
         veil.AddChild(window);
         window.AddChild(At(MakeLabel(title, 18, TextColor), 18, 12));
         var close = MakeButton(Texts.CloseButton, 14);
-        close.Position = new Vector2(size.X - 18 - 110, 10);
-        close.Size = new Vector2(110, 32);
+        close.Position = new Vector2(size.X - Px(18 + 110), Px(10));
+        close.Size = V(110, 32);
         close.Pressed += CloseWindow;
         window.AddChild(close);
         _window = veil;
@@ -397,11 +398,11 @@ public partial class TownScreen : CanvasLayer
     {
         if (_town is not { } town)
             return;
-        var window = OpenWindow(new Vector2(1000, 600), Texts.BuildTitle(town), overView: false);
+        var window = OpenWindow(V(1000, 600), Texts.BuildTitle(town), overView: false);
         window.AddChild(At(MakeLabel(Texts.ToBuild, 14, SoftTextColor), 18, 50));
-        var grid = new GridContainer { Columns = 3, Position = new Vector2(18, 74) };
-        grid.AddThemeConstantOverride("h_separation", 10);
-        grid.AddThemeConstantOverride("v_separation", 10);
+        var grid = new GridContainer { Columns = 3, Position = V(18, 74) };
+        grid.AddThemeConstantOverride("h_separation", (int)Px(10));
+        grid.AddThemeConstantOverride("v_separation", (int)Px(10));
         window.AddChild(grid);
         var toBuild = town.Buildings.Where(b => !town.Has(b.Id)).ToList();
         if (toBuild.Count == 0)
@@ -411,16 +412,16 @@ public partial class TownScreen : CanvasLayer
 
         float y = 74 + (toBuild.Count + 2) / 3 * 128 + 10;
         window.AddChild(At(MakeLabel(Texts.BuiltHeader, 14, SoftTextColor), 18, y));
-        var built = new HFlowContainer { Position = new Vector2(18, y + 22), Size = new Vector2(964, 100) };
-        built.AddThemeConstantOverride("h_separation", 6);
-        built.AddThemeConstantOverride("v_separation", 6);
+        var built = new HFlowContainer { Position = V(18, y + 22), Size = V(964, 100) };
+        built.AddThemeConstantOverride("h_separation", (int)Px(6));
+        built.AddThemeConstantOverride("v_separation", (int)Px(6));
         window.AddChild(built);
         foreach (var building in town.BuiltBuildings)
         {
-            var box = new Panel { CustomMinimumSize = new Vector2(150, 36), TooltipText = Texts.BuildingTooltip(town, building), MouseFilter = Control.MouseFilterEnum.Stop };
+            var box = new Panel { CustomMinimumSize = V(150, 36), TooltipText = Texts.BuildingTooltip(town, building), MouseFilter = Control.MouseFilterEnum.Stop };
             box.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
             var name = At(MakeLabel("✓ " + building.Name, 12, GoodColor), 6, 8);
-            name.Size = new Vector2(140, 20);
+            name.Size = V(140, 20);
             name.ClipText = true;
             name.MouseFilter = Control.MouseFilterEnum.Ignore;
             box.AddChild(name);
@@ -431,27 +432,27 @@ public partial class TownScreen : CanvasLayer
     private Control BuildCard(Town town, BuildingType building)
     {
         var result = town.CanBuild(building, _state.CurrentPlayer);
-        var card = new Panel { CustomMinimumSize = new Vector2(314, 118) };
+        var card = new Panel { CustomMinimumSize = V(314, 118) };
         card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, result == BuildResult.Ok ? GoodColor : DimColor, 1, 1, 1, 1));
         if (result is BuildResult.MissingRequirement)
             card.Modulate = new Color(1, 1, 1, 0.6f);
         var x = 8f;
         if (town.DwellingCreature(building) is { } creature && Art.Get($"creatures/{creature.Id}") is { } image)
         {
-            card.AddChild(Picture(image, new Vector2(6, 8), new Vector2(48, 48)));
+            card.AddChild(Picture(image, V(6, 8), V(48, 48)));
             x = 62;
         }
         card.AddChild(At(MakeLabel(building.Name, 15, TextColor), x, 6));
         var effect = MakeLabel(Texts.BuildingEffect(town, building), 12, SoftTextColor);
         effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        effect.CustomMinimumSize = new Vector2(306 - x, 0);
-        effect.Position = new Vector2(x, 26);
+        effect.CustomMinimumSize = V(306 - x, 0);
+        effect.Position = V(x, 26);
         card.AddChild(effect);
         card.AddChild(At(MakeLabel(Texts.Cost(building.Cost), 12, TextColor), x, 62));
         // un bouton de taille fixe : un long « Requiert : … » ne l'élargit pas
         string status = Texts.BuildStatus(result, town, building);
-        var action = FixedButton(status, 13, new Vector2(298, 30), disabled: result != BuildResult.Ok);
-        action.Position = new Vector2(8, 82);
+        var action = FixedButton(status, 13, V(298, 30), disabled: result != BuildResult.Ok);
+        action.Position = V(8, 82);
         action.TooltipText = status;
         action.Pressed += () =>
         {
@@ -470,9 +471,9 @@ public partial class TownScreen : CanvasLayer
     {
         if (_town is not { } town)
             return;
-        var window = OpenWindow(new Vector2(only == null ? 1256 : 420, 376), Texts.RecruitWindowTitle(town), overView: true);
-        var row = new HBoxContainer { Position = new Vector2(10, 48) };
-        row.AddThemeConstantOverride("separation", 8);
+        var window = OpenWindow(V(only == null ? 1256 : 420, 376), Texts.RecruitWindowTitle(town), overView: true);
+        var row = new HBoxContainer { Position = V(10, 48) };
+        row.AddThemeConstantOverride("separation", (int)Px(8));
         window.AddChild(row);
         var dwellings = town.Buildings.Where(b => b.Dwelling != null)
             .Select(b => (Building: b, Creature: town.DwellingCreature(b)))
@@ -490,21 +491,21 @@ public partial class TownScreen : CanvasLayer
 
     private Control RecruitCard(Town town, BuildingType dwelling, CreatureType creature, bool wide)
     {
-        var card = new Panel { CustomMinimumSize = new Vector2(wide ? 400 : 168, 318) };
+        var card = new Panel { CustomMinimumSize = V(wide ? 400 : 168, 318) };
         card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
         float w = card.CustomMinimumSize.X;
         bool built = town.Has(dwelling.Id);
         if (!built)
             card.Modulate = new Color(1, 1, 1, 0.55f);
         if (Art.Get($"creatures/{creature.Id}") is { } image)
-            card.AddChild(Picture(image, new Vector2((w - 72) / 2, 8), new Vector2(72, 72)));
+            card.AddChild(Picture(image, new Vector2((w - 96) / 2, Px(8)), new Vector2(96, 96))); // ×4
         Label Centered(string text, int size, Color color, float y)
         {
             var label = MakeLabel(text, size, color);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            label.CustomMinimumSize = new Vector2(w - 8, 0);
-            label.Position = new Vector2(4, y);
+            label.CustomMinimumSize = new Vector2(w - Px(8), 0);
+            label.Position = V(4, y);
             card.AddChild(label);
             return label;
         }
@@ -513,8 +514,8 @@ public partial class TownScreen : CanvasLayer
         Button Action(string text, float y)
         {
             var button = MakeButton(text, 13);
-            button.Position = new Vector2(8, y);
-            button.Size = new Vector2(w - 16, 30);
+            button.Position = V(8, y);
+            button.Size = new Vector2(w - Px(16), Px(30));
             card.AddChild(button);
             return button;
         }
@@ -550,29 +551,28 @@ public partial class TownScreen : CanvasLayer
     {
         if (_town is not { } town)
             return;
-        var window = OpenWindow(new Vector2(620, 330), Texts.TavernTitle, overView: true);
+        var window = OpenWindow(V(620, 330), Texts.TavernTitle, overView: true);
         var text = At(MakeLabel(Texts.TavernText, 13, SoftTextColor), 18, 48);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        text.CustomMinimumSize = new Vector2(584, 0);
+        text.CustomMinimumSize = V(584, 0);
         window.AddChild(text);
         var status = _state.CanHireHero(town);
         float x = 18;
         foreach (var name in _state.TavernOffers())
         {
-            var card = new Panel { Position = new Vector2(x, 90), Size = new Vector2(284, 224) };
+            var card = new Panel { Position = V(x, 90), Size = V(284, 224) };
             card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
             window.AddChild(card);
             if (Art.Portrait(name) is { } portrait)
-                card.AddChild(Picture(portrait, new Vector2((284 - 128) / 2f, 8), new Vector2(128, 128)));
+                card.AddChild(Picture(portrait, new Vector2(Px(284) - 192, Px(16)) / 2, new Vector2(192, 192))); // le portrait ×3
             var label = At(MakeLabel(name, 15, TextColor), 0, 142);
-            label.Size = new Vector2(284, 20);
+            label.Size = V(284, 20);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             card.AddChild(label);
-            var hire = MakeButton(status == HireResult.Ok ? $"{Texts.HireButton} ({GameState.HeroCost} or)" : Texts.HireStatus(status), 13);
-            hire.Position = new Vector2(10, 180);
-            hire.Size = new Vector2(264, 32);
-            hire.ClipText = true;
-            hire.Disabled = status != HireResult.Ok;
+            // un bouton de taille fixe : un long « Un héros est déjà dans la ville » ne l'élargit pas
+            var hire = FixedButton(status == HireResult.Ok ? $"{Texts.HireButton} ({GameState.HeroCost} or)" : Texts.HireStatus(status), 13,
+                V(264, 32), disabled: status != HireResult.Ok);
+            hire.Position = V(10, 180);
             hire.Pressed += () =>
             {
                 if (_state.HireHero(town, name) == HireResult.Ok)
@@ -596,41 +596,41 @@ public partial class TownScreen : CanvasLayer
         _recruitOverlay = new ColorRect { Color = new Color(0, 0, 0, 0.6f), Size = _screen, Visible = false, MouseFilter = Control.MouseFilterEnum.Stop };
         _root.AddChild(_recruitOverlay);
 
-        var size = new Vector2(480, 240);
+        var size = V(480, 240);
         var window = new Panel { Position = (_screen - size) / 2, Size = size };
         window.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         _recruitOverlay.AddChild(window);
 
         _recruitTitle = At(MakeLabel("", 22, TextColor), 20, 14);
         window.AddChild(_recruitTitle);
-        _recruitPicture = Picture(null!, new Vector2(size.X - 20 - 72, 14), new Vector2(72, 72));
+        _recruitPicture = Picture(null!, new Vector2(size.X - Px(20) - 96, Px(14)), new Vector2(96, 96)); // ×4
         window.AddChild(_recruitPicture);
         _recruitInfo = At(MakeLabel("", 14, SoftTextColor), 20, 50);
         window.AddChild(_recruitInfo);
 
-        _recruitSlider = new HSlider { Position = new Vector2(20, 90), Size = new Vector2(size.X - 40, 24), Step = 1, FocusMode = Control.FocusModeEnum.None };
+        _recruitSlider = new HSlider { Position = V(20, 90), Size = new Vector2(size.X - Px(40), Px(24)), Step = 1, FocusMode = Control.FocusModeEnum.None };
         _recruitSlider.ValueChanged += _ => UpdateRecruitTotal();
         window.AddChild(_recruitSlider);
         _recruitTotal = At(MakeLabel("", 16, TextColor), 20, 124);
         _recruitTotal.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _recruitTotal.CustomMinimumSize = new Vector2(size.X - 40, 0);
+        _recruitTotal.CustomMinimumSize = new Vector2(size.X - Px(40), 0);
         window.AddChild(_recruitTotal);
 
         _recruitMax = MakeButton("Max", 15);
-        _recruitMax.Position = new Vector2(20, size.Y - 60);
-        _recruitMax.Size = new Vector2(100, 40);
+        _recruitMax.Position = new Vector2(Px(20), size.Y - Px(60));
+        _recruitMax.Size = V(100, 40);
         _recruitMax.Pressed += () => _recruitSlider.Value = _recruitSlider.MaxValue;
         window.AddChild(_recruitMax);
 
         _recruitButton = MakeButton(Texts.RecruitButton, 15);
-        _recruitButton.Position = new Vector2(size.X - 300, size.Y - 60);
-        _recruitButton.Size = new Vector2(140, 40);
+        _recruitButton.Position = new Vector2(size.X - Px(300), size.Y - Px(60));
+        _recruitButton.Size = V(140, 40);
         _recruitButton.Pressed += ConfirmRecruit;
         window.AddChild(_recruitButton);
 
         var cancel = MakeButton(Texts.CancelButton, 15);
-        cancel.Position = new Vector2(size.X - 150, size.Y - 60);
-        cancel.Size = new Vector2(130, 40);
+        cancel.Position = new Vector2(size.X - Px(150), size.Y - Px(60));
+        cancel.Size = V(130, 40);
         cancel.Pressed += () => _recruitOverlay.Visible = false;
         window.AddChild(cancel);
     }

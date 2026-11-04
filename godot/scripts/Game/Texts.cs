@@ -172,19 +172,8 @@ public static class Texts
         _ => throw new ArgumentOutOfRangeException(nameof(stat)),
     };
 
-    /// <summary>Les caractéristiques du héros, sur quatre lignes.</summary>
-    public static string HeroStats(Hero hero) =>
-        $"Niveau {hero.Level} · expérience {hero.Experience} / {Hero.ExperienceForLevel(hero.Level + 1)}\n"
-        + $"Attaque {hero.Attack} · défense {hero.Defense}\n"
-        + $"Puissance {hero.Power} · savoir {hero.Knowledge} · charisme {hero.Charisma}\n"
-        + $"Commandement max. par troupe : {Command.Limit(hero.Charisma)}";
-
     /// <summary>L'info-bulle d'un artefact : son nom et ses bonus.</summary>
     public static string ArtifactTooltip(ArtifactType artifact) => $"{artifact.Name} : {Bonus(artifact)}";
-
-    /// <summary>« 12 Archers », avec une marque si la troupe risque de se révolter.</summary>
-    public static string ArmyLine(CreatureStack stack, int charisma) =>
-        Stack(stack) + (Command.IsOverLimit(stack.Type, stack.Count, charisma) ? "  (révolte ?)" : "");
 
     /// <summary>Avertissement avant de dépasser la limite de commandement d'une troupe.</summary>
     public static string CommandWarning(int limit) =>
@@ -341,8 +330,6 @@ public static class Texts
     // ------------------------------------------------------------------ trésor
 
     public static string TreasureMapTitle => "Carte au trésor";
-    public static string DigButton => "Creuser (F)";
-    public static string TreasureMapButton => "Carte au trésor (M)";
     public static string DigNeedsFullDay => "Pour creuser, il faut une journée entière de mouvement (au début du tour).";
     public static string TreasureGone => "Le trésor a déjà été déterré.";
 
@@ -451,6 +438,165 @@ public static class Texts
 
     /// <summary>Assemble des phrases qui ne sont pas vides, séparées par un espace.</summary>
     private static string Join(params string?[] parts) => string.Join(" ", parts.Where(p => p != null));
+
+    // ------------------------------------------------------------------ panneau de la carte (étape 7)
+
+    /// <summary>« 2500 (+250) » : le stock et le revenu du jour.</summary>
+    public static string ResourceAmount(int stock, int income) => income > 0 ? $"{stock} (+{income})" : $"{stock}";
+
+    /// <summary>L'info-bulle d'une ressource : son revenu par jour, et d'où il vient.</summary>
+    public static string ResourceTooltip(Player player, ResourceType resource)
+    {
+        var lines = new List<string>();
+        int towns = resource == ResourceType.Gold ? player.Towns.Sum(t => t.DailyGold) : 0;
+        var mines = player.Mines.Where(m => m.Resource == resource).ToList();
+        int total = towns + mines.Sum(m => m.DailyProduction);
+        lines.Add($"{Capitalize(Resource(resource))} : {(total > 0 ? $"+{total}" : "rien")} par jour");
+        if (towns > 0)
+            lines.Add($"Villes ({player.Towns.Count}) : +{towns}");
+        if (mines.Count > 0)
+            lines.Add($"Mines ({mines.Count}) : +{mines.Sum(m => m.DailyProduction)}");
+        if (total == 0)
+            lines.Add(resource == ResourceType.Gold ? "Prenez une ville ou une mine d'or." : "Prenez une mine pour en produire.");
+        return string.Join("\n", lines);
+    }
+
+    /// <summary>L'info-bulle de la date : l'objectif de la partie et où l'on en est.</summary>
+    public static string GoalTooltip(GameState state, Player viewer)
+    {
+        var lines = new List<string> { $"Objectif : {Objective(state.Rules)}." };
+        if (state.Rules.Has(VictoryCondition.ClearGuards))
+            lines.Add($"Monstres restants : {state.Map.Objects.OfType<MonsterGuard>().Count()}");
+        if (state.Rules.Has(VictoryCondition.CaptureTowns))
+            lines.Add($"Villes à vous : {viewer.Towns.Count} / {state.Towns.Count()}");
+        if (state.Rules.Has(VictoryCondition.FindTreasure))
+        {
+            var pieces = state.TreasureMapPieces(viewer);
+            lines.Add($"Carte au trésor : {pieces.Count(p => p)} morceaux sur {pieces.Count}");
+        }
+        if (state.Rules.DayLimit is { } limit)
+            lines.Add($"Jours restants : {Math.Max(0, limit - state.Day + 1)}");
+        return string.Join("\n", lines);
+    }
+
+    public static string HeroesHeader => "Héros";
+    public static string TownsHeader => "Villes";
+    public static string ArmyHeader => "Armée";
+    public static string NoHero => "Aucun héros";
+    public static string NoTown => "aucune";
+
+    /// <summary>Sous le nom d'une ville de la liste : son revenu.</summary>
+    public static string TownIncome(Town town) => $"+{town.DailyGold} or";
+
+    /// <summary>« Niveau 2 · 1200 / 3000 » (expérience).</summary>
+    public static string HeroLevelLine(Hero hero) =>
+        $"Niveau {hero.Level} · {hero.Experience} / {Hero.ExperienceForLevel(hero.Level + 1)}";
+
+    /// <summary>L'info-bulle d'un héros de la liste.</summary>
+    public static string HeroTooltip(Hero hero) =>
+        $"{hero.Name} · niveau {hero.Level}\nMouvement {hero.Movement} / {hero.MaxMovement}\n"
+        + string.Join(", ", hero.Army.Stacks.Select(Stack));
+
+    /// <summary>Abréviation d'une caractéristique, pour la fiche du héros (« Att »).</summary>
+    public static string StatShort(HeroStat? stat) => stat switch
+    {
+        HeroStat.Attack => "Att",
+        HeroStat.Defense => "Déf",
+        HeroStat.Power => "Pui",
+        HeroStat.Knowledge => "Sav",
+        _ => "Cha",
+    };
+
+    /// <summary>Ce que fait une caractéristique (null : le charisme).</summary>
+    public static string StatTooltip(HeroStat? stat, Hero hero) => stat switch
+    {
+        HeroStat.Attack => $"Attaque {hero.Attack} : s'ajoute à l'attaque de chaque troupe du héros.",
+        HeroStat.Defense => $"Défense {hero.Defense} : s'ajoute à la défense de chaque troupe du héros.",
+        HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (la magie viendra plus tard).",
+        HeroStat.Knowledge => $"Savoir {hero.Knowledge} : les points de sort (la magie viendra plus tard).",
+        _ => $"Charisme {hero.Charisma} : le héros commande au plus {Command.Limit(hero.Charisma)} points par troupe "
+             + "(nombre × coût de la créature). Au-delà, la troupe risque de se révolter au combat.",
+    };
+
+    /// <summary>L'info-bulle d'une troupe : ses caractéristiques, ses capacités et son commandement.</summary>
+    public static string StackTooltip(CreatureStack stack, int? charisma)
+    {
+        var t = stack.Type;
+        var lines = new List<string>
+        {
+            Stack(stack),
+            $"Attaque {t.Attack} · défense {t.Defense} · dégâts {t.MinDamage}–{t.MaxDamage}",
+            $"Points de vie {t.HitPoints} · vitesse {t.Speed}",
+        };
+        if (t.Abilities.Count > 0)
+            lines.Add(string.Join(" · ", t.Abilities.Select(AbilityName)));
+        if (charisma is { } c)
+        {
+            lines.Add($"Commandement : {Command.Cost(t, stack.Count)} / {Command.Limit(c)} points");
+            if (Command.IsOverLimit(t, stack.Count, c))
+                lines.Add("Trop nombreuse pour le charisme du héros : elle risque de se révolter au combat.");
+        }
+        return string.Join("\n", lines);
+    }
+
+    /// <summary>Le nom d'une capacité (liste « abilities » de creatures.json).</summary>
+    public static string AbilityName(string ability) => ability switch
+    {
+        Ability.Shoots => "tire",
+        Ability.NoRangePenalty => "tir sans pénalité de distance",
+        Ability.Flies => "vole",
+        Ability.DoubleRetaliation => "riposte deux fois",
+        Ability.NoRetaliation => "frappe sans riposte",
+        Ability.Breath => "souffle",
+        Ability.RangedResistance => "résiste aux tirs",
+        Ability.Charge => "charge",
+        Ability.QuickStart => "rapide au premier round",
+        Ability.DoubleAttack => "frappe deux fois",
+        Ability.ShortRange => "tir court",
+        Ability.Crushing => "coup écrasant",
+        Ability.Regenerates => "se régénère",
+        Ability.TwoHex => "grande créature",
+        _ => ability,
+    };
+
+    public static string NextHeroButton => "Héros suivant";
+    public static string WalkButton => "Avancer";
+    public static string CenterButton => "Centrer";
+    public static string DigAction => "Creuser";
+    public static string TreasureMapAction => "Carte au trésor";
+    public static string OptionsButton => "Options";
+    public static string EndTurnButton => "Fin du tour";
+
+    public static string LogButton => "Journal";
+    public static string LogTitle => "Journal des messages";
+    public static string LogEmpty => "Aucun message pour l'instant.";
+
+    /// <summary>La ligne du terrain survolé : terrain, route, coût, et les jours de marche s'il est accessible.</summary>
+    public static string CellLine(TerrainType terrain, bool road, int? cost, int? days)
+    {
+        string text = Terrain(terrain) + (road ? $", {WithRoad}" : "");
+        text += cost is { } c ? $" · déplacement {c}" : " · infranchissable";
+        if (days is { } d)
+            text += d <= 1 ? " · atteint aujourd'hui" : $" · {d} jours de marche";
+        return text;
+    }
+
+    /// <summary>Le danger estimé d'un combat, d'après la part de l'armée perdue (null : défaite).</summary>
+    public static string Danger(double? lost) => lost switch
+    {
+        null => "danger : mortel !",
+        < 0.05 => "danger : faible",
+        < 0.25 => $"danger : modéré (pertes ≈ {lost:P0})",
+        < 0.6 => $"danger : élevé (pertes ≈ {lost:P0})",
+        _ => $"danger : très élevé (pertes ≈ {lost:P0})",
+    };
+
+    public static string Owned => "à vous";
+    public static string EnemyOwned => "ennemie";
+    public static string Free => "libre";
+    public static string Neutral => "neutre";
+    public static string Guarded => "gardé par un monstre";
+    public static string GarrisonOf(string danger) => $"garnison : {danger}";
 
     public static string Capitalize(string s) => s.Length == 0 ? s : char.ToUpper(s[0]) + s[1..];
 

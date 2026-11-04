@@ -38,6 +38,11 @@ public partial class Main : Node2D
     /// <summary>Développement (« --battle-test ») : un combat tout de suite, joué sur l'écran de combat sans demander.</summary>
     private bool _battleTest;
 
+    /// <summary>Développement (« --hover=x,y ») : la case survolée pour une capture d'écran.</summary>
+    private static readonly Cell? _devHover = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--hover=")) is { } hover
+        && hover["--hover=".Length..].Split(',') is [var hx, var hy] && int.TryParse(hx, out int x) && int.TryParse(hy, out int y)
+        ? new Cell(x, y) : null;
+
     private bool _walking;
     private double _stepTimer;
 
@@ -83,6 +88,9 @@ public partial class Main : Node2D
         _hud.LoadPressed += LoadGame;
         _hud.TownClicked += OpenTown;
         _hud.HeroClicked += SelectHero;
+        _hud.NextHeroPressed += NextHero;
+        _hud.WalkPressed += StartWalking;
+        _hud.CenterPressed += CenterOnHero;
 
         _camera = new MapCamera();
         AddChild(_camera);
@@ -242,6 +250,15 @@ public partial class Main : Node2D
         Godot.FileAccess.GetFileAsString("res://data/artifacts.json"));
 
     /// <summary>Le joueur regarde la carte (pas de fenêtre ni d'écran de ville ouverts).</summary>
+    /// <summary>Passe au héros suivant et centre la vue sur lui (touche H ou bouton).</summary>
+    private void NextHero()
+    {
+        if (!CanAct)
+            return;
+        _state.SelectNextHero();
+        CenterOnHero();
+    }
+
     private bool OnMap => !_hud.IsDialogOpen && !_townScreen.IsOpen && !_battleScreen.IsOpen;
 
     /// <summary>Les commandes de la carte sont ignorées pendant la marche, hors de la carte, ou une fois la partie finie.</summary>
@@ -408,10 +425,7 @@ public partial class Main : Node2D
                     case Key.M: _hud.ShowTreasureMap(_state, _state.Players[0]); break;
                     case Key.F9: LoadGame(); break;
                     case Key.T when _state.CurrentPlayer.Towns.FirstOrDefault() is { } town: OpenTown(town); break;
-                    case Key.H when CanAct:
-                        _state.SelectNextHero();
-                        CenterOnHero();
-                        break;
+                    case Key.H: NextHero(); break;
                 }
                 break;
         }
@@ -439,6 +453,8 @@ public partial class Main : Node2D
         if (OnMap)
             _camera.Scroll((float)delta);
         _actors.Hovered = OnMap ? _camera.HoveredCell() : null;
+        if (_devHover is { } pretend) // développement : « --hover=x,y », comme si la souris était sur cette case
+            _actors.Hovered = pretend;
         UpdateCursor();
         _hud.Refresh(_actors.Hovered);
 

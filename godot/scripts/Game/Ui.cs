@@ -367,6 +367,24 @@ public static class Ui
         return button;
     }
 
+    /// <summary>
+    /// Un bouton de taille fixe dont le texte (sur une ou plusieurs lignes) est dans une étiquette posée dessus : un
+    /// bouton s'élargit pour contenir son propre texte, une étiquette de taille fixe non.
+    /// </summary>
+    public static Button FixedButton(string text, int fontSize, Vector2 size)
+    {
+        var button = MakeButton("", fontSize);
+        button.Size = size;
+        var label = MakeLabel(text, fontSize, TextColor);
+        label.HorizontalAlignment = HorizontalAlignment.Center;
+        label.VerticalAlignment = VerticalAlignment.Center;
+        label.Size = size;
+        label.ClipText = true;
+        label.MouseFilter = Control.MouseFilterEnum.Ignore;
+        button.AddChild(label);
+        return button;
+    }
+
     /// <summary>Marque un bouton comme choisi (le héros sélectionné) : plus clair, et bordé de blanc sans image.</summary>
     public static void MarkSelected(Button button) =>
         button.AddThemeStyleboxOverride("normal", ButtonBox(new Color(1.45f, 1.4f, 1.25f), MapRenderer.Rgb(120, 90, 40), Colors.White));

@@ -69,7 +69,7 @@ public partial class TownScreen : CanvasLayer
 
         // Le fond arrête la souris : la carte en dessous ne reçoit plus les clics
         _root = new Panel { Size = screenSize, MouseFilter = Control.MouseFilterEnum.Stop };
-        _root.AddThemeStyleboxOverride("panel", Box(PanelColor, null));
+        _root.AddThemeStyleboxOverride("panel", Stone(PanelColor));
         AddChild(_root);
 
         _bar = new ResourceBar();
@@ -111,7 +111,7 @@ public partial class TownScreen : CanvasLayer
         float y = ViewTop + ViewHeight + 8;
         _root.AddChild(At(MakeLabel(Texts.GarrisonHeader, 15, TextColor), 16, y));
         var townPicture = new Panel { Position = V(12, y + 22), Size = new Vector2(132, 132) };
-        townPicture.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
+        townPicture.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         if (Art.Get("objects/town") is { } image)
             townPicture.AddChild(Picture(image, new Vector2(30, 30), new Vector2(72, 72))); // l'image de 72 pixels, ×1
         _root.AddChild(townPicture);
@@ -411,11 +411,13 @@ public partial class TownScreen : CanvasLayer
         int rows = Math.Max(1, (buildings.Count + 2) / 3);
         // la fenêtre suit son contenu, sans dépasser l'écran (la grille défile alors)
         float listHeight = Math.Min(rows * 128 - 10, (_screen.Y - Hud.TopBarHeight) / Ui.Scale - 40 - 84 - 20);
-        var window = OpenWindow(V(1000, 84 + listHeight + 20), Texts.BuildTitle(town), overView: false);
+        var window = OpenWindow(V(1000, 84 + listHeight + 36), Texts.BuildTitle(town), overView: false);
         window.AddChild(At(MakeLabel(Texts.ToBuild, 14, SoftTextColor), 24, 56));
+        // les cartes (à plat) dans une zone creusée
+        window.AddChild(SunkenArea(V(12, 80), V(976, listHeight + 16)));
         var scroll = new ScrollContainer
         {
-            Position = V(18, 84), Size = V(970, listHeight), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            Position = V(19, 88), Size = V(966, listHeight), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
         };
         window.AddChild(scroll);
         var grid = new GridContainer { Columns = 3 };
@@ -426,12 +428,20 @@ public partial class TownScreen : CanvasLayer
             grid.AddChild(BuildCard(town, building));
     }
 
+    /// <summary>Une zone creusée dans la pierre, sous des cartes à plat (bâtiments, créatures, héros de la taverne).</summary>
+    private static Panel SunkenArea(Vector2 position, Vector2 size)
+    {
+        var area = new Panel { Position = position, Size = size, MouseFilter = Control.MouseFilterEnum.Ignore };
+        area.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
+        return area;
+    }
+
     private Control BuildCard(Town town, BuildingType building)
     {
         bool built = town.Has(building.Id);
         var result = town.CanBuild(building, _state.CurrentPlayer);
         var card = new Panel { CustomMinimumSize = V(314, 118) };
-        card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, result == BuildResult.Ok ? GoodColor : DimColor, 1, 1, 1, 1));
+        card.AddThemeStyleboxOverride("panel", Plate(PanelColor, result == BuildResult.Ok ? GoodColor : null));
         if (result is BuildResult.MissingRequirement)
             card.Modulate = new Color(1, 1, 1, 0.6f);
         var x = 8f;
@@ -449,7 +459,7 @@ public partial class TownScreen : CanvasLayer
         card.AddChild(At(MakeLabel(Texts.Cost(building.Cost), 12, TextColor), x, 62));
         if (built)
         {
-            card.AddThemeStyleboxOverride("panel", Box(PanelColor, DimColor, 1, 1, 1, 1));
+            card.AddThemeStyleboxOverride("panel", Plate(DarkPanelColor)); // construit : en retrait
             card.AddChild(At(MakeLabel(Texts.BuiltMark, 13, GoodColor), x, 86));
             return card;
         }
@@ -483,8 +493,10 @@ public partial class TownScreen : CanvasLayer
     {
         if (_town is not { } town)
             return;
-        var window = OpenWindow(V(only == null ? 1256 : 420, 386), Texts.RecruitWindowTitle(town), overView: true);
-        var row = new HBoxContainer { Position = V(10, 58) };
+        float width = only == null ? 1256 : 420;
+        var window = OpenWindow(V(width, 386), Texts.RecruitWindowTitle(town), overView: true);
+        window.AddChild(SunkenArea(V(6, 52), V(width - 12, 324)));
+        var row = new HBoxContainer { Position = V(10, 55) };
         row.AddThemeConstantOverride("separation", (int)Px(8));
         window.AddChild(row);
         var dwellings = town.Buildings.Where(b => b.Dwelling != null)
@@ -504,7 +516,7 @@ public partial class TownScreen : CanvasLayer
     private Control RecruitCard(Town town, BuildingType dwelling, CreatureType creature, bool wide)
     {
         var card = new Panel { CustomMinimumSize = V(wide ? 400 : 168, 318) };
-        card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
+        card.AddThemeStyleboxOverride("panel", Plate(PanelColor));
         float w = card.CustomMinimumSize.X;
         bool built = town.Has(dwelling.Id);
         if (!built)
@@ -566,7 +578,9 @@ public partial class TownScreen : CanvasLayer
         var status = _state.CanHireHero(town);
         // si l'on ne peut pas recruter, pourquoi : une fois, sous le texte (pas sur des boutons grisés)
         float cardsY = status == HireResult.Ok ? 100 : 122;
-        var window = OpenWindow(V(620, cardsY + 240 - (status == HireResult.Ok ? 0 : 42)), Texts.TavernTitle, overView: true);
+        float cardsHeight = status == HireResult.Ok ? 224 : 182;
+        var window = OpenWindow(V(620, cardsY + cardsHeight + 28), Texts.TavernTitle, overView: true);
+        window.AddChild(SunkenArea(V(12, cardsY - 6), V(596, cardsHeight + 12)));
         var text = At(MakeLabel(Texts.TavernText, 13, SoftTextColor), 18, 58);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         text.CustomMinimumSize = V(584, 0);
@@ -576,8 +590,8 @@ public partial class TownScreen : CanvasLayer
         float x = 18;
         foreach (var name in _state.TavernOffers())
         {
-            var card = new Panel { Position = V(x, cardsY), Size = V(284, status == HireResult.Ok ? 224 : 182) };
-            card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
+            var card = new Panel { Position = V(x, cardsY), Size = V(284, cardsHeight) };
+            card.AddThemeStyleboxOverride("panel", Plate(PanelColor));
             window.AddChild(card);
             if (Art.Portrait(name) is { } portrait)
                 card.AddChild(Picture(portrait, new Vector2(Px(284) - 192, Px(16)) / 2, new Vector2(192, 192))); // le portrait ×3

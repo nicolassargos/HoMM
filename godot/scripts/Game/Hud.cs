@@ -201,7 +201,7 @@ public partial class Hud : CanvasLayer
         float width, float height, Action<int> scroll)
     {
         var box = new Panel { Position = new Vector2(x, y), Size = new Vector2(width, height) };
-        box.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
+        box.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         parent.AddChild(box);
         box.AddChild(At(MakeLabel(title, 12, SoftTextColor), 4, 1));
         Button Arrow(string text, float ax, int step)
@@ -229,7 +229,7 @@ public partial class Hud : CanvasLayer
     {
         const int portraitSize = 128; // le portrait de 64 pixels, ×2
         var card = new Panel { Position = new Vector2(x, y), Size = new Vector2(width, portraitSize + Px(12)) };
-        card.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
+        card.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         panel.AddChild(card);
         var portraitFrame = new Panel { Position = V(4, 4), Size = new Vector2(portraitSize, portraitSize) + V(4, 4) };
         portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
@@ -453,7 +453,7 @@ public partial class Hud : CanvasLayer
     private Panel Row(bool selected, string tooltip, Action clicked, Action? doubleClicked = null)
     {
         var row = new Panel { CustomMinimumSize = new Vector2(_heroRows.Size.X, RowHeight), TooltipText = tooltip, MouseFilter = Control.MouseFilterEnum.Stop };
-        row.AddThemeStyleboxOverride("panel", Box(PanelColor, selected ? Colors.White : DimColor, 1, 1, 1, 1));
+        row.AddThemeStyleboxOverride("panel", Plate(PanelColor, selected ? Colors.White : null));
         row.GuiInput += e =>
         {
             if (e is not InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)

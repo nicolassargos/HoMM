@@ -69,7 +69,7 @@ public partial class ArmySlots : HBoxContainer
         bool risky = stack != null && charisma is { } c && Command.IsOverLimit(stack.Type, stack.Count, c);
         var picture = stack != null ? Art.Get($"creatures/{stack.Type.Id}") : null;
         var slot = new ArmySlot { Slots = this, Index = index, Picture = picture, CustomMinimumSize = SlotSize, MouseFilter = MouseFilterEnum.Stop };
-        slot.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, risky ? MapRenderer.Rgb(220, 80, 60) : DimColor, 1, 1, 1, 1));
+        slot.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor, risky ? MapRenderer.Rgb(220, 80, 60) : null));
         slot.GuiInput += e =>
         {
             // le clic compte au relâchement, s'il n'a pas servi à glisser la troupe

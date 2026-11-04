@@ -121,7 +121,7 @@ public partial class HeroScreen : ScreenWindow
     private Panel Section(Vector2 position, Vector2 size, string title)
     {
         var section = new Panel { Position = position, Size = size };
-        section.AddThemeStyleboxOverride("panel", Box(DarkPanelColor, DimColor, 1, 1, 1, 1));
+        section.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         section.AddChild(At(MakeLabel(title, 15, SoftTextColor), 12, 6));
         Window.AddChild(section);
         return section;

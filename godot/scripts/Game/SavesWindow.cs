@@ -28,6 +28,7 @@ public partial class SavesWindow : ScreenWindow
     private Vector2 _size;
 
     private ScrollContainer _scroll = null!;
+    private Panel _area = null!;
 
     /// <summary><paramref name="overMenu"/> : au menu principal (le voile couvre tout l'écran).</summary>
     public void Build(Vector2 screenSize, bool overMenu = false)
@@ -44,6 +45,10 @@ public partial class SavesWindow : ScreenWindow
         _name.TextSubmitted += _ => Act();
         Window.AddChild(_name);
 
+        // la liste (des lignes à plat) dans une zone creusée
+        _area = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
+        _area.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
+        Window.AddChild(_area);
         var scroll = _scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
         Window.AddChild(scroll);
         _rows = new VBoxContainer { CustomMinimumSize = new Vector2(_size.X - Px(60), 0) };
@@ -78,6 +83,8 @@ public partial class SavesWindow : ScreenWindow
         float top = Px(saving ? 104 : 60);
         _scroll.Position = new Vector2(Px(20), top);
         _scroll.Size = new Vector2(_size.X - Px(40), _size.Y - top - Px(70));
+        _area.Position = _scroll.Position - V(6, 6);
+        _area.Size = _scroll.Size + V(12, 12);
         _name.Text = defaultName;
         _selected = null;
         Refresh();

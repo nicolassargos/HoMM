@@ -132,6 +132,15 @@ public static class Ui
     /// </summary>
     private static int FrameCorner = 12, FrameContentX = 14, FrameContentY = 6, ButtonCorner = 6;
 
+    /// <summary>Agrandissement du cadre à l'écran (« panelScale » dans ui.json ; par défaut celui des images).</summary>
+    private static int FrameScale = ArtScale;
+
+    /// <summary>Agrandissement des boutons à l'écran (« buttonScale » dans ui.json ; par défaut celui des images).</summary>
+    private static int ButtonScale = ArtScale;
+
+    /// <summary>Ne répéter que la bande sans détail des bords du bouton (vrai pour l'ancien bouton à clous).</summary>
+    private static bool ButtonPlainBand = true;
+
     private static void LoadSlices()
     {
         const string path = "res://art/ui/ui.json";
@@ -144,6 +153,13 @@ public static class Ui
         FrameContentX = Get("panelContentX", FrameContentX);
         FrameContentY = Get("panelContentY", FrameContentY);
         ButtonCorner = Get("buttonCorner", ButtonCorner);
+        FrameScale = Get("panelScale", FrameScale);
+        ButtonScale = Get("buttonScale", ButtonScale);
+        ButtonPlainBand = Get("buttonPlainBand", ButtonPlainBand ? 1 : 0) != 0;
+        if (values.TryGetValue("panelTexture", out var texture))
+            PanelTexture = texture.AsString();
+        if (values.TryGetValue("panelTextureStrength", out var strength))
+            PanelTextureStrength = (float)strength.AsDouble();
     }
 
     private static readonly Dictionary<Color, StyleBox> Frames = new();
@@ -156,15 +172,27 @@ public static class Ui
             return;
         _imagesLoaded = true;
         LoadSlices();
-        _frameImage = Art.GetImage("ui/panel") is { } frame ? Enlarged(WithoutRepeatedDetails(frame, FrameCorner)) : null;
-        _buttonImage = Art.GetImage("ui/button") is { } button ? Enlarged(WithoutRepeatedDetails(button, ButtonCorner)) : null;
+        _frameImage = Art.GetImage("ui/panel") is { } frame
+            ? Enlarged(WithLargeMiddle(WithoutRepeatedDetails(frame, FrameCorner), FrameCorner), FrameScale) : null;
+        // un bouton garde tout son milieu (« buttonPlainBand » : seulement la bande sans détail, pour des bords à clous) :
+        // une pierre texturée répétée par petites bandes laissait des raccords visibles
+        _buttonImage = Art.GetImage("ui/button") is { } button
+            ? Enlarged(ButtonPlainBand ? WithoutRepeatedDetails(button, ButtonCorner) : Trimmed(button), ButtonScale) : null;
+    }
+
+    /// <summary>L'image réduite à sa partie non transparente.</summary>
+    private static Image Trimmed(Image source)
+    {
+        var image = source.GetRegion(source.GetUsedRect());
+        image.Convert(Image.Format.Rgba8);
+        return image;
     }
 
     /// <summary>L'image agrandie <see cref="ArtScale"/> fois, pixels nets (chaque pixel devient un carré).</summary>
-    private static Image Enlarged(Image image)
+    private static Image Enlarged(Image image, int scale = ArtScale)
     {
         var copy = (Image)image.Duplicate();
-        copy.Resize(image.GetWidth() * ArtScale, image.GetHeight() * ArtScale, Image.Interpolation.Nearest);
+        copy.Resize(image.GetWidth() * scale, image.GetHeight() * scale, Image.Interpolation.Nearest);
         return copy;
     }
 
@@ -179,7 +207,7 @@ public static class Ui
         LoadImages();
         StyleBox box = _frameImage == null
             ? Box(fill, BorderColor, 2, 2, 2, 2)
-            : Sliced(FillInside(_frameImage, fill), FrameCorner * ArtScale, (int)Px(FrameContentX), (int)Px(FrameContentY));
+            : Sliced(FillInside(_frameImage, fill, FrameCorner), FrameCorner * FrameScale, (int)Px(FrameContentX), (int)Px(FrameContentY));
         Frames[fill] = box;
         return box;
     }
@@ -190,7 +218,7 @@ public static class Ui
         LoadImages();
         if (_buttonImage == null)
             return Box(flatColor, border, 2, 2, 2, 2, radius: 6);
-        var box = Sliced(_buttonImage, ButtonCorner * ArtScale, (int)Px(ButtonCorner + 8), (int)Px(5));
+        var box = Sliced(_buttonImage, ButtonCorner * ButtonScale, (int)Px(ButtonCorner + 8), (int)Px(5));
         box.ModulateColor = tint;
         return box;
     }
@@ -292,7 +320,80 @@ public static class Ui
     /// Une copie de l'image où les pixels transparents entourés par le cadre prennent la couleur <paramref name="fill"/>
     /// (ceux reliés au bord de l'image, à l'extérieur du cadre, restent transparents).
     /// </summary>
-    private static Image FillInside(Image source, Color fill)
+    /// <summary>
+    /// Taille du milieu du cadre (entre les coins), en pixels d'art : la bande sans détail y est répétée, pour que le
+    /// grain du fond (<see cref="Grain"/>) ne revienne que toutes les <see cref="FrameMiddle"/> pixels.
+    /// </summary>
+    private const int FrameMiddle = 64;
+
+    /// <summary>Le cadre avec un milieu de <see cref="FrameMiddle"/> pixels de côté (la bande du milieu répétée).</summary>
+    private static Image WithLargeMiddle(Image image, int corner)
+    {
+        Image Stretch(Image source, bool vertical)
+        {
+            int w = source.GetWidth(), h = source.GetHeight();
+            int band = (vertical ? h : w) - 2 * corner;
+            var result = Image.CreateEmpty(vertical ? w : 2 * corner + FrameMiddle, vertical ? 2 * corner + FrameMiddle : h, false, Image.Format.Rgba8);
+            Rect2I Span(int from, int size) => vertical ? new Rect2I(0, from, w, size) : new Rect2I(from, 0, size, h);
+            Vector2I To(int at) => vertical ? new Vector2I(0, at) : new Vector2I(at, 0);
+            result.BlitRect(source, Span(0, corner), To(0));
+            for (int at = 0; at < FrameMiddle; at += band)
+                result.BlitRect(source, Span(corner, Math.Min(band, FrameMiddle - at)), To(corner + at));
+            result.BlitRect(source, Span(corner + band, corner), To(corner + FrameMiddle));
+            return result;
+        }
+        return Stretch(Stretch(image, vertical: false), vertical: true);
+    }
+
+    /// <summary>
+    /// Le fond un peu texturé des cadres (« panelTexture » dans ui.json) : « doux » (marbrure légère et quelques points),
+    /// « pierre » (grain fin de granit), « cuir » (grandes taches douces), « toile » (tissage très léger) ou « uni ».
+    /// (x, y) en pixels d'art depuis le coin du milieu ; le motif se répète tous les <see cref="FrameMiddle"/> pixels,
+    /// sans raccord visible.
+    /// </summary>
+    private static string PanelTexture = "doux";
+
+    /// <summary>Force du motif du fond (« panelTextureStrength » dans ui.json, 1 par défaut).</summary>
+    private static float PanelTextureStrength = 1;
+
+    private static Color Grain(Color fill, int x, int y)
+    {
+        x = ((x % FrameMiddle) + FrameMiddle) % FrameMiddle;
+        y = ((y % FrameMiddle) + FrameMiddle) % FrameMiddle;
+        static float Hash(int a, int b)
+        {
+            uint h = (uint)(a * 374761393 + b * 668265263);
+            h = (h ^ (h >> 13)) * 1274126177;
+            return (h ^ (h >> 16)) / (float)uint.MaxValue;
+        }
+        // un bruit doux sur des carrés de <cell> pixels, de 0 à 1, qui se répète tous les FrameMiddle pixels
+        float Smooth(int cell, int seed)
+        {
+            int cells = FrameMiddle / cell;
+            float fx = (float)x / cell, fy = (float)y / cell;
+            int x0 = (int)fx, y0 = (int)fy;
+            float tx = fx - x0, ty = fy - y0;
+            tx = tx * tx * (3 - 2 * tx);
+            ty = ty * ty * (3 - 2 * ty);
+            float Corner(int cx, int cy) => Hash(cx % cells + seed, cy % cells - seed);
+            return Mathf.Lerp(Mathf.Lerp(Corner(x0, y0), Corner(x0 + 1, y0), tx),
+                              Mathf.Lerp(Corner(x0, y0 + 1), Corner(x0 + 1, y0 + 1), tx), ty);
+        }
+        float speck = Hash(x + 1000, y + 1000);
+        float factor = PanelTexture switch
+        {
+            "uni" => 1,
+            "pierre" => 1 + 0.06f * (Smooth(8, 7) - 0.5f) + 0.07f * (Hash(x, y) - 0.5f)
+                        - (speck < 0.10f ? 0.07f : 0) + (speck > 0.96f ? 0.06f : 0),
+            "cuir" => 1 + 0.14f * (Smooth(16, 3) - 0.5f) + 0.06f * (Smooth(4, 11) - 0.5f),
+            "toile" => 1 + ((x / 2 + y / 2) % 2 == 0 ? 0.025f : -0.025f) + 0.05f * (Smooth(16, 5) - 0.5f),
+            _ => 1 + 0.10f * (Smooth(8, 0) - 0.5f) - (speck < 0.06f ? 0.08f : 0) + (speck > 0.97f ? 0.07f : 0),
+        };
+        factor = 1 + (factor - 1) * PanelTextureStrength;
+        return new Color(fill.R * factor, fill.G * factor, fill.B * factor, fill.A);
+    }
+
+    private static Image FillInside(Image source, Color fill, int corner)
     {
         var image = (Image)source.Duplicate();
         image.Convert(Image.Format.Rgba8);
@@ -312,7 +413,7 @@ public static class Ui
         for (int y = 0; y < h; y++)
         for (int x = 0; x < w; x++)
             if (!outside[x, y] && image.GetPixel(x, y).A <= 0.5f)
-                image.SetPixel(x, y, fill);
+                image.SetPixel(x, y, Grain(fill, x / FrameScale - corner, y / FrameScale - corner));
         return image;
     }
 

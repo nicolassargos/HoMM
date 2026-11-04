@@ -175,11 +175,7 @@ public partial class SavesWindow : ScreenWindow
 
     private void Confirm(string title, string text, string ok, Action confirmed)
     {
-        var dialog = new ConfirmationDialog
-        {
-            Title = title, DialogText = text, OkButtonText = ok, CancelButtonText = Texts.CancelButton,
-            Exclusive = true, Unresizable = true,
-        };
+        var dialog = GameDialog.Confirm(title, text, ok);
         dialog.Confirmed += () => { dialog.QueueFree(); confirmed(); };
         dialog.Canceled += () => dialog.QueueFree();
         AddChild(dialog);

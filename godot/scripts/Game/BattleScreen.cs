@@ -149,7 +149,7 @@ public partial class BattleScreen : CanvasLayer
     {
         if (_hero is not { } hero)
             return;
-        var dialog = new AcceptDialog
+        var dialog = new GameDialog
         {
             Title = hero.Name, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true,
             DialogText = $"{Texts.LevelLine(hero)}\n{Texts.HeroBonus(hero)}\n{Texts.SpellBookLater}",
@@ -163,7 +163,7 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>Le journal : tous les messages de ce combat, le plus récent en bas.</summary>
     private void ShowLog()
     {
-        var dialog = new AcceptDialog { Title = Texts.BattleLogTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
+        var dialog = new GameDialog { Title = Texts.BattleLogTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
         var scroll = new ScrollContainer { CustomMinimumSize = V(620, 380), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
         var text = MakeLabel(_log.Count == 0 ? Texts.LogEmpty : string.Join("\n", _log), 14, TextColor);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;

@@ -31,7 +31,7 @@ public partial class KingdomScreen : ScreenWindow
     public void Build(GameState state, Vector2 screenSize)
     {
         _state = state;
-        var size = V(1120, 640);
+        var size = V(1120, 576); // les sections et la bande des mines, sans place vide en bas
         BuildFrame(screenSize, new Rect2((screenSize - size) / 2 + new Vector2(0, Hud.TopBarHeight / 2f), size));
         SetTitle(Texts.KingdomTitle);
 

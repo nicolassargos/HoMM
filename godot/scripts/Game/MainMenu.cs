@@ -68,7 +68,7 @@ public partial class MainMenu : CanvasLayer
     /// <summary>Les réglages : pour l'instant, le plein écran.</summary>
     private void ShowSettings()
     {
-        var dialog = new AcceptDialog
+        var dialog = new GameDialog
         {
             Title = Texts.SettingsButton, DialogText = Texts.SettingsText, OkButtonText = Texts.CloseButton,
             Exclusive = true, Unresizable = true,

@@ -460,7 +460,7 @@ public partial class Main : Node2D
             _loadedState = SaveFiles.Read(entry.Path, LoadData());
             if (_loadedState == null)
             {
-                var dialog = new AcceptDialog { Title = Texts.LoadTitle, DialogText = Texts.LoadFailed, Exclusive = true };
+                var dialog = new GameDialog { Title = Texts.LoadTitle, DialogText = Texts.LoadFailed, Exclusive = true };
                 menu.AddChild(dialog);
                 dialog.PopupCentered();
                 return;

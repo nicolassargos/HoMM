@@ -800,9 +800,8 @@ public static class Texts
     }
 
     public static string BuildTitle(Town town) => $"Construire à {town.Name}";
-    public static string ToBuild => "À construire (un bâtiment par jour)";
-    public static string BuiltHeader => "Construits";
-    public static string NothingToBuild => "Tous les bâtiments sont construits.";
+    public static string ToBuild => "Un bâtiment par jour";
+    public static string BuiltMark => "✓ Construit";
     public static string RecruitWindowTitle(Town town) => $"Recruter à {town.Name}";
     public static string RecruitMore => "Recruter…";
     public static string RecruitAllButton(int count) => $"Tout ({count})";

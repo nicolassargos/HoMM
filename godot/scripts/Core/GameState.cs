@@ -22,15 +22,25 @@ public sealed partial class GameState
 
     public GameState(int seed, GameData data) : this(seed, data, MapSize.Normal) { }
 
-    /// <summary>Une nouvelle partie sur une carte générée de cette taille.</summary>
-    public GameState(int seed, GameData data, MapSize size)
-        : this(seed, data, Generate(seed, data, size)) => AddStartingPlayer();
+    /// <summary>
+    /// Une nouvelle partie sur une carte générée de cette taille, avec <paramref name="opponents"/> adversaires joués par
+    /// l'ordinateur (au plus <see cref="MapSizes.MaxOpponents"/>), chacun dans un coin de la carte.
+    /// </summary>
+    public GameState(int seed, GameData data, MapSize size, int opponents = 0)
+        : this(seed, data, Generate(seed, data, size, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size))))
+        => AddPlayers(Map.Starts.Count);
 
-    private static AdventureMap Generate(int seed, GameData data, MapSize size)
+    private static AdventureMap Generate(int seed, GameData data, MapSize size, int opponents)
     {
         var (width, height) = MapSizes.Dimensions(size);
-        return new MapGenerator(seed, data).Generate(width, height);
+        return new MapGenerator(seed, data) { Players = opponents + 1 }.Generate(width, height);
     }
+
+    /// <summary>Les noms (et couleurs) des joueurs, dans l'ordre : le joueur humain, puis les adversaires.</summary>
+    private static readonly string[] PlayerNames = { "Rouge", "Bleu", "Vert", "Orange" };
+
+    /// <summary>Les héros de départ des adversaires (pris à la fin de la liste de la taverne, qui ne les propose plus).</summary>
+    private static readonly string[] ComputerHeroNames = { "Sire Yvain", "Dame Viviane", "Brann le Rouge" };
 
     /// <summary>
     /// Une partie sur une carte faite à la main (pour les tests, et plus tard un éditeur de cartes), avec le joueur
@@ -39,21 +49,32 @@ public sealed partial class GameState
     public static GameState ForMap(AdventureMap map, GameData data, int seed = 0)
     {
         var state = new GameState(seed, data, map);
-        state.AddStartingPlayer();
+        state.AddPlayers(Math.Max(1, map.Starts.Count));
         return state;
     }
 
-    /// <summary>Le joueur humain et son héros de départ, avec sa petite armée.</summary>
-    private void AddStartingPlayer()
+    /// <summary>
+    /// Les joueurs, chacun sur son départ avec son héros et sa petite armée : le joueur humain d'abord, puis les adversaires
+    /// joués par l'ordinateur.
+    /// </summary>
+    private void AddPlayers(int count)
     {
-        var human = new Player("Rouge", Map) { Id = _nextPlayerId++ };
-        Players.Add(human);
-        var hero = new Hero("Sire Roland", human, Map.Start) { Id = _nextHeroId++ };
-        hero.Army.Add(Creatures.Get("paysan"), 30);
-        hero.Army.Add(Creatures.Get("archer"), 15);
-        hero.Army.Add(Creatures.Get("griffon"), 4);
-        CurrentHero = hero;
+        for (int i = 0; i < count; i++)
+        {
+            var player = new Player(PlayerNames[i % PlayerNames.Length], Map) { Id = _nextPlayerId++, IsComputer = i > 0 };
+            Players.Add(player);
+            string name = i == 0 ? "Sire Roland" : ComputerHeroNames[(i - 1) % ComputerHeroNames.Length];
+            var hero = new Hero(name, player, Map.Starts.Count > i ? Map.Starts[i] : Map.Start) { Id = _nextHeroId++ };
+            hero.Army.Add(Creatures.Get("paysan"), 30);
+            hero.Army.Add(Creatures.Get("archer"), 15);
+            hero.Army.Add(Creatures.Get("griffon"), 4);
+            if (i == 0)
+                CurrentHero = hero;
+        }
     }
+
+    /// <summary>Les adversaires joués par l'ordinateur.</summary>
+    public IEnumerable<Player> Opponents => Players.Where(p => p.IsComputer);
 
     /// <summary>Une partie sur une carte déjà faite, sans joueur (pour le chargement, voir <see cref="Load"/>).</summary>
     private GameState(int seed, GameData data, AdventureMap map)
@@ -185,6 +206,8 @@ public sealed partial class GameState
             reason = GameEndReason.TownsCaptured;
         else if (Rules.Has(VictoryCondition.ClearGuards) && !Map.Objects.OfType<MonsterGuard>().Any())
             reason = GameEndReason.GuardsCleared;
+        else if (Rules.Has(VictoryCondition.DefeatOpponents) && Opponents.Any() && Opponents.All(p => p.IsDefeated))
+            reason = GameEndReason.OpponentsDefeated;
         if (reason is { } won)
             EndGame(GameOutcome.Victory, won);
     }
@@ -195,6 +218,9 @@ public sealed partial class GameState
     public void EndTurn()
     {
         if (Outcome != GameOutcome.Playing || CurrentBattle != null)
+            return;
+        CheckVictory();
+        if (Outcome != GameOutcome.Playing)
             return;
 
         int previous = _currentPlayer;
@@ -514,6 +540,8 @@ public sealed partial class GameState
         Emit(new HeroDefeated(hero));
         if (hero.Owner == Players[0] && hero.Owner.IsDefeated)
             EndGame(GameOutcome.Defeat, GameEndReason.HeroesLost);
+        else
+            CheckVictory(); // le dernier héros d'un adversaire
     }
 
     /// <summary>Pour chaque case du chemin : est-elle atteignable aujourd'hui ?</summary>

@@ -60,9 +60,26 @@ public sealed class MapGenerator
     /// <summary>Carte de référence pour le nombre d'objets (coffres, tas, monstres errants) : 40 × 30 cases.</summary>
     private const int ReferenceArea = 40 * 30;
 
+    /// <summary>
+    /// Nombre de joueurs (étape 8) : un départ chacun, aux coins de la carte (le joueur humain en haut à gauche, puis le
+    /// coin opposé, puis les deux autres).
+    /// </summary>
+    public int Players { get; init; } = 1;
+
+    /// <summary>Les départs : à 4 cases des bords, dans l'ordre des joueurs.</summary>
+    private static IEnumerable<Cell> StartCells(int width, int height, int players) =>
+        new[] { new Cell(4, 4), new Cell(width - 5, height - 5), new Cell(width - 5, 4), new Cell(4, height - 5) }.Take(players);
+
+    /// <summary>La distance (à vol d'oiseau) jusqu'au départ le plus proche.</summary>
+    private double DistanceToStart(Cell c) => _map.Starts.Min(s => Distance(c, s));
+
+    /// <summary>La distance en cases (diagonales comprises) jusqu'au départ le plus proche.</summary>
+    private int StepsToStart(Cell c) => _map.Starts.Min(s => Math.Max(Math.Abs(c.X - s.X), Math.Abs(c.Y - s.Y)));
+
     public AdventureMap Generate(int width = 54, int height = 40)
     {
-        _map = new AdventureMap(width, height) { Start = new Cell(4, 4) };
+        _map = new AdventureMap(width, height);
+        _map.Starts.AddRange(StartCells(width, height, Math.Clamp(Players, 1, 4)));
         PaintTerrain();
         MakeZones();
         ClearStartArea();
@@ -147,12 +164,14 @@ public sealed class MapGenerator
     {
         int cols = Math.Max(1, _map.Width / ZoneWidth), rows = Math.Max(1, _map.Height / ZoneHeight);
         double cellWidth = (double)_map.Width / cols, cellHeight = (double)_map.Height / rows;
+        // les zones des départs (des coins de la grille) ne sont pas décalées : chaque départ reste bien à l'intérieur
+        var startSlots = _map.Starts.Select(s => ((int)(s.Y / cellHeight), (int)(s.X / cellWidth))).ToHashSet();
         for (int r = 0; r < rows; r++)
         for (int c = 0; c < cols; c++)
         {
-            // La première zone (celle du départ) n'est pas décalée, pour que le départ soit bien à l'intérieur
-            double jx = r + c == 0 ? 0 : (_rng.NextDouble() - 0.5) * cellWidth * 0.4;
-            double jy = r + c == 0 ? 0 : (_rng.NextDouble() - 0.5) * cellHeight * 0.4;
+            bool fixedZone = startSlots.Contains((r, c));
+            double jx = fixedZone ? 0 : (_rng.NextDouble() - 0.5) * cellWidth * 0.4;
+            double jy = fixedZone ? 0 : (_rng.NextDouble() - 0.5) * cellHeight * 0.4;
             var center = new Cell((int)((c + 0.5) * cellWidth + jx), (int)((r + 0.5) * cellHeight + jy));
             _zones.Add(new Zone { Index = _zones.Count, Center = center });
         }
@@ -164,6 +183,7 @@ public sealed class MapGenerator
             _zoneOf[x, y] = _zones.OrderBy(z => SquaredDistance(z.Center, new Cell(x, y))).First().Index;
 
         var startZone = ZoneAt(_map.Start);
+        var startZones = _map.Starts.Select(ZoneAt).Distinct().ToList();
         if (_zones.Count == 1)
         {
             startZone.Level = 0;
@@ -186,7 +206,7 @@ public sealed class MapGenerator
         // On ne relie que des zones voisines où un passage peut s'ouvrir
         var openings = neighbours.ToDictionary(n => n, n => PassageCandidates(n.A, n.B));
         var links = ChooseLinks(neighbours.Where(n => openings[n].Count > 0).ToList(), startZone.Index);
-        ComputeLevels(links, startZone);
+        ComputeLevels(links, startZones);
         PaintWalls(neighbours);
 
         var carved = new HashSet<Cell>();
@@ -198,8 +218,8 @@ public sealed class MapGenerator
         {
             foreach (var passage in _passages.Where(p => p.A == zone.Index || p.B == zone.Index))
                 Road(zone.Center, PassageSide(passage, zone.Index), zone.Index, carved);
-            if (zone == startZone)
-                Road(_map.Start, zone.Center, zone.Index, carved);
+            foreach (var start in _map.Starts.Where(s => ZoneAt(s) == zone))
+                Road(start, zone.Center, zone.Index, carved);
         }
     }
 
@@ -229,11 +249,12 @@ public sealed class MapGenerator
         return links;
     }
 
-    /// <summary>Le niveau de chaque zone : le nombre de passages à franchir depuis la zone de départ.</summary>
-    private void ComputeLevels(List<(int A, int B)> links, Zone startZone)
+    /// <summary>Le niveau de chaque zone : le nombre de passages à franchir depuis la zone de départ la plus proche.</summary>
+    private void ComputeLevels(List<(int A, int B)> links, List<Zone> startZones)
     {
-        startZone.Level = 0;
-        var queue = new Queue<Zone>(new[] { startZone });
+        foreach (var start in startZones)
+            start.Level = 0;
+        var queue = new Queue<Zone>(startZones);
         while (queue.Count > 0)
         {
             var zone = queue.Dequeue();
@@ -392,7 +413,7 @@ public sealed class MapGenerator
             return (double)ZoneAt(cell).Level / MaxLevel;
         // Une seule zone : selon la distance, 1 au coin opposé de la carte
         double farthest = Math.Sqrt(_map.Width * _map.Width + _map.Height * _map.Height);
-        return Distance(cell, _map.Start) / farthest;
+        return DistanceToStart(cell) / farthest;
     }
 
     /// <summary>
@@ -404,8 +425,8 @@ public sealed class MapGenerator
 
     // ------------------------------------------------------------------ villes
 
-    /// <summary>Une ville pour trois zones (au moins une).</summary>
-    private int TownCount => Math.Max(1, _zones.Count / 3);
+    /// <summary>Une ville pour trois zones, et au moins une par joueur.</summary>
+    private int TownCount => Math.Max(_map.Starts.Count, _zones.Count / 3);
 
     /// <summary>
     /// Des villes neutres du Château : la première dans une zone voisine du départ, les autres plus loin,
@@ -421,29 +442,42 @@ public sealed class MapGenerator
             return;
         }
 
-        var near = _zones.Where(z => z.Level == 1).OrderBy(z => SquaredDistance(z.Center, _map.Start)).Take(1);
+        // pour chaque joueur, une zone voisine de son départ (une autre que celles des joueurs d'avant), de préférence plus
+        // proche de lui que des autres départs : chacun a sa ville, pas une ville à partager
+        var near = new List<(Zone Zone, Cell Start)>();
+        foreach (var start in _map.Starts)
+        {
+            bool Own(Zone z) => _map.Starts.All(other => other == start || SquaredDistance(z.Center, start) < SquaredDistance(z.Center, other));
+            if (_zones.Where(z => z.Level == 1 && near.All(n => n.Zone != z))
+                    .OrderBy(z => Own(z) ? 0 : 1).ThenBy(z => SquaredDistance(z.Center, start)).FirstOrDefault() is { } zone)
+                near.Add((zone, start));
+        // seul, le joueur a sa ville au milieu de la zone voisine (comme avant les adversaires)
+        if (_map.Starts.Count == 1)
+            near = near.Select(n => (n.Zone, n.Zone.Center)).ToList();
+        }
         var far = _zones.Where(z => z.Level >= 2).OrderBy(z => z.Index).ToList();
         Shuffle(far);
         int placed = 0;
-        foreach (var zone in near.Concat(far))
+        // la ville d'un joueur, du côté de son départ ; les autres, au milieu de leur zone
+        foreach (var (zone, towards) in near.Select(n => (n.Zone, (Cell?)n.Start)).Concat(far.Select(z => (z, (Cell?)null))))
         {
             if (placed == TownCount || placed == names.Count)
                 break;
-            if (PlaceTownInZone(data, zone, names[placed]))
+            if (PlaceTownInZone(data, zone, names[placed], towards))
                 placed++;
         }
     }
 
-    private bool PlaceTownInZone(GameData data, Zone zone, string name)
+    private bool PlaceTownInZone(GameData data, Zone zone, string name, Cell? towards = null)
     {
         bool Free(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone.Index && !_border[c.X, c.Y]
-            && !_reserved.Contains(c) && _map.ObjectAt(c) == null && Distance(c, _map.Start) > 4;
+            && !_reserved.Contains(c) && _map.ObjectAt(c) == null && DistanceToStart(c) > 4;
         // Les murs de la ville ne coupent aucune route ; l'entrée et ses abords restent dans la zone
         var candidates = AllCells()
             .Where(c => _zoneOf[c.X, c.Y] == zone.Index)
             .Where(c => Around(c.Offset(0, -1), 2).All(Free))
             .Where(c => Town.FootprintAt(c).All(f => !_map.HasRoad(f)))
-            .OrderBy(c => SquaredDistance(c, zone.Center)).ThenBy(c => c.Y).ThenBy(c => c.X)
+            .OrderBy(c => SquaredDistance(c, towards ?? zone.Center)).ThenBy(c => c.Y).ThenBy(c => c.X)
             .Take(5).ToList();
         if (candidates.Count == 0)
             return false;
@@ -541,13 +575,14 @@ public sealed class MapGenerator
 
     private void ClearStartArea()
     {
-        for (int dy = -2; dy <= 2; dy++)
-        for (int dx = -2; dx <= 2; dx++)
-        {
-            var c = _map.Start.Offset(dx, dy);
-            if (_map.InBounds(c))
-                _map.SetTerrain(c, TerrainType.Grass);
-        }
+        foreach (var start in _map.Starts)
+            for (int dy = -2; dy <= 2; dy++)
+            for (int dx = -2; dx <= 2; dx++)
+            {
+                var c = start.Offset(dx, dy);
+                if (_map.InBounds(c))
+                    _map.SetTerrain(c, TerrainType.Grass);
+            }
     }
 
     /// <summary>Toutes les cases accessibles à pied depuis le départ.</summary>
@@ -567,9 +602,8 @@ public sealed class MapGenerator
 
     private void PlaceObjects()
     {
-        var start = _map.Start;
         var free = ReachableCells()
-            .Where(c => Math.Abs(c.X - start.X) + Math.Abs(c.Y - start.Y) > 2)
+            .Where(c => _map.Starts.All(s => Math.Abs(c.X - s.X) + Math.Abs(c.Y - s.Y) > 2))
             .Where(c => !_map.HasRoad(c))
             .Where(c => _map.ObjectAt(c) == null && DistanceToNearestTown(c) > 1) // l'entrée de la ville reste libre
             .Where(c => !_reserved.Contains(c)) // les passages restent libres
@@ -601,7 +635,7 @@ public sealed class MapGenerator
         var reachable = WalkableFromStart();
         var treasureSpot = free.Where(reachable.Contains)
             .Where(c => _zones.Count == 0 || ZoneAt(c).Level == MaxLevel)
-            .OrderByDescending(c => SquaredDistance(c, start)).ThenBy(c => c.Y).ThenBy(c => c.X)
+            .OrderByDescending(c => _map.Starts.Min(s => SquaredDistance(c, s))).ThenBy(c => c.Y).ThenBy(c => c.X)
             .Cast<Cell?>().FirstOrDefault();
         if (treasureSpot is { } spot)
         {
@@ -726,7 +760,7 @@ public sealed class MapGenerator
     {
         if (!_map.IsPassable(c) || _map.ObjectAt(c) != null || _reserved.Contains(c) || c == _map.Treasure)
             return false;
-        if (Math.Max(Math.Abs(c.X - _map.Start.X), Math.Abs(c.Y - _map.Start.Y)) < 4)
+        if (StepsToStart(c) < 4)
             return false;
         if (DistanceToNearestTown(c) < 4)
             return false;
@@ -753,7 +787,8 @@ public sealed class MapGenerator
     {
         var reachable = WalkableFromStart();
         return _map.Objects.All(o => o is MonsterGuard || reachable.Contains(o.Position))
-            && (_map.Treasure is not { } treasure || reachable.Contains(treasure));
+            && (_map.Treasure is not { } treasure || reachable.Contains(treasure))
+            && _map.Starts.All(reachable.Contains);
     }
 
     /// <summary>

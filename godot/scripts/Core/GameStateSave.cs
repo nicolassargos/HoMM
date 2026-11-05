@@ -56,7 +56,7 @@ public sealed partial class GameState
     private sealed record StackData(string Creature, int Count);
 
     private sealed record PlayerData(int Id, string Name, Dictionary<ResourceType, int> Resources, string Fog,
-        List<int> Mines, List<int> Towns, List<int>? Obelisks = null, StatisticsData? Statistics = null);
+        List<int> Mines, List<int> Towns, List<int>? Obelisks = null, StatisticsData? Statistics = null, bool IsComputer = false);
 
     /// <summary>Les chiffres de la partie d'un joueur (absents des anciennes sauvegardes : zéro).</summary>
     private sealed record StatisticsData(int BattlesWon, int CreaturesKilled, int CreaturesLost, int TownsCaptured);
@@ -82,7 +82,8 @@ public sealed partial class GameState
             SaveMap(),
             Players.Select(p => new PlayerData(p.Id, p.Name, new Dictionary<ResourceType, int>(p.Resources),
                 p.Fog.Export(), p.Mines.Select(m => m.Id).ToList(), p.Towns.Select(t => t.Id).ToList(), p.Obelisks.OrderBy(id => id).ToList(),
-                new StatisticsData(p.Statistics.BattlesWon, p.Statistics.CreaturesKilled, p.Statistics.CreaturesLost, p.Statistics.TownsCaptured))).ToList(),
+                new StatisticsData(p.Statistics.BattlesWon, p.Statistics.CreaturesKilled, p.Statistics.CreaturesLost, p.Statistics.TownsCaptured),
+                p.IsComputer)).ToList(),
             AllHeroes.Select(h => new HeroData(
                 h.Id, h.Name, h.Owner.Id, h.Position, h.Movement, h.MaxMovement, h.VisionRadius,
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
@@ -189,7 +190,7 @@ public sealed partial class GameState
 
         foreach (var p in save.Players)
         {
-            var player = new Player(p.Name, map) { Id = p.Id };
+            var player = new Player(p.Name, map) { Id = p.Id, IsComputer = p.IsComputer };
             foreach (var (resource, amount) in p.Resources)
                 player.Resources[resource] = amount;
             if (p.Statistics is { } stats)

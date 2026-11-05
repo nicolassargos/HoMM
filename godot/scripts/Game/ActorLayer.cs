@@ -40,7 +40,7 @@ public partial class ActorLayer : Node2D
         if (State.CurrentHero is { } selected)
             MapRenderer.DrawSelection(this, ToPixels(selected.Position) + half + new Vector2(0, 14), _time);
         foreach (var hero in State.AllHeroes)
-            MapRenderer.DrawHero(this, ToPixels(hero.Position) + half + new Vector2(0, 4), _time);
+            MapRenderer.DrawHero(this, ToPixels(hero.Position) + half + new Vector2(0, 4), _time, hero.Owner);
         // (la case survolée n'est plus encadrée : le panneau la décrit, cela suffit)
     }
 

@@ -326,6 +326,7 @@ public static class Texts
     public static string GameOverText(GameEnded end) => end.Reason switch
     {
         GameEndReason.GuardsCleared => "Tous les monstres ont été vaincus. La région est à vous !",
+        GameEndReason.OpponentsDefeated => "Vos adversaires sont vaincus. La région est à vous !",
         GameEndReason.TownsCaptured => "Toutes les villes sont à vous. La région est à vous !",
         GameEndReason.HeroesLost => "Votre dernier héros est tombé. La partie est perdue.",
         GameEndReason.TreasureFound => "Vous avez déterré le Plastron des Rois : la région vous reconnaît pour son roi !",
@@ -345,6 +346,7 @@ public static class Texts
     {
         VictoryCondition.ClearGuards => "Vaincre tous les monstres",
         VictoryCondition.CaptureTowns => "Prendre toutes les villes",
+        VictoryCondition.DefeatOpponents => "Vaincre tous les adversaires",
         _ => "Trouver le trésor enfoui",
     };
 
@@ -444,6 +446,13 @@ public static class Texts
     public static string RandomSeed => "Au hasard";
     public static string SeedHelp => "La même graine donne la même carte.";
     public static string GoalsLabel => "Comment gagner";
+    public static string OpponentsLabel => "Adversaires";
+    public static string OpponentsTooltip(int count) => count switch
+    {
+        0 => "Seul contre les monstres",
+        1 => "Un adversaire joué par l'ordinateur (dans le coin opposé)",
+        _ => $"{count} adversaires joués par l'ordinateur, chacun dans un coin (sur les plus grandes cartes)",
+    };
     public static string GoalsNote => "La première façon accomplie l'emporte. Perdre tous ses héros reste une défaite.";
 
     public static string SaveTitle => "Sauvegarder la partie";
@@ -514,6 +523,7 @@ public static class Texts
         DayStarted { NewWeek: true } day => $"Une nouvelle semaine commence, les monstres sont plus nombreux ! {Date(day.Day)}.",
         DayStarted day => $"Nouveau jour : {Date(day.Day)}.",
         IncomeReceived income when income.Player == viewer => $"Revenus : {Income(income.Income)}.",
+        TurnStarted { Player.IsComputer: true } => null, // les adversaires jouent aussitôt : pas de message
         TurnStarted turn => $"Au tour du joueur {turn.Player.Name}.",
         RulesChosen { Treasure: { } where } chosen =>
             $"Objectif : {Objective(chosen.Rules)}. Le trésor est enfoui {Where(where)} de la carte : les obélisques en dévoilent la carte (touche M).",
@@ -524,6 +534,7 @@ public static class Texts
         NothingDug dug => $"{dug.Hero.Name} creuse… il n'y a rien ici.",
         TreasureDug dug => $"{dug.Hero.Name} déterre le {dug.Artifact.Name} ! {Bonus(dug.Artifact)}.",
         GameEnded { Reason: GameEndReason.GuardsCleared } => "La région est libérée de ses monstres. Victoire !",
+        GameEnded { Reason: GameEndReason.OpponentsDefeated } => "Tous vos adversaires sont vaincus. Victoire !",
         GameEnded { Reason: GameEndReason.TownsCaptured } => "Toutes les villes sont à vous. Victoire !",
         GameEnded { Reason: GameEndReason.HeroesLost } => "Vous n'avez plus de héros. Défaite...",
         GameEnded => "Il est trop tard pour gagner. Défaite...",

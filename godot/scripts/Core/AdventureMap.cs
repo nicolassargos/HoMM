@@ -23,7 +23,21 @@ public sealed class AdventureMap
 
     public int Width { get; }
     public int Height { get; }
-    public Cell Start { get; set; }
+    /// <summary>Le départ du joueur humain (le premier des <see cref="Starts"/>).</summary>
+    public Cell Start
+    {
+        get => Starts.Count > 0 ? Starts[0] : default;
+        set
+        {
+            if (Starts.Count == 0)
+                Starts.Add(value);
+            else
+                Starts[0] = value;
+        }
+    }
+
+    /// <summary>Les départs des joueurs, dans l'ordre des joueurs (le premier : le joueur humain).</summary>
+    public List<Cell> Starts { get; } = new();
 
     /// <summary>
     /// La case où le trésor est enfoui (invisible, il ne bloque rien : il faut creuser), ou null s'il a été déterré.

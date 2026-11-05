@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 using HoMM.Core;
 
@@ -15,6 +16,13 @@ public static class MapRenderer
     private const int T = TileSize;
 
     public static readonly Color PlayerColor = Rgb(200, 40, 40);
+
+    /// <summary>Les couleurs des joueurs, dans l'ordre (Rouge, Bleu, Vert, Orange : voir les noms dans GameState).</summary>
+    public static readonly Color[] PlayerColors = { PlayerColor, Rgb(50, 95, 215), Rgb(40, 160, 60), Rgb(230, 140, 30) };
+
+    /// <summary>La couleur d'un propriétaire (drapeaux, héros, carte réduite) ; neutre s'il n'y en a pas.</summary>
+    public static Color ColorOf(Player? owner) =>
+        owner == null ? NeutralColor : PlayerColors[(owner.Id - 1 + PlayerColors.Length) % PlayerColors.Length];
     public static readonly Color FogColor = Rgb(12, 12, 16);
 
     public static Color Rgb(int r, int g, int b) => Color.Color8((byte)r, (byte)g, (byte)b);
@@ -191,9 +199,9 @@ public static class MapRenderer
             Art.DrawSprite(ci, image, area);
             // Le drapeau du propriétaire reste dessiné par-dessus
             if (obj is Mine mine)
-                DrawFlag(ci, c + V(-14, -2), mine.Owner != null ? PlayerColor : NeutralColor, 0);
+                DrawFlag(ci, c + V(-14, -2), ColorOf(mine.Owner), 0);
             else if (obj is Town town)
-                DrawFlag(ci, area.Position + V(1.5f * T, 4), town.Owner != null ? PlayerColor : NeutralColor, time);
+                DrawFlag(ci, area.Position + V(1.5f * T, 4), ColorOf(town.Owner), time);
             return;
         }
         switch (obj)
@@ -224,7 +232,7 @@ public static class MapRenderer
                 Triangle(ci, c + V(-20, 16), c + V(0, -14), c + V(20, 16), Rgb(90, 80, 70));
                 Ellipse(ci, new Rect2(c + V(-7, 2), 14, 14), Rgb(20, 15, 10));
                 DrawResourceIcon(ci, mine.Resource, c + V(13, 12), 6);
-                DrawFlag(ci, c + V(-14, -2), mine.Owner != null ? PlayerColor : NeutralColor, 0);
+                DrawFlag(ci, c + V(-14, -2), ColorOf(mine.Owner), 0);
                 break;
 
             case MonsterGuard guard:
@@ -282,7 +290,7 @@ public static class MapRenderer
         ci.DrawRect(new Rect2(c + V(-14, h - 31), 28, 17), Rgb(50, 35, 20));
         ci.DrawRect(new Rect2(c + V(-10, h - 14), 20, 14), Rgb(150, 125, 85));             // chemin d'accès
 
-        var flag = town.Owner != null ? PlayerColor : NeutralColor;
+        var flag = ColorOf(town.Owner);
         float wave = (int)(time * 3) % 2 == 1 ? 3 : 0;
         ci.DrawLine(c + V(0, -h - 4), c + V(0, -h - 26), Rgb(80, 50, 20), 2);
         Triangle(ci, c + V(1, -h - 26), c + V(20, -h - 21 + wave), c + V(1, -h - 15), flag);
@@ -322,10 +330,42 @@ public static class MapRenderer
 
     // --------------------------------------------------------------------- héros
 
-    /// <summary>Un cavalier très stylisé avec son étendard.</summary>
-    public static void DrawHero(CanvasItem ci, Vector2 c, double time)
+    private static readonly Dictionary<int, Texture2D?> HeroImages = new();
+
+    /// <summary>
+    /// L'image du héros aux couleurs de son joueur : son étendard rouge (et les rouges de sa selle) prend la teinte du
+    /// joueur ; le joueur rouge garde l'image telle quelle.
+    /// </summary>
+    private static Texture2D? HeroImage(Player? owner)
     {
-        if (Art.Get("heroes/hero") is { } image)
+        int id = owner?.Id ?? 1;
+        if (HeroImages.TryGetValue(id, out var cached))
+            return cached;
+        Texture2D? texture = null;
+        if (id == 1 || owner == null)
+            texture = Art.Get("heroes/hero");
+        else if (Art.GetImage("heroes/hero") is { } source)
+        {
+            var image = (Image)source.Duplicate();
+            image.Convert(Image.Format.Rgba8);
+            float hue = ColorOf(owner).H;
+            for (int y = 0; y < image.GetHeight(); y++)
+            for (int x = 0; x < image.GetWidth(); x++)
+            {
+                var p = image.GetPixel(x, y);
+                if (p.A > 0.5f && p.S > 0.45f && (p.H < 0.05f || p.H > 0.93f))
+                    image.SetPixel(x, y, Color.FromHsv(hue, p.S, p.V, p.A));
+            }
+            texture = ImageTexture.CreateFromImage(image);
+        }
+        HeroImages[id] = texture;
+        return texture;
+    }
+
+    /// <summary>Un cavalier très stylisé avec son étendard, aux couleurs de son joueur.</summary>
+    public static void DrawHero(CanvasItem ci, Vector2 c, double time, Player? owner = null)
+    {
+        if (HeroImage(owner) is { } image)
         {
             Art.DrawSprite(ci, image, new Rect2(c - V(T / 2f, T / 2f + 4), T, T));
             return;
@@ -342,7 +382,7 @@ public static class MapRenderer
 
         float wave = (int)(time * 3) % 2 == 1 ? 2 : 0; // l'étendard flotte
         ci.DrawLine(c + V(-9, 2), c + V(-9, -26), Rgb(80, 50, 20), 2);
-        Triangle(ci, c + V(-8, -26), c + V(4, -23 + wave), c + V(-8, -18), PlayerColor);
+        Triangle(ci, c + V(-8, -26), c + V(4, -23 + wave), c + V(-8, -18), ColorOf(owner));
     }
 
     /// <summary>L'anneau doré (légèrement pulsant) sous le héros sélectionné.</summary>

@@ -116,26 +116,28 @@ public partial class TownScreen : CanvasLayer
             townPicture.AddChild(Picture(image, new Vector2(30, 30), new Vector2(72, 72))); // l'image de 72 pixels, ×1
         _root.AddChild(townPicture);
         _garrison = MakeArmy(V(ArmyX, y + 22));
-        var hint = At(MakeLabel(Texts.DragHint, 13, SoftTextColor), ArmyX + 7 * 86 + 20, y + 26);
+        // à droite des armées : l'aide sur les troupes, et dessous les deux boutons d'échange
+        float exchangeX = ArmyX + 7 * 86 + 10;
+        var hint = At(MakeLabel(Texts.DragHint, 13, SoftTextColor), exchangeX + 14, y + 34);
         _root.AddChild(hint);
 
         y += 110;
         _visitorLabel = At(MakeLabel("", 15, TextColor), 16, y);
         _root.AddChild(_visitorLabel);
         var portraitFrame = new Panel { Position = V(12, y + 22), Size = new Vector2(132, 132) };
-        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, DimColor, 1, 1, 1, 1));
+        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 1, 1, 1, 1));
         _root.AddChild(portraitFrame);
         _visitorPortrait = Picture(null!, new Vector2(2, 2), new Vector2(128, 128)); // le portrait ×2
         portraitFrame.AddChild(_visitorPortrait);
         _visitor = MakeArmy(V(ArmyX, y + 22));
         _giveAll = MakeButton(Texts.GiveAllToHero, 13);
-        _giveAll.Position = V(ArmyX + 7 * 86 + 20, y + 30);
-        _giveAll.Size = V(200, 34);
+        _giveAll.Position = V(exchangeX + 14, y + 52);
+        _giveAll.Size = V(250, 36);
         _giveAll.Pressed += GiveAll;
         _root.AddChild(_giveAll);
         _leaveAll = MakeButton(Texts.LeaveAllInGarrison, 13);
-        _leaveAll.Position = V(ArmyX + 7 * 86 + 230, y + 30);
-        _leaveAll.Size = V(210, 34);
+        _leaveAll.Position = V(exchangeX + 276, y + 52);
+        _leaveAll.Size = V(250, 36);
         _leaveAll.Pressed += LeaveAll;
         _root.AddChild(_leaveAll);
 

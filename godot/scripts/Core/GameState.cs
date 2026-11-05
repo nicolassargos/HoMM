@@ -512,6 +512,9 @@ public sealed partial class GameState
     }
 
     /// <summary>Le joueur choisit la caractéristique gagnée à ce niveau. Renvoie false si ce choix n'est pas proposé.</summary>
+    /// <summary>Les niveaux gagnés dont la caractéristique n'est pas encore choisie (tous joueurs).</summary>
+    public IReadOnlyList<HeroLevelChoice> PendingChoices => _pendingChoices;
+
     public bool ChooseStat(HeroLevelChoice choice, HeroStat stat)
     {
         if (!_pendingChoices.Contains(choice) || !choice.Options.Contains(stat))

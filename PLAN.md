@@ -480,8 +480,14 @@ Découpage (une PR par point, chacune jouable et testée) :
    l'instant, il passe son tour). « Vaincre tous les adversaires » (`VictoryCondition.DefeatOpponents`), cochée d'office
    quand il y en a. Nouvelle partie : le nombre d'adversaires (0 à 3, estompé au-delà de ce que la carte accueille).
    Tests : `AdversairesTests`.
-2. **L'IA explore et ramasse** : ses héros vont vers les tas, coffres et mines qu'ils peuvent prendre sans combat ;
-   l'affichage montre ses déplacements visibles.
+2. ✅ **L'IA explore et ramasse** (`ComputerPlayer`) : chaque héros va vers le meilleur objet qu'il peut prendre sans
+   combat (le plus proche ; une mine compte double, elle rapporte chaque jour ; les obélisques qu'il n'a pas lus), et
+   sinon explore (la case connue la plus proche au bord de l'inconnu). Pas de triche : il ne passe que par les cases que
+   son joueur a explorées, jamais dans la zone d'un monstre ni à travers un objet. Niveaux : l'attaque, sinon la
+   défense. Combats en rapide s'il en arrive un (par sécurité). Sans combat, il attend aux passages gardés (point 4).
+   À l'écran : les pas des héros adverses là où le joueur a exploré sont rejoués à un rythme lisible, la vue les suit
+   (« Bleu se déplace… ») ; pas de compte rendu de combat pour les combats des autres. Option `--turns=N` (joue N jours
+   au lancement). Tests : `ExplorationIATests`.
 3. **L'IA construit et recrute** : bâtiments, troupes, héros de taverne.
 4. **L'IA combat** : les monstres qu'elle peut battre, les villes, et les héros (combat entre héros, nouveau) ; le joueur
    peut attaquer ses héros et ses villes.

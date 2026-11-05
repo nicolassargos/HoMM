@@ -472,6 +472,21 @@ public static class Texts
     public static string SeedHelp => "La même graine donne la même carte.";
     public static string GoalsLabel => "Comment gagner";
     public static string OpponentsLabel => "Adversaires";
+    public static string DifficultyLabel => "Difficulté";
+
+    public static string DifficultyName(Difficulty difficulty) => difficulty switch
+    {
+        Difficulty.Easy => "Facile",
+        Difficulty.Hard => "Difficile",
+        _ => "Normale",
+    };
+
+    public static string DifficultyTooltip(Difficulty difficulty) => difficulty switch
+    {
+        Difficulty.Easy => "Des adversaires prudents, moins riches, qui vous laissent tranquille les trois premières semaines",
+        Difficulty.Hard => "Des adversaires audacieux, plus riches, avec plus de héros",
+        _ => "Des adversaires ni trop prudents ni trop audacieux",
+    };
 
     /// <summary>Les déplacements d'un adversaire que l'on voit sont rejoués : « Bleu se déplace… ».</summary>
     public static string RivalMoving(Player player) => $"{player.Name} se déplace…";

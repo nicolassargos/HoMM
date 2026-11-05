@@ -65,12 +65,21 @@ public sealed partial class GameState
             Players.Add(player);
             string name = i == 0 ? "Sire Roland" : ComputerHeroNames[(i - 1) % ComputerHeroNames.Length];
             var hero = new Hero(name, player, Map.Starts.Count > i ? Map.Starts[i] : Map.Start) { Id = _nextHeroId++ };
-            hero.Army.Add(Creatures.Get("paysan"), 30);
-            hero.Army.Add(Creatures.Get("archer"), 15);
-            hero.Army.Add(Creatures.Get("griffon"), 4);
+            foreach (var stack in StartingArmy(Creatures).Stacks)
+                hero.Army.Add(stack.Type, stack.Count);
             if (i == 0)
                 CurrentHero = hero;
         }
+    }
+
+    /// <summary>L'armée de départ de chaque héros de départ : 30 Paysans, 15 Archers, 4 Griffons.</summary>
+    public static Army StartingArmy(CreatureCatalog creatures)
+    {
+        var army = new Army();
+        army.Add(creatures.Get("paysan"), 30);
+        army.Add(creatures.Get("archer"), 15);
+        army.Add(creatures.Get("griffon"), 4);
+        return army;
     }
 
     /// <summary>Les adversaires joués par l'ordinateur.</summary>
@@ -263,6 +272,9 @@ public sealed partial class GameState
         foreach (var player in Players)
         {
             var income = player.DailyIncome();
+            // les adversaires gagnent plus ou moins d'or selon la difficulté
+            if (player.IsComputer && income.TryGetValue(ResourceType.Gold, out int gold))
+                income[ResourceType.Gold] = gold * ComputerProfile.For(Rules.Difficulty).GoldIncomePercent / 100;
             foreach (var (resource, amount) in income)
                 player.Resources[resource] += amount;
             if (income.Count > 0)

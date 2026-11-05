@@ -20,6 +20,8 @@ public partial class NewGameWindow : ScreenWindow
 
     private MapSize _size = MapSize.Normal;
     private int _opponents = 1;
+    private Difficulty _difficulty = Difficulty.Normal;
+    private readonly List<(Button Button, StyleBox Normal)> _difficultyButtons = new();
     private readonly List<(Button Button, StyleBox Normal)> _opponentButtons = new();
     private readonly Dictionary<MapSize, (Button Button, StyleBox Normal)> _sizeButtons = new();
     private Label _sizeDetails = null!;
@@ -61,6 +63,19 @@ public partial class NewGameWindow : ScreenWindow
             button.Pressed += () => SelectOpponents(chosen);
             Window.AddChild(button);
             _opponentButtons.Add((button, button.GetThemeStylebox("normal")));
+        }
+
+        // la difficulté (la force des adversaires), sous leur nombre
+        Window.AddChild(At(MakeLabel(Texts.DifficultyLabel, 16, BorderColor), 440, 240));
+        foreach (var (level, i) in Enum.GetValues<Difficulty>().Select((d, i) => (d, i)))
+        {
+            var button = FixedButton(Texts.DifficultyName(level), 14, V(94, 34));
+            button.Position = V(440 + i * 100, 266);
+            button.TooltipText = Texts.DifficultyTooltip(level);
+            var chosen = level;
+            button.Pressed += () => SelectDifficulty(chosen);
+            Window.AddChild(button);
+            _difficultyButtons.Add((button, button.GetThemeStylebox("normal")));
         }
 
         // la graine
@@ -109,6 +124,7 @@ public partial class NewGameWindow : ScreenWindow
         _start.Pressed += Start;
         Window.AddChild(_start);
         SelectSize(_size);
+        SelectDifficulty(_difficulty);
         SelectOpponents(_opponents);
     }
 
@@ -127,6 +143,17 @@ public partial class NewGameWindow : ScreenWindow
             SelectOpponents(Math.Min(_opponents, MapSizes.MaxOpponents(size)));
     }
 
+    private void SelectDifficulty(Difficulty difficulty)
+    {
+        _difficulty = difficulty;
+        foreach (var ((button, normal), i) in _difficultyButtons.Select((b, i) => (b, i)))
+        {
+            button.AddThemeStyleboxOverride("normal", normal);
+            if (i == (int)difficulty)
+                MarkSelected(button);
+        }
+    }
+
     private void SelectOpponents(int count)
     {
         _opponents = count;
@@ -139,6 +166,12 @@ public partial class NewGameWindow : ScreenWindow
             button.Modulate = new Color(1, 1, 1, i > max ? 0.35f : 1); // trop pour cette carte : estompé, pas « choisi »
             if (i == count)
                 MarkSelected(button);
+        }
+        // sans adversaire, pas de difficulté à choisir
+        foreach (var (button, _) in _difficultyButtons)
+        {
+            button.Disabled = count == 0;
+            button.Modulate = new Color(1, 1, 1, count == 0 ? 0.35f : 1);
         }
         // « vaincre tous les adversaires » : seulement s'il y en a, et coché d'office
         if (_goals.TryGetValue(VictoryCondition.DefeatOpponents, out var defeat))
@@ -157,7 +190,7 @@ public partial class NewGameWindow : ScreenWindow
             return;
         int seed = int.TryParse(_seed.Text, out int typed) ? typed : Random.Shared.Next(1, 1_000_000);
         var victory = _goals.Where(g => g.Value.ButtonPressed).Aggregate(VictoryCondition.None, (all, g) => all | g.Key);
-        var rules = new GameRules(victory, _limit.ButtonPressed ? GameRules.StandardDayLimit : null);
+        var rules = new GameRules(victory, _limit.ButtonPressed ? GameRules.StandardDayLimit : null, _difficulty);
         Close();
         Started?.Invoke(new GameSetup(seed, _size, rules, _opponents));
     }

@@ -81,6 +81,8 @@ public class ExplorationIATests
     public void Trois_semaines_avec_deux_adversaires_sans_accroc()
     {
         var state = new GameState(11, TestData.Data, MapSize.Normal, opponents: 2);
+        // en Facile, les adversaires laissent le joueur (qui ne bouge pas) tranquille les trois premières semaines
+        state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents, Difficulty: Difficulty.Easy));
         var startGold = state.Opponents.Select(p => p.Resources[ResourceType.Gold]).ToList();
         for (int day = 0; day < 21 && state.Outcome == GameOutcome.Playing; day++)
         {

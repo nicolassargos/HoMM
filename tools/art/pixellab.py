@@ -239,11 +239,13 @@ def pro(dossier, largeur, hauteur, description, graine=None, style=None, modeles
     if modeles:
         corps["reference_images"] = []
         for m in modeles:
+            # « chemin::usage » : dit à PixelLab à quoi sert l'image (par exemple l'angle de vue seulement)
+            m, _, usage = m.partition("::")
             w, h = taille_image(m)
             image = image_base64(m)
             image["format"] = "jpeg" if m.lower().endswith((".jpg", ".jpeg")) else "png"
             corps["reference_images"].append({"image": image, "size": {"width": w, "height": h},
-                                              "usage_description": "subject reference only (anatomy, costume), not the style"})
+                                              "usage_description": usage or "subject reference only (anatomy, costume), not the style"})
     if style and style != "-":
         w, h = taille_png(style)
         corps["style_image"] = {"image": image_base64(style), "size": {"width": w, "height": h}}

@@ -301,6 +301,18 @@ détails, surtout agrandies au combat), dans cet ordre :
    massue de bois sans clous ; 58 px de haut, plus grand que l'Archer ; il balaie de sa massue). Fait avec l'ancien Ogre
    comme image de style pour garder son ombrage doux, et **sans** réduire la palette (16 couleurs faisaient des bandes
    sur la peau). Une image de référence de pose recopie aussi ses détails (des clous sur la massue) : à éviter.
+   Le **Colosse d'os** (futur mort-vivant le plus fort, pas encore dans les règles : `colosse-os`) : un amas chaotique
+   d'os et de crânes en forme de géant, tête de crâne cornue aux yeux rouges, énorme fémur pour massue ; 70 px de haut
+   pour tenir sur une case ; il balaie de son fémur à deux mains. D'après une image de l'utilisateur, mais pas recopiée
+   (trop moderne, trop détaillée) : décrire l'idée en termes de jeu rétro (« classic 1990s fantasy strategy game
+   sprite, simple bold shapes »). **L'angle de vue** (un peu d'en haut) vient d'une image de référence marquée « angle
+   seulement » (`image.png::usage` dans `pixellab.py pro`) : le Troll a bien marché, mais seulement sans autre image
+   du sujet (une image de sujet vue de côté impose son angle).
+   **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
+   créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
+   tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de
+   départ, puis joue son attente une fois. L'entrée `*` vaut pour toutes : 5 à 10 s de pause (choix de l'utilisateur).
+   Le Colosse est à 7 images par seconde.
    Ce qui marche (`tools/art/pixellab.py`) : l'image fixe avec le modèle « Pro » (`pro`, 25 candidats pour 0,08 $ à
    40 × 52), une de nos images pour le style (trait, ombrage) et une image de référence pour le sujet ; **modèles de
    style : le Moine, le Griffon, le Loup et le Troll** (choix de l'utilisateur ; plus l'Épéiste, à refaire) ; les animations
@@ -466,6 +478,11 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
 - Magie, autres factions, nouveaux objets sur la carte.
 - **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
   (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.
+  Déjà décidé (2026-11-05) : des **morts-vivants** avec le Zombie, le Fantôme, le Vampire, la Liche et, au sommet, un
+  **Colosse d'os** (un géant fait des os de tout un champ de bataille, aussi fort que l'Ange ou le Dragon ; préféré au
+  Dragon d'os, au Spectre et au Chevalier noir, trop faibles pour le dernier niveau). Le Squelette pourrait les rejoindre.
+  Au Château, l'Épéiste deviendra un **Chevalier**. Leurs images sont préparées d'avance (`chevalier`, `zombie`,
+  `fantome`, `vampire`, `liche`, `colosse-os`), chacune d'après une image de référence de l'utilisateur.
 - **Personnalisation des héros** (demandé par l'utilisateur) : à préciser ensemble. Pistes : choisir son héros
   de départ (nom, portrait), une classe ou un passé (chevalier, voleur, barbare, sorcière…) qui donne des bonus et
   des caractéristiques de départ différentes, des compétences à choisir en montant de niveau, et l'apparence du

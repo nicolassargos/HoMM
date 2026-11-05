@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using HoMM.Core;
@@ -223,6 +224,11 @@ public partial class Main : Node2D
             _camera.CenterOn(hidden);
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
             _camera.CenterOn(firstObelisk.Position);
+        // « --turns=5 » : joue 5 jours dès le lancement (adversaires compris), pour voir où ils en sont
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--turns=")) is { } turns
+            && int.TryParse(turns["--turns=".Length..], out int count))
+            for (int i = 0; i < count && _state.Outcome == GameOutcome.Playing; i++)
+                PassTurn();
         // « --center=opponent » : sur le héros du premier adversaire
         if (OS.GetCmdlineUserArgs().Contains("--center=opponent") && _state.Opponents.SelectMany(p => p.Heroes).FirstOrDefault() is { } rival)
             _camera.CenterOn(rival.Position);
@@ -386,7 +392,29 @@ public partial class Main : Node2D
         && !_heroScreen.IsOpen && !_kingdomScreen.IsOpen;
 
     /// <summary>Les commandes de la carte sont ignorées pendant la marche, hors de la carte, ou une fois la partie finie.</summary>
-    private bool CanAct => !_walking && OnMap && _state.Outcome == GameOutcome.Playing;
+    private bool CanAct => !_walking && _rivalMoves.Count == 0 && OnMap && _state.Outcome == GameOutcome.Playing;
+
+    /// <summary>
+    /// Les pas des héros adverses que le joueur peut voir (une case déjà explorée), rejoués à un rythme lisible après
+    /// le tour des adversaires (qui ont joué tout de suite, sans attendre l'affichage).
+    /// </summary>
+    private readonly Queue<HeroMoved> _rivalMoves = new();
+    private double _rivalTimer;
+
+    private void ReplayRivals(double delta)
+    {
+        if (_rivalMoves.Count == 0)
+            return;
+        _rivalTimer -= delta;
+        if (_rivalTimer > 0)
+            return;
+        _rivalTimer = StepDuration * 1.5;
+        var move = _rivalMoves.Dequeue();
+        _actors.ShownAt[move.Hero] = move.To;
+        _camera.Follow(move.To);
+        if (_rivalMoves.Count == 0)
+            _actors.ShownAt.Clear(); // tout est rejoué : chaque héros est montré là où il est
+    }
 
     private void CenterOnHero()
     {
@@ -400,6 +428,12 @@ public partial class Main : Node2D
     {
         if (!CanAct)
             return;
+        PassTurn();
+    }
+
+    /// <summary>Fin du tour du joueur ; les adversaires jouent aussitôt, puis la sauvegarde automatique.</summary>
+    private void PassTurn()
+    {
         _state.EndTurn();
         // les adversaires jouent tout de suite (sans attendre l'affichage), puis c'est de nouveau au joueur
         while (_state.Outcome == GameOutcome.Playing && _state.CurrentPlayer.IsComputer && _state.CurrentBattle == null)
@@ -664,6 +698,7 @@ public partial class Main : Node2D
         }
 
         HandleEvents();
+        ReplayRivals(delta);
 
         if (_townToOpen != null && !_hud.IsDialogOpen && _state.Outcome == GameOutcome.Playing)
         {
@@ -736,11 +771,22 @@ public partial class Main : Node2D
                 case HeroMoved moved when moved.Hero == _state.CurrentHero:
                     _camera.Follow(moved.To);
                     break;
+                // un pas d'un héros adverse là où le joueur peut voir : il sera rejoué (et montré d'où il part)
+                case HeroMoved moved when moved.Hero.Owner != viewer
+                                          && (viewer.Fog.IsExplored(moved.From) || viewer.Fog.IsExplored(moved.To)):
+                    if (!_actors.ShownAt.ContainsKey(moved.Hero))
+                    {
+                        _actors.ShownAt[moved.Hero] = moved.From;
+                        if (_rivalMoves.All(m => m.Hero.Owner != moved.Hero.Owner))
+                            _hud.AddMessage(Texts.RivalMoving(moved.Hero.Owner));
+                    }
+                    _rivalMoves.Enqueue(moved);
+                    break;
                 case BattleStarted started when started.Hero.Owner == viewer:
                     _walking = false;
                     StartBattle(started);
                     break;
-                case BattleFought battle:
+                case BattleFought battle when battle.Hero.Owner == viewer:
                     _walking = false;
                     _hud.ShowBattle(battle);
                     break;

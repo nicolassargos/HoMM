@@ -447,6 +447,9 @@ public static class Texts
     public static string SeedHelp => "La même graine donne la même carte.";
     public static string GoalsLabel => "Comment gagner";
     public static string OpponentsLabel => "Adversaires";
+
+    /// <summary>Les déplacements d'un adversaire que l'on voit sont rejoués : « Bleu se déplace… ».</summary>
+    public static string RivalMoving(Player player) => $"{player.Name} se déplace…";
     public static string OpponentsTooltip(int count) => count switch
     {
         0 => "Seul contre les monstres",

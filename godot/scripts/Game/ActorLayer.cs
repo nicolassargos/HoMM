@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using HoMM.Core;
 
@@ -21,6 +22,12 @@ public partial class ActorLayer : Node2D
         QueueRedraw();
     }
 
+    /// <summary>
+    /// Où montrer un héros adverse pendant que ses déplacements sont rejoués (il a déjà fini son tour dans les règles) ;
+    /// les autres héros sont montrés là où ils sont.
+    /// </summary>
+    public Dictionary<Hero, Cell> ShownAt { get; } = new();
+
     public override void _Draw()
     {
         const int t = MapRenderer.TileSize;
@@ -40,7 +47,10 @@ public partial class ActorLayer : Node2D
         if (State.CurrentHero is { } selected)
             MapRenderer.DrawSelection(this, ToPixels(selected.Position) + half + new Vector2(0, 14), _time);
         foreach (var hero in State.AllHeroes)
-            MapRenderer.DrawHero(this, ToPixels(hero.Position) + half + new Vector2(0, 4), _time, hero.Owner);
+        {
+            var at = ShownAt.TryGetValue(hero, out var shown) ? shown : hero.Position;
+            MapRenderer.DrawHero(this, ToPixels(at) + half + new Vector2(0, 4), _time, hero.Owner);
+        }
         // (la case survolée n'est plus encadrée : le panneau la décrit, cela suffit)
     }
 

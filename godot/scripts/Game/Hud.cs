@@ -22,6 +22,25 @@ public partial class Hud : CanvasLayer
     public const int BottomBarHeight = 78;
 
     private GameState _state = null!;
+
+    /// <summary>Le joueur qui regarde l'écran (le joueur humain) : le panneau montre toujours ses héros et ses villes.</summary>
+    private Player Viewer => _state.Players[0];
+
+    private Hero? _lastHero;
+
+    /// <summary>
+    /// Le héros montré par le panneau : le héros choisi du joueur, et pendant le tour d'un adversaire (qui attend une
+    /// défense), le dernier qu'il avait choisi.
+    /// </summary>
+    private Hero? ShownHero
+    {
+        get
+        {
+            if (_state.CurrentPlayer == Viewer)
+                return _lastHero = _state.CurrentHero;
+            return _lastHero is { } hero && Viewer.Heroes.Contains(hero) ? hero : Viewer.Heroes.FirstOrDefault();
+        }
+    }
     private ResourceBar _resourceBar = null!;
 
     // le héros choisi
@@ -246,7 +265,7 @@ public partial class Hud : CanvasLayer
         portraitFrame.TooltipText = Texts.HeroScreenHint;
         portraitFrame.GuiInput += e =>
         {
-            if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && _state.CurrentHero is { } shown)
+            if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && ShownHero is { } shown)
                 HeroDetailsPressed?.Invoke(shown);
         };
 
@@ -334,10 +353,10 @@ public partial class Hud : CanvasLayer
     /// <summary>Met à jour l'interface. Appelé à chaque image : ce qui coûte (listes, survol) n'est refait qu'au changement.</summary>
     public void Refresh(Cell? hovered)
     {
-        var player = _state.CurrentPlayer;
+        var player = Viewer;
         _resourceBar.Refresh(_state, player);
 
-        if (_state.CurrentHero is { } hero)
+        if (ShownHero is { } hero)
         {
             _heroName.Text = hero.Name;
             _heroLevel.Text = Texts.HeroLevelLine(hero);
@@ -389,14 +408,14 @@ public partial class Hud : CanvasLayer
     {
         _heroesOffset = Math.Clamp(_heroesOffset, 0, Math.Max(0, player.Heroes.Count - ListRows));
         var shown = player.Heroes.Skip(_heroesOffset).Take(ListRows).ToList();
-        string key = string.Join("|", shown.Select(h => $"{h.Id}:{h.Movement}")) + $"#{_state.CurrentHero?.Id}#{player.Heroes.Count}";
+        string key = string.Join("|", shown.Select(h => $"{h.Id}:{h.Movement}")) + $"#{ShownHero?.Id}#{player.Heroes.Count}";
         if (key == _heroesKey)
             return;
         _heroesKey = key;
         Clear(_heroRows);
         foreach (var hero in shown)
         {
-            var row = Row(hero == _state.CurrentHero, Texts.HeroTooltip(hero), () => HeroClicked?.Invoke(hero),
+            var row = Row(hero == ShownHero, Texts.HeroTooltip(hero), () => HeroClicked?.Invoke(hero),
                 () => HeroDetailsPressed?.Invoke(hero));
             if (Art.Portrait(hero.Name) is { } portrait)
                 row.AddChild(Picture(portrait, new Vector2(2, 2), new Vector2(64, 64)));
@@ -531,7 +550,7 @@ public partial class Hud : CanvasLayer
     /// </summary>
     private string DescribeCell(Cell? hovered)
     {
-        var hero = _state.CurrentHero;
+        var hero = ShownHero;
         var key = (hovered, hero?.Id ?? 0, hero?.Position ?? default, hero?.Movement ?? 0, _state.Map.Objects.Count);
         if (_hoverKey == key)
             return _hoverText;
@@ -542,21 +561,21 @@ public partial class Hud : CanvasLayer
 
     private string Describe(Cell? hovered)
     {
-        if (hovered is not { } cell || !_state.CurrentPlayer.Fog.IsExplored(cell))
+        if (hovered is not { } cell || !Viewer.Fog.IsExplored(cell))
             return "";
         var terrain = _state.Map.GetTerrain(cell);
         bool passable = TerrainInfo.IsPassable(terrain);
-        int? days = passable && _state.CurrentHero != null ? _state.DaysTo(cell) : null;
+        int? days = passable && ShownHero != null ? _state.DaysTo(cell) : null;
         string line = Texts.CellLine(terrain, _state.Map.HasRoad(cell), passable ? _state.Map.MoveCost(cell) : null, days);
         var obj = _state.Map.OccupantAt(cell);
         // un héros adverse sur la case : son nom, sa couleur et le danger de l'attaquer (son bonus compte)
-        if (_state.EnemyHeroAt(cell, _state.CurrentPlayer) is { } enemy)
+        if (_state.EnemyHeroAt(cell, Viewer) is { } enemy)
             return $"{line}\n{Join(Texts.HeroWithColor(enemy), Prediction(enemy.Army, enemy))}";
         string? second = obj switch
         {
-            Mine mine => $"{Texts.MineName(mine)} ({(mine.Owner == _state.CurrentPlayer ? Texts.Owned : mine.Owner != null ? Texts.EnemyOwned : Texts.Free)})",
+            Mine mine => $"{Texts.MineName(mine)} ({(mine.Owner == Viewer ? Texts.Owned : mine.Owner != null ? Texts.EnemyOwned : Texts.Free)})",
             MonsterGuard guard => Join(Texts.ObjectName(guard), Prediction(guard.Army)),
-            Town town when town.Owner == _state.CurrentPlayer => $"{town.Name} ({Texts.Owned})",
+            Town town when town.Owner == Viewer => $"{town.Name} ({Texts.Owned})",
             Town town => Join($"{town.Name} ({(town.Owner != null ? Texts.EnemyOwned : Texts.Neutral)})",
                 town.Garrison.IsEmpty ? "" : Texts.GarrisonOf(Prediction(town.Garrison))),
             null => null,
@@ -572,7 +591,7 @@ public partial class Hud : CanvasLayer
     /// <summary>Danger estimé d'un combat, en simulant le combat sur des copies des armées.</summary>
     private string Prediction(Army enemy, Hero? enemyHero = null)
     {
-        int armyCount = _state.CurrentHero?.Army.TotalCount ?? 0;
+        int armyCount = ShownHero?.Army.TotalCount ?? 0;
         var key = (enemy, enemy.TotalCount, armyCount);
         if (_predictionKey == key)
             return _predictionText;
@@ -864,12 +883,16 @@ public partial class Hud : CanvasLayer
     });
 
     /// <summary>Avant un combat : le diriger (écran de combat) ou le laisser se dérouler (combat rapide).</summary>
-    public void ShowBattleChoice(string opponent, Action tactical, Action quick) => Enqueue(done =>
+    /// <summary>Un adversaire attaque : se défendre soi-même (combat tactique) ou le combat rapide.</summary>
+    public void ShowDefenseChoice(string attacker, string? town, Action tactical, Action quick) =>
+        ShowBattleChoice(attacker, tactical, quick, Texts.DefenseChoiceTitle, Texts.DefenseChoiceText(attacker, town));
+
+    public void ShowBattleChoice(string opponent, Action tactical, Action quick, string? title = null, string? text = null) => Enqueue(done =>
     {
         var dialog = new GameDialog
         {
-            Title = Texts.BattleChoiceTitle,
-            DialogText = Texts.BattleChoiceText(opponent),
+            Title = title ?? Texts.BattleChoiceTitle,
+            DialogText = text ?? Texts.BattleChoiceText(opponent),
             OkButtonText = Texts.TacticalButton,
             Exclusive = true,
             Unresizable = true,

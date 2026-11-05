@@ -92,4 +92,30 @@ public class HerosContreHerosTests
 
         Assert.True(helped.AttackerLosses.Sum(s => s.Count) > plain.AttackerLosses.Sum(s => s.Count));
     }
+
+    [Fact]
+    public void Le_joueur_attaque_dirige_sa_defense_puis_l_adversaire_reprend_son_tour()
+    {
+        var (state, me, him) = FaceToFace(mine: 40, rival: 60);
+        state.HumansDefend = true;
+        state.EndTurn();
+
+        ComputerPlayer.PlayTurn(state);
+
+        // le combat attend le joueur : son héros est encore là, l'adversaire ne peut pas finir son tour
+        Assert.NotNull(state.CurrentBattle);
+        Assert.Contains(me, state.Players[0].Heroes);
+        Assert.Contains(state.TakeEvents(), e => e is BattleStarted { Defender: HeroDefender d } && d.Hero == me);
+        state.EndTurn();
+        Assert.True(state.CurrentPlayer.IsComputer);
+
+        // le joueur se défend (ici, l'IA du combat le fait pour lui), puis l'adversaire reprend et finit son tour
+        BattleAI.PlayOut(state.CurrentBattle!);
+        Assert.True(state.FinishBattle());
+        ComputerPlayer.PlayTurn(state);
+        Assert.Null(state.CurrentBattle);
+        state.EndTurn();
+        // c'est de nouveau au joueur, ou la partie est finie (s'il a perdu son seul héros)
+        Assert.True(state.Outcome != GameOutcome.Playing || !state.CurrentPlayer.IsComputer);
+    }
 }

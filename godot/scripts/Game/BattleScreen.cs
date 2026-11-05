@@ -153,13 +153,11 @@ public partial class BattleScreen : CanvasLayer
     }
 
     /// <summary>Un clic sur le héros : ses caractéristiques (le livre de sorts viendra avec la magie).</summary>
-    private void ShowHero()
+    private void ShowHero(Hero hero)
     {
-        if (_hero is not { } hero)
-            return;
         var dialog = new GameDialog
         {
-            Title = hero.Name, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true,
+            Title = hero.Owner.IsComputer ? Texts.HeroWithColor(hero) : hero.Name, // un héros adverse : avec sa couleur OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true,
             DialogText = $"{Texts.LevelLine(hero)}\n{Texts.HeroBonus(hero)}\n{Texts.SpellBookLater}",
         };
         dialog.Confirmed += dialog.QueueFree;
@@ -215,10 +213,17 @@ public partial class BattleScreen : CanvasLayer
     }
 
     /// <summary>Ouvre l'écran pour ce combat ; <paramref name="finished"/> est appelé quand il est fini et montré.</summary>
-    public void Open(TacticalBattle battle, string enemy, TerrainType terrain, Action finished, bool auto = false, Hero? hero = null)
+    /// <param name="hero">Le héros de l'attaquant (à gauche).</param>
+    /// <param name="defenderHero">Le héros qui se défend (à droite), dans un combat entre héros.</param>
+    /// <param name="playerSide">Le camp que dirige le joueur : l'attaquant, ou le défenseur quand il est attaqué.</param>
+    public void Open(TacticalBattle battle, string enemy, TerrainType terrain, Action finished, bool auto = false, Hero? hero = null,
+        Hero? defenderHero = null, BattleSide playerSide = BattleSide.Attacker)
     {
         _battle = battle;
         _hero = hero;
+        _playerSide = playerSide;
+        _field.DefenderHero = defenderHero;
+        _field.PlayerSide = playerSide;
         _log.Clear();
         _unitInfo.Visible = false;
         _field.AttackerHero = hero;
@@ -241,7 +246,10 @@ public partial class BattleScreen : CanvasLayer
             Show(battle.TakeLog());
     }
 
-    private bool IsPlayerTurn => _battle is { Active: { Side: BattleSide.Attacker } } && !_auto && !_field.IsAnimating;
+    private bool IsPlayerTurn => _battle is { Active: { } active } && active.Side == _playerSide && !_auto && !_field.IsAnimating;
+
+    /// <summary>Le camp que dirige le joueur (l'attaquant, ou le défenseur quand un adversaire l'attaque).</summary>
+    private BattleSide _playerSide = BattleSide.Attacker;
 
     private void OnClicked(Hex hex, Vector2 point)
     {
@@ -297,7 +305,7 @@ public partial class BattleScreen : CanvasLayer
             return;
         }
         // L'IA joue les ennemis (et tout, en mode Auto), une action à la fois, quand l'animation précédente est finie
-        if (!_field.IsAnimating && (battle.Active?.Side == BattleSide.Defender || _auto))
+        if (!_field.IsAnimating && (battle.Active is { } active && active.Side != _playerSide || _auto))
         {
             _wait -= delta;
             if (_wait <= 0)
@@ -319,6 +327,8 @@ public partial class BattleScreen : CanvasLayer
         _title.Text = Texts.BattleRound(battle.Round);
         foreach (var button in new[] { _waitButton, _defendButton, _fleeButton })
             button.Disabled = !mine;
+        // on ne fuit qu'en attaquant (celui qui se défend n'a nulle part où aller)
+        _fleeButton.Disabled = !mine || _playerSide != BattleSide.Attacker;
         _waitButton.Disabled = !mine || unit!.HasWaited;
         _autoButton.Disabled = _auto;
 
@@ -373,7 +383,7 @@ public partial class BattleScreen : CanvasLayer
         float label = next.Count > 0 ? Px(110) : 0;
         float width = Math.Clamp((_order.Size.X - label - Px(4) * (now.Count + next.Count)) / Math.Max(1, now.Count + next.Count), Px(34), Px(58));
         foreach (var (unit, i) in now.Select((u, i) => (u, i)))
-            _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), i == 0, dim: false, width));
+            _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), i == 0, dim: false, width, _playerSide));
         if (next.Count > 0)
         {
             var text = MakeLabel(Texts.BattleNextRound, 12, SoftTextColor);
@@ -381,14 +391,14 @@ public partial class BattleScreen : CanvasLayer
             text.CustomMinimumSize = new Vector2(0, OrderHeight);
             _order.AddChild(text);
             foreach (var unit in next)
-                _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), false, dim: true, width));
+                _order.AddChild(OrderSlot(unit, _field.ShownCount(unit), false, dim: true, width, _playerSide));
         }
     }
 
-    private static Control OrderSlot(BattleUnit unit, int count, bool active, bool dim, float width)
+    private static Control OrderSlot(BattleUnit unit, int count, bool active, bool dim, float width, BattleSide playerSide)
     {
         var slot = new PanelContainer { CustomMinimumSize = new Vector2(width, OrderHeight), TooltipText = Texts.Stack(new CreatureStack(unit.Type, count)) };
-        var side = unit.Side == BattleSide.Attacker ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30);
+        var side = unit.Side == playerSide ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30);
         int border = active ? 3 : 1;
         slot.AddThemeStyleboxOverride("panel", Box(side, active ? MapRenderer.Rgb(240, 200, 80) : DimColor, border, border, border, border));
         if (dim)

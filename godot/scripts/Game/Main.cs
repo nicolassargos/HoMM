@@ -102,6 +102,7 @@ public partial class Main : Node2D
             ? new GameState(setup.Seed, data, setup.Size, setup.Opponents)
             : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents()));
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
+        _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
         // Option de développement : « -- --reveal » retire le brouillard
         if (OS.GetCmdlineUserArgs().Contains("--reveal"))
@@ -229,6 +230,23 @@ public partial class Main : Node2D
             && int.TryParse(turns["--turns=".Length..], out int count))
             for (int i = 0; i < count && _state.Outcome == GameOutcome.Playing; i++)
                 PassTurn();
+        // « --defense-test » : le premier adversaire, à côté du héros du joueur et avec la même armée que lui, l'attaque à
+        // son tour (l'attaque est forcée : à armées égales, l'IA n'attaquerait pas) ; un combat équilibré pour essayer la
+        // défense (« --defense-tactical » : dirigée d'office)
+        if (OS.GetCmdlineUserArgs().Contains("--defense-test") && _state.Opponents.SelectMany(p => p.Heroes).FirstOrDefault() is { } attacker
+            && _state.Players[0].Heroes.FirstOrDefault() is { } target)
+        {
+            var near = new[] { target.Position.Offset(1, 0), target.Position.Offset(0, 1), target.Position.Offset(1, 1) }
+                .First(c => _state.Map.IsPassable(c) && _state.Map.ObjectAt(c) == null);
+            attacker.Position = near;
+            attacker.Owner.Fog.Reveal(near, 4);
+            _defenseTactical = OS.GetCmdlineUserArgs().Contains("--defense-tactical");
+            _state.EndTurn(); // au tour de l'adversaire
+            _state.SelectHero(attacker);
+            _state.SetDestination(target.Position);
+            _state.StepAlongPath(); // le combat attend le joueur ; l'adversaire finira son tour ensuite
+            _resumeRivals = true;
+        }
         // « --center=opponent » : sur le héros du premier adversaire
         if (OS.GetCmdlineUserArgs().Contains("--center=opponent") && _state.Opponents.SelectMany(p => p.Heroes).FirstOrDefault() is { } rival)
             _camera.CenterOn(rival.Position);
@@ -392,7 +410,8 @@ public partial class Main : Node2D
         && !_heroScreen.IsOpen && !_kingdomScreen.IsOpen;
 
     /// <summary>Les commandes de la carte sont ignorées pendant la marche, hors de la carte, ou une fois la partie finie.</summary>
-    private bool CanAct => !_walking && _rivalMoves.Count == 0 && OnMap && _state.Outcome == GameOutcome.Playing;
+    private bool CanAct => !_walking && _rivalMoves.Count == 0 && OnMap && _state.Outcome == GameOutcome.Playing
+        && !_state.CurrentPlayer.IsComputer; // pendant le tour d'un adversaire (il attend une défense), on ne joue pas
 
     /// <summary>
     /// Les pas des héros adverses que le joueur peut voir (une case déjà explorée), rejoués à un rythme lisible après
@@ -401,10 +420,31 @@ public partial class Main : Node2D
     private readonly Queue<HeroMoved> _rivalMoves = new();
     private double _rivalTimer;
 
+    /// <summary>Développement (« --defense-tactical ») : la défense est dirigée d'office, sans fenêtre de choix.</summary>
+    private bool _defenseTactical;
+
+    /// <summary>Un adversaire attaque le joueur : le combat attend la fin des déplacements rejoués.</summary>
+    private BattleStarted? _pendingDefense;
+
+    /// <summary>Le joueur a fini de se défendre : l'adversaire reprend son tour (quand les fenêtres sont fermées).</summary>
+    private bool _resumeRivals;
+
     private void ReplayRivals(double delta)
     {
         if (_rivalMoves.Count == 0)
+        {
+            if (_pendingDefense is { } defense)
+            {
+                _pendingDefense = null;
+                StartDefense(defense);
+            }
+            else if (_resumeRivals && _state.CurrentBattle == null && !_hud.IsDialogOpen && !_battleScreen.IsOpen)
+            {
+                _resumeRivals = false;
+                PlayRivals();
+            }
             return;
+        }
         _rivalTimer -= delta;
         if (_rivalTimer > 0)
             return;
@@ -435,12 +475,24 @@ public partial class Main : Node2D
     private void PassTurn()
     {
         _state.EndTurn();
-        // les adversaires jouent tout de suite (sans attendre l'affichage), puis c'est de nouveau au joueur
+        PlayRivals();
+    }
+
+    /// <summary>
+    /// Les adversaires jouent tout de suite (sans attendre l'affichage), puis c'est de nouveau au joueur. Si l'un d'eux
+    /// attaque le joueur, on s'arrête : le joueur dirige sa défense, puis l'adversaire reprend (<see cref="_resumeRivals"/>).
+    /// </summary>
+    private void PlayRivals()
+    {
         while (_state.Outcome == GameOutcome.Playing && _state.CurrentPlayer.IsComputer && _state.CurrentBattle == null)
         {
             ComputerPlayer.PlayTurn(_state);
+            if (_state.CurrentBattle != null)
+                return; // un combat attend le joueur
             _state.EndTurn();
         }
+        if (_state.CurrentPlayer.IsComputer)
+            return;
         // la sauvegarde automatique, au début de chaque tour (une seule, remplacée à chaque fois)
         if (_state.Outcome == GameOutcome.Playing && _state.CurrentBattle == null && _capturePath == null)
             SaveFiles.Write(SaveFiles.AutoName, _state);
@@ -737,7 +789,8 @@ public partial class Main : Node2D
         });
         var terrain = _state.Map.GetTerrain(started.Hero.Position);
         void Tactical() => _battleScreen.Open(started.Battle, opponent, terrain, () => _state.FinishBattle(),
-            auto: _battleTest && OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: started.Hero);
+            auto: _battleTest && OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: started.Hero,
+            defenderHero: (started.Defender as HeroDefender)?.Hero);
         void Quick()
         {
             BattleAI.PlayOut(started.Battle);
@@ -747,6 +800,34 @@ public partial class Main : Node2D
             Tactical();
         else
             _hud.ShowBattleChoice(opponent, Tactical, Quick);
+    }
+
+    /// <summary>
+    /// Un adversaire attaque un héros ou une ville du joueur : il choisit de diriger sa défense (à droite de l'écran de
+    /// combat) ou le combat rapide ; ensuite, l'adversaire reprend son tour.
+    /// </summary>
+    private void StartDefense(BattleStarted started)
+    {
+        var defenderHero = (started.Defender as HeroDefender)?.Hero;
+        var terrain = _state.Map.GetTerrain(defenderHero?.Position ?? started.Defender.Position);
+        string attacker = Texts.HeroWithColor(started.Hero);
+        void Finished()
+        {
+            _state.FinishBattle();
+            _resumeRivals = true;
+        }
+        void Tactical() => _battleScreen.Open(started.Battle, attacker, terrain, Finished, hero: started.Hero,
+            defenderHero: defenderHero, playerSide: BattleSide.Defender);
+        void Quick()
+        {
+            BattleAI.PlayOut(started.Battle);
+            Finished();
+        }
+        _camera.CenterOn(started.Defender.Position);
+        if (_defenseTactical)
+            Tactical();
+        else
+            _hud.ShowDefenseChoice(attacker, started.Defender is Town town ? town.Name : null, Tactical, Quick);
     }
 
     /// <summary>Le héros courant creuse sur sa case (touche F, ou bouton des options).</summary>
@@ -786,6 +867,11 @@ public partial class Main : Node2D
                 case BattleStarted started when started.Hero.Owner == viewer:
                     _walking = false;
                     StartBattle(started);
+                    break;
+                // un adversaire attaque un héros ou une ville du joueur : il se défend, après les déplacements rejoués
+                case BattleStarted started when started.Defender is HeroDefender { Hero.Owner: var owner } && owner == viewer
+                                                || started.Defender is Town { Owner: var town } && town == viewer:
+                    _pendingDefense = started;
                     break;
                 case BattleFought battle when battle.Hero.Owner == viewer:
                     _walking = false;

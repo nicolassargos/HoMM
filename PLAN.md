@@ -511,9 +511,23 @@ Découpage (une PR par point, chacune jouable et testée) :
    comme les autres adversaires) quand la prévision le permet (avec le bonus du héros adverse) ; ses combats sont
    rapides. À l'écran : survol d'un héros adverse (nom, couleur, danger), curseur d'attaque ; quand le joueur est attaqué
    (héros ou ville), le bilan s'ouvre de son point de vue, et le journal le dit, comme une ville perdue ou un joueur
-   éliminé. Pas encore : se défendre soi-même sur l'écran de combat (le combat est joué d'office), le héros adverse
-   dessiné sur l'écran de combat. Tests : `HerosContreHerosTests`.
-6. Équilibrage, et peut-être des niveaux de difficulté.
+   éliminé. Tests : `HerosContreHerosTests`.
+   ✅ **Se défendre soi-même** : attaqué (son héros, ou une ville avec sa garnison), le joueur choisit de diriger sa
+   défense ou le combat rapide (`GameState.HumansDefend` : le combat attend, même au tour d'un adversaire ; l'adversaire
+   reprend son tour ensuite, `ComputerPlayer.PlayTurn` repart d'où il en était). Sur l'écran de combat, le joueur joue
+   alors le camp de droite (`BattleScreen`, `playerSide`), ses troupes gardent le bleu, il ne peut pas fuir. Les deux
+   héros sont dessinés, chacun à ses couleurs : l'attaquant à gauche, celui qui se défend à droite, tourné vers la
+   gauche (aussi quand le joueur attaque un héros adverse). Pendant le tour des adversaires, le panneau, le brouillard
+   et la carte réduite restent ceux du joueur, et il ne peut pas agir. Option `--defense-test` (et `--defense-tactical`).
+6. **Niveaux de difficulté** (l'utilisateur trouve le niveau actuel bien : il sert de « Normal ») : regrouper les
+   réglages de l'IA dans un **profil** par niveau (Facile, Normal, Difficile), choisi dans la nouvelle partie : pertes
+   acceptées (30 % aujourd'hui), quand elle commence à attaquer le joueur (pas avant la semaine 3 en Facile, par
+   exemple), nombre de héros et or mis de côté, petit bonus ou malus de revenus (comme dans Heroes). Simple et
+   prévisible, sans apprentissage.
+7. Plus tard (étape 10) : **entraîner les profils par des parties entre IA** jouées en arrière-plan (les règles tournent
+   sans affichage : un mois de jeu se simule en une seconde environ) ; garder les réglages qui gagnent le plus souvent
+   pour un « Difficile » solide, et vérifier que Facile l'est vraiment. Écarté : un réseau de neurones (lourd, difficile
+   à régler, sans intérêt à cette taille).
 
 ### 9. Contenu
 Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et les nouvelles factions.

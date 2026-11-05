@@ -40,7 +40,7 @@ public partial class Minimap : Control
         {
             var cell = new Cell(x, y);
             Color color = MapRenderer.FogColor;
-            if (State.CurrentPlayer.Fog.IsExplored(cell))
+            if (State.Players[0].Fog.IsExplored(cell))
             {
                 color = map.HasRoad(cell) ? MapRenderer.RoadColor : MapRenderer.TerrainColor(map.GetTerrain(cell));
                 if (map.ObjectAt(cell) is Mine mine)
@@ -52,9 +52,9 @@ public partial class Minimap : Control
         }
 
         // les héros des adversaires, à leur couleur, là où le joueur a déjà exploré ; les siens en jaune, par-dessus
-        foreach (var h in State.AllHeroes.Where(h => h.Owner != State.CurrentPlayer && State.CurrentPlayer.Fog.IsExplored(h.Position)))
+        foreach (var h in State.AllHeroes.Where(h => h.Owner != State.Players[0] && State.Players[0].Fog.IsExplored(h.Position)))
             DrawRect(new Rect2(h.Position.X * CellSize - 1, h.Position.Y * CellSize - 1, CellSize + 2, CellSize + 2), MapRenderer.ColorOf(h.Owner));
-        foreach (var h in State.CurrentPlayer.Heroes)
+        foreach (var h in State.Players[0].Heroes)
         {
             var hero = h.Position;
             DrawRect(new Rect2(hero.X * CellSize - 1, hero.Y * CellSize - 1, CellSize + 2, CellSize + 2), Colors.Yellow);

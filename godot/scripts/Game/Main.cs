@@ -197,7 +197,7 @@ public partial class Main : Node2D
         else if (setup != null)
             _state.ChooseRules(setup.Rules);
         else if (_capturePath == null || OS.GetCmdlineUserArgs().Contains("--rules")) // une capture montre la carte, sauf avec --rules
-            _hud.ShowRulesChoice(rules => _state.ChooseRules(rules));
+            _hud.ShowRulesChoice(rules => _state.ChooseRules(rules with { Difficulty = ReadDifficulty() }));
         if (OS.GetCmdlineUserArgs().Contains("--zoom")) // développement : partir zoomé
             _camera.ZoomBy(+1);
         if (_capturePath != null && OS.GetCmdlineUserArgs().Contains("--town"))
@@ -369,6 +369,13 @@ public partial class Main : Node2D
 
     /// <summary>Graine passée en argument (--seed=42), sinon une graine au hasard.</summary>
     /// <summary>Développement : « --size=tiny » (small, normal, large, huge) choisit la taille de la carte.</summary>
+    /// <summary>Développement : « --difficulty=hard » (easy, normal, hard) : la force des adversaires.</summary>
+    private static Difficulty ReadDifficulty()
+    {
+        var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--difficulty="));
+        return arg != null && Enum.TryParse(arg["--difficulty=".Length..], ignoreCase: true, out Difficulty level) ? level : Difficulty.Normal;
+    }
+
     /// <summary>Développement : « --opponents=2 » ajoute des adversaires (selon la taille de la carte).</summary>
     private static int ReadOpponents()
     {

@@ -84,7 +84,7 @@ public class CombatIAAdversaireTests
                 state.EndTurn();
             }
         }
-        Assert.Equal(GameOutcome.Playing, state.Outcome);
+        // le joueur de ce test ne bouge pas : il peut être éliminé avant la fin du mois (la partie s'arrête)
         Assert.Contains(state.Opponents, p => p.Statistics.BattlesWon > 0);
         // les adversaires s'attaquent aussi entre eux (point 5) : l'un peut être éliminé, pas tous
         Assert.Contains(state.Opponents, p => !p.IsDefeated);

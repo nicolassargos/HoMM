@@ -519,11 +519,27 @@ Découpage (une PR par point, chacune jouable et testée) :
    héros sont dessinés, chacun à ses couleurs : l'attaquant à gauche, celui qui se défend à droite, tourné vers la
    gauche (aussi quand le joueur attaque un héros adverse). Pendant le tour des adversaires, le panneau, le brouillard
    et la carte réduite restent ceux du joueur, et il ne peut pas agir. Option `--defense-test` (et `--defense-tactical`).
-6. **Niveaux de difficulté** (l'utilisateur trouve le niveau actuel bien : il sert de « Normal ») : regrouper les
-   réglages de l'IA dans un **profil** par niveau (Facile, Normal, Difficile), choisi dans la nouvelle partie : pertes
-   acceptées (30 % aujourd'hui), quand elle commence à attaquer le joueur (pas avant la semaine 3 en Facile, par
-   exemple), nombre de héros et or mis de côté, petit bonus ou malus de revenus (comme dans Heroes). Simple et
-   prévisible, sans apprentissage.
+6. ✅ **Niveaux de difficulté** : un **profil** de réglages par niveau (`ComputerProfile`, `GameRules.Difficulty`,
+   sauvegardé ; les anciennes parties sont en Normal), choisi dans la nouvelle partie (désactivé sans adversaire) :
+
+   | | Facile | Normal | Difficile |
+   |---|---|---|---|
+   | Pertes acceptées | 20 % | 30 % | 40 % |
+   | Attaque le joueur à partir du jour | 21 | 0 | 0 |
+   | Héros au plus | 2 | 3 | 4 |
+   | Revenu d'or | 75 % | 100 % | 125 % |
+
+   En mesurant, des défauts de l'IA sont apparus et ont été corrigés (valables à tous les niveaux) : elle évitait aussi
+   les monstres qu'elle n'avait jamais vus (et restait bloquée devant un gardien caché) : elle ne craint plus que les
+   monstres connus, et revoit son plan pas à pas quand un monstre apparaît ; sans ville, elle ne fait que des combats
+   faciles (10 % de pertes au plus) et garde son armée ; bloquée, elle accepte des pertes doubles, mais seulement pour
+   un monstre qui ouvre du pays nouveau ; chaque combat est prévu trois fois (tirages différents) et il faut le gagner
+   chaque fois (une victoire de justesse à la prévision pouvait être une défaite). Et le générateur : avec des
+   adversaires, le danger se compte sur la même échelle que seul, et les gardiens des sorties de chaque zone de départ
+   sont réduits pour que l'armée de départ les batte (35 % de pertes au plus) ; seul, rien ne change.
+   Mesuré (un adversaire, six cartes normales, six semaines) : Facile prend 1 ville, Normal 5, Difficile 5 ; armée
+   moyenne 1 600, 3 500 et 5 200 en or. Encore à améliorer (par l'entraînement, point 7) : sur trois cartes sur six,
+   l'adversaire reste dans son coin. Option `--difficulty=easy|normal|hard`. Tests : `DifficulteTests`.
 7. Plus tard (étape 10) : **entraîner les profils par des parties entre IA** jouées en arrière-plan (les règles tournent
    sans affichage : un mois de jeu se simule en une seconde environ) ; garder les réglages qui gagnent le plus souvent
    pour un « Difficile » solide, et vérifier que Facile l'est vraiment. Écarté : un réseau de neurones (lourd, difficile

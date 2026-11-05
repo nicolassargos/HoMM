@@ -154,6 +154,13 @@ public sealed class MapGenerator
 
     private int MaxLevel => _zones.Count == 0 ? 0 : _zones.Max(z => z.Level);
 
+    /// <summary>
+    /// L'échelle du danger : le niveau de la zone la plus lointaine si le joueur était seul (depuis son départ). Avec des
+    /// adversaires, chaque zone est plus près d'un départ : compter sur la même échelle que seul garde des voisines de
+    /// départ à la portée de l'armée de départ (sinon les zones voisines devenaient aussi dures que le milieu).
+    /// </summary>
+    private int _dangerScale;
+
     private Zone ZoneAt(Cell c) => _zones[_zoneOf[c.X, c.Y]];
 
     /// <summary>
@@ -206,6 +213,11 @@ public sealed class MapGenerator
         // On ne relie que des zones voisines où un passage peut s'ouvrir
         var openings = neighbours.ToDictionary(n => n, n => PassageCandidates(n.A, n.B));
         var links = ChooseLinks(neighbours.Where(n => openings[n].Count > 0).ToList(), startZone.Index);
+        // l'échelle du danger, comme si le joueur était seul ; puis les vrais niveaux, depuis le départ le plus proche
+        ComputeLevels(links, new List<Zone> { startZone });
+        _dangerScale = MaxLevel;
+        foreach (var zone in _zones)
+            zone.Level = -1;
         ComputeLevels(links, startZones);
         PaintWalls(neighbours);
 
@@ -410,7 +422,7 @@ public sealed class MapGenerator
     private double Danger(Cell cell)
     {
         if (MaxLevel > 0)
-            return (double)ZoneAt(cell).Level / MaxLevel;
+            return Math.Min(1, (double)ZoneAt(cell).Level / Math.Max(MaxLevel, _dangerScale));
         // Une seule zone : selon la distance, 1 au coin opposé de la carte
         double farthest = Math.Sqrt(_map.Width * _map.Width + _map.Height * _map.Height);
         return DistanceToStart(cell) / farthest;
@@ -421,7 +433,7 @@ public sealed class MapGenerator
     /// On franchit donc un passage avec l'armée qui a vaincu les monstres de sa zone.
     /// </summary>
     private double PassageDanger(Passage passage) =>
-        (Math.Min(_zones[passage.A].Level, _zones[passage.B].Level) + 0.25) / Math.Max(1, MaxLevel);
+        Math.Min(1, (Math.Min(_zones[passage.A].Level, _zones[passage.B].Level) + 0.25) / Math.Max(1, Math.Max(MaxLevel, _dangerScale)));
 
     // ------------------------------------------------------------------ villes
 
@@ -713,7 +725,9 @@ public sealed class MapGenerator
             if (_map.ObjectAt(passage.Gate) == null)
             {
                 bool leavesStart = _zones[passage.A].Level == 0 || _zones[passage.B].Level == 0;
-                AddGuard(creatures, passage.Gate, leavesStart ? 1 : PassageGuardFactor, PassageDanger(passage));
+                var guard = AddGuard(creatures, passage.Gate, leavesStart ? 1 : PassageGuardFactor, PassageDanger(passage));
+                if (leavesStart && guard != null && _map.Starts.Count > 1)
+                    FitToStartingArmy(creatures, guard);
             }
 
         var guarded = _map.Objects.Where(o => o is Mine or TreasureChest)
@@ -816,6 +830,34 @@ public sealed class MapGenerator
             }
         }
         return seen;
+    }
+
+    /// <summary>Les pertes que l'armée de départ peut subir en franchissant la sortie de sa zone (en valeur).</summary>
+    private const double StartExitLosses = 0.35;
+
+    /// <summary>
+    /// Avec des adversaires (chacun joue en combats rapides) : le gardien d'une sortie de zone de départ est réduit jusqu'à
+    /// ce que l'armée de départ le batte en perdant au plus <see cref="StartExitLosses"/> de sa valeur (selon la prévision),
+    /// pour que chacun puisse sortir de son coin et prendre sa ville.
+    /// </summary>
+    private void FitToStartingArmy(CreatureCatalog creatures, MonsterGuard guard)
+    {
+        var army = GameState.StartingArmy(creatures);
+        int value = Battle.ExperienceFor(army.Stacks);
+        int count = guard.Count;
+        while (count > 1)
+        {
+            var enemy = new Army();
+            enemy.Add(guard.Type, count);
+            var report = Battle.Resolve(army.Clone(), enemy);
+            if (report.AttackerWon && Battle.ExperienceFor(report.AttackerLosses) <= StartExitLosses * value)
+                break;
+            count = Math.Max(1, count * 4 / 5);
+        }
+        if (count == guard.Count)
+            return;
+        _map.RemoveObject(guard);
+        _map.AddObject(new MonsterGuard(guard.Position, guard.Type, count));
     }
 
     private MonsterGuard? AddGuard(CreatureCatalog creatures, Cell cell, double sizeFactor = 1, double? dangerOverride = null)

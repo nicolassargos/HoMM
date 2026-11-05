@@ -7,14 +7,31 @@ namespace HoMM.Core;
 /// <summary>
 /// L'intelligence des adversaires (étape 8) : elle joue avec les mêmes méthodes de <see cref="GameState"/> que le joueur
 /// humain, sans attendre l'affichage, puis l'appelant finit le tour.
-/// Point 2 : chaque héros va ramasser ce qu'il peut prendre sans combat (tas, coffres, mines, obélisques), et sinon
-/// explore. Il ne connaît que ce que son joueur a exploré (pas de triche) et n'entre jamais dans la zone d'un monstre.
-/// Il construira et recrutera (point 3), combattra (point 4).
+/// Chaque héros va ramasser ce qu'il peut prendre sans combat (tas, coffres, mines, obélisques), attaque les monstres et
+/// les villes neutres qu'il est sûr de battre sans trop de pertes (point 3), et sinon explore. Il ne connaît que ce que
+/// son joueur a exploré (pas de triche) et n'entre dans la zone d'un monstre que pour l'attaquer, lui seul.
+/// Il construira et recrutera (point 4), affrontera les autres joueurs (point 5).
 /// </summary>
 public static class ComputerPlayer
 {
     /// <summary>Assez de tentatives pour une journée de marche, sans risquer de tourner en rond.</summary>
     private const int MaxMovesPerHero = 30;
+
+    /// <summary>Un combat vaut la peine s'il est gagné en perdant au plus cette part de la valeur de l'armée.</summary>
+    public const double AcceptableLosses = 0.3;
+
+    /// <summary>
+    /// Le combat contre cette armée est-il gagné, avec des pertes acceptables (en valeur, l'or des créatures) ?
+    /// Selon la même prévision que l'interface (une graine fixe) : le vrai combat peut un peu différer.
+    /// </summary>
+    internal static bool WorthFighting(Hero hero, Army enemy)
+    {
+        if (enemy.IsEmpty)
+            return true;
+        var report = Battle.Resolve(hero.Army.Clone(), enemy.Clone(), hero);
+        return report.AttackerWon
+            && Battle.ExperienceFor(report.AttackerLosses) <= AcceptableLosses * Battle.ExperienceFor(hero.Army.Stacks);
+    }
 
     /// <summary>Joue le tour du joueur courant, s'il est joué par l'ordinateur (sans finir le tour).</summary>
     public static void PlayTurn(GameState state)
@@ -59,8 +76,10 @@ public static class ComputerPlayer
             if (ChooseTarget(state, hero) is not { } target)
                 return;
             state.SetDestination(target);
-            // le chemin de la partie doit rester sûr (il peut passer ailleurs que par les cases connues)
-            if (state.Path is not { Count: > 0 } path || path.Any(state.Map.IsGuarded))
+            // le chemin de la partie doit rester sûr (il peut passer ailleurs que par les cases connues) : seule la dernière
+            // case peut être dans la zone d'un monstre, et d'un seul (celui que le héros va attaquer)
+            if (state.Path is not { Count: > 0 } path || path.Take(path.Count - 1).Any(state.Map.IsGuarded)
+                || state.Map.GuardsAround(path[^1]).Count() > 1)
             {
                 state.ClearPath();
                 return;
@@ -76,8 +95,10 @@ public static class ComputerPlayer
     }
 
     /// <summary>
-    /// La case où aller : le meilleur objet à ramasser (le plus proche ; une mine vaut deux fois plus, elle rapporte
-    /// chaque jour), sinon la case connue la plus proche au bord de l'inconnu ; null s'il n'y a rien.
+    /// La case où aller : le meilleur but (le plus proche, pondéré : une ville neutre à prendre d'abord, puis une mine
+    /// qui rapporte chaque jour, les tas et coffres, les obélisques, et un monstre qu'il bat facilement), sinon la case
+    /// connue la plus proche au bord de l'inconnu ; null s'il n'y a rien. Pour un monstre, la case est une case de sa
+    /// zone que lui seul garde : y entrer déclenche le combat contre lui seul.
     /// </summary>
     internal static Cell? ChooseTarget(GameState state, Hero hero)
     {
@@ -99,6 +120,25 @@ public static class ComputerPlayer
                 continue;
             if (cost * weight < bestScore)
                 (best, bestScore) = (obj.Position, cost * weight);
+        }
+
+        // une ville neutre connue : sa garnison doit être battue sans trop de pertes
+        foreach (var town in map.Objects.OfType<Town>().Where(t => t.Owner == null).OrderBy(t => t.Id))
+        {
+            if (!costs.TryGetValue(town.Position, out int cost) || map.IsGuarded(town.Position) || cost * 0.3 >= bestScore)
+                continue;
+            if (WorthFighting(hero, town.Garrison))
+                (best, bestScore) = (town.Position, cost * 0.3);
+        }
+
+        // un monstre connu, par une case de sa zone que lui seul garde
+        foreach (var guard in map.Objects.OfType<MonsterGuard>().Where(g => player.Fog.IsExplored(g.Position)).OrderBy(g => g.Id))
+        {
+            var approach = ApproachCells(state, hero, guard, costs).OrderBy(a => a.Cost).ThenBy(a => a.Cell.Y).ThenBy(a => a.Cell.X).FirstOrDefault();
+            if (approach.Cost == 0 || approach.Cost * 2.0 >= bestScore)
+                continue;
+            if (WorthFighting(hero, guard.Army))
+                (best, bestScore) = (approach.Cell, approach.Cost * 2.0);
         }
         if (best != null)
             return best;
@@ -146,6 +186,33 @@ public static class ComputerPlayer
             }
         }
         return costs;
+    }
+
+    /// <summary>
+    /// Les cases de la zone d'un monstre que lui seul garde, avec le coût pour y arriver depuis une case sûre voisine.
+    /// </summary>
+    private static IEnumerable<(Cell Cell, int Cost)> ApproachCells(GameState state, Hero hero, MonsterGuard guard, Dictionary<Cell, int> costs)
+    {
+        var map = state.Map;
+        var heroes = state.AllHeroes.Where(h => h != hero).Select(h => h.Position).ToHashSet();
+        foreach (var cell in Neighbours(guard.Position))
+        {
+            if (!map.IsPassable(cell) || !hero.Owner.Fog.IsExplored(cell) || map.ObjectAt(cell) != null || heroes.Contains(cell)
+                || map.GuardsAround(cell).Any(g => g != guard))
+                continue;
+            int best = int.MaxValue;
+            foreach (var from in Neighbours(cell))
+            {
+                if (!costs.TryGetValue(from, out int cost) || (from != hero.Position && map.ObjectAt(from) != null))
+                    continue;
+                int dx = cell.X - from.X, dy = cell.Y - from.Y;
+                if (dx != 0 && dy != 0 && !(map.IsPassable(from.Offset(dx, 0)) && map.IsPassable(from.Offset(0, dy))))
+                    continue;
+                best = Math.Min(best, cost + Pathfinder.StepCost(map, from, cell));
+            }
+            if (best != int.MaxValue)
+                yield return (cell, best);
+        }
     }
 
     private static IEnumerable<Cell> Neighbours(Cell c)

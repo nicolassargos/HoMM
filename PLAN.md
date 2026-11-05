@@ -488,10 +488,18 @@ Découpage (une PR par point, chacune jouable et testée) :
    À l'écran : les pas des héros adverses là où le joueur a exploré sont rejoués à un rythme lisible, la vue les suit
    (« Bleu se déplace… ») ; pas de compte rendu de combat pour les combats des autres. Option `--turns=N` (joue N jours
    au lancement). Tests : `ExplorationIATests`.
-3. **L'IA construit et recrute** : bâtiments, troupes, héros de taverne.
-4. **L'IA combat** : les monstres qu'elle peut battre, les villes, et les héros (combat entre héros, nouveau) ; le joueur
-   peut attaquer ses héros et ses villes.
-5. Équilibrage, et peut-être des niveaux de difficulté.
+3. ✅ **L'IA combat les monstres et prend les villes neutres** (avant de construire : sans ville, elle ne peut rien
+   faire, et la ville neutre a une garnison). Elle attaque un monstre ou une ville neutre si la prévision (la même que
+   le danger affiché à l'interface) donne une victoire en perdant au plus 30 % de la valeur de son armée
+   (`ComputerPlayer.AcceptableLosses`, valeur = l'or des créatures). Un monstre est abordé par une case de sa zone que
+   lui seul garde (un seul combat à la fois) ; une ville neutre compte beaucoup, une mine moins, un monstre moins
+   encore. Sur trois cartes normales à deux adversaires, en quatre semaines : 2 à 4 combats gagnés chacun, la ville
+   prise 5 fois sur 6 ; sans recruter, leurs armées fondent et leur or s'accumule (point 4). Le joueur peut déjà prendre
+   les villes des adversaires (leur garnison se défend). Tests : `CombatIAAdversaireTests`.
+4. **L'IA construit et recrute** : bâtiments, troupes, héros de taverne.
+5. **Les héros s'affrontent** (combat entre héros, nouveau) : l'IA attaque les héros et les villes du joueur, le joueur
+   peut attaquer ses héros.
+6. Équilibrage, et peut-être des niveaux de difficulté.
 
 ### 9. Contenu
 Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et les nouvelles factions.

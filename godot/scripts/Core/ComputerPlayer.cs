@@ -10,7 +10,8 @@ namespace HoMM.Core;
 /// Chaque héros va ramasser ce qu'il peut prendre sans combat (tas, coffres, mines, obélisques), attaque les monstres et
 /// les villes neutres qu'il est sûr de battre sans trop de pertes (point 3), et sinon explore. Il ne connaît que ce que
 /// son joueur a exploré (pas de triche) et n'entre dans la zone d'un monstre que pour l'attaquer, lui seul.
-/// Il construira et recrutera (point 4), affrontera les autres joueurs (point 5).
+/// Dans ses villes, il construit, recrute et engage des héros (point 4) ; un héros vient chercher la garnison. Il
+/// affrontera les autres joueurs (point 5).
 /// </summary>
 public static class ComputerPlayer
 {
@@ -43,6 +44,8 @@ public static class ComputerPlayer
         try
         {
             ChooseLevels(state);
+            foreach (var town in state.CurrentPlayer.Towns.ToList())
+                ManageTown(state, town);
             foreach (var hero in state.CurrentPlayer.Heroes.ToList())
             {
                 if (state.Outcome != GameOutcome.Playing)
@@ -55,6 +58,87 @@ public static class ComputerPlayer
         {
             state.QuickBattles = quick;
         }
+    }
+
+    /// <summary>
+    /// L'ordre de construction : les habitations et la taverne d'abord (des troupes, un deuxième héros), puis l'or
+    /// (comme la simulation d'équilibrage).
+    /// </summary>
+    private static readonly string[] BuildOrder =
+    {
+        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "caserne", "monastere",
+        "terrain-entrainement", "grand-hotel-ville", "portail-gloire",
+    };
+
+    /// <summary>Le nombre de héros voulus : un de plus que de villes, trois au plus.</summary>
+    private static int WantedHeroes(Player player) => Math.Min(3, player.Towns.Count + 1);
+
+    /// <summary>
+    /// Une ville du joueur : un bâtiment (le premier possible dans l'ordre de construction), un héros de plus s'il en
+    /// manque (l'or est gardé pour lui), puis les troupes qu'il peut payer (les plus fortes d'abord) ; enfin, un héros
+    /// présent emporte la garnison.
+    /// </summary>
+    private static void ManageTown(GameState state, Town town)
+    {
+        var player = state.CurrentPlayer;
+        foreach (var id in BuildOrder)
+            if (town.Buildings.FirstOrDefault(b => b.Id == id) is { } building && town.CanBuild(building, player) == BuildResult.Ok)
+            {
+                state.Build(town, id);
+                break;
+            }
+        bool wantsHero = player.Heroes.Count < WantedHeroes(player) && town.Buildings.Any(b => b.Tavern && town.Has(b.Id));
+        if (wantsHero && player.Resources[ResourceType.Gold] >= GameState.HeroCost && state.CanHireHero(town) == HireResult.Ok)
+        {
+            state.HireHero(town);
+            wantsHero = player.Heroes.Count < WantedHeroes(player);
+        }
+        // s'il manque un héros, on garde de quoi l'engager (sinon les troupes achetées chaque jour prendraient tout l'or)
+        int reserve = wantsHero ? GameState.HeroCost : 0;
+        foreach (var type in town.Available.Keys.OrderByDescending(t => t.Tier).ToList())
+        {
+            int gold = type.Cost.GetValueOrDefault(ResourceType.Gold);
+            int affordable = gold > 0 ? Math.Max(0, player.Resources[ResourceType.Gold] - reserve) / gold : int.MaxValue;
+            if (Math.Min(town.MaxRecruitable(type, player), affordable) is > 0 and var count)
+                state.Recruit(town, type, count);
+        }
+        if (state.VisitingHero(town) is { } hero && hero.Owner == player)
+            TakeGarrison(state, town, hero);
+    }
+
+    /// <summary>
+    /// Le héros présent emporte la garnison, les troupes les plus fortes d'abord, sans dépasser ce que son charisme
+    /// commande (une troupe trop nombreuse risquerait de se révolter) : le reste attend dans la ville.
+    /// </summary>
+    private static void TakeGarrison(GameState state, Town town, Hero hero)
+    {
+        int limit = Command.Limit(hero.Charisma);
+        foreach (var type in town.Garrison.Stacks.Select(s => s.Type).Distinct().OrderByDescending(t => t.Tier).ToList())
+        {
+            int index = IndexOf(town.Garrison, type);
+            if (index < 0)
+                continue;
+            int slot = IndexOf(hero.Army, type);
+            int already = slot >= 0 ? hero.Army.Stacks[slot].Count : 0;
+            if (slot < 0)
+            {
+                if (hero.Army.Stacks.Count >= Army.MaxStacks)
+                    continue;
+                slot = hero.Army.Stacks.Count;
+            }
+            int room = limit / Math.Max(1, type.CommandCost) - already;
+            int count = Math.Min(room, town.Garrison.Stacks[index].Count);
+            if (count > 0)
+                state.MoveTroop(town, fromGarrison: true, index, toGarrison: false, slot, count);
+        }
+    }
+
+    private static int IndexOf(Army army, CreatureType type)
+    {
+        for (int i = 0; i < army.Stacks.Count; i++)
+            if (army.Stacks[i].Type == type)
+                return i;
+        return -1;
     }
 
     /// <summary>Les niveaux gagnés : l'attaque d'abord, puis la défense (des troupes plus fortes).</summary>
@@ -87,6 +171,8 @@ public static class ComputerPlayer
             var before = hero.Position;
             while (state.StepAlongPath()) { }
             ChooseLevels(state);
+            if (state.Map.ObjectAt(hero.Position) is Town own && own.Owner == hero.Owner && own.Position == hero.Position)
+                TakeGarrison(state, own, hero);
             if (state.Outcome != GameOutcome.Playing || !hero.Owner.Heroes.Contains(hero))
                 return;
             if (hero.Position == before) // plus assez de mouvement pour le premier pas
@@ -116,10 +202,19 @@ public static class ComputerPlayer
                 Obelisk obelisk when !player.Obelisks.Contains(obelisk.Id) => 1.5,
                 _ => 0,
             };
-            if (weight == 0 || !costs.TryGetValue(obj.Position, out int cost))
+            if (weight == 0 || obj.Position == hero.Position || !costs.TryGetValue(obj.Position, out int cost))
                 continue;
             if (cost * weight < bestScore)
                 (best, bestScore) = (obj.Position, cost * weight);
+        }
+
+        // une de ses villes, si la garnison qui l'attend vaut au moins la moitié de son armée
+        foreach (var town in player.Towns.OrderBy(t => t.Id))
+        {
+            if (town.Position == hero.Position || town.Garrison.IsEmpty || !costs.TryGetValue(town.Position, out int cost))
+                continue;
+            if (Battle.ExperienceFor(town.Garrison.Stacks) * 2 >= Battle.ExperienceFor(hero.Army.Stacks) && cost * 0.4 < bestScore)
+                (best, bestScore) = (town.Position, cost * 0.4);
         }
 
         // une ville neutre connue : sa garnison doit être battue sans trop de pertes

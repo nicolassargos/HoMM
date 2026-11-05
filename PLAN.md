@@ -496,7 +496,13 @@ Découpage (une PR par point, chacune jouable et testée) :
    encore. Sur trois cartes normales à deux adversaires, en quatre semaines : 2 à 4 combats gagnés chacun, la ville
    prise 5 fois sur 6 ; sans recruter, leurs armées fondent et leur or s'accumule (point 4). Le joueur peut déjà prendre
    les villes des adversaires (leur garnison se défend). Tests : `CombatIAAdversaireTests`.
-4. **L'IA construit et recrute** : bâtiments, troupes, héros de taverne.
+4. ✅ **L'IA construit et recrute** : chaque jour, dans chaque ville, un bâtiment (dans l'ordre de la simulation
+   d'équilibrage : tour des archers, taverne, hôtel de ville, tour des griffons…), un héros de taverne s'il en manque
+   (un de plus que de villes, trois au plus : l'or est mis de côté pour lui), puis toutes les troupes qu'elle peut payer,
+   les plus fortes d'abord. Un héros présent emporte la garnison sans dépasser son charisme (pas de révolte) ; un héros
+   revient en ville quand la garnison vaut au moins la moitié de son armée. Sur trois cartes normales à deux
+   adversaires, en six semaines : 5 à 9 bâtiments, 2 ou 3 héros, une deuxième ville souvent, des armées jusqu'à
+   12 000 or ; un adversaire dont la ville voisine est trop bien gardée reste bloqué. Tests : `VillesIATests`.
 5. **Les héros s'affrontent** (combat entre héros, nouveau) : l'IA attaque les héros et les villes du joueur, le joueur
    peut attaquer ses héros.
 6. Équilibrage, et peut-être des niveaux de difficulté.

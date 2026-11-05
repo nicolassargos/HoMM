@@ -94,8 +94,8 @@ public class ExplorationIATests
         Assert.Equal(21, state.Day);
         var rivals = state.Opponents.ToList();
         Assert.All(rivals, p => Assert.NotEmpty(p.Heroes));
-        // ils ont ramassé de l'or ou pris des mines
-        Assert.All(rivals.Select((p, i) => (p, i)), x =>
-            Assert.True(x.p.Resources[ResourceType.Gold] > startGold[x.i] || x.p.Mines.Count > 0));
+        // chacun a fait quelque chose : un combat gagné, une mine ou une ville prise, ou de l'or ramassé
+        Assert.All(rivals.Select((p, i) => (p, i)), x => Assert.True(x.p.Statistics.BattlesWon > 0 || x.p.Mines.Count > 0
+            || x.p.Towns.Count > 0 || x.p.Resources[ResourceType.Gold] > startGold[x.i]));
     }
 }

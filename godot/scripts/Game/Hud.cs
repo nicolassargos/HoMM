@@ -782,7 +782,8 @@ public partial class Hud : CanvasLayer
         intro.CustomMinimumSize = V(480, 0);
         content.AddChild(intro);
         var goals = new System.Collections.Generic.Dictionary<VictoryCondition, CheckBox>();
-        foreach (var condition in GameRules.Choices)
+        // « vaincre tous les adversaires » : seulement s'il y en a
+        foreach (var condition in GameRules.Choices.Where(c => c != VictoryCondition.DefeatOpponents || _state.Opponents.Any()))
         {
             var box = MakeCheckBox(Texts.Goal(condition), condition == GameRules.Default.Victory);
             goals[condition] = box;

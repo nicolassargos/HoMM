@@ -13,10 +13,13 @@ public enum VictoryCondition
     ClearGuards = 1,
     CaptureTowns = 2,
     FindTreasure = 4,
+
+    /// <summary>Tous les adversaires (joueurs ordinateur) ont perdu : ni héros ni ville (étape 8).</summary>
+    DefeatOpponents = 8,
 }
 
 /// <summary>Pourquoi la partie est finie (l'affichage choisit le texte).</summary>
-public enum GameEndReason { GuardsCleared, TownsCaptured, HeroesLost, TimeOut, TreasureFound }
+public enum GameEndReason { GuardsCleared, TownsCaptured, HeroesLost, TimeOut, TreasureFound, OpponentsDefeated }
 
 /// <summary>Une partie de la carte, vue comme une grille de 3 × 3 (l'affichage en fait « au nord-est »…).</summary>
 public enum Compass { North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest, Center }
@@ -34,7 +37,7 @@ public sealed record GameRules(VictoryCondition Victory, int? DayLimit = null)
 
     /// <summary>Les façons de gagner proposées au lancement, dans l'ordre de la fenêtre.</summary>
     public static readonly IReadOnlyList<VictoryCondition> Choices =
-        new[] { VictoryCondition.ClearGuards, VictoryCondition.CaptureTowns, VictoryCondition.FindTreasure };
+        new[] { VictoryCondition.ClearGuards, VictoryCondition.CaptureTowns, VictoryCondition.FindTreasure, VictoryCondition.DefeatOpponents };
 
     public static GameRules Default => new(VictoryCondition.ClearGuards);
 

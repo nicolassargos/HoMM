@@ -97,7 +97,9 @@ public partial class Main : Node2D
         _loadedState = null;
         var setup = _setup;
         _setup = null;
-        _state = loaded ?? (setup != null ? new GameState(setup.Seed, data, setup.Size) : new GameState(ReadSeed(), data, ReadSize()));
+        _state = loaded ?? (setup != null
+            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents)
+            : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents()));
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
         // Option de développement : « -- --reveal » retire le brouillard
@@ -221,6 +223,9 @@ public partial class Main : Node2D
             _camera.CenterOn(hidden);
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
             _camera.CenterOn(firstObelisk.Position);
+        // « --center=opponent » : sur le héros du premier adversaire
+        if (OS.GetCmdlineUserArgs().Contains("--center=opponent") && _state.Opponents.SelectMany(p => p.Heroes).FirstOrDefault() is { } rival)
+            _camera.CenterOn(rival.Position);
         // Développement : « --cursor-preview=dossier » enregistre les curseurs en images
         if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--cursor-preview=")) is { } preview)
             MapCursor.SavePreview(preview["--cursor-preview=".Length..]);
@@ -340,6 +345,13 @@ public partial class Main : Node2D
 
     /// <summary>Graine passée en argument (--seed=42), sinon une graine au hasard.</summary>
     /// <summary>Développement : « --size=tiny » (small, normal, large, huge) choisit la taille de la carte.</summary>
+    /// <summary>Développement : « --opponents=2 » ajoute des adversaires (selon la taille de la carte).</summary>
+    private static int ReadOpponents()
+    {
+        var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--opponents="));
+        return arg != null && int.TryParse(arg["--opponents=".Length..], out int count) ? count : 0;
+    }
+
     private static MapSize ReadSize()
     {
         var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--size="));
@@ -389,6 +401,12 @@ public partial class Main : Node2D
         if (!CanAct)
             return;
         _state.EndTurn();
+        // les adversaires jouent tout de suite (sans attendre l'affichage), puis c'est de nouveau au joueur
+        while (_state.Outcome == GameOutcome.Playing && _state.CurrentPlayer.IsComputer && _state.CurrentBattle == null)
+        {
+            ComputerPlayer.PlayTurn(_state);
+            _state.EndTurn();
+        }
         // la sauvegarde automatique, au début de chaque tour (une seule, remplacée à chaque fois)
         if (_state.Outcome == GameOutcome.Playing && _state.CurrentBattle == null && _capturePath == null)
             SaveFiles.Write(SaveFiles.AutoName, _state);

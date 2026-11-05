@@ -33,6 +33,17 @@ public static class MapSizes
         _ => throw new ArgumentOutOfRangeException(nameof(size)),
     };
 
+    /// <summary>
+    /// Le nombre d'adversaires au plus : chaque joueur a son coin et une zone voisine avec une ville (1 sur les petites
+    /// cartes de 4 et 6 zones, 2 sur la normale, 3 sur les grandes).
+    /// </summary>
+    public static int MaxOpponents(MapSize size) => size switch
+    {
+        MapSize.Tiny or MapSize.Small => 1,
+        MapSize.Normal => 2,
+        _ => 3,
+    };
+
     /// <summary>La taille la plus proche de ces dimensions (pour décrire une sauvegarde).</summary>
     public static MapSize Closest(int width, int height) =>
         All.OrderBy(s => Math.Abs(Dimensions(s).Width * Dimensions(s).Height - width * height)).First();

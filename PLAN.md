@@ -456,10 +456,36 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    marqués « Construit »), et suit son contenu ; « Fermer » bien à l'intérieur du cadre ; les boutons du niveau supérieur alignés.
    À faire ensuite : une nouvelle revue des captures avec l'utilisateur.
 
-### 8. Adversaires IA
+### 8. Adversaires IA (prochaine étape)
 - Joueurs ordinateur avec leurs héros et leurs villes.
 - L'IA joue avec les mêmes méthodes de `GameState` que le joueur humain, sans attendre l'affichage.
 - L'affichage rejoue les déplacements des héros ennemis (événements `HeroMoved`) à un rythme lisible.
+
+Choix faits (avec l'utilisateur, 2026-11-05) : **1 à 3 adversaires**, choisis dans la nouvelle partie (1 par défaut, selon la
+taille de la carte) ; ils jouent aussi le **Château** (les autres factions viendront à l'étape 9), dans d'autres couleurs ;
+**pas de triche** (l'IA ne voit que ce qu'elle a exploré, mêmes revenus) ; un seul niveau de difficulté pour commencer ;
+une nouvelle façon de gagner, **« Vaincre tous les adversaires »**, cochée d'office quand il y en a.
+
+Découpage (une PR par point, chacune jouable et testée) :
+1. ✅ **Plusieurs joueurs** : un départ par joueur aux coins de la carte (`AdventureMap.Starts`, `MapGenerator.Players` :
+   le joueur humain en haut à gauche, puis le coin opposé, puis les deux autres) ; le danger des zones se compte depuis
+   le départ le plus proche (le milieu devient le plus dangereux) ; une ville neutre près de chaque départ, dans une zone
+   voisine plus proche de ce joueur que des autres, du côté de son départ ; le trésor le plus loin possible de tous ;
+   pas de monstre à moins de 4 cases d'un départ. Seul, la carte ne change pas. Au plus 1 adversaire sur les très
+   petites et petites cartes, 2 sur la normale, 3 sur les grandes (`MapSizes.MaxOpponents`). Joueurs Rouge, Bleu,
+   Vert, Orange (`Player.IsComputer`, sauvegardé) ; les héros des adversaires (Sire Yvain, Dame Viviane, Brann le
+   Rouge) ont la même armée de départ. Couleurs des joueurs : drapeaux des mines et des villes, étendard du héros (le
+   rouge de l'image prend la teinte du joueur), carte réduite (les héros adverses là où l'on a exploré). Les tours
+   passent d'un joueur à l'autre ; l'adversaire joue aussitôt après le joueur (`ComputerPlayer.PlayTurn` : pour
+   l'instant, il passe son tour). « Vaincre tous les adversaires » (`VictoryCondition.DefeatOpponents`), cochée d'office
+   quand il y en a. Nouvelle partie : le nombre d'adversaires (0 à 3, estompé au-delà de ce que la carte accueille).
+   Tests : `AdversairesTests`.
+2. **L'IA explore et ramasse** : ses héros vont vers les tas, coffres et mines qu'ils peuvent prendre sans combat ;
+   l'affichage montre ses déplacements visibles.
+3. **L'IA construit et recrute** : bâtiments, troupes, héros de taverne.
+4. **L'IA combat** : les monstres qu'elle peut battre, les villes, et les héros (combat entre héros, nouveau) ; le joueur
+   peut attaquer ses héros et ses villes.
+5. Équilibrage, et peut-être des niveaux de difficulté.
 
 ### 9. Contenu
 Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et les nouvelles factions.

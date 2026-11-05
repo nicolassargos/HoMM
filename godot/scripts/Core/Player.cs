@@ -23,6 +23,10 @@ public sealed class Player
     }
 
     public string Name { get; }
+
+    /// <summary>Un adversaire joué par l'ordinateur (voir <see cref="ComputerPlayer"/>).</summary>
+    public bool IsComputer { get; init; }
+
     public FogOfWar Fog { get; }
     public Dictionary<ResourceType, int> Resources { get; }
     public List<Mine> Mines { get; } = new();

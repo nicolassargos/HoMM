@@ -43,15 +43,15 @@ public class ExplorationIATests
     public void L_adversaire_laisse_un_tas_garde_par_un_monstre()
     {
         var (state, rival) = RivalTurn();
-        // d'abord ramasser ce qui est déjà à sa portée : il ne resterait que le tas gardé
-        foreach (var obj in state.Map.Objects.Where(o => o is ResourcePile or TreasureChest or Mine or Obelisk).ToList())
+        // rien d'autre à prendre ni à combattre : il ne resterait que le tas gardé
+        foreach (var obj in state.Map.Objects.Where(o => o is ResourcePile or TreasureChest or Mine or Obelisk or MonsterGuard or Town).ToList())
             state.Map.RemoveObject(obj);
         var cell = FreeCellNear(state, rival);
         var pile = new ResourcePile(cell, ResourceType.Gold, 700);
         state.Map.AddObject(pile);
         var guardCell = new[] { cell.Offset(1, 0), cell.Offset(-1, 0), cell.Offset(0, 1), cell.Offset(0, -1) }
             .First(c => state.Map.IsPassable(c) && state.Map.ObjectAt(c) == null && c != rival.Position);
-        state.Map.AddObject(new MonsterGuard(guardCell, TestData.Creatures.Get("loup"), 30));
+        state.Map.AddObject(new MonsterGuard(guardCell, TestData.Creatures.Get("troll"), 20)); // trop fort pour lui
         int army = rival.Army.Stacks.Sum(s => s.Count);
 
         ComputerPlayer.PlayTurn(state);

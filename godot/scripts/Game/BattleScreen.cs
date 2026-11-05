@@ -95,7 +95,7 @@ public partial class BattleScreen : CanvasLayer
         // sous la ligne de la dernière action
         _field = new BattleFieldView();
         var size = BattleFieldView.FieldSize;
-        float bandHeight = Px(32), bandGap = Px(6);
+        float bandHeight = Px(40), bandGap = Px(6);
         float top = Px(10) + bandHeight + bandGap;
         _field.Position = new Vector2((screenSize.X - size.X) / 2, top + (barY - Px(8) - top - size.Y) / 2);
         _field.Clicked += OnClicked;
@@ -108,7 +108,7 @@ public partial class BattleScreen : CanvasLayer
             Size = new Vector2(size.X, bandHeight),
             MouseFilter = Control.MouseFilterEnum.Ignore,
         };
-        band.AddThemeStyleboxOverride("panel", Box(PanelColor, BorderColor, 1, 1, 1, 1));
+        band.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         root.AddChild(band);
         _message = At(MakeLabel("", 14, TextColor), 10, 4);
         _message.ClipText = true;
@@ -116,9 +116,10 @@ public partial class BattleScreen : CanvasLayer
         _message.VerticalAlignment = VerticalAlignment.Center;
         band.AddChild(_message);
         // le journal du combat, au bout de la ligne
-        var log = MakeButton(Texts.BattleLogButton, 13);
-        log.Position = band.Position + new Vector2(band.Size.X - Px(96), Px(2));
-        log.Size = new Vector2(Px(92), bandHeight - Px(4));
+        // un bouton de taille fixe (un bouton ordinaire grandit à la hauteur de son texte et dépassait de la ligne),
+        // à l'intérieur du biseau
+        var log = FixedButton(Texts.BattleLogButton, 13, new Vector2(Px(94), bandHeight - Px(10)));
+        log.Position = band.Position + new Vector2(band.Size.X - Px(100), Px(5));
         log.Pressed += ShowLog;
         root.AddChild(log);
 

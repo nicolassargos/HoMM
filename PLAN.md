@@ -497,7 +497,13 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   est plus sombre. Les traits de couleur (héros choisi, bâtiment possible, troupe à risque) restent. Le fond de l'écran
   de ville a le grain (`Ui.Stone`). Grain baissé : 3 sur les cadres, 1,5 sur la pierre des boutons
   (`buttonTextureStrength`). Les coins un peu arrondis du bouton A1 sont gardés (choix de l'utilisateur).
-  À poursuivre : la revue des écrans avec ce nouveau style.
+  ✅ Revue avec ce style (2026-11-05) : traits d'argent au lieu d'or (carte réduite, portraits) ; barres au vert sourd,
+  rainure creusée et remplissage à plat (`Ui.StyleBar`, taille fixée après le style : sinon Godot gardait la hauteur
+  minimale du thème) ; curseur à rainure creusée et bouton de pierre, champs de texte creusés (thème) ; ligne de la
+  dernière action du combat creusée, « Journal » de taille fixe dedans ; colonne de la carte sans vide (boutons un peu
+  plus grands) ; fiche du héros sans débordement (artefacts à côté du charisme) ; lignes des listes à l'intérieur du
+  biseau ; cases à cocher espacées de leur texte ; un bouton choisi est plus sombre (enfoncé), plus clair avant.
+  Gardé tel quel pour l'instant : les sections vides (artefacts, magie, villes), qui se rempliront.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

@@ -116,7 +116,7 @@ public partial class Hud : CanvasLayer
             Position = new Vector2((PanelWidth - minimapSize.X) / 2 - Px(2), Px(10)),
             Size = minimapSize + V(4, 4),
         };
-        minimapFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
+        minimapFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 2, 2, 2, 2));
         panel.AddChild(minimapFrame);
         Minimap = new Minimap { State = state, CellSize = scale, Position = V(2, 2), Size = minimapSize, ClipContents = true };
         minimapFrame.AddChild(Minimap);
@@ -168,25 +168,25 @@ public partial class Hud : CanvasLayer
         for (int i = 0; i < actions.Length; i++)
         {
             var (text, key, tooltip, pressed) = actions[i];
-            var button = FixedButton(text, 12, new Vector2(buttonWidth, Px(32)));
-            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(35));
+            var button = FixedButton(text, 12, new Vector2(buttonWidth, Px(37)));
+            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(41));
             button.TooltipText = Texts.KeyTooltip(tooltip, key);
             button.Pressed += pressed;
             panel.AddChild(button);
         }
-        y += (actions.Length + columns - 1) / columns * Px(35);
-        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, Px(26)));
+        y += (actions.Length + columns - 1) / columns * Px(41);
+        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, Px(32)));
         options.Position = new Vector2(margin, y);
         options.TooltipText = Texts.OptionsTooltip;
         options.Pressed += ShowOptions;
         panel.AddChild(options);
-        y += Px(26 + 4);
+        y += Px(32 + 6);
 
         // la fin du tour : grande, toujours au même endroit
         var endTurn = MakeButton(Texts.EndTurnButton, 18);
         endTurn.TooltipText = Texts.KeyTooltip(Texts.EndTurnButton, "Entrée");
         // une hauteur ordinaire, en bas de la colonne
-        float endTurnHeight = Px(56);
+        float endTurnHeight = Px(62);
         endTurn.Position = new Vector2(margin, Math.Max(y, screenSize.Y - Px(10) - endTurnHeight));
         endTurn.Size = new Vector2(inner, endTurnHeight);
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
@@ -215,7 +215,7 @@ public partial class Hud : CanvasLayer
         }
         var up = Arrow("▲", width - Px(40), -1);
         var down = Arrow("▼", width - Px(20), +1);
-        var rows = new VBoxContainer { Position = V(2, 19), Size = new Vector2(width - Px(4), height - Px(21)) };
+        var rows = new VBoxContainer { Position = V(4, 20), Size = new Vector2(width - Px(8), height - Px(24)) };
         rows.AddThemeConstantOverride("separation", (int)Px(2));
         box.AddChild(rows);
         return (rows, up, down);
@@ -232,7 +232,7 @@ public partial class Hud : CanvasLayer
         card.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         panel.AddChild(card);
         var portraitFrame = new Panel { Position = V(4, 4), Size = new Vector2(portraitSize, portraitSize) + V(4, 4) };
-        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
+        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 2, 2, 2, 2));
         card.AddChild(portraitFrame);
         _portrait = new TextureRect
         {
@@ -269,7 +269,7 @@ public partial class Hud : CanvasLayer
         foreach (var (stat, col, row) in stats)
         {
             var label = MakeLabel("", 12, TextColor);
-            label.Position = new Vector2(textX + col * column, Px(38 + row * 14));
+            label.Position = new Vector2(textX + col * column, Px(36 + row * 13));
             label.MouseFilter = Control.MouseFilterEnum.Stop;
             card.AddChild(label);
             if (stat is { } s)
@@ -280,21 +280,23 @@ public partial class Hud : CanvasLayer
 
         _movementBar = new ProgressBar
         {
-            Position = new Vector2(textX, Px(82)), Size = new Vector2(textWidth, Px(16)),
+            Position = new Vector2(textX, Px(80)), Size = new Vector2(textWidth, Px(13)),
             ShowPercentage = false, MinValue = 0, MaxValue = Hero.DefaultMovement,
         };
-        _movementBar.AddThemeStyleboxOverride("background", Box(MapRenderer.Rgb(20, 16, 12), BorderColor, 1, 1, 1, 1));
-        _movementBar.AddThemeStyleboxOverride("fill", Box(MapRenderer.Rgb(60, 180, 60), null));
+        StyleBar(_movementBar, MovementColor);
         card.AddChild(_movementBar);
-        _movementText = MakeLabel("", 11, TextColor);
+        _movementBar.Size = new Vector2(textWidth, Px(13)); // une fois stylée et posée : avant, elle gardait la hauteur minimale du thème
+        _movementText = MakeLabel("1500 / 1500", 10, TextColor);
         _movementText.HorizontalAlignment = HorizontalAlignment.Center;
-        _movementText.VerticalAlignment = VerticalAlignment.Center;
-        _movementText.Position = _movementBar.Position;
-        _movementText.Size = _movementBar.Size;
+        // centré sur la barre : la ligne de texte est un peu plus haute qu'elle
+        float textHeight = _movementText.GetCombinedMinimumSize().Y;
+        // (la police laisse de la place sous les lettres : on descend un peu le texte)
+        _movementText.Position = _movementBar.Position + new Vector2(0, (_movementBar.Size.Y - textHeight) / 2 + Px(2));
+        _movementText.Size = new Vector2(_movementBar.Size.X, textHeight);
         card.AddChild(_movementText);
 
-        // ses artefacts : de petites images (le nom et l'effet au survol)
-        _artifacts = new HBoxContainer { Position = new Vector2(textX, Px(100)), Size = new Vector2(textWidth, Px(22)) };
+        // ses artefacts : de petites images à côté du charisme (le nom et l'effet au survol)
+        _artifacts = new HBoxContainer { Position = new Vector2(textX + column, Px(61)), Size = new Vector2(column, Px(16)) };
         _artifacts.AddThemeConstantOverride("separation", (int)Px(2));
         card.AddChild(_artifacts);
         return y + card.Size.Y;
@@ -405,7 +407,7 @@ public partial class Hud : CanvasLayer
             row.AddChild(new ColorRect
             {
                 Position = new Vector2(70, barY), Size = new Vector2(barWidth * hero.Movement / Math.Max(1, hero.MaxMovement), Px(5)),
-                Color = MapRenderer.Rgb(60, 180, 60), MouseFilter = Control.MouseFilterEnum.Ignore,
+                Color = MovementColor, MouseFilter = Control.MouseFilterEnum.Ignore,
             });
             _heroRows.AddChild(row);
         }
@@ -444,8 +446,8 @@ public partial class Hud : CanvasLayer
         var name = MakeLabel(text, 11, TextColor);
         name.AutowrapMode = TextServer.AutowrapMode.WordSmart; // avant la taille (sinon elle se règle sur le texte entier)
         name.MaxLinesVisible = 2;
-        name.Position = new Vector2(70, 2);
-        name.Size = new Vector2(rowWidth - 74, Px(30));
+        name.Position = new Vector2(68, 2);
+        name.Size = new Vector2(rowWidth - 70, Px(30));
         return name;
     }
 
@@ -481,7 +483,7 @@ public partial class Hud : CanvasLayer
                 continue;
             _artifacts.AddChild(new TextureRect
             {
-                Texture = image, CustomMinimumSize = new Vector2(32, 32),
+                Texture = image, CustomMinimumSize = new Vector2(24, 24),
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
                 TextureFilter = CanvasItem.TextureFilterEnum.Nearest, TooltipText = Texts.ArtifactTooltip(artifact),
             });

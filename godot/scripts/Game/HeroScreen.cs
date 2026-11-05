@@ -36,7 +36,7 @@ public partial class HeroScreen : ScreenWindow
 
         // le portrait, puis niveau, expérience et mouvement
         var portraitFrame = new Panel { Position = V(20, 56), Size = new Vector2(64, 64) * PortraitScale + V(4, 4) };
-        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
+        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 2, 2, 2, 2));
         Window.AddChild(portraitFrame);
         _portrait = new TextureRect
         {
@@ -52,7 +52,7 @@ public partial class HeroScreen : ScreenWindow
         Window.AddChild(At(MakeLabel(Texts.ExperienceWord, 13, SoftTextColor), 166, 90));
         (_experienceBar, _experienceText) = Bar(V(166, 108), MapRenderer.Rgb(150, 120, 50));
         Window.AddChild(At(MakeLabel(Texts.MovementWord, 13, SoftTextColor), 166, 134));
-        (_movementBar, _movementText) = Bar(V(166, 152), MapRenderer.Rgb(60, 150, 60));
+        (_movementBar, _movementText) = Bar(V(166, 152), MovementColor);
 
         // les caractéristiques, en colonne
         float y = 204;
@@ -107,8 +107,8 @@ public partial class HeroScreen : ScreenWindow
     private (ProgressBar Bar, Label Text) Bar(Vector2 position, Color fill)
     {
         var bar = new ProgressBar { Position = position, Size = V(112, 20), ShowPercentage = false, MinValue = 0 };
-        bar.AddThemeStyleboxOverride("background", Box(MapRenderer.Rgb(20, 16, 12), BorderColor, 1, 1, 1, 1));
-        bar.AddThemeStyleboxOverride("fill", Box(fill, null));
+        StyleBar(bar, fill);
+        bar.Size = V(112, 20); // après le style (sinon la hauteur minimale du thème l'emporte)
         Window.AddChild(bar);
         var text = MakeLabel("", 12, TextColor);
         text.HorizontalAlignment = HorizontalAlignment.Center;

@@ -34,10 +34,14 @@ public static class ComputerPlayer
             && Battle.ExperienceFor(report.AttackerLosses) <= AcceptableLosses * Battle.ExperienceFor(hero.Army.Stacks);
     }
 
-    /// <summary>Joue le tour du joueur courant, s'il est joué par l'ordinateur (sans finir le tour).</summary>
+    /// <summary>
+    /// Joue le tour du joueur courant, s'il est joué par l'ordinateur (sans finir le tour). S'arrête si un combat attend
+    /// (un joueur humain dirige sa défense, voir <see cref="GameState.HumansDefend"/>) : rappelée après ce combat, elle
+    /// reprend le tour là où il en était (ce qui est fait ne se refait pas : un bâtiment par jour, les troupes achetées).
+    /// </summary>
     public static void PlayTurn(GameState state)
     {
-        if (!state.CurrentPlayer.IsComputer || state.Outcome != GameOutcome.Playing)
+        if (!state.CurrentPlayer.IsComputer || state.Outcome != GameOutcome.Playing || state.CurrentBattle != null)
             return;
         bool quick = state.QuickBattles;
         state.QuickBattles = true; // un combat imprévu ne doit pas attendre l'écran de combat
@@ -48,7 +52,7 @@ public static class ComputerPlayer
                 ManageTown(state, town);
             foreach (var hero in state.CurrentPlayer.Heroes.ToList())
             {
-                if (state.Outcome != GameOutcome.Playing)
+                if (state.Outcome != GameOutcome.Playing || state.CurrentBattle != null)
                     return;
                 if (hero.Owner.Heroes.Contains(hero))
                     MoveHero(state, hero);
@@ -170,6 +174,8 @@ public static class ComputerPlayer
             }
             var before = hero.Position;
             while (state.StepAlongPath()) { }
+            if (state.CurrentBattle != null) // le joueur humain se défend : on attendra la fin du combat
+                return;
             ChooseLevels(state);
             if (state.Map.ObjectAt(hero.Position) is Town own && own.Owner == hero.Owner && own.Position == hero.Position)
                 TakeGarrison(state, own, hero);

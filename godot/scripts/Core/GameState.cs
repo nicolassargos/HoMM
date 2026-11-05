@@ -399,6 +399,20 @@ public sealed partial class GameState
     /// </summary>
     public bool QuickBattles { get; set; } = true;
 
+    /// <summary>
+    /// Un joueur humain attaqué (son héros, sa ville) dirige sa défense (étape 8) : le combat attend, même pendant le tour
+    /// d'un adversaire qui joue en combats rapides ; l'adversaire reprend son tour une fois le combat fini.
+    /// </summary>
+    public bool HumansDefend { get; set; }
+
+    /// <summary>Le défenseur est-il un joueur humain (son héros, ou sa ville) ?</summary>
+    private static bool DefendedByHuman(MapObject defender) => defender switch
+    {
+        HeroDefender d => !d.Hero.Owner.IsComputer,
+        Town { Owner: { } owner } => !owner.IsComputer,
+        _ => false,
+    };
+
     /// <summary>Le combat en cours (la partie attend qu'il finisse), ou null.</summary>
     public TacticalBattle? CurrentBattle { get; private set; }
 
@@ -437,7 +451,7 @@ public sealed partial class GameState
         _battle = new BattleContext(step.Hero, defender, army.Clone().Stacks);
         CurrentBattle = new TacticalBattle(step.Hero.Army, army, _rng, step.Hero, rebels, (defender as HeroDefender)?.Hero);
         Emit(new BattleStarted(step.Hero, defender, CurrentBattle));
-        if (QuickBattles)
+        if (QuickBattles && !(HumansDefend && DefendedByHuman(defender)))
         {
             BattleAI.PlayOut(CurrentBattle);
             FinishBattle();

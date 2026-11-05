@@ -336,7 +336,7 @@ public static class MapRenderer
     /// L'image du héros aux couleurs de son joueur : son étendard rouge (et les rouges de sa selle) prend la teinte du
     /// joueur ; le joueur rouge garde l'image telle quelle.
     /// </summary>
-    private static Texture2D? HeroImage(Player? owner)
+    public static Texture2D? HeroImage(Player? owner)
     {
         int id = owner?.Id ?? 1;
         if (HeroImages.TryGetValue(id, out var cached))

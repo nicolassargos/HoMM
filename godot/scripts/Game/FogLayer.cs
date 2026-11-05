@@ -12,14 +12,14 @@ public partial class FogLayer : Node2D
 
     public override void _Process(double delta)
     {
-        var fog = State.CurrentPlayer.Fog;
+        var fog = State.Players[0].Fog;
         if (fog != _drawnFog || fog.Version != _drawnVersion)
             QueueRedraw();
     }
 
     public override void _Draw()
     {
-        var fog = State.CurrentPlayer.Fog;
+        var fog = State.Players[0].Fog;
         _drawnFog = fog;
         _drawnVersion = fog.Version;
         const int t = MapRenderer.TileSize;

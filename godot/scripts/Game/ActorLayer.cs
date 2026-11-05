@@ -36,7 +36,9 @@ public partial class ActorLayer : Node2D
         foreach (var obj in State.Map.Objects)
             MapRenderer.DrawObject(this, obj, ToPixels(obj.Position), _time);
 
-        if (State.Path is { } path)
+        // le chemin prévu et l'anneau du héros choisi : seulement ceux du joueur (pas pendant le tour d'un adversaire)
+        bool mine = !State.CurrentPlayer.IsComputer;
+        if (mine && State.Path is { } path)
         {
             var reachable = State.PathReachability();
             for (int i = 0; i < path.Count; i++)
@@ -44,7 +46,7 @@ public partial class ActorLayer : Node2D
         }
 
         // Le héros sélectionné a un anneau doré à ses pieds
-        if (State.CurrentHero is { } selected)
+        if (mine && State.CurrentHero is { } selected)
             MapRenderer.DrawSelection(this, ToPixels(selected.Position) + half + new Vector2(0, 14), _time);
         foreach (var hero in State.AllHeroes)
         {

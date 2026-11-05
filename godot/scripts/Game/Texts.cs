@@ -155,6 +155,12 @@ public static class Texts
     /// <summary>La cible, avec ce qu'elle comptait avant le coup.</summary>
     private static string StackAfter(UnitStruck s) => Stack(new CreatureStack(s.Target.Type, s.Target.Count + s.Killed));
 
+    public static string DefenseChoiceTitle => "Vous êtes attaqué !";
+
+    public static string DefenseChoiceText(string attacker, string? town) => town == null
+        ? $"{attacker} attaque votre héros. Dirigez-vous la défense, ou laissez-vous le combat se jouer seul ?"
+        : $"{attacker} attaque {town}. Dirigez-vous la défense de la garnison, ou laissez-vous le combat se jouer seul ?";
+
     /// <summary>« Sire Yvain (Bleu) » : un héros et la couleur de son joueur.</summary>
     public static string HeroWithColor(Hero hero) => $"{hero.Name} ({hero.Owner.Name})";
 

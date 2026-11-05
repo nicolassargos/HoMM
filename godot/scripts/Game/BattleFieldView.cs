@@ -51,20 +51,28 @@ public partial class BattleFieldView : Control
     /// <summary>Le héros de l'attaquant, dessiné à gauche de la grille (null : pas de héros, une vitrine…).</summary>
     public Hero? AttackerHero { get; set; }
 
+    /// <summary>Le héros qui se défend (combat entre héros), dessiné à droite de la grille, tourné vers la gauche.</summary>
+    public Hero? DefenderHero { get; set; }
+
+    /// <summary>Le camp du joueur : ses troupes ont la couleur bleue (le joueur attaqué se défend à droite).</summary>
+    public BattleSide PlayerSide { get; set; } = BattleSide.Attacker;
+
     private const int HeroScale = 4;
 
-    /// <summary>Où est dessiné le héros, à gauche de la grille (pour savoir si on clique dessus).</summary>
-    public Rect2 HeroRect
+    /// <summary>Où est dessiné le héros de l'attaquant, à gauche de la grille (pour savoir si on clique dessus).</summary>
+    public Rect2 HeroRect => HeroRectAt(SideMargin / 2);
+
+    /// <summary>Où est dessiné le héros qui se défend, à droite de la grille.</summary>
+    public Rect2 DefenderHeroRect => HeroRectAt(FieldSize.X - SideMargin / 2);
+
+    private static Rect2 HeroRectAt(float centerX)
     {
-        get
-        {
-            var size = (Art.Get("heroes/hero")?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
-            return new Rect2(new Vector2(SideMargin / 2 - size.X / 2, FieldSize.Y / 2 - size.Y / 2), size);
-        }
+        var size = (Art.Get("heroes/hero")?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
+        return new Rect2(new Vector2(centerX - size.X / 2, FieldSize.Y / 2 - size.Y / 2), size);
     }
 
-    /// <summary>Un clic sur le héros.</summary>
-    public event Action? HeroClicked;
+    /// <summary>Un clic sur un des héros.</summary>
+    public event Action<Hero>? HeroClicked;
 
     /// <summary>Clic droit enfoncé sur une troupe (sa fiche, tant que le bouton reste enfoncé), et relâché.</summary>
     public event Action<BattleUnit, Vector2>? UnitInfoPressed;
@@ -166,7 +174,9 @@ public partial class BattleFieldView : Control
         else if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)
         {
             if (AttackerHero != null && HeroRect.HasPoint(click.Position))
-                HeroClicked?.Invoke();
+                HeroClicked?.Invoke(AttackerHero);
+            else if (DefenderHero != null && DefenderHeroRect.HasPoint(click.Position))
+                HeroClicked?.Invoke(DefenderHero);
             else if (HexAt(click.Position) is { } hex)
                 Clicked?.Invoke(hex, click.Position);
         }
@@ -337,9 +347,17 @@ public partial class BattleFieldView : Control
             foreach (var hex in Battle.UnitAt(target)?.Hexes ?? new[] { target })
                 DrawHexOutline(Center(hex), MapRenderer.Rgb(220, 60, 40), Ui.Px(3));
 
-        // le héros, à gauche de la grille (son image de la carte en attendant une image de combat)
-        if (AttackerHero != null && Art.Get("heroes/hero") is { } heroImage)
+        // les héros (leur image de la carte, à leurs couleurs, en attendant une image de combat) : l'attaquant à gauche,
+        // celui qui se défend à droite, tourné vers la gauche
+        if (AttackerHero != null && MapRenderer.HeroImage(AttackerHero.Owner) is { } heroImage)
             DrawTextureRect(heroImage, HeroRect, false);
+        if (DefenderHero != null && MapRenderer.HeroImage(DefenderHero.Owner) is { } defenderImage)
+        {
+            var rect = DefenderHeroRect;
+            DrawSetTransform(new Vector2(rect.End.X, rect.Position.Y), 0, new Vector2(-1, 1));
+            DrawTextureRect(defenderImage, new Rect2(Vector2.Zero, rect.Size), false);
+            DrawSetTransform(Vector2.Zero, 0, Vector2.One);
+        }
 
         // obstacles et troupes, de haut en bas (ceux du bas passent devant)
         var things = new List<(float Y, Action Draw)>();
@@ -432,12 +450,12 @@ public partial class BattleFieldView : Control
                 DrawTextureRectRegion(image, rect, source, tint);
         }
         else
-            DrawCircle(foot + Ui.V(0, -24), Ui.Px(20), unit.Side == BattleSide.Attacker ? MapRenderer.PlayerColor : MapRenderer.NeutralColor);
+            DrawCircle(foot + Ui.V(0, -24), Ui.Px(20), unit.Side == PlayerSide ? MapRenderer.PlayerColor : MapRenderer.NeutralColor);
 
         // le nombre de créatures, dans une petite boîte à la couleur du camp
         string count = shown.Count.ToString();
         var box = new Rect2(shown.Position + new Vector2(Ui.Px(unit.Side == BattleSide.Attacker ? 6 : -36), HexHeight / 2 - Ui.Px(24)), Ui.Px(30), Ui.Px(18));
-        DrawRect(box, unit.Side == BattleSide.Attacker ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30));
+        DrawRect(box, unit.Side == PlayerSide ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30));
         DrawRect(box, MapRenderer.Rgb(230, 200, 120), false, 1);
         DrawString(ThemeDB.FallbackFont, box.Position + Ui.V(0, 14), count, HorizontalAlignment.Center, box.Size.X, Ui.TextSize(12), Colors.White);
     }

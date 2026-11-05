@@ -308,6 +308,13 @@ détails, surtout agrandies au combat), dans cet ordre :
    sprite, simple bold shapes »). **L'angle de vue** (un peu d'en haut) vient d'une image de référence marquée « angle
    seulement » (`image.png::usage` dans `pixellab.py pro`) : le Troll a bien marché, mais seulement sans autre image
    du sujet (une image de sujet vue de côté impose son angle).
+   Le **Chevalier** (remplacera l'Épéiste, pas encore dans les règles : `chevalier`) : armure de plaques d'acier,
+   heaume fermé, fléau d'armes, bouclier bleu à fleur de lis d'or ; 54 px de haut, plus grand et plus massif que
+   l'Archer ; d'après une image de l'utilisateur (le bouclier rouge à chevrons de la référence remplacé à sa demande).
+   Le bouclier a été changé avec `retoucher` sur toute l'image (repeindre une seule zone, `repeindre`, demande un
+   abonnement payant de PixelLab). Attente calme, marche lourde, attaque où il fait tournoyer le fléau au-dessus de
+   sa tête avant de frapper devant lui. PixelLab dessine des éclats d'impact même quand on demande « no visual
+   effects » : les effacer (et redessiner la boule du fléau qu'ils cachaient).
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de

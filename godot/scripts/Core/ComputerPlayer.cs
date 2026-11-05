@@ -11,7 +11,7 @@ namespace HoMM.Core;
 /// les villes neutres qu'il est sûr de battre sans trop de pertes (point 3), et sinon explore. Il ne connaît que ce que
 /// son joueur a exploré (pas de triche) et n'entre dans la zone d'un monstre que pour l'attaquer, lui seul.
 /// Dans ses villes, il construit, recrute et engage des héros (point 4) ; un héros vient chercher la garnison. Il
-/// affrontera les autres joueurs (point 5).
+/// attaque aussi les héros et les villes des autres joueurs qu'il bat sans trop de pertes (point 5).
 /// </summary>
 public static class ComputerPlayer
 {
@@ -25,11 +25,11 @@ public static class ComputerPlayer
     /// Le combat contre cette armée est-il gagné, avec des pertes acceptables (en valeur, l'or des créatures) ?
     /// Selon la même prévision que l'interface (une graine fixe) : le vrai combat peut un peu différer.
     /// </summary>
-    internal static bool WorthFighting(Hero hero, Army enemy)
+    internal static bool WorthFighting(Hero hero, Army enemy, Hero? enemyHero = null)
     {
         if (enemy.IsEmpty)
             return true;
-        var report = Battle.Resolve(hero.Army.Clone(), enemy.Clone(), hero);
+        var report = Battle.Resolve(hero.Army.Clone(), enemy.Clone(), hero, defenderHero: enemyHero);
         return report.AttackerWon
             && Battle.ExperienceFor(report.AttackerLosses) <= AcceptableLosses * Battle.ExperienceFor(hero.Army.Stacks);
     }
@@ -217,13 +217,24 @@ public static class ComputerPlayer
                 (best, bestScore) = (town.Position, cost * 0.4);
         }
 
-        // une ville neutre connue : sa garnison doit être battue sans trop de pertes
-        foreach (var town in map.Objects.OfType<Town>().Where(t => t.Owner == null).OrderBy(t => t.Id))
+        // une ville neutre ou d'un autre joueur, connue : sa garnison (et le héros qui s'y trouve) doit être battue sans
+        // trop de pertes
+        foreach (var town in map.Objects.OfType<Town>().Where(t => t.Owner != player).OrderBy(t => t.Id))
         {
             if (!costs.TryGetValue(town.Position, out int cost) || map.IsGuarded(town.Position) || cost * 0.3 >= bestScore)
                 continue;
-            if (WorthFighting(hero, town.Garrison))
+            var guardian = state.EnemyHeroAt(town.Position, player);
+            if (WorthFighting(hero, town.Garrison) && (guardian == null || WorthFighting(hero, guardian.Army, guardian)))
                 (best, bestScore) = (town.Position, cost * 0.3);
+        }
+
+        // un héros d'un autre joueur, là où le joueur a exploré
+        foreach (var enemy in state.AllHeroes.Where(h => h.Owner != player && player.Fog.IsExplored(h.Position)).OrderBy(h => h.Id))
+        {
+            if (!costs.TryGetValue(enemy.Position, out int cost) || cost * 0.5 >= bestScore)
+                continue;
+            if (WorthFighting(hero, enemy.Army, enemy))
+                (best, bestScore) = (enemy.Position, cost * 0.5);
         }
 
         // un monstre connu, par une case de sa zone que lui seul garde
@@ -240,7 +251,8 @@ public static class ComputerPlayer
 
         // rien à prendre : explorer, vers la case connue la plus proche qui touche l'inconnu
         foreach (var (cell, cost) in costs.OrderBy(c => c.Value).ThenBy(c => c.Key.Y).ThenBy(c => c.Key.X))
-            if (cell != hero.Position && map.ObjectAt(cell) == null && Neighbours(cell).Any(n => map.InBounds(n) && !player.Fog.IsExplored(n)))
+            if (cell != hero.Position && map.ObjectAt(cell) == null && state.EnemyHeroAt(cell, player) == null
+                && Neighbours(cell).Any(n => map.InBounds(n) && !player.Fog.IsExplored(n)))
                 return cell;
         return null;
     }
@@ -253,7 +265,8 @@ public static class ComputerPlayer
     {
         var map = state.Map;
         var fog = hero.Owner.Fog;
-        var heroes = state.AllHeroes.Where(h => h != hero).Select(h => h.Position).ToHashSet();
+        var heroes = state.AllHeroes.Where(h => h != hero && h.Owner == hero.Owner).Select(h => h.Position).ToHashSet();
+        var enemies = state.AllHeroes.Where(h => h.Owner != hero.Owner).Select(h => h.Position).ToHashSet();
         var costs = new Dictionary<Cell, int> { [hero.Position] = 0 };
         var open = new PriorityQueue<Cell, int>();
         open.Enqueue(hero.Position, 0);
@@ -261,8 +274,8 @@ public static class ComputerPlayer
         {
             if (cost > costs[cell])
                 continue;
-            if (cell != hero.Position && map.ObjectAt(cell) != null)
-                continue; // on visite un objet, on ne le traverse pas
+            if (cell != hero.Position && (map.ObjectAt(cell) != null || enemies.Contains(cell)))
+                continue; // on visite un objet (on attaque un héros ennemi), on ne le traverse pas
             foreach (var next in Neighbours(cell))
             {
                 if (!map.IsPassable(next) || !fog.IsExplored(next) || heroes.Contains(next) || map.IsGuarded(next))

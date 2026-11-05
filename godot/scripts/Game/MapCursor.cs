@@ -34,6 +34,8 @@ public static class MapCursor
         // une case jamais vue : on ne dit rien de ce qu'elle cache
         if (!player.Fog.IsExplored(cell) || state.DaysTo(cell) is not { } days)
             return (CursorKind.Blocked, 0);
+        if (state.EnemyHeroAt(cell, player) != null)
+            return (CursorKind.Attack, days); // un héros adverse : on l'attaque
         return state.Map.OccupantAt(cell) switch
         {
             MonsterGuard => (CursorKind.Attack, days),

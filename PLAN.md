@@ -503,8 +503,16 @@ Découpage (une PR par point, chacune jouable et testée) :
    revient en ville quand la garnison vaut au moins la moitié de son armée. Sur trois cartes normales à deux
    adversaires, en six semaines : 5 à 9 bâtiments, 2 ou 3 héros, une deuxième ville souvent, des armées jusqu'à
    12 000 or ; un adversaire dont la ville voisine est trop bien gardée reste bloqué. Tests : `VillesIATests`.
-5. **Les héros s'affrontent** (combat entre héros, nouveau) : l'IA attaque les héros et les villes du joueur, le joueur
-   peut attaquer ses héros.
+5. ✅ **Les héros s'affrontent** : un héros attaque le héros d'un autre joueur en marchant vers lui (le chemin va jusqu'à
+   lui ; le pas sur sa case déclenche le combat, comme contre un monstre). Le héros attaqué est l'adversaire du combat
+   (`HeroDefender`) : son attaque et sa défense s'ajoutent à celles de ses troupes (`TacticalBattle`, `defenderHero`).
+   Le vaincu disparaît ; le vainqueur gagne la valeur des troupes tuées (celui qui se défendait aussi). Un joueur sans
+   héros ni ville est éliminé (`PlayerDefeated`). L'IA attaque les héros et les villes des autres joueurs (le joueur
+   comme les autres adversaires) quand la prévision le permet (avec le bonus du héros adverse) ; ses combats sont
+   rapides. À l'écran : survol d'un héros adverse (nom, couleur, danger), curseur d'attaque ; quand le joueur est attaqué
+   (héros ou ville), le bilan s'ouvre de son point de vue, et le journal le dit, comme une ville perdue ou un joueur
+   éliminé. Pas encore : se défendre soi-même sur l'écran de combat (le combat est joué d'office), le héros adverse
+   dessiné sur l'écran de combat. Tests : `HerosContreHerosTests`.
 6. Équilibrage, et peut-être des niveaux de difficulté.
 
 ### 9. Contenu

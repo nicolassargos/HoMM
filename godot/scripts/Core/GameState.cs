@@ -282,7 +282,7 @@ public sealed partial class GameState
         // Un clic sur les murs d'une ville mène à son entrée
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero));
+        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target));
     }
 
     public void ClearPath() => Path = null;
@@ -290,6 +290,13 @@ public sealed partial class GameState
     /// <summary>Les cases des autres héros : on ne peut pas les traverser.</summary>
     private HashSet<Cell> OtherHeroCells(Hero hero) =>
         AllHeroes.Where(h => h != hero).Select(h => h.Position).ToHashSet();
+
+    /// <summary>Les cases des autres héros, sauf celle d'un héros ennemi visé (on va jusqu'à lui pour l'attaquer).</summary>
+    private HashSet<Cell> OtherHeroCells(Hero hero, Cell target) =>
+        AllHeroes.Where(h => h != hero && !(h.Position == target && h.Owner != hero.Owner)).Select(h => h.Position).ToHashSet();
+
+    /// <summary>Le héros d'un autre joueur sur cette case, s'il y en a un.</summary>
+    public Hero? EnemyHeroAt(Cell cell, Player player) => AllHeroes.FirstOrDefault(h => h.Position == cell && h.Owner != player);
 
     /// <summary>Sélectionne un héros du joueur courant (son chemin prévu est retrouvé).</summary>
     public void SelectHero(Hero hero)
@@ -323,7 +330,15 @@ public sealed partial class GameState
         var hero = CurrentHero!;
         var next = Path![0];
 
-        // Un autre héros est sur le chemin : on s'arrête (le chemin reste prévu)
+        // Un héros d'un autre joueur sur la case suivante : on l'attaque, sans bouger (comme un monstre)
+        if (EnemyHeroAt(next, hero.Owner) is { } enemy)
+        {
+            hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next));
+            Path = null;
+            BeginFights(hero, hero.Position, hero.Position, new[] { ((MapObject)new HeroDefender(enemy), enemy.Army) }, visit: false);
+            return false;
+        }
+        // Un de ses héros est sur le chemin : on s'arrête (le chemin reste prévu)
         if (AllHeroes.Any(h => h != hero && h.Position == next))
             return false;
 
@@ -360,8 +375,12 @@ public sealed partial class GameState
         if (Map.ObjectAt(cell) is { } obj and not MonsterGuard)
         {
             var visit = obj.Visit(hero);
-            if (visit is TownCaptured)
+            if (visit is TownCaptured captured)
+            {
                 hero.Owner.Statistics.TownsCaptured++;
+                if (captured.PreviousOwner is { } loser)
+                    AnnounceDefeat(loser);
+            }
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
             Emit(visit);
@@ -416,7 +435,7 @@ public sealed partial class GameState
         var (defender, army) = step.Opponents.Dequeue();
         var rebels = RollRevolts(step.Hero);
         _battle = new BattleContext(step.Hero, defender, army.Clone().Stacks);
-        CurrentBattle = new TacticalBattle(step.Hero.Army, army, _rng, step.Hero, rebels);
+        CurrentBattle = new TacticalBattle(step.Hero.Army, army, _rng, step.Hero, rebels, (defender as HeroDefender)?.Hero);
         Emit(new BattleStarted(step.Hero, defender, CurrentBattle));
         if (QuickBattles)
         {
@@ -443,7 +462,26 @@ public sealed partial class GameState
         stats.CreaturesKilled += report.DefenderLosses.Sum(s => s.Count);
         if (report.AttackerWon)
             stats.BattlesWon++;
-        Emit(new BattleFought(hero, context.Defender, context.DefenderArmy, report));
+        // celui qui se défendait : le propriétaire de la ville, ou le héros attaqué
+        var defenderHero = (context.Defender as HeroDefender)?.Hero;
+        var defenderOwner = defenderHero?.Owner ?? (context.Defender as Town)?.Owner;
+        if (defenderOwner != null)
+        {
+            defenderOwner.Statistics.CreaturesLost += report.DefenderLosses.Sum(s => s.Count);
+            defenderOwner.Statistics.CreaturesKilled += report.AttackerLosses.Sum(s => s.Count);
+            if (!report.AttackerWon && !report.Fled)
+                defenderOwner.Statistics.BattlesWon++;
+        }
+        Emit(new BattleFought(hero, context.Defender, context.DefenderArmy, report, defenderOwner));
+
+        // le héros qui se défendait : vaincu, il disparaît ; vainqueur, il gagne la valeur des troupes tuées
+        if (defenderHero != null)
+        {
+            if (report.AttackerWon)
+                RemoveHero(defenderHero);
+            else
+                GrantExperience(defenderHero, Battle.ExperienceFor(report.AttackerLosses));
+        }
 
         if (report.AttackerWon)
         {
@@ -511,10 +549,10 @@ public sealed partial class GameState
         }
     }
 
-    /// <summary>Le joueur choisit la caractéristique gagnée à ce niveau. Renvoie false si ce choix n'est pas proposé.</summary>
     /// <summary>Les niveaux gagnés dont la caractéristique n'est pas encore choisie (tous joueurs).</summary>
     public IReadOnlyList<HeroLevelChoice> PendingChoices => _pendingChoices;
 
+    /// <summary>Le joueur choisit la caractéristique gagnée à ce niveau. Renvoie false si ce choix n'est pas proposé.</summary>
     public bool ChooseStat(HeroLevelChoice choice, HeroStat stat)
     {
         if (!_pendingChoices.Contains(choice) || !choice.Options.Contains(stat))
@@ -541,10 +579,20 @@ public sealed partial class GameState
         if (CurrentHero == hero)
             CurrentHero = hero.Owner.Heroes.FirstOrDefault();
         Emit(new HeroDefeated(hero));
+        AnnounceDefeat(hero.Owner);
         if (hero.Owner == Players[0] && hero.Owner.IsDefeated)
             EndGame(GameOutcome.Defeat, GameEndReason.HeroesLost);
         else
             CheckVictory(); // le dernier héros d'un adversaire
+    }
+
+    private readonly HashSet<Player> _announcedDefeats = new();
+
+    /// <summary>Un joueur qui n'a plus ni héros ni ville est éliminé (annoncé une seule fois).</summary>
+    private void AnnounceDefeat(Player player)
+    {
+        if (player.IsDefeated && _announcedDefeats.Add(player))
+            Emit(new PlayerDefeated(player));
     }
 
     /// <summary>Pour chaque case du chemin : est-elle atteignable aujourd'hui ?</summary>
@@ -559,7 +607,7 @@ public sealed partial class GameState
             return null;
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero)) is not { } path)
+        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target)) is not { } path)
             return null;
         int days = 1, movement = hero.Movement;
         var previous = hero.Position;
@@ -606,8 +654,8 @@ public sealed partial class GameState
     }
 
     /// <summary>Prévision d'un combat du héros courant contre cette armée, sans rien modifier (pour l'interface).</summary>
-    public BattleReport? PredictBattle(Army enemy) =>
-        CurrentHero is { } hero ? Battle.Resolve(hero.Army.Clone(), enemy.Clone(), hero) : null;
+    public BattleReport? PredictBattle(Army enemy, Hero? enemyHero = null) =>
+        CurrentHero is { } hero ? Battle.Resolve(hero.Army.Clone(), enemy.Clone(), hero, defenderHero: enemyHero) : null;
 
     // ------------------------------------------------------------------ villes
 

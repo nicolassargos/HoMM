@@ -86,6 +86,7 @@ public class CombatIAAdversaireTests
         }
         Assert.Equal(GameOutcome.Playing, state.Outcome);
         Assert.Contains(state.Opponents, p => p.Statistics.BattlesWon > 0);
-        Assert.All(state.Opponents, p => Assert.False(p.IsDefeated));
+        // les adversaires s'attaquent aussi entre eux (point 5) : l'un peut être éliminé, pas tous
+        Assert.Contains(state.Opponents, p => !p.IsDefeated);
     }
 }

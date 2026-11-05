@@ -89,6 +89,7 @@ public static class Texts
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
         Town town => town.Name,
+        HeroDefender defender => HeroWithColor(defender.Hero),
         _ => obj.GetType().Name,
     };
 
@@ -97,6 +98,7 @@ public static class Texts
     {
         MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, battle.DefenderArmy.Sum(s => s.Count))),
         Town town => $"la garnison de {town.Name}",
+        HeroDefender defender => HeroWithColor(defender.Hero),
         var other => LowerFirst(ObjectName(other)),
     };
 
@@ -105,6 +107,7 @@ public static class Texts
     {
         MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, army.TotalCount)),
         Town town => $"la garnison de {town.Name}",
+        HeroDefender attacked => HeroWithColor(attacked.Hero),
         var other => LowerFirst(ObjectName(other)),
     };
 
@@ -151,6 +154,22 @@ public static class Texts
 
     /// <summary>La cible, avec ce qu'elle comptait avant le coup.</summary>
     private static string StackAfter(UnitStruck s) => Stack(new CreatureStack(s.Target.Type, s.Target.Count + s.Killed));
+
+    /// <summary>« Sire Yvain (Bleu) » : un héros et la couleur de son joueur.</summary>
+    public static string HeroWithColor(Hero hero) => $"{hero.Name} ({hero.Owner.Name})";
+
+    /// <summary>Le bilan vu par celui qui se défendait : « Sire Yvain (Bleu) attaque Sire Roland · 3 rounds ».</summary>
+    public static string DefenseSubtitle(BattleFought battle) =>
+        $"{HeroWithColor(battle.Hero)} attaque {(battle.Defender is Town town ? town.Name : battle.Defender is HeroDefender d ? d.Hero.Name : ObjectName(battle.Defender))}"
+        + $" · {battle.Report.Rounds} round{(battle.Report.Rounds > 1 ? "s" : "")}";
+
+    /// <summary>Le titre du bilan pour celui qui se défendait.</summary>
+    public static string DefenseTitle(BattleReport report) => report.AttackerWon ? "Défaite…" : "Victoire !";
+
+    /// <summary>L'expérience du héros qui s'est défendu et a gagné (la valeur des troupes tuées).</summary>
+    public static string DefenseExperience(BattleFought battle) =>
+        battle.Defender is HeroDefender && !battle.Report.AttackerWon && !battle.Report.Fled
+            ? $"Expérience : +{Battle.ExperienceFor(battle.Report.AttackerLosses)}" : "";
 
     /// <summary>« Révolte : 40 Paysans refusent d'obéir… », ou null s'il n'y a pas eu de révolte.</summary>
     public static string? Revolt(BattleReport report) => report.Rebels.Count == 0 ? null
@@ -497,6 +516,8 @@ public static class Texts
     /// </summary>
     public static string? Message(GameEvent e, Player viewer) => e switch
     {
+        TownCaptured { PreviousOwner: { } loser } lost when loser == viewer && lost.Hero.Owner != viewer =>
+            $"{HeroWithColor(lost.Hero)} vous prend {lost.Town.Name} !",
         ObjectVisited visit when visit.Hero.Owner != viewer => null,
         ResourcesFound { Object: TreasureChest } found => $"Un coffre au trésor ! +{found.Amount} {Resource(found.Resource)}.",
         ResourcesFound found => $"Vous trouvez {found.Amount} {Resource(found.Resource)}.",
@@ -515,7 +536,12 @@ public static class Texts
             $"{recruited.Count} {Creature(recruited.Type, recruited.Count)} recruté{(recruited.Count > 1 ? "s" : "")} à {recruited.Town.Name}"
             + (recruited.ToHero ? " (garnison pleine : ils rejoignent le héros)." : "."),
 
+        BattleFought { DefenderOwner: { } defender } battle when defender == viewer && battle.Hero.Owner != viewer =>
+            battle.Report.AttackerWon
+                ? $"{HeroWithColor(battle.Hero)} vous attaque et l'emporte."
+                : $"{HeroWithColor(battle.Hero)} vous attaque et est repoussé !",
         BattleFought battle when battle.Hero.Owner != viewer => null,
+        PlayerDefeated defeated when defeated.Player != viewer => $"Le joueur {defeated.Player.Name} est éliminé !",
         BattleFought { Report.AttackerWon: true } battle => Join(
             Revolt(battle.Report),
             $"Victoire contre {Enemy(battle)} ! Pertes : {Losses(battle.Report.AttackerLosses)}. +{battle.Report.Experience} expérience."),

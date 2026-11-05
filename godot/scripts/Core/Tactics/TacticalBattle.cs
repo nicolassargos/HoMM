@@ -91,7 +91,9 @@ public sealed class TacticalBattle
     /// round. <paramref name="hero"/> (celui de l'attaquant) ajoute son attaque et sa défense à ses troupes.
     /// <paramref name="rebels"/> : troupes révoltées, qui combattent avec le défenseur, sans le bonus du héros.
     /// </summary>
-    public TacticalBattle(Army attacker, Army defender, GameRandom rng, Hero? hero = null, Army? rebels = null)
+    /// <param name="defenderHero">Le héros qui se défend (combat entre héros, étape 8) : son attaque et sa défense
+    /// s'ajoutent à celles de ses troupes, comme pour l'attaquant.</param>
+    public TacticalBattle(Army attacker, Army defender, GameRandom rng, Hero? hero = null, Army? rebels = null, Hero? defenderHero = null)
     {
         _rng = rng;
         _attacker = attacker;
@@ -103,7 +105,7 @@ public sealed class TacticalBattle
         var defenders = defender.Stacks.Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: false))
             .Concat((rebels?.Stacks ?? new List<CreatureStack>()).Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: true)))
             .ToList();
-        PlaceColumn(defenders, BattleSide.Defender, Battlefield.Columns - 1);
+        PlaceColumn(defenders, BattleSide.Defender, Battlefield.Columns - 1, defenderHero?.Attack ?? 0, defenderHero?.Defense ?? 0);
         foreach (var unit in _units)
             _startCounts[unit] = unit.Count;
         PlaceObstacles();

@@ -732,6 +732,7 @@ public partial class Main : Node2D
         {
             MonsterGuard guard => guard.Army,
             Town town => town.Garrison,
+            HeroDefender defender => defender.Hero.Army,
             _ => new Army(),
         });
         var terrain = _state.Map.GetTerrain(started.Hero.Position);
@@ -789,6 +790,10 @@ public partial class Main : Node2D
                 case BattleFought battle when battle.Hero.Owner == viewer:
                     _walking = false;
                     _hud.ShowBattle(battle);
+                    break;
+                // un adversaire a attaqué un héros ou une ville du joueur : le bilan de son point de vue
+                case BattleFought battle when battle.DefenderOwner == viewer:
+                    _hud.ShowBattle(battle, asDefender: true);
                     break;
                 case HeroLevelChoice choice when choice.Hero.Owner == viewer:
                     _hud.ShowLevelChoice(choice, stat => _state.ChooseStat(choice, stat));

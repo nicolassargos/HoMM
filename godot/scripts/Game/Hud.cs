@@ -549,6 +549,9 @@ public partial class Hud : CanvasLayer
         int? days = passable && _state.CurrentHero != null ? _state.DaysTo(cell) : null;
         string line = Texts.CellLine(terrain, _state.Map.HasRoad(cell), passable ? _state.Map.MoveCost(cell) : null, days);
         var obj = _state.Map.OccupantAt(cell);
+        // un héros adverse sur la case : son nom, sa couleur et le danger de l'attaquer (son bonus compte)
+        if (_state.EnemyHeroAt(cell, _state.CurrentPlayer) is { } enemy)
+            return $"{line}\n{Join(Texts.HeroWithColor(enemy), Prediction(enemy.Army, enemy))}";
         string? second = obj switch
         {
             Mine mine => $"{Texts.MineName(mine)} ({(mine.Owner == _state.CurrentPlayer ? Texts.Owned : mine.Owner != null ? Texts.EnemyOwned : Texts.Free)})",
@@ -567,14 +570,14 @@ public partial class Hud : CanvasLayer
     private static string Join(string a, string b) => a.Length == 0 ? b : b.Length == 0 ? a : $"{a} · {b}";
 
     /// <summary>Danger estimé d'un combat, en simulant le combat sur des copies des armées.</summary>
-    private string Prediction(Army enemy)
+    private string Prediction(Army enemy, Hero? enemyHero = null)
     {
         int armyCount = _state.CurrentHero?.Army.TotalCount ?? 0;
         var key = (enemy, enemy.TotalCount, armyCount);
         if (_predictionKey == key)
             return _predictionText;
         _predictionKey = key;
-        var report = _state.PredictBattle(enemy);
+        var report = _state.PredictBattle(enemy, enemyHero);
         _predictionText = report == null || armyCount == 0 ? ""
             : Texts.Danger(report.AttackerWon ? report.AttackerLosses.Sum(s => s.Count) / (double)armyCount : null);
         return _predictionText;
@@ -586,17 +589,25 @@ public partial class Hud : CanvasLayer
     /// Le bilan d'un combat (étape 7), après chaque combat, tactique ou rapide : le vainqueur, les pertes des deux camps
     /// en images, l'expérience gagnée, les révoltes et les pertes d'une fuite.
     /// </summary>
-    public void ShowBattle(BattleFought battle) => Enqueue(done =>
+    /// <param name="asDefender">Le joueur se défendait (son héros ou sa ville a été attaqué) : le bilan à son point de vue.</param>
+    public void ShowBattle(BattleFought battle, bool asDefender = false) => Enqueue(done =>
     {
         var report = battle.Report;
-        var dialog = new GameDialog { Title = Texts.ReportTitle(report), OkButtonText = Texts.ContinueButton, Exclusive = true, Unresizable = true };
+        var dialog = new GameDialog
+        {
+            Title = asDefender ? Texts.DefenseTitle(report) : Texts.ReportTitle(report), OkButtonText = Texts.ContinueButton,
+            Exclusive = true, Unresizable = true,
+        };
         var content = new VBoxContainer { CustomMinimumSize = V(560, 0) };
         content.AddThemeConstantOverride("separation", (int)Px(8));
-        var subtitle = MakeLabel(Texts.ReportSubtitle(battle), 14, SoftTextColor);
+        var subtitle = MakeLabel(asDefender ? Texts.DefenseSubtitle(battle) : Texts.ReportSubtitle(battle), 14, SoftTextColor);
         subtitle.HorizontalAlignment = HorizontalAlignment.Center;
         content.AddChild(subtitle);
         // d'abord l'expérience gagnée (et une révolte), puis nos pertes, puis les ennemis tués
-        foreach (var (line, color) in new[] { (Texts.ReportExperience(report), TextColor), (Texts.Revolt(report) ?? "", MapRenderer.Rgb(240, 150, 130)) })
+        var lines = asDefender
+            ? new[] { (Texts.DefenseExperience(battle), TextColor) }
+            : new[] { (Texts.ReportExperience(report), TextColor), (Texts.Revolt(report) ?? "", MapRenderer.Rgb(240, 150, 130)) };
+        foreach (var (line, color) in lines)
         {
             if (line.Length == 0)
                 continue;
@@ -606,8 +617,8 @@ public partial class Hud : CanvasLayer
             label.CustomMinimumSize = V(560, 0);
             content.AddChild(label);
         }
-        content.AddChild(LossesRow(Texts.YourLosses, report.AttackerLosses, minus: true));
-        content.AddChild(LossesRow(Texts.EnemyLosses, report.DefenderLosses, minus: false));
+        content.AddChild(LossesRow(Texts.YourLosses, asDefender ? report.DefenderLosses : report.AttackerLosses, minus: true));
+        content.AddChild(LossesRow(Texts.EnemyLosses, asDefender ? report.AttackerLosses : report.DefenderLosses, minus: false));
         dialog.AddChild(content);
         bool closed = false;
         void Close()

@@ -47,9 +47,10 @@ public static class Battle
     /// <paramref name="rebels"/> sont des troupes révoltées : elles combattent avec le camp défenseur,
     /// sans le bonus du héros. Leurs survivants sont retirés de <paramref name="rebels"/>.
     /// </summary>
-    public static BattleReport Resolve(Army attacker, Army defender, Hero? hero = null, Army? rebels = null, GameRandom? rng = null)
+    public static BattleReport Resolve(Army attacker, Army defender, Hero? hero = null, Army? rebels = null, GameRandom? rng = null,
+        Hero? defenderHero = null)
     {
-        var battle = new TacticalBattle(attacker, defender, rng ?? new GameRandom(EstimateSeed), hero, rebels);
+        var battle = new TacticalBattle(attacker, defender, rng ?? new GameRandom(EstimateSeed), hero, rebels, defenderHero);
         BattleAI.PlayOut(battle);
         return battle.Report();
     }
@@ -63,4 +64,7 @@ public static class Battle
 /// Un combat a eu lieu contre <paramref name="Defender"/> (un monstre, ou la garnison d'une ville).
 /// <paramref name="DefenderArmy"/> est l'armée adverse au début du combat (elle a pu changer depuis).
 /// </summary>
-public sealed record BattleFought(Hero Hero, MapObject Defender, IReadOnlyList<CreatureStack> DefenderArmy, BattleReport Report) : GameEvent;
+/// <paramref name="DefenderOwner"/> : le joueur qui se défendait (le propriétaire de la ville ou du héros attaqué), s'il
+/// y en a un : il voit aussi le bilan.
+public sealed record BattleFought(Hero Hero, MapObject Defender, IReadOnlyList<CreatureStack> DefenderArmy, BattleReport Report,
+    Player? DefenderOwner = null) : GameEvent;

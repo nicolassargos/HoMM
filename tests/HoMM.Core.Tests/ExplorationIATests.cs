@@ -92,8 +92,9 @@ public class ExplorationIATests
             }
         }
         Assert.Equal(21, state.Day);
+        // les adversaires peuvent s'éliminer entre eux (point 5) : on regarde ceux qui restent
         var rivals = state.Opponents.ToList();
-        Assert.All(rivals, p => Assert.NotEmpty(p.Heroes));
+        Assert.Contains(rivals, p => p.Heroes.Count > 0);
         // chacun a fait quelque chose : un combat gagné, une mine ou une ville prise, ou de l'or ramassé
         Assert.All(rivals.Select((p, i) => (p, i)), x => Assert.True(x.p.Statistics.BattlesWon > 0 || x.p.Mines.Count > 0
             || x.p.Towns.Count > 0 || x.p.Resources[ResourceType.Gold] > startGold[x.i]));

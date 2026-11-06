@@ -21,6 +21,10 @@ public sealed class BattleReport
     /// <summary>Survivants des troupes révoltées : ils quittent l'armée après le combat.</summary>
     public List<CreatureStack> RebelSurvivors { get; init; } = new();
 
+    /// <summary>Les points de sort dépensés par le héros de chaque camp (retirés au héros après le combat).</summary>
+    public int AttackerSpellPointsSpent { get; init; }
+    public int DefenderSpellPointsSpent { get; init; }
+
     /// <summary>Expérience gagnée : la valeur en or des créatures ennemies tuées.</summary>
     public int Experience => Fled ? 0 : Battle.ExperienceFor(DefenderLosses);
 }

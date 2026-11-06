@@ -401,7 +401,8 @@ public partial class Main : Node2D
     private static GameData LoadData() => GameData.FromJson(
         Godot.FileAccess.GetFileAsString("res://data/creatures.json"),
         Godot.FileAccess.GetFileAsString("res://data/buildings.json"),
-        Godot.FileAccess.GetFileAsString("res://data/artifacts.json"));
+        Godot.FileAccess.GetFileAsString("res://data/artifacts.json"),
+        Godot.FileAccess.GetFileAsString("res://data/spells.json"));
 
     /// <summary>Le joueur regarde la carte (pas de fenêtre ni d'écran de ville ouverts).</summary>
     /// <summary>Passe au héros suivant et centre la vue sur lui (touche H ou bouton).</summary>

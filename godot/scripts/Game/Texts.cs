@@ -136,6 +136,12 @@ public static class Texts
         UnitWaited w => $"{Capitalize(Stack(w.Unit.Stack))} {(w.Unit.Count == 1 ? "attend" : "attendent")}.",
         UnitRegenerated r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "se régénère" : "se régénèrent")}.",
         UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
+        SpellCast c => $"{c.Caster.Name} lance {c.Spell.Name}.",
+        SpellDamaged d => $"{d.Spell.Name} : {d.Damage} dégâts à {Stack(new CreatureStack(d.Target.Type, d.Target.Count + d.Killed))}"
+                          + (d.Killed > 0 ? $", {d.Killed} {(d.Killed == 1 ? "tué" : "tués")}." : "."),
+        UnitHealed { Revived: > 0 } h => $"{h.Spell.Name} : {h.Revived} {Creature(h.Unit.Type, h.Revived)} {(h.Revived == 1 ? "revient" : "reviennent")} au combat.",
+        UnitHealed h => $"{h.Spell.Name} : {Stack(h.Unit.Stack)} {(h.Unit.Count == 1 ? "est soigné" : "sont soignés")} ({h.HitPoints} PV).",
+        SpellApplied a => $"{a.Spell.Name} sur {Stack(a.Unit.Stack)}.",
         AttackerFled fled => $"Le héros s'enfuit ! Pertes : {Losses(fled.Losses)}.",
         BattleEnded { Outcome: BattleOutcome.AttackerWon } => "Victoire !",
         BattleEnded { Outcome: BattleOutcome.DefenderWon } => "Défaite...",
@@ -669,8 +675,8 @@ public static class Texts
     {
         HeroStat.Attack => $"Attaque {hero.Attack} : s'ajoute à l'attaque de chaque troupe du héros.",
         HeroStat.Defense => $"Défense {hero.Defense} : s'ajoute à la défense de chaque troupe du héros.",
-        HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (la magie viendra plus tard).",
-        HeroStat.Knowledge => $"Savoir {hero.Knowledge} : les points de sort (la magie viendra plus tard).",
+        HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (dégâts, soins) et leur durée ({hero.Power + 1} rounds).",
+        HeroStat.Knowledge => $"Savoir {hero.Knowledge} : {Hero.SpellPointsPerKnowledge} points de sort par point (points de sort : {hero.SpellPoints} / {hero.MaxSpellPoints}, +1 par jour).",
         _ => $"Charisme {hero.Charisma} : le héros commande au plus {Command.Limit(hero.Charisma)} points par troupe "
              + "(nombre × coût de la créature). Au-delà, la troupe risque de se révolter au combat.",
     };

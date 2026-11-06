@@ -17,6 +17,26 @@ public static class DataValidation
         return errors;
     }
 
+    /// <summary>Les sorts (data/spells.json) : identifiants uniques, niveau de 1 à 4, coût positif, force cohérente.</summary>
+    public static void CheckSpells(IReadOnlyCollection<SpellType> spells, List<string> errors)
+    {
+        foreach (var group in spells.GroupBy(s => s.Id).Where(g => g.Count() > 1))
+            errors.Add($"sort en double : {group.Key}");
+        foreach (var s in spells)
+        {
+            if (string.IsNullOrWhiteSpace(s.Id))
+                errors.Add($"sort sans identifiant ({s.Name})");
+            if (s.Level is < 1 or > 4)
+                errors.Add($"{s.Id} : niveau {s.Level} hors de 1 à 4");
+            if (s.Cost < 1)
+                errors.Add($"{s.Id} : coût invalide ({s.Cost})");
+            if (s.Effect is SpellEffect.Damage or SpellEffect.Cure or SpellEffect.Resurrection && s.Base + s.PerPower < 1)
+                errors.Add($"{s.Id} : force nulle");
+            if (s.Target == SpellTarget.Area && s.Effect != SpellEffect.Damage)
+                errors.Add($"{s.Id} : seuls les sorts de dégâts visent une zone");
+        }
+    }
+
     private static void CheckCreatures(IReadOnlyCollection<CreatureType> creatures, List<string> errors)
     {
         foreach (var group in creatures.GroupBy(c => c.Id).Where(g => g.Count() > 1))

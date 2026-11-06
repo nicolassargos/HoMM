@@ -39,6 +39,28 @@ public static class DataValidation
         }
     }
 
+    /// <summary>Les héros (noms uniques) et les classes (une faction connue, des sorts connus, des caractéristiques positives).</summary>
+    public static void CheckHeroes(IReadOnlyCollection<HeroType> heroes, IReadOnlyCollection<HeroClass> classes,
+        IReadOnlyCollection<CreatureType> creatures, IReadOnlyCollection<SpellType> spells, List<string> errors)
+    {
+        foreach (var group in heroes.GroupBy(h => h.Name).Where(g => g.Count() > 1))
+            errors.Add($"héros en double : {group.Key}");
+        foreach (var h in heroes.Where(h => string.IsNullOrWhiteSpace(h.Name)))
+            errors.Add($"héros sans nom ({h.Id})");
+        var factions = creatures.Select(c => c.Faction).ToHashSet();
+        foreach (var group in classes.GroupBy(c => c.Id).Where(g => g.Count() > 1))
+            errors.Add($"classe en double : {group.Key}");
+        foreach (var c in classes)
+        {
+            if (!factions.Contains(c.Faction))
+                errors.Add($"{c.Id} : faction inconnue ({c.Faction})");
+            if (c.Attack < 0 || c.Defense < 0 || c.Power < 0 || c.Knowledge < 0 || c.Charisma < 1)
+                errors.Add($"{c.Id} : caractéristiques invalides");
+            foreach (var spell in c.Spells.Where(id => spells.All(s => s.Id != id)))
+                errors.Add($"{c.Id} : sort inconnu ({spell})");
+        }
+    }
+
     private static void CheckCreatures(IReadOnlyCollection<CreatureType> creatures, List<string> errors)
     {
         foreach (var group in creatures.GroupBy(c => c.Id).Where(g => g.Count() > 1))

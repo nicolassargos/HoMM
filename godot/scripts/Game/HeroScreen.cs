@@ -20,6 +20,7 @@ public partial class HeroScreen : ScreenWindow
     private Hero? _hero;
     private TextureRect _portrait = null!;
     private Label _level = null!;
+    private Label _class = null!;
     private Label _experienceText = null!;
     private ProgressBar _experienceBar = null!;
     private Label _movementText = null!;
@@ -48,7 +49,11 @@ public partial class HeroScreen : ScreenWindow
             Position = V(2, 2), Size = new Vector2(64, 64) * PortraitScale, // en pixels : le portrait ×2
         };
         portraitFrame.AddChild(_portrait);
-        // sous le nom (dans le titre) : la place de la classe (personnalisation des héros, plus tard), puis le niveau
+        // la classe sous le portrait, le niveau à côté
+        _class = At(MakeLabel("", 15, SoftTextColor), 20, 152);
+        _class.Size = V(136, 20);
+        _class.HorizontalAlignment = HorizontalAlignment.Center;
+        Window.AddChild(_class);
         _level = At(MakeLabel("", 16, TextColor), 166, 60);
         Window.AddChild(_level);
         // l'expérience et le mouvement : un mot, puis une barre avec les nombres dessus
@@ -166,6 +171,7 @@ public partial class HeroScreen : ScreenWindow
         SetTitle(hero.Name);
         _portrait.Texture = Art.Portrait(hero.Name);
         _level.Text = Texts.LevelLine(hero);
+        _class.Text = hero.Class?.Name ?? "";
         _experienceText.Text = $"{hero.Experience} / {Hero.ExperienceForLevel(hero.Level + 1)}";
         int floor = Hero.ExperienceForLevel(hero.Level), next = Hero.ExperienceForLevel(hero.Level + 1);
         _experienceBar.MaxValue = next - floor;

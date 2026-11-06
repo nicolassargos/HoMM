@@ -625,6 +625,14 @@ public partial class TownScreen : CanvasLayer
             label.Size = V(284, 20);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             card.AddChild(label);
+            // sa classe : celle de la faction de la ville
+            if (_state.Data.Classes.ForFaction(town.Faction) is { } heroClass)
+            {
+                var classLabel = At(MakeLabel(heroClass.Name, 12, SoftTextColor), 0, 160);
+                classLabel.Size = V(284, 16);
+                classLabel.HorizontalAlignment = HorizontalAlignment.Center;
+                card.AddChild(classLabel);
+            }
             if (status != HireResult.Ok)
             {
                 x += 300;

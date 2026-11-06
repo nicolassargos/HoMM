@@ -9,27 +9,37 @@ namespace HoMM.Core;
 /// <summary>Les données du jeu, lues depuis les fichiers du dossier data/ (créatures, bâtiments…).</summary>
 public sealed class GameData
 {
-    public GameData(CreatureCatalog creatures, BuildingCatalog buildings, ArtifactCatalog? artifacts = null, SpellCatalog? spells = null)
+    public GameData(CreatureCatalog creatures, BuildingCatalog buildings, ArtifactCatalog? artifacts = null, SpellCatalog? spells = null,
+        HeroCatalog? heroes = null, ClassCatalog? classes = null)
     {
         var errors = DataValidation.Check(creatures.All, buildings.All);
         DataValidation.CheckSpells((spells ?? SpellCatalog.Empty).All, errors);
+        DataValidation.CheckHeroes((heroes ?? HeroCatalog.Empty).All, (classes ?? ClassCatalog.Empty).All, creatures.All,
+            (spells ?? SpellCatalog.Empty).All, errors);
         if (errors.Count > 0)
             throw new FormatException("Données du jeu invalides :" + System.Environment.NewLine + "- " + string.Join(System.Environment.NewLine + "- ", errors));
         Creatures = creatures;
         Buildings = buildings;
         Artifacts = artifacts ?? ArtifactCatalog.Empty;
         Spells = spells ?? SpellCatalog.Empty;
+        Heroes = heroes ?? HeroCatalog.Empty;
+        Classes = classes ?? ClassCatalog.Empty;
     }
 
     public CreatureCatalog Creatures { get; }
     public BuildingCatalog Buildings { get; }
     public ArtifactCatalog Artifacts { get; }
     public SpellCatalog Spells { get; }
+    public HeroCatalog Heroes { get; }
+    public ClassCatalog Classes { get; }
 
-    public static GameData FromJson(string creaturesJson, string buildingsJson, string? artifactsJson = null, string? spellsJson = null) =>
+    public static GameData FromJson(string creaturesJson, string buildingsJson, string? artifactsJson = null, string? spellsJson = null,
+        string? heroesJson = null, string? classesJson = null) =>
         new(CreatureCatalog.FromJson(creaturesJson), BuildingCatalog.FromJson(buildingsJson),
             artifactsJson != null ? ArtifactCatalog.FromJson(artifactsJson) : null,
-            spellsJson != null ? SpellCatalog.FromJson(spellsJson) : null);
+            spellsJson != null ? SpellCatalog.FromJson(spellsJson) : null,
+            heroesJson != null ? HeroCatalog.FromJson(heroesJson) : null,
+            classesJson != null ? ClassCatalog.FromJson(classesJson) : null);
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {

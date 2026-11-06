@@ -221,6 +221,10 @@ public static class Ui
     }
 
     /// <summary>Le fond d'un bouton, teinté par <paramref name="tint"/> (survol, appui, désactivé).</summary>
+    /// <summary>La pierre d'un bouton (A1), teintée : <see cref="StoneButton"/> pour les états ordinaires.</summary>
+    public static StyleBox StoneButton(float light = 1f) =>
+        ButtonBox(new Color(light, light * 0.97f, light * 0.92f), MapRenderer.Rgb(90, 66, 30), BorderColor);
+
     private static StyleBox ButtonBox(Color tint, Color flatColor, Color border)
     {
         LoadImages();
@@ -583,6 +587,34 @@ public static class Ui
             grabber.ContentMarginTop = grabber.ContentMarginBottom = Px(10);
             theme.SetStylebox(state, "VScrollBar", grabber);
         }
+        // les listes déroulantes (proposition A, choisie par l'utilisateur) : le bouton de pierre, une flèche d'argent ;
+        // la liste dans un creux, la ligne survolée en plaque bordée d'argent, le choix marqué d'une coche
+        theme.SetStylebox("normal", "OptionButton", ButtonBox(Colors.White, MapRenderer.Rgb(90, 66, 30), BorderColor));
+        theme.SetStylebox("hover", "OptionButton", ButtonBox(new Color(1.3f, 1.25f, 1.15f), MapRenderer.Rgb(120, 90, 40), BorderColor));
+        theme.SetStylebox("pressed", "OptionButton", ButtonBox(new Color(0.75f, 0.7f, 0.65f), MapRenderer.Rgb(70, 50, 20), BorderColor));
+        theme.SetStylebox("disabled", "OptionButton", ButtonBox(new Color(0.5f, 0.47f, 0.43f), MapRenderer.Rgb(50, 42, 32), DimColor));
+        theme.SetStylebox("focus", "OptionButton", new StyleBoxEmpty());
+        theme.SetIcon("arrow", "OptionButton", Arrow('v', SilverColor));
+        theme.SetConstant("arrow_margin", "OptionButton", (int)Px(12));
+        theme.SetColor("font_color", "OptionButton", TextColor);
+        theme.SetColor("font_hover_color", "OptionButton", Colors.White);
+        theme.SetColor("font_pressed_color", "OptionButton", TextColor);
+        theme.SetColor("font_disabled_color", "OptionButton", DimColor);
+        var list = (StyleBox)Inset(DarkPanelColor).Duplicate();
+        list.SetContentMarginAll(Px(5));
+        theme.SetStylebox("panel", "PopupMenu", list);
+        var hovered = (StyleBox)Plate(PanelColor, SilverColor).Duplicate();
+        theme.SetStylebox("hover", "PopupMenu", hovered);
+        theme.SetColor("font_color", "PopupMenu", TextColor);
+        theme.SetColor("font_hover_color", "PopupMenu", Colors.White);
+        theme.SetColor("font_disabled_color", "PopupMenu", DimColor);
+        theme.SetFontSize("font_size", "PopupMenu", TextSize(14));
+        theme.SetConstant("v_separation", "PopupMenu", (int)Px(8));
+        theme.SetConstant("item_start_padding", "PopupMenu", (int)Px(8));
+        theme.SetIcon("radio_checked", "PopupMenu", CheckMark(SilverColor));
+        theme.SetIcon("radio_unchecked", "PopupMenu", Blank(CheckMark(SilverColor)));
+        theme.SetIcon("checked", "PopupMenu", CheckMark(SilverColor));
+        theme.SetIcon("unchecked", "PopupMenu", Blank(CheckMark(SilverColor)));
         // les champs de texte (graine, nom d'une sauvegarde) : creusés, un trait d'argent quand on y écrit
         var field = (StyleBox)Inset(DarkPanelColor).Duplicate();
         field.ContentMarginLeft = field.ContentMarginRight = Px(8);
@@ -595,6 +627,66 @@ public static class Ui
         theme.SetColor("font_color", "LineEdit", TextColor);
         theme.SetColor("font_placeholder_color", "LineEdit", DimColor);
         theme.SetColor("caret_color", "LineEdit", TextColor);
+    }
+
+    /// <summary>Une coche en pixels d'art (le choix d'une liste déroulante).</summary>
+    public static Texture2D CheckMark(Color color)
+    {
+        LoadImages();
+        // 7 × 6 pixels : la petite branche puis la grande
+        int[,] points = { { 0, 3 }, { 1, 4 }, { 2, 5 }, { 3, 4 }, { 4, 3 }, { 5, 2 }, { 6, 1 }, { 6, 0 }, { 1, 3 }, { 2, 4 } };
+        var image = Image.CreateEmpty(7, 6, false, Image.Format.Rgba8);
+        for (int i = 0; i < points.GetLength(0); i++)
+            image.SetPixel(points[i, 0], points[i, 1], color);
+        return ImageTexture.CreateFromImage(Enlarged(image, FrameScale));
+    }
+
+    /// <summary>Une image vide de la même taille (pour que les lignes sans coche gardent leur alignement).</summary>
+    private static Texture2D Blank(Texture2D like) =>
+        ImageTexture.CreateFromImage(Image.CreateEmpty(like.GetWidth(), like.GetHeight(), false, Image.Format.Rgba8));
+
+    /// <summary>Une liste déroulante (proposition A) : ces choix, celui-ci choisi ; <paramref name="chosen"/> à chaque choix.</summary>
+    public static OptionButton MakeDropdown(System.Collections.Generic.IEnumerable<string> items, int selected, Vector2 size,
+        Action<int> chosen, int fontSize = 15)
+    {
+        var dropdown = new OptionButton { Size = size, CustomMinimumSize = size, FitToLongestItem = false, FocusMode = Control.FocusModeEnum.None };
+        SetFontSize(dropdown, fontSize);
+        foreach (var item in items)
+            dropdown.AddItem(item);
+        dropdown.Selected = selected;
+        dropdown.ItemSelected += index => chosen((int)index);
+        return dropdown;
+    }
+
+    /// <summary>
+    /// Une petite flèche en pixels d'art (triangle plein, ombré d'un pixel sombre), agrandie comme le cadre :
+    /// vers le bas (liste déroulante), la gauche ou la droite (sélecteur).
+    /// </summary>
+    public static Texture2D Arrow(char direction, Color color)
+    {
+        LoadImages();
+        const int size = 7, depth = 4;
+        bool down = direction == 'v';
+        int w = down ? size : depth + 1, h = down ? depth + 1 : size;
+        var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        var shadow = MapRenderer.Rgb(20, 18, 16);
+        for (int i = 0; i < depth; i++)
+        for (int j = i; j < size - i; j++)
+        {
+            // i : la rangée depuis la base du triangle, j : la position le long de la base
+            var (x, y) = direction switch
+            {
+                'v' => (j, i),
+                '<' => (depth - 1 - i, j),
+                _ => (i, j),
+            };
+            image.SetPixel(x, y, color);
+            // l'ombre, un pixel plus bas (ou à droite pour une flèche couchée), là où il n'y a rien
+            var (sx, sy) = down ? (x, y + 1) : (x + 1, y);
+            if (sx < w && sy < h && image.GetPixel(sx, sy).A == 0)
+                image.SetPixel(sx, sy, shadow);
+        }
+        return ImageTexture.CreateFromImage(Enlarged(image, FrameScale));
     }
 
     /// <summary>

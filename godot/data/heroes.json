@@ -1,0 +1,13 @@
+{
+  "heroes": [
+    { "id": "sire-roland",      "name": "Sire Roland" },
+    { "id": "dame-isolde",      "name": "Dame Isolde" },
+    { "id": "sire-gauvain",     "name": "Sire Gauvain" },
+    { "id": "dame-morgane",     "name": "Dame Morgane" },
+    { "id": "sire-perceval",    "name": "Sire Perceval" },
+    { "id": "renaud-le-goupil", "name": "Renaud le Goupil" },
+    { "id": "brann-le-rouge",   "name": "Brann le Rouge" },
+    { "id": "dame-viviane",     "name": "Dame Viviane" },
+    { "id": "sire-yvain",       "name": "Sire Yvain" }
+  ]
+}

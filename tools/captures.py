@@ -19,6 +19,7 @@ DOSSIER = os.path.join(RACINE, "art-candidats", "en-cours", "revue")
 ECRANS = [
     ("01-menu", ["--menu"]),
     ("02-nouvelle-partie", ["--menu=new"]),
+    ("02b-nouvelle-partie-liste", ["--menu=new", "--dropdown-open"]),
     ("03-charger", ["--menu=load"]),
     ("04-carte", ["--play"]),
     ("05-carte-adversaire", ["--opponents=1", "--turns=10"]),

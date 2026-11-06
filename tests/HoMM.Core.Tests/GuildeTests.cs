@@ -42,7 +42,7 @@ public class GuildeTests
         Assert.Equal(3, castle.GuildSpells.Count);
         Assert.All(castle.GuildSpells, s => Assert.Equal(1, s.Level));
         Assert.Equal(3, castle.GuildSpells.Distinct().Count());
-        Assert.Equal(castle.GuildSpells, hero.Spells);
+        Assert.All(castle.GuildSpells, s => Assert.True(hero.Knows(s)));
         Assert.Equal(hero.MaxSpellPoints, hero.SpellPoints);
         var learned = Assert.Single(state.TakeEvents().OfType<SpellsLearned>());
         Assert.Equal(3, learned.Spells.Count);
@@ -81,14 +81,14 @@ public class GuildeTests
         var (state, castle, hero) = Game();
         hero.Position = castle.Approach; // dehors : il n'apprend rien quand la guilde est construite
         Build(state, castle, "guilde-mages-1");
-        Assert.Empty(hero.Spells);
+        Assert.All(castle.GuildSpells, s => Assert.False(hero.Knows(s)));
         hero.SpellPoints = 0;
 
         state.SetDestination(castle.Position);
         state.StepAlongPath();
 
         Assert.Equal(castle.Position, hero.Position);
-        Assert.Equal(castle.GuildSpells, hero.Spells);
+        Assert.All(castle.GuildSpells, s => Assert.True(hero.Knows(s)));
         Assert.Equal(hero.MaxSpellPoints, hero.SpellPoints);
     }
 
@@ -125,7 +125,7 @@ public class GuildeTests
 
         Assert.Equal(HireResult.Ok, state.HireHero(castle));
 
-        Assert.Equal(castle.GuildSpells, state.CurrentHero!.Spells);
+        Assert.All(castle.GuildSpells, s => Assert.True(state.CurrentHero!.Knows(s)));
     }
 
     [Fact]

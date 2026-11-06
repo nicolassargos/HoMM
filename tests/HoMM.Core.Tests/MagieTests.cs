@@ -247,7 +247,7 @@ public class MagieTests
 
         var report = Battle.Resolve(hero.Army.Clone(), guard.Army.Clone(), hero);
         Assert.True(report.AttackerSpellPointsSpent >= 5); // le combat rapide lance des sorts
-        Assert.Equal(10, hero.SpellPoints); // une estimation ne coûte rien
+        Assert.Equal(hero.MaxSpellPoints, hero.SpellPoints); // une estimation ne coûte rien
     }
 
     [Fact]
@@ -290,11 +290,13 @@ public class MagieTests
         hero.Learn(Spell("eclair"));
         hero.Learn(Spell("fleche-magique"));
         hero.SpellPoints = 4;
+        var known = hero.Spells.Select(s => s.Id).ToList(); // par niveau (le sort de sa classe compris)
 
         var loaded = GameState.Load(state.Save(), TestData.Data).Players[0].Heroes[0];
 
         Assert.Equal(4, loaded.SpellPoints);
-        Assert.Equal(new[] { "fleche-magique", "eclair" }, loaded.Spells.Select(s => s.Id)); // par niveau
+        Assert.Equal(known, loaded.Spells.Select(s => s.Id));
+        Assert.Equal(new[] { "fleche-magique", "eclair" }, known.Where(id => id != "soins"));
     }
 
     [Fact]
@@ -304,6 +306,7 @@ public class MagieTests
         var hero = state.CurrentHero!;
         hero.Learn(Spell("fleche-magique"));
         var start = hero.Position;
+        int points = hero.SpellPoints;
         state.Map.AddObject(new MonsterGuard(start.Offset(2, 0), Creature("gobelin"), 30));
         state.SetDestination(start.Offset(1, 0));
 
@@ -311,7 +314,7 @@ public class MagieTests
 
         var fought = Assert.Single(state.TakeEvents().OfType<BattleFought>());
         Assert.True(fought.Report.AttackerSpellPointsSpent > 0);
-        Assert.Equal(10 - fought.Report.AttackerSpellPointsSpent, hero.SpellPoints);
+        Assert.Equal(points - fought.Report.AttackerSpellPointsSpent, hero.SpellPoints);
     }
 
     [Fact]

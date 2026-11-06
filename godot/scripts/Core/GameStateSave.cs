@@ -64,7 +64,8 @@ public sealed partial class GameState
     private sealed record HeroData(
         int Id, string Name, int Owner, Cell Position, int Movement, int MaxMovement, int VisionRadius,
         int Attack, int Defense, int Power, int Knowledge, int Charisma, int Level, int Experience,
-        List<StackData> Army, List<Cell>? Path, List<string>? Artifacts = null, int? SpellPoints = null, List<string>? Spells = null);
+        List<StackData> Army, List<Cell>? Path, List<string>? Artifacts = null, int? SpellPoints = null, List<string>? Spells = null,
+        string? Class = null);
 
     /// <summary>Un niveau gagné dont la caractéristique n'a pas encore été choisie.</summary>
     private sealed record ChoiceData(int Hero, int Level, List<HeroStat> Options);
@@ -88,7 +89,7 @@ public sealed partial class GameState
                 h.Id, h.Name, h.Owner.Id, h.Position, h.Movement, h.MaxMovement, h.VisionRadius,
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
                 Stacks(h.Army), _paths.GetValueOrDefault(h)?.ToList(), h.Artifacts.Count > 0 ? h.Artifacts.Select(a => a.Id).ToList() : null,
-                h.SpellPoints, h.Spells.Count > 0 ? h.Spells.Select(s => s.Id).ToList() : null)).ToList(),
+                h.SpellPoints, h.Spells.Count > 0 ? h.Spells.Select(s => s.Id).ToList() : null, h.Class?.Id)).ToList(),
             _pendingChoices.Select(c => new ChoiceData(c.Hero.Id, c.Level, c.Options.ToList())).ToList());
         return JsonSerializer.Serialize(save, SaveOptions);
     }
@@ -248,6 +249,8 @@ public sealed partial class GameState
                 Experience = h.Experience,
                 // les anciennes sauvegardes n'ont pas de points de sort : le héros est plein
                 SpellPoints = h.SpellPoints ?? Hero.SpellPointsPerKnowledge * h.Knowledge,
+                // les anciennes sauvegardes n'ont pas de classe : celle de la faction de départ (les caractéristiques restent)
+                Class = h.Class is { } classId ? data.Classes.Get(classId) : data.Classes.ForFaction(StartingFaction),
             };
             foreach (var id in h.Spells ?? new List<string>())
                 hero.Learn(data.Spells.Get(id));

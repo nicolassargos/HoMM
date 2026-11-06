@@ -4,6 +4,7 @@ Jeu PC fortement inspiré de Heroes of Might and Magic / King's Bounty. L'utilis
 
 ## Plan
 La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessous. Le suivre pour chaque nouvelle fonctionnalité, et le mettre à jour quand les idées changent ou qu'une étape avance (cocher ✅, noter les décisions prises).
+`PLAN.md` reste court : la direction, l'étape en cours et les choix encore valables. Le détail d'un travail fini (chiffres mesurés, essais écartés, classes et fichiers) va dans `HISTORIQUE.md` (non importé : le lire quand on a besoin du passé d'une partie du jeu). Avant un travail d'images, lire `tools/art/METHODE.md` et y noter ce qui marche ou non.
 
 @PLAN.md
 
@@ -59,5 +60,7 @@ Décision de l'utilisateur, valable pour toutes les sessions :
 
 ## Commandes
 - Tests : `dotnet test` (à la racine)
+- Mesures de l'équilibre (simulation seule, adversaires à chaque niveau, courbe du Château ; toujours les mêmes graines, pour comparer avant et après un changement) : `HOMM_MESURES=1 dotnet test --filter Category=Mesures --logger "console;verbosity=detailed"` (`tests/HoMM.Core.Tests/MesuresTests.cs` ; ignorées par un `dotnet test` ordinaire). Y ajouter une mesure plutôt qu'écrire un test jetable.
+- Captures de tous les écrans (avant une PR d'interface, puis les regarder) : `python -I tools/captures.py` (ou `… ville` pour une partie), dans `art-candidats/en-cours/revue/`
 - Compiler : `dotnet build` (dans `godot/`)
 - Lancer : `godot\lancer.bat` (Godot attendu dans `C:\Godot\`) : le menu principal ; toute option (ou `-- --play`) entre directement dans une partie ; plein écran (F11 ou Alt+Entrée : fenêtre agrandie ; `-- --windowed` pour démarrer en fenêtre), option `-- --seed=42` pour une carte fixe, `-- --load` pour reprendre la dernière sauvegarde

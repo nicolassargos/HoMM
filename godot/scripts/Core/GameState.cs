@@ -28,21 +28,42 @@ public sealed partial class GameState
     /// </summary>
     /// <param name="startingTowns">Chaque joueur commence avec son château (sans : en pleine nature, pour des tests).</param>
     /// <param name="heroName">Le héros choisi par le joueur (data/heroes.json) ; sans choix, le premier de la liste.</param>
-    public GameState(int seed, GameData data, MapSize size, int opponents = 0, bool startingTowns = true, string? heroName = null)
-        : this(seed, data, Generate(seed, data, size, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns))
-        => AddPlayers(Map.Starts.Count, heroName);
+    /// <param name="faction">La faction du joueur (sans choix : le Château).</param>
+    /// <param name="opponentFactions">Celles des adversaires (sans choix : au hasard, d'après la graine).</param>
+    public GameState(int seed, GameData data, MapSize size, int opponents = 0, bool startingTowns = true, string? heroName = null,
+        string? faction = null, IReadOnlyList<string>? opponentFactions = null)
+        : this(seed, data, Generate(seed, data, size, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns,
+            Factions(seed, data, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)) + 1, faction, opponentFactions)))
+        => AddPlayers(Map.Starts.Count, heroName, Factions(seed, data, Map.Starts.Count, faction, opponentFactions));
 
-    private static AdventureMap Generate(int seed, GameData data, MapSize size, int opponents, bool startingTowns)
+    private static AdventureMap Generate(int seed, GameData data, MapSize size, int opponents, bool startingTowns, IReadOnlyList<string> factions)
     {
         var (width, height) = MapSizes.Dimensions(size);
-        return new MapGenerator(seed, data) { Players = opponents + 1, StartingTowns = startingTowns }.Generate(width, height);
+        return new MapGenerator(seed, data) { Players = opponents + 1, StartingTowns = startingTowns, PlayerFactions = factions }
+            .Generate(width, height);
+    }
+
+    /// <summary>
+    /// La faction de chaque joueur : celle choisie par le joueur (sinon le Château), puis celles des adversaires, choisies
+    /// ou tirées au sort parmi les factions jouables (un hasard à part, d'après la graine : il ne change pas la carte).
+    /// </summary>
+    private static IReadOnlyList<string> Factions(int seed, GameData data, int count, string? faction, IReadOnlyList<string>? opponentFactions)
+    {
+        var playable = data.Classes.PlayableFactions;
+        string Valid(string? f) => f != null && (playable.Contains(f) || playable.Count == 0) ? f : StartingFaction;
+        var rng = new Random(seed * 104729 + 3);
+        var factions = new List<string> { Valid(faction) };
+        for (int i = 1; i < count; i++)
+            factions.Add(opponentFactions != null && i - 1 < opponentFactions.Count ? Valid(opponentFactions[i - 1])
+                : playable.Count == 0 ? StartingFaction : playable[rng.Next(playable.Count)]);
+        return factions;
     }
 
     /// <summary>Les noms (et couleurs) des joueurs, dans l'ordre : le joueur humain, puis les adversaires.</summary>
     private static readonly string[] PlayerNames = { "Rouge", "Bleu", "Vert", "Orange" };
 
-    /// <summary>La faction des joueurs au départ (une seule pour l'instant : le Château).</summary>
-    public const string StartingFaction = "chateau";
+    /// <summary>La faction par défaut d'un joueur (le Château).</summary>
+    public const string StartingFaction = MapGenerator.DefaultFaction;
 
     /// <summary>
     /// Une partie sur une carte faite à la main (pour les tests, et plus tard un éditeur de cartes), avec le joueur
@@ -59,7 +80,7 @@ public sealed partial class GameState
     /// Les joueurs, chacun sur son départ avec son héros et sa petite armée : le joueur humain d'abord, puis les adversaires
     /// joués par l'ordinateur.
     /// </summary>
-    private void AddPlayers(int count, string? heroName = null)
+    private void AddPlayers(int count, string? heroName = null, IReadOnlyList<string>? factions = null)
     {
         // le joueur : le héros choisi (sinon le premier) ; les adversaires : les derniers de la liste, que la taverne ne
         // proposera donc plus
@@ -71,9 +92,14 @@ public sealed partial class GameState
             Players.Add(player);
             string name = i == 0 ? playerHero : computerHeroes[(i - 1) % computerHeroes.Count];
             var hero = new Hero(name, player, Map.Starts.Count > i ? Map.Starts[i] : Map.Start) { Id = _nextHeroId++ };
-            GiveClass(hero, StartingFaction);
-            foreach (var stack in StartingArmy(Creatures).Stacks)
-                hero.Army.Add(stack.Type, stack.Count);
+            string faction = factions != null && i < factions.Count ? factions[i] : StartingFaction;
+            GiveClass(hero, faction);
+            // l'armée de départ de sa classe (sans classe : celle du Château)
+            var army = Data.Classes.ForFaction(faction)?.Army is { Count: > 0 } stacks
+                ? stacks.Select(s => (Creatures.Get(s.Creature), s.Count))
+                : StartingArmy(Creatures).Stacks.Select(s => (s.Type, s.Count));
+            foreach (var (type, number) in army)
+                hero.Army.Add(type, number);
             // son château de départ, s'il y en a un sur son départ (cartes générées)
             if (Map.ObjectAt(hero.Position) is Town castle && castle.Position == hero.Position)
                 castle.SetOwner(player);
@@ -153,6 +179,29 @@ public sealed partial class GameState
     private IReadOnlyList<string> HeroNames => Data.Heroes.All.Count > 0
         ? Data.Heroes.All.Select(h => h.Name).ToList()
         : Enumerable.Range(1, 9).Select(i => $"Héros {i}").ToList();
+
+    /// <summary>
+    /// La nécromancie (talent du Nécromancien) : après une victoire, une part des ennemis tués (10 %, plus 2 % par niveau)
+    /// se relève en Squelettes dans l'armée du héros, sans dépasser ce que son charisme commande pour cette troupe.
+    /// </summary>
+    private void RaiseDead(Hero hero, IReadOnlyList<CreatureStack> killed)
+    {
+        if (hero.Class?.Talent != Talents.Necromancy || !hero.Owner.Heroes.Contains(hero))
+            return;
+        CreatureType skeleton;
+        try { skeleton = Creatures.Get(Talents.RaisedCreature); }
+        catch (KeyNotFoundException) { return; }
+        int dead = killed.Sum(s => s.Count);
+        int raised = (int)(dead * (Talents.NecromancyBase + Talents.NecromancyPerLevel * hero.Level));
+        // pas plus que ce que le charisme commande pour une troupe de squelettes
+        int already = hero.Army.Stacks.Where(s => s.Type == skeleton).Select(s => s.Count).DefaultIfEmpty(0).First();
+        int room = Command.Limit(hero.Charisma) / Math.Max(1, skeleton.CommandCost) - already;
+        raised = Math.Min(raised, Math.Max(0, room));
+        if (raised <= 0 || !hero.Army.CanReceive(skeleton))
+            return;
+        hero.Army.Add(skeleton, raised);
+        Emit(new DeadRaised(hero, skeleton, raised));
+    }
 
     /// <summary>Le héros prend la classe de cette faction, s'il y en a une (sinon il garde les valeurs de base).</summary>
     private void GiveClass(Hero hero, string faction)
@@ -535,12 +584,16 @@ public sealed partial class GameState
             if (report.AttackerWon)
                 RemoveHero(defenderHero);
             else
+            {
                 GrantExperience(defenderHero, Battle.ExperienceFor(report.AttackerLosses));
+                RaiseDead(defenderHero, report.AttackerLosses);
+            }
         }
 
         if (report.AttackerWon)
         {
             GrantExperience(hero, report.Experience);
+            RaiseDead(hero, report.DefenderLosses);
             if (context.Defender is MonsterGuard guard)
             {
                 Map.RemoveObject(guard);

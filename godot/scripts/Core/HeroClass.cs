@@ -49,7 +49,33 @@ public sealed record HeroClass
 
     /// <summary>Les sorts que le héros connaît dès le départ (identifiants de data/spells.json).</summary>
     public List<string> Spells { get; init; } = new();
+
+    /// <summary>L'armée d'un héros de départ de cette classe (les créatures de sa faction).</summary>
+    public List<StartingStack> Army { get; init; } = new();
+
+    /// <summary>Le talent de la classe (null : aucun) ; pour l'instant, <see cref="Talents.Necromancy"/>.</summary>
+    public string? Talent { get; init; }
 }
+
+/// <summary>Une troupe de l'armée de départ d'une classe.</summary>
+public sealed record StartingStack(string Creature, int Count);
+
+/// <summary>Les talents des classes (le champ « talent » de data/classes.json).</summary>
+public static class Talents
+{
+    /// <summary>
+    /// Nécromancie (le Nécromancien) : après une victoire, une part des ennemis tués se relève en Squelettes dans son
+    /// armée, sans dépasser ce que son charisme commande.
+    /// </summary>
+    public const string Necromancy = "necromancy";
+
+    /// <summary>La créature que relève la nécromancie, et la part relevée : 10 %, plus 2 % par niveau.</summary>
+    public const string RaisedCreature = "squelette";
+    public const double NecromancyBase = 0.10, NecromancyPerLevel = 0.02;
+}
+
+/// <summary>La nécromancie a relevé des créatures dans l'armée d'un héros après sa victoire.</summary>
+public sealed record DeadRaised(Hero Hero, CreatureType Type, int Count) : GameEvent;
 
 /// <summary>Toutes les classes de héros.</summary>
 public sealed class ClassCatalog
@@ -63,6 +89,9 @@ public sealed class ClassCatalog
     public IReadOnlyList<HeroClass> All => _all;
 
     public HeroClass? Get(string id) => _all.FirstOrDefault(c => c.Id == id);
+
+    /// <summary>Les factions qu'on peut jouer : celles qui ont une classe (le Château d'abord).</summary>
+    public IReadOnlyList<string> PlayableFactions => _all.Select(c => c.Faction).Distinct().ToList();
 
     /// <summary>La classe des héros de cette faction (null s'il n'y en a pas : le héros garde les valeurs de base).</summary>
     public HeroClass? ForFaction(string faction) => _all.FirstOrDefault(c => c.Faction == faction);

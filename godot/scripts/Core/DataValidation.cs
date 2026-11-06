@@ -58,6 +58,10 @@ public static class DataValidation
                 errors.Add($"{c.Id} : caractéristiques invalides");
             foreach (var spell in c.Spells.Where(id => spells.All(s => s.Id != id)))
                 errors.Add($"{c.Id} : sort inconnu ({spell})");
+            foreach (var stack in c.Army.Where(s => creatures.All(cr => cr.Id != s.Creature) || s.Count < 1))
+                errors.Add($"{c.Id} : armée de départ invalide ({stack.Creature})");
+            if (c.Talent is { } talent && talent != Talents.Necromancy)
+                errors.Add($"{c.Id} : talent inconnu ({talent})");
         }
     }
 
@@ -105,7 +109,7 @@ public static class DataValidation
         {
             if (string.IsNullOrWhiteSpace(b.Id))
                 errors.Add($"bâtiment sans identifiant ({b.Name})");
-            foreach (var required in b.Requires.Where(r => !buildingById.ContainsKey(r)))
+            foreach (var required in b.RequirementChoices.SelectMany(c => c).Where(r => !buildingById.ContainsKey(r)))
                 errors.Add($"{b.Id} : prérequis inconnu « {required} »");
             if (b.Dwelling is { } dwelling && !creatureIds.Contains(dwelling))
                 errors.Add($"{b.Id} : habitation d'une créature inconnue « {dwelling} »");
@@ -123,7 +127,7 @@ public static class DataValidation
     /// <summary>Un bâtiment est-il un prérequis de lui-même, directement ou non ?</summary>
     private static bool ReachesItself(BuildingType start, IReadOnlyDictionary<string, BuildingType> buildingById)
     {
-        var toVisit = new Stack<string>(start.Requires);
+        var toVisit = new Stack<string>(start.RequirementChoices.SelectMany(c => c));
         var seen = new HashSet<string>();
         while (toVisit.Count > 0)
         {
@@ -132,7 +136,7 @@ public static class DataValidation
                 return true;
             if (!seen.Add(id) || !buildingById.TryGetValue(id, out var next))
                 continue;
-            foreach (var required in next.Requires)
+            foreach (var required in next.RequirementChoices.SelectMany(c => c))
                 toVisit.Push(required);
         }
         return false;

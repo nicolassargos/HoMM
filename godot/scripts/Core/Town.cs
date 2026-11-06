@@ -75,7 +75,7 @@ public sealed class Town : MapObject
         if (Has(building.Id))
             return BuildResult.AlreadyBuilt;
         // Les raisons durables d'abord : c'est ce que le joueur a besoin de savoir
-        if (building.Requires.Any(r => !Has(r)))
+        if (building.RequirementChoices.Any(choices => !choices.Any(Has)))
             return BuildResult.MissingRequirement;
         if (!player.CanAfford(building.Cost))
             return BuildResult.NotEnoughResources;
@@ -114,6 +114,10 @@ public sealed class Town : MapObject
                 max = System.Math.Min(max, player.Resources.GetValueOrDefault(resource) / price);
         return max;
     }
+
+    /// <summary>L'habitation de la créature de ce niveau, dans cette ville (null s'il n'y en a pas).</summary>
+    public BuildingType? DwellingOfTier(int tier) =>
+        Buildings.FirstOrDefault(b => DwellingCreature(b) is { } creature && creature.Tier == tier);
 
     public CreatureType? DwellingCreature(BuildingType building) =>
         building.Dwelling is { } id ? _data.Creatures.Get(id) : null;

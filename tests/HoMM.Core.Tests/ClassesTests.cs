@@ -32,7 +32,8 @@ public class ClassesTests
         var names = TestData.Data.Heroes.All.Select(h => h.Name).ToList();
         // les adversaires : les derniers de la liste, sans celui du joueur
         Assert.Equal(new[] { names[^2], names[^3] }, state.Opponents.Select(p => p.Heroes[0].Name));
-        Assert.All(state.Opponents, p => Assert.Equal("paladin", p.Heroes[0].Class?.Id));
+        // leur classe : celle de leur faction (tirée au sort), et leur château est de cette faction
+        Assert.All(state.Opponents, p => Assert.Equal(TestData.Data.Classes.ForFaction(p.Towns.Single().Faction), p.Heroes[0].Class));
         // un héros inconnu : le premier de la liste
         Assert.Equal(names[0], new GameState(5, TestData.Data, MapSize.Small, heroName: "Personne").Players[0].Heroes[0].Name);
     }

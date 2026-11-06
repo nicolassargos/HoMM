@@ -4,6 +4,7 @@ Jeu PC fortement inspiré de Heroes of Might and Magic / King's Bounty. L'utilis
 
 ## Plan
 La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessous. Le suivre pour chaque nouvelle fonctionnalité, et le mettre à jour quand les idées changent ou qu'une étape avance (cocher ✅, noter les décisions prises).
+`PLAN.md` reste court : la direction, l'étape en cours et les choix encore valables. Le détail d'un travail fini (chiffres mesurés, essais écartés, classes et fichiers) va dans `HISTORIQUE.md` (non importé : le lire quand on a besoin du passé d'une partie du jeu). Avant un travail d'images, lire `tools/art/METHODE.md` et y noter ce qui marche ou non.
 
 @PLAN.md
 
@@ -55,9 +56,11 @@ Décision de l'utilisateur, valable pour toutes les sessions :
   références, hauteur, choix faits) et un gabarit par sorte de créature ; `tools/art/nettoyage.py` contient les
   traitements d'image. Voir la créature en jeu : `--creature-preview=id1,id2` (avec `--battle-auto`).
   Captures du jeu : `godot` avec `-- --capture=chemin.png` (et `--reveal`, `--zoom`, `--terrain-test`,
-  `--town` (et `--town-window=build|recruit|tavern|count|guild`, `--town-build=id`), `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--battle-test` (et `--battle-auto`, `--battle-book` ou `--battle-book=id` : le livre de sorts, ou ce sort à viser), `--spells` (le héros connaît tous les sorts), `--battle-showcase`, `--creature-preview=id,…`, `--hover=x,y` (case survolée), `--open=hero`, `kingdom`, `level`, `end`, `options` ou `save` (écran du héros, royaume, choix de niveau, fin de partie, options, sauvegarder), `--menu` (ou `--menu=new`, `--menu=load` : menu principal), `--size=tiny|small|normal|large|huge` (taille de la carte), `--opponents=N` (adversaires), `--center=opponent`, `--turns=N` (jouer N jours au lancement), `--defense-test` (un adversaire attaque ; `--defense-tactical` : défense dirigée), `--difficulty=easy|normal|hard`, `--capture-delay=secondes`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
+  `--town` (et `--town-window=build|recruit|tavern|count|guild`, `--town-build=id`), `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--battle-test` (et `--battle-auto`, `--battle-book` ou `--battle-book=id` : le livre de sorts, ou ce sort à viser), `--spells` (le héros connaît tous les sorts), `--battle-showcase`, `--creature-preview=id,…`, `--hover=x,y` (case survolée), `--open=hero`, `kingdom`, `level`, `end`, `options`, `save` ou `spellbook` (écran du héros, royaume, choix de niveau, fin de partie, options, sauvegarder, livre de sorts), `--menu` (ou `--menu=new`, `--menu=load` : menu principal), `--size=tiny|small|normal|large|huge` (taille de la carte), `--opponents=N` (adversaires), `--center=opponent`, `--turns=N` (jouer N jours au lancement), `--defense-test` (un adversaire attaque ; `--defense-tactical` : défense dirigée), `--difficulty=easy|normal|hard`, `--capture-delay=secondes`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
 
 ## Commandes
 - Tests : `dotnet test` (à la racine)
+- Mesures de l'équilibre (simulation seule, adversaires à chaque niveau, courbe du Château ; toujours les mêmes graines, pour comparer avant et après un changement) : `HOMM_MESURES=1 dotnet test --filter Category=Mesures --logger "console;verbosity=detailed"` (`tests/HoMM.Core.Tests/MesuresTests.cs` ; ignorées par un `dotnet test` ordinaire). Y ajouter une mesure plutôt qu'écrire un test jetable.
+- Captures de tous les écrans (avant une PR d'interface, puis les regarder) : `python -I tools/captures.py` (ou `… ville` pour une partie), dans `art-candidats/en-cours/revue/`
 - Compiler : `dotnet build` (dans `godot/`)
 - Lancer : `godot\lancer.bat` (Godot attendu dans `C:\Godot\`) : le menu principal ; toute option (ou `-- --play`) entre directement dans une partie ; plein écran (F11 ou Alt+Entrée : fenêtre agrandie ; `-- --windowed` pour démarrer en fenêtre), option `-- --seed=42` pour une carte fixe, `-- --load` pour reprendre la dernière sauvegarde

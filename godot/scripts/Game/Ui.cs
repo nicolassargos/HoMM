@@ -565,6 +565,24 @@ public static class Ui
         theme.SetIcon("grabber", "HSlider", Knob(1f));
         theme.SetIcon("grabber_highlight", "HSlider", Knob(1.25f));
         theme.SetIcon("grabber_disabled", "HSlider", Knob(0.6f));
+        // les barres de défilement (listes, fenêtre Construire…) : une rainure creusée et une plaque de pierre bien visible
+        var groove = (StyleBox)Inset(DarkPanelColor).Duplicate();
+        groove.ContentMarginLeft = groove.ContentMarginRight = Px(6);
+        groove.ContentMarginTop = groove.ContentMarginBottom = Px(3);
+        theme.SetStylebox("scroll", "VScrollBar", groove);
+        theme.SetStylebox("scroll_focus", "VScrollBar", groove);
+        foreach (var (state, light) in new[] { ("grabber", 1f), ("grabber_highlight", 1.25f), ("grabber_pressed", 0.85f) })
+        {
+            var grabber = new StyleBoxFlat
+            {
+                BgColor = MapRenderer.Rgb(92, 94, 98) * light, BorderColor = SilverColor * light,
+                CornerRadiusTopLeft = 2, CornerRadiusTopRight = 2, CornerRadiusBottomLeft = 2, CornerRadiusBottomRight = 2,
+            };
+            grabber.SetBorderWidthAll((int)Px(2));
+            grabber.ContentMarginLeft = grabber.ContentMarginRight = Px(5);
+            grabber.ContentMarginTop = grabber.ContentMarginBottom = Px(10);
+            theme.SetStylebox(state, "VScrollBar", grabber);
+        }
         // les champs de texte (graine, nom d'une sauvegarde) : creusés, un trait d'argent quand on y écrit
         var field = (StyleBox)Inset(DarkPanelColor).Duplicate();
         field.ContentMarginLeft = field.ContentMarginRight = Px(8);

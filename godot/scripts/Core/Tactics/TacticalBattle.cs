@@ -241,7 +241,9 @@ public sealed partial class TacticalBattle
             while (_queue.Count > 0 && next == null)
             {
                 var unit = _queue.Dequeue();
-                if (unit.IsAlive)
+                if (unit.IsAlive && unit.IsUnder(SpellEffect.Blind))
+                    _log.Add(new UnitSkipped(unit)); // aveuglée : elle ne joue pas
+                else if (unit.IsAlive)
                     next = unit;
             }
             if (next == null && _waiting.Count > 0)
@@ -391,8 +393,9 @@ public sealed partial class TacticalBattle
         MoveAlong(unit, path);
         // la charge compte les cases parcourues (à vol d'oiseau pour une troupe qui vole)
         int moved = unit.Has(Ability.Flies) ? start.DistanceTo(from) : path.Count;
+        bool blinded = target.IsUnder(SpellEffect.Blind); // le coup la réveille, mais elle ne riposte pas
         Melee(unit, target, moved);
-        if (target.IsAlive && unit.IsAlive && target.RetaliationsLeft > 0 && !unit.Has(Ability.NoRetaliation))
+        if (target.IsAlive && unit.IsAlive && !blinded && target.RetaliationsLeft > 0 && !unit.Has(Ability.NoRetaliation))
         {
             target.RetaliationsLeft--;
             Strike(target, unit, ranged: false, retaliation: true);
@@ -510,6 +513,7 @@ public sealed partial class TacticalBattle
     {
         int damage = RollDamage(from, to, ranged, retaliation ? 0 : moved);
         int killed = to.TakeDamage(damage);
+        to.Wake();
         _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation));
     }
 
@@ -523,9 +527,7 @@ public sealed partial class TacticalBattle
         int rolls = Math.Min(from.Count, 10);
         int sum = 0;
         for (int i = 0; i < rolls; i++)
-            sum += from.IsUnder(SpellEffect.Bless) ? from.Type.MaxDamage
-                : from.IsUnder(SpellEffect.Curse) ? from.Type.MinDamage
-                : from.Type.MinDamage + Next(from.Type.MaxDamage - from.Type.MinDamage + 1);
+            sum += from.Type.MinDamage + Next(from.Type.MaxDamage - from.Type.MinDamage + 1);
         double damage = from.Count <= 10 ? sum : sum * (double)from.Count / 10;
         // un coup écrasant ignore une partie de la défense
         int defense = from.Has(Ability.Crushing) && !ranged ? (int)Math.Round(to.Defense * (1 - CrushingShare)) : to.Defense;
@@ -535,6 +537,10 @@ public sealed partial class TacticalBattle
             damage *= 0.5;
         if (ranged && to.Has(Ability.RangedResistance))
             damage *= 0.5;
+        // les sorts : bénédiction et malédiction (en pourcentage), bouclier contre les tirs
+        damage *= 1 + (from.SpellAmount(SpellEffect.Bless) - from.SpellAmount(SpellEffect.Curse)) / 100.0;
+        if (ranged)
+            damage *= 1 - to.SpellAmount(SpellEffect.ArrowShield) / 100.0;
         if (!ranged && from.CanShoot)
             damage *= 0.5;
         if (!ranged && from.Has(Ability.Charge))

@@ -152,6 +152,7 @@ public partial class Main : Node2D
         AddChild(_kingdomScreen);
         _kingdomScreen.Build(_state, screen);
         _hud.KingdomPressed += OpenKingdom;
+        _hud.SpellBookPressed += OpenSpellBook;
         _kingdomScreen.HeroChosen += hero =>
         {
             _kingdomScreen.Close();
@@ -208,6 +209,8 @@ public partial class Main : Node2D
             _heroScreen.Open(shown);
         if (OS.GetCmdlineUserArgs().Contains("--open=kingdom"))
             _kingdomScreen.Open();
+        if (OS.GetCmdlineUserArgs().Contains("--open=spellbook"))
+            Callable.From(OpenSpellBook).CallDeferred(); // après les autres options (« --spells »)
         // « --open=save » : la fenêtre pour sauvegarder sous un nom
         if (OS.GetCmdlineUserArgs().Contains("--open=save"))
             _saves.OpenToSave(Texts.SuggestedSaveName(_state.CurrentHero?.Name, _state.Day));
@@ -654,6 +657,16 @@ public partial class Main : Node2D
             _heroScreen.Open(hero);
     }
 
+    /// <summary>Le livre de sorts du héros choisi (bouton ou touche S) : sur la carte, il se lit seulement.</summary>
+    private void OpenSpellBook()
+    {
+        if (!OnMap || _hud.ShownHero is not { } hero)
+            return;
+        var book = new SpellBookWindow(hero, hero.SpellPoints, notice: Texts.SpellBookOnMap);
+        AddChild(book);
+        book.Open();
+    }
+
     /// <summary>Le royaume (bouton ou touche K).</summary>
     private void OpenKingdom()
     {
@@ -732,6 +745,7 @@ public partial class Main : Node2D
                     case Key.Escape: _hud.ShowOptions(); break;
                     case Key.C: CenterOnHero(); break;
                     case Key.K: OpenKingdom(); break;
+                    case Key.S: OpenSpellBook(); break;
                     case Key.Plus or Key.KpAdd or Key.Equal: _camera.ZoomBy(+1); break;
                     case Key.Minus or Key.KpSubtract: _camera.ZoomBy(-1); break;
                     case Key.F5: SaveGame(); break;

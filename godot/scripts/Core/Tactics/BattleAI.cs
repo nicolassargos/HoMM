@@ -30,20 +30,47 @@ public static class BattleAI
     /// Le sort que le héros du camp actif a intérêt à lancer maintenant, et sa cible : celui qui vaut le plus, en or
     /// (<see cref="SpellValue"/>), s'il vaut quelque chose ; null s'il ne peut ou ne doit rien lancer.
     /// </summary>
-    public static (SpellType Spell, Hex Target)? ChooseSpell(TacticalBattle battle)
+    public static (SpellType Spell, Hex Target, Hex? Destination)? ChooseSpell(TacticalBattle battle)
     {
         if (battle.CasterSide is not { } side || battle.HasCast(side))
             return null;
-        (SpellType Spell, Hex Target)? best = null;
+        (SpellType Spell, Hex Target, Hex? Destination)? best = null;
         double bestValue = 0;
         foreach (var spell in battle.HeroOf(side)!.Spells.Where(battle.CanCast))
-        foreach (var target in battle.SpellTargets(spell))
         {
-            double value = SpellValue(battle, spell, target, side);
-            if (value > bestValue)
-                (best, bestValue) = ((spell, target), value);
+            if (spell.Effect == SpellEffect.Teleport)
+            {
+                if (Teleport(battle) is { } jump && jump.Value > bestValue)
+                    (best, bestValue) = ((spell, jump.From, jump.To), jump.Value);
+                continue;
+            }
+            foreach (var target in battle.SpellTargets(spell))
+            {
+                double value = SpellValue(battle, spell, target, side);
+                if (value > bestValue)
+                    (best, bestValue) = ((spell, target, null), value);
+            }
         }
         return best;
+    }
+
+    /// <summary>
+    /// La téléportation que l'IA envisage : la troupe active, si elle se bat au corps à corps et n'atteint aucun ennemi
+    /// ce tour-ci, va juste à côté de l'ennemi le plus dangereux (pour le frapper aussitôt). Vaut une part de sa valeur.
+    /// </summary>
+    private static (Hex From, Hex To, double Value)? Teleport(TacticalBattle battle)
+    {
+        if (battle.Active is not { } unit || unit.CanShoot)
+            return null;
+        var enemies = battle.Units.Where(e => TacticalBattle.AreEnemies(unit, e)).OrderByDescending(Threat).ThenBy(e => e.Id).ToList();
+        if (enemies.Any(e => battle.AttackPositions(unit, e).Any()))
+            return null;
+        var destinations = battle.TeleportDestinations(unit).ToList();
+        foreach (var enemy in enemies)
+            if (destinations.Where(h => TacticalBattle.Touches(unit, h, enemy)).OrderBy(h => h.Col).ThenBy(h => h.Row)
+                    .Cast<Hex?>().FirstOrDefault() is { } to)
+                return (unit.Position, to, 0.3 * unit.Count * unit.Type.Cost.GetValueOrDefault(ResourceType.Gold));
+        return null;
     }
 
     /// <summary>
@@ -52,27 +79,31 @@ public static class BattleAI
     /// </summary>
     public static double SpellValue(TacticalBattle battle, SpellType spell, Hex target, BattleSide side)
     {
-        int strength = battle.SpellStrength(spell, side);
         double value = 0;
-        foreach (var unit in battle.AffectedBy(spell, target))
+        bool enemyShooters = battle.Units.Any(u => u.IsAlive && u.Side != side && u.CanShoot);
+        foreach (var (unit, strength) in battle.SpellHits(spell, target, side))
         {
             double gold = unit.Type.Cost.GetValueOrDefault(ResourceType.Gold);
             double troop = unit.Count * gold;
             double perHitPoint = gold / unit.Type.HitPoints;
             int sign = unit.Side == side ? -1 : 1;
             var type = unit.Type;
-            double average = (type.MinDamage + type.MaxDamage) / 2.0;
+            // les sorts qui durent sur la troupe, utiles ou néfastes (pour la dissipation)
+            int good = unit.Spells.Count(s => !s.Spell.Harmful), bad = unit.Spells.Count(s => s.Spell.Harmful);
             value += spell.Effect switch
             {
                 SpellEffect.Damage => sign * Math.Min(strength, unit.TotalHitPoints) * perHitPoint,
                 SpellEffect.Cure => Math.Min(strength, type.HitPoints - unit.TopHitPoints) * perHitPoint
                                     + (unit.Spells.Any(s => s.Spell.Harmful) ? 0.2 * troop : 0),
                 SpellEffect.Resurrection => strength * perHitPoint,
+                SpellEffect.Dispel => unit.Side == side ? 0.2 * troop * (bad - good) : 0.2 * troop * (good - bad),
                 _ when unit.IsUnder(spell.Effect) => 0,
-                SpellEffect.Bless => average > 0 ? troop * (type.MaxDamage - average) / average : 0,
-                SpellEffect.Curse => average > 0 ? troop * (average - type.MinDamage) / average : 0,
+                SpellEffect.Bless or SpellEffect.Curse => troop * spell.Amount / 100.0,
                 SpellEffect.StoneSkin => troop * 0.03 * spell.Amount,
                 SpellEffect.Weakness => troop * 0.04 * Math.Min(spell.Amount, unit.Attack),
+                SpellEffect.Bloodlust => troop * 0.04 * spell.Amount,
+                SpellEffect.ArrowShield => enemyShooters ? troop * 0.25 : 0,
+                SpellEffect.Blind => troop * 0.5,
                 SpellEffect.Haste => troop * 0.15,
                 SpellEffect.Slow => troop * 0.25,
                 _ => 0,
@@ -85,7 +116,7 @@ public static class BattleAI
     public static void PlayTurn(TacticalBattle battle)
     {
         if (ChooseSpell(battle) is { } cast)
-            battle.Cast(cast.Spell, cast.Target);
+            battle.Cast(cast.Spell, cast.Target, cast.Destination);
         if (battle.Active is not { } unit)
             return;
         var enemies = battle.Units.Where(e => TacticalBattle.AreEnemies(unit, e))

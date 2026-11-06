@@ -421,10 +421,10 @@ public partial class TownScreen : CanvasLayer
     {
         if (_town is not { } town)
             return;
-        var buildings = town.Buildings.ToList();
+        var buildings = town.Buildings.Where(b => ShownInBuild(town, b)).ToList();
         int rows = Math.Max(1, (buildings.Count + 2) / 3);
         // la fenêtre suit son contenu, sans dépasser l'écran (la grille défile alors)
-        float listHeight = Math.Min(rows * 128 - 10, (_screen.Y - Hud.TopBarHeight) / Ui.Scale - 40 - 84 - 20);
+        float listHeight = Math.Min(rows * 136 - 10, (_screen.Y - Hud.TopBarHeight) / Ui.Scale - 40 - 84 - 20);
         var window = OpenWindow(V(1000, 84 + listHeight + 36), Texts.BuildTitle(town), overView: false);
         window.AddChild(At(MakeLabel(Texts.ToBuild, 14, SoftTextColor), 24, 56));
         // les cartes (à plat) dans une zone creusée
@@ -442,6 +442,18 @@ public partial class TownScreen : CanvasLayer
             grid.AddChild(BuildCard(town, building));
     }
 
+    /// <summary>
+    /// Un bâtiment qui s'améliore (salle du village → hôtel de ville → grand hôtel de ville, guilde des mages 1 → 4) n'a
+    /// qu'une carte dans la fenêtre Construire, comme dans Heroes 3 : le prochain niveau à bâtir, ou le dernier, construit.
+    /// </summary>
+    private static bool ShownInBuild(Town town, BuildingType building)
+    {
+        bool hasNext = town.Buildings.Any(b => b.Replaces == building.Id);
+        return town.Has(building.Id)
+            ? !hasNext // construit : seulement s'il n'y a pas de niveau au-dessus
+            : building.Replaces == null || town.Has(building.Replaces); // à bâtir : seulement le niveau qui suit
+    }
+
     /// <summary>Une zone creusée dans la pierre, sous des cartes à plat (bâtiments, créatures, héros de la taverne).</summary>
     private static Panel SunkenArea(Vector2 position, Vector2 size)
     {
@@ -454,7 +466,7 @@ public partial class TownScreen : CanvasLayer
     {
         bool built = town.Has(building.Id);
         var result = town.CanBuild(building, _state.CurrentPlayer);
-        var card = new Panel { CustomMinimumSize = V(314, 118) };
+        var card = new Panel { CustomMinimumSize = V(314, 126) };
         card.AddThemeStyleboxOverride("panel", Plate(PanelColor, result == BuildResult.Ok ? GoodColor : null));
         if (result is BuildResult.MissingRequirement)
             card.Modulate = new Color(1, 1, 1, 0.6f);

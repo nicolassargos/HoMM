@@ -32,7 +32,7 @@ public partial class Hud : CanvasLayer
     /// Le héros montré par le panneau : le héros choisi du joueur, et pendant le tour d'un adversaire (qui attend une
     /// défense), le dernier qu'il avait choisi.
     /// </summary>
-    private Hero? ShownHero
+    public Hero? ShownHero
     {
         get
         {
@@ -94,6 +94,7 @@ public partial class Hud : CanvasLayer
     public event Action? WalkPressed;
     public event Action? CenterPressed;
     public event Action? KingdomPressed;
+    public event Action? SpellBookPressed;
 
     /// <summary>Le joueur veut l'écran d'un héros (clic sur le portrait, double clic dans la liste).</summary>
     public event Action<Hero>? HeroDetailsPressed;
@@ -181,6 +182,7 @@ public partial class Hud : CanvasLayer
             (Texts.KingdomButton, "K", Texts.KingdomTitle, () => KingdomPressed?.Invoke()),
             (Texts.DigAction, "F", Texts.DigTooltip, () => DigPressed?.Invoke()),
             (Texts.TreasureShort, "M", Texts.TreasureMapAction, () => TreasureMapPressed?.Invoke()),
+            (Texts.SpellBookShort, "S", Texts.SpellBookTooltip, () => SpellBookPressed?.Invoke()),
         };
         const int columns = 3;
         float buttonWidth = (inner - 2 * Px(4)) / columns;
@@ -193,13 +195,16 @@ public partial class Hud : CanvasLayer
             button.Pressed += pressed;
             panel.AddChild(button);
         }
-        y += (actions.Length + columns - 1) / columns * Px(41);
-        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, Px(32)));
-        options.Position = new Vector2(margin, y);
+        // Options : la place qui reste sur la dernière rangée, sinon toute une rangée
+        int left = actions.Length % columns;
+        float optionsX = left == 0 ? 0 : left * (buttonWidth + Px(4));
+        float optionsY = y + actions.Length / columns * Px(41);
+        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner - optionsX, Px(37)));
+        options.Position = new Vector2(margin + optionsX, optionsY);
+        y = optionsY + Px(41);
         options.TooltipText = Texts.OptionsTooltip;
         options.Pressed += ShowOptions;
         panel.AddChild(options);
-        y += Px(32 + 6);
 
         // la fin du tour : grande, toujours au même endroit
         var endTurn = MakeButton(Texts.EndTurnButton, 18);

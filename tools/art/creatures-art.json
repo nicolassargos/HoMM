@@ -128,7 +128,8 @@
         "attack": "attack-1",
         "move": "move-2"
       },
-      "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur)."
+      "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur).",
+      "vole": true
     },
     "archer": {
       "nom": "Archer",
@@ -331,6 +332,35 @@
         "idle": "idle-2",
         "attack": "attack-2",
         "move": "move-2"
+      },
+      "vole": true
+    },
+    "orc": {
+      "nom": "Orc",
+      "gabarit": "humain",
+      "description": "a stocky muscular green orc with big tusks, leather straps and a leather loincloth, holding a throwing axe in each hand",
+      "sujet": "a stocky green orc with tusks, leather straps, an axe in each hand",
+      "hauteur": 41,
+      "comparer": [
+        "archer",
+        "gobelin",
+        "ogre"
+      ],
+      "mouvements": {
+        "idle": "the orc stands with a hunched brutish posture, breathes heavily and turns one axe in his hand, the feet stay in place",
+        "move": "the orc walks forward to the right with heavy confident steps, an axe in each hand, swinging his arms",
+        "attack": "the orc swings one arm far back over his shoulder with an axe, then whips the arm forward and lets go of the axe toward the right, the hand ends open and empty, then he returns to his starting pose with an axe again"
+      },
+      "grande": "art-candidats/references/derives/orc-grand.png",
+      "choix": {
+        "fixe": "O1",
+        "move": "move-2",
+        "idle": "idle-1",
+        "attack": "attack-2-r"
+      },
+      "notes": "Fait avant l'outil (2026-11-04), animations refaites le 2026-11-06. Il lance des haches (tir court) : la hache en vol sera dessinée par le jeu.",
+      "consignes": {
+        "idle": "the orc stands with a hunched brutish posture, breathes heavily and turns one axe in his hand, the feet stay in place"
       }
     }
   }

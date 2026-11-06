@@ -71,9 +71,19 @@ public partial class BattleFieldView : Control
     private static int Frames(BattleUnit unit, string state) =>
         Setting(unit, state + "Frames") is double frames and >= 1 ? (int)frames : AnimationFrames;
 
-    /// <summary>Le temps pour traverser une case en marchant (« stepTime », en secondes ; 0,09 par défaut) : un zombie
-    /// avance lentement, au pas de son animation.</summary>
-    private static double StepTime(BattleUnit unit) => Setting(unit, "stepTime") is double time and > 0 ? time : 0.09;
+    /// <summary>
+    /// Le temps pour traverser une case (« stepTime », en secondes) : par défaut, une créature qui marche fait un cycle
+    /// de son animation de déplacement par case (ses pieds ne glissent pas) ; une créature qui vole va vite (0,09 s par
+    /// case : un vol traverse beaucoup de cases d'un coup).
+    /// </summary>
+    private static double StepTime(BattleUnit unit)
+    {
+        if (Setting(unit, "stepTime") is double time and > 0)
+            return time;
+        if (unit.Type.Abilities.Contains("flies") || Sheet(unit, Move) == null)
+            return 0.09;
+        return Frames(unit, Move) / Fps(unit, Move);
+    }
 
     /// <summary>
     /// La pause entre deux attentes (« idlePauseMin » et « idlePauseMax », en secondes) : la créature reste sur sa pose

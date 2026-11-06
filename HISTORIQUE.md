@@ -378,6 +378,9 @@ détails, surtout agrandies au combat), dans cet ordre :
    (il se cabre puis frappe des serres et du bec). L'animation « walk » s'appelle maintenant **« move »** (déplacement :
    marche ou vol ; fichiers `-move.png`, réglages `move` et `moveFrames`). La page d'une créature montre un déplacement
    qui traverse quatre cases à la vitesse du jeu, pour voir si le cycle se répète bien.
+   L'**Orc** : animations refaites (2026-11-06) avec l'outil, depuis sa grande image d'origine (82 px) : attente calme,
+   marche, lancer de hache où la hache ne vole pas (elle sera dessinée par le jeu). Une créature qui marche fait
+   maintenant un cycle de déplacement par case (demandé par l'utilisateur).
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de

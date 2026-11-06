@@ -18,9 +18,9 @@ quadrupède, grand) qui donne la fin des textes de demande et les mouvements par
         PixelLab. Au plus 8 tâches à la fois (les autres attendent). --sans remplace la fin du texte (« pas d'autre
         personnage, pas d'effet… » ; vide : rien) ; --enrichir laisse PixelLab détailler le mouvement ; --images=16 : une
         feuille de 16 images (4 × 4), pour un mouvement lent mais fluide. Coûte de l'argent.
-    python -I tools/art/creature.py retoucher <id> <nom> [--eclats[=partout]] [--copier=7:8,…] [--corde=7,8] [--nouveau=5] [--recentrer[=tete]]
+    python -I tools/art/creature.py retoucher <id> <nom> [--eclats[=partout]] [--copier=7:8,…] [--corde=7,8] [--nouveau=5] [--detaches] [--recentrer[=tete]]
         corrige une feuille (écrit <nom>-r) : efface les éclats d'impact (devant la créature, ou partout), remplace l'image 7 par la 8, trace la corde
-        de l'arc sur ces images, efface dans l'image 5 les couleurs absentes des images voisines, garde les pieds (ou la tête) à la même place d'une image à l'autre. Gratuit.
+        de l'arc sur ces images, efface dans l'image 5 les couleurs absentes des images voisines, efface les petits morceaux détachés, garde les pieds (ou la tête) à la même place d'une image à l'autre. Gratuit.
     python -I tools/art/creature.py choisir <id> <idle|move|attack> <nom> [images/s]
         installe la feuille (art/creatures/battle/<id>-idle.png, -move, -attack) et sa vitesse dans animations.json (avec son nombre
         d'images, s'il n'est pas de 8).
@@ -268,7 +268,7 @@ def cmd_retoucher(ident, nom, options):
     total = nombre_images(os.path.join(d, base)) if os.path.isdir(os.path.join(d, base)) else 8
     images = n.decouper(lire(os.path.join(d, nom + ".png"))[2], 4, (total + 3) // 4)
     # les copies d'abord, puis les effacements (sur les bonnes images)
-    ordre = ("--copier", "--nouveau", "--eclats", "--corde", "--recentrer")
+    ordre = ("--copier", "--nouveau", "--eclats", "--detaches", "--corde", "--recentrer")
     options = sorted(options, key=lambda o: next((i for i, d in enumerate(ordre) if o.startswith(d)), 9))
     for o in options:
         if o in ("--eclats", "--eclats=partout"):
@@ -283,6 +283,8 @@ def cmd_retoucher(ident, nom, options):
         elif o.startswith("--nouveau="):
             for k in o.split("=", 1)[1].split(","):
                 print(f"image {k} : {n.effacer_nouveau(images, int(k))} pixels de couleur nouvelle effacés")
+        elif o == "--detaches":
+            print("morceaux détachés effacés :", sum(n.retirer_detaches(q) for q in images))
         elif o.startswith("--recentrer"):
             images = n.recentrer(images, "tete" if o.endswith("=tete") else "pieds")
         elif o.startswith("--corde="):
@@ -488,7 +490,8 @@ def cmd_page(ident):
                       f"<div>{'★ ' if pris else ''}{nom}{f' ({total} images)' if total != 8 else ''}</div>{alertes}</div>")
             donnees_js.append({"id": fid, "feuille": vers_page(os.path.join(d, nom + ".png")), "voisin": voisin, "images": total,
                                "fps": propre.get(etat, 10), "attaque": etat == "attack", "deplacement": etat == "move",
-                               "pas": propre.get("stepTime", 0.09),
+                               # comme le jeu : un cycle par case pour une créature qui marche, 0,09 s pour un volant
+                               "pas": propre.get("stepTime", 0.09 if f.get("vole") else total / propre.get("move", 10)),
                                "pause": pause if etat == "idle" and pause[1] > 0 else None})
         anims += "</div>"
     html = PAGE.format(titre=f.get("nom", ident), notes=f.get("notes", ""), fixes=fixes or "<p>Pas encore d'image.</p>",

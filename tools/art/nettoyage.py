@@ -130,6 +130,18 @@ def teintes(p):
     return {tuple(v // 24 for v in c[:3]) for r in p for c in r if c[3]}
 
 
+def retirer_detaches(p, taille=60):
+    """Efface tout petit morceau détaché du corps (moins de <taille> pixels), clair ou sombre : un bout d'arme lancée,
+    une miette. À ne pas utiliser si la créature a des morceaux séparés (une corde d'arc, une chaîne)."""
+    n = 0
+    for g in morceaux(p)[1:]:
+        if len(g) < taille:
+            for x, y in g:
+                p[y][x] = VIDE
+            n += 1
+    return n
+
+
 def effacer_eclats(p, marge=12, centre=None, garder=None):
     """Efface les éclats d'impact devant la créature, à plus de <marge> pixels à droite de son axe (<centre> : celui
     de la pose de départ, la créature pouvant se pencher en avant) : rouge, orange, jaune vifs et blanc pur.

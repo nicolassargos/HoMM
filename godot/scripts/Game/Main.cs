@@ -99,7 +99,7 @@ public partial class Main : Node2D
         var setup = _setup;
         _setup = null;
         _state = loaded ?? (setup != null
-            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents)
+            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents, heroName: setup.HeroName)
             : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents()));
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
@@ -256,6 +256,13 @@ public partial class Main : Node2D
         // Développement : « --cursor-preview=dossier » enregistre les curseurs en images
         if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--cursor-preview=")) is { } preview)
             MapCursor.SavePreview(preview["--cursor-preview=".Length..]);
+        // Développement : « --ui-preview » : des propositions d'éléments d'interface (pour une capture)
+        if (OS.GetCmdlineUserArgs().Contains("--ui-preview"))
+        {
+            var uiPreview = new UiPreview();
+            AddChild(uiPreview);
+            uiPreview.Build(GetViewport().GetVisibleRect().Size);
+        }
         // Développement : « --spells » : le héros connaît tous les sorts (savoir 5, points pleins), pour essayer la magie
         if (OS.GetCmdlineUserArgs().Contains("--spells") && _state.CurrentHero is { } mage)
         {
@@ -431,11 +438,14 @@ public partial class Main : Node2D
     }
 
     /// <summary>Les données du jeu, décrites dans le dossier data/ (créatures, bâtiments).</summary>
-    private static GameData LoadData() => GameData.FromJson(
+    /// <summary>Les données du jeu (aussi pour la fenêtre Nouvelle partie : les héros et les classes).</summary>
+    internal static GameData LoadData() => GameData.FromJson(
         Godot.FileAccess.GetFileAsString("res://data/creatures.json"),
         Godot.FileAccess.GetFileAsString("res://data/buildings.json"),
         Godot.FileAccess.GetFileAsString("res://data/artifacts.json"),
-        Godot.FileAccess.GetFileAsString("res://data/spells.json"));
+        Godot.FileAccess.GetFileAsString("res://data/spells.json"),
+        Godot.FileAccess.GetFileAsString("res://data/heroes.json"),
+        Godot.FileAccess.GetFileAsString("res://data/classes.json"));
 
     /// <summary>Le joueur regarde la carte (pas de fenêtre ni d'écran de ville ouverts).</summary>
     /// <summary>Passe au héros suivant et centre la vue sur lui (touche H ou bouton).</summary>

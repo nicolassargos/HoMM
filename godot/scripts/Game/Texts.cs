@@ -903,6 +903,35 @@ public static class Texts
     public static string List(IReadOnlyList<string> items) =>
         items.Count <= 1 ? string.Join("", items) : string.Join(", ", items.Take(items.Count - 1)) + " et " + items[^1];
 
+    // ----------------------------------------------------------- héros et classes (étape 9)
+
+    public static string FactionLabel => "Faction";
+    public static string YourHeroLabel => "Votre héros";
+    public static string GameLabel => "La partie";
+    public static string ClassNote => "La classe vient de la faction : chaque héros de cette faction la reçoit.";
+
+    /// <summary>« Normale (54 × 40) » dans la liste des tailles de carte.</summary>
+    public static string MapSizeChoice(MapSize size, (int Width, int Height) cells) => $"{MapSizeName(size)} ({cells.Width} × {cells.Height})";
+
+    /// <summary>« Aucun », « 1 », « 2 »… dans la liste des adversaires.</summary>
+    public static string OpponentsChoice(int count) => count == 0 ? "Aucun" : count.ToString();
+    public static string HeroLabel => "Héros";
+    public static string FactionName(string faction) => faction switch
+    {
+        "chateau" => "Château",
+        _ => Capitalize(faction),
+    };
+
+    /// <summary>Ce que donne une classe : « Paladin : attaque 2, défense 2, puissance 1, savoir 2, charisme 14 ; sort : Soins ».</summary>
+    public static string ClassSummary(HeroClass heroClass, SpellCatalog spells) =>
+        $"{heroClass.Name} : attaque {heroClass.Attack}, défense {heroClass.Defense}, puissance {heroClass.Power}, "
+        + $"savoir {heroClass.Knowledge}, charisme {heroClass.Charisma}"
+        + (heroClass.Spells.Count > 0 ? $" ; sort{(heroClass.Spells.Count > 1 ? "s" : "")} : {List(heroClass.Spells.Select(id => spells.Get(id).Name).ToList())}" : "");
+
+    /// <summary>« SR » pour Sire Roland (un héros sans portrait).</summary>
+    public static string Initials(string name) =>
+        string.Concat(name.Split(' ').Where(w => w.Length > 2).Take(2).Select(w => char.ToUpper(w[0])));
+
     public static string GuildButton => "Guilde";
     public static string GuildTitle(Town town) => $"Guilde des mages de {town.Name}";
     public static string GuildText =>

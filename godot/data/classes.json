@@ -1,0 +1,6 @@
+{
+  "classes": [
+    { "id": "paladin", "name": "Paladin", "faction": "chateau",
+      "attack": 2, "defense": 2, "power": 1, "knowledge": 2, "charisma": 14, "spells": ["soins"] }
+  ]
+}

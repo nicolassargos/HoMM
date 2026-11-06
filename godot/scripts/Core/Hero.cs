@@ -67,6 +67,23 @@ public sealed class Hero
     /// <summary>Retire les points de sort dépensés au combat.</summary>
     internal void SpendSpellPoints(int points) => SpellPoints = System.Math.Max(0, SpellPoints - points);
 
+    /// <summary>La classe du héros (étape 9) : d'où viennent ses caractéristiques et ses sorts de départ (null : aucune).</summary>
+    public HeroClass? Class { get; internal set; }
+
+    /// <summary>Le héros prend sa classe à sa création : ses caractéristiques de départ, ses sorts, tous ses points de sort.</summary>
+    internal void TakeClass(HeroClass heroClass, SpellCatalog spells)
+    {
+        Class = heroClass;
+        Attack = heroClass.Attack;
+        Defense = heroClass.Defense;
+        Power = heroClass.Power;
+        Knowledge = heroClass.Knowledge;
+        Charisma = heroClass.Charisma;
+        foreach (var id in heroClass.Spells)
+            Learn(spells.Get(id));
+        SpellPoints = MaxSpellPoints;
+    }
+
     /// <summary>Les artefacts que porte le héros (leurs bonus sont déjà comptés dans ses caractéristiques).</summary>
     public List<ArtifactType> Artifacts { get; } = new();
 

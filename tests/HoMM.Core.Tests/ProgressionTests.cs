@@ -49,7 +49,7 @@ public class ProgressionTests
     {
         var hero = HeroOf(new GameState(7, TestData.Data));
 
-        Assert.Equal(10, hero.Charisma);
+        Assert.Equal(TestData.Data.Classes.ForFaction("chateau")!.Charisma, hero.Charisma); // celui de sa classe
         Assert.All(hero.Army.Stacks, s => Assert.False(Command.IsOverLimit(s.Type, s.Count, hero.Charisma)));
     }
 
@@ -64,13 +64,14 @@ public class ProgressionTests
     public void Monter_de_niveau_donne_du_charisme_et_la_caracteristique_choisie()
     {
         var hero = HeroOf(new GameState(7, TestData.Data));
+        var before = hero.Statistics;
 
         hero.LevelUp(HeroStat.Power);
 
         Assert.Equal(2, hero.Level);
-        Assert.Equal(11, hero.Charisma);
-        Assert.Equal(2, hero.Power);
-        Assert.Equal(1, hero.Attack);
+        Assert.Equal(before.Charisma + 1, hero.Charisma);
+        Assert.Equal(before.Power + 1, hero.Power);
+        Assert.Equal(before.Attack, hero.Attack);
     }
 
     [Fact]

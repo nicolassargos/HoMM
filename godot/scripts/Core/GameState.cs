@@ -27,9 +27,10 @@ public sealed partial class GameState
     /// l'ordinateur (au plus <see cref="MapSizes.MaxOpponents"/>), chacun dans un coin de la carte.
     /// </summary>
     /// <param name="startingTowns">Chaque joueur commence avec son château (sans : en pleine nature, pour des tests).</param>
-    public GameState(int seed, GameData data, MapSize size, int opponents = 0, bool startingTowns = true)
+    /// <param name="heroName">Le héros choisi par le joueur (data/heroes.json) ; sans choix, le premier de la liste.</param>
+    public GameState(int seed, GameData data, MapSize size, int opponents = 0, bool startingTowns = true, string? heroName = null)
         : this(seed, data, Generate(seed, data, size, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns))
-        => AddPlayers(Map.Starts.Count);
+        => AddPlayers(Map.Starts.Count, heroName);
 
     private static AdventureMap Generate(int seed, GameData data, MapSize size, int opponents, bool startingTowns)
     {
@@ -40,8 +41,8 @@ public sealed partial class GameState
     /// <summary>Les noms (et couleurs) des joueurs, dans l'ordre : le joueur humain, puis les adversaires.</summary>
     private static readonly string[] PlayerNames = { "Rouge", "Bleu", "Vert", "Orange" };
 
-    /// <summary>Les héros de départ des adversaires (pris à la fin de la liste de la taverne, qui ne les propose plus).</summary>
-    private static readonly string[] ComputerHeroNames = { "Sire Yvain", "Dame Viviane", "Brann le Rouge" };
+    /// <summary>La faction des joueurs au départ (une seule pour l'instant : le Château).</summary>
+    public const string StartingFaction = "chateau";
 
     /// <summary>
     /// Une partie sur une carte faite à la main (pour les tests, et plus tard un éditeur de cartes), avec le joueur
@@ -58,14 +59,19 @@ public sealed partial class GameState
     /// Les joueurs, chacun sur son départ avec son héros et sa petite armée : le joueur humain d'abord, puis les adversaires
     /// joués par l'ordinateur.
     /// </summary>
-    private void AddPlayers(int count)
+    private void AddPlayers(int count, string? heroName = null)
     {
+        // le joueur : le héros choisi (sinon le premier) ; les adversaires : les derniers de la liste, que la taverne ne
+        // proposera donc plus
+        string playerHero = heroName != null && HeroNames.Contains(heroName) ? heroName : HeroNames[0];
+        var computerHeroes = HeroNames.Reverse().Where(n => n != playerHero).ToList();
         for (int i = 0; i < count; i++)
         {
             var player = new Player(PlayerNames[i % PlayerNames.Length], Map) { Id = _nextPlayerId++, IsComputer = i > 0 };
             Players.Add(player);
-            string name = i == 0 ? "Sire Roland" : ComputerHeroNames[(i - 1) % ComputerHeroNames.Length];
+            string name = i == 0 ? playerHero : computerHeroes[(i - 1) % computerHeroes.Count];
             var hero = new Hero(name, player, Map.Starts.Count > i ? Map.Starts[i] : Map.Start) { Id = _nextHeroId++ };
+            GiveClass(hero, StartingFaction);
             foreach (var stack in StartingArmy(Creatures).Stacks)
                 hero.Army.Add(stack.Type, stack.Count);
             // son château de départ, s'il y en a un sur son départ (cartes générées)
@@ -140,12 +146,20 @@ public sealed partial class GameState
     /// <summary>Nombre maximal de héros par joueur.</summary>
     public const int MaxHeroesPerPlayer = 8;
 
-    /// <summary>Les héros qu'on peut recruter dans les tavernes, dans l'ordre (données de jeu, comme les noms de villes).</summary>
-    private static readonly string[] HeroNames =
-        {
-            "Dame Isolde", "Sire Gauvain", "Dame Morgane", "Sire Perceval", "Renaud le Goupil", "Brann le Rouge",
-            "Dame Viviane", "Sire Yvain",
-        };
+    /// <summary>
+    /// Les héros du jeu, dans l'ordre (data/heroes.json) : on en choisit un au départ, les tavernes proposent les autres.
+    /// Sans données (certains tests), des noms numérotés.
+    /// </summary>
+    private IReadOnlyList<string> HeroNames => Data.Heroes.All.Count > 0
+        ? Data.Heroes.All.Select(h => h.Name).ToList()
+        : Enumerable.Range(1, 9).Select(i => $"Héros {i}").ToList();
+
+    /// <summary>Le héros prend la classe de cette faction, s'il y en a une (sinon il garde les valeurs de base).</summary>
+    private void GiveClass(Hero hero, string faction)
+    {
+        if (Data.Classes.ForFaction(faction) is { } heroClass)
+            hero.TakeClass(heroClass, Data.Spells);
+    }
 
     private readonly List<GameEvent> _events = new();
 
@@ -838,6 +852,7 @@ public sealed partial class GameState
             return HireResult.NoHeroLeft;
         CurrentPlayer.Resources[ResourceType.Gold] -= HeroCost;
         var hero = new Hero(name ?? NextHeroName()!, CurrentPlayer, town.Position) { Id = _nextHeroId++ };
+        GiveClass(hero, town.Faction);
         var firstTier = Creatures.All.Where(c => c.Faction == town.Faction).OrderBy(c => c.Tier).First();
         hero.Army.Add(firstTier, 12);
         CurrentHero = hero;

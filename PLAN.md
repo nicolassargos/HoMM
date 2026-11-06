@@ -97,10 +97,27 @@ Déjà décidé (2026-11-05) : des **morts-vivants** avec le Zombie, le Fantôme
 deviendra un **Chevalier**. Images déjà prêtes ou en cours : `chevalier`, `zombie`, `fantome`, `vampire`, `liche`,
 `colosse-os`. L'IA devra apprendre les nouvelles factions.
 
-### Les héros
-À préciser ensemble : choisir son héros de départ, une **classe** ou un passé (chevalier, voleur, barbare, sorcière…)
-avec des caractéristiques de départ et des bonus, des compétences à choisir en montant de niveau (dont la magie),
-l'apparence sur la carte. La place de la classe est gardée sur l'écran du héros.
+### Les héros et leurs classes (en cours)
+Décidé avec l'utilisateur (2026-11-06, après une revue des classes de Heroes 1 à 7 et de King's Bounty) :
+- **Un héros n'est qu'un nom et un portrait** (`data/heroes.json`) ; **sa classe donne tout le reste**
+  (`data/classes.json` : caractéristiques et sorts de départ ; plus tard un talent, et le livre à acheter pour les
+  classes de force).
+- **Une classe par faction** pour commencer : un héros prend la classe de la faction qui le recrute (la ville de départ,
+  la taverne). La force et la magie se départageront entre factions (comme Heroes 5).
+- **Le Château : le Paladin**, équilibré (il se bat bien et lance un peu de magie sainte) et le **plus charismatique**
+  de toutes les classes : attaque 2, défense 2, puissance 1, savoir 2, **charisme 14**, le sort Soins au départ.
+  Plus tard, un talent (par exemple plus fort contre les morts-vivants, comme le Paladin de King's Bounty).
+- **Au niveau supérieur, le choix reste libre** entre les quatre caractéristiques (la classe ne fait que le départ).
+- **Nouvelle partie** : on choisit sa faction (le Château seulement pour l'instant) et son héros dans une grille de
+  portraits ; les adversaires prennent les derniers héros de la liste.
+✅ Fait : les données, la classe donnée au départ et à la taverne (sauvegardée), la classe sur l'écran du héros et
+dans la taverne. La fenêtre Nouvelle partie refaite (choisie par l'utilisateur parmi trois arrangements, 2026-11-06) :
+deux colonnes ; à gauche « La partie » (**listes déroulantes** pour la taille de la carte, les adversaires et la
+difficulté, la graine, puis les façons de gagner) ; à droite « Votre héros » (la faction, le héros choisi en grand,
+portrait ×4, son nom, sa classe et ce qu'elle donne, et en bas une **bande de portraits qui défile** ◄ ►, le choisi
+encadré d'argent : la liste des héros peut grandir). Tests : `ClassesTests`.
+À faire avec les factions : leurs classes, puis l'équilibre force / magie (d'abord apprendre à la simulation à ramasser
+les tas de ressources : `Simulation_force_ou_magie`).
 
 ### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et
@@ -115,7 +132,7 @@ croissance, prix, garde.
 - Petits détails et équilibrage fin.
 
 ## Repères (choix encore valables)
-- **Héros** : 1/1/1/1 et charisme 10 au départ ; niveau n à 1000 × (n−1) × n / 2 d'expérience (= l'or des créatures
+- **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à 1000 × (n−1) × n / 2 d'expérience (= l'or des créatures
   tuées) ; chaque niveau : +1 charisme et +1 au choix. Une troupe obéit si nombre × coût de commandement ≤ charisme
   × 10, sinon elle peut se révolter au début d'un combat (≈ 50 % à deux fois la limite). Les garnisons n'ont pas de limite.
 - **Château** : départ 30 paysans, 15 archers, 4 griffons ; prix 3 or par « paysan équivalent » (Archer 18, Griffon 40,
@@ -130,8 +147,8 @@ croissance, prix, garde.
   héros au plus 2 / 3 / 4, revenu d'or 75 / 100 / 125 %.
 - **Équilibre mesuré** (`Mesures`, 2026-11-06, six cartes) : la simulation seule (sans magie) gagne sur les petites
   cartes vers le jour 60, les normales vers le jour 101 (80 à 154), les grandes vers le jour 146. Un adversaire, après
-  six semaines (après la correction de l'ordre de construction) : 3,0 à 3,5 villes, une armée de 12 000 (Facile),
-  16 000 (Normal) et 18 500 or (Difficile) en moyenne, la plupart de ses héros ont des sorts. Courbe : Archer 8, Griffon 14, Épéiste 26, Moine 63,
+  six semaines (héros Paladins, après la correction de l'ordre de construction) : 2,8 à 3,3 villes, une armée de
+  13 000 (Facile), 16 800 (Normal) et 18 700 or (Difficile) en moyenne, tous ses héros ont des sorts. Courbe : Archer 8, Griffon 14, Épéiste 26, Moine 63,
   Cavalier 116, Ange 1643 paysans.
 
 ## Choix à respecter

@@ -1,0 +1,5 @@
+{
+  "*": {"idlePauseMin": 5, "idlePauseMax": 10},
+  "colosse-os": {"idle": 7, "walk": 7, "attack": 7},
+  "archer": {"idle": 7, "idlePauseMin": 15, "idlePauseMax": 30}
+}

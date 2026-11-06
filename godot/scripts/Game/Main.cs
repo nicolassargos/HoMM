@@ -272,6 +272,28 @@ public partial class Main : Node2D
             _battleScreen.Open(new TacticalBattle(castle, neutral, new GameRandom(1)), "la vitrine", TerrainType.Grass, () => { },
                 auto: OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: _state.CurrentHero);
         }
+        // Développement : « --creature-preview=fantome,chevalier » : ces créatures des deux côtés du champ (le défenseur
+        // les montre retournées), avec un Archer de chaque côté pour l'échelle ; une créature pas encore dans les règles
+        // reçoit des caractéristiques moyennes, pour voir ses images et ses animations en jeu. Avec « --battle-auto »,
+        // le combat se joue seul (marche et attaques) ; sinon, on voit les attentes et on peut jouer.
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--creature-preview=")) is { } previewArg)
+        {
+            var ids = previewArg["--creature-preview=".Length..].Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (!ids.Contains("archer"))
+                ids.Add("archer");
+            CreatureType Find(string id) => _state.Creatures.All.FirstOrDefault(c => c.Id == id)
+                ?? new CreatureType { Id = id, Name = id, Plural = id, Faction = "apercu", Tier = 4, Attack = 10, Defense = 10,
+                                      MinDamage = 4, MaxDamage = 6, HitPoints = 40, Speed = 5, CommandCost = 1 };
+            var left = new Army();
+            var right = new Army();
+            foreach (var id in ids.Take(7))
+            {
+                left.AddStack(Find(id), 5);
+                right.AddStack(Find(id), 5);
+            }
+            _battleScreen.Open(new TacticalBattle(left, right, new GameRandom(1)), "l'aperçu", TerrainType.Grass, () => { },
+                auto: OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: _state.CurrentHero);
+        }
         // Développement : « --battle-test » : des Orcs et des Loups à deux cases, et le héros y va
         if (OS.GetCmdlineUserArgs().Contains("--battle-test") && _state.CurrentHero is { } fighter)
         {

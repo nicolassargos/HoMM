@@ -301,6 +301,56 @@ détails, surtout agrandies au combat), dans cet ordre :
    massue de bois sans clous ; 58 px de haut, plus grand que l'Archer ; il balaie de sa massue). Fait avec l'ancien Ogre
    comme image de style pour garder son ombrage doux, et **sans** réduire la palette (16 couleurs faisaient des bandes
    sur la peau). Une image de référence de pose recopie aussi ses détails (des clous sur la massue) : à éviter.
+   Le **Colosse d'os** (futur mort-vivant le plus fort, pas encore dans les règles : `colosse-os`) : un amas chaotique
+   d'os et de crânes en forme de géant, tête de crâne cornue aux yeux rouges, énorme fémur pour massue ; 70 px de haut
+   pour tenir sur une case ; il balaie de son fémur à deux mains. D'après une image de l'utilisateur, mais pas recopiée
+   (trop moderne, trop détaillée) : décrire l'idée en termes de jeu rétro (« classic 1990s fantasy strategy game
+   sprite, simple bold shapes »). **L'angle de vue** (un peu d'en haut) vient d'une image de référence marquée « angle
+   seulement » (`image.png::usage` dans `pixellab.py pro`) : le Troll a bien marché, mais seulement sans autre image
+   du sujet (une image de sujet vue de côté impose son angle).
+   Le **Chevalier** (remplacera l'Épéiste, pas encore dans les règles : `chevalier`) : armure de plaques d'acier,
+   heaume fermé, fléau d'armes, bouclier bleu à fleur de lis d'or ; 54 px de haut, plus grand et plus massif que
+   l'Archer ; d'après une image de l'utilisateur (le bouclier rouge à chevrons de la référence remplacé à sa demande).
+   Le bouclier a été changé avec `retoucher` sur toute l'image (repeindre une seule zone, `repeindre`, demande un
+   abonnement payant de PixelLab). Attente calme, marche lourde, attaque où il fait tournoyer le fléau au-dessus de
+   sa tête avant de frapper devant lui. PixelLab dessine des éclats d'impact même quand on demande « no visual
+   effects » : les effacer (et redessiner la boule du fléau qu'ils cachaient).
+   Le **Fantôme** (futur mort-vivant, pas encore dans les règles : `fantome`) : le spectre d'une noyée, presque blanc
+   aux reflets cyan, longs cheveux mouillés sur un visage sombre, mains griffues, robe en lambeaux qui finit en
+   volutes à la place des pieds ; 52 px de haut ; d'après une image de « mariée fantôme » de l'utilisateur, puis des
+   variations d'un premier candidat (F2) données en image de sujet. Attente où il se balance doucement, vol, attaque
+   où il projette une gerbe d'eau de ses mains. Une animation peut dessiner un adversaire : la jeter.
+   Le **Moine** et le **Loup** (images d'origine gardées, modèles de style) ont maintenant leurs animations, faites à
+   partir de leur image doublée (pixels ×2) puis réduites. Le Moine prie, marche, et tend son bâton vers l'ennemi
+   **sans rien lancer** : la boule de feu sera un effet du jeu (à faire ; le jeu ne dessine encore aucun projectile, ni les flèches de l'Archer). PixelLab
+   dessine quand même éclairs et flammes : l'image de l'éclair est remplacée par la pose tendue, gardée au moment du
+   coup. Le Loup renifle, trotte, et bondit gueule ouverte. PixelLab n'accepte que 8 animations à la fois.
+   L'**Archer refait** (2026-11-06) : plus net, fait au double puis réduit (50 px), tabard bleu à fleur de lis d'or
+   comme le bouclier du Chevalier. Sa **corde d'arc** (un trait d'un pixel) disparaissait à la réduction ou
+   clignotait : les traits fins de la grande image sont remis après réduction, et une corde droite est tracée entre
+   les deux bouts de l'arc au repos (même couleur sombre que celle de PixelLab), sur l'image fixe aussi. Il regarde
+   autour de lui, rarement (pause de 15 à 30 s, 7 images par seconde). L'utilisateur trouve les animations un peu
+   chargées, de peur qu'elles distraient du jeu : à revoir en jeu (pauses plus longues, mouvements plus discrets).
+   **Méthode outillée** (2026-11-06, demandée par l'utilisateur) : `tools/art/creature.py` enchaîne les étapes pour
+   une créature (`fixe`, `choisir … fixe`, `animer`, `retoucher`, `choisir … idle`, `page`) d'après sa **fiche**
+   (`tools/art/creatures-art.json` : description, sujet, hauteur, taille de génération, modèle de style, image
+   d'angle, références, miroir, corde, mouvements propres, choix faits) et un **gabarit** par sorte de créature
+   (humain, volant, quadrupède, grand : fin du texte de l'image fixe, mouvements par défaut, et toujours « pas
+   d'autre personnage, pas d'effet, pas de projectile » ; mouvements d'attente discrets). Les grandes images
+   choisies sont gardées dans `art-candidats/references/derives/` (elles survivent à l'archivage). Chaque feuille
+   est **vérifiée** (corps qui glisse, attaque qui ne revient pas à sa place, pixels en plus : autre personnage ou
+   effet, éclats blancs ou de feu, image coupée au bord, traits fins qui clignotent), en comparant chaque image à la
+   plus calme de la feuille ; les alertes s'affichent sur la **page de la créature** (`en-cours/<id>.html`), qui
+   montre images fixes et animations ensemble, sur des cases du champ, face au défenseur retourné, avec les pauses
+   du jeu. Deux essais par animation, alternant les deux modèles de PixelLab ; au plus 8 tâches à la fois (les
+   autres attendent, `pixellab.py` attend aussi quand PixelLab refuse). En jeu : `--creature-preview=id,…` met ces
+   créatures des deux côtés (une créature absente des règles reçoit des caractéristiques moyennes), avec un Archer
+   pour l'échelle. Les fiches existent pour le Colosse, le Chevalier, le Fantôme, l'Archer, le Moine et le Loup.
+   **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
+   créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
+   tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de
+   départ, puis joue son attente une fois. L'entrée `*` vaut pour toutes : 5 à 10 s de pause (choix de l'utilisateur).
+   Le Colosse est à 7 images par seconde.
    Ce qui marche (`tools/art/pixellab.py`) : l'image fixe avec le modèle « Pro » (`pro`, 25 candidats pour 0,08 $ à
    40 × 52), une de nos images pour le style (trait, ombrage) et une image de référence pour le sujet ; **modèles de
    style : le Moine, le Griffon, le Loup et le Troll** (choix de l'utilisateur ; plus l'Épéiste, à refaire) ; les animations
@@ -622,6 +672,11 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   4. L'équilibrage (simulation et adversaires, avec la magie) et des icônes de sorts (Retro Diffusion ou PixelLab).
 - **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
   (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.
+  Déjà décidé (2026-11-05) : des **morts-vivants** avec le Zombie, le Fantôme, le Vampire, la Liche et, au sommet, un
+  **Colosse d'os** (un géant fait des os de tout un champ de bataille, aussi fort que l'Ange ou le Dragon ; préféré au
+  Dragon d'os, au Spectre et au Chevalier noir, trop faibles pour le dernier niveau). Le Squelette pourrait les rejoindre.
+  Au Château, l'Épéiste deviendra un **Chevalier**. Leurs images sont préparées d'avance (`chevalier`, `zombie`,
+  `fantome`, `vampire`, `liche`, `colosse-os`), chacune d'après une image de référence de l'utilisateur.
 - **Personnalisation des héros** (demandé par l'utilisateur) : à préciser ensemble. Pistes : choisir son héros
   de départ (nom, portrait), une classe ou un passé (chevalier, voleur, barbare, sorcière…) qui donne des bonus et
   des caractéristiques de départ différentes, des compétences à choisir en montant de niveau, et l'apparence du

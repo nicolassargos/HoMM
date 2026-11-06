@@ -32,6 +32,67 @@ public partial class BattleFieldView : Control
     /// <summary>Images d'animation par seconde.</summary>
     private const double AnimationFps = 10;
 
+    /// <summary>
+    /// Les vitesses propres à certaines créatures (un géant lent…), dans <c>art/creatures/battle/animations.json</c>
+    /// (facultatif) : <c>{ "colosse-os": { "idle": 6, "walk": 7 } }</c>, en images par seconde. L'entrée « * » vaut
+    /// pour toutes les créatures (une créature peut la remplacer).
+    /// </summary>
+    private static Dictionary<string, Dictionary<string, double>>? _speeds;
+
+    /// <summary>Images par seconde de cette animation de la créature (10 par défaut).</summary>
+    private static double Fps(BattleUnit unit, string state)
+    {
+        if (_speeds == null)
+        {
+            const string path = Art.Root + "creatures/battle/animations.json";
+            _speeds = Godot.FileAccess.FileExists(path)
+                ? System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, double>>>(
+                    Godot.FileAccess.GetFileAsString(path)) ?? new()
+                : new();
+        }
+        return Setting(unit, state) is double fps and > 0 ? fps : AnimationFps;
+    }
+
+    /// <summary>Un réglage de <c>animations.json</c> pour cette créature, ou null.</summary>
+    private static double? Setting(BattleUnit unit, string key)
+    {
+        if (_speeds == null)
+            Fps(unit, Idle);
+        // le réglage de la créature, sinon celui de toutes (« * »)
+        foreach (var id in new[] { unit.Type.Id, "*" })
+            if (_speeds!.TryGetValue(id, out var settings) && settings.TryGetValue(key, out var value))
+                return value;
+        return null;
+    }
+
+    /// <summary>
+    /// La pause entre deux attentes (« idlePauseMin » et « idlePauseMax », en secondes) : la créature reste sur sa pose
+    /// de départ un moment tiré entre les deux, puis joue son attente une fois. Null : l'attente tourne en boucle.
+    /// </summary>
+    private static (double Least, double Most)? IdlePause(BattleUnit unit) =>
+        Setting(unit, "idlePauseMax") is double most and > 0 ? (Math.Min(Setting(unit, "idlePauseMin") ?? most, most), most) : null;
+
+    /// <summary>
+    /// L'image d'attente avec des pauses : pause, attente jouée une fois, pause… Chaque pause a sa durée, tirée d'après
+    /// le numéro de la pause et la troupe (toujours la même, sans hasard de la partie), pour que les troupes ne
+    /// bougent pas ensemble.
+    /// </summary>
+    private static int IdleFrameWithPauses(double time, double fps, double least, double most, double phase)
+    {
+        double play = AnimationFrames / fps;
+        for (int cycle = 0; ; cycle++)
+        {
+            double noise = Math.Abs(Math.Sin(cycle * 12.9898 + phase * 78.233) * 43758.5453) % 1;
+            double pause = least + noise * (most - least);
+            if (time < pause)
+                return 0;
+            time -= pause;
+            if (time < play)
+                return (int)(time * fps);
+            time -= play;
+        }
+    }
+
     /// <summary>Agrandissement du sol (ses images de 24 pixels) et des obstacles.</summary>
     private const int GroundScale = 3;
 
@@ -269,7 +330,8 @@ public partial class BattleFieldView : Control
                         var striker = _shown[struck.Attacker];
                         if (wind == 0 && Sheet(struck.Attacker, AttackState) != null)
                             striker.Play(AttackState);
-                        if (striker.State == AttackState && wind < HitDelay)
+                        // une attaque plus lente porte son coup plus tard, au même moment du geste
+                        if (striker.State == AttackState && wind < HitDelay * AnimationFps / Fps(struck.Attacker, AttackState))
                         {
                             wind += delta;
                             return false;
@@ -286,7 +348,7 @@ public partial class BattleFieldView : Control
                                 _floating.Add(($"{struck.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
                         }
                         age += delta;
-                        if (age < 0.35)
+                        if (age < 0.35 * AnimationFps / Fps(struck.Attacker, AttackState))
                             return false;
                         if (_shown[struck.Target].Count == 0)
                             _shown[struck.Target].Gone = true;
@@ -523,7 +585,9 @@ public partial class BattleFieldView : Control
         if (sheet == null)
             return (null, default);
         double time = state == Idle ? shown.StateTime + shown.Phase : shown.StateTime;
-        int index = (int)(time * AnimationFps);
+        int index = shown.State == Idle && IdlePause(unit) is var (least, most)
+            ? IdleFrameWithPauses(time, Fps(unit, Idle), least, most, shown.Phase)
+            : (int)(time * Fps(unit, state));
         index = state == AttackState ? Math.Min(index, AnimationFrames - 1) : index % AnimationFrames;
         var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / AnimationRows);
         return (sheet, new Rect2(new Vector2(index % AnimationColumns * cell.X, index / AnimationColumns * cell.Y), cell));

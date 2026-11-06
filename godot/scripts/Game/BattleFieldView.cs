@@ -167,6 +167,10 @@ public partial class BattleFieldView : Control
         /// <summary>Décalage de l'attente, pour que les troupes ne respirent pas toutes ensemble.</summary>
         public double Phase;
 
+        /// <summary>Tournée vers la gauche (dessinée en miroir) pendant une marche ou un coup ; null : le côté de son
+        /// camp (l'attaquant regarde à droite, le défenseur à gauche).</summary>
+        public bool? FacesLeft;
+
         public void Play(string state)
         {
             State = state;
@@ -319,6 +323,9 @@ public partial class BattleFieldView : Control
                         }
                         t += delta;
                         var from = step == 0 ? start.Value : points[step - 1];
+                        // elle regarde où elle va (une case droit vers le haut ou le bas ne la retourne pas)
+                        if (Math.Abs(points[step].X - from.X) > 1)
+                            shown.FacesLeft = points[step].X < from.X;
                         // une case de marche en 0,09 s (ou le « stepTime » de la créature) ; un vol prend le temps de
                         // toutes les cases survolées
                         float k = (float)Math.Min(1, t / (StepTime(moved.Unit) * Math.Max(1, from.DistanceTo(points[step]) / HexWidth)));
@@ -329,6 +336,7 @@ public partial class BattleFieldView : Control
                         if (++step < points.Count)
                             return false;
                         shown.Play(Idle);
+                        shown.FacesLeft = null; // arrivée : de nouveau tournée vers le camp adverse
                         return true;
                     });
                     break;
@@ -339,8 +347,18 @@ public partial class BattleFieldView : Control
                     {
                         // l'attaquant fait son geste (s'il a une animation d'attaque) ; le coup porte vers la fin
                         var striker = _shown[struck.Attacker];
-                        if (wind == 0 && Sheet(struck.Attacker, AttackState) != null)
-                            striker.Play(AttackState);
+                        if (wind == 0)
+                        {
+                            // l'attaquant se tourne vers sa cible, et la cible vers lui
+                            var struckShown = _shown[struck.Target];
+                            if (Math.Abs(struckShown.Position.X - striker.Position.X) > 1)
+                            {
+                                striker.FacesLeft = struckShown.Position.X < striker.Position.X;
+                                struckShown.FacesLeft = !striker.FacesLeft;
+                            }
+                            if (Sheet(struck.Attacker, AttackState) != null)
+                                striker.Play(AttackState);
+                        }
                         // une attaque plus lente porte son coup plus tard, au même moment du geste
                         if (striker.State == AttackState && wind < HitDelay * AnimationFps / Fps(struck.Attacker, AttackState))
                         {
@@ -365,6 +383,8 @@ public partial class BattleFieldView : Control
                             _shown[struck.Target].Gone = true;
                         if (striker.State == AttackState)
                             striker.Play(Idle);
+                        striker.FacesLeft = null;
+                        _shown[struck.Target].FacesLeft = null;
                         return true;
                     });
                     break;
@@ -621,7 +641,7 @@ public partial class BattleFieldView : Control
             var source = sheet != null ? frame : new Rect2(Vector2.Zero, image.GetSize());
             var size = source.Size * scale;
             var rect = new Rect2(foot + new Vector2(-size.X / 2, -size.Y), size);
-            if (unit.Side == BattleSide.Defender)
+            if (shown.FacesLeft ?? unit.Side == BattleSide.Defender)
             {
                 // tourné vers la gauche : dessiné en miroir
                 DrawSetTransform(new Vector2(foot.X * 2, 0), 0, new Vector2(-1, 1));

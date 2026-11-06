@@ -329,7 +329,7 @@ détails, surtout agrandies au combat), dans cet ordre :
    comme le bouclier du Chevalier. Sa **corde d'arc** (un trait d'un pixel) disparaissait à la réduction ou
    clignotait : les traits fins de la grande image sont remis après réduction, et une corde droite est tracée entre
    les deux bouts de l'arc au repos (même couleur sombre que celle de PixelLab), sur l'image fixe aussi. Il regarde
-   autour de lui, rarement (pause de 15 à 30 s, 7 images par seconde). L'utilisateur trouve les animations un peu
+   autour de lui, rarement (pause de 10 à 20 s, 7 images par seconde). L'utilisateur trouve les animations un peu
    chargées, de peur qu'elles distraient du jeu : à revoir en jeu (pauses plus longues, mouvements plus discrets).
    **Méthode outillée** (2026-11-06, demandée par l'utilisateur) : `tools/art/creature.py` enchaîne les étapes pour
    une créature (`fixe`, `choisir … fixe`, `animer`, `retoucher`, `choisir … idle`, `page`) d'après sa **fiche**
@@ -366,13 +366,15 @@ détails, surtout agrandies au combat), dans cet ordre :
    lentement sur le champ (`stepTime` : 0,45 s par case au lieu de 0,09). Il frappe en se penchant en arrière, puis
    en poussant son énorme ventre. Les effets apparaissent moins quand le texte ne décrit que le mouvement du corps
    (sans « frappe », « coup » ni « pas d'éclair ») : `--sans=` retire la fin de texte du gabarit.
+   Au combat, chaque troupe **regarde où elle va** (miroir selon le sens de la marche) et se tourne vers sa cible
+   pour frapper ou tirer (la cible vers elle), puis se retourne vers le camp adverse.
    Le **Troll** (image d'origine gardée) a ses animations : il se gratte la tête (6 images par seconde), marche
    lourdement (7), et donne un « méga-coup de poing » (le bras étiré en traînée sur une image, gardée : choix de
    l'utilisateur). Textes de mouvement seuls (`--sans=no other character`) : aucun effet sur les six premiers essais.
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de
-   départ, puis joue son attente une fois. L'entrée `*` vaut pour toutes : 5 à 10 s de pause (choix de l'utilisateur).
+   départ, puis joue son attente une fois. L'entrée `*` vaut pour toutes : 3 à 6 s de pause (choix de l'utilisateur, d'abord 5 à 10 s).
    Le Colosse est à 7 images par seconde.
    Ce qui marche (`tools/art/pixellab.py`) : l'image fixe avec le modèle « Pro » (`pro`, 25 candidats pour 0,08 $ à
    40 × 52), une de nos images pour le style (trait, ombrage) et une image de référence pour le sujet ; **modèles de

@@ -278,7 +278,7 @@ détails, surtout agrandies au combat), dans cet ordre :
 2. Les animations, **à l'étape 10** (choix de l'utilisateur) : attente, marche, attaque, à partir de l'image de combat.
    Essai sur l'Épéiste : Retro Diffusion (0,14 $ l'animation, la marche glisse un peu) contre **PixelLab** (« Animate with
    text v3 », environ 0,03 $, pas mieux tenus, fond transparent) : PixelLab est retenu. L'écran de combat sait déjà jouer
-   des feuilles de 8 images (`epeiste-idle.png`, `-walk`, `-attack` : 4 colonnes × 2 rangées) ; sans feuille, l'image fixe.
+   des feuilles de 8 images (`epeiste-idle.png`, `-move` (anciennement `-walk`), `-attack` : 4 colonnes × 2 rangées) ; sans feuille, l'image fixe.
    **Désormais : PixelLab pour les personnages et les créatures, Retro Diffusion pour les cartes et les portraits.**
    ✅ **Les créatures refaites une à une avec PixelLab** (choix de l'utilisateur) : d'abord l'image fixe (qui sert aussi
    d'icône), puis, une fois acceptée, ses animations. Fait : le **Squelette** (bossu, casque rouillé, haillons de
@@ -361,7 +361,7 @@ détails, surtout agrandies au combat), dans cet ordre :
    couvert de pustules jaunes, pointes de cristal violet sur le dos ; 44 px de haut (plus petit que l'Archer, l'Ogre
    est bien plus fort) ; d'après une image de l'utilisateur. Il tend la main en ouvrant la bouche, boite en traînant
    une jambe raide.
-   La boiterie n'a pas marché avec PixelLab : à la place, une marche **lente** de 16 images (`walkFrames` : 16 dans
+   La boiterie n'a pas marché avec PixelLab : à la place, une marche **lente** de 16 images (`moveFrames` : 16 dans
    animations.json, feuille de 4 × 4, `creature.py animer … --images=16`) à 8 images par seconde, et il avance
    lentement sur le champ (`stepTime` : 0,45 s par case au lieu de 0,09). Il frappe en se penchant en arrière, puis
    en poussant son énorme ventre. Les effets apparaissent moins quand le texte ne décrit que le mouvement du corps
@@ -371,8 +371,13 @@ détails, surtout agrandies au combat), dans cet ordre :
    Le **Troll** (image d'origine gardée) a ses animations : il se gratte la tête (6 images par seconde), marche
    lourdement (7), et donne un « méga-coup de poing » (le bras étiré en traînée sur une image, gardée : choix de
    l'utilisateur). Textes de mouvement seuls (`--sans=no other character`) : aucun effet sur les six premiers essais.
+   L'**Ogre** : nouvelle attente (il se gratte la cuisse) et nouvelle attaque (massue levée à deux mains puis abattue) ;
+   sa grande image n'a que 66 px (faite avant l'outil). Le **Griffon** (image d'origine gardée) : attente, vol, attaque
+   (il se cabre puis frappe des serres et du bec). L'animation « walk » s'appelle maintenant **« move »** (déplacement :
+   marche ou vol ; fichiers `-move.png`, réglages `move` et `moveFrames`). La page d'une créature montre un déplacement
+   qui traverse quatre cases à la vitesse du jeu, pour voir si le cycle se répète bien.
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
-   créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
+   créature et par animation (`idle`, `move`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de
    départ, puis joue son attente une fois. L'entrée `*` vaut pour toutes : 3 à 6 s de pause (choix de l'utilisateur, d'abord 5 à 10 s).
    Le Colosse est à 7 images par seconde.

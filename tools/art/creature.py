@@ -11,7 +11,7 @@ quadrupède, grand) qui donne la fin des textes de demande et les mouvements par
         (une image de sujet impose son propre angle de vue). Candidats nommés L<lot>-<n>. Coûte de l'argent.
     python -I tools/art/creature.py choisir <id> fixe L3-2
         installe l'image fixe (art/creatures/battle/<id>.png) et garde la grande image pour les animations.
-    python -I tools/art/creature.py animer <id> <idle|walk|attack> [essais=2] [graine] [--consigne="…"] [--sans="…"]
+    python -I tools/art/creature.py animer <id> <idle|move|attack> [essais=2] [graine] [--consigne="…"] [--sans="…"]
             [--enrichir] [--images=16]
         <essais> animations (environ 0,02 $ chacune) depuis la grande image choisie, puis réduites en feuilles de 8
         images (traits fins gardés, étincelles retirées) et vérifiées. Les essais alternent les deux modèles de
@@ -21,8 +21,8 @@ quadrupède, grand) qui donne la fin des textes de demande et les mouvements par
     python -I tools/art/creature.py retoucher <id> <nom> [--eclats[=partout]] [--copier=7:8,…] [--corde=7,8] [--nouveau=5] [--recentrer[=tete]]
         corrige une feuille (écrit <nom>-r) : efface les éclats d'impact (devant la créature, ou partout), remplace l'image 7 par la 8, trace la corde
         de l'arc sur ces images, efface dans l'image 5 les couleurs absentes des images voisines, garde les pieds (ou la tête) à la même place d'une image à l'autre. Gratuit.
-    python -I tools/art/creature.py choisir <id> <idle|walk|attack> <nom> [images/s]
-        installe la feuille (art/creatures/battle/<id>-idle.png…) et sa vitesse dans animations.json (avec son nombre
+    python -I tools/art/creature.py choisir <id> <idle|move|attack> <nom> [images/s]
+        installe la feuille (art/creatures/battle/<id>-idle.png, -move, -attack) et sa vitesse dans animations.json (avec son nombre
         d'images, s'il n'est pas de 8).
     python -I tools/art/creature.py retailler <id> <hauteur>
         refait l'image fixe et les feuilles choisies à une autre hauteur (en pixels), depuis les grandes images. Gratuit.
@@ -51,7 +51,7 @@ BATAILLE = "godot/art/creatures/battle"
 VITESSES = BATAILLE + "/animations.json"
 EN_COURS = "art-candidats/en-cours"
 GARDEES = "art-candidats/references/derives"
-ETATS = ("idle", "walk", "attack")
+ETATS = ("idle", "move", "attack")
 
 
 def charger():
@@ -180,7 +180,7 @@ def departs(f, ident):
     # assez large pour un bras tendu (sinon PixelLab le coupe au bord)
     tailles = {"idle": (min(256, arrondi16(w * 1.8)), arrondi16(h * 1.2)),
                "attack": (min(256, arrondi16(w * 2.2)), min(256, arrondi16(h * 1.35)))}
-    tailles["walk"] = tailles["idle"]
+    tailles["move"] = tailles["idle"]
     chemins = {}
     for etat, (W, H) in tailles.items():
         chemins[etat] = os.path.join(d, f"depart-{etat}.png")
@@ -219,7 +219,7 @@ def ecrire_verifs(ident, v):
 
 def cmd_animer(ident, etat, essais=2, graine=0, consigne=None, sans=None, enrichir=False, nombre=8):
     if etat not in ETATS:
-        sys.exit(f"État inconnu : {etat} (idle, walk ou attack)")
+        sys.exit(f"État inconnu : {etat} (idle, move ou attack)")
     donnees = charger()
     f, g = fiche(donnees, ident)
     if not f.get("grande"):
@@ -366,7 +366,7 @@ def cmd_choisir(ident, quoi, nom, fps=None):
     elif quoi in ETATS:
         choisir_anim(donnees, ident, quoi, nom, fps)
     else:
-        sys.exit("choisir <id> fixe|idle|walk|attack <nom> [images/s]")
+        sys.exit("choisir <id> fixe|idle|move|attack <nom> [images/s]")
     enregistrer(donnees)
     cmd_page(ident)
 
@@ -391,7 +391,8 @@ label{{margin-right:14px}}
 <label>vitesse <select id=vitesse><option value=0>celle du jeu</option><option>5</option><option>6</option><option>7</option>
 <option>8</option><option>10</option><option>12</option></select></label></p>
 <p>Sur des cases du champ de bataille : la créature (attaquant) à gauche, une créature de comparaison derrière elle, et sa
-copie retournée (le défenseur) en face. ★ : l'animation installée.</p>
+copie retournée (le défenseur) en face ; un déplacement traverse quatre cases à la vitesse du jeu, puis recommence.
+★ : l'animation installée.</p>
 {anims}
 <script>
 const ANIMS={donnees};
@@ -413,9 +414,20 @@ for(const a of ANIMS){{
     requestAnimationFrame(dessin);if(pret<2)return;
     const fw=im.width/4,fh=im.height/Math.ceil(a.images/4);g.clearRect(0,0,cv.width,cv.height);
     const cases=[[HW*0.6,cv.height-HH*0.6],[HW*1.6,cv.height-HH*0.6],[HW*3.9,cv.height-HH*0.6]];
-    for(const [x,y] of cases)hexa(g,x,y);
+    if(!a.deplacement)for(const [x,y] of cases)hexa(g,x,y);
     const choisie=+document.getElementById("vitesse").value,fps=choisie||a.fps;
     const pause=document.getElementById("pauses").checked?a.pause:null;const t=(performance.now()-t0)/1000;
+    if(a.deplacement){{
+      // quatre cases à la vitesse du jeu (« stepTime » par case), puis une pause sur place
+      const cases4=[[HW*0.6,cv.height-HH*0.6]];for(let i=1;i<=5;i++)cases4.push([HW*(0.6+i),cv.height-HH*0.6]);
+      for(const [x,y] of cases4)hexa(g,x,y);
+      const trajet=4*a.pas,cycle=trajet+0.8,u=t%cycle,avance=Math.min(u,trajet)/a.pas;
+      const kk=u<trajet?Math.floor(t*fps)%a.images:0;
+      const x=HW*1.6+avance*HW,y=cases4[0][1];
+      g.drawImage(voisin,cases4[0][0]-voisin.width,y+PIED-voisin.height*2,voisin.width*2,voisin.height*2);
+      g.drawImage(im,kk%4*fw,Math.floor(kk/4)*fh,fw,fh,x-fw,y+PIED-fh*2,fw*2,fh*2);
+      return;
+    }}
     const k=image(t,fps,a.attaque,pause,0.3,a.images),k2=image(t+0.7,fps,a.attaque,pause,0.8,a.images);
     g.drawImage(voisin,cases[0][0]-voisin.width,cases[0][1]+PIED-voisin.height*2,voisin.width*2,voisin.height*2);
     g.drawImage(im,k%4*fw,Math.floor(k/4)*fh,fw,fh,cases[1][0]-fw,cases[1][1]+PIED-fh*2,fw*2,fh*2);
@@ -459,7 +471,7 @@ def cmd_page(ident):
     voisin = vers_page(f"{BATAILLE}/{comparer[0]}.png") if comparer else ""
     anims, donnees_js = "", []
     d = dossier(ident, "anim")
-    for etat, titre in (("idle", "Attente"), ("walk", "Marche"), ("attack", "Attaque")):
+    for etat, titre in (("idle", "Attente"), ("move", "Déplacement"), ("attack", "Attaque")):
         noms = sorted((x[:-4] for x in os.listdir(d) if x.startswith(etat + "-") and x.endswith(".png")) if os.path.isdir(d) else [],
                       key=lambda x: [int(v) if v.isdigit() else 0 for v in x.split("-")[1:]], reverse=True)
         if not noms:
@@ -471,10 +483,12 @@ def cmd_page(ident):
             total = nombre_images(dossier_images) if os.path.isdir(dossier_images) else 8
             pris = choix.get(etat) == nom
             alertes = "".join(f"<div class=alerte>⚠ {a}</div>" for a in verifs.get(nom, []))
-            anims += (f"<div class=scene><canvas id='{fid}' width=340 height=210></canvas>"
+            largeur_scene = 560 if etat == "move" else 340
+            anims += (f"<div class=scene style='max-width:{largeur_scene + 5}px'><canvas id='{fid}' width={largeur_scene} height=210></canvas>"
                       f"<div>{'★ ' if pris else ''}{nom}{f' ({total} images)' if total != 8 else ''}</div>{alertes}</div>")
             donnees_js.append({"id": fid, "feuille": vers_page(os.path.join(d, nom + ".png")), "voisin": voisin, "images": total,
-                               "fps": propre.get(etat, 10), "attaque": etat == "attack",
+                               "fps": propre.get(etat, 10), "attaque": etat == "attack", "deplacement": etat == "move",
+                               "pas": propre.get("stepTime", 0.09),
                                "pause": pause if etat == "idle" and pause[1] > 0 else None})
         anims += "</div>"
     html = PAGE.format(titre=f.get("nom", ident), notes=f.get("notes", ""), fixes=fixes or "<p>Pas encore d'image.</p>",

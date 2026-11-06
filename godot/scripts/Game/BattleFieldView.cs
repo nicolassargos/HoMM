@@ -25,8 +25,8 @@ public partial class BattleFieldView : Control
 
     /// <summary>
     /// Les animations d'une créature : des feuilles de 8 images (4 colonnes, 2 rangées), à côté de son image de combat
-    /// (« epeiste-idle.png », « epeiste-walk.png », « epeiste-attack.png »). Sans feuille, l'image fixe est montrée.
-    /// Une feuille peut avoir plus d'images (« walkFrames »: 16 dans animations.json : 4 colonnes, 4 rangées), pour un
+    /// (« epeiste-idle.png », « epeiste-move.png », « epeiste-attack.png »). Sans feuille, l'image fixe est montrée.
+    /// Une feuille peut avoir plus d'images (« moveFrames »: 16 dans animations.json : 4 colonnes, 4 rangées), pour un
     /// mouvement plus lent mais aussi fluide.
     /// </summary>
     private const int AnimationFrames = 8, AnimationColumns = 4;
@@ -36,7 +36,7 @@ public partial class BattleFieldView : Control
 
     /// <summary>
     /// Les vitesses propres à certaines créatures (un géant lent…), dans <c>art/creatures/battle/animations.json</c>
-    /// (facultatif) : <c>{ "colosse-os": { "idle": 6, "walk": 7 } }</c>, en images par seconde. L'entrée « * » vaut
+    /// (facultatif) : <c>{ "colosse-os": { "idle": 6, "move": 7 } }</c>, en images par seconde. L'entrée « * » vaut
     /// pour toutes les créatures (une créature peut la remplacer).
     /// </summary>
     private static Dictionary<string, Dictionary<string, double>>? _speeds;
@@ -67,7 +67,7 @@ public partial class BattleFieldView : Control
         return null;
     }
 
-    /// <summary>Le nombre d'images de cette feuille (« idleFrames », « walkFrames », « attackFrames » ; 8 par défaut).</summary>
+    /// <summary>Le nombre d'images de cette feuille (« idleFrames », « moveFrames », « attackFrames » ; 8 par défaut).</summary>
     private static int Frames(BattleUnit unit, string state) =>
         Setting(unit, state + "Frames") is double frames and >= 1 ? (int)frames : AnimationFrames;
 
@@ -109,7 +109,7 @@ public partial class BattleFieldView : Control
     /// <summary>Pendant une attaque animée, le coup porte à ce moment (en secondes), vers la fin du geste.</summary>
     private const double HitDelay = 0.45;
 
-    private const string Idle = "idle", Walk = "walk", AttackState = "attack";
+    private const string Idle = "idle", Move = "move", AttackState = "attack";
 
     /// <summary>
     /// La place de chaque côté de la grille (étape 7) : le sol continue, pour les héros (et plus tard les machines de
@@ -319,7 +319,7 @@ public partial class BattleFieldView : Control
                         if (start == null)
                         {
                             start = shown.Position; // d'où elle part : là où elle est dessinée
-                            shown.Play(Walk);
+                            shown.Play(Move);
                         }
                         t += delta;
                         var from = step == 0 ? start.Value : points[step - 1];

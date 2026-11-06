@@ -246,7 +246,7 @@
       "input": "art-candidats/references/derives/epeiste-48x56.png", "input_background": [255, 0, 255],
       "spritesheet": true, "frames": 8,
       "prompt": "medieval swordsman with light padded armour, leather cap, short sword and small round blue shield, side view facing right, standing on guard, breathing gently, idle loop" },
-    { "name": "creatures/battle/epeiste-walk", "style": "rd_advanced_animation__walking", "size": [48, 56], "variants": 1, "seed": 2002,
+    { "name": "creatures/battle/epeiste-move", "style": "rd_advanced_animation__walking", "size": [48, 56], "variants": 1, "seed": 2002,
       "input": "art-candidats/references/derives/epeiste-48x56.png", "input_background": [255, 0, 255],
       "spritesheet": true, "frames": 8,
       "prompt": "medieval swordsman with light padded armour, leather cap, short sword and small round blue shield, side view facing right, walking forward to the right" },

@@ -90,8 +90,8 @@ public static class ComputerPlayer
     /// </summary>
     private static readonly string[] BuildOrder =
     {
-        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "caserne", "monastere",
-        "terrain-entrainement", "grand-hotel-ville", "portail-gloire",
+        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "guilde-mages-1", "caserne", "monastere",
+        "guilde-mages-2", "terrain-entrainement", "grand-hotel-ville", "guilde-mages-3", "portail-gloire", "guilde-mages-4",
     };
 
     /// <summary>Le nombre de héros voulus : un de plus que de villes, et pas plus que ne le permet la difficulté.</summary>

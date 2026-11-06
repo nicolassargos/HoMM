@@ -558,8 +558,8 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
 - Magie, autres factions, nouveaux objets sur la carte.
 - **Magie** (commencée en premier, choix de l'utilisateur, 2026-11-06), proche de Heroes 2 et 3 :
   - **Chaque héros a un livre de sorts** (les classes de héros rendront plus tard certains meilleurs en magie).
-  - **Points de sort** : 10 par point de savoir ; le héros commence plein, en regagne 1 par jour, et tous en passant
-    un tour dans une ville qui a une guilde des mages.
+  - **Points de sort** : 10 par point de savoir ; le héros commence plein, en regagne 1 par jour, et tous en entrant
+    dans une ville qui a une guilde des mages (ou en y commençant la journée).
   - **Puissance** : la force des sorts (dégâts : une base plus tant par point de puissance) et leur durée
     (puissance + 1 rounds).
   - **Guilde des mages** de 4 niveaux dans la ville (à la place gardée en haut à gauche de la vue) ; chaque niveau
@@ -599,8 +599,16 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
      dure ; une boule de feu qui blesse ses propres troupes compte en moins). Sauvegardés (points et sorts ; les
      anciennes parties ont un héros plein et sans sort). Personne n'apprend encore de sort (la guilde, point 2).
      Tests : `MagieTests`.
-  2. La guilde des mages : bâtiments (4 niveaux), sorts tirés au sort par ville, apprentissage en entrant, points
-     rechargés ; les adversaires la construisent ; l'écran de ville (la guilde et ses sorts).
+  2. ✅ La guilde des mages : 4 bâtiments (`guilde-mages-1` à `-4`, `mageGuild` dans `buildings.json`, chacun remplace
+     le précédent à la même place, en haut à gauche de la vue) ; niveau 1 : 2000 or, 5 bois, 5 minerai ; niveaux 2 à 4 :
+     1000 à 1500 or, du bois, du minerai et 2, 4, 6 gemmes ; le niveau 3 demande l'hôtel de ville, le 4 le grand hôtel
+     de ville. Les sorts d'un niveau sont tirés au sort quand il est construit (le hasard de la partie, sauvegardés :
+     `Town.GuildSpells`). Un héros apprend les sorts et retrouve tous ses points en entrant dans la ville, en y étant
+     recruté, ou quand un niveau est construit pendant qu'il y est (`SpellsLearned`, dans le journal) ; une journée
+     commencée dans la ville recharge aussi ses points. Les adversaires construisent la guilde (après la tour des
+     griffons, puis un niveau après le monastère, le grand hôtel de ville et le portail de gloire). Écran de ville : un
+     raccourci « Guilde » et un clic sur le bâtiment ouvrent la fenêtre de la guilde (les sorts par niveau, leurs points
+     et leur effet calculé d'après la puissance du héros présent, « connu »). Tests : `GuildeTests`.
   3. L'écran de combat : le livre de sorts, le choix de la cible, les effets visibles (dégâts, sorts actifs sur une
      troupe), le journal ; la section Magie de l'écran du héros (points, sorts connus).
   4. L'équilibrage (simulation et adversaires, avec la magie) et des icônes de sorts (Retro Diffusion ou PixelLab).

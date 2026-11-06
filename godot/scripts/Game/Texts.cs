@@ -292,6 +292,8 @@ public static class Texts
             : $"Produit des {creature.Plural} (+{creature.Growth} par semaine)",
         { DailyGold: > 0 } => $"+{building.DailyGold} or par jour",
         { Tavern: true } => "Permet de recruter des héros",
+        { MageGuild: > 0 } => $"Enseigne {Town.GuildSpellsPerLevel[building.MageGuild - 1]} sorts de niveau {building.MageGuild} aux héros"
+                              + " et recharge leurs points de sort",
         _ => "",
     };
 
@@ -556,6 +558,8 @@ public static class Texts
         TownEntered entered => $"{entered.Hero.Name} entre dans {entered.Town.Name}.",
         BuildingBuilt built when built.Town.Owner != viewer => null,
         BuildingBuilt built => $"{built.Building.Name} : construit à {built.Town.Name}.",
+        SpellsLearned learned when learned.Hero.Owner != viewer => null,
+        SpellsLearned learned => $"{learned.Hero.Name} apprend {List(learned.Spells.Select(s => s.Name).ToList())} à la guilde des mages de {learned.Town.Name}.",
         HeroHired hired when hired.Hero.Owner != viewer => null,
         HeroHired hired => $"{hired.Hero.Name} rejoint vos rangs à {hired.Town.Name} !",
         CreaturesRecruited recruited when recruited.Town.Owner != viewer => null,
@@ -862,7 +866,8 @@ public static class Texts
     public static string BuildingTooltip(Town town, BuildingType building)
     {
         string effect = BuildingEffect(town, building);
-        string click = building.Dwelling != null ? "Clic : recruter" : building.Tavern ? "Clic : la taverne" : building.DailyGold > 0 ? "Clic : construire" : "";
+        string click = building.Dwelling != null ? "Clic : recruter" : building.Tavern ? "Clic : la taverne"
+            : building.MageGuild > 0 ? "Clic : la guilde des mages" : building.DailyGold > 0 ? "Clic : construire" : "";
         return string.Join("\n", new[] { building.Name, effect, click }.Where(s => s.Length > 0));
     }
 
@@ -888,6 +893,46 @@ public static class Texts
         $"{available} disponible{(available > 1 ? "s" : "")} (+{type.Growth} par semaine)";
 
     public static string PriceLine(CreatureType type) => $"Prix : {Cost(type.Cost)}";
+
+    // ----------------------------------------------------------- magie (étape 9)
+
+    /// <summary>« a, b et c ».</summary>
+    public static string List(IReadOnlyList<string> items) =>
+        items.Count <= 1 ? string.Join("", items) : string.Join(", ", items.Take(items.Count - 1)) + " et " + items[^1];
+
+    public static string GuildButton => "Guilde";
+    public static string GuildTitle(Town town) => $"Guilde des mages de {town.Name}";
+    public static string GuildText =>
+        "Un héros qui entre dans la ville apprend tous les sorts de la guilde et retrouve tous ses points de sort.";
+    public static string GuildLevel(int level) => $"Niveau {level}";
+    public static string GuildLevelMissing => "pas encore construit";
+    public static string SpellKnown => "connu";
+    public static string NoGuild => "Cette ville n'a pas encore de guilde des mages.";
+    public static string SpellCost(SpellType spell) => $"{spell.Cost} points";
+
+    /// <summary>
+    /// Ce que fait un sort, en une phrase ; avec un héros, la force calculée d'après sa puissance (« 30 dégâts »), sinon
+    /// la formule (« 10 + 10 × puissance dégâts »).
+    /// </summary>
+    public static string SpellEffectText(SpellType spell, Hero? hero = null)
+    {
+        string strength = hero != null ? $"{spell.Base + spell.PerPower * hero.Power}"
+            : spell.PerPower > 0 ? $"{spell.Base} + {spell.PerPower} × puissance" : $"{spell.Base}";
+        return spell.Effect switch
+        {
+            SpellEffect.Damage when spell.Target == SpellTarget.Area => $"{strength} dégâts sur une case et ses 6 voisines (amis compris)",
+            SpellEffect.Damage => $"{strength} dégâts à une troupe ennemie",
+            SpellEffect.Bless => "Une troupe amie fait ses dégâts maximum",
+            SpellEffect.Curse => "Une troupe ennemie fait ses dégâts minimum",
+            SpellEffect.StoneSkin => $"+{spell.Amount} défense à une troupe amie",
+            SpellEffect.Haste => $"+{spell.Amount} vitesse à une troupe amie",
+            SpellEffect.Slow => "Vitesse divisée par deux pour une troupe ennemie",
+            SpellEffect.Weakness => $"−{spell.Amount} attaque à une troupe ennemie",
+            SpellEffect.Cure => $"Soigne {strength} PV d'une troupe amie et retire les sorts néfastes",
+            SpellEffect.Resurrection => $"Ramène {strength} PV de créatures tuées dans ce combat (troupe amie)",
+            _ => "",
+        };
+    }
 
     public static string TavernTitle => "Taverne";
     public static string TavernText => $"Deux héros se proposent. Chacun coûte {GameState.HeroCost} or et arrive avec quelques paysans.";

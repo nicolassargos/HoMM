@@ -320,6 +320,11 @@ détails, surtout agrandies au combat), dans cet ordre :
    volutes à la place des pieds ; 52 px de haut ; d'après une image de « mariée fantôme » de l'utilisateur, puis des
    variations d'un premier candidat (F2) données en image de sujet. Attente où il se balance doucement, vol, attaque
    où il projette une gerbe d'eau de ses mains. Une animation peut dessiner un adversaire : la jeter.
+   Le **Moine** et le **Loup** (images d'origine gardées, modèles de style) ont maintenant leurs animations, faites à
+   partir de leur image doublée (pixels ×2) puis réduites. Le Moine prie, marche, et tend son bâton vers l'ennemi
+   **sans rien lancer** : la boule de feu sera un effet du jeu (à faire, comme les flèches de l'Archer). PixelLab
+   dessine quand même éclairs et flammes : l'image de l'éclair est remplacée par la pose tendue, gardée au moment du
+   coup. Le Loup renifle, trotte, et bondit gueule ouverte. PixelLab n'accepte que 8 animations à la fois.
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de

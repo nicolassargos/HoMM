@@ -315,6 +315,11 @@ détails, surtout agrandies au combat), dans cet ordre :
    abonnement payant de PixelLab). Attente calme, marche lourde, attaque où il fait tournoyer le fléau au-dessus de
    sa tête avant de frapper devant lui. PixelLab dessine des éclats d'impact même quand on demande « no visual
    effects » : les effacer (et redessiner la boule du fléau qu'ils cachaient).
+   Le **Fantôme** (futur mort-vivant, pas encore dans les règles : `fantome`) : le spectre d'une noyée, presque blanc
+   aux reflets cyan, longs cheveux mouillés sur un visage sombre, mains griffues, robe en lambeaux qui finit en
+   volutes à la place des pieds ; 52 px de haut ; d'après une image de « mariée fantôme » de l'utilisateur, puis des
+   variations d'un premier candidat (F2) données en image de sujet. Attente où il se balance doucement, vol, attaque
+   où il projette une gerbe d'eau de ses mains. Une animation peut dessiner un adversaire : la jeter.
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de

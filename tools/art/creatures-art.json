@@ -254,6 +254,33 @@
         "walk": "the bloated zombie walks forward to the right very slowly and heavily, small shuffling steps, its huge belly swaying from side to side with each step",
         "attack": "the bloated zombie leans far back on its heels, its enormous round belly swelling even bigger, then it thrusts the huge belly forward with all its weight toward the enemy in front of it, then rocks back to its starting pose"
       }
+    },
+    "troll": {
+      "nom": "Troll",
+      "gabarit": "grand",
+      "description": "a huge hulking green troll with massive muscular arms and big fists, small head, hunched shoulders",
+      "sujet": "a huge hulking green troll with massive arms and big fists",
+      "hauteur": 64,
+      "comparer": [
+        "ogre",
+        "archer"
+      ],
+      "mouvements": {
+        "idle": "the troll breathes slowly and heavily, its huge shoulders rise and fall, it flexes its big fingers, the feet stay in place",
+        "walk": "the troll walks forward to the right with slow heavy stomping steps, its long arms swinging, its shoulders rolling",
+        "attack": "the troll raises both huge fists high above its head, then brings them down hard in front of it with all its weight, then straightens up to its starting pose"
+      },
+      "grande": "art-candidats/references/derives/troll-grand.png",
+      "notes": "Image d'origine gardée (modèle de style). Il se régénère (capacité) : l'effet viendra du jeu.",
+      "consignes": {
+        "attack": "the troll pulls one huge fist far back behind its shoulder, twisting its whole body, then throws a gigantic straight punch forward to the right with all its weight, its arm fully stretched, then slowly pulls back to its starting pose",
+        "idle": "the troll slowly lifts one huge hand and scratches the top of its head with its thick fingers, looking puzzled, then lowers the arm back down, the feet stay in place"
+      },
+      "choix": {
+        "walk": "walk-1",
+        "idle": "idle-3",
+        "attack": "attack-4"
+      }
     }
   }
 }

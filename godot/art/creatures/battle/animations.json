@@ -2,5 +2,6 @@
   "*": {"idlePauseMin": 5, "idlePauseMax": 10},
   "colosse-os": {"idle": 7, "walk": 7, "attack": 7},
   "archer": {"idle": 7, "idlePauseMin": 15, "idlePauseMax": 30},
-  "zombie": {"walk": 8, "walkFrames": 16, "stepTime": 0.45}
+  "zombie": {"walk": 8, "walkFrames": 16, "stepTime": 0.45},
+  "troll": {"walk": 7, "idle": 6}
 }

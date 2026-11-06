@@ -24,6 +24,8 @@ quadrupède, grand) qui donne la fin des textes de demande et les mouvements par
     python -I tools/art/creature.py choisir <id> <idle|walk|attack> <nom> [images/s]
         installe la feuille (art/creatures/battle/<id>-idle.png…) et sa vitesse dans animations.json (avec son nombre
         d'images, s'il n'est pas de 8).
+    python -I tools/art/creature.py retailler <id> <hauteur>
+        refait l'image fixe et les feuilles choisies à une autre hauteur (en pixels), depuis les grandes images. Gratuit.
     python -I tools/art/creature.py page <id>
         refait la page de choix (art-candidats/en-cours/<id>.html) : images fixes sur l'herbe à côté des créatures de
         comparaison, animations sur des cases du champ de bataille, face à leur copie retournée (le défenseur), avec
@@ -330,6 +332,33 @@ def choisir_anim(donnees, ident, etat, nom, fps=None):
     print(f"{BATAILLE}/{ident}-{etat}.png installée" + (f", {fps} images/s" if fps else ""))
 
 
+def cmd_retailler(ident, hauteur):
+    """Refait l'image fixe et les feuilles choisies à une autre hauteur, depuis les grandes images (sans dépense)."""
+    donnees = charger()
+    f, _ = fiche(donnees, ident)
+    f["hauteur"] = hauteur
+    q = preparer_fixe(lire(f["grande"])[2], f)
+    centre = n.axe(q)
+    largeur = 2 * math.ceil(max(centre, len(q[0]) - centre)) + 2
+    ecrire(f"{BATAILLE}/{ident}.png", n.poser(q, largeur, len(q) + 2, centre))
+    print(f"{BATAILLE}/{ident}.png : {largeur} × {len(q) + 2}")
+    facteur = hauteur / len(n.recadrer(lire(f["grande"])[2]))
+    d = dossier(ident, "anim")
+    for etat, nom in f.get("choix", {}).items():
+        if etat not in ETATS:
+            continue
+        base = nom.split("-r")[0]
+        if not os.path.isdir(os.path.join(d, base)):
+            print(f"{etat} : {base} introuvable, feuille gardée telle quelle")
+            continue
+        images, _, _ = traiter_feuille(os.path.join(d, base), facteur, f, etat)
+        ecrire(os.path.join(d, base + ".png"), n.assembler(images))
+        shutil.copy(os.path.join(d, base + ".png"), f"{BATAILLE}/{ident}-{etat}.png")
+        print(f"{BATAILLE}/{ident}-{etat}.png refaite" + (f" (sans les retouches de {nom} : à refaire)" if base != nom else ""))
+    enregistrer(donnees)
+    cmd_page(ident)
+
+
 def cmd_choisir(ident, quoi, nom, fps=None):
     donnees = charger()
     if quoi == "fixe":
@@ -475,6 +504,8 @@ def main():
         cmd_retoucher(ident, a[2], options)
     elif commande == "choisir" and len(a) > 3:
         cmd_choisir(ident, a[2], a[3], a[4] if len(a) > 4 else None)
+    elif commande == "retailler" and len(a) > 2:
+        cmd_retailler(ident, int(a[2]))
     elif commande == "page":
         cmd_page(ident)
     else:

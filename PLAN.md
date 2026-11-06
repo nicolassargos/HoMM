@@ -350,6 +350,13 @@ détails, surtout agrandies au combat), dans cet ordre :
    (éclair d'impact, sang, traînée, projectile) ; c'est le jeu qui les dessinera, au moment du coup, pareils pour
    toutes les créatures et discrets : éclat du coup, flèche de l'Archer, boule de feu du Moine, gerbe d'eau du
    Fantôme… (étape 10). Les effets de PixelLab changent à chaque fois, se mêlent aux images et s'effacent mal.
+   Proposé (2026-11-06) : l'animation ne montre que le geste (bander, viser, lâcher) ; la fiche de chaque tireur dit
+   à quelle image et d'où part le tir (`launchFrame`, `launchPoint`, retourné pour le défenseur) ; le jeu fait voler
+   le **projectile** jusqu'à sa cible, quelle que soit la distance (flèche en arc qui suit sa trajectoire, boule de
+   feu droite, hache qui tourne), et il arrive au moment du coup ; un petit **impact** se joue sur la cible (choc,
+   entaille, morsure, magie, eau), aussi pour les coups au corps à corps. Projectiles et impacts : de petites feuilles
+   faites avec PixelLab, dans le même style. Peut-être un réglage « effets complets / discrets ». À faire après les
+   images des créatures, en commençant par la flèche de l'Archer et la boule de feu du Moine.
    Le **Zombie** (futur mort-vivant de niveau 2, `zombie`) : un mort boursouflé, peau gris-violet, ventre énorme
    couvert de pustules jaunes, pointes de cristal violet sur le dos ; 44 px de haut (plus petit que l'Archer, l'Ogre
    est bien plus fort) ; d'après une image de l'utilisateur. Il tend la main en ouvrant la bouche, boite en traînant
@@ -359,6 +366,9 @@ détails, surtout agrandies au combat), dans cet ordre :
    lentement sur le champ (`stepTime` : 0,45 s par case au lieu de 0,09). Il frappe en se penchant en arrière, puis
    en poussant son énorme ventre. Les effets apparaissent moins quand le texte ne décrit que le mouvement du corps
    (sans « frappe », « coup » ni « pas d'éclair ») : `--sans=` retire la fin de texte du gabarit.
+   Le **Troll** (image d'origine gardée) a ses animations : il se gratte la tête (6 images par seconde), marche
+   lourdement (7), et donne un « méga-coup de poing » (le bras étiré en traînée sur une image, gardée : choix de
+   l'utilisateur). Textes de mouvement seuls (`--sans=no other character`) : aucun effet sur les six premiers essais.
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de

@@ -124,6 +124,7 @@ public partial class BattleFieldView : Control
     /// <summary>La couleur d'un sort : feu pour les dégâts, vert pour les soins, violet pour un sort néfaste, or sinon.</summary>
     private static Color SpellColor(SpellType spell) => spell switch
     {
+        { Effect: SpellEffect.Damage, Target: SpellTarget.Chain } => MapRenderer.Rgb(150, 200, 255),
         { Effect: SpellEffect.Damage } => MapRenderer.Rgb(255, 140, 60),
         { Effect: SpellEffect.Cure or SpellEffect.Resurrection } => MapRenderer.Rgb(130, 230, 130),
         { Harmful: true } => MapRenderer.Rgb(190, 110, 230),
@@ -314,6 +315,9 @@ public partial class BattleFieldView : Control
                     {
                         if (hurt == 0)
                         {
+                            // une chaîne d'éclairs : chaque troupe touchée s'allume à son tour
+                            if (damaged.Spell.Target == SpellTarget.Chain)
+                                _bursts.Add((damaged.Target.Hexes.ToList(), SpellColor(damaged.Spell), 0));
                             var target = _shown[damaged.Target];
                             target.Count = Math.Max(0, target.Count - damaged.Killed);
                             target.Flash = 1;
@@ -327,6 +331,30 @@ public partial class BattleFieldView : Control
                         if (_shown[damaged.Target].Count == 0)
                             _shown[damaged.Target].Gone = true;
                         return true;
+                    });
+                    break;
+                case UnitTeleported teleported:
+                    double jump = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        // la troupe disparaît d'une case et apparaît sur l'autre, dans un éclat
+                        if (jump == 0)
+                        {
+                            _shown[teleported.Unit].Position = UnitCenter(teleported.Unit, teleported.To);
+                            _bursts.Add((teleported.Unit.HexesAt(teleported.To).ToList(), MapRenderer.Rgb(250, 220, 120), 0));
+                        }
+                        jump += delta;
+                        return jump >= 0.3;
+                    });
+                    break;
+                case SpellsDispelled dispelled:
+                    double gone = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (gone == 0)
+                            _floating.Add((dispelled.Spell.Name, _shown[dispelled.Unit].Position + Ui.V(0, -50), 0, MapRenderer.Rgb(200, 220, 255)));
+                        gone += delta;
+                        return gone >= 0.3;
                     });
                     break;
                 case UnitHealed healed:

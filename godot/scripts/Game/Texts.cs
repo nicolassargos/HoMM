@@ -142,6 +142,9 @@ public static class Texts
         UnitHealed { Revived: > 0 } h => $"{h.Spell.Name} : {h.Revived} {Creature(h.Unit.Type, h.Revived)} {(h.Revived == 1 ? "revient" : "reviennent")} au combat.",
         UnitHealed h => $"{h.Spell.Name} : {Stack(h.Unit.Stack)} {(h.Unit.Count == 1 ? "est soigné" : "sont soignés")} ({h.HitPoints} PV).",
         SpellApplied a => $"{a.Spell.Name} sur {Stack(a.Unit.Stack)}.",
+        SpellsDispelled d => $"{d.Spell.Name} : {Stack(d.Unit.Stack)} {(d.Unit.Count == 1 ? "n'a" : "n'ont")} plus aucun sort.",
+        UnitSkipped s => $"{Capitalize(Stack(s.Unit.Stack))} {(s.Unit.Count == 1 ? "est aveuglé et ne joue pas" : "sont aveuglés et ne jouent pas")}.",
+        UnitTeleported t => $"{Capitalize(Stack(t.Unit.Stack))} {(t.Unit.Count == 1 ? "est téléporté" : "sont téléportés")}.",
         AttackerFled fled => $"Le héros s'enfuit ! Pertes : {Losses(fled.Losses)}.",
         BattleEnded { Outcome: BattleOutcome.AttackerWon } => "Victoire !",
         BattleEnded { Outcome: BattleOutcome.DefenderWon } => "Défaite...",
@@ -921,9 +924,16 @@ public static class Texts
         return spell.Effect switch
         {
             SpellEffect.Damage when spell.Target == SpellTarget.Area => $"{strength} dégâts sur une case et ses 6 voisines (amis compris)",
+            SpellEffect.Damage when spell.Target == SpellTarget.Chain =>
+                $"{strength} dégâts à une troupe ennemie, puis moitié moins à chaque saut vers la troupe la plus proche ({SpellType.ChainTargets} au plus, amis compris)",
             SpellEffect.Damage => $"{strength} dégâts à une troupe ennemie",
-            SpellEffect.Bless => "Une troupe amie fait ses dégâts maximum",
-            SpellEffect.Curse => "Une troupe ennemie fait ses dégâts minimum",
+            SpellEffect.Bless => $"+{spell.Amount} % de dégâts à une troupe amie",
+            SpellEffect.Curse => $"−{spell.Amount} % de dégâts à une troupe ennemie",
+            SpellEffect.Bloodlust => $"+{spell.Amount} attaque à une troupe amie",
+            SpellEffect.ArrowShield => $"Les tirs font {spell.Amount} % de dégâts en moins à une troupe amie",
+            SpellEffect.Blind => "Une troupe ennemie ne joue plus jusqu'à ce qu'on la frappe (elle ne riposte pas à ce coup)",
+            SpellEffect.Teleport => "Une troupe amie va sur n'importe quelle case libre",
+            SpellEffect.Dispel => "Retire tous les sorts d'une troupe, amie ou ennemie",
             SpellEffect.StoneSkin => $"+{spell.Amount} défense à une troupe amie",
             SpellEffect.Haste => $"+{spell.Amount} vitesse à une troupe amie",
             SpellEffect.Slow => "Vitesse divisée par deux pour une troupe ennemie",
@@ -958,10 +968,14 @@ public static class Texts
     public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";
     public static string SpellTargetPrompt(SpellType spell) => spell.Target switch
     {
+        SpellTarget.Any => $"{spell.Name} : choisissez une troupe (clic droit ou Échap : annuler).",
         SpellTarget.Area => $"{spell.Name} : choisissez une case (clic droit ou Échap : annuler).",
         SpellTarget.Ally => $"{spell.Name} : choisissez une de vos troupes (clic droit ou Échap : annuler).",
         _ => $"{spell.Name} : choisissez une troupe ennemie (clic droit ou Échap : annuler).",
     };
+
+    public static string TeleportDestinationPrompt(SpellType spell) =>
+        $"{spell.Name} : choisissez où envoyer la troupe (clic droit ou Échap : annuler).";
 
     /// <summary>Le héros au combat (clic sur lui) : son bonus, ses points de sort et ses sorts.</summary>
     public static string BattleHeroText(Hero hero, int spellPoints) =>

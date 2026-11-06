@@ -8,9 +8,9 @@ public enum SpellEffect
 {
     /// <summary>Des dégâts : une base plus tant par point de puissance.</summary>
     Damage,
-    /// <summary>La troupe fait ses dégâts maximum.</summary>
+    /// <summary>Dégâts en plus (en pourcentage).</summary>
     Bless,
-    /// <summary>La troupe fait ses dégâts minimum.</summary>
+    /// <summary>Dégâts en moins (en pourcentage).</summary>
     Curse,
     /// <summary>Défense en plus.</summary>
     StoneSkin,
@@ -24,10 +24,23 @@ public enum SpellEffect
     Cure,
     /// <summary>Ramène des créatures tuées dans ce combat.</summary>
     Resurrection,
+    /// <summary>Attaque en plus.</summary>
+    Bloodlust,
+    /// <summary>Les tirs contre la troupe font moins de dégâts (en pourcentage).</summary>
+    ArrowShield,
+    /// <summary>La troupe ne joue plus jusqu'à ce qu'on la frappe (et ne riposte pas à ce coup).</summary>
+    Blind,
+    /// <summary>La troupe va sur n'importe quelle case libre.</summary>
+    Teleport,
+    /// <summary>Retire tous les sorts d'une troupe.</summary>
+    Dispel,
 }
 
-/// <summary>Sur qui se lance un sort : une troupe ennemie, une troupe amie, ou une case et ses voisines.</summary>
-public enum SpellTarget { Enemy, Ally, Area }
+/// <summary>
+/// Sur qui se lance un sort : une troupe ennemie, une troupe amie, n'importe quelle troupe, une case et ses voisines,
+/// ou une troupe ennemie puis, de proche en proche, les troupes les plus proches (une chaîne d'éclairs).
+/// </summary>
+public enum SpellTarget { Enemy, Ally, Area, Any, Chain }
 
 /// <summary>Un sort de combat. Les valeurs viennent de data/spells.json.</summary>
 public sealed record SpellType
@@ -52,10 +65,14 @@ public sealed record SpellType
     public int Amount { get; init; }
 
     /// <summary>Un sort qui dure quelques rounds (bénédiction, lenteur…), plutôt qu'un effet immédiat.</summary>
-    public bool Lasts => Effect is not (SpellEffect.Damage or SpellEffect.Cure or SpellEffect.Resurrection);
+    public bool Lasts => Effect is not (SpellEffect.Damage or SpellEffect.Cure or SpellEffect.Resurrection
+        or SpellEffect.Teleport or SpellEffect.Dispel);
 
     /// <summary>Un sort néfaste qui dure (retiré par les soins).</summary>
-    public bool Harmful => Effect is SpellEffect.Curse or SpellEffect.Slow or SpellEffect.Weakness;
+    public bool Harmful => Effect is SpellEffect.Curse or SpellEffect.Slow or SpellEffect.Weakness or SpellEffect.Blind;
+
+    /// <summary>Combien de troupes touche au plus une chaîne d'éclairs (la force est divisée par deux à chaque saut).</summary>
+    public const int ChainTargets = 4;
 }
 
 /// <summary>Tous les sorts du jeu.</summary>
@@ -99,3 +116,12 @@ public sealed record UnitHealed(BattleUnit Unit, SpellType Spell, int HitPoints,
 
 /// <summary>Un sort qui dure est posé sur une troupe (bénédiction, lenteur…).</summary>
 public sealed record SpellApplied(BattleUnit Unit, SpellType Spell) : BattleAction;
+
+/// <summary>Une troupe aveuglée passe son tour.</summary>
+public sealed record UnitSkipped(BattleUnit Unit) : BattleAction;
+
+/// <summary>Une troupe est téléportée d'une case à une autre (sa tête, pour une grande créature).</summary>
+public sealed record UnitTeleported(BattleUnit Unit, Hex From, Hex To) : BattleAction;
+
+/// <summary>Les sorts d'une troupe sont dissipés.</summary>
+public sealed record SpellsDispelled(BattleUnit Unit, SpellType Spell) : BattleAction;

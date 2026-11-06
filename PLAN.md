@@ -619,7 +619,37 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
      de sort, chaque sort du livre avec son niveau, ses points et son effet) ; la puissance et le savoir disent ce qu'ils
      font. Options `--spells` (le héros connaît tous les sorts) et `--battle-book` (avec `--battle-test` : le livre
      s'ouvre ; `--battle-book=id` : ce sort est choisi).
-  4. L'équilibrage (simulation et adversaires, avec la magie) et des icônes de sorts (Retro Diffusion ou PixelLab).
+  4. L'équilibrage (simulation et adversaires, avec la magie).
+  Ensuite (demandé par l'utilisateur, 2026-11-06 : « il y aura bien plus à faire avec la magie ») :
+  - ✅ **Choisir les sorts** (comparaison avec Heroes 1, 2, 3, 5 et 7, décidé avec l'utilisateur le 2026-11-06) :
+    Bénédiction et Malédiction deviennent **+25 % / −25 % de dégâts** (le maximum ou le minimum ne changeait rien aux
+    créatures à dégâts fixes : Paysan, Archer, Épéiste, Cavalier, Ange) ; **6 sorts de plus** : Soif de sang (niveau 1,
+    +attaque à une troupe amie), Bouclier contre les tirs (niveau 2, moitié des dégâts des tirs), Aveuglement (niveau 3,
+    la troupe ne joue plus jusqu'à ce qu'on la frappe), Téléportation (niveau 3, une troupe amie va sur n'importe
+    quelle case libre), Dissipation (niveau 3, retire tous les sorts d'une troupe), Chaîne d'éclairs (niveau 4, saute
+    sur les troupes voisines) : 18 sorts. Un niveau 5 plus tard, avec les factions (Armageddon, élémentaires, morts
+    relevés). Écartés pour l'instant : berserk, hypnotisme, paralysie (forts, difficiles à jouer pour l'IA), les
+    versions « de masse » (plutôt une récompense des classes et des compétences). Les **écoles de magie attendront les
+    classes de héros**.
+    Ce qui distingue notre magie de la série : le héros lance sans prendre le tour d'une troupe (comme Heroes 2 et 3,
+    pas comme 5 et 7) ; pas d'écoles ni de compétences de magie (comme Heroes 1 et 2) ; 4 niveaux au lieu de 5 ; un livre
+    pour chaque héros, gratuit ; tous les sorts de la guilde appris sans condition (pas de « Sagesse ») ; une durée de
+    puissance + 1 rounds ; pas encore de résistance à la magie ni de créatures insensibles ; le combat rapide lance
+    aussi des sorts. Prévu (choix de l'utilisateur) : les héros de **force** (avec les classes) devront **acheter leur
+    livre de sorts** ; il y aura des **créatures insensibles à la magie**.
+    ✅ Construit : `data/spells.json` (18 sorts ; aux niveaux 1 et 2, la guilde en tire 3 sur 5, au niveau 3, 2 sur 5, au
+    niveau 4, 2 sur 3) ; nouvelles cibles `Any` (dissipation) et `Chain` (`TacticalBattle.SpellHits` : chaque troupe
+    touchée et sa force) ; une troupe aveuglée passe ses tours (`UnitSkipped`), le premier coup ou sort de dégâts la
+    réveille, sans riposte ; la téléportation prend une destination (`Cast(sort, cible, destination)`,
+    `TeleportDestinations`, deux clics à l'écran) ; l'IA téléporte une troupe de corps à corps qui n'atteint personne à
+    côté de l'ennemi le plus dangereux, dissipe les bons sorts de l'ennemi, aveugle les grosses troupes. Le livre de
+    sorts passe à deux colonnes (en attendant le vrai livre). Tests : `MagieTests`.
+  - **Le livre de sorts en image** : un vrai livre ouvert, une page par niveau, avec une **animation de page qui
+    tourne** pour passer d'un niveau à l'autre.
+  - **Une image par sort** (icône dans le livre et la guilde).
+  - **Une animation par sort** sur le champ de bataille (projectile, éclair, explosion…), et un **effet visible sur
+    les troupes** touchées (lueur, aura tant qu'un sort dure, créature ralentie…).
+  - Le reste au fil des idées (sons, sorts de la carte…).
 - **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
   (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.
 - **Personnalisation des héros** (demandé par l'utilisateur) : à préciser ensemble. Pistes : choisir son héros

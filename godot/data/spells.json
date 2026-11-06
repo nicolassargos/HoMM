@@ -1,16 +1,22 @@
 {
   "spells": [
-    { "id": "fleche-magique",    "name": "Flèche magique",    "level": 1, "cost": 5,  "effect": "Damage",       "target": "Enemy", "base": 10, "perPower": 10 },
-    { "id": "benediction",       "name": "Bénédiction",       "level": 1, "cost": 5,  "effect": "Bless",        "target": "Ally" },
-    { "id": "malediction",       "name": "Malédiction",       "level": 1, "cost": 6,  "effect": "Curse",        "target": "Enemy" },
-    { "id": "peau-de-pierre",    "name": "Peau de pierre",    "level": 1, "cost": 5,  "effect": "StoneSkin",    "target": "Ally",  "amount": 5 },
-    { "id": "eclair",            "name": "Éclair",            "level": 2, "cost": 10, "effect": "Damage",       "target": "Enemy", "base": 10, "perPower": 25 },
-    { "id": "hate",              "name": "Hâte",              "level": 2, "cost": 6,  "effect": "Haste",        "target": "Ally",  "amount": 3 },
-    { "id": "lenteur",           "name": "Lenteur",           "level": 2, "cost": 6,  "effect": "Slow",         "target": "Enemy" },
-    { "id": "soins",             "name": "Soins",             "level": 2, "cost": 6,  "effect": "Cure",         "target": "Ally",  "base": 10, "perPower": 5 },
-    { "id": "boule-de-feu",      "name": "Boule de feu",      "level": 3, "cost": 15, "effect": "Damage",       "target": "Area",  "base": 10, "perPower": 10 },
-    { "id": "faiblesse",         "name": "Faiblesse",         "level": 3, "cost": 8,  "effect": "Weakness",     "target": "Enemy", "amount": 6 },
-    { "id": "resurrection",      "name": "Résurrection",      "level": 4, "cost": 20, "effect": "Resurrection", "target": "Ally",  "base": 40, "perPower": 20 },
-    { "id": "pluie-de-meteores", "name": "Pluie de météores", "level": 4, "cost": 16, "effect": "Damage",       "target": "Area",  "base": 25, "perPower": 25 }
+    { "id": "fleche-magique",     "name": "Flèche magique",          "level": 1, "cost": 5,  "effect": "Damage",       "target": "Enemy", "base": 10, "perPower": 10 },
+    { "id": "benediction",        "name": "Bénédiction",             "level": 1, "cost": 5,  "effect": "Bless",        "target": "Ally",  "amount": 25 },
+    { "id": "malediction",        "name": "Malédiction",             "level": 1, "cost": 6,  "effect": "Curse",        "target": "Enemy", "amount": 25 },
+    { "id": "peau-de-pierre",     "name": "Peau de pierre",          "level": 1, "cost": 5,  "effect": "StoneSkin",    "target": "Ally",  "amount": 5 },
+    { "id": "soif-de-sang",       "name": "Soif de sang",            "level": 1, "cost": 5,  "effect": "Bloodlust",    "target": "Ally",  "amount": 6 },
+    { "id": "eclair",             "name": "Éclair",                  "level": 2, "cost": 10, "effect": "Damage",       "target": "Enemy", "base": 10, "perPower": 25 },
+    { "id": "hate",               "name": "Hâte",                    "level": 2, "cost": 6,  "effect": "Haste",        "target": "Ally",  "amount": 3 },
+    { "id": "lenteur",            "name": "Lenteur",                 "level": 2, "cost": 6,  "effect": "Slow",         "target": "Enemy" },
+    { "id": "soins",              "name": "Soins",                   "level": 2, "cost": 6,  "effect": "Cure",         "target": "Ally",  "base": 10, "perPower": 5 },
+    { "id": "bouclier-tirs",      "name": "Bouclier contre les tirs", "level": 2, "cost": 7, "effect": "ArrowShield",  "target": "Ally",  "amount": 50 },
+    { "id": "boule-de-feu",       "name": "Boule de feu",            "level": 3, "cost": 15, "effect": "Damage",       "target": "Area",  "base": 10, "perPower": 10 },
+    { "id": "faiblesse",          "name": "Faiblesse",               "level": 3, "cost": 8,  "effect": "Weakness",     "target": "Enemy", "amount": 6 },
+    { "id": "aveuglement",        "name": "Aveuglement",             "level": 3, "cost": 10, "effect": "Blind",        "target": "Enemy" },
+    { "id": "teleportation",      "name": "Téléportation",           "level": 3, "cost": 10, "effect": "Teleport",     "target": "Ally" },
+    { "id": "dissipation",        "name": "Dissipation",             "level": 3, "cost": 8,  "effect": "Dispel",       "target": "Any" },
+    { "id": "resurrection",       "name": "Résurrection",            "level": 4, "cost": 20, "effect": "Resurrection", "target": "Ally",  "base": 40, "perPower": 20 },
+    { "id": "pluie-de-meteores",  "name": "Pluie de météores",       "level": 4, "cost": 16, "effect": "Damage",       "target": "Area",  "base": 25, "perPower": 25 },
+    { "id": "chaine-eclairs",     "name": "Chaîne d'éclairs",        "level": 4, "cost": 20, "effect": "Damage",       "target": "Chain", "base": 25, "perPower": 40 }
   ]
 }

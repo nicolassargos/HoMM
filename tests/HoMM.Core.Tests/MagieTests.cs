@@ -42,7 +42,7 @@ public class MagieTests
     [Fact]
     public void Les_sorts_sont_lus_et_valides()
     {
-        Assert.Equal(12, TestData.Spells.All.Count);
+        Assert.Equal(18, TestData.Spells.All.Count);
         Assert.Equal(4, TestData.Spells.All.Max(s => s.Level));
         var errors = new System.Collections.Generic.List<string>();
         DataValidation.CheckSpells(new[] { Spell("eclair") with { Level = 9 }, Spell("eclair") }, errors);
@@ -132,7 +132,7 @@ public class MagieTests
     }
 
     [Fact]
-    public void Benediction_et_malediction_fixent_les_degats()
+    public void Benediction_et_malediction_changent_les_degats_d_un_quart()
     {
         // les paysans ont 1 PV : les tués donnent les dégâts
         int Kills(CreatureType ogre, string? spell)
@@ -153,10 +153,14 @@ public class MagieTests
             return 1000 - theirs.Count;
         }
 
+        // +25 % et −25 % de dégâts (même tirage : le sort ne change pas le hasard)
         var ogre = Creature("ogre");
-        Assert.Equal(Kills(ogre with { MinDamage = ogre.MaxDamage }, null), Kills(ogre, "benediction"));
-        Assert.Equal(Kills(ogre with { MaxDamage = ogre.MinDamage }, null), Kills(ogre, "malediction"));
-        Assert.True(Kills(ogre, "benediction") > Kills(ogre, "malediction"));
+        int plain = Kills(ogre, null);
+        Assert.InRange(Kills(ogre, "benediction"), plain * 1.25 - 1, plain * 1.25 + 1);
+        Assert.InRange(Kills(ogre, "malediction"), plain * 0.75 - 1, plain * 0.75 + 1);
+        // utile aussi pour une créature à dégâts fixes
+        var archer = Creature("archer");
+        Assert.True(Kills(archer, "benediction") > Kills(archer, null));
     }
 
     [Fact]
@@ -308,5 +312,124 @@ public class MagieTests
         var fought = Assert.Single(state.TakeEvents().OfType<BattleFought>());
         Assert.True(fought.Report.AttackerSpellPointsSpent > 0);
         Assert.Equal(10 - fought.Report.AttackerSpellPointsSpent, hero.SpellPoints);
+    }
+
+    [Fact]
+    public void La_soif_de_sang_donne_de_l_attaque()
+    {
+        var (battle, ours, _) = Fight(Mage(spells: "soif-de-sang"), "epeiste", 10, "paysan", 10);
+        int attack = ours.Attack;
+        Assert.True(battle.Cast(Spell("soif-de-sang"), ours.Position));
+        Assert.Equal(attack + 6, ours.Attack);
+    }
+
+    [Fact]
+    public void Le_bouclier_contre_les_tirs_divise_les_tirs_par_deux()
+    {
+        int Shot(bool shield)
+        {
+            var battle = new TacticalBattle(ArmyOf("paysan", 1000), ArmyOf("archer", 20), new GameRandom(3), Mage(spells: "bouclier-tirs"));
+            battle.Field.Obstacles.Clear();
+            var peasants = battle.Units.Single(u => u.Side == BattleSide.Attacker);
+            var archers = battle.Units.Single(u => u.Side == BattleSide.Defender);
+            battle.ForceTurn(peasants);
+            if (shield)
+                Assert.True(battle.Cast(Spell("bouclier-tirs"), peasants.Position));
+            battle.ForceTurn(archers);
+            battle.Shoot(peasants);
+            return 1000 - peasants.Count;
+        }
+
+        Assert.InRange(Shot(shield: true), Shot(shield: false) / 2.0 - 1, Shot(shield: false) / 2.0 + 1);
+    }
+
+    [Fact]
+    public void Une_troupe_aveuglee_passe_son_tour_jusqu_a_ce_qu_on_la_frappe_sans_riposter()
+    {
+        var hero = Mage(knowledge: 2, spells: "aveuglement");
+        var (battle, ours, theirs) = Fight(hero, "epeiste", 10, "ogre", 10);
+        Assert.True(battle.Cast(Spell("aveuglement"), theirs.Position));
+        battle.Defend();
+
+        // les ogres ne jouent pas : le round suivant commence, ce sont de nouveau les épéistes
+        Assert.Contains(battle.TakeLog(), a => a is UnitSkipped s && s.Unit == theirs);
+        Assert.Equal(ours, battle.Active);
+        Assert.Equal(2, battle.Round);
+
+        // frappés, ils se réveillent, sans riposter à ce coup
+        theirs.Position = new Hex(5, 4);
+        battle.ForceTurn(ours, new Hex(4, 4));
+        battle.Attack(theirs, new Hex(4, 4));
+        Assert.Equal(10, ours.Count);
+        Assert.False(theirs.IsUnder(SpellEffect.Blind));
+    }
+
+    [Fact]
+    public void La_teleportation_envoie_une_troupe_amie_sur_une_case_libre()
+    {
+        var hero = Mage(knowledge: 2, spells: "teleportation");
+        var (battle, ours, theirs) = Fight(hero, "epeiste", 10, "ogre", 10);
+        Assert.False(battle.Cast(Spell("teleportation"), ours.Position)); // il faut une destination
+        Assert.False(battle.Cast(Spell("teleportation"), ours.Position, theirs.Position)); // occupée
+
+        Assert.True(battle.Cast(Spell("teleportation"), ours.Position, new Hex(9, 4)));
+
+        Assert.Equal(new Hex(9, 4), ours.Position);
+        Assert.Equal(ours, battle.Active); // elle peut encore frapper
+    }
+
+    [Fact]
+    public void L_IA_teleporte_une_troupe_qui_n_atteint_personne_pres_de_l_ennemi()
+    {
+        var hero = Mage(knowledge: 2, spells: "teleportation");
+        var (battle, ours, theirs) = Fight(hero, "epeiste", 10, "ogre", 10);
+
+        BattleAI.PlayTurn(battle);
+
+        Assert.True(TacticalBattle.Distance(ours, theirs) <= 1 || theirs.Count < 10); // il est allé frapper
+        Assert.Contains(battle.TakeLog(), a => a is UnitTeleported);
+    }
+
+    [Fact]
+    public void La_dissipation_retire_tous_les_sorts_amis_ou_ennemis()
+    {
+        var hero = Mage(knowledge: 2, spells: "dissipation");
+        var (battle, ours, theirs) = Fight(hero, "epeiste", 10, "ogre", 10);
+        theirs.Enchant(Spell("hate"), 5);
+        theirs.Enchant(Spell("peau-de-pierre"), 5);
+
+        Assert.True(battle.Cast(Spell("dissipation"), theirs.Position));
+
+        Assert.Empty(theirs.Spells);
+        // l'IA la lance sur un ennemi qui a de bons sorts, pas sur ses troupes sans sort
+        var (other, _, enemy) = Fight(hero, "epeiste", 10, "ogre", 10);
+        enemy.Enchant(Spell("hate"), 5);
+        Assert.Equal(enemy.Position, BattleAI.ChooseSpell(other)!.Value.Target);
+    }
+
+    [Fact]
+    public void La_chaine_d_eclairs_saute_vers_les_troupes_les_plus_proches_a_force_moitie()
+    {
+        var defender = new Army();
+        defender.AddStack(Creature("paysan"), 500);
+        defender.AddStack(Creature("paysan"), 500);
+        defender.AddStack(Creature("paysan"), 500);
+        var battle = new TacticalBattle(ArmyOf("archer", 100), defender, new GameRandom(1), Mage(power: 1, knowledge: 2, spells: "chaine-eclairs"));
+        battle.Field.Obstacles.Clear();
+        var archers = battle.Units.Single(u => u.Side == BattleSide.Attacker);
+        var peasants = battle.Units.Where(u => u.Side == BattleSide.Defender).ToList();
+        peasants[0].Position = new Hex(6, 4);
+        peasants[1].Position = new Hex(8, 4);
+        peasants[2].Position = new Hex(8, 0); // la plus loin
+        battle.ForceTurn(archers, new Hex(3, 4));
+
+        var hits = battle.SpellHits(Spell("chaine-eclairs"), peasants[0].Position, BattleSide.Attacker);
+        Assert.Equal(new[] { peasants[0], peasants[1], peasants[2], archers }, hits.Select(h => h.Unit));
+        Assert.Equal(new[] { 65, 32, 16, 8 }, hits.Select(h => h.Strength)); // 25 + 40 × 1, puis moitié à chaque saut
+
+        Assert.True(battle.Cast(Spell("chaine-eclairs"), peasants[0].Position));
+        Assert.Equal(435, peasants[0].Count);
+        Assert.Equal(100, archers.Count); // 8 dégâts : un archer (10 PV) blessé, aucun tué
+        Assert.Equal(2, archers.TopHitPoints);
     }
 }

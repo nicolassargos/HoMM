@@ -76,6 +76,15 @@ Décidé avec l'utilisateur (2026-11-06), proche de Heroes 2 et 3 :
 Fait : les règles, la guilde, le livre au combat et sur la carte, les 18 sorts (voir `HISTORIQUE.md`). À faire, dans
 cet ordre :
 1. **L'équilibrage avec la magie** : la simulation (seul) et les adversaires, avec les mesures (`Mesures`).
+   En cours (2026-11-06). Corrigé : l'IA bâtissait la guilde avec le bois et le minerai que ses habitations
+   attendaient (en Normal, son armée était tombée de 14 000 à 6 000 or) ; elle ne bâtit plus un bâtiment plus loin
+   dans sa liste que s'il ne retarde pas le premier (`ComputerPlayer.BuildNext`) : Facile 12 000, Normal 16 000,
+   Difficile 18 500 or après six semaines. Mesuré : la simulation avec un héros qui monte de niveau gagne vers le jour
+   87 en force (attaque et défense). En magie, le chiffre ne vaut rien : la simulation ne ramasse pas les tas de
+   ressources, et la guilde (5 bois, 5 minerai) n'était bâtie que très tard ou jamais (le héros n'avait aucun sort) ;
+   bâtie en premier, elle prend le bois et le minerai des habitations, et l'armée reste trop petite pour gagner.
+   **L'équilibre force / magie est reporté aux classes de héros** (choix de l'utilisateur) : d'abord apprendre à la
+   simulation à ramasser les tas, puis comparer les classes (`Simulation_force_ou_magie`).
 2. **Le livre de sorts en image** : un vrai livre ouvert, une page par niveau, une animation de page qui tourne.
 3. **Une image par sort** (le livre, la guilde).
 4. **Une animation par sort** sur le champ (projectile, éclair, explosion…) et un **effet visible sur les troupes**
@@ -121,9 +130,8 @@ croissance, prix, garde.
   héros au plus 2 / 3 / 4, revenu d'or 75 / 100 / 125 %.
 - **Équilibre mesuré** (`Mesures`, 2026-11-06, six cartes) : la simulation seule (sans magie) gagne sur les petites
   cartes vers le jour 60, les normales vers le jour 101 (80 à 154), les grandes vers le jour 146. Un adversaire, après
-  six semaines : 2,3 à 2,7 villes, une armée de 6 000 (Normal) à 13 000 or (Difficile) en moyenne, la plupart de ses
-  héros ont des sorts. Normal paraît plus faible que Facile : à revoir à l'équilibrage (la guilde, dans l'ordre de
-  construction de l'IA, prend peut-être l'or des troupes). Courbe : Archer 8, Griffon 14, Épéiste 26, Moine 63,
+  six semaines (après la correction de l'ordre de construction) : 3,0 à 3,5 villes, une armée de 12 000 (Facile),
+  16 000 (Normal) et 18 500 or (Difficile) en moyenne, la plupart de ses héros ont des sorts. Courbe : Archer 8, Griffon 14, Épéiste 26, Moine 63,
   Cavalier 116, Ange 1643 paysans.
 
 ## Choix à respecter

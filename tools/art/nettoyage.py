@@ -125,18 +125,33 @@ def retirer_etincelles(p):
     return n
 
 
-def effacer_eclats(p, marge=12):
-    """Efface les éclats d'impact (rouge, orange, jaune vifs, blanc pur) devant la créature, à plus de <marge>
-    pixels à droite de son axe. À demander pour une animation qui en a (la vérification les signale)."""
-    centre = axe(p)
+def teintes(p):
+    """Les couleurs d'une image, à peu près (pour reconnaître celles de la créature elle-même)."""
+    return {tuple(v // 24 for v in c[:3]) for r in p for c in r if c[3]}
+
+
+def effacer_eclats(p, marge=12, centre=None, garder=None):
+    """Efface les éclats d'impact devant la créature, à plus de <marge> pixels à droite de son axe (<centre> : celui
+    de la pose de départ, la créature pouvant se pencher en avant) : rouge, orange, jaune vifs et blanc pur.
+    partout=True (marge None) : efface aussi, sur le corps, le rouge vif et le blanc pur (taches de sang, éclairs),
+    mais pas le jaune ni l'orange (pustules, yeux…). <garder> : les couleurs de la pose de départ, jamais effacées.
+    À demander pour une animation qui en a (la vérification les signale)."""
+    centre = axe(p) if centre is None else centre
+    partout = marge is None
+    marge = 12 if partout else marge
     n = 0
     for y, r in enumerate(p):
         for x, c in enumerate(r):
-            if c[3] and x > centre + marge:
-                h, l, s = hls(c)
-                if (s > 0.45 and l > 0.3 and (h < 0.17 or h > 0.93)) or l > 0.9:
-                    r[x] = VIDE
-                    n += 1
+            if not c[3] or (garder and tuple(v // 24 for v in c[:3]) in garder):
+                continue
+            h, l, s = hls(c)
+            devant = x > centre + marge
+            if devant and ((s > 0.45 and l > 0.3 and (h < 0.17 or h > 0.93)) or l > 0.9):
+                r[x] = VIDE
+                n += 1
+            elif partout and ((s > 0.55 and l > 0.3 and (h < 0.05 or h > 0.93)) or l > 0.9):
+                r[x] = VIDE
+                n += 1
     return n
 
 
@@ -169,6 +184,49 @@ def corde_droite(p, couleur=(61, 50, 46, 255)):
         if (x, y) not in pris and 0 <= x < w:
             p[y][x] = couleur
     return True
+
+
+def recentrer(images, partie="pieds"):
+    """Décale chaque image pour que les pieds (le bas du corps), ou la tête, restent à la place de ceux de la 1re image :
+    une marche qui glisse sur le sol."""
+    def centre(q):
+        ys = [y for y, r in enumerate(q) if any(c[3] > 128 for c in r)]
+        haut, bas = min(ys), max(ys)
+        lignes = range(bas - max(3, (bas - haut) // 5), bas + 1) if partie == "pieds" else range(haut, haut + max(3, (bas - haut) // 5))
+        xs = [x for y in lignes for x, c in enumerate(q[y]) if c[3] > 128]
+        return sum(xs) / len(xs)
+    ref = centre(images[0])
+    decalages = [round(ref - centre(q)) for q in images]
+    # le cadre s'élargit d'autant de chaque côté, pour ne rien couper
+    bord = max(abs(d) for d in decalages)
+    sorties = []
+    for q, dx in zip(images, decalages):
+        w = len(q[0])
+        sorties.append([[r[x - bord - dx] if 0 <= x - bord - dx < w else VIDE for x in range(w + 2 * bord)] for r in q])
+    return sorties
+
+
+def effacer_nouveau(images, k):
+    """Image k (à partir de 1) : efface les couleurs que n'ont pas les images voisines (un éclat, une traînée), et met
+    à leur place le pixel de l'image d'avant."""
+    q = images[k - 1]
+    avant, apres = images[k - 2], images[k % len(images)]
+    connues = teintes(avant) | teintes(apres)
+    n = 0
+    for y, r in enumerate(q):
+        for x, c in enumerate(r):
+            if c[3] and tuple(v // 24 for v in c[:3]) not in connues:
+                r[x] = avant[y][x]
+                n += 1
+    # et les traînées claires : des marques vives longues et fines (une pustule, un œil sont des points)
+    vives = [[c if c[3] and hls(c)[1] > 0.5 and hls(c)[2] > 0.4 else VIDE for c in r] for r in q]
+    for g in morceaux(vives):
+        xs, ys = [x for x, _ in g], [y for _, y in g]
+        if max(max(xs) - min(xs), max(ys) - min(ys)) >= 5 and len(g) <= 3 * max(max(xs) - min(xs), max(ys) - min(ys)):
+            for x, y in g:
+                q[y][x] = avant[y][x]
+                n += 1
+    return n
 
 
 def adoucir_image(p):

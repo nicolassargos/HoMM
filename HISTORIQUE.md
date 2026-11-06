@@ -346,11 +346,42 @@ détails, surtout agrandies au combat), dans cet ordre :
    du jeu. Deux essais par animation, alternant les deux modèles de PixelLab ; au plus 8 tâches à la fois (les
    autres attendent, `pixellab.py` attend aussi quand PixelLab refuse). En jeu : `--creature-preview=id,…` met ces
    créatures des deux côtés (une créature absente des règles reçoit des caractéristiques moyennes), avec un Archer
-   pour l'échelle. Les fiches existent pour le Colosse, le Chevalier, le Fantôme, l'Archer, le Moine et le Loup.
+   pour l'échelle. Les fiches existent pour le Colosse, le Chevalier, le Fantôme, l'Archer, le Moine, le Loup, puis le Zombie, le
+   Troll, l'Ogre et le Griffon.
+   **Les effets à part** (décision de l'utilisateur, 2026-11-06) : les animations des créatures n'ont **aucun effet**
+   (éclair d'impact, sang, traînée, projectile) ; c'est le jeu qui les dessinera, au moment du coup, pareils pour
+   toutes les créatures et discrets : éclat du coup, flèche de l'Archer, boule de feu du Moine, gerbe d'eau du
+   Fantôme… (étape 10). Les effets de PixelLab changent à chaque fois, se mêlent aux images et s'effacent mal.
+   Proposé (2026-11-06) : l'animation ne montre que le geste (bander, viser, lâcher) ; la fiche de chaque tireur dit
+   à quelle image et d'où part le tir (`launchFrame`, `launchPoint`, retourné pour le défenseur) ; le jeu fait voler
+   le **projectile** jusqu'à sa cible, quelle que soit la distance (flèche en arc qui suit sa trajectoire, boule de
+   feu droite, hache qui tourne), et il arrive au moment du coup ; un petit **impact** se joue sur la cible (choc,
+   entaille, morsure, magie, eau), aussi pour les coups au corps à corps. Projectiles et impacts : de petites feuilles
+   faites avec PixelLab, dans le même style. Peut-être un réglage « effets complets / discrets ». À faire après les
+   images des créatures, en commençant par la flèche de l'Archer et la boule de feu du Moine.
+   Le **Zombie** (futur mort-vivant de niveau 2, `zombie`) : un mort boursouflé, peau gris-violet, ventre énorme
+   couvert de pustules jaunes, pointes de cristal violet sur le dos ; 44 px de haut (plus petit que l'Archer, l'Ogre
+   est bien plus fort) ; d'après une image de l'utilisateur. Il tend la main en ouvrant la bouche, boite en traînant
+   une jambe raide.
+   La boiterie n'a pas marché avec PixelLab : à la place, une marche **lente** de 16 images (`moveFrames` : 16 dans
+   animations.json, feuille de 4 × 4, `creature.py animer … --images=16`) à 8 images par seconde, et il avance
+   lentement sur le champ (`stepTime` : 0,45 s par case au lieu de 0,09). Il frappe en se penchant en arrière, puis
+   en poussant son énorme ventre. Les effets apparaissent moins quand le texte ne décrit que le mouvement du corps
+   (sans « frappe », « coup » ni « pas d'éclair ») : `--sans=` retire la fin de texte du gabarit.
+   Au combat, chaque troupe **regarde où elle va** (miroir selon le sens de la marche) et se tourne vers sa cible
+   pour frapper ou tirer (la cible vers elle), puis se retourne vers le camp adverse.
+   Le **Troll** (image d'origine gardée) a ses animations : il se gratte la tête (6 images par seconde), marche
+   lourdement (7), et donne un « méga-coup de poing » (le bras étiré en traînée sur une image, gardée : choix de
+   l'utilisateur). Textes de mouvement seuls (`--sans=no other character`) : aucun effet sur les six premiers essais.
+   L'**Ogre** : nouvelle attente (il se gratte la cuisse) et nouvelle attaque (massue levée à deux mains puis abattue) ;
+   sa grande image n'a que 66 px (faite avant l'outil). Le **Griffon** (image d'origine gardée) : attente, vol, attaque
+   (il se cabre puis frappe des serres et du bec). L'animation « walk » s'appelle maintenant **« move »** (déplacement :
+   marche ou vol ; fichiers `-move.png`, réglages `move` et `moveFrames`). La page d'une créature montre un déplacement
+   qui traverse quatre cases à la vitesse du jeu, pour voir si le cycle se répète bien.
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de
-   départ, puis joue son attente une fois. L'entrée `*` vaut pour toutes : 5 à 10 s de pause (choix de l'utilisateur).
+   départ, puis joue son attente une fois. L'entrée `*` vaut pour toutes : 5 à 10 s de pause (choix de l'utilisateur), puis 3 à 6 s (2026-11-06).
    Le Colosse est à 7 images par seconde.
    Ce qui marche (`tools/art/pixellab.py`) : l'image fixe avec le modèle « Pro » (`pro`, 25 candidats pour 0,08 $ à
    40 × 52), une de nos images pour le style (trait, ombrage) et une image de référence pour le sujet ; **modèles de

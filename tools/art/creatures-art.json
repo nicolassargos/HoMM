@@ -6,8 +6,8 @@
       "usage_angle": "camera angle, perspective and body orientation only (seen from slightly above): do not copy this creature, its shape or its colors",
       "mouvements": {
         "idle": "subtle idle: slow calm breathing and one small movement, the feet stay in place",
-        "walk": "walking forward to the right with steady steps, the legs clearly alternating",
-        "attack": "strikes the enemy in front of it with its weapon, then returns to its starting pose"
+        "attack": "strikes the enemy in front of it with its weapon, then returns to its starting pose",
+        "move": "walking forward to the right with steady steps, the legs clearly alternating"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     },
@@ -17,8 +17,8 @@
       "usage_angle": "camera angle, perspective and body orientation only (seen from slightly above): do not copy this creature, its shape or its colors",
       "mouvements": {
         "idle": "hovering in place, swaying gently, very small movements",
-        "walk": "flying forward to the right, gliding smoothly through the air",
-        "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place"
+        "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place",
+        "move": "flying forward to the right, gliding smoothly through the air"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     },
@@ -28,8 +28,8 @@
       "usage_angle": "camera angle, perspective and body orientation only: do not copy this creature, its shape or its colors",
       "mouvements": {
         "idle": "standing still, breathing, the head and tail move a little",
-        "walk": "trotting forward to the right, the four legs moving in a clear trot",
-        "attack": "lunges forward and bites the enemy in front of it, then steps back to its starting pose"
+        "attack": "lunges forward and bites the enemy in front of it, then steps back to its starting pose",
+        "move": "trotting forward to the right, the four legs moving in a clear trot"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     },
@@ -39,8 +39,8 @@
       "usage_angle": "camera angle, perspective and body orientation only (seen from slightly above): do not copy this creature, its shape or its colors",
       "mouvements": {
         "idle": "slow heavy breathing, the huge body sways a little, the feet stay in place",
-        "walk": "slow heavy steps forward to the right, the whole body swaying with each step",
-        "attack": "a slow powerful blow with both hands at the enemy in front of it, then back to its starting pose"
+        "attack": "a slow powerful blow with both hands at the enemy in front of it, then back to its starting pose",
+        "move": "slow heavy steps forward to the right, the whole body swaying with each step"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     }
@@ -68,8 +68,8 @@
       "choix": {
         "fixe": "X6",
         "idle": "idle-1",
-        "walk": "walk-2",
-        "attack": "attack-9"
+        "attack": "attack-9",
+        "move": "move-2"
       },
       "notes": "D'après une image de l'utilisateur, en plus simple (style rétro). Sur une seule case. Lent : 7 images par seconde."
     },
@@ -97,8 +97,8 @@
       "choix": {
         "fixe": "L2",
         "idle": "idle-1",
-        "walk": "walk-3",
-        "attack": "attack-7"
+        "attack": "attack-7",
+        "move": "move-3"
       },
       "notes": "Remplacera l'Épéiste. Les candidats sortaient tournés vers la gauche (miroir). Bouclier changé avec « retoucher » de pixellab.py."
     },
@@ -125,8 +125,8 @@
       "choix": {
         "fixe": "V16",
         "idle": "idle-2",
-        "walk": "walk-2",
-        "attack": "attack-1"
+        "attack": "attack-1",
+        "move": "move-2"
       },
       "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur)."
     },
@@ -157,8 +157,8 @@
       "choix": {
         "fixe": "L3-2",
         "idle": "idle-4-corde",
-        "walk": "walk-1-corde",
-        "attack": "attack-3-corde"
+        "attack": "attack-3-corde",
+        "move": "move-1-corde"
       },
       "notes": "Refait le 2026-11-06. La corde de l'arc est tracée par l'outil (« corde »). Il regarde autour de lui, rarement.",
       "lots": {
@@ -187,8 +187,8 @@
       "grande": "art-candidats/references/derives/moine-grand.png",
       "choix": {
         "idle": "idle-2",
-        "walk": "walk-1",
-        "attack": "attack-5-propre"
+        "attack": "attack-5-propre",
+        "move": "move-1"
       },
       "notes": "Image d'origine gardée (modèle de style). La boule de feu sera un effet du jeu : l'attaque ne lance rien."
     },
@@ -205,10 +205,133 @@
       "grande": "art-candidats/references/derives/loup-grand.png",
       "choix": {
         "idle": "idle-2",
-        "walk": "walk-2",
-        "attack": "attack-2"
+        "attack": "attack-2",
+        "move": "move-2"
       },
       "notes": "Image d'origine gardée (modèle de style)."
+    },
+    "zombie": {
+      "nom": "Zombie",
+      "gabarit": "grand",
+      "description": "a bloated plague zombie: a fat swollen undead man with grey-purple dead skin, a huge round belly covered with oozing yellow pustules, a small bald head with a gaping toothy mouth and blank white eyes, a few purple crystal spikes growing from his back and shoulders, thick arms dripping with slime, bare feet, shuffling",
+      "sujet": "a bloated fat grey zombie with a huge belly covered in yellow pustules and purple spikes on its back",
+      "hauteur": 44,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/zombie-reference.jpg::concept reference only (bloated plague zombie): simplify it a lot, retro game sprite, do not copy its camera angle or its realistic modern style"
+      ],
+      "comparer": [
+        "archer",
+        "ogre",
+        "squelette"
+      ],
+      "mouvements": {
+        "idle": "the bloated zombie slowly raises one hand and reaches forward, its gaping mouth opens wider, then the arm sinks back down, the feet stay in place",
+        "attack": "lurches forward and slams both heavy arms down on the enemy in front of it, then sways back to its starting pose",
+        "move": "limping very slowly forward to the right on a crippled leg: one stiff leg is dragged behind at every step, the body lurches and leans heavily to one side, the belly wobbles"
+      },
+      "notes": "Futur mort-vivant (premier niveau). D'après une image de « zombie boursouflé » de l'utilisateur, en plus simple. Niveau 2 : plus petit que l'Archer (44 px). Marche lente, une jambe infirme.",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L3-1",
+        "idle": "idle-3",
+        "attack": "attack-11",
+        "move": "move-10"
+      },
+      "grande": "art-candidats/references/derives/zombie-grand.png",
+      "consignes": {
+        "idle": "the bloated zombie slowly raises one hand and reaches forward, its gaping mouth opens wider, then the arm sinks back down, the feet stay in place",
+        "attack": "the bloated zombie leans far back on its heels, its enormous round belly swelling even bigger, then it thrusts the huge belly forward with all its weight toward the enemy in front of it, then rocks back to its starting pose",
+        "move": "the bloated zombie walks forward to the right very slowly and heavily, small shuffling steps, its huge belly swaying from side to side with each step"
+      }
+    },
+    "troll": {
+      "nom": "Troll",
+      "gabarit": "grand",
+      "description": "a huge hulking green troll with massive muscular arms and big fists, small head, hunched shoulders",
+      "sujet": "a huge hulking green troll with massive arms and big fists",
+      "hauteur": 64,
+      "comparer": [
+        "ogre",
+        "archer"
+      ],
+      "mouvements": {
+        "idle": "the troll breathes slowly and heavily, its huge shoulders rise and fall, it flexes its big fingers, the feet stay in place",
+        "attack": "the troll raises both huge fists high above its head, then brings them down hard in front of it with all its weight, then straightens up to its starting pose",
+        "move": "the troll walks forward to the right with slow heavy stomping steps, its long arms swinging, its shoulders rolling"
+      },
+      "grande": "art-candidats/references/derives/troll-grand.png",
+      "notes": "Image d'origine gardée (modèle de style). Il se régénère (capacité) : l'effet viendra du jeu.",
+      "consignes": {
+        "attack": "the troll pulls one huge fist far back behind its shoulder, twisting its whole body, then throws a gigantic straight punch forward to the right with all its weight, its arm fully stretched, then slowly pulls back to its starting pose",
+        "idle": "the troll slowly lifts one huge hand and scratches the top of its head with its thick fingers, looking puzzled, then lowers the arm back down, the feet stay in place"
+      },
+      "choix": {
+        "idle": "idle-3",
+        "attack": "attack-4",
+        "move": "move-1"
+      }
+    },
+    "ogre": {
+      "nom": "Ogre",
+      "gabarit": "grand",
+      "description": "a huge wild man ogre with long black hair and a thick black beard, a fur loincloth, holding a big plain wooden club without nails",
+      "sujet": "a huge wild man ogre with long black hair, a black beard and a big wooden club",
+      "hauteur": 58,
+      "comparer": [
+        "archer",
+        "troll"
+      ],
+      "mouvements": {
+        "move": "the ogre walks forward to the right with heavy steps, the club resting on his shoulder"
+      },
+      "grande": "art-candidats/references/derives/ogre-grand.png",
+      "choix": {
+        "fixe": "H4",
+        "idle": "idle-3",
+        "attack": "attack-2",
+        "move": "move-1"
+      },
+      "notes": "Fait avant l'outil (session du 2026-11-04) : sa grande image n'a que 66 px. Attente et attaque refaites le 2026-11-06.",
+      "consignes": {
+        "attack": "the ogre lifts his big wooden club high over his head with both hands, then brings it down in a heavy arc in front of him to the right, his whole body leaning into the swing, then raises it back to his starting pose"
+      }
+    },
+    "griffon": {
+      "nom": "Griffon",
+      "gabarit": "quadrupede",
+      "description": "a griffon with the body of a lion, the head of an eagle and large brown feathered wings raised",
+      "sujet": "a griffon with a lion body, an eagle head and large brown wings, side view facing right",
+      "hauteur": 51,
+      "comparer": [
+        "archer",
+        "loup"
+      ],
+      "mouvements": {
+        "idle": "the griffon stands still, ruffles and slightly opens its raised wings, turns its eagle head a little, its tail swishes, the paws stay in place",
+        "attack": "the griffon rears up on its hind legs with its wings spread wide, then lunges forward and rakes with its front talons and snaps its beak at the enemy in front of it, then lands back in its starting pose",
+        "move": "the griffon flies forward to the right: it beats its large wings strongly, rises a little off the ground with its paws tucked, and glides forward"
+      },
+      "grande": "art-candidats/references/derives/griffon-grand.png",
+      "notes": "Image d'origine gardée (modèle de style). Il vole : sa « marche » est un vol.",
+      "consignes": {
+        "move": "the griffon hovers in place a little above the ground, beating its large wings up and down in a steady flying cycle, its paws tucked under its body, facing right, it stays at the same place"
+      },
+      "choix": {
+        "idle": "idle-2",
+        "attack": "attack-2",
+        "move": "move-2"
+      }
     }
   }
 }

@@ -26,17 +26,20 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 
 ## Créatures de combat (PixelLab)
 - **Échelle commune** : un humain fait environ 46 à 54 px de haut (à peu près une case), le Gobelin environ 28, l'Orc 41,
-  l'Ogre 58, le Colosse 70 ; le Cavalier et le Dragon, longs, couvrent 2 cases (environ 90 × 80).
+  le Zombie 44, l'Ogre 58, le Troll 64 (orc < ogre < troll), le Colosse 70 ; le Cavalier et le Dragon, longs, couvrent 2 cases (environ 90 × 80).
 - **Une créature à la fois** : d'abord l'image fixe (qui sert aussi d'icône), puis, une fois acceptée, ses animations
-  (attente, marche, attaque : feuilles de 8 images, 4 colonnes × 2 rangées, `{id}-idle.png`, `-walk`, `-attack`).
+  (attente, déplacement, attaque : feuilles de 8 images, 4 colonnes × 2 rangées, `{id}-idle.png`, `-move` (marche ou
+  vol ; anciennement `-walk`), `-attack`). Une feuille peut avoir 16 images (4 × 4 : `moveFrames` dans
+  `animations.json`, `creature.py animer … --images=16`), pour un mouvement lent mais fluide.
 - **Outil** : `tools/art/creature.py` enchaîne les étapes (`fixe`, `choisir … fixe`, `animer`, `retoucher`,
-  `choisir … idle`, `page`) d'après la **fiche** de la créature (`tools/art/creatures-art.json` : description, sujet,
+  `choisir … idle`, `retailler`, `page`) d'après la **fiche** de la créature (`tools/art/creatures-art.json` : description, sujet,
   hauteur, taille de génération, modèle de style, image d'angle, références, miroir, corde, mouvements, choix faits) et
   un **gabarit** par sorte de créature (humain, volant, quadrupède, grand). Les grandes images choisies sont gardées
   dans `art-candidats/references/derives/`. Chaque feuille est vérifiée (corps qui glisse, attaque qui ne revient pas à
   sa place, autre personnage ou effet, éclats, image coupée au bord, traits fins qui clignotent) ; la **page de la
   créature** (`en-cours/<id>.html`) montre images fixes et animations sur des cases du champ, face au défenseur.
-  En jeu : `--creature-preview=id,…`.
+  Un déplacement y traverse quatre cases à la vitesse du jeu. `retailler <id> <hauteur>` refait l'image fixe et les
+  feuilles choisies à une autre taille, sans dépense. En jeu : `--creature-preview=id,…` (avec `--battle-auto`).
 - **Image fixe** : modèle « Pro » (`pixellab.py pro`, 25 candidats pour 0,08 $ à 40 × 52), une de nos images pour le
   style et une image de référence pour le sujet. **Modèles de style** : le Moine, le Griffon, le Loup et le Troll
   (choix de l'utilisateur). Une image de style trop forte recopie la créature du modèle.
@@ -50,11 +53,18 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Animations** : à partir d'un cadre un peu plus grand (48 × 56, 64 × 56 pour une attaque qui va loin), `--retour`
   pour qu'une attaque finisse sur la pose de départ ; deux essais par animation en alternant les deux modèles ; au plus
   8 tâches à la fois. Les grandes créatures s'animent au double (jusqu'à 256 px), puis chaque image est réduite.
-- **À retirer après coup** : étincelles cyan, éclats d'impact, éclairs ou flammes d'une attaque (les projectiles et
-  les sorts seront des effets du jeu), un adversaire dessiné dans l'animation ; recentrer une marche qui glisse ;
-  remettre les traits fins (corde d'arc) perdus à la réduction.
-- **Vitesse et pauses** : `art/creatures/battle/animations.json` (images par seconde par animation, pause de 5 à 10 s
-  entre deux attentes). L'utilisateur trouve les animations un peu chargées : préférer des mouvements discrets.
+- **Pas d'effet dans les animations** (décision de l'utilisateur) : éclats, sang, traînées, projectiles seront dessinés
+  par le jeu (le projectile vole jusqu'à sa cible, un petit impact se joue sur elle). Décrire **seulement le mouvement
+  du corps** : les mots « frappe », « coup », et même « pas d'éclair », attirent les effets ; `--sans=no other
+  character` remplace la fin de texte du gabarit. Une attaque de tireur ne montre que le geste (bander, lâcher).
+  Une attente ou un déplacement : sur place (le jeu déplace la créature) ; pour un volant, un battement d'ailes sur place.
+- **À retirer après coup** (`creature.py retoucher`) : étincelles cyan, éclats d'impact (`--eclats`, ou
+  `--eclats=partout` : rouge vif et blanc pur aussi sur le corps), couleurs absentes des images voisines (`--nouveau=5`),
+  une image ratée remplacée par une autre (`--copier=7:8`), une marche qui glisse (`--recentrer`), la corde d'un arc
+  (`--corde=7,8`) ; un adversaire dessiné dans l'animation : jeter l'essai.
+- **Vitesse et pauses** : `art/creatures/battle/animations.json` (images par seconde par animation, pause de 3 à 6 s
+  entre deux attentes, `stepTime` : temps pour traverser une case, 0,09 s par défaut, 0,45 pour le Zombie). Au combat,
+  une troupe regarde où elle va (miroir) et se tourne vers sa cible. L'utilisateur trouve les animations un peu chargées : préférer des mouvements discrets.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).

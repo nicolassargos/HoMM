@@ -346,6 +346,19 @@ détails, surtout agrandies au combat), dans cet ordre :
    autres attendent, `pixellab.py` attend aussi quand PixelLab refuse). En jeu : `--creature-preview=id,…` met ces
    créatures des deux côtés (une créature absente des règles reçoit des caractéristiques moyennes), avec un Archer
    pour l'échelle. Les fiches existent pour le Colosse, le Chevalier, le Fantôme, l'Archer, le Moine et le Loup.
+   **Les effets à part** (décision de l'utilisateur, 2026-11-06) : les animations des créatures n'ont **aucun effet**
+   (éclair d'impact, sang, traînée, projectile) ; c'est le jeu qui les dessinera, au moment du coup, pareils pour
+   toutes les créatures et discrets : éclat du coup, flèche de l'Archer, boule de feu du Moine, gerbe d'eau du
+   Fantôme… (étape 10). Les effets de PixelLab changent à chaque fois, se mêlent aux images et s'effacent mal.
+   Le **Zombie** (futur mort-vivant de niveau 2, `zombie`) : un mort boursouflé, peau gris-violet, ventre énorme
+   couvert de pustules jaunes, pointes de cristal violet sur le dos ; 44 px de haut (plus petit que l'Archer, l'Ogre
+   est bien plus fort) ; d'après une image de l'utilisateur. Il tend la main en ouvrant la bouche, boite en traînant
+   une jambe raide.
+   La boiterie n'a pas marché avec PixelLab : à la place, une marche **lente** de 16 images (`walkFrames` : 16 dans
+   animations.json, feuille de 4 × 4, `creature.py animer … --images=16`) à 8 images par seconde, et il avance
+   lentement sur le champ (`stepTime` : 0,45 s par case au lieu de 0,09). Il frappe en se penchant en arrière, puis
+   en poussant son énorme ventre. Les effets apparaissent moins quand le texte ne décrit que le mouvement du corps
+   (sans « frappe », « coup » ni « pas d'éclair ») : `--sans=` retire la fin de texte du gabarit.
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de

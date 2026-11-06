@@ -209,6 +209,51 @@
         "attack": "attack-2"
       },
       "notes": "Image d'origine gardée (modèle de style)."
+    },
+    "zombie": {
+      "nom": "Zombie",
+      "gabarit": "grand",
+      "description": "a bloated plague zombie: a fat swollen undead man with grey-purple dead skin, a huge round belly covered with oozing yellow pustules, a small bald head with a gaping toothy mouth and blank white eyes, a few purple crystal spikes growing from his back and shoulders, thick arms dripping with slime, bare feet, shuffling",
+      "sujet": "a bloated fat grey zombie with a huge belly covered in yellow pustules and purple spikes on its back",
+      "hauteur": 44,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/zombie-reference.jpg::concept reference only (bloated plague zombie): simplify it a lot, retro game sprite, do not copy its camera angle or its realistic modern style"
+      ],
+      "comparer": [
+        "archer",
+        "ogre",
+        "squelette"
+      ],
+      "mouvements": {
+        "idle": "the bloated zombie slowly raises one hand and reaches forward, its gaping mouth opens wider, then the arm sinks back down, the feet stay in place",
+        "walk": "limping very slowly forward to the right on a crippled leg: one stiff leg is dragged behind at every step, the body lurches and leans heavily to one side, the belly wobbles",
+        "attack": "lurches forward and slams both heavy arms down on the enemy in front of it, then sways back to its starting pose"
+      },
+      "notes": "Futur mort-vivant (premier niveau). D'après une image de « zombie boursouflé » de l'utilisateur, en plus simple. Niveau 2 : plus petit que l'Archer (44 px). Marche lente, une jambe infirme.",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L3-1",
+        "idle": "idle-3",
+        "attack": "attack-11",
+        "walk": "walk-10"
+      },
+      "grande": "art-candidats/references/derives/zombie-grand.png",
+      "consignes": {
+        "idle": "the bloated zombie slowly raises one hand and reaches forward, its gaping mouth opens wider, then the arm sinks back down, the feet stay in place",
+        "walk": "the bloated zombie walks forward to the right very slowly and heavily, small shuffling steps, its huge belly swaying from side to side with each step",
+        "attack": "the bloated zombie leans far back on its heels, its enormous round belly swelling even bigger, then it thrusts the huge belly forward with all its weight toward the enemy in front of it, then rocks back to its starting pose"
+      }
     }
   }
 }

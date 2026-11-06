@@ -26,8 +26,10 @@ public partial class BattleFieldView : Control
     /// <summary>
     /// Les animations d'une créature : des feuilles de 8 images (4 colonnes, 2 rangées), à côté de son image de combat
     /// (« epeiste-idle.png », « epeiste-walk.png », « epeiste-attack.png »). Sans feuille, l'image fixe est montrée.
+    /// Une feuille peut avoir plus d'images (« walkFrames »: 16 dans animations.json : 4 colonnes, 4 rangées), pour un
+    /// mouvement plus lent mais aussi fluide.
     /// </summary>
-    private const int AnimationFrames = 8, AnimationColumns = 4, AnimationRows = 2;
+    private const int AnimationFrames = 8, AnimationColumns = 4;
 
     /// <summary>Images d'animation par seconde.</summary>
     private const double AnimationFps = 10;
@@ -65,6 +67,14 @@ public partial class BattleFieldView : Control
         return null;
     }
 
+    /// <summary>Le nombre d'images de cette feuille (« idleFrames », « walkFrames », « attackFrames » ; 8 par défaut).</summary>
+    private static int Frames(BattleUnit unit, string state) =>
+        Setting(unit, state + "Frames") is double frames and >= 1 ? (int)frames : AnimationFrames;
+
+    /// <summary>Le temps pour traverser une case en marchant (« stepTime », en secondes ; 0,09 par défaut) : un zombie
+    /// avance lentement, au pas de son animation.</summary>
+    private static double StepTime(BattleUnit unit) => Setting(unit, "stepTime") is double time and > 0 ? time : 0.09;
+
     /// <summary>
     /// La pause entre deux attentes (« idlePauseMin » et « idlePauseMax », en secondes) : la créature reste sur sa pose
     /// de départ un moment tiré entre les deux, puis joue son attente une fois. Null : l'attente tourne en boucle.
@@ -77,9 +87,9 @@ public partial class BattleFieldView : Control
     /// le numéro de la pause et la troupe (toujours la même, sans hasard de la partie), pour que les troupes ne
     /// bougent pas ensemble.
     /// </summary>
-    private static int IdleFrameWithPauses(double time, double fps, double least, double most, double phase)
+    private static int IdleFrameWithPauses(double time, double fps, double least, double most, double phase, int frames)
     {
-        double play = AnimationFrames / fps;
+        double play = frames / fps;
         for (int cycle = 0; ; cycle++)
         {
             double noise = Math.Abs(Math.Sin(cycle * 12.9898 + phase * 78.233) * 43758.5453) % 1;
@@ -309,8 +319,9 @@ public partial class BattleFieldView : Control
                         }
                         t += delta;
                         var from = step == 0 ? start.Value : points[step - 1];
-                        // une case de marche en 0,09 s ; un vol prend le temps de toutes les cases survolées
-                        float k = (float)Math.Min(1, t / (0.09 * Math.Max(1, from.DistanceTo(points[step]) / HexWidth)));
+                        // une case de marche en 0,09 s (ou le « stepTime » de la créature) ; un vol prend le temps de
+                        // toutes les cases survolées
+                        float k = (float)Math.Min(1, t / (StepTime(moved.Unit) * Math.Max(1, from.DistanceTo(points[step]) / HexWidth)));
                         shown.Position = from.Lerp(points[step], k);
                         if (k < 1)
                             return false;
@@ -585,11 +596,13 @@ public partial class BattleFieldView : Control
         if (sheet == null)
             return (null, default);
         double time = state == Idle ? shown.StateTime + shown.Phase : shown.StateTime;
+        int frames = Frames(unit, state);
         int index = shown.State == Idle && IdlePause(unit) is var (least, most)
-            ? IdleFrameWithPauses(time, Fps(unit, Idle), least, most, shown.Phase)
+            ? IdleFrameWithPauses(time, Fps(unit, Idle), least, most, shown.Phase, frames)
             : (int)(time * Fps(unit, state));
-        index = state == AttackState ? Math.Min(index, AnimationFrames - 1) : index % AnimationFrames;
-        var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / AnimationRows);
+        index = state == AttackState ? Math.Min(index, frames - 1) : index % frames;
+        int rows = (frames + AnimationColumns - 1) / AnimationColumns;
+        var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / rows);
         return (sheet, new Rect2(new Vector2(index % AnimationColumns * cell.X, index / AnimationColumns * cell.Y), cell));
     }
 

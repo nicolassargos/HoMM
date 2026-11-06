@@ -224,58 +224,30 @@ public partial class BattleScreen : CanvasLayer
 
     // ------------------------------------------------------------------ le livre de sorts
 
-    /// <summary>Le joueur peut-il ouvrir son livre : à son tour, avec un héros qui n'a pas encore lancé de sort ce round.</summary>
-    private bool CanOpenSpellBook =>
-        IsPlayerTurn && _battle is { } battle && battle.CasterSide == _playerSide && !battle.HasCast(_playerSide)
-        && battle.HeroOf(_playerSide)!.Spells.Count > 0;
+    /// <summary>Le héros du joueur, s'il en a un dans ce combat : son livre se lit à tout moment.</summary>
+    private Hero? PlayerHero => _battle?.HeroOf(_playerSide);
+
+    /// <summary>Le joueur peut-il lancer un sort maintenant : à son tour, avec un héros qui n'en a pas encore lancé ce round.</summary>
+    private bool CanCastNow =>
+        IsPlayerTurn && _battle is { } battle && battle.CasterSide == _playerSide && !battle.HasCast(_playerSide);
 
     /// <summary>
-    /// Le livre de sorts : chaque sort du héros (nom, points, effet selon sa puissance) ; ceux qu'il ne peut pas payer
-    /// sont grisés. Choisir un sort, puis sa cible sur le champ.
+    /// Le livre de sorts : à tout moment, pour le lire ; à son tour, un clic sur un sort qu'on peut payer le choisit, puis
+    /// sa cible sur le champ.
     /// </summary>
     private void OpenSpellBook()
     {
-        if (!CanOpenSpellBook || _battle is not { } battle)
+        if (_battle is not { } battle || PlayerHero is not { } hero)
             return;
-        var hero = battle.HeroOf(_playerSide)!;
-        var dialog = new GameDialog { Title = Texts.SpellBookTitle(hero), OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
-        var list = new VBoxContainer();
-        list.AddThemeConstantOverride("separation", (int)Px(6));
-        list.AddChild(MakeLabel(Texts.SpellPointsLine(battle.SpellPointsOf(_playerSide), hero.MaxSpellPoints), 15, TextColor));
-        // deux colonnes (en attendant le vrai livre, une page par niveau)
-        var grid = new GridContainer { Columns = hero.Spells.Count > 8 ? 2 : 1 };
-        grid.AddThemeConstantOverride("h_separation", (int)Px(24));
-        grid.AddThemeConstantOverride("v_separation", (int)Px(6));
-        list.AddChild(grid);
-        foreach (var spell in hero.Spells)
-        {
-            var row = new HBoxContainer();
-            row.AddThemeConstantOverride("separation", (int)Px(10));
-            var button = FixedButton(spell.Name, 14, V(190, 34));
-            button.CustomMinimumSize = V(190, 34); // dans une rangée, sa taille vient de là
-            button.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-            button.Disabled = !battle.CanCast(spell);
-            button.Pressed += () =>
+        string? notice = CanCastNow ? null : !IsPlayerTurn ? Texts.NotYourTurnToCast : Texts.OneSpellPerRound;
+        var book = new SpellBookWindow(hero, battle.SpellPointsOf(_playerSide), spell => CanCastNow && battle.CanCast(spell), notice,
+            spell =>
             {
-                dialog.Hide();
-                dialog.QueueFree();
                 _spell = spell;
                 _message.Text = Texts.SpellTargetPrompt(spell);
-            };
-            row.AddChild(button);
-            string cost = battle.CanCast(spell) ? Texts.SpellCost(spell) : $"{Texts.SpellCost(spell)} · {Texts.NotEnoughSpellPoints}";
-            var text = MakeLabel($"{cost}\n{Texts.SpellEffectText(spell, hero)}", 12, SoftTextColor);
-            text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            text.CustomMinimumSize = V(330, 0);
-            text.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-            row.AddChild(text);
-            grid.AddChild(row);
-        }
-        dialog.AddChild(list);
-        dialog.Confirmed += dialog.QueueFree;
-        dialog.Canceled += dialog.QueueFree;
-        AddChild(dialog);
-        dialog.PopupCentered(new Vector2I((int)Px(grid.Columns == 2 ? 1120 : 580), 0));
+            });
+        AddChild(book);
+        book.Open();
     }
 
     private void CancelSpell()
@@ -441,7 +413,7 @@ public partial class BattleScreen : CanvasLayer
                 _wait = _auto ? AiDelay / 2 : AiDelay;
             }
         }
-        if (OpenSpellBookWhenReady && CanOpenSpellBook)
+        if (OpenSpellBookWhenReady && CanCastNow)
         {
             OpenSpellBookWhenReady = false;
             if (ChooseSpellWhenReady is { } id && battle.HeroOf(_playerSide)!.Spells.FirstOrDefault(s => s.Id == id) is { } chosen)
@@ -464,7 +436,7 @@ public partial class BattleScreen : CanvasLayer
         _title.Text = Texts.BattleRound(battle.Round);
         foreach (var button in new[] { _waitButton, _defendButton, _fleeButton })
             button.Disabled = !mine;
-        _spellButton.Disabled = !CanOpenSpellBook;
+        _spellButton.Disabled = PlayerHero == null;
         // le sort choisi n'est plus possible (le tour est passé à l'adversaire…) : on l'oublie
         if (_spell is { } chosen && (!mine || !battle.CanCast(chosen)))
             CancelSpell();

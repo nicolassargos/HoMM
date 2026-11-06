@@ -64,6 +64,8 @@ public sealed partial class TacticalBattle
             return true;
         if (UnitAt(target) is not { } unit)
             return false;
+        if (unit.IsUndead && !spell.AffectsUndead)
+            return false; // un mort-vivant n'y est pas sensible
         if (spell.Target == SpellTarget.Any)
             return true;
         if (spell.Target is SpellTarget.Enemy or SpellTarget.Chain)
@@ -182,6 +184,7 @@ public sealed partial class TacticalBattle
             case SpellEffect.Cure:
                 int healed = unit.Heal(strength);
                 unit.RemoveHarmfulSpells();
+                unit.CurePoison();
                 _log.Add(new UnitHealed(unit, spell, healed, 0));
                 break;
             case SpellEffect.Resurrection:

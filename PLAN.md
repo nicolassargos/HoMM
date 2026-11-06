@@ -90,12 +90,53 @@ cet ordre :
 4. **Une animation par sort** sur le champ (projectile, éclair, explosion…) et un **effet visible sur les troupes**
    (lueur, aura tant qu'un sort dure…). Puis le reste au fil des idées (sons…).
 
-### Les factions
-À terme **6 factions + 1 faction neutre**, chacune avec ses 7 créatures, à concevoir ensemble (thème, rôle de chacune).
-Déjà décidé (2026-11-05) : des **morts-vivants** avec le Zombie, le Fantôme, le Vampire, la Liche et, au sommet, un
-**Colosse d'os** (aussi fort que l'Ange ou le Dragon) ; le Squelette pourrait les rejoindre. Au Château, l'Épéiste
-deviendra un **Chevalier**. Images déjà prêtes ou en cours : `chevalier`, `zombie`, `fantome`, `vampire`, `liche`,
-`colosse-os`. L'IA devra apprendre les nouvelles factions.
+### Les factions (en cours de conception)
+Décidé avec l'utilisateur (2026-11-06) : **6 factions + 1 faction neutre** :
+- le **Château** (humains, équilibré ; classe Paladin) ; au Château, l'Épéiste deviendra un **Chevalier** ;
+- les **morts-vivants** (magie ; conçus en premier, ci-dessous) ;
+- les **Barbares** (force, peu de magie) : **nos créatures neutres actuelles** (Gobelin, Orc, Loup, Ogre, Troll) en
+  forment l'essentiel, avec une ou deux créatures de plus au sommet ;
+- la **Forêt** (équilibrée, tireurs, magie de la nature) ;
+- la **Tour de magie** (la faction de la magie) ;
+- une faction **sombre** : Donjon ou Démons (à trancher, ou un mélange), conçue en dernier.
+La **faction neutre** garde les monstres de la carte seulement (le Dragon rouge, et d'autres au fil du temps). Les prix
+et les caractéristiques des créatures neutres actuelles sont à remettre à l'échelle du Château (un Squelette coûte 60
+or, un Archer de même force 18) quand elles rejoignent une faction. L'IA devra apprendre les nouvelles factions.
+**Plus tard : les créatures améliorées** (comme Heroes 3 : un bâtiment améliore une créature en une version plus
+forte) ; la **Banshee** sera le Fantôme amélioré.
+
+#### Les morts-vivants (en cours)
+| Niveau | Créature | Rôle | Capacité (proposition) |
+|---|---|---|---|
+| 1 | Squelette (des neutres) | l'infanterie de base, nombreuse | encaisse les tirs (déjà) |
+| 2 | Zombie | un mur lent et solide | lent, beaucoup de PV |
+| 3 | Fantôme | grossit en tuant (choix de l'utilisateur) | vole ; **chaque créature ennemie tuée ajoute un fantôme à sa troupe**, pour de bon : une troupe qui grossit peut dépasser le charisme du héros et se révolter (des fantômes « incontrôlables ») |
+| 4 | Araignée géante | (choix de l'utilisateur) | morsure **empoisonnée** : des dégâts au début de chaque tour de la cible |
+| 5 | Vampire | le tueur au corps à corps | vole, **draine la vie** : ses dégâts soignent sa créature de tête, puis ramènent des vampires tués dans ce combat (jamais plus qu'au début) |
+| 6 | Liche | le tireur | **nuage de mort** : son tir touche aussi les cases voisines, sauf les morts-vivants |
+| 7 | Colosse d'os | le géant du sommet (fort comme l'Ange) | **balayage** : frappe tous les ennemis voisins |
+Écartés pour le niveau 4 : la Banshee (trop proche du Fantôme : elle sera sa version améliorée), la Goule, le
+Chevalier noir. Images : Squelette, Fantôme et Colosse faits ; Zombie, Araignée, Vampire, Liche à faire.
+Décidé : **tous les morts-vivants sont insensibles aux sorts de l'esprit** (aveuglement, malédiction, faiblesse), et
+**soins et résurrection n'ont pas d'effet sur eux** (les premières créatures qui résistent à la magie).
+Chiffres décidés (2026-11-06), chaque créature à peu près aussi forte que celle du Château du même niveau (paysans pour
+en vaincre une : Squelette 3, Zombie 10, Fantôme 13, Araignée 24, Vampire 50, Liche 106, Colosse d'os 964 ; Château :
+Archer 8, Griffon 14, Épéiste 26, Moine 63, Cavalier 116, Ange 1643). Squelette 3/2, 1-2, 4 PV, 9 or (l'utilisateur
+craint qu'il soit trop fort face aux paysans : à surveiller en jeu) ; Zombie 5/6, 2-3, 20 PV, vitesse 3 ; Fantôme 7/5,
+3-4, 12 PV, vitesse 7 ; Araignée 10/9, 5-7, 30 PV (poison : 2 par araignée, 3 tours) ; Vampire 13/10, 9-12, 40 PV ;
+Liche 15/13, 14-18, 70 PV ; Colosse d'os 22/24, 60-80, 1400 PV, vitesse 6. Le Colosse est plus faible que l'Ange :
+à revoir.
+Découpage : 1. ✅ les créatures et leurs capacités au combat (`undead`, `ghost-growth`, `poison`, `life-drain`,
+`death-cloud`, `sweep`), les morts-vivants déjà rencontrés comme monstres sur la carte (`MapGenerator.MonsterFactions`) ;
+un gardien d'une autre faction que les neutres est dimensionné pour avoir la force du gardien neutre du même niveau
+(`CreatureStrength`, mesurée au combat), sinon les Liches (niveau 6, les neutres n'en ont pas) et les Colosses (4 fois
+un Dragon) rendaient les cartes bien plus dures. La simulation gagne comme avant. Tests : `MortsVivantsTests`.
+2. La ville, le choix de la faction, le Nécromancien et la Nécromancie, l'IA. 3. Les images qui manquent (Zombie,
+Araignée, Vampire, Liche ; images de la carte de tous).
+Décidé aussi : la classe **Nécromancien** (attaque 1, défense 1, puissance 2, savoir 2, charisme 8, Malédiction au
+départ, talent **Nécromancie** : après une victoire, 10 % des ennemis tués + 2 % par niveau se relèvent en Squelettes,
+sans dépasser son charisme). À choisir avec la ville : les noms des habitations (proposés : Ossuaire, Cimetière, Étang
+des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
 
 ### Les héros et leurs classes (en cours)
 Décidé avec l'utilisateur (2026-11-06, après une revue des classes de Heroes 1 à 7 et de King's Bounty) :

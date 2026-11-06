@@ -27,6 +27,15 @@ public sealed record UnitStruck(BattleUnit Attacker, BattleUnit Target, int Dama
 
 public sealed record UnitWaited(BattleUnit Unit) : BattleAction;
 
+/// <summary>Le poison agit au début du tour de la troupe.</summary>
+public sealed record UnitPoisoned(BattleUnit Unit, int Damage, int Killed) : BattleAction;
+
+/// <summary>Une troupe grossit en tuant (Fantôme) : <paramref name="Added"/> créatures de plus.</summary>
+public sealed record UnitGrew(BattleUnit Unit, int Added) : BattleAction;
+
+/// <summary>Une troupe draine la vie (Vampire) : points de vie rendus, créatures ramenées.</summary>
+public sealed record UnitDrained(BattleUnit Unit, int HitPoints, int Revived) : BattleAction;
+
 /// <summary>La troupe s'est régénérée : sa créature de tête a retrouvé tous ses points de vie.</summary>
 public sealed record UnitRegenerated(BattleUnit Unit) : BattleAction;
 public sealed record UnitDefended(BattleUnit Unit) : BattleAction;
@@ -58,6 +67,9 @@ public sealed partial class TacticalBattle
 
     /// <summary>Part de la défense ignorée par un coup écrasant (40 %).</summary>
     public const double CrushingShare = 0.4;
+
+    /// <summary>Le poison de l'Araignée : dégâts par créature qui mord, et pendant combien de tours de la cible.</summary>
+    public const int PoisonPerCreature = 2, PoisonTurns = 3;
 
     /// <summary>Vitesse en plus au premier round (<see cref="Ability.QuickStart"/>).</summary>
     public const int QuickStartBonus = 2;
@@ -254,6 +266,17 @@ public sealed partial class TacticalBattle
                 _waiting.Clear();
                 continue;
             }
+            if (next != null && next.PoisonTurnsLeft > 0)
+            {
+                var (damage, killed) = next.TakePoison();
+                _log.Add(new UnitPoisoned(next, damage, killed));
+                if (!next.IsAlive)
+                {
+                    if (CheckEnd())
+                        return;
+                    continue; // le poison l'a tuée : la suivante joue
+                }
+            }
             if (next != null)
             {
                 Active = next;
@@ -418,7 +441,15 @@ public sealed partial class TacticalBattle
         Strike(unit, target, ranged: false, retaliation: false, moved);
         if (unit.Has(Ability.Breath) && behind is { } hex && UnitAt(hex) is { } second && second != unit && second != target)
             Strike(unit, second, ranged: false, retaliation: false, moved);
+        // le balayage : tous les autres ennemis voisins (seule la cible riposte)
+        if (unit.Has(Ability.Sweep))
+            foreach (var other in Neighbours(unit).Where(o => o != target && AreEnemies(unit, o)).ToList())
+                Strike(unit, other, ranged: false, retaliation: false, moved);
     }
+
+    /// <summary>Les troupes vivantes à côté de celle-ci (sur une case voisine d'une de ses cases).</summary>
+    private IEnumerable<BattleUnit> Neighbours(BattleUnit unit) =>
+        unit.Hexes.SelectMany(h => h.Neighbours()).Select(UnitAt).OfType<BattleUnit>().Where(u => u != unit).Distinct();
 
     /// <summary>La case juste derrière <paramref name="target"/>, vue depuis sa voisine <paramref name="from"/> (dans la même direction).</summary>
     public static Hex? Behind(Hex from, Hex target)
@@ -435,7 +466,13 @@ public sealed partial class TacticalBattle
     {
         if (Active is not { } unit || !CanShoot(unit, target))
             return false;
+        var around = unit.Has(Ability.DeathCloud)
+            ? Neighbours(target).Where(o => o != unit && !o.IsUndead).ToList()
+            : new List<BattleUnit>();
         Strike(unit, target, ranged: true, retaliation: false);
+        // le nuage de mort : les troupes autour de la cible (amies comprises), sauf les morts-vivants
+        foreach (var other in around.Where(o => o.IsAlive))
+            Strike(unit, other, ranged: true, retaliation: false);
         EndTurn();
         return true;
     }
@@ -512,9 +549,25 @@ public sealed partial class TacticalBattle
     private void Strike(BattleUnit from, BattleUnit to, bool ranged, bool retaliation, int moved = 0)
     {
         int damage = RollDamage(from, to, ranged, retaliation ? 0 : moved);
+        int lost = Math.Min(damage, to.TotalHitPoints); // les points de vie vraiment ôtés
         int killed = to.TakeDamage(damage);
         to.Wake();
         _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation));
+        if (!from.IsAlive)
+            return;
+        if (from.Has(Ability.GhostGrowth) && killed > 0)
+        {
+            from.Grow(killed);
+            _log.Add(new UnitGrew(from, killed));
+        }
+        if (from.Has(Ability.LifeDrain) && lost > 0)
+        {
+            var (hitPoints, revived) = from.Revive(lost, _startCounts[from]);
+            if (hitPoints > 0)
+                _log.Add(new UnitDrained(from, hitPoints, revived));
+        }
+        if (from.Has(Ability.Poison) && to.IsAlive)
+            to.Poison(PoisonPerCreature * from.Count, PoisonTurns);
     }
 
     /// <summary>

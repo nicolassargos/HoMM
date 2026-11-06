@@ -11,7 +11,7 @@ public class HerosContreHerosTests
     /// <summary>Une partie à un adversaire, dont le héros est posé à côté du héros du joueur, avec ces armées.</summary>
     private static (GameState State, Hero Mine, Hero Rival) FaceToFace(int mine, int rival)
     {
-        var state = new GameState(4, TestData.Data, MapSize.Tiny, opponents: 1);
+        var state = new GameState(4, TestData.Data, MapSize.Tiny, opponents: 1, startingTowns: false);
         state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
         var me = state.Players[0].Heroes[0];
         var him = state.Players[1].Heroes[0];

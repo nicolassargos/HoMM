@@ -26,14 +26,15 @@ public sealed partial class GameState
     /// Une nouvelle partie sur une carte générée de cette taille, avec <paramref name="opponents"/> adversaires joués par
     /// l'ordinateur (au plus <see cref="MapSizes.MaxOpponents"/>), chacun dans un coin de la carte.
     /// </summary>
-    public GameState(int seed, GameData data, MapSize size, int opponents = 0)
-        : this(seed, data, Generate(seed, data, size, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size))))
+    /// <param name="startingTowns">Chaque joueur commence avec son château (sans : en pleine nature, pour des tests).</param>
+    public GameState(int seed, GameData data, MapSize size, int opponents = 0, bool startingTowns = true)
+        : this(seed, data, Generate(seed, data, size, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns))
         => AddPlayers(Map.Starts.Count);
 
-    private static AdventureMap Generate(int seed, GameData data, MapSize size, int opponents)
+    private static AdventureMap Generate(int seed, GameData data, MapSize size, int opponents, bool startingTowns)
     {
         var (width, height) = MapSizes.Dimensions(size);
-        return new MapGenerator(seed, data) { Players = opponents + 1 }.Generate(width, height);
+        return new MapGenerator(seed, data) { Players = opponents + 1, StartingTowns = startingTowns }.Generate(width, height);
     }
 
     /// <summary>Les noms (et couleurs) des joueurs, dans l'ordre : le joueur humain, puis les adversaires.</summary>
@@ -67,6 +68,9 @@ public sealed partial class GameState
             var hero = new Hero(name, player, Map.Starts.Count > i ? Map.Starts[i] : Map.Start) { Id = _nextHeroId++ };
             foreach (var stack in StartingArmy(Creatures).Stacks)
                 hero.Army.Add(stack.Type, stack.Count);
+            // son château de départ, s'il y en a un sur son départ (cartes générées)
+            if (Map.ObjectAt(hero.Position) is Town castle && castle.Position == hero.Position)
+                castle.SetOwner(player);
             if (i == 0)
                 CurrentHero = hero;
         }

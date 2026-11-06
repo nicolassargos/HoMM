@@ -11,7 +11,7 @@ public class ExplorationIATests
     /// <summary>Une partie à un adversaire, à son tour (le joueur a fini le sien).</summary>
     private static (GameState State, Hero Rival) RivalTurn(int seed = 4)
     {
-        var state = new GameState(seed, TestData.Data, MapSize.Tiny, opponents: 1);
+        var state = new GameState(seed, TestData.Data, MapSize.Tiny, opponents: 1, startingTowns: false);
         state.EndTurn();
         Assert.True(state.CurrentPlayer.IsComputer);
         return (state, state.CurrentPlayer.Heroes[0]);
@@ -28,6 +28,9 @@ public class ExplorationIATests
     public void L_adversaire_ramasse_un_tas_proche()
     {
         var (state, rival) = RivalTurn();
+        // seul ce tas l'intéresse (pas une ville, un monstre ou un autre objet de la carte)
+        foreach (var obj in state.Map.Objects.Where(o => o is ResourcePile or TreasureChest or Mine or Obelisk or MonsterGuard or Town).ToList())
+            state.Map.RemoveObject(obj);
         var cell = FreeCellNear(state, rival);
         var pile = new ResourcePile(cell, ResourceType.Gold, 700);
         state.Map.AddObject(pile);

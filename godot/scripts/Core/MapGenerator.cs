@@ -16,7 +16,11 @@ public sealed class MapGenerator
     private readonly GameData? _data;
     private AdventureMap _map = null!;
 
-    private static readonly string[] TownNames = { "Bellerive", "Hautemont", "Valombre", "Clairefont", "Roc-Fleuri", "Mirebois" };
+    private static readonly string[] TownNames =
+    {
+        "Bellerive", "Hautemont", "Valombre", "Clairefont", "Roc-Fleuri", "Mirebois",
+        "Pierrelune", "Bois-Doré", "Montclair", "Sombreval", "Aiguerive", "Combelaine", "Brunehaut", "Fontargent",
+    };
 
     /// <param name="data">Les données de jeu, pour les villes et les monstres. Sans données : ni ville ni monstre.</param>
     public MapGenerator(int seed, GameData? data = null)
@@ -65,6 +69,9 @@ public sealed class MapGenerator
     /// coin opposé, puis les deux autres).
     /// </summary>
     public int Players { get; init; } = 1;
+
+    /// <summary>Chaque joueur commence avec un château sur son départ (sans : le départ en pleine nature, comme avant).</summary>
+    public bool StartingTowns { get; init; } = true;
 
     /// <summary>Les départs : à 4 cases des bords, dans l'ordre des joueurs.</summary>
     private static IEnumerable<Cell> StartCells(int width, int height, int players) =>
@@ -448,6 +455,12 @@ public sealed class MapGenerator
     {
         var names = TownNames.ToList();
         Shuffle(names);
+        // chaque joueur commence avec son château, l'entrée sur son départ (comme dans Heroes 2 et 3)
+        foreach (var start in StartingTowns ? _map.Starts : new List<Cell>())
+        {
+            PlaceStartingTown(data, start, names[0]);
+            names.RemoveAt(0);
+        }
         if (_zones.Count == 1)
         {
             PlaceTownNearStart(data, names[0]);
@@ -478,6 +491,25 @@ public sealed class MapGenerator
             if (PlaceTownInZone(data, zone, names[placed], towards))
                 placed++;
         }
+    }
+
+    /// <summary>
+    /// Le château de départ d'un joueur : l'entrée sur son départ, les murs juste au-dessus (sur l'herbe dégagée autour du
+    /// départ, sans route sous les murs), la salle du village et le corps de garde, sans garnison. La partie le donne au
+    /// joueur (voir <see cref="GameState"/>).
+    /// </summary>
+    private void PlaceStartingTown(GameData data, Cell start, string name)
+    {
+        foreach (var f in Town.FootprintAt(start).Append(start.Offset(0, 1)))
+        {
+            _map.SetTerrain(f, TerrainType.Grass);
+            if (f != start && f != start.Offset(0, 1))
+                _map.SetRoad(f, false);
+        }
+        var town = new Town(start, name, "chateau", data);
+        town.AddBuilding(data.Buildings.Get("salle-village"));
+        town.AddBuilding(data.Buildings.Get("corps-de-garde"));
+        _map.AddObject(town);
     }
 
     private bool PlaceTownInZone(GameData data, Zone zone, string name, Cell? towards = null)

@@ -11,7 +11,7 @@ public class TownTests
     /// <summary>Une partie avec une ville de test juste à côté du héros (deux cases à droite).</summary>
     private static (GameState State, Town Town) GameWithTownNearby(int garrisonPaysans = 0, string garrisonId = "paysan")
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         var cell = state.CurrentHero!.Position.Offset(2, 0);
         var town = new Town(cell, "Testville", "chateau", TestData.Data);
         town.AddBuilding(B("salle-village"));
@@ -34,8 +34,9 @@ public class TownTests
     [InlineData(2026)]
     public void La_carte_a_des_villes_neutres_mieux_gardees_au_loin(int seed)
     {
+        // les villes neutres (le château de départ n'en est pas une)
         var map = new MapGenerator(seed, TestData.Data).Generate();
-        var towns = map.Objects.OfType<Town>()
+        var towns = map.Objects.OfType<Town>().Where(t => t.Position != map.Start)
             .OrderBy(t => Pathfinder.FindPath(map, map.Start, t.Position)!.Count)
             .ToList();
 
@@ -107,7 +108,7 @@ public class TownTests
         }
 
         // Les murs de la ville ne coupent l'accès à rien
-        foreach (var obj in map.Objects.Where(o => o is not MonsterGuard))
+        foreach (var obj in map.Objects.Where(o => o is not MonsterGuard && o.Position != map.Start))
             Assert.NotNull(Pathfinder.FindPath(map, map.Start, obj.Position));
     }
 

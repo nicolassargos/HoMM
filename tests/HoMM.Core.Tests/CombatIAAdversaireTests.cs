@@ -11,7 +11,7 @@ public class CombatIAAdversaireTests
     /// <summary>Une partie à un adversaire, à son tour, sans rien à ramasser (pour qu'il ne fasse que ce qu'on teste).</summary>
     private static (GameState State, Hero Rival) RivalTurn()
     {
-        var state = new GameState(4, TestData.Data, MapSize.Tiny, opponents: 1);
+        var state = new GameState(4, TestData.Data, MapSize.Tiny, opponents: 1, startingTowns: false);
         state.EndTurn();
         foreach (var obj in state.Map.Objects.Where(o => o is ResourcePile or TreasureChest or Mine or Obelisk or MonsterGuard or Town).ToList())
             state.Map.RemoveObject(obj);

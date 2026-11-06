@@ -38,7 +38,7 @@ On avance étape par étape, sans se presser : chaque étape est jouable et test
 
 ### 2. Villes ✅ (PR #6)
 Choix faits : la ville est **neutre** au départ, à mi-distance, défendue par une petite
-garnison ; les villes ont une **garnison** (comme dans Heroes) ; bâtiments minimaux ;
+garnison (changé à l'étape 8 : chaque joueur commence maintenant avec son château) ; les villes ont une **garnison** (comme dans Heroes) ; bâtiments minimaux ;
 écran de ville en plein écran.
 
 Découpage :
@@ -540,6 +540,14 @@ Découpage (une PR par point, chacune jouable et testée) :
    Mesuré (un adversaire, six cartes normales, six semaines) : Facile prend 1 ville, Normal 5, Difficile 5 ; armée
    moyenne 1 600, 3 500 et 5 200 en or. Encore à améliorer (par l'entraînement, point 7) : sur trois cartes sur six,
    l'adversaire reste dans son coin. Option `--difficulty=easy|normal|hard`. Tests : `DifficulteTests`.
+   ✅ **Un château au départ** (proposé par l'utilisateur) : chaque joueur commence à l'entrée de son propre château
+   (salle du village et corps de garde, garnison vide), posé sur son départ (`MapGenerator.PlaceStartingTown`,
+   `StartingTowns`, vrai par défaut). Il peut construire et recruter dès le premier jour ; les villes neutres restent à
+   prendre plus loin. Sans château, les adversaires dont la ville voisine était trop bien gardée restaient bloqués.
+   14 noms de villes (les cartes d'une même graine changent). Mesuré de nouveau (un adversaire, six cartes normales,
+   six semaines) : l'adversaire a environ 3 villes à chaque niveau, 2 à 4 héros, plus de 20 combats gagnés, une
+   armée de 14 000 à 16 000 en or en moyenne (1 600 à 5 200 avant) ; sur une ou deux cartes, elle reste petite ; la simulation d'équilibrage (seul) gagne toujours. Les tests qui demandent une carte sans
+   château passent `startingTowns: false`.
 7. Plus tard (étape 10) : **entraîner les profils par des parties entre IA** jouées en arrière-plan (les règles tournent
    sans affichage : un mois de jeu se simule en une seconde environ) ; garder les réglages qui gagnent le plus souvent
    pour un « Difficile » solide, et vérifier que Facile l'est vraiment. Écarté : un réseau de neurones (lourd, difficile

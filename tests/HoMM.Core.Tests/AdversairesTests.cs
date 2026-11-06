@@ -29,10 +29,10 @@ public class AdversairesTests
                 Assert.Equal(map.Starts[i], Assert.Single(state.Players[i].Heroes).Position);
             // tout reste atteignable depuis chaque départ
             foreach (var start in map.Starts)
-                foreach (var obj in map.Objects)
+                foreach (var obj in map.Objects.Where(o => o.Position != start)) // sauf son château
                     Assert.NotNull(Pathfinder.FindPath(map, start, obj.Position));
             // chaque départ a une ville plus proche de lui que de tout autre départ
-            var towns = map.Objects.OfType<Town>().ToList();
+            var towns = map.Objects.OfType<Town>().Where(t => !map.Starts.Contains(t.Position)).ToList(); // les villes neutres
             foreach (var start in map.Starts)
                 Assert.Contains(towns, t => map.Starts.All(other => other == start
                     || Distance(t.Position, start) < Distance(t.Position, other)));
@@ -69,7 +69,7 @@ public class AdversairesTests
     [Fact]
     public void Vaincre_tous_les_adversaires_fait_gagner()
     {
-        var state = new GameState(3, TestData.Data, MapSize.Normal, opponents: 1);
+        var state = new GameState(3, TestData.Data, MapSize.Normal, opponents: 1, startingTowns: false);
         Assert.True(state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents)));
         state.Players[1].Heroes.Clear(); // l'adversaire n'a ni héros ni ville
         state.EndTurn();
@@ -85,5 +85,31 @@ public class AdversairesTests
         var loaded = GameState.Load(state.Save(), TestData.Data);
         Assert.Equal(state.Players.Select(p => (p.Name, p.IsComputer)), loaded.Players.Select(p => (p.Name, p.IsComputer)));
         Assert.Equal(state.CurrentPlayer.Id, loaded.CurrentPlayer.Id);
+    }
+
+    [Theory]
+    [InlineData(MapSize.Normal, 0)]
+    [InlineData(MapSize.Large, 3)]
+    public void Chaque_joueur_commence_avec_son_chateau(MapSize size, int opponents)
+    {
+        var state = new GameState(9, TestData.Data, size, opponents);
+        foreach (var player in state.Players)
+        {
+            var hero = Assert.Single(player.Heroes);
+            var castle = Assert.Single(player.Towns);
+            Assert.Equal(castle.Position, hero.Position); // le héros est à l'entrée de son château
+            Assert.True(castle.Garrison.IsEmpty);
+            Assert.True(state.Map.IsPassable(castle.Approach));
+        }
+        // dès le premier jour, l'adversaire construit et recrute dans son château
+        if (opponents > 0)
+        {
+            state.EndTurn();
+            var rival = state.CurrentPlayer;
+            int army = rival.Heroes[0].Army.TotalCount;
+            ComputerPlayer.PlayTurn(state);
+            Assert.True(rival.Towns[0].BuiltBuildings.Count() > 2);
+            Assert.True(rival.Heroes.Sum(h => h.Army.TotalCount) + rival.Towns.Sum(t => t.Garrison.TotalCount) > army);
+        }
     }
 }

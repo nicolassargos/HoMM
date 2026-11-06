@@ -51,7 +51,7 @@ public class TresorTests
     /// <summary>Une partie où le héros est juste à côté d'un obélisque, sans monstre autour.</summary>
     private static (GameState State, Obelisk Obelisk) GameNextToObelisk()
     {
-        var state = new GameState(42, TestData.Data);
+        var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
         state.TakeEvents();
         var hero = state.CurrentHero!;
         var cell = hero.Position.Offset(1, 0);
@@ -92,7 +92,7 @@ public class TresorTests
     /// <summary>Une partie où le héros se tient sur le trésor, avec toute sa journée de mouvement.</summary>
     private static GameState GameOnTreasure(VictoryCondition victory)
     {
-        var state = new GameState(42, TestData.Data);
+        var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
         state.ChooseRules(new GameRules(victory));
         state.TakeEvents();
         state.Map.Treasure = state.CurrentHero!.Position;
@@ -172,7 +172,7 @@ public class TresorTests
     [Fact]
     public void Il_faut_au_moins_une_facon_de_gagner()
     {
-        var state = new GameState(42, TestData.Data);
+        var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
 
         Assert.False(state.ChooseRules(new GameRules(VictoryCondition.None)));
         Assert.Equal(GameRules.Default, state.Rules);
@@ -181,7 +181,7 @@ public class TresorTests
     [Fact]
     public void Le_choix_des_conditions_indique_ou_est_enfoui_le_tresor()
     {
-        var state = new GameState(42, TestData.Data);
+        var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
 
         state.ChooseRules(new GameRules(VictoryCondition.CaptureTowns | VictoryCondition.FindTreasure));
 
@@ -215,7 +215,7 @@ public class TresorTests
     public void Une_ancienne_sauvegarde_garde_sa_condition()
     {
         // avant : une seule condition, écrite « ClearGuards » ; elle se lit toujours
-        var json = new GameState(42, TestData.Data).Save();
+        var json = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false).Save();
         Assert.Contains("\"ClearGuards\"", json);
 
         var loaded = GameState.Load(json, TestData.Data);

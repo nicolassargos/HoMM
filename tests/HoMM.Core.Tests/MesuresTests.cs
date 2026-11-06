@@ -47,6 +47,23 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// La simulation seule avec un héros qui monte de niveau : en force (attaque, défense) ou en magie (puissance,
+    /// savoir, guilde des mages, sorts), sur une carte normale : la magie doit être un choix aussi bon que la force.
+    /// </summary>
+    [Mesure]
+    public void Simulation_force_ou_magie()
+    {
+        foreach (var style in new[] { BalanceSimulation.Style.Might, BalanceSimulation.Style.Magic })
+        {
+            var results = Seeds.Select(seed => BalanceSimulation.Play(seed, MapSize.Normal, style)).ToList();
+            var won = results.Where(r => r.VictoryDay > 0).Select(r => r.VictoryDay).ToList();
+            output.WriteLine($"{style} : victoire {won.Count} fois sur {results.Count}, jour {Range(won)} "
+                             + $"({string.Join(" ", results.Select(r => r.VictoryDay))}), niveau {Range(results.Select(r => r.Level).ToList())}, "
+                             + $"points de sort dépensés {Range(results.Select(r => r.SpellsCast).ToList())}");
+        }
+    }
+
+    /// <summary>
     /// Un adversaire seul face au joueur (qui ne joue pas et ne se fait pas prendre), six semaines, à chaque niveau :
     /// ses villes, ses héros, ses combats gagnés, la valeur de son armée (or), ses sorts.
     /// </summary>

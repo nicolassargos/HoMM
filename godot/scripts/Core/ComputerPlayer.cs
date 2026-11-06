@@ -90,8 +90,8 @@ public static class ComputerPlayer
     /// </summary>
     private static readonly string[] BuildOrder =
     {
-        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "guilde-mages-1", "caserne", "monastere",
-        "guilde-mages-2", "terrain-entrainement", "grand-hotel-ville", "guilde-mages-3", "portail-gloire", "guilde-mages-4",
+        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "caserne", "monastere", "guilde-mages-1",
+        "terrain-entrainement", "guilde-mages-2", "grand-hotel-ville", "portail-gloire", "guilde-mages-3", "guilde-mages-4",
     };
 
     /// <summary>Le nombre de héros voulus : un de plus que de villes, et pas plus que ne le permet la difficulté.</summary>
@@ -105,12 +105,7 @@ public static class ComputerPlayer
     private static void ManageTown(GameState state, Town town)
     {
         var player = state.CurrentPlayer;
-        foreach (var id in BuildOrder)
-            if (town.Buildings.FirstOrDefault(b => b.Id == id) is { } building && town.CanBuild(building, player) == BuildResult.Ok)
-            {
-                state.Build(town, id);
-                break;
-            }
+        BuildNext(state, town, player);
         bool wantsHero = player.Heroes.Count < WantedHeroes(state, player) && town.Buildings.Any(b => b.Tavern && town.Has(b.Id));
         if (wantsHero && player.Resources[ResourceType.Gold] >= GameState.HeroCost && state.CanHireHero(town) == HireResult.Ok)
         {
@@ -128,6 +123,49 @@ public static class ComputerPlayer
         }
         if (state.VisitingHero(town) is { } hero && hero.Owner == player)
             TakeGarrison(state, town, hero);
+    }
+
+    /// <summary>
+    /// Un bâtiment par jour, dans l'ordre de construction : le premier qu'on peut bâtir (ses bâtiments requis sont là).
+    /// S'il manque de quoi le payer, on peut bâtir un bâtiment plus loin dans l'ordre, mais seulement s'il ne retarde pas
+    /// le premier : il n'utilise aucune des ressources qui lui manquent, et laisse assez des autres (sinon la guilde des
+    /// mages, par exemple, prenait le bois et le minerai que la caserne attendait).
+    /// </summary>
+    private static void BuildNext(GameState state, Town town, Player player)
+    {
+        BuildingType? waiting = null;
+        foreach (var id in BuildOrder)
+        {
+            if (town.Buildings.FirstOrDefault(b => b.Id == id) is not { } building || town.Has(id))
+                continue;
+            var result = town.CanBuild(building, player);
+            if (result == BuildResult.AlreadyBuiltToday)
+                return;
+            if (result == BuildResult.MissingRequirement)
+                continue;
+            if (waiting == null && result == BuildResult.NotEnoughResources)
+            {
+                waiting = building;
+                continue;
+            }
+            if (result == BuildResult.Ok && (waiting == null || LeavesEnoughFor(player, building, waiting)))
+            {
+                state.Build(town, id);
+                return;
+            }
+        }
+    }
+
+    /// <summary>Après avoir payé <paramref name="building"/>, pourra-t-on encore payer <paramref name="waiting"/> dès qu'il ne manquera plus que ce qui lui manque déjà ?</summary>
+    private static bool LeavesEnoughFor(Player player, BuildingType building, BuildingType waiting)
+    {
+        foreach (var (resource, needed) in waiting.Cost)
+        {
+            int have = player.Resources.GetValueOrDefault(resource), spent = building.Cost.GetValueOrDefault(resource);
+            if (spent > 0 && (have < needed || have - spent < needed))
+                return false;
+        }
+        return true;
     }
 
     /// <summary>

@@ -59,8 +59,17 @@ public sealed record BuildingType
     public string Faction { get; init; } = "";
     public Dictionary<ResourceType, int> Cost { get; init; } = new();
 
-    /// <summary>Les bâtiments à construire avant celui-ci.</summary>
+    /// <summary>
+    /// Les bâtiments à construire avant celui-ci. « a|b » : l'un ou l'autre (un bâtiment commun à toutes les factions
+    /// qui demande une habitation : celle du Château ou celle des morts-vivants).
+    /// </summary>
     public List<string> Requires { get; init; } = new();
+
+    /// <summary>Chaque prérequis, avec ses choix (« a|b » : a ou b).</summary>
+    public IEnumerable<string[]> RequirementChoices => Requires.Select(r => r.Split('|'));
+
+    /// <summary>Un bâtiment commun à toutes les factions (salle du village, taverne, guilde…).</summary>
+    public const string AnyFaction = "*";
 
     /// <summary>Or rapporté chaque jour (salle du village, hôtel de ville…). Seul le plus élevé de la ville compte.</summary>
     public int DailyGold { get; init; }
@@ -105,7 +114,9 @@ public sealed class BuildingCatalog
     public BuildingType Get(string id) =>
         _byId.TryGetValue(id, out var b) ? b : throw new KeyNotFoundException($"Bâtiment inconnu : {id}");
 
-    public IEnumerable<BuildingType> OfFaction(string faction) => _byId.Values.Where(b => b.Faction == faction);
+    /// <summary>Les bâtiments d'une ville de cette faction : les siens, et les bâtiments communs.</summary>
+    public IEnumerable<BuildingType> OfFaction(string faction) =>
+        _all.Where(b => b.Faction == faction || b.Faction == BuildingType.AnyFaction).GroupBy(b => b.Id).Select(g => g.First());
 
     public static BuildingCatalog FromJson(string json) =>
         new(GameData.Parse<CatalogFile>(json, "bâtiments").Buildings);

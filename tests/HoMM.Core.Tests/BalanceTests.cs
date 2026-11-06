@@ -66,6 +66,19 @@ internal static class BalanceSimulation
         "terrain-entrainement", "grand-hotel-ville", "portail-gloire",
     };
 
+    /// <summary>
+    /// Les listes nomment les bâtiments du Château ; dans une ville d'une autre faction, une habitation du Château devient
+    /// celle du même niveau de cette faction (les bâtiments communs ne changent pas).
+    /// </summary>
+    private static string? ForTown(Town town, string id)
+    {
+        var building = TestData.Data.Buildings.Get(id);
+        if (building.Faction == town.Faction || building.Faction == BuildingType.AnyFaction)
+            return id;
+        int tier = building.Dwelling is { } creature ? TestData.Creatures.Get(creature).Tier : 0;
+        return town.DwellingOfTier(tier)?.Id;
+    }
+
     private const int FightEveryDays = 2;      // un combat tous les deux jours (le temps d'y aller)
     private const double MaxLossRatio = 0.3;    // on n'attaque pas si on perd plus de 30 % de son armée
     private const int MaxDays = 200;
@@ -112,7 +125,7 @@ internal static class BalanceSimulation
                 BuildAndRecruit(town, player, style, rng);
                 if (day % 7 == 1) // une fois par semaine, le héros passe prendre la garnison (et à la guilde)
                 {
-                    while (town.Garrison.Stacks.Count > 0 && town.Garrison.MoveStackTo(0, hero.Army)) { }
+                    TakeBestTroops(hero, town);
                     if (town.MageGuildLevel > 0)
                     {
                         foreach (var spell in town.GuildSpells)
@@ -129,6 +142,24 @@ internal static class BalanceSimulation
             spellsCast += FightSafest(map, hero, style);
         }
         return new Result(player.Towns.Count > 0, -1, goldByWeek, hero.Level, spellsCast);
+    }
+
+    /// <summary>
+    /// Le héros prend la garnison : il garde les 7 troupes qui valent le plus (en or), le reste attend en ville. Avec des
+    /// villes de plusieurs factions, il y a plus de sortes de créatures que de places dans l'armée.
+    /// </summary>
+    private static void TakeBestTroops(Hero hero, Town town)
+    {
+        var all = hero.Army.Stacks.Concat(town.Garrison.Stacks).Where(st => st.Count > 0)
+            .GroupBy(st => st.Type).Select(g => (Type: g.Key, Count: g.Sum(st => st.Count)))
+            .OrderByDescending(t => t.Count * t.Type.Cost.GetValueOrDefault(ResourceType.Gold)).ToList();
+        foreach (var stack in hero.Army.Stacks.Concat(town.Garrison.Stacks))
+            stack.Count = 0;
+        hero.Army.RemoveEmpty();
+        town.Garrison.RemoveEmpty();
+        foreach (var (type, count) in all)
+            if (!hero.Army.Add(type, count))
+                town.Garrison.Add(type, count);
     }
 
     private static void NewDay(AdventureMap map, Player player, Hero hero, int day)
@@ -149,8 +180,10 @@ internal static class BalanceSimulation
 
     private static void BuildAndRecruit(Town town, Player player, Style style, Random rng)
     {
-        foreach (var id in style == Style.Magic ? MagicBuildOrder : BuildOrder)
+        foreach (var id in (style == Style.Magic ? MagicBuildOrder : BuildOrder).Select(id => ForTown(town, id)))
         {
+            if (id == null)
+                continue;
             var building = TestData.Data.Buildings.Get(id);
             if (town.CanBuild(building, player) == BuildResult.Ok)
             {

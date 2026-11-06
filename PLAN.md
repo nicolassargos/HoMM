@@ -131,8 +131,19 @@ Découpage : 1. ✅ les créatures et leurs capacités au combat (`undead`, `gho
 un gardien d'une autre faction que les neutres est dimensionné pour avoir la force du gardien neutre du même niveau
 (`CreatureStrength`, mesurée au combat), sinon les Liches (niveau 6, les neutres n'en ont pas) et les Colosses (4 fois
 un Dragon) rendaient les cartes bien plus dures. La simulation gagne comme avant. Tests : `MortsVivantsTests`.
-2. La ville, le choix de la faction, le Nécromancien et la Nécromancie, l'IA. 3. Les images qui manquent (Zombie,
-Araignée, Vampire, Liche ; images de la carte de tous).
+2. ✅ La ville et le jeu : les bâtiments communs à toutes les factions (salle du village et hôtels de ville, taverne,
+guilde : faction « * ») et 7 habitations par faction (Ossuaire, Cimetière, Étang des noyées, Antre des araignées, Crypte,
+Tour de la liche, Charnier : mêmes prix et places que celles du Château) ; un prérequis « a|b » (le grand hôtel de ville
+demande la Caserne ou l'Antre). Nouvelle partie : la faction (le Château ou les morts-vivants), sa classe et ce qu'elle
+donne ; les adversaires et les villes neutres ont une faction au hasard (un hasard à part, fixé par la graine : la carte
+ne change pas) ; une garnison neutre de morts-vivants vaut celle du Château. Le Nécromancien (armée : 20 Squelettes,
+10 Zombies, 2 Fantômes) et la **nécromancie** (`Talents`, événement `DeadRaised`, dans le journal). L'IA construit dans
+l'ordre des niveaux pour toutes les factions. La simulation (Château) prend dans une ville prise les 7 meilleures
+troupes (avec deux factions, il y a plus de créatures que de places). Option `--faction=morts-vivants`. Tests :
+`VilleMortsVivantsTests`. Mesuré (un adversaire, Normal, six semaines) : Château 16 100 or d'armée, morts-vivants
+12 700 : un peu plus faibles, à revoir (avec le Colosse). L'amplificateur de nécromancie : plus tard, une fois la
+nécromancie essayée.
+3. Les images qui manquent (Zombie, Araignée, Vampire, Liche ; images de la carte de tous ; la ville des morts-vivants).
 Décidé aussi : la classe **Nécromancien** (attaque 1, défense 1, puissance 2, savoir 2, charisme 8, Malédiction au
 départ, talent **Nécromancie** : après une victoire, 10 % des ennemis tués + 2 % par niveau se relèvent en Squelettes,
 sans dépasser son charisme). À choisir avec la ville : les noms des habitations (proposés : Ossuaire, Cimetière, Étang

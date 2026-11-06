@@ -8,7 +8,7 @@ using static HoMM.Game.Ui;
 namespace HoMM.Game;
 
 /// <summary>Ce que le joueur a choisi pour une nouvelle partie.</summary>
-public sealed record GameSetup(int Seed, MapSize Size, GameRules Rules, int Opponents = 0, string? HeroName = null);
+public sealed record GameSetup(int Seed, MapSize Size, GameRules Rules, int Opponents = 0, string? HeroName = null, string? Faction = null);
 
 /// <summary>
 /// Nouvelle partie, depuis le menu principal (arrangement en deux colonnes, choisi par l'utilisateur). À gauche,
@@ -35,6 +35,8 @@ public partial class NewGameWindow : ScreenWindow
     // le héros (un nom et un portrait : sa classe vient de la faction)
     private GameData _data = null!;
     private int _hero, _firstShown;
+    private string _faction = GameState.StartingFaction;
+    private Label _className = null!, _classDetails = null!;
     private TextureRect _portrait = null!;
     private Label _initials = null!, _heroName = null!, _heroCount = null!;
     private readonly List<(Button Button, TextureRect Picture, Panel Frame)> _thumbs = new();
@@ -167,9 +169,12 @@ public partial class NewGameWindow : ScreenWindow
     {
         var hero = Section(510, 60, 470, 490, Texts.YourHeroLabel);
         hero.AddChild(Small(Texts.FactionLabel, 14, 34));
-        var faction = MakeDropdown(new[] { Texts.FactionName(GameState.StartingFaction) }, 0, V(220, 34), _ => { });
+        // les factions qu'on peut jouer (celles qui ont une classe)
+        var factions = _data.Classes.PlayableFactions.Count > 0 ? _data.Classes.PlayableFactions : new[] { GameState.StartingFaction };
+        var faction = MakeDropdown(factions.Select(Texts.FactionName), 0, V(220, 34), i => SelectFaction(factions[i]));
         faction.Position = V(14, 54);
         hero.AddChild(faction);
+        _faction = factions[0];
 
         // le héros choisi, en grand : le portrait de 64 pixels ×4
         float side = 64 * PortraitScale;
@@ -191,18 +196,22 @@ public partial class NewGameWindow : ScreenWindow
         float textX = 14 + (side + 4) / Ui.Scale + 14;
         _heroName = At(MakeLabel("", 18, TextColor), textX, 100);
         hero.AddChild(_heroName);
-        if (_data.Classes.ForFaction(GameState.StartingFaction) is { } heroClass)
-        {
-            hero.AddChild(At(MakeLabel(heroClass.Name, 15, BorderColor), textX, 126));
-            var details = At(MakeLabel(Texts.ClassSummary(heroClass, _data.Spells).Split(" : ", 2)[1], 12, SoftTextColor), textX, 150);
-            details.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            details.CustomMinimumSize = V(440 - textX + 14, 0);
-            hero.AddChild(details);
-            var note = At(MakeLabel(Texts.ClassNote, 12, DimColor), textX, 220);
-            note.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            note.CustomMinimumSize = V(440 - textX + 14, 0);
-            hero.AddChild(note);
-        }
+        // sa classe : celle de la faction choisie
+        _className = At(MakeLabel("", 15, BorderColor), textX, 126);
+        hero.AddChild(_className);
+        // ce qu'elle donne, puis la note, l'une sous l'autre (la description change de longueur avec la faction)
+        var column = new VBoxContainer { Position = V(textX, 150) };
+        column.AddThemeConstantOverride("separation", (int)Px(10));
+        hero.AddChild(column);
+        _classDetails = MakeLabel("", 12, SoftTextColor);
+        _classDetails.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _classDetails.CustomMinimumSize = V(440 - textX + 14, 0);
+        column.AddChild(_classDetails);
+        var note = MakeLabel(Texts.ClassNote, 12, DimColor);
+        note.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        note.CustomMinimumSize = V(440 - textX + 14, 0);
+        column.AddChild(note);
+        SelectFaction(_faction);
 
         // la bande des héros, en bas de la colonne : ◄ quelques petits portraits ► (sans creux)
         float stripWidth = 34 + 4 + VisibleHeroes * (Thumb + ThumbGap) - ThumbGap + 4 + 34;
@@ -233,6 +242,15 @@ public partial class NewGameWindow : ScreenWindow
         _heroCount.Size = V(stripWidth, 18);
         _heroCount.HorizontalAlignment = HorizontalAlignment.Center;
         hero.AddChild(_heroCount);
+    }
+
+    /// <summary>La faction choisie : sa classe et ce qu'elle donne (caractéristiques, sort, talent, armée).</summary>
+    private void SelectFaction(string faction)
+    {
+        _faction = faction;
+        var heroClass = _data.Classes.ForFaction(faction);
+        _className.Text = heroClass?.Name ?? "";
+        _classDetails.Text = heroClass != null ? Texts.ClassDetails(heroClass, _data) : "";
     }
 
     /// <summary>Choisit ce héros (en boucle) ; la bande défile pour qu'il reste visible.</summary>
@@ -290,6 +308,6 @@ public partial class NewGameWindow : ScreenWindow
         var rules = new GameRules(victory, _limit.ButtonPressed ? GameRules.StandardDayLimit : null, _difficulty);
         string? hero = _data.Heroes.All.Count > 0 ? _data.Heroes.All[_hero].Name : null;
         Close();
-        Started?.Invoke(new GameSetup(seed, _size, rules, _opponents, hero));
+        Started?.Invoke(new GameSetup(seed, _size, rules, _opponents, hero, _faction));
     }
 }

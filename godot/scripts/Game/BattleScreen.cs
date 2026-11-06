@@ -40,7 +40,16 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>Hauteur de la bande de l'ordre de jeu, en bas de l'écran.</summary>
     private const int OrderHeight = 96; // en pixels
     private BattleFieldView _field = null!;
-    private Button _waitButton = null!, _defendButton = null!, _autoButton = null!, _fleeButton = null!;
+    private Button _waitButton = null!, _defendButton = null!, _autoButton = null!, _fleeButton = null!, _spellButton = null!;
+
+    /// <summary>Développement : ouvrir le livre de sorts dès que le joueur peut jouer (« --battle-book »).</summary>
+    public bool OpenSpellBookWhenReady { get; set; }
+
+    /// <summary>Développement : choisir ce sort dès que le joueur peut jouer (« --battle-book=id » : le choix de la cible).</summary>
+    public string? ChooseSpellWhenReady { get; set; }
+
+    /// <summary>Le sort choisi dans le livre, dont le joueur choisit la cible (null : pas de sort en cours).</summary>
+    private SpellType? _spell;
 
     public bool IsOpen => _battle != null;
 
@@ -60,6 +69,7 @@ public partial class BattleScreen : CanvasLayer
         // les boutons, en une rangée à droite qui prend la largeur de leurs textes
         var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.End };
         buttons.AddThemeConstantOverride("separation", (int)Px(6));
+        _spellButton = AddButton(buttons, Texts.SpellBookButton, "S", OpenSpellBook);
         _waitButton = AddButton(buttons, Texts.BattleWait, "W", () => Player(b => b.Wait()));
         _defendButton = AddButton(buttons, Texts.BattleDefend, "D", () => Player(b => b.Defend()));
         _autoButton = AddButton(buttons, Texts.BattleAuto, "A", () => _auto = true);
@@ -143,8 +153,13 @@ public partial class BattleScreen : CanvasLayer
 
     private void ShowUnitInfo(BattleUnit unit, Vector2 at)
     {
+        if (_spell != null)
+        {
+            CancelSpell(); // le clic droit annule le sort en cours
+            return;
+        }
         _unitInfoText.Text = $"{Texts.Stack(new CreatureStack(unit.Type, _field.ShownCount(unit)))}\n{Texts.UnitStats(unit)}\n"
-            + $"{Texts.UnitAbilities(unit)}\n{Texts.UnitState(unit)}";
+            + $"{Texts.UnitAbilities(unit)}\n{Texts.UnitState(unit, _battle?.Round ?? 0)}";
         _unitInfo.Size = new Vector2(Px(240), _unitInfoText.GetMinimumSize().Y + Px(26));
         // à côté de la souris, sans sortir de l'écran
         var position = _field.Position + at + new Vector2(Px(16), -_unitInfo.Size.Y / 2);
@@ -152,13 +167,16 @@ public partial class BattleScreen : CanvasLayer
         _unitInfo.Visible = true;
     }
 
-    /// <summary>Un clic sur le héros : ses caractéristiques (le livre de sorts viendra avec la magie).</summary>
+    /// <summary>Un clic sur le héros : ses caractéristiques, ses points de sort et ses sorts.</summary>
     private void ShowHero(Hero hero)
     {
+        int points = _battle is { } battle && battle.HeroOf(BattleSide.Attacker) == hero ? battle.SpellPointsOf(BattleSide.Attacker)
+            : _battle is { } b && b.HeroOf(BattleSide.Defender) == hero ? b.SpellPointsOf(BattleSide.Defender) : hero.SpellPoints;
         var dialog = new GameDialog
         {
             Title = hero.Owner.IsComputer ? Texts.HeroWithColor(hero) : hero.Name, // un héros adverse : avec sa couleur OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true,
-            DialogText = $"{Texts.LevelLine(hero)}\n{Texts.HeroBonus(hero)}\n{Texts.SpellBookLater}",
+            DialogText = $"{Texts.LevelLine(hero)}\n{Texts.BattleHeroText(hero, points)}",
+            DialogAutowrap = true,
         };
         dialog.Confirmed += dialog.QueueFree;
         dialog.Canceled += dialog.QueueFree;
@@ -183,13 +201,15 @@ public partial class BattleScreen : CanvasLayer
         Callable.From(() => scroll.ScrollVertical = (int)scroll.GetVScrollBar().MaxValue).CallDeferred();
     }
 
-    /// <summary>Les touches du combat : W attendre, D se défendre, A auto, F fuir.</summary>
+    /// <summary>Les touches du combat : S sorts, W attendre, D se défendre, A auto, F fuir ; Échap annule un sort.</summary>
     public override void _UnhandledInput(InputEvent e)
     {
         if (_battle == null || e is not InputEventKey { Pressed: true, Echo: false } key)
             return;
         switch (key.Keycode)
         {
+            case Key.Escape when _spell != null: CancelSpell(); break;
+            case Key.S: OpenSpellBook(); break;
             case Key.W: Player(b => b.Wait()); break;
             case Key.D: Player(b => b.Defend()); break;
             case Key.A: _auto = true; break;
@@ -197,6 +217,63 @@ public partial class BattleScreen : CanvasLayer
             default: return;
         }
         GetViewport().SetInputAsHandled();
+    }
+
+    // ------------------------------------------------------------------ le livre de sorts
+
+    /// <summary>Le joueur peut-il ouvrir son livre : à son tour, avec un héros qui n'a pas encore lancé de sort ce round.</summary>
+    private bool CanOpenSpellBook =>
+        IsPlayerTurn && _battle is { } battle && battle.CasterSide == _playerSide && !battle.HasCast(_playerSide)
+        && battle.HeroOf(_playerSide)!.Spells.Count > 0;
+
+    /// <summary>
+    /// Le livre de sorts : chaque sort du héros (nom, points, effet selon sa puissance) ; ceux qu'il ne peut pas payer
+    /// sont grisés. Choisir un sort, puis sa cible sur le champ.
+    /// </summary>
+    private void OpenSpellBook()
+    {
+        if (!CanOpenSpellBook || _battle is not { } battle)
+            return;
+        var hero = battle.HeroOf(_playerSide)!;
+        var dialog = new GameDialog { Title = Texts.SpellBookTitle(hero), OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
+        var list = new VBoxContainer();
+        list.AddThemeConstantOverride("separation", (int)Px(6));
+        list.AddChild(MakeLabel(Texts.SpellPointsLine(battle.SpellPointsOf(_playerSide), hero.MaxSpellPoints), 15, TextColor));
+        foreach (var spell in hero.Spells)
+        {
+            var row = new HBoxContainer();
+            row.AddThemeConstantOverride("separation", (int)Px(10));
+            var button = FixedButton(spell.Name, 14, V(190, 34));
+            button.CustomMinimumSize = V(190, 34); // dans une rangée, sa taille vient de là
+            button.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+            button.Disabled = !battle.CanCast(spell);
+            button.Pressed += () =>
+            {
+                dialog.Hide();
+                dialog.QueueFree();
+                _spell = spell;
+                _message.Text = Texts.SpellTargetPrompt(spell);
+            };
+            row.AddChild(button);
+            string cost = battle.CanCast(spell) ? Texts.SpellCost(spell) : $"{Texts.SpellCost(spell)} · {Texts.NotEnoughSpellPoints}";
+            var text = MakeLabel($"{cost}\n{Texts.SpellEffectText(spell, hero)}", 12, SoftTextColor);
+            text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            text.CustomMinimumSize = V(330, 0);
+            text.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+            row.AddChild(text);
+            list.AddChild(row);
+        }
+        dialog.AddChild(list);
+        dialog.Confirmed += dialog.QueueFree;
+        dialog.Canceled += dialog.QueueFree;
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I((int)Px(580), 0));
+    }
+
+    private void CancelSpell()
+    {
+        _spell = null;
+        _message.Text = "";
     }
 
     /// <summary>Largeur de « Round 2 », au début de la ligne du bas.</summary>
@@ -221,6 +298,7 @@ public partial class BattleScreen : CanvasLayer
     {
         _battle = battle;
         _hero = hero;
+        _spell = null;
         _playerSide = playerSide;
         _field.DefenderHero = defenderHero;
         _field.PlayerSide = playerSide;
@@ -255,6 +333,16 @@ public partial class BattleScreen : CanvasLayer
     {
         if (_battle is not { Active: { } unit } battle || !IsPlayerTurn)
             return;
+        // un sort choisi : le clic est sa cible
+        if (_spell is { } spell)
+        {
+            if (battle.IsValidTarget(spell, hex))
+            {
+                _spell = null;
+                Player(b => b.Cast(spell, hex));
+            }
+            return;
+        }
         if (battle.UnitAt(hex) is { } other && TacticalBattle.AreEnemies(unit, other))
         {
             if (battle.CanShoot(unit, other))
@@ -315,6 +403,17 @@ public partial class BattleScreen : CanvasLayer
                 _wait = _auto ? AiDelay / 2 : AiDelay;
             }
         }
+        if (OpenSpellBookWhenReady && CanOpenSpellBook)
+        {
+            OpenSpellBookWhenReady = false;
+            if (ChooseSpellWhenReady is { } id && battle.HeroOf(_playerSide)!.Spells.FirstOrDefault(s => s.Id == id) is { } chosen)
+            {
+                _spell = chosen;
+                _message.Text = Texts.SpellTargetPrompt(chosen);
+            }
+            else
+                OpenSpellBook();
+        }
         Refresh();
     }
 
@@ -327,6 +426,10 @@ public partial class BattleScreen : CanvasLayer
         _title.Text = Texts.BattleRound(battle.Round);
         foreach (var button in new[] { _waitButton, _defendButton, _fleeButton })
             button.Disabled = !mine;
+        _spellButton.Disabled = !CanOpenSpellBook;
+        // le sort choisi n'est plus possible (le tour est passé à l'adversaire…) : on l'oublie
+        if (_spell is { } chosen && (!mine || !battle.CanCast(chosen)))
+            CancelSpell();
         // on ne fuit qu'en attaquant (celui qui se défend n'a nulle part où aller)
         _fleeButton.Disabled = !mine || _playerSide != BattleSide.Attacker;
         _waitButton.Disabled = !mine || unit!.HasWaited;
@@ -336,8 +439,25 @@ public partial class BattleScreen : CanvasLayer
         // pour une grande créature, ses deux cases à chaque arrivée possible
         _field.Reachable = mine ? battle.Reachable(unit!).Keys.SelectMany(h => unit!.HexesAt(h)).Distinct().ToList() : Array.Empty<Hex>();
         _field.Target = null;
+        _field.SpellTargets = Array.Empty<Hex>();
+        _field.SpellArea = Array.Empty<Hex>();
         var cursor = CursorKind.Pointer;
-        if (mine && _field.Hovered is { } hovered)
+        if (mine && _spell is { } spell)
+        {
+            // choisir la cible d'un sort : les troupes visables en valeur, et ce que toucherait le sort sous la souris
+            _field.Reachable = Array.Empty<Hex>();
+            if (spell.Target != SpellTarget.Area)
+                _field.SpellTargets = battle.SpellTargets(spell).ToList();
+            cursor = CursorKind.Blocked;
+            if (_field.Hovered is { } aimed && battle.IsValidTarget(spell, aimed))
+            {
+                cursor = spell.Target == SpellTarget.Ally ? CursorKind.Visit : CursorKind.Attack;
+                _field.SpellArea = spell.Target == SpellTarget.Area
+                    ? new[] { aimed }.Concat(aimed.Neighbours()).Where(Battlefield.InBounds).ToList()
+                    : battle.UnitAt(aimed)!.Hexes.ToList();
+            }
+        }
+        else if (mine && _field.Hovered is { } hovered)
         {
             if (battle.UnitAt(hovered) is { } other && TacticalBattle.AreEnemies(unit!, other))
             {

@@ -609,8 +609,16 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
      griffons, puis un niveau après le monastère, le grand hôtel de ville et le portail de gloire). Écran de ville : un
      raccourci « Guilde » et un clic sur le bâtiment ouvrent la fenêtre de la guilde (les sorts par niveau, leurs points
      et leur effet calculé d'après la puissance du héros présent, « connu »). Tests : `GuildeTests`.
-  3. L'écran de combat : le livre de sorts, le choix de la cible, les effets visibles (dégâts, sorts actifs sur une
-     troupe), le journal ; la section Magie de l'écran du héros (points, sorts connus).
+  3. ✅ L'écran de combat : un bouton « Sorts » (touche S), actif quand le héros du joueur peut encore lancer un sort ce
+     round ; le livre de sorts (points qui restent, chaque sort avec ses points et son effet selon la puissance, grisé
+     sans assez de points) ; puis la cible : les troupes visables en bleu, la zone touchée sous la souris, curseur
+     d'attaque ou de visite ; clic droit ou Échap : annuler. Le sort s'allume sur ses cases (feu, vert, violet, or), puis
+     les dégâts, les soins ou le nom du sort montent ; un petit losange par sort qui dure à côté du nombre de la troupe
+     (vert : utile, violet : néfaste), et la fiche de la troupe (clic droit) dit les rounds qui restent. Le journal raconte
+     chaque sort. Un clic sur le héros montre ses points de sort et ses sorts. Écran du héros : la section Magie (points
+     de sort, chaque sort du livre avec son niveau, ses points et son effet) ; la puissance et le savoir disent ce qu'ils
+     font. Options `--spells` (le héros connaît tous les sorts) et `--battle-book` (avec `--battle-test` : le livre
+     s'ouvre ; `--battle-book=id` : ce sort est choisi).
   4. L'équilibrage (simulation et adversaires, avec la magie) et des icônes de sorts (Retro Diffusion ou PixelLab).
 - **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
   (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.

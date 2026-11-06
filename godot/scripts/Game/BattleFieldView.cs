@@ -112,20 +112,28 @@ public partial class BattleFieldView : Control
     /// <summary>Le héros de l'attaquant, dessiné à gauche de la grille (null : pas de héros, une vitrine…).</summary>
     public Hero? AttackerHero { get; set; }
 
+    /// <summary>Le héros qui se défend (combat entre héros), dessiné à droite de la grille, tourné vers la gauche.</summary>
+    public Hero? DefenderHero { get; set; }
+
+    /// <summary>Le camp du joueur : ses troupes ont la couleur bleue (le joueur attaqué se défend à droite).</summary>
+    public BattleSide PlayerSide { get; set; } = BattleSide.Attacker;
+
     private const int HeroScale = 4;
 
-    /// <summary>Où est dessiné le héros, à gauche de la grille (pour savoir si on clique dessus).</summary>
-    public Rect2 HeroRect
+    /// <summary>Où est dessiné le héros de l'attaquant, à gauche de la grille (pour savoir si on clique dessus).</summary>
+    public Rect2 HeroRect => HeroRectAt(SideMargin / 2);
+
+    /// <summary>Où est dessiné le héros qui se défend, à droite de la grille.</summary>
+    public Rect2 DefenderHeroRect => HeroRectAt(FieldSize.X - SideMargin / 2);
+
+    private static Rect2 HeroRectAt(float centerX)
     {
-        get
-        {
-            var size = (Art.Get("heroes/hero")?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
-            return new Rect2(new Vector2(SideMargin / 2 - size.X / 2, FieldSize.Y / 2 - size.Y / 2), size);
-        }
+        var size = (Art.Get("heroes/hero")?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
+        return new Rect2(new Vector2(centerX - size.X / 2, FieldSize.Y / 2 - size.Y / 2), size);
     }
 
-    /// <summary>Un clic sur le héros.</summary>
-    public event Action? HeroClicked;
+    /// <summary>Un clic sur un des héros.</summary>
+    public event Action<Hero>? HeroClicked;
 
     /// <summary>Clic droit enfoncé sur une troupe (sa fiche, tant que le bouton reste enfoncé), et relâché.</summary>
     public event Action<BattleUnit, Vector2>? UnitInfoPressed;
@@ -164,6 +172,24 @@ public partial class BattleFieldView : Control
     public Hex? Hovered { get; set; }
     public Hex? Target { get; set; }
     public BattleUnit? ActiveUnit { get; set; }
+
+    /// <summary>Pendant le choix de la cible d'un sort : les cases visables, et celles que toucherait le sort sous la souris.</summary>
+    public IReadOnlyCollection<Hex> SpellTargets { get; set; } = Array.Empty<Hex>();
+    public IReadOnlyCollection<Hex> SpellArea { get; set; } = Array.Empty<Hex>();
+
+    /// <summary>L'éclat d'un sort lancé : ses cases, sa couleur, depuis quand (secondes).</summary>
+    private readonly List<(List<Hex> Hexes, Color Color, float Age)> _bursts = new();
+
+    private const float BurstTime = 0.5f;
+
+    /// <summary>La couleur d'un sort : feu pour les dégâts, vert pour les soins, violet pour un sort néfaste, or sinon.</summary>
+    private static Color SpellColor(SpellType spell) => spell switch
+    {
+        { Effect: SpellEffect.Damage } => MapRenderer.Rgb(255, 140, 60),
+        { Effect: SpellEffect.Cure or SpellEffect.Resurrection } => MapRenderer.Rgb(130, 230, 130),
+        { Harmful: true } => MapRenderer.Rgb(190, 110, 230),
+        _ => MapRenderer.Rgb(250, 220, 120),
+    };
 
     /// <summary>Le joueur a cliqué sur le champ : la case, et le point exact (pour choisir de quel côté attaquer).</summary>
     public event Action<Hex, Vector2>? Clicked;
@@ -227,7 +253,9 @@ public partial class BattleFieldView : Control
         else if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)
         {
             if (AttackerHero != null && HeroRect.HasPoint(click.Position))
-                HeroClicked?.Invoke();
+                HeroClicked?.Invoke(AttackerHero);
+            else if (DefenderHero != null && DefenderHeroRect.HasPoint(click.Position))
+                HeroClicked?.Invoke(DefenderHero);
             else if (HexAt(click.Position) is { } hex)
                 Clicked?.Invoke(hex, click.Position);
         }
@@ -329,6 +357,65 @@ public partial class BattleFieldView : Control
                         return true;
                     });
                     break;
+                case SpellCast cast:
+                    var hexes = cast.Spell.Target == SpellTarget.Area
+                        ? new[] { cast.Target }.Concat(cast.Target.Neighbours()).Where(Battlefield.InBounds).ToList()
+                        : Battle.UnitAt(cast.Target)?.Hexes.ToList() ?? new List<Hex> { cast.Target };
+                    double burst = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (burst == 0)
+                            _bursts.Add((hexes, SpellColor(cast.Spell), 0));
+                        burst += delta;
+                        return burst >= BurstTime * 0.7;
+                    });
+                    break;
+                case SpellDamaged damaged:
+                    double hurt = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (hurt == 0)
+                        {
+                            var target = _shown[damaged.Target];
+                            target.Count = Math.Max(0, target.Count - damaged.Killed);
+                            target.Flash = 1;
+                            _floating.Add(($"-{damaged.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 170, 90)));
+                            if (damaged.Killed > 0)
+                                _floating.Add(($"{damaged.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
+                        }
+                        hurt += delta;
+                        if (hurt < 0.35)
+                            return false;
+                        if (_shown[damaged.Target].Count == 0)
+                            _shown[damaged.Target].Gone = true;
+                        return true;
+                    });
+                    break;
+                case UnitHealed healed:
+                    double heal = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (heal == 0)
+                        {
+                            var target = _shown[healed.Unit];
+                            target.Count += healed.Revived;
+                            target.Gone = target.Count == 0;
+                            _floating.Add(($"+{healed.HitPoints}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(140, 235, 140)));
+                        }
+                        heal += delta;
+                        return heal >= 0.35;
+                    });
+                    break;
+                case SpellApplied applied:
+                    double marked = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (marked == 0)
+                            _floating.Add((applied.Spell.Name, _shown[applied.Unit].Position + Ui.V(0, -50), 0, SpellColor(applied.Spell)));
+                        marked += delta;
+                        return marked >= 0.3;
+                    });
+                    break;
                 case AttackerFled:
                     foreach (var unit in Battle.Units.Where(u => u.Side == BattleSide.Attacker))
                         _shown[unit].Count = unit.Count;
@@ -345,6 +432,15 @@ public partial class BattleFieldView : Control
         {
             shown.Flash = Math.Max(0, shown.Flash - (float)delta * 3);
             shown.StateTime += delta;
+        }
+        for (int i = _bursts.Count - 1; i >= 0; i--)
+        {
+            var (hexes, color, age) = _bursts[i];
+            age += (float)delta;
+            if (age > BurstTime)
+                _bursts.RemoveAt(i);
+            else
+                _bursts[i] = (hexes, color, age);
         }
         for (int i = _floating.Count - 1; i >= 0; i--)
         {
@@ -388,6 +484,13 @@ public partial class BattleFieldView : Control
             var corners = Corners(Center(hex));
             if (Reachable.Contains(hex))
                 DrawColoredPolygon(corners, new Color(1, 1, 0.8f, 0.16f));
+            if (SpellTargets.Contains(hex))
+            {
+                DrawColoredPolygon(corners, new Color(0.6f, 0.8f, 1, 0.3f));
+                DrawPolyline(corners.Append(corners[0]).ToArray(), new Color(0.75f, 0.88f, 1, 0.8f), Ui.Px(2));
+            }
+            if (SpellArea.Contains(hex))
+                DrawColoredPolygon(corners, new Color(0.6f, 0.8f, 1, 0.3f));
             DrawPolyline(corners.Append(corners[0]).ToArray(), new Color(0, 0, 0, 0.28f), Ui.Px(1));
         }
         if (ActiveUnit is { IsAlive: true } active && _shown.TryGetValue(active, out var activeShown) && !IsAnimating)
@@ -398,10 +501,30 @@ public partial class BattleFieldView : Control
         if (Target is { } target)
             foreach (var hex in Battle.UnitAt(target)?.Hexes ?? new[] { target })
                 DrawHexOutline(Center(hex), MapRenderer.Rgb(220, 60, 40), Ui.Px(3));
+        foreach (var hex in SpellArea)
+            DrawHexOutline(Center(hex), MapRenderer.Rgb(150, 200, 255), Ui.Px(3));
+        // l'éclat d'un sort : les cases s'allument puis s'éteignent
+        foreach (var (hexes, color, age) in _bursts)
+        {
+            float k = 1 - age / BurstTime;
+            foreach (var hex in hexes)
+            {
+                DrawColoredPolygon(Corners(Center(hex)), new Color(color, 0.45f * k));
+                DrawHexOutline(Center(hex), new Color(color, k), Ui.Px(3));
+            }
+        }
 
-        // le héros, à gauche de la grille (son image de la carte en attendant une image de combat)
-        if (AttackerHero != null && Art.Get("heroes/hero") is { } heroImage)
+        // les héros (leur image de la carte, à leurs couleurs, en attendant une image de combat) : l'attaquant à gauche,
+        // celui qui se défend à droite, tourné vers la gauche
+        if (AttackerHero != null && MapRenderer.HeroImage(AttackerHero.Owner) is { } heroImage)
             DrawTextureRect(heroImage, HeroRect, false);
+        if (DefenderHero != null && MapRenderer.HeroImage(DefenderHero.Owner) is { } defenderImage)
+        {
+            var rect = DefenderHeroRect;
+            DrawSetTransform(new Vector2(rect.End.X, rect.Position.Y), 0, new Vector2(-1, 1));
+            DrawTextureRect(defenderImage, new Rect2(Vector2.Zero, rect.Size), false);
+            DrawSetTransform(Vector2.Zero, 0, Vector2.One);
+        }
 
         // obstacles et troupes, de haut en bas (ceux du bas passent devant)
         var things = new List<(float Y, Action Draw)>();
@@ -496,13 +619,24 @@ public partial class BattleFieldView : Control
                 DrawTextureRectRegion(image, rect, source, tint);
         }
         else
-            DrawCircle(foot + Ui.V(0, -24), Ui.Px(20), unit.Side == BattleSide.Attacker ? MapRenderer.PlayerColor : MapRenderer.NeutralColor);
+            DrawCircle(foot + Ui.V(0, -24), Ui.Px(20), unit.Side == PlayerSide ? MapRenderer.PlayerColor : MapRenderer.NeutralColor);
 
         // le nombre de créatures, dans une petite boîte à la couleur du camp
         string count = shown.Count.ToString();
         var box = new Rect2(shown.Position + new Vector2(Ui.Px(unit.Side == BattleSide.Attacker ? 6 : -36), HexHeight / 2 - Ui.Px(24)), Ui.Px(30), Ui.Px(18));
-        DrawRect(box, unit.Side == BattleSide.Attacker ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30));
+        DrawRect(box, unit.Side == PlayerSide ? MapRenderer.Rgb(40, 60, 120) : MapRenderer.Rgb(110, 40, 30));
         DrawRect(box, MapRenderer.Rgb(230, 200, 120), false, 1);
         DrawString(ThemeDB.FallbackFont, box.Position + Ui.V(0, 14), count, HorizontalAlignment.Center, box.Size.X, Ui.TextSize(12), Colors.White);
+
+        // les sorts qui durent sur la troupe : un petit losange par sort, à côté du nombre (vert : utile, violet : néfaste)
+        float x = unit.Side == BattleSide.Attacker ? box.End.X + Ui.Px(4) : box.Position.X - Ui.Px(12);
+        foreach (var active in unit.Spells.OrderBy(s => s.Spell.Effect))
+        {
+            var c = new Vector2(x + Ui.Px(4), box.Position.Y + box.Size.Y / 2);
+            var d = Ui.Px(5);
+            DrawColoredPolygon(new[] { c + new Vector2(0, -d), c + new Vector2(d, 0), c + new Vector2(0, d), c + new Vector2(-d, 0) },
+                active.Spell.Harmful ? MapRenderer.Rgb(190, 110, 230) : MapRenderer.Rgb(130, 220, 130));
+            x += unit.Side == BattleSide.Attacker ? Ui.Px(11) : -Ui.Px(11);
+        }
     }
 }

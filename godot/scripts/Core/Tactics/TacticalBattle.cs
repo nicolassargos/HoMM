@@ -45,7 +45,7 @@ public sealed record BattleEnded(BattleOutcome Outcome) : BattleAction;
 /// Les armées sont modifiées pendant le combat (créatures tuées) ; <see cref="Report"/> donne le bilan.
 /// Le combat rapide (<see cref="Battle.Resolve"/>) le fait jouer d'un coup par <see cref="BattleAI"/>.
 /// </summary>
-public sealed class TacticalBattle
+public sealed partial class TacticalBattle
 {
     /// <summary>Au-delà de cette distance, un tireur (sauf capacité <see cref="Ability.NoRangePenalty"/>) fait moitié moins de dégâts.</summary>
     public const int LongRange = 6;
@@ -91,7 +91,9 @@ public sealed class TacticalBattle
     /// round. <paramref name="hero"/> (celui de l'attaquant) ajoute son attaque et sa défense à ses troupes.
     /// <paramref name="rebels"/> : troupes révoltées, qui combattent avec le défenseur, sans le bonus du héros.
     /// </summary>
-    public TacticalBattle(Army attacker, Army defender, GameRandom rng, Hero? hero = null, Army? rebels = null)
+    /// <param name="defenderHero">Le héros qui se défend (combat entre héros, étape 8) : son attaque et sa défense
+    /// s'ajoutent à celles de ses troupes, comme pour l'attaquant.</param>
+    public TacticalBattle(Army attacker, Army defender, GameRandom rng, Hero? hero = null, Army? rebels = null, Hero? defenderHero = null)
     {
         _rng = rng;
         _attacker = attacker;
@@ -103,9 +105,10 @@ public sealed class TacticalBattle
         var defenders = defender.Stacks.Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: false))
             .Concat((rebels?.Stacks ?? new List<CreatureStack>()).Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: true)))
             .ToList();
-        PlaceColumn(defenders, BattleSide.Defender, Battlefield.Columns - 1);
+        PlaceColumn(defenders, BattleSide.Defender, Battlefield.Columns - 1, defenderHero?.Attack ?? 0, defenderHero?.Defense ?? 0);
         foreach (var unit in _units)
             _startCounts[unit] = unit.Count;
+        SetUpMagic(hero, defenderHero);
         PlaceObstacles();
         StartRound();
     }
@@ -131,7 +134,7 @@ public sealed class TacticalBattle
 
     /// <summary>Toutes les troupes vivantes dans l'ordre d'initiative : de la plus rapide à la plus lente (l'ordre d'un round).</summary>
     public IReadOnlyList<BattleUnit> InitiativeOrder =>
-        _units.Where(u => u.IsAlive).OrderByDescending(u => u.Type.Speed).ThenBy(u => u.Side).ThenBy(u => u.Slot).ToList();
+        _units.Where(u => u.IsAlive).OrderByDescending(SpeedOf).ThenBy(u => u.Side).ThenBy(u => u.Slot).ToList();
 
     /// <summary>Qui joue encore dans ce round, dans l'ordre : la troupe active, puis les suivantes, puis celles qui attendent.</summary>
     public IReadOnlyList<BattleUnit> TurnOrder =>
@@ -213,6 +216,7 @@ public sealed class TacticalBattle
     {
         Round++;
         _log.Add(new RoundStarted(Round));
+        StartRoundMagic();
         foreach (var unit in _units)
         {
             unit.RetaliationsLeft = unit.RetaliationsPerRound;
@@ -221,7 +225,7 @@ public sealed class TacticalBattle
         _queue.Clear();
         _waiting.Clear();
         foreach (var unit in _units.Where(u => u.IsAlive)
-                     .OrderByDescending(u => u.Type.Speed).ThenBy(u => u.Side).ThenBy(u => u.Slot))
+                     .OrderByDescending(SpeedOf).ThenBy(u => u.Side).ThenBy(u => u.Slot))
             _queue.Enqueue(unit);
         NextUnit();
     }
@@ -287,8 +291,16 @@ public sealed class TacticalBattle
 
     // ------------------------------------------------------------------ ce que peut faire la troupe active
 
-    /// <summary>La vitesse de la troupe dans ce round (plus rapide au premier round avec <see cref="Ability.QuickStart"/>).</summary>
-    public int SpeedOf(BattleUnit unit) => unit.Type.Speed + (Round == 1 && unit.Has(Ability.QuickStart) ? QuickStartBonus : 0);
+    /// <summary>
+    /// La vitesse de la troupe dans ce round : plus rapide au premier round avec <see cref="Ability.QuickStart"/>, plus
+    /// rapide avec la hâte, deux fois plus lente avec la lenteur.
+    /// </summary>
+    public int SpeedOf(BattleUnit unit)
+    {
+        int speed = unit.Type.Speed + (Round == 1 && unit.Has(Ability.QuickStart) ? QuickStartBonus : 0)
+                    + unit.SpellAmount(SpellEffect.Haste);
+        return unit.IsUnder(SpellEffect.Slow) ? Math.Max(1, speed / 2) : speed;
+    }
 
     /// <summary>
     /// Les cases où la troupe peut aller ce tour-ci, avec le chemin pour y aller : sa vitesse en pas, sans traverser
@@ -511,7 +523,9 @@ public sealed class TacticalBattle
         int rolls = Math.Min(from.Count, 10);
         int sum = 0;
         for (int i = 0; i < rolls; i++)
-            sum += from.Type.MinDamage + Next(from.Type.MaxDamage - from.Type.MinDamage + 1);
+            sum += from.IsUnder(SpellEffect.Bless) ? from.Type.MaxDamage
+                : from.IsUnder(SpellEffect.Curse) ? from.Type.MinDamage
+                : from.Type.MinDamage + Next(from.Type.MaxDamage - from.Type.MinDamage + 1);
         double damage = from.Count <= 10 ? sum : sum * (double)from.Count / 10;
         // un coup écrasant ignore une partie de la défense
         int defense = from.Has(Ability.Crushing) && !ranged ? (int)Math.Round(to.Defense * (1 - CrushingShare)) : to.Defense;
@@ -552,6 +566,8 @@ public sealed class TacticalBattle
             DefenderLosses = Losses(BattleSide.Defender),
             Rounds = Round,
             Rebels = _rebelsBefore,
+            AttackerSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Attacker],
+            DefenderSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Defender],
         };
         _attacker.RemoveEmpty();
         _defender.RemoveEmpty();

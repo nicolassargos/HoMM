@@ -51,12 +51,12 @@ public sealed partial class GameState
         ResourceType? Resource = null, int? Amount = null, int? Owner = null,
         string? Creature = null, int? InitialCount = null,
         string? Name = null, string? Faction = null, List<string>? Buildings = null, bool BuiltToday = false,
-        Dictionary<string, int>? Available = null, List<StackData>? Garrison = null);
+        Dictionary<string, int>? Available = null, List<StackData>? Garrison = null, List<string>? GuildSpells = null);
 
     private sealed record StackData(string Creature, int Count);
 
     private sealed record PlayerData(int Id, string Name, Dictionary<ResourceType, int> Resources, string Fog,
-        List<int> Mines, List<int> Towns, List<int>? Obelisks = null, StatisticsData? Statistics = null);
+        List<int> Mines, List<int> Towns, List<int>? Obelisks = null, StatisticsData? Statistics = null, bool IsComputer = false);
 
     /// <summary>Les chiffres de la partie d'un joueur (absents des anciennes sauvegardes : zéro).</summary>
     private sealed record StatisticsData(int BattlesWon, int CreaturesKilled, int CreaturesLost, int TownsCaptured);
@@ -64,7 +64,7 @@ public sealed partial class GameState
     private sealed record HeroData(
         int Id, string Name, int Owner, Cell Position, int Movement, int MaxMovement, int VisionRadius,
         int Attack, int Defense, int Power, int Knowledge, int Charisma, int Level, int Experience,
-        List<StackData> Army, List<Cell>? Path, List<string>? Artifacts = null);
+        List<StackData> Army, List<Cell>? Path, List<string>? Artifacts = null, int? SpellPoints = null, List<string>? Spells = null);
 
     /// <summary>Un niveau gagné dont la caractéristique n'a pas encore été choisie.</summary>
     private sealed record ChoiceData(int Hero, int Level, List<HeroStat> Options);
@@ -82,11 +82,13 @@ public sealed partial class GameState
             SaveMap(),
             Players.Select(p => new PlayerData(p.Id, p.Name, new Dictionary<ResourceType, int>(p.Resources),
                 p.Fog.Export(), p.Mines.Select(m => m.Id).ToList(), p.Towns.Select(t => t.Id).ToList(), p.Obelisks.OrderBy(id => id).ToList(),
-                new StatisticsData(p.Statistics.BattlesWon, p.Statistics.CreaturesKilled, p.Statistics.CreaturesLost, p.Statistics.TownsCaptured))).ToList(),
+                new StatisticsData(p.Statistics.BattlesWon, p.Statistics.CreaturesKilled, p.Statistics.CreaturesLost, p.Statistics.TownsCaptured),
+                p.IsComputer)).ToList(),
             AllHeroes.Select(h => new HeroData(
                 h.Id, h.Name, h.Owner.Id, h.Position, h.Movement, h.MaxMovement, h.VisionRadius,
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
-                Stacks(h.Army), _paths.GetValueOrDefault(h)?.ToList(), h.Artifacts.Count > 0 ? h.Artifacts.Select(a => a.Id).ToList() : null)).ToList(),
+                Stacks(h.Army), _paths.GetValueOrDefault(h)?.ToList(), h.Artifacts.Count > 0 ? h.Artifacts.Select(a => a.Id).ToList() : null,
+                h.SpellPoints, h.Spells.Count > 0 ? h.Spells.Select(s => s.Id).ToList() : null)).ToList(),
             _pendingChoices.Select(c => new ChoiceData(c.Hero.Id, c.Level, c.Options.ToList())).ToList());
         return JsonSerializer.Serialize(save, SaveOptions);
     }
@@ -113,7 +115,8 @@ public sealed partial class GameState
             InitialCount: guard.InitialCount, Amount: guard.Count),
         Town town => new ObjectData("town", obj.Id, obj.Position, Owner: town.Owner?.Id,
             Name: town.Name, Faction: town.Faction, Buildings: town.Built.ToList(), BuiltToday: town.BuiltToday,
-            Available: town.Available.ToDictionary(a => a.Key.Id, a => a.Value), Garrison: Stacks(town.Garrison)),
+            Available: town.Available.ToDictionary(a => a.Key.Id, a => a.Value), Garrison: Stacks(town.Garrison),
+            GuildSpells: town.GuildSpells.Count > 0 ? town.GuildSpells.Select(s => s.Id).ToList() : null),
         _ => throw new InvalidOperationException($"Objet de carte non prévu dans la sauvegarde : {obj.GetType().Name}"),
     };
 
@@ -189,7 +192,7 @@ public sealed partial class GameState
 
         foreach (var p in save.Players)
         {
-            var player = new Player(p.Name, map) { Id = p.Id };
+            var player = new Player(p.Name, map) { Id = p.Id, IsComputer = p.IsComputer };
             foreach (var (resource, amount) in p.Resources)
                 player.Resources[resource] = amount;
             if (p.Statistics is { } stats)
@@ -243,7 +246,11 @@ public sealed partial class GameState
                 Charisma = h.Charisma,
                 Level = h.Level,
                 Experience = h.Experience,
+                // les anciennes sauvegardes n'ont pas de points de sort : le héros est plein
+                SpellPoints = h.SpellPoints ?? Hero.SpellPointsPerKnowledge * h.Knowledge,
             };
+            foreach (var id in h.Spells ?? new List<string>())
+                hero.Learn(data.Spells.Get(id));
             foreach (var s in h.Army)
                 hero.Army.AddStack(data.Creatures.Get(s.Creature), s.Count);
             // ses caractéristiques comptent déjà leurs bonus
@@ -316,6 +323,8 @@ public sealed partial class GameState
             town.Available[data.Creatures.Get(creature)] = count;
         foreach (var s in o.Garrison ?? new List<StackData>())
             town.Garrison.AddStack(data.Creatures.Get(s.Creature), s.Count);
+        foreach (var spellId in o.GuildSpells ?? new List<string>())
+            town.RestoreGuildSpell(data.Spells.Get(spellId));
         return town;
     }
 

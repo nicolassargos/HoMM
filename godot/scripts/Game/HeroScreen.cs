@@ -26,6 +26,9 @@ public partial class HeroScreen : ScreenWindow
     private ProgressBar _movementBar = null!;
     private readonly List<(HeroStat? Stat, Label Name, Label Value, Label Effect)> _stats = new();
     private VBoxContainer _artifacts = null!;
+    private Label _spellPoints = null!;
+    private VBoxContainer _spells = null!;
+    private string? _spellsKey;
     private ArmySlots _army = null!;
 
     public void Build(GameState state, Vector2 screenSize)
@@ -36,7 +39,7 @@ public partial class HeroScreen : ScreenWindow
 
         // le portrait, puis niveau, expérience et mouvement
         var portraitFrame = new Panel { Position = V(20, 56), Size = new Vector2(64, 64) * PortraitScale + V(4, 4) };
-        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
+        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 2, 2, 2, 2));
         Window.AddChild(portraitFrame);
         _portrait = new TextureRect
         {
@@ -52,7 +55,7 @@ public partial class HeroScreen : ScreenWindow
         Window.AddChild(At(MakeLabel(Texts.ExperienceWord, 13, SoftTextColor), 166, 90));
         (_experienceBar, _experienceText) = Bar(V(166, 108), MapRenderer.Rgb(150, 120, 50));
         Window.AddChild(At(MakeLabel(Texts.MovementWord, 13, SoftTextColor), 166, 134));
-        (_movementBar, _movementText) = Bar(V(166, 152), MapRenderer.Rgb(60, 150, 60));
+        (_movementBar, _movementText) = Bar(V(166, 152), MovementColor);
 
         // les caractéristiques, en colonne
         float y = 204;
@@ -78,12 +81,17 @@ public partial class HeroScreen : ScreenWindow
         _artifacts.AddThemeConstantOverride("separation", (int)Px(8));
         artifacts.AddChild(_artifacts);
 
-        // la magie, à venir
+        // la magie : les points de sort et le livre (les compétences viendront avec les classes de héros)
         var magic = Section(V(636, 56), V(344, 380), Texts.MagicHeader);
-        var later = At(MakeLabel(Texts.MagicLater, 13, SoftTextColor), 12, 40);
-        later.AutowrapMode = TextServer.AutowrapMode.WordSmart; // avant la taille : sinon elle se règle sur le texte entier
-        later.CustomMinimumSize = V(320, 0);
-        magic.AddChild(later);
+        _spellPoints = At(MakeLabel("", 15, TextColor), 12, 32);
+        _spellPoints.MouseFilter = Control.MouseFilterEnum.Stop;
+        _spellPoints.TooltipText = Texts.SpellPointsDaily;
+        magic.AddChild(_spellPoints);
+        var scroll = new ScrollContainer { Position = V(12, 60), Size = V(326, 312), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        magic.AddChild(scroll);
+        _spells = new VBoxContainer();
+        _spells.AddThemeConstantOverride("separation", (int)Px(6));
+        scroll.AddChild(_spells);
 
         // l'armée, en grand
         var army = Section(V(20, 450), V(960, 170), Texts.ArmyHeader);
@@ -107,8 +115,8 @@ public partial class HeroScreen : ScreenWindow
     private (ProgressBar Bar, Label Text) Bar(Vector2 position, Color fill)
     {
         var bar = new ProgressBar { Position = position, Size = V(112, 20), ShowPercentage = false, MinValue = 0 };
-        bar.AddThemeStyleboxOverride("background", Box(MapRenderer.Rgb(20, 16, 12), BorderColor, 1, 1, 1, 1));
-        bar.AddThemeStyleboxOverride("fill", Box(fill, null));
+        StyleBar(bar, fill);
+        bar.Size = V(112, 20); // après le style (sinon la hauteur minimale du thème l'emporte)
         Window.AddChild(bar);
         var text = MakeLabel("", 12, TextColor);
         text.HorizontalAlignment = HorizontalAlignment.Center;
@@ -180,7 +188,41 @@ public partial class HeroScreen : ScreenWindow
             name.TooltipText = value.TooltipText = effect.TooltipText = Texts.StatTooltip(stat, hero);
         }
         RefreshArtifacts(hero);
+        RefreshSpells(hero);
         _army.Show(hero.Army, hero.Charisma);
+    }
+
+    /// <summary>Les points de sort, et chaque sort du livre : son nom, son niveau, ses points, ce qu'il fait.</summary>
+    private void RefreshSpells(Hero hero)
+    {
+        _spellPoints.Text = Texts.SpellPointsLine(hero.SpellPoints, hero.MaxSpellPoints);
+        string key = $"{hero.Id}:{hero.Power}:{string.Join(",", hero.Spells.Select(s => s.Id))}";
+        if (key == _spellsKey)
+            return;
+        _spellsKey = key;
+        foreach (var child in _spells.GetChildren())
+        {
+            _spells.RemoveChild(child);
+            child.QueueFree();
+        }
+        if (hero.Spells.Count == 0)
+        {
+            var none = MakeLabel(Texts.NoSpellsKnown, 13, SoftTextColor);
+            none.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            none.CustomMinimumSize = V(310, 0);
+            _spells.AddChild(none);
+        }
+        foreach (var spell in hero.Spells)
+        {
+            var box = new VBoxContainer();
+            box.AddThemeConstantOverride("separation", 0);
+            box.AddChild(MakeLabel(Texts.SpellLine(spell), 14, TextColor));
+            var effect = MakeLabel(Texts.SpellEffectText(spell, hero), 12, SoftTextColor);
+            effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            effect.CustomMinimumSize = V(310, 0);
+            box.AddChild(effect);
+            _spells.AddChild(box);
+        }
     }
 
     private string? _artifactsKey;

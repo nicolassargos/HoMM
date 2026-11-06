@@ -22,15 +22,26 @@ public sealed partial class GameState
 
     public GameState(int seed, GameData data) : this(seed, data, MapSize.Normal) { }
 
-    /// <summary>Une nouvelle partie sur une carte générée de cette taille.</summary>
-    public GameState(int seed, GameData data, MapSize size)
-        : this(seed, data, Generate(seed, data, size)) => AddStartingPlayer();
+    /// <summary>
+    /// Une nouvelle partie sur une carte générée de cette taille, avec <paramref name="opponents"/> adversaires joués par
+    /// l'ordinateur (au plus <see cref="MapSizes.MaxOpponents"/>), chacun dans un coin de la carte.
+    /// </summary>
+    /// <param name="startingTowns">Chaque joueur commence avec son château (sans : en pleine nature, pour des tests).</param>
+    public GameState(int seed, GameData data, MapSize size, int opponents = 0, bool startingTowns = true)
+        : this(seed, data, Generate(seed, data, size, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns))
+        => AddPlayers(Map.Starts.Count);
 
-    private static AdventureMap Generate(int seed, GameData data, MapSize size)
+    private static AdventureMap Generate(int seed, GameData data, MapSize size, int opponents, bool startingTowns)
     {
         var (width, height) = MapSizes.Dimensions(size);
-        return new MapGenerator(seed, data).Generate(width, height);
+        return new MapGenerator(seed, data) { Players = opponents + 1, StartingTowns = startingTowns }.Generate(width, height);
     }
+
+    /// <summary>Les noms (et couleurs) des joueurs, dans l'ordre : le joueur humain, puis les adversaires.</summary>
+    private static readonly string[] PlayerNames = { "Rouge", "Bleu", "Vert", "Orange" };
+
+    /// <summary>Les héros de départ des adversaires (pris à la fin de la liste de la taverne, qui ne les propose plus).</summary>
+    private static readonly string[] ComputerHeroNames = { "Sire Yvain", "Dame Viviane", "Brann le Rouge" };
 
     /// <summary>
     /// Une partie sur une carte faite à la main (pour les tests, et plus tard un éditeur de cartes), avec le joueur
@@ -39,21 +50,44 @@ public sealed partial class GameState
     public static GameState ForMap(AdventureMap map, GameData data, int seed = 0)
     {
         var state = new GameState(seed, data, map);
-        state.AddStartingPlayer();
+        state.AddPlayers(Math.Max(1, map.Starts.Count));
         return state;
     }
 
-    /// <summary>Le joueur humain et son héros de départ, avec sa petite armée.</summary>
-    private void AddStartingPlayer()
+    /// <summary>
+    /// Les joueurs, chacun sur son départ avec son héros et sa petite armée : le joueur humain d'abord, puis les adversaires
+    /// joués par l'ordinateur.
+    /// </summary>
+    private void AddPlayers(int count)
     {
-        var human = new Player("Rouge", Map) { Id = _nextPlayerId++ };
-        Players.Add(human);
-        var hero = new Hero("Sire Roland", human, Map.Start) { Id = _nextHeroId++ };
-        hero.Army.Add(Creatures.Get("paysan"), 30);
-        hero.Army.Add(Creatures.Get("archer"), 15);
-        hero.Army.Add(Creatures.Get("griffon"), 4);
-        CurrentHero = hero;
+        for (int i = 0; i < count; i++)
+        {
+            var player = new Player(PlayerNames[i % PlayerNames.Length], Map) { Id = _nextPlayerId++, IsComputer = i > 0 };
+            Players.Add(player);
+            string name = i == 0 ? "Sire Roland" : ComputerHeroNames[(i - 1) % ComputerHeroNames.Length];
+            var hero = new Hero(name, player, Map.Starts.Count > i ? Map.Starts[i] : Map.Start) { Id = _nextHeroId++ };
+            foreach (var stack in StartingArmy(Creatures).Stacks)
+                hero.Army.Add(stack.Type, stack.Count);
+            // son château de départ, s'il y en a un sur son départ (cartes générées)
+            if (Map.ObjectAt(hero.Position) is Town castle && castle.Position == hero.Position)
+                castle.SetOwner(player);
+            if (i == 0)
+                CurrentHero = hero;
+        }
     }
+
+    /// <summary>L'armée de départ de chaque héros de départ : 30 Paysans, 15 Archers, 4 Griffons.</summary>
+    public static Army StartingArmy(CreatureCatalog creatures)
+    {
+        var army = new Army();
+        army.Add(creatures.Get("paysan"), 30);
+        army.Add(creatures.Get("archer"), 15);
+        army.Add(creatures.Get("griffon"), 4);
+        return army;
+    }
+
+    /// <summary>Les adversaires joués par l'ordinateur.</summary>
+    public IEnumerable<Player> Opponents => Players.Where(p => p.IsComputer);
 
     /// <summary>Une partie sur une carte déjà faite, sans joueur (pour le chargement, voir <see cref="Load"/>).</summary>
     private GameState(int seed, GameData data, AdventureMap map)
@@ -185,6 +219,8 @@ public sealed partial class GameState
             reason = GameEndReason.TownsCaptured;
         else if (Rules.Has(VictoryCondition.ClearGuards) && !Map.Objects.OfType<MonsterGuard>().Any())
             reason = GameEndReason.GuardsCleared;
+        else if (Rules.Has(VictoryCondition.DefeatOpponents) && Opponents.Any() && Opponents.All(p => p.IsDefeated))
+            reason = GameEndReason.OpponentsDefeated;
         if (reason is { } won)
             EndGame(GameOutcome.Victory, won);
     }
@@ -195,6 +231,9 @@ public sealed partial class GameState
     public void EndTurn()
     {
         if (Outcome != GameOutcome.Playing || CurrentBattle != null)
+            return;
+        CheckVictory();
+        if (Outcome != GameOutcome.Playing)
             return;
 
         int previous = _currentPlayer;
@@ -220,7 +259,12 @@ public sealed partial class GameState
     {
         Day++;
         foreach (var hero in AllHeroes)
+        {
             hero.NewDay();
+            // une journée commencée dans une ville qui a une guilde des mages : tous les points de sort
+            if (Map.ObjectAt(hero.Position) is Town { MageGuildLevel: > 0 } town && town.Position == hero.Position && town.Owner == hero.Owner)
+                hero.SpellPoints = Math.Max(hero.SpellPoints, hero.MaxSpellPoints);
+        }
 
         bool newWeek = Day % 7 == 0;
         foreach (var town in Towns)
@@ -237,6 +281,9 @@ public sealed partial class GameState
         foreach (var player in Players)
         {
             var income = player.DailyIncome();
+            // les adversaires gagnent plus ou moins d'or selon la difficulté
+            if (player.IsComputer && income.TryGetValue(ResourceType.Gold, out int gold))
+                income[ResourceType.Gold] = gold * ComputerProfile.For(Rules.Difficulty).GoldIncomePercent / 100;
             foreach (var (resource, amount) in income)
                 player.Resources[resource] += amount;
             if (income.Count > 0)
@@ -256,7 +303,7 @@ public sealed partial class GameState
         // Un clic sur les murs d'une ville mène à son entrée
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero));
+        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target));
     }
 
     public void ClearPath() => Path = null;
@@ -264,6 +311,13 @@ public sealed partial class GameState
     /// <summary>Les cases des autres héros : on ne peut pas les traverser.</summary>
     private HashSet<Cell> OtherHeroCells(Hero hero) =>
         AllHeroes.Where(h => h != hero).Select(h => h.Position).ToHashSet();
+
+    /// <summary>Les cases des autres héros, sauf celle d'un héros ennemi visé (on va jusqu'à lui pour l'attaquer).</summary>
+    private HashSet<Cell> OtherHeroCells(Hero hero, Cell target) =>
+        AllHeroes.Where(h => h != hero && !(h.Position == target && h.Owner != hero.Owner)).Select(h => h.Position).ToHashSet();
+
+    /// <summary>Le héros d'un autre joueur sur cette case, s'il y en a un.</summary>
+    public Hero? EnemyHeroAt(Cell cell, Player player) => AllHeroes.FirstOrDefault(h => h.Position == cell && h.Owner != player);
 
     /// <summary>Sélectionne un héros du joueur courant (son chemin prévu est retrouvé).</summary>
     public void SelectHero(Hero hero)
@@ -297,7 +351,15 @@ public sealed partial class GameState
         var hero = CurrentHero!;
         var next = Path![0];
 
-        // Un autre héros est sur le chemin : on s'arrête (le chemin reste prévu)
+        // Un héros d'un autre joueur sur la case suivante : on l'attaque, sans bouger (comme un monstre)
+        if (EnemyHeroAt(next, hero.Owner) is { } enemy)
+        {
+            hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next));
+            Path = null;
+            BeginFights(hero, hero.Position, hero.Position, new[] { ((MapObject)new HeroDefender(enemy), enemy.Army) }, visit: false);
+            return false;
+        }
+        // Un de ses héros est sur le chemin : on s'arrête (le chemin reste prévu)
         if (AllHeroes.Any(h => h != hero && h.Position == next))
             return false;
 
@@ -334,11 +396,17 @@ public sealed partial class GameState
         if (Map.ObjectAt(cell) is { } obj and not MonsterGuard)
         {
             var visit = obj.Visit(hero);
-            if (visit is TownCaptured)
+            if (visit is TownCaptured captured)
+            {
                 hero.Owner.Statistics.TownsCaptured++;
+                if (captured.PreviousOwner is { } loser)
+                    AnnounceDefeat(loser);
+            }
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
             Emit(visit);
+            if (obj is Town town)
+                VisitGuild(hero, town);
             CheckVictory();
         }
         if (Path is { Count: 0 })
@@ -353,6 +421,20 @@ public sealed partial class GameState
     /// le joue sur l'écran de combat ou choisit le combat rapide, puis l'affichage appelle <see cref="FinishBattle"/>.
     /// </summary>
     public bool QuickBattles { get; set; } = true;
+
+    /// <summary>
+    /// Un joueur humain attaqué (son héros, sa ville) dirige sa défense (étape 8) : le combat attend, même pendant le tour
+    /// d'un adversaire qui joue en combats rapides ; l'adversaire reprend son tour une fois le combat fini.
+    /// </summary>
+    public bool HumansDefend { get; set; }
+
+    /// <summary>Le défenseur est-il un joueur humain (son héros, ou sa ville) ?</summary>
+    private static bool DefendedByHuman(MapObject defender) => defender switch
+    {
+        HeroDefender d => !d.Hero.Owner.IsComputer,
+        Town { Owner: { } owner } => !owner.IsComputer,
+        _ => false,
+    };
 
     /// <summary>Le combat en cours (la partie attend qu'il finisse), ou null.</summary>
     public TacticalBattle? CurrentBattle { get; private set; }
@@ -390,9 +472,9 @@ public sealed partial class GameState
         var (defender, army) = step.Opponents.Dequeue();
         var rebels = RollRevolts(step.Hero);
         _battle = new BattleContext(step.Hero, defender, army.Clone().Stacks);
-        CurrentBattle = new TacticalBattle(step.Hero.Army, army, _rng, step.Hero, rebels);
+        CurrentBattle = new TacticalBattle(step.Hero.Army, army, _rng, step.Hero, rebels, (defender as HeroDefender)?.Hero);
         Emit(new BattleStarted(step.Hero, defender, CurrentBattle));
-        if (QuickBattles)
+        if (QuickBattles && !(HumansDefend && DefendedByHuman(defender)))
         {
             BattleAI.PlayOut(CurrentBattle);
             FinishBattle();
@@ -417,7 +499,30 @@ public sealed partial class GameState
         stats.CreaturesKilled += report.DefenderLosses.Sum(s => s.Count);
         if (report.AttackerWon)
             stats.BattlesWon++;
-        Emit(new BattleFought(hero, context.Defender, context.DefenderArmy, report));
+        // celui qui se défendait : le propriétaire de la ville, ou le héros attaqué
+        var defenderHero = (context.Defender as HeroDefender)?.Hero;
+        var defenderOwner = defenderHero?.Owner ?? (context.Defender as Town)?.Owner;
+        if (defenderOwner != null)
+        {
+            defenderOwner.Statistics.CreaturesLost += report.DefenderLosses.Sum(s => s.Count);
+            defenderOwner.Statistics.CreaturesKilled += report.AttackerLosses.Sum(s => s.Count);
+            if (!report.AttackerWon && !report.Fled)
+                defenderOwner.Statistics.BattlesWon++;
+        }
+        Emit(new BattleFought(hero, context.Defender, context.DefenderArmy, report, defenderOwner));
+
+        // les points de sort dépensés pendant le combat
+        hero.SpendSpellPoints(report.AttackerSpellPointsSpent);
+        defenderHero?.SpendSpellPoints(report.DefenderSpellPointsSpent);
+
+        // le héros qui se défendait : vaincu, il disparaît ; vainqueur, il gagne la valeur des troupes tuées
+        if (defenderHero != null)
+        {
+            if (report.AttackerWon)
+                RemoveHero(defenderHero);
+            else
+                GrantExperience(defenderHero, Battle.ExperienceFor(report.AttackerLosses));
+        }
 
         if (report.AttackerWon)
         {
@@ -485,6 +590,9 @@ public sealed partial class GameState
         }
     }
 
+    /// <summary>Les niveaux gagnés dont la caractéristique n'est pas encore choisie (tous joueurs).</summary>
+    public IReadOnlyList<HeroLevelChoice> PendingChoices => _pendingChoices;
+
     /// <summary>Le joueur choisit la caractéristique gagnée à ce niveau. Renvoie false si ce choix n'est pas proposé.</summary>
     public bool ChooseStat(HeroLevelChoice choice, HeroStat stat)
     {
@@ -512,8 +620,20 @@ public sealed partial class GameState
         if (CurrentHero == hero)
             CurrentHero = hero.Owner.Heroes.FirstOrDefault();
         Emit(new HeroDefeated(hero));
+        AnnounceDefeat(hero.Owner);
         if (hero.Owner == Players[0] && hero.Owner.IsDefeated)
             EndGame(GameOutcome.Defeat, GameEndReason.HeroesLost);
+        else
+            CheckVictory(); // le dernier héros d'un adversaire
+    }
+
+    private readonly HashSet<Player> _announcedDefeats = new();
+
+    /// <summary>Un joueur qui n'a plus ni héros ni ville est éliminé (annoncé une seule fois).</summary>
+    private void AnnounceDefeat(Player player)
+    {
+        if (player.IsDefeated && _announcedDefeats.Add(player))
+            Emit(new PlayerDefeated(player));
     }
 
     /// <summary>Pour chaque case du chemin : est-elle atteignable aujourd'hui ?</summary>
@@ -528,7 +648,7 @@ public sealed partial class GameState
             return null;
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero)) is not { } path)
+        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target)) is not { } path)
             return null;
         int days = 1, movement = hero.Movement;
         var previous = hero.Position;
@@ -575,8 +695,8 @@ public sealed partial class GameState
     }
 
     /// <summary>Prévision d'un combat du héros courant contre cette armée, sans rien modifier (pour l'interface).</summary>
-    public BattleReport? PredictBattle(Army enemy) =>
-        CurrentHero is { } hero ? Battle.Resolve(hero.Army.Clone(), enemy.Clone(), hero) : null;
+    public BattleReport? PredictBattle(Army enemy, Hero? enemyHero = null) =>
+        CurrentHero is { } hero ? Battle.Resolve(hero.Army.Clone(), enemy.Clone(), hero, defenderHero: enemyHero) : null;
 
     // ------------------------------------------------------------------ villes
 
@@ -722,6 +842,7 @@ public sealed partial class GameState
         hero.Army.Add(firstTier, 12);
         CurrentHero = hero;
         Emit(new HeroHired(hero, town));
+        VisitGuild(hero, town);
         return HireResult.Ok;
     }
 
@@ -778,7 +899,38 @@ public sealed partial class GameState
             return result;
         town.Build(building, CurrentPlayer);
         Emit(new BuildingBuilt(town, building));
+        if (building.MageGuild > 0)
+        {
+            town.DrawGuildSpells(building.MageGuild, Data.Spells, n => (int)(_rng.NextDouble() * n));
+            if (VisitingHero(town) is { } hero && hero.Owner == town.Owner)
+                VisitGuild(hero, town);
+        }
         return BuildResult.Ok;
+    }
+
+    /// <summary>Ajoute un bâtiment sans le payer (développement, scénarios) ; une guilde tire aussi ses sorts.</summary>
+    public void AddFreeBuilding(Town town, BuildingType building)
+    {
+        town.AddBuilding(building);
+        if (building.MageGuild > 0)
+            town.DrawGuildSpells(building.MageGuild, Data.Spells, n => (int)(_rng.NextDouble() * n));
+    }
+
+    /// <summary>
+    /// Un héros dans une ville de son joueur qui a une guilde des mages : il apprend les sorts qu'il ne connaît pas encore
+    /// et retrouve tous ses points de sort.
+    /// </summary>
+    private void VisitGuild(Hero hero, Town town)
+    {
+        if (town.Owner != hero.Owner || town.MageGuildLevel == 0)
+            return;
+        hero.SpellPoints = Math.Max(hero.SpellPoints, hero.MaxSpellPoints);
+        var learned = new List<SpellType>();
+        foreach (var spell in town.GuildSpells)
+            if (hero.Learn(spell))
+                learned.Add(spell);
+        if (learned.Count > 0)
+            Emit(new SpellsLearned(hero, town, learned));
     }
 }
 

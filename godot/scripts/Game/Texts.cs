@@ -89,6 +89,7 @@ public static class Texts
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
         Town town => town.Name,
+        HeroDefender defender => HeroWithColor(defender.Hero),
         _ => obj.GetType().Name,
     };
 
@@ -97,6 +98,7 @@ public static class Texts
     {
         MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, battle.DefenderArmy.Sum(s => s.Count))),
         Town town => $"la garnison de {town.Name}",
+        HeroDefender defender => HeroWithColor(defender.Hero),
         var other => LowerFirst(ObjectName(other)),
     };
 
@@ -105,6 +107,7 @@ public static class Texts
     {
         MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, army.TotalCount)),
         Town town => $"la garnison de {town.Name}",
+        HeroDefender attacked => HeroWithColor(attacked.Hero),
         var other => LowerFirst(ObjectName(other)),
     };
 
@@ -133,6 +136,12 @@ public static class Texts
         UnitWaited w => $"{Capitalize(Stack(w.Unit.Stack))} {(w.Unit.Count == 1 ? "attend" : "attendent")}.",
         UnitRegenerated r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "se régénère" : "se régénèrent")}.",
         UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
+        SpellCast c => $"{c.Caster.Name} lance {c.Spell.Name}.",
+        SpellDamaged d => $"{d.Spell.Name} : {d.Damage} dégâts à {Stack(new CreatureStack(d.Target.Type, d.Target.Count + d.Killed))}"
+                          + (d.Killed > 0 ? $", {d.Killed} {(d.Killed == 1 ? "tué" : "tués")}." : "."),
+        UnitHealed { Revived: > 0 } h => $"{h.Spell.Name} : {h.Revived} {Creature(h.Unit.Type, h.Revived)} {(h.Revived == 1 ? "revient" : "reviennent")} au combat.",
+        UnitHealed h => $"{h.Spell.Name} : {Stack(h.Unit.Stack)} {(h.Unit.Count == 1 ? "est soigné" : "sont soignés")} ({h.HitPoints} PV).",
+        SpellApplied a => $"{a.Spell.Name} sur {Stack(a.Unit.Stack)}.",
         AttackerFled fled => $"Le héros s'enfuit ! Pertes : {Losses(fled.Losses)}.",
         BattleEnded { Outcome: BattleOutcome.AttackerWon } => "Victoire !",
         BattleEnded { Outcome: BattleOutcome.DefenderWon } => "Défaite...",
@@ -151,6 +160,28 @@ public static class Texts
 
     /// <summary>La cible, avec ce qu'elle comptait avant le coup.</summary>
     private static string StackAfter(UnitStruck s) => Stack(new CreatureStack(s.Target.Type, s.Target.Count + s.Killed));
+
+    public static string DefenseChoiceTitle => "Vous êtes attaqué !";
+
+    public static string DefenseChoiceText(string attacker, string? town) => town == null
+        ? $"{attacker} attaque votre héros. Dirigez-vous la défense, ou laissez-vous le combat se jouer seul ?"
+        : $"{attacker} attaque {town}. Dirigez-vous la défense de la garnison, ou laissez-vous le combat se jouer seul ?";
+
+    /// <summary>« Sire Yvain (Bleu) » : un héros et la couleur de son joueur.</summary>
+    public static string HeroWithColor(Hero hero) => $"{hero.Name} ({hero.Owner.Name})";
+
+    /// <summary>Le bilan vu par celui qui se défendait : « Sire Yvain (Bleu) attaque Sire Roland · 3 rounds ».</summary>
+    public static string DefenseSubtitle(BattleFought battle) =>
+        $"{HeroWithColor(battle.Hero)} attaque {(battle.Defender is Town town ? town.Name : battle.Defender is HeroDefender d ? d.Hero.Name : ObjectName(battle.Defender))}"
+        + $" · {battle.Report.Rounds} round{(battle.Report.Rounds > 1 ? "s" : "")}";
+
+    /// <summary>Le titre du bilan pour celui qui se défendait.</summary>
+    public static string DefenseTitle(BattleReport report) => report.AttackerWon ? "Défaite…" : "Victoire !";
+
+    /// <summary>L'expérience du héros qui s'est défendu et a gagné (la valeur des troupes tuées).</summary>
+    public static string DefenseExperience(BattleFought battle) =>
+        battle.Defender is HeroDefender && !battle.Report.AttackerWon && !battle.Report.Fled
+            ? $"Expérience : +{Battle.ExperienceFor(battle.Report.AttackerLosses)}" : "";
 
     /// <summary>« Révolte : 40 Paysans refusent d'obéir… », ou null s'il n'y a pas eu de révolte.</summary>
     public static string? Revolt(BattleReport report) => report.Rebels.Count == 0 ? null
@@ -261,6 +292,8 @@ public static class Texts
             : $"Produit des {creature.Plural} (+{creature.Growth} par semaine)",
         { DailyGold: > 0 } => $"+{building.DailyGold} or par jour",
         { Tavern: true } => "Permet de recruter des héros",
+        { MageGuild: > 0 } => $"Enseigne {Town.GuildSpellsPerLevel[building.MageGuild - 1]} sorts de niveau {building.MageGuild} aux héros"
+                              + " et recharge leurs points de sort",
         _ => "",
     };
 
@@ -326,6 +359,7 @@ public static class Texts
     public static string GameOverText(GameEnded end) => end.Reason switch
     {
         GameEndReason.GuardsCleared => "Tous les monstres ont été vaincus. La région est à vous !",
+        GameEndReason.OpponentsDefeated => "Vos adversaires sont vaincus. La région est à vous !",
         GameEndReason.TownsCaptured => "Toutes les villes sont à vous. La région est à vous !",
         GameEndReason.HeroesLost => "Votre dernier héros est tombé. La partie est perdue.",
         GameEndReason.TreasureFound => "Vous avez déterré le Plastron des Rois : la région vous reconnaît pour son roi !",
@@ -345,6 +379,7 @@ public static class Texts
     {
         VictoryCondition.ClearGuards => "Vaincre tous les monstres",
         VictoryCondition.CaptureTowns => "Prendre toutes les villes",
+        VictoryCondition.DefeatOpponents => "Vaincre tous les adversaires",
         _ => "Trouver le trésor enfoui",
     };
 
@@ -444,6 +479,31 @@ public static class Texts
     public static string RandomSeed => "Au hasard";
     public static string SeedHelp => "La même graine donne la même carte.";
     public static string GoalsLabel => "Comment gagner";
+    public static string OpponentsLabel => "Adversaires";
+    public static string DifficultyLabel => "Difficulté";
+
+    public static string DifficultyName(Difficulty difficulty) => difficulty switch
+    {
+        Difficulty.Easy => "Facile",
+        Difficulty.Hard => "Difficile",
+        _ => "Normale",
+    };
+
+    public static string DifficultyTooltip(Difficulty difficulty) => difficulty switch
+    {
+        Difficulty.Easy => "Des adversaires prudents, moins riches, qui vous laissent tranquille les trois premières semaines",
+        Difficulty.Hard => "Des adversaires audacieux, plus riches, avec plus de héros",
+        _ => "Des adversaires ni trop prudents ni trop audacieux",
+    };
+
+    /// <summary>Les déplacements d'un adversaire que l'on voit sont rejoués : « Bleu se déplace… ».</summary>
+    public static string RivalMoving(Player player) => $"{player.Name} se déplace…";
+    public static string OpponentsTooltip(int count) => count switch
+    {
+        0 => "Seul contre les monstres",
+        1 => "Un adversaire joué par l'ordinateur (dans le coin opposé)",
+        _ => $"{count} adversaires joués par l'ordinateur, chacun dans un coin (sur les plus grandes cartes)",
+    };
     public static string GoalsNote => "La première façon accomplie l'emporte. Perdre tous ses héros reste une défaite.";
 
     public static string SaveTitle => "Sauvegarder la partie";
@@ -485,6 +545,8 @@ public static class Texts
     /// </summary>
     public static string? Message(GameEvent e, Player viewer) => e switch
     {
+        TownCaptured { PreviousOwner: { } loser } lost when loser == viewer && lost.Hero.Owner != viewer =>
+            $"{HeroWithColor(lost.Hero)} vous prend {lost.Town.Name} !",
         ObjectVisited visit when visit.Hero.Owner != viewer => null,
         ResourcesFound { Object: TreasureChest } found => $"Un coffre au trésor ! +{found.Amount} {Resource(found.Resource)}.",
         ResourcesFound found => $"Vous trouvez {found.Amount} {Resource(found.Resource)}.",
@@ -496,6 +558,8 @@ public static class Texts
         TownEntered entered => $"{entered.Hero.Name} entre dans {entered.Town.Name}.",
         BuildingBuilt built when built.Town.Owner != viewer => null,
         BuildingBuilt built => $"{built.Building.Name} : construit à {built.Town.Name}.",
+        SpellsLearned learned when learned.Hero.Owner != viewer => null,
+        SpellsLearned learned => $"{learned.Hero.Name} apprend {List(learned.Spells.Select(s => s.Name).ToList())} à la guilde des mages de {learned.Town.Name}.",
         HeroHired hired when hired.Hero.Owner != viewer => null,
         HeroHired hired => $"{hired.Hero.Name} rejoint vos rangs à {hired.Town.Name} !",
         CreaturesRecruited recruited when recruited.Town.Owner != viewer => null,
@@ -503,7 +567,12 @@ public static class Texts
             $"{recruited.Count} {Creature(recruited.Type, recruited.Count)} recruté{(recruited.Count > 1 ? "s" : "")} à {recruited.Town.Name}"
             + (recruited.ToHero ? " (garnison pleine : ils rejoignent le héros)." : "."),
 
+        BattleFought { DefenderOwner: { } defender } battle when defender == viewer && battle.Hero.Owner != viewer =>
+            battle.Report.AttackerWon
+                ? $"{HeroWithColor(battle.Hero)} vous attaque et l'emporte."
+                : $"{HeroWithColor(battle.Hero)} vous attaque et est repoussé !",
         BattleFought battle when battle.Hero.Owner != viewer => null,
+        PlayerDefeated defeated when defeated.Player != viewer => $"Le joueur {defeated.Player.Name} est éliminé !",
         BattleFought { Report.AttackerWon: true } battle => Join(
             Revolt(battle.Report),
             $"Victoire contre {Enemy(battle)} ! Pertes : {Losses(battle.Report.AttackerLosses)}. +{battle.Report.Experience} expérience."),
@@ -514,6 +583,7 @@ public static class Texts
         DayStarted { NewWeek: true } day => $"Une nouvelle semaine commence, les monstres sont plus nombreux ! {Date(day.Day)}.",
         DayStarted day => $"Nouveau jour : {Date(day.Day)}.",
         IncomeReceived income when income.Player == viewer => $"Revenus : {Income(income.Income)}.",
+        TurnStarted { Player.IsComputer: true } => null, // les adversaires jouent aussitôt : pas de message
         TurnStarted turn => $"Au tour du joueur {turn.Player.Name}.",
         RulesChosen { Treasure: { } where } chosen =>
             $"Objectif : {Objective(chosen.Rules)}. Le trésor est enfoui {Where(where)} de la carte : les obélisques en dévoilent la carte (touche M).",
@@ -524,6 +594,7 @@ public static class Texts
         NothingDug dug => $"{dug.Hero.Name} creuse… il n'y a rien ici.",
         TreasureDug dug => $"{dug.Hero.Name} déterre le {dug.Artifact.Name} ! {Bonus(dug.Artifact)}.",
         GameEnded { Reason: GameEndReason.GuardsCleared } => "La région est libérée de ses monstres. Victoire !",
+        GameEnded { Reason: GameEndReason.OpponentsDefeated } => "Tous vos adversaires sont vaincus. Victoire !",
         GameEnded { Reason: GameEndReason.TownsCaptured } => "Toutes les villes sont à vous. Victoire !",
         GameEnded { Reason: GameEndReason.HeroesLost } => "Vous n'avez plus de héros. Défaite...",
         GameEnded => "Il est trop tard pour gagner. Défaite...",
@@ -608,8 +679,8 @@ public static class Texts
     {
         HeroStat.Attack => $"Attaque {hero.Attack} : s'ajoute à l'attaque de chaque troupe du héros.",
         HeroStat.Defense => $"Défense {hero.Defense} : s'ajoute à la défense de chaque troupe du héros.",
-        HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (la magie viendra plus tard).",
-        HeroStat.Knowledge => $"Savoir {hero.Knowledge} : les points de sort (la magie viendra plus tard).",
+        HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (dégâts, soins) et leur durée ({hero.Power + 1} rounds).",
+        HeroStat.Knowledge => $"Savoir {hero.Knowledge} : {Hero.SpellPointsPerKnowledge} points de sort par point (points de sort : {hero.SpellPoints} / {hero.MaxSpellPoints}, +1 par jour).",
         _ => $"Charisme {hero.Charisma} : le héros commande au plus {Command.Limit(hero.Charisma)} points par troupe "
              + "(nombre × coût de la créature). Au-delà, la troupe risque de se révolter au combat.",
     };
@@ -714,16 +785,16 @@ public static class Texts
     {
         HeroStat.Attack => "+ à l'attaque de chaque troupe",
         HeroStat.Defense => "+ à la défense de chaque troupe",
-        HeroStat.Power => "force des sorts (plus tard)",
-        HeroStat.Knowledge => "points de sort (plus tard)",
+        HeroStat.Power => $"force et durée des sorts ({hero.Power + 1} rounds)",
+        HeroStat.Knowledge => $"{hero.MaxSpellPoints} points de sort au plus",
         _ => $"commande {Command.Limit(hero.Charisma)} points par troupe",
     };
 
     public static string ArtifactsHeader => "Artefacts";
     public static string NoArtifact => "Aucun artefact pour l'instant.";
     public static string MagicHeader => "Magie";
-    public static string MagicLater =>
-        "La magie viendra plus tard : les points de sort, le livre de sorts et les compétences du héros prendront place ici.";
+    /// <summary>Un sort du livre (écran du héros) : « Flèche magique · niveau 1 · 5 points ».</summary>
+    public static string SpellLine(SpellType spell) => $"{spell.Name} · niveau {spell.Level} · {SpellCost(spell)}";
 
     /// <summary>« 30 / 100 points » : le commandement d'une troupe.</summary>
     public static string CommandPoints(CreatureStack stack, int charisma) =>
@@ -795,7 +866,8 @@ public static class Texts
     public static string BuildingTooltip(Town town, BuildingType building)
     {
         string effect = BuildingEffect(town, building);
-        string click = building.Dwelling != null ? "Clic : recruter" : building.Tavern ? "Clic : la taverne" : building.DailyGold > 0 ? "Clic : construire" : "";
+        string click = building.Dwelling != null ? "Clic : recruter" : building.Tavern ? "Clic : la taverne"
+            : building.MageGuild > 0 ? "Clic : la guilde des mages" : building.DailyGold > 0 ? "Clic : construire" : "";
         return string.Join("\n", new[] { building.Name, effect, click }.Where(s => s.Length > 0));
     }
 
@@ -822,6 +894,46 @@ public static class Texts
 
     public static string PriceLine(CreatureType type) => $"Prix : {Cost(type.Cost)}";
 
+    // ----------------------------------------------------------- magie (étape 9)
+
+    /// <summary>« a, b et c ».</summary>
+    public static string List(IReadOnlyList<string> items) =>
+        items.Count <= 1 ? string.Join("", items) : string.Join(", ", items.Take(items.Count - 1)) + " et " + items[^1];
+
+    public static string GuildButton => "Guilde";
+    public static string GuildTitle(Town town) => $"Guilde des mages de {town.Name}";
+    public static string GuildText =>
+        "Un héros qui entre dans la ville apprend tous les sorts de la guilde et retrouve tous ses points de sort.";
+    public static string GuildLevel(int level) => $"Niveau {level}";
+    public static string GuildLevelMissing => "pas encore construit";
+    public static string SpellKnown => "connu";
+    public static string NoGuild => "Cette ville n'a pas encore de guilde des mages.";
+    public static string SpellCost(SpellType spell) => $"{spell.Cost} points";
+
+    /// <summary>
+    /// Ce que fait un sort, en une phrase ; avec un héros, la force calculée d'après sa puissance (« 30 dégâts »), sinon
+    /// la formule (« 10 + 10 × puissance dégâts »).
+    /// </summary>
+    public static string SpellEffectText(SpellType spell, Hero? hero = null)
+    {
+        string strength = hero != null ? $"{spell.Base + spell.PerPower * hero.Power}"
+            : spell.PerPower > 0 ? $"{spell.Base} + {spell.PerPower} × puissance" : $"{spell.Base}";
+        return spell.Effect switch
+        {
+            SpellEffect.Damage when spell.Target == SpellTarget.Area => $"{strength} dégâts sur une case et ses 6 voisines (amis compris)",
+            SpellEffect.Damage => $"{strength} dégâts à une troupe ennemie",
+            SpellEffect.Bless => "Une troupe amie fait ses dégâts maximum",
+            SpellEffect.Curse => "Une troupe ennemie fait ses dégâts minimum",
+            SpellEffect.StoneSkin => $"+{spell.Amount} défense à une troupe amie",
+            SpellEffect.Haste => $"+{spell.Amount} vitesse à une troupe amie",
+            SpellEffect.Slow => "Vitesse divisée par deux pour une troupe ennemie",
+            SpellEffect.Weakness => $"−{spell.Amount} attaque à une troupe ennemie",
+            SpellEffect.Cure => $"Soigne {strength} PV d'une troupe amie et retire les sorts néfastes",
+            SpellEffect.Resurrection => $"Ramène {strength} PV de créatures tuées dans ce combat (troupe amie)",
+            _ => "",
+        };
+    }
+
     public static string TavernTitle => "Taverne";
     public static string TavernText => $"Deux héros se proposent. Chacun coûte {GameState.HeroCost} or et arrive avec quelques paysans.";
     public static string HireButton => "Recruter";
@@ -837,7 +949,24 @@ public static class Texts
     public static string KeyTooltip(string tooltip, string key) => $"{tooltip} ({key})";
 
     public static string HeroBonus(Hero hero) => $"Attaque +{hero.Attack} · défense +{hero.Defense}";
-    public static string SpellBookLater => "La magie viendra plus tard.";
+    public static string SpellBookButton => "Sorts";
+    public static string SpellBookTitle(Hero hero) => $"Livre de sorts de {hero.Name}";
+    public static string SpellPointsLine(int points, int max) => $"Points de sort : {points} / {max}";
+    public static string SpellPointsDaily => "+1 par jour, tous dans une ville qui a une guilde des mages";
+    public static string OneSpellPerRound => "Un seul sort par round.";
+    public static string NotEnoughSpellPoints => "pas assez de points";
+    public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";
+    public static string SpellTargetPrompt(SpellType spell) => spell.Target switch
+    {
+        SpellTarget.Area => $"{spell.Name} : choisissez une case (clic droit ou Échap : annuler).",
+        SpellTarget.Ally => $"{spell.Name} : choisissez une de vos troupes (clic droit ou Échap : annuler).",
+        _ => $"{spell.Name} : choisissez une troupe ennemie (clic droit ou Échap : annuler).",
+    };
+
+    /// <summary>Le héros au combat (clic sur lui) : son bonus, ses points de sort et ses sorts.</summary>
+    public static string BattleHeroText(Hero hero, int spellPoints) =>
+        $"{HeroBonus(hero)}\n{SpellPointsLine(spellPoints, hero.MaxSpellPoints)}"
+        + (hero.Spells.Count > 0 ? $"\nSorts : {List(hero.Spells.Select(s => s.Name).ToList())}" : "");
     public static string BattleLogButton => "Journal";
     public static string BattleLogTitle => "Journal du combat";
 
@@ -850,8 +979,13 @@ public static class Texts
     public static string UnitAbilities(BattleUnit unit) =>
         unit.Type.Abilities.Count == 0 ? "Pas de capacité" : Capitalize(string.Join(", ", unit.Type.Abilities.Select(AbilityName)));
 
-    public static string UnitState(BattleUnit unit) =>
-        $"Ripostes : {unit.RetaliationsLeft}" + (unit.IsDefending ? " · se défend" : "");
+    public static string UnitState(BattleUnit unit, int round = 0) =>
+        $"Ripostes : {unit.RetaliationsLeft}" + (unit.IsDefending ? " · se défend" : "")
+        + (unit.Spells.Count > 0
+            ? "\nSorts : " + string.Join(", ", unit.Spells.Select(s => round > 0 ? $"{s.Spell.Name} ({Rounds(s.LastRound - round + 1)})" : s.Spell.Name))
+            : "");
+
+    private static string Rounds(int n) => $"{n} round{(n > 1 ? "s" : "")}";
 
 
     /// <summary>Le titre du bilan d'un combat.</summary>

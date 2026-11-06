@@ -37,6 +37,22 @@ public abstract class MapObject
     public abstract ObjectVisited Visit(Hero hero);
 }
 
+/// <summary>
+/// Un héros attaqué par un héros d'un autre joueur (étape 8), vu comme l'adversaire d'un combat (comme un monstre ou
+/// une ville) : il n'est pas posé sur la carte, et on ne le visite pas.
+/// </summary>
+public sealed class HeroDefender : MapObject
+{
+    public HeroDefender(Hero hero) : base(hero.Position) => Hero = hero;
+
+    public Hero Hero { get; }
+
+    public override bool RemovedOnVisit => false;
+
+    public override ObjectVisited Visit(Hero hero) =>
+        throw new InvalidOperationException("Un héros se combat, il ne se visite pas.");
+}
+
 /// <summary>Un héros a visité un objet. Chaque type d'objet a son propre événement, qui décrit l'effet.</summary>
 public abstract record ObjectVisited(Hero Hero, MapObject Object) : GameEvent;
 

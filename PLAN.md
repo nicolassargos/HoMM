@@ -38,7 +38,7 @@ On avance étape par étape, sans se presser : chaque étape est jouable et test
 
 ### 2. Villes ✅ (PR #6)
 Choix faits : la ville est **neutre** au départ, à mi-distance, défendue par une petite
-garnison ; les villes ont une **garnison** (comme dans Heroes) ; bâtiments minimaux ;
+garnison (changé à l'étape 8 : chaque joueur commence maintenant avec son château) ; les villes ont une **garnison** (comme dans Heroes) ; bâtiments minimaux ;
 écran de ville en plein écran.
 
 Découpage :
@@ -506,14 +506,170 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    marqués « Construit »), et suit son contenu ; « Fermer » bien à l'intérieur du cadre ; les boutons du niveau supérieur alignés.
    À faire ensuite : une nouvelle revue des captures avec l'utilisateur.
 
-### 8. Adversaires IA
+### 8. Adversaires IA ✅
 - Joueurs ordinateur avec leurs héros et leurs villes.
 - L'IA joue avec les mêmes méthodes de `GameState` que le joueur humain, sans attendre l'affichage.
 - L'affichage rejoue les déplacements des héros ennemis (événements `HeroMoved`) à un rythme lisible.
 
-### 9. Contenu
+Choix faits (avec l'utilisateur, 2026-11-05) : **1 à 3 adversaires**, choisis dans la nouvelle partie (1 par défaut, selon la
+taille de la carte) ; ils jouent aussi le **Château** (les autres factions viendront à l'étape 9), dans d'autres couleurs ;
+**pas de triche** (l'IA ne voit que ce qu'elle a exploré, mêmes revenus) ; un seul niveau de difficulté pour commencer ;
+une nouvelle façon de gagner, **« Vaincre tous les adversaires »**, cochée d'office quand il y en a.
+
+Découpage (une PR par point, chacune jouable et testée) :
+1. ✅ **Plusieurs joueurs** : un départ par joueur aux coins de la carte (`AdventureMap.Starts`, `MapGenerator.Players` :
+   le joueur humain en haut à gauche, puis le coin opposé, puis les deux autres) ; le danger des zones se compte depuis
+   le départ le plus proche (le milieu devient le plus dangereux) ; une ville neutre près de chaque départ, dans une zone
+   voisine plus proche de ce joueur que des autres, du côté de son départ ; le trésor le plus loin possible de tous ;
+   pas de monstre à moins de 4 cases d'un départ. Seul, la carte ne change pas. Au plus 1 adversaire sur les très
+   petites et petites cartes, 2 sur la normale, 3 sur les grandes (`MapSizes.MaxOpponents`). Joueurs Rouge, Bleu,
+   Vert, Orange (`Player.IsComputer`, sauvegardé) ; les héros des adversaires (Sire Yvain, Dame Viviane, Brann le
+   Rouge) ont la même armée de départ. Couleurs des joueurs : drapeaux des mines et des villes, étendard du héros (le
+   rouge de l'image prend la teinte du joueur), carte réduite (les héros adverses là où l'on a exploré). Les tours
+   passent d'un joueur à l'autre ; l'adversaire joue aussitôt après le joueur (`ComputerPlayer.PlayTurn` : pour
+   l'instant, il passe son tour). « Vaincre tous les adversaires » (`VictoryCondition.DefeatOpponents`), cochée d'office
+   quand il y en a. Nouvelle partie : le nombre d'adversaires (0 à 3, estompé au-delà de ce que la carte accueille).
+   Tests : `AdversairesTests`.
+2. ✅ **L'IA explore et ramasse** (`ComputerPlayer`) : chaque héros va vers le meilleur objet qu'il peut prendre sans
+   combat (le plus proche ; une mine compte double, elle rapporte chaque jour ; les obélisques qu'il n'a pas lus), et
+   sinon explore (la case connue la plus proche au bord de l'inconnu). Pas de triche : il ne passe que par les cases que
+   son joueur a explorées, jamais dans la zone d'un monstre ni à travers un objet. Niveaux : l'attaque, sinon la
+   défense. Combats en rapide s'il en arrive un (par sécurité). Sans combat, il attend aux passages gardés (point 4).
+   À l'écran : les pas des héros adverses là où le joueur a exploré sont rejoués à un rythme lisible, la vue les suit
+   (« Bleu se déplace… ») ; pas de compte rendu de combat pour les combats des autres. Option `--turns=N` (joue N jours
+   au lancement). Tests : `ExplorationIATests`.
+3. ✅ **L'IA combat les monstres et prend les villes neutres** (avant de construire : sans ville, elle ne peut rien
+   faire, et la ville neutre a une garnison). Elle attaque un monstre ou une ville neutre si la prévision (la même que
+   le danger affiché à l'interface) donne une victoire en perdant au plus 30 % de la valeur de son armée
+   (`ComputerPlayer.AcceptableLosses`, valeur = l'or des créatures). Un monstre est abordé par une case de sa zone que
+   lui seul garde (un seul combat à la fois) ; une ville neutre compte beaucoup, une mine moins, un monstre moins
+   encore. Sur trois cartes normales à deux adversaires, en quatre semaines : 2 à 4 combats gagnés chacun, la ville
+   prise 5 fois sur 6 ; sans recruter, leurs armées fondent et leur or s'accumule (point 4). Le joueur peut déjà prendre
+   les villes des adversaires (leur garnison se défend). Tests : `CombatIAAdversaireTests`.
+4. ✅ **L'IA construit et recrute** : chaque jour, dans chaque ville, un bâtiment (dans l'ordre de la simulation
+   d'équilibrage : tour des archers, taverne, hôtel de ville, tour des griffons…), un héros de taverne s'il en manque
+   (un de plus que de villes, trois au plus : l'or est mis de côté pour lui), puis toutes les troupes qu'elle peut payer,
+   les plus fortes d'abord. Un héros présent emporte la garnison sans dépasser son charisme (pas de révolte) ; un héros
+   revient en ville quand la garnison vaut au moins la moitié de son armée. Sur trois cartes normales à deux
+   adversaires, en six semaines : 5 à 9 bâtiments, 2 ou 3 héros, une deuxième ville souvent, des armées jusqu'à
+   12 000 or ; un adversaire dont la ville voisine est trop bien gardée reste bloqué. Tests : `VillesIATests`.
+5. ✅ **Les héros s'affrontent** : un héros attaque le héros d'un autre joueur en marchant vers lui (le chemin va jusqu'à
+   lui ; le pas sur sa case déclenche le combat, comme contre un monstre). Le héros attaqué est l'adversaire du combat
+   (`HeroDefender`) : son attaque et sa défense s'ajoutent à celles de ses troupes (`TacticalBattle`, `defenderHero`).
+   Le vaincu disparaît ; le vainqueur gagne la valeur des troupes tuées (celui qui se défendait aussi). Un joueur sans
+   héros ni ville est éliminé (`PlayerDefeated`). L'IA attaque les héros et les villes des autres joueurs (le joueur
+   comme les autres adversaires) quand la prévision le permet (avec le bonus du héros adverse) ; ses combats sont
+   rapides. À l'écran : survol d'un héros adverse (nom, couleur, danger), curseur d'attaque ; quand le joueur est attaqué
+   (héros ou ville), le bilan s'ouvre de son point de vue, et le journal le dit, comme une ville perdue ou un joueur
+   éliminé. Tests : `HerosContreHerosTests`.
+   ✅ **Se défendre soi-même** : attaqué (son héros, ou une ville avec sa garnison), le joueur choisit de diriger sa
+   défense ou le combat rapide (`GameState.HumansDefend` : le combat attend, même au tour d'un adversaire ; l'adversaire
+   reprend son tour ensuite, `ComputerPlayer.PlayTurn` repart d'où il en était). Sur l'écran de combat, le joueur joue
+   alors le camp de droite (`BattleScreen`, `playerSide`), ses troupes gardent le bleu, il ne peut pas fuir. Les deux
+   héros sont dessinés, chacun à ses couleurs : l'attaquant à gauche, celui qui se défend à droite, tourné vers la
+   gauche (aussi quand le joueur attaque un héros adverse). Pendant le tour des adversaires, le panneau, le brouillard
+   et la carte réduite restent ceux du joueur, et il ne peut pas agir. Option `--defense-test` (et `--defense-tactical`).
+6. ✅ **Niveaux de difficulté** : un **profil** de réglages par niveau (`ComputerProfile`, `GameRules.Difficulty`,
+   sauvegardé ; les anciennes parties sont en Normal), choisi dans la nouvelle partie (désactivé sans adversaire) :
+
+   | | Facile | Normal | Difficile |
+   |---|---|---|---|
+   | Pertes acceptées | 20 % | 30 % | 40 % |
+   | Attaque le joueur à partir du jour | 21 | 0 | 0 |
+   | Héros au plus | 2 | 3 | 4 |
+   | Revenu d'or | 75 % | 100 % | 125 % |
+
+   En mesurant, des défauts de l'IA sont apparus et ont été corrigés (valables à tous les niveaux) : elle évitait aussi
+   les monstres qu'elle n'avait jamais vus (et restait bloquée devant un gardien caché) : elle ne craint plus que les
+   monstres connus, et revoit son plan pas à pas quand un monstre apparaît ; sans ville, elle ne fait que des combats
+   faciles (10 % de pertes au plus) et garde son armée ; bloquée, elle accepte des pertes doubles, mais seulement pour
+   un monstre qui ouvre du pays nouveau ; chaque combat est prévu trois fois (tirages différents) et il faut le gagner
+   chaque fois (une victoire de justesse à la prévision pouvait être une défaite). Et le générateur : avec des
+   adversaires, le danger se compte sur la même échelle que seul, et les gardiens des sorties de chaque zone de départ
+   sont réduits pour que l'armée de départ les batte (35 % de pertes au plus) ; seul, rien ne change.
+   Mesuré (un adversaire, six cartes normales, six semaines) : Facile prend 1 ville, Normal 5, Difficile 5 ; armée
+   moyenne 1 600, 3 500 et 5 200 en or. Encore à améliorer (par l'entraînement, point 7) : sur trois cartes sur six,
+   l'adversaire reste dans son coin. Option `--difficulty=easy|normal|hard`. Tests : `DifficulteTests`.
+   ✅ **Un château au départ** (proposé par l'utilisateur) : chaque joueur commence à l'entrée de son propre château
+   (salle du village et corps de garde, garnison vide), posé sur son départ (`MapGenerator.PlaceStartingTown`,
+   `StartingTowns`, vrai par défaut). Il peut construire et recruter dès le premier jour ; les villes neutres restent à
+   prendre plus loin. Sans château, les adversaires dont la ville voisine était trop bien gardée restaient bloqués.
+   14 noms de villes (les cartes d'une même graine changent). Mesuré de nouveau (un adversaire, six cartes normales,
+   six semaines) : l'adversaire a environ 3 villes à chaque niveau, 2 à 4 héros, plus de 20 combats gagnés, une
+   armée de 14 000 à 16 000 en or en moyenne (1 600 à 5 200 avant) ; sur une ou deux cartes, elle reste petite ; la simulation d'équilibrage (seul) gagne toujours. Les tests qui demandent une carte sans
+   château passent `startingTowns: false`.
+7. Plus tard (étape 10) : **entraîner les profils par des parties entre IA** jouées en arrière-plan (les règles tournent
+   sans affichage : un mois de jeu se simule en une seconde environ) ; garder les réglages qui gagnent le plus souvent
+   pour un « Difficile » solide, et vérifier que Facile l'est vraiment. Écarté : un réseau de neurones (lourd, difficile
+   à régler, sans intérêt à cette taille).
+
+### 9. Contenu (prochaine étape)
 Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et les nouvelles factions.
 - Magie, autres factions, nouveaux objets sur la carte.
+- **Magie** (commencée en premier, choix de l'utilisateur, 2026-11-06), proche de Heroes 2 et 3 :
+  - **Chaque héros a un livre de sorts** (les classes de héros rendront plus tard certains meilleurs en magie).
+  - **Points de sort** : 10 par point de savoir ; le héros commence plein, en regagne 1 par jour, et tous en entrant
+    dans une ville qui a une guilde des mages (ou en y commençant la journée).
+  - **Puissance** : la force des sorts (dégâts : une base plus tant par point de puissance) et leur durée
+    (puissance + 1 rounds).
+  - **Guilde des mages** de 4 niveaux dans la ville (à la place gardée en haut à gauche de la vue) ; chaque niveau
+    offre quelques sorts de ce niveau, tirés au sort pour chaque ville (3, 3, 2 et 2) ; un héros qui entre dans la
+    ville les apprend.
+  - **Au combat** : le héros lance **un sort par round**, pendant le tour d'une de ses troupes, sans lui prendre son
+    tour (comme dans Heroes 3). Livre de sorts (bouton et touche), puis clic sur la cible. Les monstres et les
+    garnisons sans héros n'en lancent pas. Le combat rapide et les adversaires en lancent aussi (une règle simple :
+    le sort qui fait le plus de mal à l'ennemi, en valeur, ou qui aide le plus sa meilleure troupe).
+  - **Sorts de combat seulement** pour commencer (12, `data/spells.json`, chiffres à régler) :
+
+    | Niveau | Sort | Points | Effet |
+    |---|---|---|---|
+    | 1 | Flèche magique | 5 | 10 + 10 × puissance dégâts à une troupe ennemie |
+    | 1 | Bénédiction | 5 | une troupe amie fait ses dégâts maximum |
+    | 1 | Malédiction | 6 | une troupe ennemie fait ses dégâts minimum |
+    | 1 | Peau de pierre | 5 | +5 défense à une troupe amie |
+    | 2 | Éclair | 10 | 10 + 25 × puissance dégâts à une troupe ennemie |
+    | 2 | Hâte | 6 | +3 vitesse à une troupe amie |
+    | 2 | Lenteur | 6 | vitesse divisée par deux pour une troupe ennemie |
+    | 2 | Soins | 6 | soigne 10 + 5 × puissance PV et retire les sorts néfastes (troupe amie) |
+    | 3 | Boule de feu | 15 | 10 + 10 × puissance dégâts sur une case et ses 6 voisines (amis compris) |
+    | 3 | Faiblesse | 8 | −6 attaque à une troupe ennemie |
+    | 4 | Résurrection | 20 | ramène 40 + 20 × puissance PV de créatures tuées dans ce combat (troupe amie) |
+    | 4 | Pluie de météores | 16 | 25 + 25 × puissance dégâts sur une case et ses 6 voisines (amis compris) |
+
+  - Plus tard : les sorts de la carte (portail de ville, porte dimensionnelle, vision…), les écoles de magie et les
+    compétences (avec les classes de héros), la résistance à la magie de certaines créatures, une guilde de niveau 5.
+  Découpage (une PR par point) :
+  1. ✅ Les règles des sorts (`Core`) : `data/spells.json` (`SpellType`, `SpellCatalog`, vérifiés au chargement) ;
+     `Hero.SpellPoints`, `MaxSpellPoints`, `Spells` (par niveau), `Learn` ; au combat (`TacticalBattleSpells`) :
+     `CanCast`, `SpellTargets`, `AffectedBy`, `Cast` (un sort par round et par camp, la troupe garde son tour ; le
+     sort qui dure est posé sur la troupe, `ActiveSpell`, et remplace son contraire), la vitesse change aussi l'ordre
+     de jeu. Les points sont comptés à part pendant le combat et retirés au héros au bilan
+     (`BattleReport.AttackerSpellPointsSpent`) : une estimation ne coûte rien. L'IA des troupes (`BattleAI.ChooseSpell`)
+     lance le sort qui vaut le plus en or (points de vie ôtés ou rendus, part de la valeur de la troupe pour un sort qui
+     dure ; une boule de feu qui blesse ses propres troupes compte en moins). Sauvegardés (points et sorts ; les
+     anciennes parties ont un héros plein et sans sort). Personne n'apprend encore de sort (la guilde, point 2).
+     Tests : `MagieTests`.
+  2. ✅ La guilde des mages : 4 bâtiments (`guilde-mages-1` à `-4`, `mageGuild` dans `buildings.json`, chacun remplace
+     le précédent à la même place, en haut à gauche de la vue) ; niveau 1 : 2000 or, 5 bois, 5 minerai ; niveaux 2 à 4 :
+     1000 à 1500 or, du bois, du minerai et 2, 4, 6 gemmes ; le niveau 3 demande l'hôtel de ville, le 4 le grand hôtel
+     de ville. Les sorts d'un niveau sont tirés au sort quand il est construit (le hasard de la partie, sauvegardés :
+     `Town.GuildSpells`). Un héros apprend les sorts et retrouve tous ses points en entrant dans la ville, en y étant
+     recruté, ou quand un niveau est construit pendant qu'il y est (`SpellsLearned`, dans le journal) ; une journée
+     commencée dans la ville recharge aussi ses points. Les adversaires construisent la guilde (après la tour des
+     griffons, puis un niveau après le monastère, le grand hôtel de ville et le portail de gloire). Écran de ville : un
+     raccourci « Guilde » et un clic sur le bâtiment ouvrent la fenêtre de la guilde (les sorts par niveau, leurs points
+     et leur effet calculé d'après la puissance du héros présent, « connu »). Tests : `GuildeTests`.
+  3. ✅ L'écran de combat : un bouton « Sorts » (touche S), actif quand le héros du joueur peut encore lancer un sort ce
+     round ; le livre de sorts (points qui restent, chaque sort avec ses points et son effet selon la puissance, grisé
+     sans assez de points) ; puis la cible : les troupes visables en bleu, la zone touchée sous la souris, curseur
+     d'attaque ou de visite ; clic droit ou Échap : annuler. Le sort s'allume sur ses cases (feu, vert, violet, or), puis
+     les dégâts, les soins ou le nom du sort montent ; un petit losange par sort qui dure à côté du nombre de la troupe
+     (vert : utile, violet : néfaste), et la fiche de la troupe (clic droit) dit les rounds qui restent. Le journal raconte
+     chaque sort. Un clic sur le héros montre ses points de sort et ses sorts. Écran du héros : la section Magie (points
+     de sort, chaque sort du livre avec son niveau, ses points et son effet) ; la puissance et le savoir disent ce qu'ils
+     font. Options `--spells` (le héros connaît tous les sorts) et `--battle-book` (avec `--battle-test` : le livre
+     s'ouvre ; `--battle-book=id` : ce sort est choisi).
+  4. L'équilibrage (simulation et adversaires, avec la magie) et des icônes de sorts (Retro Diffusion ou PixelLab).
 - **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
   (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.
   Déjà décidé (2026-11-05) : des **morts-vivants** avec le Zombie, le Fantôme, le Vampire, la Liche et, au sommet, un
@@ -552,7 +708,13 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   est plus sombre. Les traits de couleur (héros choisi, bâtiment possible, troupe à risque) restent. Le fond de l'écran
   de ville a le grain (`Ui.Stone`). Grain baissé : 3 sur les cadres, 1,5 sur la pierre des boutons
   (`buttonTextureStrength`). Les coins un peu arrondis du bouton A1 sont gardés (choix de l'utilisateur).
-  À poursuivre : la revue des écrans avec ce nouveau style.
+  ✅ Revue avec ce style (2026-11-05) : traits d'argent au lieu d'or (carte réduite, portraits) ; barres au vert sourd,
+  rainure creusée et remplissage à plat (`Ui.StyleBar`, taille fixée après le style : sinon Godot gardait la hauteur
+  minimale du thème) ; curseur à rainure creusée et bouton de pierre, champs de texte creusés (thème) ; ligne de la
+  dernière action du combat creusée, « Journal » de taille fixe dedans ; colonne de la carte sans vide (boutons un peu
+  plus grands) ; fiche du héros sans débordement (artefacts à côté du charisme) ; lignes des listes à l'intérieur du
+  biseau ; cases à cocher espacées de leur texte ; un bouton choisi est plus sombre (enfoncé), plus clair avant.
+  Gardé tel quel pour l'instant : les sections vides (artefacts, magie, villes), qui se rempliront.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

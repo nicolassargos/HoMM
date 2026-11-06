@@ -33,6 +33,7 @@ public partial class TownScreen : CanvasLayer
     private readonly Dictionary<string, Control> _buildingBoxes = new();
     private string? _viewKey;
     private Button _tavernShortcut = null!;
+    private Button _guildShortcut = null!;
 
     private ArmySlots _garrison = null!;
     private ArmySlots _visitor = null!;
@@ -94,8 +95,12 @@ public partial class TownScreen : CanvasLayer
         _view.AddChild(new ColorRect { Position = new Vector2(0, Px(ViewHeight * 0.4f)), Size = new Vector2(screenSize.X, Px(ViewHeight * 0.6f)), Color = MapRenderer.Rgb(60, 74, 48), MouseFilter = Control.MouseFilterEnum.Ignore });
 
         // les raccourcis, à droite de la bande du nom (au-dessus de la vue : ils ne cachent aucun bâtiment)
-        float bx = screenSize.X - Px(12 + 3 * 138 - 8);
-        foreach (var (text, open) in new (string, Action)[] { (Texts.BuildButton, OpenBuild), (Texts.RecruitButton, () => OpenRecruitWindow(null)), (Texts.TavernButton, OpenTavern) })
+        float bx = screenSize.X - Px(12 + 4 * 138 - 8);
+        foreach (var (text, open) in new (string, Action)[]
+                 {
+                     (Texts.BuildButton, OpenBuild), (Texts.RecruitButton, () => OpenRecruitWindow(null)),
+                     (Texts.TavernButton, OpenTavern), (Texts.GuildButton, OpenGuild),
+                 })
         {
             var button = MakeButton(text, 14);
             button.Position = new Vector2(bx, Hud.TopBarHeight + Px(3));
@@ -104,6 +109,8 @@ public partial class TownScreen : CanvasLayer
             _root.AddChild(button);
             if (text == Texts.TavernButton)
                 _tavernShortcut = button;
+            if (text == Texts.GuildButton)
+                _guildShortcut = button;
             bx += Px(138);
         }
 
@@ -116,26 +123,28 @@ public partial class TownScreen : CanvasLayer
             townPicture.AddChild(Picture(image, new Vector2(30, 30), new Vector2(72, 72))); // l'image de 72 pixels, ×1
         _root.AddChild(townPicture);
         _garrison = MakeArmy(V(ArmyX, y + 22));
-        var hint = At(MakeLabel(Texts.DragHint, 13, SoftTextColor), ArmyX + 7 * 86 + 20, y + 26);
+        // à droite des armées : l'aide sur les troupes, et dessous les deux boutons d'échange
+        float exchangeX = ArmyX + 7 * 86 + 10;
+        var hint = At(MakeLabel(Texts.DragHint, 13, SoftTextColor), exchangeX + 14, y + 34);
         _root.AddChild(hint);
 
         y += 110;
         _visitorLabel = At(MakeLabel("", 15, TextColor), 16, y);
         _root.AddChild(_visitorLabel);
         var portraitFrame = new Panel { Position = V(12, y + 22), Size = new Vector2(132, 132) };
-        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, DimColor, 1, 1, 1, 1));
+        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 1, 1, 1, 1));
         _root.AddChild(portraitFrame);
         _visitorPortrait = Picture(null!, new Vector2(2, 2), new Vector2(128, 128)); // le portrait ×2
         portraitFrame.AddChild(_visitorPortrait);
         _visitor = MakeArmy(V(ArmyX, y + 22));
         _giveAll = MakeButton(Texts.GiveAllToHero, 13);
-        _giveAll.Position = V(ArmyX + 7 * 86 + 20, y + 30);
-        _giveAll.Size = V(200, 34);
+        _giveAll.Position = V(exchangeX + 14, y + 52);
+        _giveAll.Size = V(250, 36);
         _giveAll.Pressed += GiveAll;
         _root.AddChild(_giveAll);
         _leaveAll = MakeButton(Texts.LeaveAllInGarrison, 13);
-        _leaveAll.Position = V(ArmyX + 7 * 86 + 230, y + 30);
-        _leaveAll.Size = V(210, 34);
+        _leaveAll.Position = V(exchangeX + 276, y + 52);
+        _leaveAll.Size = V(250, 36);
         _leaveAll.Pressed += LeaveAll;
         _root.AddChild(_leaveAll);
 
@@ -246,6 +255,7 @@ public partial class TownScreen : CanvasLayer
         _header.Text = Texts.TownHeader(town);
         RefreshView(town);
         _tavernShortcut.Disabled = !town.Buildings.Any(b => b.Tavern && town.Has(b.Id));
+        _guildShortcut.Disabled = town.MageGuildLevel == 0;
 
         var hero = _state.VisitingHero(town);
         _garrison.Show(town.Garrison, null);
@@ -311,6 +321,8 @@ public partial class TownScreen : CanvasLayer
                 OpenRecruitWindow(creature);
             else if (building.Tavern)
                 OpenTavern();
+            else if (building.MageGuild > 0)
+                OpenGuild();
             else if (building.DailyGold > 0)
                 OpenBuild();
         };
@@ -359,6 +371,8 @@ public partial class TownScreen : CanvasLayer
             OpenRecruitWindow(null);
         else if (which == "tavern")
             OpenTavern();
+        else if (which == "guild")
+            OpenGuild();
         else if (which == "count" && _town is { } town
                  && town.BuiltBuildings.Select(town.DwellingCreature).FirstOrDefault(c => c != null) is { } creature)
             OpenRecruit(town, creature);
@@ -619,6 +633,52 @@ public partial class TownScreen : CanvasLayer
         }
         if (!town.Buildings.Any(b => b.Tavern && town.Has(b.Id)))
             window.AddChild(At(MakeLabel(Texts.NoTavern, 14, TextColor), 18, 120));
+    }
+
+    /// <summary>
+    /// La guilde des mages : ses sorts niveau par niveau (nom, points, effet), « connu » pour ceux que le héros présent
+    /// connaît ; un niveau pas encore construit est grisé.
+    /// </summary>
+    private void OpenGuild()
+    {
+        if (_town is not { } town)
+            return;
+        const float rowHeight = 70, top = 82;
+        var window = OpenWindow(V(1124, top + 4 * rowHeight + 20), Texts.GuildTitle(town), overView: true);
+        window.AddChild(At(MakeLabel(town.MageGuildLevel > 0 ? Texts.GuildText : Texts.NoGuild, 13, SoftTextColor), 24, 52));
+        window.AddChild(SunkenArea(V(12, top - 6), V(1100, 4 * rowHeight + 10)));
+        var hero = _state.VisitingHero(town) is { } h && h.Owner == town.Owner ? h : null;
+        for (int level = 1; level <= Town.GuildSpellsPerLevel.Length; level++)
+        {
+            float y = top + (level - 1) * rowHeight;
+            bool built = level <= town.MageGuildLevel;
+            var color = built ? TextColor : SoftTextColor;
+            window.AddChild(At(MakeLabel(Texts.GuildLevel(level), 15, color), 24, y + 8));
+            if (!built)
+            {
+                window.AddChild(At(MakeLabel(Texts.GuildLevelMissing, 12, SoftTextColor), 24, y + 30));
+                continue;
+            }
+            float x = 130;
+            foreach (var spell in town.GuildSpells.Where(s => s.Level == level))
+            {
+                var card = new Panel { Position = V(x, y), Size = V(318, rowHeight - 8) };
+                card.AddThemeStyleboxOverride("panel", Plate(PanelColor));
+                card.TooltipText = Texts.SpellEffectText(spell, hero);
+                window.AddChild(card);
+                card.AddChild(At(MakeLabel(spell.Name, 14, TextColor), 10, 4));
+                var cost = MakeLabel(hero != null && hero.Knows(spell) ? $"{Texts.SpellCost(spell)} · {Texts.SpellKnown}" : Texts.SpellCost(spell), 12, SoftTextColor);
+                cost.Position = V(10, 6);
+                cost.Size = V(298, 18);
+                cost.HorizontalAlignment = HorizontalAlignment.Right;
+                card.AddChild(cost);
+                var effect = At(MakeLabel(Texts.SpellEffectText(spell, hero), 12, SoftTextColor), 10, 26);
+                effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+                effect.CustomMinimumSize = V(298, 0);
+                card.AddChild(effect);
+                x += 326;
+            }
+        }
     }
 
     // ----------------------------------------------------------- nombre à recruter

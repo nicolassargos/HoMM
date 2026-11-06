@@ -9,23 +9,27 @@ namespace HoMM.Core;
 /// <summary>Les données du jeu, lues depuis les fichiers du dossier data/ (créatures, bâtiments…).</summary>
 public sealed class GameData
 {
-    public GameData(CreatureCatalog creatures, BuildingCatalog buildings, ArtifactCatalog? artifacts = null)
+    public GameData(CreatureCatalog creatures, BuildingCatalog buildings, ArtifactCatalog? artifacts = null, SpellCatalog? spells = null)
     {
         var errors = DataValidation.Check(creatures.All, buildings.All);
+        DataValidation.CheckSpells((spells ?? SpellCatalog.Empty).All, errors);
         if (errors.Count > 0)
             throw new FormatException("Données du jeu invalides :" + System.Environment.NewLine + "- " + string.Join(System.Environment.NewLine + "- ", errors));
         Creatures = creatures;
         Buildings = buildings;
         Artifacts = artifacts ?? ArtifactCatalog.Empty;
+        Spells = spells ?? SpellCatalog.Empty;
     }
 
     public CreatureCatalog Creatures { get; }
     public BuildingCatalog Buildings { get; }
     public ArtifactCatalog Artifacts { get; }
+    public SpellCatalog Spells { get; }
 
-    public static GameData FromJson(string creaturesJson, string buildingsJson, string? artifactsJson = null) =>
+    public static GameData FromJson(string creaturesJson, string buildingsJson, string? artifactsJson = null, string? spellsJson = null) =>
         new(CreatureCatalog.FromJson(creaturesJson), BuildingCatalog.FromJson(buildingsJson),
-            artifactsJson != null ? ArtifactCatalog.FromJson(artifactsJson) : null);
+            artifactsJson != null ? ArtifactCatalog.FromJson(artifactsJson) : null,
+            spellsJson != null ? SpellCatalog.FromJson(spellsJson) : null);
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -56,6 +60,9 @@ public sealed record BuildingType
 
     /// <summary>La taverne permet de recruter des héros.</summary>
     public bool Tavern { get; init; }
+
+    /// <summary>Le niveau de guilde des mages que donne ce bâtiment (0 : ce n'est pas une guilde ; étape 9).</summary>
+    public int MageGuild { get; init; }
 
     /// <summary>
     /// Le bâtiment que celui-ci remplace (l'hôtel de ville remplace la salle du village) : à l'écran, seul le plus récent

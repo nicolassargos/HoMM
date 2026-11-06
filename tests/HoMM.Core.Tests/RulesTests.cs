@@ -72,7 +72,8 @@ public class MapGeneratorTests
         while (queue.Count > 0)
         {
             var c = queue.Dequeue();
-            Assert.False(map.ObjectAt(c) is Town, $"ville atteinte sans combat en {c}");
+            // (le château de départ, sur le départ, n'est pas une ville à prendre)
+            Assert.False(map.ObjectAt(c) is Town town && town.Position != map.Start, $"ville atteinte sans combat en {c}");
             if (map.IsGuarded(c))
                 continue;
             for (int dy = -1; dy <= 1; dy++)
@@ -218,7 +219,7 @@ public class GameStateTests
     [Fact]
     public void Une_mine_capturee_rapporte_a_chaque_fin_de_tour()
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         var mine = state.Map.Objects.OfType<Mine>().First(m => m.Resource == ResourceType.Gold);
         mine.Visit(Hero(state));
         int gold = Human(state).Resources[ResourceType.Gold];
@@ -231,7 +232,7 @@ public class GameStateTests
     [Fact]
     public void La_fin_du_tour_rend_les_points_de_mouvement()
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         state.SetDestination(NearestSafePile(state).Position);
         while (state.StepAlongPath()) { }
         Assert.True(Hero(state).Movement < Hero(state).MaxMovement);
@@ -245,7 +246,7 @@ public class GameStateTests
     [Fact]
     public void Ramasser_un_tas_ajoute_la_ressource_et_le_retire_de_la_carte()
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         var pile = NearestSafePile(state);
         int before = Human(state).Resources[pile.Resource];
 
@@ -263,7 +264,7 @@ public class GameStateTests
     [Fact]
     public void Entrer_a_cote_d_un_monstre_declenche_le_combat()
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         var start = Hero(state).Position;
         var guard = new MonsterGuard(start.Offset(2, 0), TestData.Creatures.Get("gobelin"), 3);
         state.Map.AddObject(guard);
@@ -286,7 +287,7 @@ public class GameStateTests
     [Fact]
     public void Les_evenements_ne_sont_rendus_qu_une_fois()
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         state.EndTurn();
 
         Assert.Equal(new DayStarted(1, false), Assert.Single(state.TakeEvents()));
@@ -296,7 +297,7 @@ public class GameStateTests
     [Fact]
     public void Chaque_pas_et_chaque_visite_donnent_un_evenement()
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         var pile = NearestSafePile(state);
         state.SetDestination(pile.Position);
         int steps = state.Path!.Count;
@@ -315,7 +316,7 @@ public class GameStateTests
     [Fact]
     public void Vaincre_le_dernier_monstre_fait_gagner_la_partie()
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         foreach (var g in state.Map.Objects.OfType<MonsterGuard>().ToList())
             state.Map.RemoveObject(g);
         var start = Hero(state).Position;
@@ -331,7 +332,7 @@ public class GameStateTests
     [Fact]
     public void Perdre_son_seul_heros_fait_perdre_la_partie()
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         var start = Hero(state).Position;
         state.Map.AddObject(new MonsterGuard(start.Offset(2, 0), TestData.Creatures.Get("dragon"), 50));
 
@@ -349,7 +350,7 @@ public class GameStateTests
     [Fact]
     public void Les_monstres_grossissent_chaque_semaine()
     {
-        var state = new GameState(7, TestData.Data);
+        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
         var guard = state.Map.Objects.OfType<MonsterGuard>().First();
         int before = guard.Count;
 
@@ -472,8 +473,9 @@ public class BattleTests
 
 internal static class TestData
 {
-    public static readonly GameData Data = GameData.FromJson(Read("creatures.json"), Read("buildings.json"), Read("artifacts.json"));
+    public static readonly GameData Data = GameData.FromJson(Read("creatures.json"), Read("buildings.json"), Read("artifacts.json"), Read("spells.json"));
     public static CreatureCatalog Creatures => Data.Creatures;
+    public static SpellCatalog Spells => Data.Spells;
 
     private static string Read(string file) =>
         System.IO.File.ReadAllText(System.IO.Path.Combine(System.AppContext.BaseDirectory, "data", file));

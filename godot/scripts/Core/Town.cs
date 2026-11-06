@@ -120,6 +120,40 @@ public sealed class Town : MapObject
 
     public void NewDay() => BuiltToday = false;
 
+    // ------------------------------------------------------------------ guilde des mages (étape 9)
+
+    /// <summary>Combien de sorts offre chaque niveau de la guilde (niveaux 1 à 4).</summary>
+    public static readonly int[] GuildSpellsPerLevel = { 3, 3, 2, 2 };
+
+    private readonly List<SpellType> _guildSpells = new();
+
+    /// <summary>Le niveau de la guilde des mages (0 : pas de guilde).</summary>
+    public int MageGuildLevel => BuiltBuildings.Select(b => b.MageGuild).DefaultIfEmpty(0).Max();
+
+    /// <summary>Les sorts de la guilde, tirés au sort niveau par niveau quand chaque niveau est construit, par niveau.</summary>
+    public IReadOnlyList<SpellType> GuildSpells => _guildSpells;
+
+    /// <summary>
+    /// Tire au sort les sorts d'un niveau de la guilde parmi ceux de ce niveau (<see cref="GuildSpellsPerLevel"/>), s'ils
+    /// ne le sont pas déjà. <paramref name="next"/> : un nombre au hasard de 0 à n - 1 (le hasard de la partie).
+    /// </summary>
+    internal void DrawGuildSpells(int level, SpellCatalog spells, System.Func<int, int> next)
+    {
+        if (level < 1 || level > GuildSpellsPerLevel.Length || _guildSpells.Any(s => s.Level == level))
+            return;
+        var pool = spells.OfLevel(level).ToList();
+        for (int i = 0; i < GuildSpellsPerLevel[level - 1] && pool.Count > 0; i++)
+        {
+            var spell = pool[next(pool.Count)];
+            pool.Remove(spell);
+            _guildSpells.Add(spell);
+        }
+        _guildSpells.Sort((a, b) => a.Level.CompareTo(b.Level));
+    }
+
+    /// <summary>Remet les sorts de la guilde (chargement d'une partie).</summary>
+    internal void RestoreGuildSpell(SpellType spell) => _guildSpells.Add(spell);
+
     /// <summary>Chaque semaine, chaque habitation produit de nouvelles créatures.</summary>
     public void NewWeek()
     {
@@ -155,6 +189,9 @@ public sealed record TownEntered(Hero Hero, Town Town) : ObjectVisited(Hero, Tow
 
 /// <summary>Un héros a pris une ville. <paramref name="PreviousOwner"/> : son ancien propriétaire (null si elle était neutre).</summary>
 public sealed record TownCaptured(Hero Hero, Town Town, Player? PreviousOwner) : ObjectVisited(Hero, Town);
+
+/// <summary>Un héros apprend des sorts à la guilde des mages d'une ville.</summary>
+public sealed record SpellsLearned(Hero Hero, Town Town, IReadOnlyList<SpellType> Spells) : GameEvent;
 
 /// <summary>Un bâtiment a été construit dans une ville.</summary>
 public sealed record BuildingBuilt(Town Town, BuildingType Building) : GameEvent;

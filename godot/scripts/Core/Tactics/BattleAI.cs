@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,7 +7,8 @@ namespace HoMM.Core;
 /// <summary>
 /// L'IA des troupes au combat tactique (étape 6), simple et sans hasard : un tireur tire sur l'ennemi le plus
 /// dangereux ; une autre troupe attaque l'ennemi le plus dangereux qu'elle peut atteindre ce tour-ci, sinon
-/// s'approche de l'ennemi le plus proche. Elle joue les monstres, et les deux camps en combat rapide.
+/// s'approche de l'ennemi le plus proche. Elle joue les monstres, et les deux camps en combat rapide. Un camp qui a
+/// un héros lance d'abord le sort qui vaut le plus (étape 9, <see cref="ChooseSpell"/>).
 /// </summary>
 public static class BattleAI
 {
@@ -24,9 +26,66 @@ public static class BattleAI
     public static double Threat(BattleUnit unit) =>
         unit.Count * unit.Type.AverageDamage * (unit.CanShoot ? 1.5 : 1.0);
 
-    /// <summary>Fait jouer la troupe active.</summary>
+    /// <summary>
+    /// Le sort que le héros du camp actif a intérêt à lancer maintenant, et sa cible : celui qui vaut le plus, en or
+    /// (<see cref="SpellValue"/>), s'il vaut quelque chose ; null s'il ne peut ou ne doit rien lancer.
+    /// </summary>
+    public static (SpellType Spell, Hex Target)? ChooseSpell(TacticalBattle battle)
+    {
+        if (battle.CasterSide is not { } side || battle.HasCast(side))
+            return null;
+        (SpellType Spell, Hex Target)? best = null;
+        double bestValue = 0;
+        foreach (var spell in battle.HeroOf(side)!.Spells.Where(battle.CanCast))
+        foreach (var target in battle.SpellTargets(spell))
+        {
+            double value = SpellValue(battle, spell, target, side);
+            if (value > bestValue)
+                (best, bestValue) = ((spell, target), value);
+        }
+        return best;
+    }
+
+    /// <summary>
+    /// Ce que vaut un sort, en or (comme l'expérience) : les points de vie ôtés aux ennemis (moins ceux ôtés aux amis)
+    /// ou rendus, ou une part de la valeur de la troupe aidée ou gênée pour un sort qui dure. Une estimation simple.
+    /// </summary>
+    public static double SpellValue(TacticalBattle battle, SpellType spell, Hex target, BattleSide side)
+    {
+        int strength = battle.SpellStrength(spell, side);
+        double value = 0;
+        foreach (var unit in battle.AffectedBy(spell, target))
+        {
+            double gold = unit.Type.Cost.GetValueOrDefault(ResourceType.Gold);
+            double troop = unit.Count * gold;
+            double perHitPoint = gold / unit.Type.HitPoints;
+            int sign = unit.Side == side ? -1 : 1;
+            var type = unit.Type;
+            double average = (type.MinDamage + type.MaxDamage) / 2.0;
+            value += spell.Effect switch
+            {
+                SpellEffect.Damage => sign * Math.Min(strength, unit.TotalHitPoints) * perHitPoint,
+                SpellEffect.Cure => Math.Min(strength, type.HitPoints - unit.TopHitPoints) * perHitPoint
+                                    + (unit.Spells.Any(s => s.Spell.Harmful) ? 0.2 * troop : 0),
+                SpellEffect.Resurrection => strength * perHitPoint,
+                _ when unit.IsUnder(spell.Effect) => 0,
+                SpellEffect.Bless => average > 0 ? troop * (type.MaxDamage - average) / average : 0,
+                SpellEffect.Curse => average > 0 ? troop * (average - type.MinDamage) / average : 0,
+                SpellEffect.StoneSkin => troop * 0.03 * spell.Amount,
+                SpellEffect.Weakness => troop * 0.04 * Math.Min(spell.Amount, unit.Attack),
+                SpellEffect.Haste => troop * 0.15,
+                SpellEffect.Slow => troop * 0.25,
+                _ => 0,
+            };
+        }
+        return value;
+    }
+
+    /// <summary>Fait jouer la troupe active (son héros lance d'abord un sort, s'il en vaut la peine).</summary>
     public static void PlayTurn(TacticalBattle battle)
     {
+        if (ChooseSpell(battle) is { } cast)
+            battle.Cast(cast.Spell, cast.Target);
         if (battle.Active is not { } unit)
             return;
         var enemies = battle.Units.Where(e => TacticalBattle.AreEnemies(unit, e))

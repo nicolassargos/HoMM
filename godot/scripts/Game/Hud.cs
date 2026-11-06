@@ -22,6 +22,25 @@ public partial class Hud : CanvasLayer
     public const int BottomBarHeight = 78;
 
     private GameState _state = null!;
+
+    /// <summary>Le joueur qui regarde l'écran (le joueur humain) : le panneau montre toujours ses héros et ses villes.</summary>
+    private Player Viewer => _state.Players[0];
+
+    private Hero? _lastHero;
+
+    /// <summary>
+    /// Le héros montré par le panneau : le héros choisi du joueur, et pendant le tour d'un adversaire (qui attend une
+    /// défense), le dernier qu'il avait choisi.
+    /// </summary>
+    private Hero? ShownHero
+    {
+        get
+        {
+            if (_state.CurrentPlayer == Viewer)
+                return _lastHero = _state.CurrentHero;
+            return _lastHero is { } hero && Viewer.Heroes.Contains(hero) ? hero : Viewer.Heroes.FirstOrDefault();
+        }
+    }
     private ResourceBar _resourceBar = null!;
 
     // le héros choisi
@@ -116,7 +135,7 @@ public partial class Hud : CanvasLayer
             Position = new Vector2((PanelWidth - minimapSize.X) / 2 - Px(2), Px(10)),
             Size = minimapSize + V(4, 4),
         };
-        minimapFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
+        minimapFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 2, 2, 2, 2));
         panel.AddChild(minimapFrame);
         Minimap = new Minimap { State = state, CellSize = scale, Position = V(2, 2), Size = minimapSize, ClipContents = true };
         minimapFrame.AddChild(Minimap);
@@ -168,25 +187,25 @@ public partial class Hud : CanvasLayer
         for (int i = 0; i < actions.Length; i++)
         {
             var (text, key, tooltip, pressed) = actions[i];
-            var button = FixedButton(text, 12, new Vector2(buttonWidth, Px(32)));
-            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(35));
+            var button = FixedButton(text, 12, new Vector2(buttonWidth, Px(37)));
+            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(41));
             button.TooltipText = Texts.KeyTooltip(tooltip, key);
             button.Pressed += pressed;
             panel.AddChild(button);
         }
-        y += (actions.Length + columns - 1) / columns * Px(35);
-        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, Px(26)));
+        y += (actions.Length + columns - 1) / columns * Px(41);
+        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner, Px(32)));
         options.Position = new Vector2(margin, y);
         options.TooltipText = Texts.OptionsTooltip;
         options.Pressed += ShowOptions;
         panel.AddChild(options);
-        y += Px(26 + 4);
+        y += Px(32 + 6);
 
         // la fin du tour : grande, toujours au même endroit
         var endTurn = MakeButton(Texts.EndTurnButton, 18);
         endTurn.TooltipText = Texts.KeyTooltip(Texts.EndTurnButton, "Entrée");
         // une hauteur ordinaire, en bas de la colonne
-        float endTurnHeight = Px(56);
+        float endTurnHeight = Px(62);
         endTurn.Position = new Vector2(margin, Math.Max(y, screenSize.Y - Px(10) - endTurnHeight));
         endTurn.Size = new Vector2(inner, endTurnHeight);
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
@@ -215,7 +234,7 @@ public partial class Hud : CanvasLayer
         }
         var up = Arrow("▲", width - Px(40), -1);
         var down = Arrow("▼", width - Px(20), +1);
-        var rows = new VBoxContainer { Position = V(2, 19), Size = new Vector2(width - Px(4), height - Px(21)) };
+        var rows = new VBoxContainer { Position = V(4, 20), Size = new Vector2(width - Px(8), height - Px(24)) };
         rows.AddThemeConstantOverride("separation", (int)Px(2));
         box.AddChild(rows);
         return (rows, up, down);
@@ -232,7 +251,7 @@ public partial class Hud : CanvasLayer
         card.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         panel.AddChild(card);
         var portraitFrame = new Panel { Position = V(4, 4), Size = new Vector2(portraitSize, portraitSize) + V(4, 4) };
-        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, BorderColor, 2, 2, 2, 2));
+        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 2, 2, 2, 2));
         card.AddChild(portraitFrame);
         _portrait = new TextureRect
         {
@@ -246,7 +265,7 @@ public partial class Hud : CanvasLayer
         portraitFrame.TooltipText = Texts.HeroScreenHint;
         portraitFrame.GuiInput += e =>
         {
-            if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && _state.CurrentHero is { } shown)
+            if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && ShownHero is { } shown)
                 HeroDetailsPressed?.Invoke(shown);
         };
 
@@ -269,7 +288,7 @@ public partial class Hud : CanvasLayer
         foreach (var (stat, col, row) in stats)
         {
             var label = MakeLabel("", 12, TextColor);
-            label.Position = new Vector2(textX + col * column, Px(38 + row * 14));
+            label.Position = new Vector2(textX + col * column, Px(36 + row * 13));
             label.MouseFilter = Control.MouseFilterEnum.Stop;
             card.AddChild(label);
             if (stat is { } s)
@@ -280,21 +299,23 @@ public partial class Hud : CanvasLayer
 
         _movementBar = new ProgressBar
         {
-            Position = new Vector2(textX, Px(82)), Size = new Vector2(textWidth, Px(16)),
+            Position = new Vector2(textX, Px(80)), Size = new Vector2(textWidth, Px(13)),
             ShowPercentage = false, MinValue = 0, MaxValue = Hero.DefaultMovement,
         };
-        _movementBar.AddThemeStyleboxOverride("background", Box(MapRenderer.Rgb(20, 16, 12), BorderColor, 1, 1, 1, 1));
-        _movementBar.AddThemeStyleboxOverride("fill", Box(MapRenderer.Rgb(60, 180, 60), null));
+        StyleBar(_movementBar, MovementColor);
         card.AddChild(_movementBar);
-        _movementText = MakeLabel("", 11, TextColor);
+        _movementBar.Size = new Vector2(textWidth, Px(13)); // une fois stylée et posée : avant, elle gardait la hauteur minimale du thème
+        _movementText = MakeLabel("1500 / 1500", 10, TextColor);
         _movementText.HorizontalAlignment = HorizontalAlignment.Center;
-        _movementText.VerticalAlignment = VerticalAlignment.Center;
-        _movementText.Position = _movementBar.Position;
-        _movementText.Size = _movementBar.Size;
+        // centré sur la barre : la ligne de texte est un peu plus haute qu'elle
+        float textHeight = _movementText.GetCombinedMinimumSize().Y;
+        // (la police laisse de la place sous les lettres : on descend un peu le texte)
+        _movementText.Position = _movementBar.Position + new Vector2(0, (_movementBar.Size.Y - textHeight) / 2 + Px(2));
+        _movementText.Size = new Vector2(_movementBar.Size.X, textHeight);
         card.AddChild(_movementText);
 
-        // ses artefacts : de petites images (le nom et l'effet au survol)
-        _artifacts = new HBoxContainer { Position = new Vector2(textX, Px(100)), Size = new Vector2(textWidth, Px(22)) };
+        // ses artefacts : de petites images à côté du charisme (le nom et l'effet au survol)
+        _artifacts = new HBoxContainer { Position = new Vector2(textX + column, Px(61)), Size = new Vector2(column, Px(16)) };
         _artifacts.AddThemeConstantOverride("separation", (int)Px(2));
         card.AddChild(_artifacts);
         return y + card.Size.Y;
@@ -332,10 +353,10 @@ public partial class Hud : CanvasLayer
     /// <summary>Met à jour l'interface. Appelé à chaque image : ce qui coûte (listes, survol) n'est refait qu'au changement.</summary>
     public void Refresh(Cell? hovered)
     {
-        var player = _state.CurrentPlayer;
+        var player = Viewer;
         _resourceBar.Refresh(_state, player);
 
-        if (_state.CurrentHero is { } hero)
+        if (ShownHero is { } hero)
         {
             _heroName.Text = hero.Name;
             _heroLevel.Text = Texts.HeroLevelLine(hero);
@@ -387,14 +408,14 @@ public partial class Hud : CanvasLayer
     {
         _heroesOffset = Math.Clamp(_heroesOffset, 0, Math.Max(0, player.Heroes.Count - ListRows));
         var shown = player.Heroes.Skip(_heroesOffset).Take(ListRows).ToList();
-        string key = string.Join("|", shown.Select(h => $"{h.Id}:{h.Movement}")) + $"#{_state.CurrentHero?.Id}#{player.Heroes.Count}";
+        string key = string.Join("|", shown.Select(h => $"{h.Id}:{h.Movement}")) + $"#{ShownHero?.Id}#{player.Heroes.Count}";
         if (key == _heroesKey)
             return;
         _heroesKey = key;
         Clear(_heroRows);
         foreach (var hero in shown)
         {
-            var row = Row(hero == _state.CurrentHero, Texts.HeroTooltip(hero), () => HeroClicked?.Invoke(hero),
+            var row = Row(hero == ShownHero, Texts.HeroTooltip(hero), () => HeroClicked?.Invoke(hero),
                 () => HeroDetailsPressed?.Invoke(hero));
             if (Art.Portrait(hero.Name) is { } portrait)
                 row.AddChild(Picture(portrait, new Vector2(2, 2), new Vector2(64, 64)));
@@ -405,7 +426,7 @@ public partial class Hud : CanvasLayer
             row.AddChild(new ColorRect
             {
                 Position = new Vector2(70, barY), Size = new Vector2(barWidth * hero.Movement / Math.Max(1, hero.MaxMovement), Px(5)),
-                Color = MapRenderer.Rgb(60, 180, 60), MouseFilter = Control.MouseFilterEnum.Ignore,
+                Color = MovementColor, MouseFilter = Control.MouseFilterEnum.Ignore,
             });
             _heroRows.AddChild(row);
         }
@@ -444,8 +465,8 @@ public partial class Hud : CanvasLayer
         var name = MakeLabel(text, 11, TextColor);
         name.AutowrapMode = TextServer.AutowrapMode.WordSmart; // avant la taille (sinon elle se règle sur le texte entier)
         name.MaxLinesVisible = 2;
-        name.Position = new Vector2(70, 2);
-        name.Size = new Vector2(rowWidth - 74, Px(30));
+        name.Position = new Vector2(68, 2);
+        name.Size = new Vector2(rowWidth - 70, Px(30));
         return name;
     }
 
@@ -481,7 +502,7 @@ public partial class Hud : CanvasLayer
                 continue;
             _artifacts.AddChild(new TextureRect
             {
-                Texture = image, CustomMinimumSize = new Vector2(32, 32),
+                Texture = image, CustomMinimumSize = new Vector2(24, 24),
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
                 TextureFilter = CanvasItem.TextureFilterEnum.Nearest, TooltipText = Texts.ArtifactTooltip(artifact),
             });
@@ -529,7 +550,7 @@ public partial class Hud : CanvasLayer
     /// </summary>
     private string DescribeCell(Cell? hovered)
     {
-        var hero = _state.CurrentHero;
+        var hero = ShownHero;
         var key = (hovered, hero?.Id ?? 0, hero?.Position ?? default, hero?.Movement ?? 0, _state.Map.Objects.Count);
         if (_hoverKey == key)
             return _hoverText;
@@ -540,18 +561,21 @@ public partial class Hud : CanvasLayer
 
     private string Describe(Cell? hovered)
     {
-        if (hovered is not { } cell || !_state.CurrentPlayer.Fog.IsExplored(cell))
+        if (hovered is not { } cell || !Viewer.Fog.IsExplored(cell))
             return "";
         var terrain = _state.Map.GetTerrain(cell);
         bool passable = TerrainInfo.IsPassable(terrain);
-        int? days = passable && _state.CurrentHero != null ? _state.DaysTo(cell) : null;
+        int? days = passable && ShownHero != null ? _state.DaysTo(cell) : null;
         string line = Texts.CellLine(terrain, _state.Map.HasRoad(cell), passable ? _state.Map.MoveCost(cell) : null, days);
         var obj = _state.Map.OccupantAt(cell);
+        // un héros adverse sur la case : son nom, sa couleur et le danger de l'attaquer (son bonus compte)
+        if (_state.EnemyHeroAt(cell, Viewer) is { } enemy)
+            return $"{line}\n{Join(Texts.HeroWithColor(enemy), Prediction(enemy.Army, enemy))}";
         string? second = obj switch
         {
-            Mine mine => $"{Texts.MineName(mine)} ({(mine.Owner == _state.CurrentPlayer ? Texts.Owned : mine.Owner != null ? Texts.EnemyOwned : Texts.Free)})",
+            Mine mine => $"{Texts.MineName(mine)} ({(mine.Owner == Viewer ? Texts.Owned : mine.Owner != null ? Texts.EnemyOwned : Texts.Free)})",
             MonsterGuard guard => Join(Texts.ObjectName(guard), Prediction(guard.Army)),
-            Town town when town.Owner == _state.CurrentPlayer => $"{town.Name} ({Texts.Owned})",
+            Town town when town.Owner == Viewer => $"{town.Name} ({Texts.Owned})",
             Town town => Join($"{town.Name} ({(town.Owner != null ? Texts.EnemyOwned : Texts.Neutral)})",
                 town.Garrison.IsEmpty ? "" : Texts.GarrisonOf(Prediction(town.Garrison))),
             null => null,
@@ -565,14 +589,14 @@ public partial class Hud : CanvasLayer
     private static string Join(string a, string b) => a.Length == 0 ? b : b.Length == 0 ? a : $"{a} · {b}";
 
     /// <summary>Danger estimé d'un combat, en simulant le combat sur des copies des armées.</summary>
-    private string Prediction(Army enemy)
+    private string Prediction(Army enemy, Hero? enemyHero = null)
     {
-        int armyCount = _state.CurrentHero?.Army.TotalCount ?? 0;
+        int armyCount = ShownHero?.Army.TotalCount ?? 0;
         var key = (enemy, enemy.TotalCount, armyCount);
         if (_predictionKey == key)
             return _predictionText;
         _predictionKey = key;
-        var report = _state.PredictBattle(enemy);
+        var report = _state.PredictBattle(enemy, enemyHero);
         _predictionText = report == null || armyCount == 0 ? ""
             : Texts.Danger(report.AttackerWon ? report.AttackerLosses.Sum(s => s.Count) / (double)armyCount : null);
         return _predictionText;
@@ -584,17 +608,25 @@ public partial class Hud : CanvasLayer
     /// Le bilan d'un combat (étape 7), après chaque combat, tactique ou rapide : le vainqueur, les pertes des deux camps
     /// en images, l'expérience gagnée, les révoltes et les pertes d'une fuite.
     /// </summary>
-    public void ShowBattle(BattleFought battle) => Enqueue(done =>
+    /// <param name="asDefender">Le joueur se défendait (son héros ou sa ville a été attaqué) : le bilan à son point de vue.</param>
+    public void ShowBattle(BattleFought battle, bool asDefender = false) => Enqueue(done =>
     {
         var report = battle.Report;
-        var dialog = new GameDialog { Title = Texts.ReportTitle(report), OkButtonText = Texts.ContinueButton, Exclusive = true, Unresizable = true };
+        var dialog = new GameDialog
+        {
+            Title = asDefender ? Texts.DefenseTitle(report) : Texts.ReportTitle(report), OkButtonText = Texts.ContinueButton,
+            Exclusive = true, Unresizable = true,
+        };
         var content = new VBoxContainer { CustomMinimumSize = V(560, 0) };
         content.AddThemeConstantOverride("separation", (int)Px(8));
-        var subtitle = MakeLabel(Texts.ReportSubtitle(battle), 14, SoftTextColor);
+        var subtitle = MakeLabel(asDefender ? Texts.DefenseSubtitle(battle) : Texts.ReportSubtitle(battle), 14, SoftTextColor);
         subtitle.HorizontalAlignment = HorizontalAlignment.Center;
         content.AddChild(subtitle);
         // d'abord l'expérience gagnée (et une révolte), puis nos pertes, puis les ennemis tués
-        foreach (var (line, color) in new[] { (Texts.ReportExperience(report), TextColor), (Texts.Revolt(report) ?? "", MapRenderer.Rgb(240, 150, 130)) })
+        var lines = asDefender
+            ? new[] { (Texts.DefenseExperience(battle), TextColor) }
+            : new[] { (Texts.ReportExperience(report), TextColor), (Texts.Revolt(report) ?? "", MapRenderer.Rgb(240, 150, 130)) };
+        foreach (var (line, color) in lines)
         {
             if (line.Length == 0)
                 continue;
@@ -604,8 +636,8 @@ public partial class Hud : CanvasLayer
             label.CustomMinimumSize = V(560, 0);
             content.AddChild(label);
         }
-        content.AddChild(LossesRow(Texts.YourLosses, report.AttackerLosses, minus: true));
-        content.AddChild(LossesRow(Texts.EnemyLosses, report.DefenderLosses, minus: false));
+        content.AddChild(LossesRow(Texts.YourLosses, asDefender ? report.DefenderLosses : report.AttackerLosses, minus: true));
+        content.AddChild(LossesRow(Texts.EnemyLosses, asDefender ? report.AttackerLosses : report.DefenderLosses, minus: false));
         dialog.AddChild(content);
         bool closed = false;
         void Close()
@@ -780,7 +812,8 @@ public partial class Hud : CanvasLayer
         intro.CustomMinimumSize = V(480, 0);
         content.AddChild(intro);
         var goals = new System.Collections.Generic.Dictionary<VictoryCondition, CheckBox>();
-        foreach (var condition in GameRules.Choices)
+        // « vaincre tous les adversaires » : seulement s'il y en a
+        foreach (var condition in GameRules.Choices.Where(c => c != VictoryCondition.DefeatOpponents || _state.Opponents.Any()))
         {
             var box = MakeCheckBox(Texts.Goal(condition), condition == GameRules.Default.Victory);
             goals[condition] = box;
@@ -850,12 +883,16 @@ public partial class Hud : CanvasLayer
     });
 
     /// <summary>Avant un combat : le diriger (écran de combat) ou le laisser se dérouler (combat rapide).</summary>
-    public void ShowBattleChoice(string opponent, Action tactical, Action quick) => Enqueue(done =>
+    /// <summary>Un adversaire attaque : se défendre soi-même (combat tactique) ou le combat rapide.</summary>
+    public void ShowDefenseChoice(string attacker, string? town, Action tactical, Action quick) =>
+        ShowBattleChoice(attacker, tactical, quick, Texts.DefenseChoiceTitle, Texts.DefenseChoiceText(attacker, town));
+
+    public void ShowBattleChoice(string opponent, Action tactical, Action quick, string? title = null, string? text = null) => Enqueue(done =>
     {
         var dialog = new GameDialog
         {
-            Title = Texts.BattleChoiceTitle,
-            DialogText = Texts.BattleChoiceText(opponent),
+            Title = title ?? Texts.BattleChoiceTitle,
+            DialogText = text ?? Texts.BattleChoiceText(opponent),
             OkButtonText = Texts.TacticalButton,
             Exclusive = true,
             Unresizable = true,

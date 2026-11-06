@@ -16,6 +16,12 @@ public static class Ui
     public static readonly Color GoodColor = MapRenderer.Rgb(90, 190, 90);
     public static readonly Color DimColor = MapRenderer.Rgb(110, 100, 85);
 
+    /// <summary>L'argent du cadre et des boutons, pour les traits des portraits, de la carte réduite, des barres.</summary>
+    public static readonly Color SilverColor = MapRenderer.Rgb(168, 172, 178);
+
+    /// <summary>Le vert du mouvement, sourd (un vert vif criait plus fort que tout le reste).</summary>
+    public static readonly Color MovementColor = MapRenderer.Rgb(72, 136, 60);
+
     public const string FontPath = "res://fonts/VT323-Regular.ttf";
 
     /// <summary>
@@ -549,6 +555,64 @@ public static class Ui
         theme.SetColor("font_hover_color", "Button", Colors.White);
         theme.SetColor("font_pressed_color", "Button", TextColor);
         theme.SetColor("font_disabled_color", "Button", DimColor);
+
+        // le curseur (nombre à recruter, partage d'une troupe) : une rainure creusée et un bouton de pierre
+        var track = (StyleBox)Inset(DarkPanelColor).Duplicate();
+        track.ContentMarginTop = track.ContentMarginBottom = Px(4);
+        theme.SetStylebox("slider", "HSlider", track);
+        theme.SetStylebox("grabber_area", "HSlider", new StyleBoxEmpty());
+        theme.SetStylebox("grabber_area_highlight", "HSlider", new StyleBoxEmpty());
+        theme.SetIcon("grabber", "HSlider", Knob(1f));
+        theme.SetIcon("grabber_highlight", "HSlider", Knob(1.25f));
+        theme.SetIcon("grabber_disabled", "HSlider", Knob(0.6f));
+        // les champs de texte (graine, nom d'une sauvegarde) : creusés, un trait d'argent quand on y écrit
+        var field = (StyleBox)Inset(DarkPanelColor).Duplicate();
+        field.ContentMarginLeft = field.ContentMarginRight = Px(8);
+        field.ContentMarginTop = field.ContentMarginBottom = Px(4);
+        var focused = (StyleBox)Inset(DarkPanelColor, SilverColor).Duplicate();
+        focused.ContentMarginLeft = focused.ContentMarginRight = Px(8);
+        focused.ContentMarginTop = focused.ContentMarginBottom = Px(4);
+        theme.SetStylebox("normal", "LineEdit", field);
+        theme.SetStylebox("focus", "LineEdit", focused);
+        theme.SetColor("font_color", "LineEdit", TextColor);
+        theme.SetColor("font_placeholder_color", "LineEdit", DimColor);
+        theme.SetColor("caret_color", "LineEdit", TextColor);
+    }
+
+    /// <summary>
+    /// Le bouton du curseur : une petite plaque de pierre grise bordée d'argent, en pixels d'art agrandis comme le cadre ;
+    /// <paramref name="light"/> l'éclaircit (survol) ou l'assombrit (désactivé).
+    /// </summary>
+    private static Texture2D Knob(float light)
+    {
+        LoadImages();
+        const int w = 6, h = 10;
+        var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        Color stone = MapRenderer.Rgb(92, 94, 98) * light, rim = SilverColor * light, dark = MapRenderer.Rgb(30, 30, 34);
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            bool edge = x == 0 || y == 0 || x == w - 1 || y == h - 1;
+            bool corner = (x == 0 || x == w - 1) && (y == 0 || y == h - 1);
+            Color c = corner ? new Color(0, 0, 0, 0) : edge ? dark : x == 1 || y == 1 ? rim : stone;
+            image.SetPixel(x, y, new Color(c.R, c.G, c.B, corner ? 0 : 1));
+        }
+        return ImageTexture.CreateFromImage(Enlarged(image, FrameScale));
+    }
+
+    /// <summary>Une barre (mouvement, expérience) : une rainure creusée, et un remplissage à plat de cette couleur.</summary>
+    public static void StyleBar(ProgressBar bar, Color fill)
+    {
+        // sans marges intérieures ni texte : sinon la barre grandit au-delà de la taille voulue
+        StyleBox Tight(StyleBox box)
+        {
+            var copy = (StyleBox)box.Duplicate();
+            copy.SetContentMarginAll(0);
+            return copy;
+        }
+        bar.AddThemeStyleboxOverride("background", Tight(Inset(MapRenderer.Rgb(20, 16, 12))));
+        bar.AddThemeStyleboxOverride("fill", Tight(Plate(fill, fill.Darkened(0.4f))));
+        bar.AddThemeFontSizeOverride("font_size", 1);
     }
 
     /// <summary>
@@ -646,6 +710,7 @@ public static class Ui
     public static CheckBox MakeCheckBox(string text, bool pressed)
     {
         var box = new CheckBox { Text = text, ButtonPressed = pressed, FocusMode = Control.FocusModeEnum.None };
+        box.AddThemeConstantOverride("h_separation", (int)Px(8));
         SetFontSize(box, 15);
         box.AddThemeColorOverride("font_color", TextColor);
         box.AddThemeColorOverride("font_pressed_color", TextColor);
@@ -695,7 +760,7 @@ public static class Ui
         }
     }
 
-    /// <summary>Marque un bouton comme choisi (le héros sélectionné) : plus clair, et bordé de blanc sans image.</summary>
+    /// <summary>Marque un bouton comme choisi (taille de carte, sauvegarde) : plus sombre, comme enfoncé.</summary>
     public static void MarkSelected(Button button) =>
-        button.AddThemeStyleboxOverride("normal", ButtonBox(new Color(1.45f, 1.4f, 1.25f), MapRenderer.Rgb(120, 90, 40), Colors.White));
+        button.AddThemeStyleboxOverride("normal", ButtonBox(new Color(0.58f, 0.58f, 0.6f), MapRenderer.Rgb(70, 50, 20), SilverColor));
 }

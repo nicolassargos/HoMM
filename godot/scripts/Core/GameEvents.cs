@@ -16,6 +16,9 @@ public sealed record DayStarted(int Day, bool NewWeek) : GameEvent;
 /// <summary>C'est au tour d'un autre joueur.</summary>
 public sealed record TurnStarted(Player Player) : GameEvent;
 
+/// <summary>Un joueur n'a plus ni héros ni ville : il est éliminé (étape 8).</summary>
+public sealed record PlayerDefeated(Player Player) : GameEvent;
+
 /// <summary>La partie est finie, pour cette raison.</summary>
 public sealed record GameEnded(GameOutcome Outcome, GameEndReason Reason) : GameEvent;
 

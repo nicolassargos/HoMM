@@ -61,6 +61,9 @@ public sealed record BuildingType
     /// <summary>La taverne permet de recruter des héros.</summary>
     public bool Tavern { get; init; }
 
+    /// <summary>Le niveau de guilde des mages que donne ce bâtiment (0 : ce n'est pas une guilde ; étape 9).</summary>
+    public int MageGuild { get; init; }
+
     /// <summary>
     /// Le bâtiment que celui-ci remplace (l'hôtel de ville remplace la salle du village) : à l'écran, seul le plus récent
     /// est dessiné, à la même place.

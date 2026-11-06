@@ -304,7 +304,7 @@ public partial class Main : Node2D
         // tous les bâtiments sauf les trois derniers, pour voir aussi des cartes « à construire »
         foreach (var building in data.Buildings.All.SkipLast(3))
             if (!town.Has(building.Id))
-                town.AddBuilding(building);
+                _state.AddFreeBuilding(town, building);
         foreach (var creature in data.Creatures.All.Where(c => c.Faction == "chateau").Take(4))
             town.Garrison.Add(creature, 10);
         // le héros dans la ville, pour voir aussi son armée

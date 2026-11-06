@@ -259,7 +259,12 @@ public sealed partial class GameState
     {
         Day++;
         foreach (var hero in AllHeroes)
+        {
             hero.NewDay();
+            // une journée commencée dans une ville qui a une guilde des mages : tous les points de sort
+            if (Map.ObjectAt(hero.Position) is Town { MageGuildLevel: > 0 } town && town.Position == hero.Position && town.Owner == hero.Owner)
+                hero.SpellPoints = Math.Max(hero.SpellPoints, hero.MaxSpellPoints);
+        }
 
         bool newWeek = Day % 7 == 0;
         foreach (var town in Towns)
@@ -400,6 +405,8 @@ public sealed partial class GameState
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
             Emit(visit);
+            if (obj is Town town)
+                VisitGuild(hero, town);
             CheckVictory();
         }
         if (Path is { Count: 0 })
@@ -835,6 +842,7 @@ public sealed partial class GameState
         hero.Army.Add(firstTier, 12);
         CurrentHero = hero;
         Emit(new HeroHired(hero, town));
+        VisitGuild(hero, town);
         return HireResult.Ok;
     }
 
@@ -891,7 +899,38 @@ public sealed partial class GameState
             return result;
         town.Build(building, CurrentPlayer);
         Emit(new BuildingBuilt(town, building));
+        if (building.MageGuild > 0)
+        {
+            town.DrawGuildSpells(building.MageGuild, Data.Spells, n => (int)(_rng.NextDouble() * n));
+            if (VisitingHero(town) is { } hero && hero.Owner == town.Owner)
+                VisitGuild(hero, town);
+        }
         return BuildResult.Ok;
+    }
+
+    /// <summary>Ajoute un bâtiment sans le payer (développement, scénarios) ; une guilde tire aussi ses sorts.</summary>
+    public void AddFreeBuilding(Town town, BuildingType building)
+    {
+        town.AddBuilding(building);
+        if (building.MageGuild > 0)
+            town.DrawGuildSpells(building.MageGuild, Data.Spells, n => (int)(_rng.NextDouble() * n));
+    }
+
+    /// <summary>
+    /// Un héros dans une ville de son joueur qui a une guilde des mages : il apprend les sorts qu'il ne connaît pas encore
+    /// et retrouve tous ses points de sort.
+    /// </summary>
+    private void VisitGuild(Hero hero, Town town)
+    {
+        if (town.Owner != hero.Owner || town.MageGuildLevel == 0)
+            return;
+        hero.SpellPoints = Math.Max(hero.SpellPoints, hero.MaxSpellPoints);
+        var learned = new List<SpellType>();
+        foreach (var spell in town.GuildSpells)
+            if (hero.Learn(spell))
+                learned.Add(spell);
+        if (learned.Count > 0)
+            Emit(new SpellsLearned(hero, town, learned));
     }
 }
 

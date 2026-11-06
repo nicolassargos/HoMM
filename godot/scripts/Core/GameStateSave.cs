@@ -51,7 +51,7 @@ public sealed partial class GameState
         ResourceType? Resource = null, int? Amount = null, int? Owner = null,
         string? Creature = null, int? InitialCount = null,
         string? Name = null, string? Faction = null, List<string>? Buildings = null, bool BuiltToday = false,
-        Dictionary<string, int>? Available = null, List<StackData>? Garrison = null);
+        Dictionary<string, int>? Available = null, List<StackData>? Garrison = null, List<string>? GuildSpells = null);
 
     private sealed record StackData(string Creature, int Count);
 
@@ -115,7 +115,8 @@ public sealed partial class GameState
             InitialCount: guard.InitialCount, Amount: guard.Count),
         Town town => new ObjectData("town", obj.Id, obj.Position, Owner: town.Owner?.Id,
             Name: town.Name, Faction: town.Faction, Buildings: town.Built.ToList(), BuiltToday: town.BuiltToday,
-            Available: town.Available.ToDictionary(a => a.Key.Id, a => a.Value), Garrison: Stacks(town.Garrison)),
+            Available: town.Available.ToDictionary(a => a.Key.Id, a => a.Value), Garrison: Stacks(town.Garrison),
+            GuildSpells: town.GuildSpells.Count > 0 ? town.GuildSpells.Select(s => s.Id).ToList() : null),
         _ => throw new InvalidOperationException($"Objet de carte non prévu dans la sauvegarde : {obj.GetType().Name}"),
     };
 
@@ -322,6 +323,8 @@ public sealed partial class GameState
             town.Available[data.Creatures.Get(creature)] = count;
         foreach (var s in o.Garrison ?? new List<StackData>())
             town.Garrison.AddStack(data.Creatures.Get(s.Creature), s.Count);
+        foreach (var spellId in o.GuildSpells ?? new List<string>())
+            town.RestoreGuildSpell(data.Spells.Get(spellId));
         return town;
     }
 

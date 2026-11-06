@@ -152,7 +152,7 @@ public sealed class BattleUnit
     public bool HasWaited { get; internal set; }
 
     /// <summary>Attaque, bonus du héros compris, moins la faiblesse.</summary>
-    public int Attack => Math.Max(0, Type.Attack + AttackBonus - SpellAmount(SpellEffect.Weakness));
+    public int Attack => Math.Max(0, Type.Attack + AttackBonus + SpellAmount(SpellEffect.Bloodlust) - SpellAmount(SpellEffect.Weakness));
 
     /// <summary>Défense, bonus du héros et peau de pierre compris, et +20 % (arrondi au-dessus) quand la troupe se défend.</summary>
     public int Defense
@@ -218,6 +218,12 @@ public sealed class BattleUnit
         foreach (var effect in _spells.Where(p => p.Value.LastRound < round).Select(p => p.Key).ToList())
             _spells.Remove(effect);
     }
+
+    /// <summary>Retire tous les sorts (dissipation).</summary>
+    internal void RemoveAllSpells() => _spells.Clear();
+
+    /// <summary>Un coup réveille une troupe aveuglée.</summary>
+    internal void Wake() => _spells.Remove(SpellEffect.Blind);
 
     internal void RemoveHarmfulSpells()
     {

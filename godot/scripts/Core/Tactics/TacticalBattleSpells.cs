@@ -64,10 +64,14 @@ public sealed partial class TacticalBattle
             return true;
         if (UnitAt(target) is not { } unit)
             return false;
-        if (spell.Target == SpellTarget.Enemy)
+        if (spell.Target == SpellTarget.Any)
+            return true;
+        if (spell.Target is SpellTarget.Enemy or SpellTarget.Chain)
             return unit.Side != side;
         if (unit.Side != side)
             return false;
+        if (spell.Effect == SpellEffect.Teleport)
+            return TeleportDestinations(unit).Any();
         // ramener des créatures : seulement une troupe qui en a perdu (ou dont la créature de tête est blessée)
         return spell.Effect != SpellEffect.Resurrection || unit.Count < _startCounts[unit] || unit.TopHitPoints < unit.Type.HitPoints;
     }
@@ -82,31 +86,72 @@ public sealed partial class TacticalBattle
     }
 
     /// <summary>Les troupes que toucherait ce sort lancé sur cette case (pour une zone : la case et ses 6 voisines).</summary>
-    public IReadOnlyList<BattleUnit> AffectedBy(SpellType spell, Hex target)
+    public IReadOnlyList<BattleUnit> AffectedBy(SpellType spell, Hex target) =>
+        SpellHits(spell, target, CasterSide ?? BattleSide.Attacker).Select(h => h.Unit).ToList();
+
+    /// <summary>
+    /// Les troupes que toucherait ce sort, chacune avec sa force : la même pour toutes, sauf la chaîne d'éclairs (la
+    /// troupe visée, puis la plus proche de la précédente qui n'a pas encore été touchée, amie comprise, à force moitié
+    /// chaque fois, <see cref="SpellType.ChainTargets"/> au plus).
+    /// </summary>
+    public IReadOnlyList<(BattleUnit Unit, int Strength)> SpellHits(SpellType spell, Hex target, BattleSide side)
     {
-        if (spell.Target != SpellTarget.Area)
-            return UnitAt(target) is { } unit ? new[] { unit } : Array.Empty<BattleUnit>();
-        return new[] { target }.Concat(target.Neighbours())
-            .Select(UnitAt).OfType<BattleUnit>().Distinct().ToList();
+        int strength = SpellStrength(spell, side);
+        if (spell.Target == SpellTarget.Area)
+            return new[] { target }.Concat(target.Neighbours())
+                .Select(UnitAt).OfType<BattleUnit>().Distinct().Select(u => (u, strength)).ToList();
+        if (UnitAt(target) is not { } first)
+            return Array.Empty<(BattleUnit, int)>();
+        var hits = new List<(BattleUnit, int)> { (first, strength) };
+        if (spell.Target != SpellTarget.Chain)
+            return hits;
+        var current = first;
+        while (hits.Count < SpellType.ChainTargets && strength > 1)
+        {
+            strength /= 2;
+            var next = _units.Where(u => u.IsAlive && hits.All(h => h.Item1 != u))
+                .OrderBy(u => Distance(current, u)).ThenBy(u => u.Id).FirstOrDefault();
+            if (next == null)
+                break;
+            hits.Add((next, strength));
+            current = next;
+        }
+        return hits;
+    }
+
+    /// <summary>Les cases où une téléportation peut envoyer cette troupe : toute case où elle tient, sauf la sienne.</summary>
+    public IEnumerable<Hex> TeleportDestinations(BattleUnit unit)
+    {
+        for (int r = 0; r < Battlefield.Rows; r++)
+        for (int c = 0; c < Battlefield.Columns; c++)
+        {
+            var hex = new Hex(c, r);
+            if (hex != unit.Position && Fits(unit, hex))
+                yield return hex;
+        }
     }
 
     /// <summary>
     /// Le héros du camp actif lance ce sort sur cette case. La troupe active garde son tour (sauf si le sort la tue).
-    /// Renvoie false si le sort ne peut pas être lancé là.
+    /// <paramref name="destination"/> : pour une téléportation, la case où va la troupe. Renvoie false si le sort ne
+    /// peut pas être lancé là.
     /// </summary>
-    public bool Cast(SpellType spell, Hex target)
+    public bool Cast(SpellType spell, Hex target, Hex? destination = null)
     {
         if (!CanCast(spell) || !IsValidTarget(spell, target))
+            return false;
+        if (spell.Effect == SpellEffect.Teleport
+            && (destination is not { } to || !TeleportDestinations(UnitAt(target)!).Contains(to)))
             return false;
         var side = CasterSide!.Value;
         int s = (int)side;
         _spellPoints[s] -= spell.Cost;
         _spellPointsSpent[s] += spell.Cost;
         _castThisRound[s] = true;
+        var hits = SpellHits(spell, target, side);
         _log.Add(new SpellCast(HeroOf(side)!, side, spell, target));
-        int strength = SpellStrength(spell, side);
-        foreach (var unit in AffectedBy(spell, target))
-            Apply(spell, unit, strength, side);
+        foreach (var (unit, strength) in hits)
+            Apply(spell, unit, strength, side, destination);
         if (CheckEnd())
             return true;
         if (Active is { IsAlive: false })
@@ -114,13 +159,25 @@ public sealed partial class TacticalBattle
         return true;
     }
 
-    private void Apply(SpellType spell, BattleUnit unit, int strength, BattleSide side)
+    private void Apply(SpellType spell, BattleUnit unit, int strength, BattleSide side, Hex? destination)
     {
         switch (spell.Effect)
         {
             case SpellEffect.Damage:
+                if (!unit.IsAlive)
+                    break;
                 int killed = unit.TakeDamage(strength);
+                unit.Wake();
                 _log.Add(new SpellDamaged(unit, spell, strength, killed));
+                break;
+            case SpellEffect.Teleport:
+                var from = unit.Position;
+                unit.Position = destination!.Value;
+                _log.Add(new UnitTeleported(unit, from, unit.Position));
+                break;
+            case SpellEffect.Dispel:
+                unit.RemoveAllSpells();
+                _log.Add(new SpellsDispelled(unit, spell));
                 break;
             case SpellEffect.Cure:
                 int healed = unit.Heal(strength);

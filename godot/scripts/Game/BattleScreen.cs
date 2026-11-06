@@ -51,6 +51,9 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>Le sort choisi dans le livre, dont le joueur choisit la cible (null : pas de sort en cours).</summary>
     private SpellType? _spell;
 
+    /// <summary>Pour une téléportation : la troupe choisie (sa case), dont le joueur choisit maintenant la destination.</summary>
+    private BattleUnit? _teleported;
+
     public bool IsOpen => _battle != null;
 
     public void Build(Vector2 screenSize)
@@ -239,6 +242,11 @@ public partial class BattleScreen : CanvasLayer
         var list = new VBoxContainer();
         list.AddThemeConstantOverride("separation", (int)Px(6));
         list.AddChild(MakeLabel(Texts.SpellPointsLine(battle.SpellPointsOf(_playerSide), hero.MaxSpellPoints), 15, TextColor));
+        // deux colonnes (en attendant le vrai livre, une page par niveau)
+        var grid = new GridContainer { Columns = hero.Spells.Count > 8 ? 2 : 1 };
+        grid.AddThemeConstantOverride("h_separation", (int)Px(24));
+        grid.AddThemeConstantOverride("v_separation", (int)Px(6));
+        list.AddChild(grid);
         foreach (var spell in hero.Spells)
         {
             var row = new HBoxContainer();
@@ -261,18 +269,19 @@ public partial class BattleScreen : CanvasLayer
             text.CustomMinimumSize = V(330, 0);
             text.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
             row.AddChild(text);
-            list.AddChild(row);
+            grid.AddChild(row);
         }
         dialog.AddChild(list);
         dialog.Confirmed += dialog.QueueFree;
         dialog.Canceled += dialog.QueueFree;
         AddChild(dialog);
-        dialog.PopupCentered(new Vector2I((int)Px(580), 0));
+        dialog.PopupCentered(new Vector2I((int)Px(grid.Columns == 2 ? 1120 : 580), 0));
     }
 
     private void CancelSpell()
     {
         _spell = null;
+        _teleported = null;
         _message.Text = "";
     }
 
@@ -336,6 +345,25 @@ public partial class BattleScreen : CanvasLayer
         // un sort choisi : le clic est sa cible
         if (_spell is { } spell)
         {
+            if (spell.Effect == SpellEffect.Teleport)
+            {
+                // deux clics : la troupe, puis sa destination
+                if (_teleported is { } moving)
+                {
+                    if (TeleportHead(battle, moving, hex) is { } to)
+                    {
+                        var from = moving.Position;
+                        CancelSpell();
+                        Player(b => b.Cast(spell, from, to));
+                    }
+                }
+                else if (battle.IsValidTarget(spell, hex))
+                {
+                    _teleported = battle.UnitAt(hex);
+                    _message.Text = Texts.TeleportDestinationPrompt(spell);
+                }
+                return;
+            }
             if (battle.IsValidTarget(spell, hex))
             {
                 _spell = null;
@@ -353,6 +381,16 @@ public partial class BattleScreen : CanvasLayer
         }
         if (Destination(battle, unit, hex) is { } head)
             Player(b => b.Move(head));
+    }
+
+    /// <summary>Où une téléportation met la tête de la troupe si le joueur clique sur cette case (null : impossible).</summary>
+    private static Hex? TeleportHead(TacticalBattle battle, BattleUnit unit, Hex hex)
+    {
+        var heads = battle.TeleportDestinations(unit).ToList();
+        if (heads.Contains(hex))
+            return hex;
+        // une grande créature : la tête qui met son arrière sur cette case
+        return heads.Where(h => unit.HexesAt(h).Contains(hex)).Cast<Hex?>().FirstOrDefault();
     }
 
     /// <summary>
@@ -446,15 +484,32 @@ public partial class BattleScreen : CanvasLayer
         {
             // choisir la cible d'un sort : les troupes visables en valeur, et ce que toucherait le sort sous la souris
             _field.Reachable = Array.Empty<Hex>();
-            if (spell.Target != SpellTarget.Area)
-                _field.SpellTargets = battle.SpellTargets(spell).ToList();
             cursor = CursorKind.Blocked;
-            if (_field.Hovered is { } aimed && battle.IsValidTarget(spell, aimed))
+            if (_teleported is { } moving)
             {
-                cursor = spell.Target == SpellTarget.Ally ? CursorKind.Visit : CursorKind.Attack;
-                _field.SpellArea = spell.Target == SpellTarget.Area
-                    ? new[] { aimed }.Concat(aimed.Neighbours()).Where(Battlefield.InBounds).ToList()
-                    : battle.UnitAt(aimed)!.Hexes.ToList();
+                // la destination d'une téléportation : les cases où la troupe tient
+                _field.SpellTargets = battle.TeleportDestinations(moving).SelectMany(h => moving.HexesAt(h)).Distinct().ToList();
+                if (_field.Hovered is { } over && TeleportHead(battle, moving, over) is { } head)
+                {
+                    cursor = CursorKind.Move;
+                    _field.SpellArea = moving.HexesAt(head).ToList();
+                }
+            }
+            else
+            {
+                if (spell.Target != SpellTarget.Area)
+                    _field.SpellTargets = battle.SpellTargets(spell).ToList();
+                if (_field.Hovered is { } aimed && battle.IsValidTarget(spell, aimed))
+                {
+                    var aimedUnit = battle.UnitAt(aimed);
+                    cursor = aimedUnit != null && aimedUnit.Side == _playerSide ? CursorKind.Visit : CursorKind.Attack;
+                    _field.SpellArea = spell.Target switch
+                    {
+                        SpellTarget.Area => new[] { aimed }.Concat(aimed.Neighbours()).Where(Battlefield.InBounds).ToList(),
+                        SpellTarget.Chain => battle.AffectedBy(spell, aimed).SelectMany(u => u.Hexes).ToList(),
+                        _ => aimedUnit!.Hexes.ToList(),
+                    };
+                }
             }
         }
         else if (mine && _field.Hovered is { } hovered)

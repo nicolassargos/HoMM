@@ -32,8 +32,10 @@ public static class DataValidation
                 errors.Add($"{s.Id} : coût invalide ({s.Cost})");
             if (s.Effect is SpellEffect.Damage or SpellEffect.Cure or SpellEffect.Resurrection && s.Base + s.PerPower < 1)
                 errors.Add($"{s.Id} : force nulle");
-            if (s.Target == SpellTarget.Area && s.Effect != SpellEffect.Damage)
-                errors.Add($"{s.Id} : seuls les sorts de dégâts visent une zone");
+            if (s.Target is SpellTarget.Area or SpellTarget.Chain && s.Effect != SpellEffect.Damage)
+                errors.Add($"{s.Id} : seuls les sorts de dégâts visent une zone ou font une chaîne");
+            if (s.Effect == SpellEffect.Teleport && s.Target != SpellTarget.Ally)
+                errors.Add($"{s.Id} : on ne téléporte que ses troupes");
         }
     }
 

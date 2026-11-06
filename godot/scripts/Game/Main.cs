@@ -253,6 +253,14 @@ public partial class Main : Node2D
         // Développement : « --cursor-preview=dossier » enregistre les curseurs en images
         if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--cursor-preview=")) is { } preview)
             MapCursor.SavePreview(preview["--cursor-preview=".Length..]);
+        // Développement : « --spells » : le héros connaît tous les sorts (savoir 5, points pleins), pour essayer la magie
+        if (OS.GetCmdlineUserArgs().Contains("--spells") && _state.CurrentHero is { } mage)
+        {
+            mage.Knowledge = 5;
+            mage.SpellPoints = mage.MaxSpellPoints;
+            foreach (var spell in _state.Data.Spells.All)
+                mage.Learn(spell);
+        }
         // Développement : « --battle-showcase » : les 7 créatures du Château contre les 7 neutres, sur l'écran de combat
         // (pour comparer les images ; ce combat ne compte pas dans la partie) ; avec « --battle-auto », il se joue seul
         if (OS.GetCmdlineUserArgs().Contains("--battle-showcase"))
@@ -796,9 +804,16 @@ public partial class Main : Node2D
             _ => new Army(),
         });
         var terrain = _state.Map.GetTerrain(started.Hero.Position);
-        void Tactical() => _battleScreen.Open(started.Battle, opponent, terrain, () => _state.FinishBattle(),
-            auto: _battleTest && OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: started.Hero,
-            defenderHero: (started.Defender as HeroDefender)?.Hero);
+        void Tactical()
+        {
+            _battleScreen.Open(started.Battle, opponent, terrain, () => _state.FinishBattle(),
+                auto: _battleTest && OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: started.Hero,
+                defenderHero: (started.Defender as HeroDefender)?.Hero);
+            // Développement : « --battle-book » ouvre le livre de sorts dès que le joueur peut jouer
+            var book = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--battle-book"));
+            _battleScreen.OpenSpellBookWhenReady = _battleTest && book != null;
+            _battleScreen.ChooseSpellWhenReady = book?.StartsWith("--battle-book=") == true ? book["--battle-book=".Length..] : null;
+        }
         void Quick()
         {
             BattleAI.PlayOut(started.Battle);

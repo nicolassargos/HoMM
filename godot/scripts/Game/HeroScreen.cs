@@ -26,6 +26,9 @@ public partial class HeroScreen : ScreenWindow
     private ProgressBar _movementBar = null!;
     private readonly List<(HeroStat? Stat, Label Name, Label Value, Label Effect)> _stats = new();
     private VBoxContainer _artifacts = null!;
+    private Label _spellPoints = null!;
+    private VBoxContainer _spells = null!;
+    private string? _spellsKey;
     private ArmySlots _army = null!;
 
     public void Build(GameState state, Vector2 screenSize)
@@ -78,12 +81,17 @@ public partial class HeroScreen : ScreenWindow
         _artifacts.AddThemeConstantOverride("separation", (int)Px(8));
         artifacts.AddChild(_artifacts);
 
-        // la magie, à venir
+        // la magie : les points de sort et le livre (les compétences viendront avec les classes de héros)
         var magic = Section(V(636, 56), V(344, 380), Texts.MagicHeader);
-        var later = At(MakeLabel(Texts.MagicLater, 13, SoftTextColor), 12, 40);
-        later.AutowrapMode = TextServer.AutowrapMode.WordSmart; // avant la taille : sinon elle se règle sur le texte entier
-        later.CustomMinimumSize = V(320, 0);
-        magic.AddChild(later);
+        _spellPoints = At(MakeLabel("", 15, TextColor), 12, 32);
+        _spellPoints.MouseFilter = Control.MouseFilterEnum.Stop;
+        _spellPoints.TooltipText = Texts.SpellPointsDaily;
+        magic.AddChild(_spellPoints);
+        var scroll = new ScrollContainer { Position = V(12, 60), Size = V(326, 312), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        magic.AddChild(scroll);
+        _spells = new VBoxContainer();
+        _spells.AddThemeConstantOverride("separation", (int)Px(6));
+        scroll.AddChild(_spells);
 
         // l'armée, en grand
         var army = Section(V(20, 450), V(960, 170), Texts.ArmyHeader);
@@ -180,7 +188,41 @@ public partial class HeroScreen : ScreenWindow
             name.TooltipText = value.TooltipText = effect.TooltipText = Texts.StatTooltip(stat, hero);
         }
         RefreshArtifacts(hero);
+        RefreshSpells(hero);
         _army.Show(hero.Army, hero.Charisma);
+    }
+
+    /// <summary>Les points de sort, et chaque sort du livre : son nom, son niveau, ses points, ce qu'il fait.</summary>
+    private void RefreshSpells(Hero hero)
+    {
+        _spellPoints.Text = Texts.SpellPointsLine(hero.SpellPoints, hero.MaxSpellPoints);
+        string key = $"{hero.Id}:{hero.Power}:{string.Join(",", hero.Spells.Select(s => s.Id))}";
+        if (key == _spellsKey)
+            return;
+        _spellsKey = key;
+        foreach (var child in _spells.GetChildren())
+        {
+            _spells.RemoveChild(child);
+            child.QueueFree();
+        }
+        if (hero.Spells.Count == 0)
+        {
+            var none = MakeLabel(Texts.NoSpellsKnown, 13, SoftTextColor);
+            none.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            none.CustomMinimumSize = V(310, 0);
+            _spells.AddChild(none);
+        }
+        foreach (var spell in hero.Spells)
+        {
+            var box = new VBoxContainer();
+            box.AddThemeConstantOverride("separation", 0);
+            box.AddChild(MakeLabel(Texts.SpellLine(spell), 14, TextColor));
+            var effect = MakeLabel(Texts.SpellEffectText(spell, hero), 12, SoftTextColor);
+            effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            effect.CustomMinimumSize = V(310, 0);
+            box.AddChild(effect);
+            _spells.AddChild(box);
+        }
     }
 
     private string? _artifactsKey;

@@ -785,16 +785,16 @@ public static class Texts
     {
         HeroStat.Attack => "+ à l'attaque de chaque troupe",
         HeroStat.Defense => "+ à la défense de chaque troupe",
-        HeroStat.Power => "force des sorts (plus tard)",
-        HeroStat.Knowledge => "points de sort (plus tard)",
+        HeroStat.Power => $"force et durée des sorts ({hero.Power + 1} rounds)",
+        HeroStat.Knowledge => $"{hero.MaxSpellPoints} points de sort au plus",
         _ => $"commande {Command.Limit(hero.Charisma)} points par troupe",
     };
 
     public static string ArtifactsHeader => "Artefacts";
     public static string NoArtifact => "Aucun artefact pour l'instant.";
     public static string MagicHeader => "Magie";
-    public static string MagicLater =>
-        "La magie viendra plus tard : les points de sort, le livre de sorts et les compétences du héros prendront place ici.";
+    /// <summary>Un sort du livre (écran du héros) : « Flèche magique · niveau 1 · 5 points ».</summary>
+    public static string SpellLine(SpellType spell) => $"{spell.Name} · niveau {spell.Level} · {SpellCost(spell)}";
 
     /// <summary>« 30 / 100 points » : le commandement d'une troupe.</summary>
     public static string CommandPoints(CreatureStack stack, int charisma) =>
@@ -949,7 +949,24 @@ public static class Texts
     public static string KeyTooltip(string tooltip, string key) => $"{tooltip} ({key})";
 
     public static string HeroBonus(Hero hero) => $"Attaque +{hero.Attack} · défense +{hero.Defense}";
-    public static string SpellBookLater => "La magie viendra plus tard.";
+    public static string SpellBookButton => "Sorts";
+    public static string SpellBookTitle(Hero hero) => $"Livre de sorts de {hero.Name}";
+    public static string SpellPointsLine(int points, int max) => $"Points de sort : {points} / {max}";
+    public static string SpellPointsDaily => "+1 par jour, tous dans une ville qui a une guilde des mages";
+    public static string OneSpellPerRound => "Un seul sort par round.";
+    public static string NotEnoughSpellPoints => "pas assez de points";
+    public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";
+    public static string SpellTargetPrompt(SpellType spell) => spell.Target switch
+    {
+        SpellTarget.Area => $"{spell.Name} : choisissez une case (clic droit ou Échap : annuler).",
+        SpellTarget.Ally => $"{spell.Name} : choisissez une de vos troupes (clic droit ou Échap : annuler).",
+        _ => $"{spell.Name} : choisissez une troupe ennemie (clic droit ou Échap : annuler).",
+    };
+
+    /// <summary>Le héros au combat (clic sur lui) : son bonus, ses points de sort et ses sorts.</summary>
+    public static string BattleHeroText(Hero hero, int spellPoints) =>
+        $"{HeroBonus(hero)}\n{SpellPointsLine(spellPoints, hero.MaxSpellPoints)}"
+        + (hero.Spells.Count > 0 ? $"\nSorts : {List(hero.Spells.Select(s => s.Name).ToList())}" : "");
     public static string BattleLogButton => "Journal";
     public static string BattleLogTitle => "Journal du combat";
 
@@ -962,8 +979,13 @@ public static class Texts
     public static string UnitAbilities(BattleUnit unit) =>
         unit.Type.Abilities.Count == 0 ? "Pas de capacité" : Capitalize(string.Join(", ", unit.Type.Abilities.Select(AbilityName)));
 
-    public static string UnitState(BattleUnit unit) =>
-        $"Ripostes : {unit.RetaliationsLeft}" + (unit.IsDefending ? " · se défend" : "");
+    public static string UnitState(BattleUnit unit, int round = 0) =>
+        $"Ripostes : {unit.RetaliationsLeft}" + (unit.IsDefending ? " · se défend" : "")
+        + (unit.Spells.Count > 0
+            ? "\nSorts : " + string.Join(", ", unit.Spells.Select(s => round > 0 ? $"{s.Spell.Name} ({Rounds(s.LastRound - round + 1)})" : s.Spell.Name))
+            : "");
+
+    private static string Rounds(int n) => $"{n} round{(n > 1 ? "s" : "")}";
 
 
     /// <summary>Le titre du bilan d'un combat.</summary>

@@ -49,8 +49,13 @@ Décision de l'utilisateur, valable pour toutes les sessions :
   `tools/art/reduire.py` (réduire ou retourner une image sans la flouter), `tools/art/cadre.py` (rendre transparent le
   centre uni d'un cadre généré), `tools/art/detourer.py` (rendre
   transparent un fond uni), `tools/art/pixellab.py` (PixelLab : solde, animations, éléments d'interface).
+  **Créatures de combat** : `tools/art/creature.py` fait tout le travail d'une créature avec PixelLab (images fixes,
+  animations, vérifications automatiques, une page de choix par créature dans `en-cours/<id>.html`, installation dans
+  le jeu), d'après sa fiche dans `tools/art/creatures-art.json` (description, modèle de style, image d'angle,
+  références, hauteur, choix faits) et un gabarit par sorte de créature ; `tools/art/nettoyage.py` contient les
+  traitements d'image. Voir la créature en jeu : `--creature-preview=id1,id2` (avec `--battle-auto`).
   Captures du jeu : `godot` avec `-- --capture=chemin.png` (et `--reveal`, `--zoom`, `--terrain-test`,
-  `--town` (et `--town-window=build|recruit|tavern|count`, `--town-build=id`), `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--battle-test` (et `--battle-auto`), `--battle-showcase`, `--hover=x,y` (case survolée), `--open=hero`, `kingdom`, `level`, `end`, `options` ou `save` (écran du héros, royaume, choix de niveau, fin de partie, options, sauvegarder), `--menu` (ou `--menu=new`, `--menu=load` : menu principal), `--size=tiny|small|normal|large|huge` (taille de la carte), `--capture-delay=secondes`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
+  `--town` (et `--town-window=build|recruit|tavern|count`, `--town-build=id`), `--rules`, `--center=treasure` ou `obelisk`, `--treasure-map`, `--dig-test`, `--battle-test` (et `--battle-auto`), `--battle-showcase`, `--creature-preview=id,…`, `--hover=x,y` (case survolée), `--open=hero`, `kingdom`, `level`, `end`, `options` ou `save` (écran du héros, royaume, choix de niveau, fin de partie, options, sauvegarder), `--menu` (ou `--menu=new`, `--menu=load` : menu principal), `--size=tiny|small|normal|large|huge` (taille de la carte), `--capture-delay=secondes`, `--cursor-preview=dossier`, `--ground=réglage:valeur` selon le besoin).
 
 ## Commandes
 - Tests : `dotnet test` (à la racine)

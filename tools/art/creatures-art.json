@@ -1,0 +1,214 @@
+{
+  "gabarits": {
+    "humain": {
+      "debut": "classic 1990s fantasy strategy game sprite of ",
+      "fin": ", simple bold shapes, clear readable silhouette. Seen in three-quarter view from slightly above, body turned to the right, full body",
+      "usage_angle": "camera angle, perspective and body orientation only (seen from slightly above): do not copy this creature, its shape or its colors",
+      "mouvements": {
+        "idle": "subtle idle: slow calm breathing and one small movement, the feet stay in place",
+        "walk": "walking forward to the right with steady steps, the legs clearly alternating",
+        "attack": "strikes the enemy in front of it with its weapon, then returns to its starting pose"
+      },
+      "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
+    },
+    "volant": {
+      "debut": "classic 1990s fantasy strategy game sprite of ",
+      "fin": ", simple bold shapes, clear readable silhouette. Seen in three-quarter view from slightly above, body turned to the right, full body",
+      "usage_angle": "camera angle, perspective and body orientation only (seen from slightly above): do not copy this creature, its shape or its colors",
+      "mouvements": {
+        "idle": "hovering in place, swaying gently, very small movements",
+        "walk": "flying forward to the right, gliding smoothly through the air",
+        "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place"
+      },
+      "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
+    },
+    "quadrupede": {
+      "debut": "classic 1990s fantasy strategy game sprite of ",
+      "fin": ", simple bold shapes, clear readable silhouette. Side view, slightly from above, facing right, full body",
+      "usage_angle": "camera angle, perspective and body orientation only: do not copy this creature, its shape or its colors",
+      "mouvements": {
+        "idle": "standing still, breathing, the head and tail move a little",
+        "walk": "trotting forward to the right, the four legs moving in a clear trot",
+        "attack": "lunges forward and bites the enemy in front of it, then steps back to its starting pose"
+      },
+      "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
+    },
+    "grand": {
+      "debut": "classic 1990s fantasy strategy game sprite of ",
+      "fin": ", simple bold shapes, clear readable silhouette, huge and heavy. Seen from slightly above, body turned to the right, full body",
+      "usage_angle": "camera angle, perspective and body orientation only (seen from slightly above): do not copy this creature, its shape or its colors",
+      "mouvements": {
+        "idle": "slow heavy breathing, the huge body sways a little, the feet stay in place",
+        "walk": "slow heavy steps forward to the right, the whole body swaying with each step",
+        "attack": "a slow powerful blow with both hands at the enemy in front of it, then back to its starting pose"
+      },
+      "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
+    }
+  },
+  "creatures": {
+    "colosse-os": {
+      "nom": "Colosse d'os",
+      "gabarit": "grand",
+      "description": "a bone colossus: a huge chaotic giant made of many random bones and skulls, horned skull head with glowing red eyes, holding a huge thigh bone club, old yellowed bone color",
+      "sujet": "a huge giant made of many bones and skulls, horned skull head, holding a huge thigh bone club",
+      "hauteur": 70,
+      "generation": [
+        120,
+        136
+      ],
+      "style": "godot/art/creatures/battle/squelette.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [],
+      "comparer": [
+        "archer",
+        "ogre",
+        "troll"
+      ],
+      "grande": "art-candidats/references/derives/colosse-os-grand.png",
+      "choix": {
+        "fixe": "X6",
+        "idle": "idle-1",
+        "walk": "walk-2",
+        "attack": "attack-9"
+      },
+      "notes": "D'après une image de l'utilisateur, en plus simple (style rétro). Sur une seule case. Lent : 7 images par seconde."
+    },
+    "chevalier": {
+      "nom": "Chevalier",
+      "gabarit": "humain",
+      "description": "a medieval knight: full grey steel plate armor, closed great helm with a narrow visor slit, broad armored shoulders, a deep royal blue kite shield with a thin gold rim and a golden fleur-de-lis on his left arm, a spiked flail ball on a chain held in his right hand, sturdy heroic stance",
+      "sujet": "a medieval knight in full steel plate armor with a closed great helm, a blue kite shield with a golden fleur-de-lis and a spiked flail",
+      "hauteur": 54,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/chevalier-reference.png::subject reference only (armor, flail, shield), not the style and not the camera angle"
+      ],
+      "comparer": [
+        "archer",
+        "paysan"
+      ],
+      "miroir": true,
+      "grande": "art-candidats/references/derives/chevalier-grand.png",
+      "choix": {
+        "fixe": "L2",
+        "idle": "idle-1",
+        "walk": "walk-3",
+        "attack": "attack-7"
+      },
+      "notes": "Remplacera l'Épéiste. Les candidats sortaient tournés vers la gauche (miroir). Bouclier changé avec « retoucher » de pixellab.py."
+    },
+    "fantome": {
+      "nom": "Fantôme",
+      "gabarit": "volant",
+      "description": "a drowned woman ghost floating above the ground, very pale and ethereal, almost white with soft cyan glow, long wet hair hiding a dark hollow face with two faint glowing eyes, thin arms with long clawed fingers reaching forward, ragged gown fading into misty wisps instead of feet",
+      "sujet": "a pale ghost of a drowned woman floating above the ground, long wet hair, clawed hands, ragged gown fading into wisps",
+      "hauteur": 52,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/fantome-reference.png::concept reference only (veiled ghost bride in a long flowing gown): simplify it a lot, do not copy its camera angle or its realistic modern style"
+      ],
+      "comparer": [
+        "archer",
+        "squelette"
+      ],
+      "grande": "art-candidats/references/derives/fantome-grand.png",
+      "choix": {
+        "fixe": "V16",
+        "idle": "idle-2",
+        "walk": "walk-2",
+        "attack": "attack-1"
+      },
+      "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur)."
+    },
+    "archer": {
+      "nom": "Archer",
+      "gabarit": "humain",
+      "description": "a medieval army archer in light armor: steel kettle hat, a royal blue tabard with a small golden fleur-de-lis on the chest over a grey gambison, leather belt with a quiver of arrows, sturdy boots, holding a tall longbow, strong confident stance",
+      "sujet": "a medieval archer with a steel kettle hat, blue tabard with a golden fleur-de-lis, holding a longbow",
+      "hauteur": 50,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/archer-reference.jpg::costume reference only, not the style and not the camera angle"
+      ],
+      "comparer": [
+        "chevalier",
+        "paysan"
+      ],
+      "corde": true,
+      "mouvements": {
+        "attack": "quick shot: lifts the bow, pulls the string fully back aiming to the right, lets go, then lowers the bow; the arrow is not shown flying"
+      },
+      "grande": "art-candidats/references/derives/archer-grand.png",
+      "choix": {
+        "fixe": "L3-2",
+        "idle": "idle-4-corde",
+        "walk": "walk-1-corde",
+        "attack": "attack-3-corde"
+      },
+      "notes": "Refait le 2026-11-06. La corde de l'arc est tracée par l'outil (« corde »). Il regarde autour de lui, rarement.",
+      "lots": {
+        "L1": "références (ancien archer + image de l'utilisateur), costume rayé",
+        "L2": "ancien archer, costume rayé",
+        "L3": "références, tabard bleu",
+        "L4": "ancien archer, tabard bleu"
+      },
+      "consignes": {
+        "idle": "subtle idle: slow calm breathing and one small movement, the feet stay in place"
+      }
+    },
+    "moine": {
+      "nom": "Moine",
+      "gabarit": "humain",
+      "description": "a monk in a brown hooded robe holding a staff topped with a glowing orb",
+      "sujet": "a monk in a brown hooded robe holding a staff topped with a glowing orb",
+      "hauteur": 47,
+      "comparer": [
+        "archer",
+        "paysan"
+      ],
+      "mouvements": {
+        "attack": "the monk leans forward and stretches his arm, pointing the glowing orb of his staff at the enemy, then steps back to rest; nothing is thrown"
+      },
+      "grande": "art-candidats/references/derives/moine-grand.png",
+      "choix": {
+        "idle": "idle-2",
+        "walk": "walk-1",
+        "attack": "attack-5-propre"
+      },
+      "notes": "Image d'origine gardée (modèle de style). La boule de feu sera un effet du jeu : l'attaque ne lance rien."
+    },
+    "loup": {
+      "nom": "Loup",
+      "gabarit": "quadrupede",
+      "description": "a dark grey wolf, snarling",
+      "sujet": "a dark grey wolf, side view facing right, snarling",
+      "hauteur": 34,
+      "comparer": [
+        "gobelin",
+        "archer"
+      ],
+      "grande": "art-candidats/references/derives/loup-grand.png",
+      "choix": {
+        "idle": "idle-2",
+        "walk": "walk-2",
+        "attack": "attack-2"
+      },
+      "notes": "Image d'origine gardée (modèle de style)."
+    }
+  }
+}

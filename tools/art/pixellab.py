@@ -53,12 +53,21 @@ def requete(methode, chemin, corps=None):
         sys.exit("Variable d'environnement PIXELLAB_API_KEY absente.")
     entetes = {"Authorization": f"Bearer {cle}", "Content-Type": "application/json"}
     donnees = json.dumps(corps).encode("utf-8") if corps is not None else None
-    req = urllib.request.Request(API + chemin, data=donnees, headers=entetes, method=methode)
-    try:
-        with urllib.request.urlopen(req, timeout=120) as reponse:
-            return json.loads(reponse.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        sys.exit(f"Erreur {e.code} de l'API : {e.read().decode('utf-8', 'replace')[:1000]}")
+    # PixelLab n'accepte que 8 tâches à la fois : au-delà (erreur 429), on attend qu'une place se libère
+    for essai in range(60):
+        req = urllib.request.Request(API + chemin, data=donnees, headers=entetes, method=methode)
+        try:
+            with urllib.request.urlopen(req, timeout=120) as reponse:
+                return json.loads(reponse.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            texte = e.read().decode('utf-8', 'replace')
+            if e.code == 429 and "concurrent" in texte:
+                if essai == 0:
+                    print("PixelLab : 8 tâches en cours, celle-ci attend son tour…", flush=True)
+                time.sleep(15)
+                continue
+            sys.exit(f"Erreur {e.code} de l'API : {texte[:1000]}")
+    sys.exit("PixelLab : toujours 8 tâches en cours après 15 minutes d'attente.")
 
 
 def solde():

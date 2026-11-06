@@ -325,6 +325,27 @@ détails, surtout agrandies au combat), dans cet ordre :
    **sans rien lancer** : la boule de feu sera un effet du jeu (à faire ; le jeu ne dessine encore aucun projectile, ni les flèches de l'Archer). PixelLab
    dessine quand même éclairs et flammes : l'image de l'éclair est remplacée par la pose tendue, gardée au moment du
    coup. Le Loup renifle, trotte, et bondit gueule ouverte. PixelLab n'accepte que 8 animations à la fois.
+   L'**Archer refait** (2026-11-06) : plus net, fait au double puis réduit (50 px), tabard bleu à fleur de lis d'or
+   comme le bouclier du Chevalier. Sa **corde d'arc** (un trait d'un pixel) disparaissait à la réduction ou
+   clignotait : les traits fins de la grande image sont remis après réduction, et une corde droite est tracée entre
+   les deux bouts de l'arc au repos (même couleur sombre que celle de PixelLab), sur l'image fixe aussi. Il regarde
+   autour de lui, rarement (pause de 15 à 30 s, 7 images par seconde). L'utilisateur trouve les animations un peu
+   chargées, de peur qu'elles distraient du jeu : à revoir en jeu (pauses plus longues, mouvements plus discrets).
+   **Méthode outillée** (2026-11-06, demandée par l'utilisateur) : `tools/art/creature.py` enchaîne les étapes pour
+   une créature (`fixe`, `choisir … fixe`, `animer`, `retoucher`, `choisir … idle`, `page`) d'après sa **fiche**
+   (`tools/art/creatures-art.json` : description, sujet, hauteur, taille de génération, modèle de style, image
+   d'angle, références, miroir, corde, mouvements propres, choix faits) et un **gabarit** par sorte de créature
+   (humain, volant, quadrupède, grand : fin du texte de l'image fixe, mouvements par défaut, et toujours « pas
+   d'autre personnage, pas d'effet, pas de projectile » ; mouvements d'attente discrets). Les grandes images
+   choisies sont gardées dans `art-candidats/references/derives/` (elles survivent à l'archivage). Chaque feuille
+   est **vérifiée** (corps qui glisse, attaque qui ne revient pas à sa place, pixels en plus : autre personnage ou
+   effet, éclats blancs ou de feu, image coupée au bord, traits fins qui clignotent), en comparant chaque image à la
+   plus calme de la feuille ; les alertes s'affichent sur la **page de la créature** (`en-cours/<id>.html`), qui
+   montre images fixes et animations ensemble, sur des cases du champ, face au défenseur retourné, avec les pauses
+   du jeu. Deux essais par animation, alternant les deux modèles de PixelLab ; au plus 8 tâches à la fois (les
+   autres attendent, `pixellab.py` attend aussi quand PixelLab refuse). En jeu : `--creature-preview=id,…` met ces
+   créatures des deux côtés (une créature absente des règles reçoit des caractéristiques moyennes), avec un Archer
+   pour l'échelle. Les fiches existent pour le Colosse, le Chevalier, le Fantôme, l'Archer, le Moine et le Loup.
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de

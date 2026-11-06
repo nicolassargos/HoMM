@@ -963,7 +963,11 @@ public static class Texts
     public static string SpellBookTitle(Hero hero) => $"Livre de sorts de {hero.Name}";
     public static string SpellPointsLine(int points, int max) => $"Points de sort : {points} / {max}";
     public static string SpellPointsDaily => "+1 par jour, tous dans une ville qui a une guilde des mages";
-    public static string OneSpellPerRound => "Un seul sort par round.";
+    public static string OneSpellPerRound => "Un seul sort par round : le livre se lit seulement.";
+    public static string NotYourTurnToCast => "Ce n'est pas votre tour : le livre se lit seulement.";
+    public static string SpellBookShort => "Sorts";
+    public static string SpellBookOnMap => "Les sorts se lancent au combat.";
+    public static string SpellBookTooltip => "Livre de sorts du héros";
     public static string NotEnoughSpellPoints => "pas assez de points";
     public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";
     public static string SpellTargetPrompt(SpellType spell) => spell.Target switch

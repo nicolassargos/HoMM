@@ -694,6 +694,11 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
     `TeleportDestinations`, deux clics à l'écran) ; l'IA téléporte une troupe de corps à corps qui n'atteint personne à
     côté de l'ennemi le plus dangereux, dissipe les bons sorts de l'ennemi, aveugle les grosses troupes. Le livre de
     sorts passe à deux colonnes (en attendant le vrai livre). Tests : `MagieTests`.
+    ✅ Le livre de sorts se lit à tout moment (`SpellBookWindow`, demandé par l'utilisateur) : au combat, même quand on
+    ne peut pas lancer (tour de l'adversaire, sort déjà lancé ce round : il le dit, les sorts sont grisés) ; sur la
+    carte, un bouton « Sorts » (touche S) à côté d'Options. La fenêtre Construire : un bâtiment qui s'améliore (salle du
+    village → hôtel de ville → grand hôtel de ville, guilde 1 → 4) n'a qu'une carte, le prochain niveau ou le dernier
+    construit, comme dans Heroes 3 (10 cartes au lieu de 15) ; des barres de défilement de pierre bien visibles partout.
   - **Le livre de sorts en image** : un vrai livre ouvert, une page par niveau, avec une **animation de page qui
     tourne** pour passer d'un niveau à l'autre.
   - **Une image par sort** (icône dans le livre et la guilde).

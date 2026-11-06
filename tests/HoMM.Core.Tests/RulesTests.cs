@@ -473,8 +473,9 @@ public class BattleTests
 
 internal static class TestData
 {
-    public static readonly GameData Data = GameData.FromJson(Read("creatures.json"), Read("buildings.json"), Read("artifacts.json"));
+    public static readonly GameData Data = GameData.FromJson(Read("creatures.json"), Read("buildings.json"), Read("artifacts.json"), Read("spells.json"));
     public static CreatureCatalog Creatures => Data.Creatures;
+    public static SpellCatalog Spells => Data.Spells;
 
     private static string Read(string file) =>
         System.IO.File.ReadAllText(System.IO.Path.Combine(System.AppContext.BaseDirectory, "data", file));

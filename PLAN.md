@@ -456,7 +456,7 @@ Découpage (une PR par point, chacune jouable et testée ; cadres et couleurs ac
    marqués « Construit »), et suit son contenu ; « Fermer » bien à l'intérieur du cadre ; les boutons du niveau supérieur alignés.
    À faire ensuite : une nouvelle revue des captures avec l'utilisateur.
 
-### 8. Adversaires IA (prochaine étape)
+### 8. Adversaires IA ✅
 - Joueurs ordinateur avec leurs héros et leurs villes.
 - L'IA joue avec les mêmes méthodes de `GameState` que le joueur humain, sans attendre l'affichage.
 - L'affichage rejoue les déplacements des héros ennemis (événements `HeroMoved`) à un rythme lisible.
@@ -553,9 +553,57 @@ Découpage (une PR par point, chacune jouable et testée) :
    pour un « Difficile » solide, et vérifier que Facile l'est vraiment. Écarté : un réseau de neurones (lourd, difficile
    à régler, sans intérêt à cette taille).
 
-### 9. Contenu
+### 9. Contenu (prochaine étape)
 Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et les nouvelles factions.
 - Magie, autres factions, nouveaux objets sur la carte.
+- **Magie** (commencée en premier, choix de l'utilisateur, 2026-11-06), proche de Heroes 2 et 3 :
+  - **Chaque héros a un livre de sorts** (les classes de héros rendront plus tard certains meilleurs en magie).
+  - **Points de sort** : 10 par point de savoir ; le héros commence plein, en regagne 1 par jour, et tous en passant
+    un tour dans une ville qui a une guilde des mages.
+  - **Puissance** : la force des sorts (dégâts : une base plus tant par point de puissance) et leur durée
+    (puissance + 1 rounds).
+  - **Guilde des mages** de 4 niveaux dans la ville (à la place gardée en haut à gauche de la vue) ; chaque niveau
+    offre quelques sorts de ce niveau, tirés au sort pour chaque ville (3, 3, 2 et 2) ; un héros qui entre dans la
+    ville les apprend.
+  - **Au combat** : le héros lance **un sort par round**, pendant le tour d'une de ses troupes, sans lui prendre son
+    tour (comme dans Heroes 3). Livre de sorts (bouton et touche), puis clic sur la cible. Les monstres et les
+    garnisons sans héros n'en lancent pas. Le combat rapide et les adversaires en lancent aussi (une règle simple :
+    le sort qui fait le plus de mal à l'ennemi, en valeur, ou qui aide le plus sa meilleure troupe).
+  - **Sorts de combat seulement** pour commencer (12, `data/spells.json`, chiffres à régler) :
+
+    | Niveau | Sort | Points | Effet |
+    |---|---|---|---|
+    | 1 | Flèche magique | 5 | 10 + 10 × puissance dégâts à une troupe ennemie |
+    | 1 | Bénédiction | 5 | une troupe amie fait ses dégâts maximum |
+    | 1 | Malédiction | 6 | une troupe ennemie fait ses dégâts minimum |
+    | 1 | Peau de pierre | 5 | +5 défense à une troupe amie |
+    | 2 | Éclair | 10 | 10 + 25 × puissance dégâts à une troupe ennemie |
+    | 2 | Hâte | 6 | +3 vitesse à une troupe amie |
+    | 2 | Lenteur | 6 | vitesse divisée par deux pour une troupe ennemie |
+    | 2 | Soins | 6 | soigne 10 + 5 × puissance PV et retire les sorts néfastes (troupe amie) |
+    | 3 | Boule de feu | 15 | 10 + 10 × puissance dégâts sur une case et ses 6 voisines (amis compris) |
+    | 3 | Faiblesse | 8 | −6 attaque à une troupe ennemie |
+    | 4 | Résurrection | 20 | ramène 40 + 20 × puissance PV de créatures tuées dans ce combat (troupe amie) |
+    | 4 | Pluie de météores | 16 | 25 + 25 × puissance dégâts sur une case et ses 6 voisines (amis compris) |
+
+  - Plus tard : les sorts de la carte (portail de ville, porte dimensionnelle, vision…), les écoles de magie et les
+    compétences (avec les classes de héros), la résistance à la magie de certaines créatures, une guilde de niveau 5.
+  Découpage (une PR par point) :
+  1. ✅ Les règles des sorts (`Core`) : `data/spells.json` (`SpellType`, `SpellCatalog`, vérifiés au chargement) ;
+     `Hero.SpellPoints`, `MaxSpellPoints`, `Spells` (par niveau), `Learn` ; au combat (`TacticalBattleSpells`) :
+     `CanCast`, `SpellTargets`, `AffectedBy`, `Cast` (un sort par round et par camp, la troupe garde son tour ; le
+     sort qui dure est posé sur la troupe, `ActiveSpell`, et remplace son contraire), la vitesse change aussi l'ordre
+     de jeu. Les points sont comptés à part pendant le combat et retirés au héros au bilan
+     (`BattleReport.AttackerSpellPointsSpent`) : une estimation ne coûte rien. L'IA des troupes (`BattleAI.ChooseSpell`)
+     lance le sort qui vaut le plus en or (points de vie ôtés ou rendus, part de la valeur de la troupe pour un sort qui
+     dure ; une boule de feu qui blesse ses propres troupes compte en moins). Sauvegardés (points et sorts ; les
+     anciennes parties ont un héros plein et sans sort). Personne n'apprend encore de sort (la guilde, point 2).
+     Tests : `MagieTests`.
+  2. La guilde des mages : bâtiments (4 niveaux), sorts tirés au sort par ville, apprentissage en entrant, points
+     rechargés ; les adversaires la construisent ; l'écran de ville (la guilde et ses sorts).
+  3. L'écran de combat : le livre de sorts, le choix de la cible, les effets visibles (dégâts, sorts actifs sur une
+     troupe), le journal ; la section Magie de l'écran du héros (points, sorts connus).
+  4. L'équilibrage (simulation et adversaires, avec la magie) et des icônes de sorts (Retro Diffusion ou PixelLab).
 - **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
   (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.
 - **Personnalisation des héros** (demandé par l'utilisateur) : à préciser ensemble. Pistes : choisir son héros

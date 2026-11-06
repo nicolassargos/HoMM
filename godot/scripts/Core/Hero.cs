@@ -36,6 +36,37 @@ public sealed class Hero
     public int Knowledge { get; internal set; } = 1;
     public int Charisma { get; internal set; } = StartingCharisma;
 
+    // ------------------------------------------------------------------ magie (étape 9)
+
+    /// <summary>Points de sort par point de savoir.</summary>
+    public const int SpellPointsPerKnowledge = 10;
+
+    /// <summary>Les points de sort au plus : 10 par point de savoir.</summary>
+    public int MaxSpellPoints => SpellPointsPerKnowledge * Knowledge;
+
+    /// <summary>Les points de sort qui restent (le héros commence plein, en regagne 1 par jour).</summary>
+    public int SpellPoints { get; internal set; } = SpellPointsPerKnowledge;
+
+    private readonly List<SpellType> _spells = new();
+
+    /// <summary>Les sorts du livre du héros, par niveau puis dans l'ordre où il les a appris.</summary>
+    public IReadOnlyList<SpellType> Spells => _spells;
+
+    public bool Knows(SpellType spell) => _spells.Contains(spell);
+
+    /// <summary>Le héros apprend un sort (renvoie false s'il le connaissait déjà).</summary>
+    internal bool Learn(SpellType spell)
+    {
+        if (Knows(spell))
+            return false;
+        int at = _spells.FindIndex(s => s.Level > spell.Level);
+        _spells.Insert(at < 0 ? _spells.Count : at, spell);
+        return true;
+    }
+
+    /// <summary>Retire les points de sort dépensés au combat.</summary>
+    internal void SpendSpellPoints(int points) => SpellPoints = System.Math.Max(0, SpellPoints - points);
+
     /// <summary>Les artefacts que porte le héros (leurs bonus sont déjà comptés dans ses caractéristiques).</summary>
     public List<ArtifactType> Artifacts { get; } = new();
 
@@ -59,7 +90,13 @@ public sealed class Hero
     /// <summary>Expérience totale nécessaire pour atteindre ce niveau.</summary>
     public static int ExperienceForLevel(int level) => 1000 * (level - 1) * level / 2;
 
-    public void NewDay() => Movement = MaxMovement;
+    /// <summary>Un nouveau jour : tout le mouvement, et un point de sort de plus.</summary>
+    public void NewDay()
+    {
+        Movement = MaxMovement;
+        if (SpellPoints < MaxSpellPoints)
+            SpellPoints++;
+    }
 
     public bool CanStepTo(AdventureMap map, Cell next) =>
         Pathfinder.StepCost(map, Position, next) <= Movement;

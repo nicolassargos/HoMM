@@ -504,6 +504,10 @@ public sealed partial class GameState
         }
         Emit(new BattleFought(hero, context.Defender, context.DefenderArmy, report, defenderOwner));
 
+        // les points de sort dépensés pendant le combat
+        hero.SpendSpellPoints(report.AttackerSpellPointsSpent);
+        defenderHero?.SpendSpellPoints(report.DefenderSpellPointsSpent);
+
         // le héros qui se défendait : vaincu, il disparaît ; vainqueur, il gagne la valeur des troupes tuées
         if (defenderHero != null)
         {

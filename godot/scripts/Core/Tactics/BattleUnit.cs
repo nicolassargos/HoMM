@@ -151,14 +151,15 @@ public sealed class BattleUnit
     /// <summary>La troupe a choisi d'attendre : elle jouera après les autres dans ce round.</summary>
     public bool HasWaited { get; internal set; }
 
-    public int Attack => Type.Attack + AttackBonus;
+    /// <summary>Attaque, bonus du héros compris, moins la faiblesse.</summary>
+    public int Attack => Math.Max(0, Type.Attack + AttackBonus - SpellAmount(SpellEffect.Weakness));
 
-    /// <summary>Défense, bonus du héros compris, et +20 % (arrondi au-dessus) quand la troupe se défend.</summary>
+    /// <summary>Défense, bonus du héros et peau de pierre compris, et +20 % (arrondi au-dessus) quand la troupe se défend.</summary>
     public int Defense
     {
         get
         {
-            int defense = Type.Defense + DefenseBonus;
+            int defense = Type.Defense + DefenseBonus + SpellAmount(SpellEffect.StoneSkin);
             return IsDefending ? (int)Math.Ceiling(defense * (1 + TacticalBattle.DefendBonus)) : defense;
         }
     }
@@ -181,6 +182,74 @@ public sealed class BattleUnit
         Stack.Count = (total + hp - 1) / hp;
         TopHitPoints = total - (Stack.Count - 1) * hp;
         return before - Stack.Count;
+    }
+
+    // ------------------------------------------------------------------ sorts (étape 9)
+
+    private readonly Dictionary<SpellEffect, ActiveSpell> _spells = new();
+
+    /// <summary>Les sorts qui durent, posés sur la troupe.</summary>
+    public IReadOnlyCollection<ActiveSpell> Spells => _spells.Values;
+
+    public bool IsUnder(SpellEffect effect) => _spells.ContainsKey(effect);
+
+    /// <summary>Le bonus ou malus d'un sort posé sur la troupe (0 sans ce sort).</summary>
+    public int SpellAmount(SpellEffect effect) => _spells.TryGetValue(effect, out var spell) ? spell.Amount : 0;
+
+    /// <summary>Pose un sort qui dure jusqu'à la fin du round <paramref name="lastRound"/> ; il remplace son contraire (bénédiction et malédiction, hâte et lenteur).</summary>
+    internal void Enchant(SpellType spell, int lastRound)
+    {
+        var opposite = spell.Effect switch
+        {
+            SpellEffect.Bless => SpellEffect.Curse,
+            SpellEffect.Curse => SpellEffect.Bless,
+            SpellEffect.Haste => SpellEffect.Slow,
+            SpellEffect.Slow => SpellEffect.Haste,
+            _ => (SpellEffect?)null,
+        };
+        if (opposite is { } other)
+            _spells.Remove(other);
+        _spells[spell.Effect] = new ActiveSpell(spell, spell.Amount, lastRound);
+    }
+
+    /// <summary>Retire les sorts finis avant ce round.</summary>
+    internal void ExpireSpells(int round)
+    {
+        foreach (var effect in _spells.Where(p => p.Value.LastRound < round).Select(p => p.Key).ToList())
+            _spells.Remove(effect);
+    }
+
+    internal void RemoveHarmfulSpells()
+    {
+        foreach (var effect in _spells.Where(p => p.Value.Spell.Harmful).Select(p => p.Key).ToList())
+            _spells.Remove(effect);
+    }
+
+    /// <summary>Soigne la créature de tête (sans ramener de créature) ; renvoie les points de vie rendus.</summary>
+    internal int Heal(int hitPoints)
+    {
+        if (!IsAlive)
+            return 0;
+        int healed = Math.Min(hitPoints, Type.HitPoints - TopHitPoints);
+        TopHitPoints += healed;
+        return healed;
+    }
+
+    /// <summary>
+    /// Rend des points de vie à la troupe, en ramenant des créatures tuées, sans dépasser <paramref name="maxCount"/>
+    /// créatures (le nombre du début du combat). Renvoie les points de vie rendus et les créatures ramenées.
+    /// </summary>
+    internal (int HitPoints, int Revived) Revive(int hitPoints, int maxCount)
+    {
+        if (!IsAlive)
+            return (0, 0);
+        int before = Count, total = TotalHitPoints, hp = Type.HitPoints;
+        int after = Math.Min(maxCount * hp, total + hitPoints);
+        if (after <= total)
+            return (0, 0);
+        Stack.Count = (after + hp - 1) / hp;
+        TopHitPoints = after - (Stack.Count - 1) * hp;
+        return (after - total, Count - before);
     }
 
     /// <summary>Retire des créatures entières (fuite).</summary>

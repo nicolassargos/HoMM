@@ -419,6 +419,51 @@ public partial class BattleFieldView : Control
                         return gone >= 0.3;
                     });
                     break;
+                case UnitPoisoned poisoned:
+                    double venom = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (venom == 0)
+                        {
+                            var target = _shown[poisoned.Unit];
+                            target.Count = Math.Max(0, target.Count - poisoned.Killed);
+                            target.Flash = 1;
+                            _floating.Add(($"-{poisoned.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(150, 220, 90)));
+                        }
+                        venom += delta;
+                        if (venom < 0.35)
+                            return false;
+                        if (_shown[poisoned.Unit].Count == 0)
+                            _shown[poisoned.Unit].Gone = true;
+                        return true;
+                    });
+                    break;
+                case UnitGrew grew:
+                    double grow = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (grow == 0)
+                        {
+                            _shown[grew.Unit].Count += grew.Added;
+                            _floating.Add(($"+{grew.Added}", _shown[grew.Unit].Position + Ui.V(0, -50), 0, MapRenderer.Rgb(200, 220, 255)));
+                        }
+                        grow += delta;
+                        return grow >= 0.3;
+                    });
+                    break;
+                case UnitDrained drained:
+                    double drink = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (drink == 0)
+                        {
+                            _shown[drained.Unit].Count += drained.Revived;
+                            _floating.Add(($"+{drained.HitPoints}", _shown[drained.Unit].Position + Ui.V(0, -50), 0, MapRenderer.Rgb(230, 80, 80)));
+                        }
+                        drink += delta;
+                        return drink >= 0.3;
+                    });
+                    break;
                 case UnitHealed healed:
                     double heal = 0;
                     _animations.Enqueue(delta =>

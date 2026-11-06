@@ -71,6 +71,10 @@ public sealed record SpellType
     /// <summary>Un sort néfaste qui dure (retiré par les soins).</summary>
     public bool Harmful => Effect is SpellEffect.Curse or SpellEffect.Slow or SpellEffect.Weakness or SpellEffect.Blind;
 
+    /// <summary>Le sort agit-il sur un mort-vivant ? Pas les sorts de l'esprit, ni les soins, ni la résurrection.</summary>
+    public bool AffectsUndead => Effect is not (SpellEffect.Blind or SpellEffect.Curse or SpellEffect.Weakness
+        or SpellEffect.Cure or SpellEffect.Resurrection);
+
     /// <summary>Combien de troupes touche au plus une chaîne d'éclairs (la force est divisée par deux à chaque saut).</summary>
     public const int ChainTargets = 4;
 }

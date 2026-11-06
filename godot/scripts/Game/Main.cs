@@ -271,14 +271,19 @@ public partial class Main : Node2D
             foreach (var spell in _state.Data.Spells.All)
                 mage.Learn(spell);
         }
-        // Développement : « --battle-showcase » : les 7 créatures du Château contre les 7 neutres, sur l'écran de combat
-        // (pour comparer les images ; ce combat ne compte pas dans la partie) ; avec « --battle-auto », il se joue seul
-        if (OS.GetCmdlineUserArgs().Contains("--battle-showcase"))
+        // Développement : « --battle-showcase » : les 7 créatures du Château contre les 7 morts-vivants (« --battle-showcase=neutre » :
+        // contre les neutres), sur l'écran de combat (pour comparer les images ; ce combat ne compte pas dans la partie) ;
+        // avec « --battle-auto », il se joue seul
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--battle-showcase")) is { } showcase)
         {
+            string rivals = showcase.StartsWith("--battle-showcase=") ? showcase["--battle-showcase=".Length..] : "morts-vivants";
             var castle = new Army();
             var neutral = new Army();
             foreach (var creature in _state.Creatures.All.OrderBy(c => c.Tier))
-                (creature.Faction == "chateau" ? castle : neutral).Add(creature, 5);
+                if (creature.Faction == "chateau")
+                    castle.Add(creature, 5);
+                else if (creature.Faction == rivals)
+                    neutral.Add(creature, 5);
             _battleScreen.Open(new TacticalBattle(castle, neutral, new GameRandom(1)), "la vitrine", TerrainType.Grass, () => { },
                 auto: OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: _state.CurrentHero);
         }

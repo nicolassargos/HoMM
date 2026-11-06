@@ -55,10 +55,32 @@ public static class Ability
     /// </summary>
     public const string TwoHex = "two-hex";
 
+    /// <summary>
+    /// Mort-vivant (étape 9) : insensible aux sorts de l'esprit (aveuglement, malédiction, faiblesse) et au poison ; les
+    /// soins et la résurrection n'ont pas d'effet sur lui.
+    /// </summary>
+    public const string Undead = "undead";
+
+    /// <summary>Chaque créature ennemie qu'il tue ajoute une créature à sa troupe, pour de bon (Fantôme).</summary>
+    public const string GhostGrowth = "ghost-growth";
+
+    /// <summary>Sa morsure empoisonne : des dégâts au début de chaque tour de la cible, pendant quelques rounds (Araignée).</summary>
+    public const string Poison = "poison";
+
+    /// <summary>Draine la vie : ses dégâts soignent sa créature de tête, puis ramènent des créatures tuées (Vampire).</summary>
+    public const string LifeDrain = "life-drain";
+
+    /// <summary>Nuage de mort : son tir touche aussi les troupes autour de la cible, sauf les morts-vivants (Liche).</summary>
+    public const string DeathCloud = "death-cloud";
+
+    /// <summary>Balayage : au corps à corps, frappe aussi tous les autres ennemis voisins (Colosse d'os).</summary>
+    public const string Sweep = "sweep";
+
     public static readonly string[] Known =
     {
         Shoots, NoRangePenalty, Flies, DoubleRetaliation, NoRetaliation, Breath, RangedResistance,
         Charge, QuickStart, DoubleAttack, ShortRange, Crushing, Regenerates, TwoHex,
+        Undead, GhostGrowth, Poison, LifeDrain, DeathCloud, Sweep,
     };
 }
 
@@ -256,6 +278,41 @@ public sealed class BattleUnit
         Stack.Count = (after + hp - 1) / hp;
         TopHitPoints = after - (Stack.Count - 1) * hp;
         return (after - total, Count - before);
+    }
+
+    /// <summary>Un mort-vivant (voir <see cref="Ability.Undead"/>).</summary>
+    public bool IsUndead => Has(Ability.Undead);
+
+    /// <summary>Le poison : les dégâts au début de chacun de ses tours, et pendant combien de tours encore.</summary>
+    public int PoisonDamage { get; private set; }
+    public int PoisonTurnsLeft { get; private set; }
+
+    /// <summary>Empoisonne la troupe (le plus fort poison l'emporte, et la durée repart).</summary>
+    internal void Poison(int damage, int turns)
+    {
+        if (IsUndead || !IsAlive)
+            return;
+        PoisonDamage = Math.Max(PoisonDamage, damage);
+        PoisonTurnsLeft = turns;
+    }
+
+    internal void CurePoison() => PoisonTurnsLeft = PoisonDamage = 0;
+
+    /// <summary>Le poison agit (début de son tour) : renvoie les dégâts et les créatures tuées.</summary>
+    internal (int Damage, int Killed) TakePoison()
+    {
+        int damage = PoisonDamage;
+        int killed = TakeDamage(damage);
+        if (--PoisonTurnsLeft <= 0)
+            CurePoison();
+        return (damage, killed);
+    }
+
+    /// <summary>La troupe grossit de créatures neuves (Fantôme qui tue).</summary>
+    internal void Grow(int creatures)
+    {
+        if (IsAlive && creatures > 0)
+            Stack.Count += creatures;
     }
 
     /// <summary>Retire des créatures entières (fuite).</summary>

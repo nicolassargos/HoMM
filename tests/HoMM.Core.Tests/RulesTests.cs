@@ -97,7 +97,7 @@ public class MapGeneratorTests
         var map = new MapGenerator(seed, TestData.Data).Generate();
         var guards = map.Objects.OfType<MonsterGuard>().ToList();
 
-        Assert.All(guards, g => Assert.Equal(MapGenerator.MonsterFaction, g.Type.Faction));
+        Assert.All(guards, g => Assert.Contains(g.Type.Faction, MapGenerator.MonsterFactions));
         Assert.Contains(guards, g => g.Type.Tier >= 6);
         var strongest = guards.Where(g => g.Type.Tier >= 6);
         double Distance(MonsterGuard g) => System.Math.Sqrt(System.Math.Pow(g.Position.X - map.Start.X, 2) + System.Math.Pow(g.Position.Y - map.Start.Y, 2));

@@ -47,8 +47,11 @@ public sealed class MapGenerator
     /// <summary>Une mine par zone, et au moins une de chaque ressource.</summary>
     public int MineCount => Math.Max(ResourceInfo.All.Length, _zones.Count);
 
-    /// <summary>Les monstres de la carte sont des créatures neutres (les créatures des factions se recrutent en ville).</summary>
-    public const string MonsterFaction = "neutre";
+    /// <summary>
+    /// Les factions dont viennent les monstres de la carte : les neutres, et les morts-vivants (étape 9, en attendant
+    /// qu'ils aient leur ville : on les rencontre déjà sur la carte).
+    /// </summary>
+    public static readonly string[] MonsterFactions = { "neutre", "morts-vivants" };
 
     /// <summary>Coffres et tas de ressources, pour une carte de 40 × 30 (plus sur une grande carte).</summary>
     public int ChestCount { get; init; } = 6;
@@ -898,7 +901,7 @@ public sealed class MapGenerator
         int tier = Math.Clamp(1 + (int)(danger * 6), 1, MaxGuardTier);
 
         // S'il n'y a pas de monstre de ce niveau, on prend le niveau inférieur le plus proche
-        var monsters = creatures.All.Where(c => c.Faction == MonsterFaction && c.Tier <= tier).ToList();
+        var monsters = creatures.All.Where(c => MonsterFactions.Contains(c.Faction) && c.Tier <= tier).ToList();
         if (monsters.Count == 0)
             return null;
         tier = monsters.Max(c => c.Tier);
@@ -908,9 +911,26 @@ public sealed class MapGenerator
         int count = _rng.Next(baseCount, 2 * baseCount + 1);
         // Les troupes lointaines sont aussi plus nombreuses
         count = (int)Math.Round(count * (1 + GuardSizeGrowth * danger) * sizeFactor);
+        // une créature d'une faction (les morts-vivants) : autant de force qu'un gardien neutre de ce niveau
+        count = Math.Max(1, (int)Math.Round(count * StrengthFactor(creatures, type, tier)));
         var guard = new MonsterGuard(cell, type, count);
         _map.AddObject(guard);
         return guard;
+    }
+
+    /// <summary>
+    /// Les tailles des gardiens sont réglées pour les créatures neutres. Pour une créature d'une autre faction, on la
+    /// compare à la créature neutre du même niveau (ou du niveau en dessous) par sa force mesurée (combien de paysans il
+    /// faut pour en vaincre une, capacités comprises) : la troupe a autant de force que le gardien neutre.
+    /// </summary>
+    private static double StrengthFactor(CreatureCatalog creatures, CreatureType type, int tier)
+    {
+        if (type.Faction == "neutre")
+            return 1;
+        var reference = creatures.All.Where(c => c.Faction == "neutre" && c.Tier <= tier).OrderByDescending(c => c.Tier).FirstOrDefault();
+        if (reference == null)
+            return 1;
+        return (double)CreatureStrength.PeasantsToBeat(reference, creatures) / CreatureStrength.PeasantsToBeat(type, creatures);
     }
 
     private void Shuffle<T>(IList<T> list)

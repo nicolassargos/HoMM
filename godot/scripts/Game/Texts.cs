@@ -135,6 +135,12 @@ public static class Texts
                         + (s.Killed > 0 ? $", {s.Killed} {(s.Killed == 1 ? "tué" : "tués")}." : "."),
         UnitWaited w => $"{Capitalize(Stack(w.Unit.Stack))} {(w.Unit.Count == 1 ? "attend" : "attendent")}.",
         UnitRegenerated r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "se régénère" : "se régénèrent")}.",
+        UnitPoisoned p => $"Le poison ronge {Stack(new CreatureStack(p.Unit.Type, p.Unit.Count + p.Killed))} : {p.Damage} dégâts"
+                          + (p.Killed > 0 ? $", {p.Killed} {(p.Killed == 1 ? "tué" : "tués")}." : "."),
+        UnitGrew g => $"{g.Added} {Creature(g.Unit.Type, g.Added)} de plus rejoigne{(g.Added == 1 ? "" : "nt")} la troupe !",
+        UnitDrained d => d.Revived > 0
+            ? $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.Revived} {(d.Revived == 1 ? "revient" : "reviennent")} à la vie en buvant le sang."
+            : $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.HitPoints} PV repris en buvant le sang.",
         UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
         SpellCast c => $"{c.Caster.Name} lance {c.Spell.Name}.",
         SpellDamaged d => $"{d.Spell.Name} : {d.Damage} dégâts à {Stack(new CreatureStack(d.Target.Type, d.Target.Count + d.Killed))}"
@@ -726,6 +732,12 @@ public static class Texts
         Ability.Crushing => "coup écrasant",
         Ability.Regenerates => "se régénère",
         Ability.TwoHex => "grande créature",
+        Ability.Undead => "mort-vivant (insensible aux sorts de l'esprit et au poison)",
+        Ability.GhostGrowth => "grossit en tuant",
+        Ability.Poison => "morsure empoisonnée",
+        Ability.LifeDrain => "draine la vie",
+        Ability.DeathCloud => "nuage de mort",
+        Ability.Sweep => "balayage",
         _ => ability,
     };
 
@@ -919,6 +931,7 @@ public static class Texts
     public static string FactionName(string faction) => faction switch
     {
         "chateau" => "Château",
+        "morts-vivants" => "Morts-vivants",
         _ => Capitalize(faction),
     };
 

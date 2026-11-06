@@ -322,7 +322,7 @@ détails, surtout agrandies au combat), dans cet ordre :
    où il projette une gerbe d'eau de ses mains. Une animation peut dessiner un adversaire : la jeter.
    Le **Moine** et le **Loup** (images d'origine gardées, modèles de style) ont maintenant leurs animations, faites à
    partir de leur image doublée (pixels ×2) puis réduites. Le Moine prie, marche, et tend son bâton vers l'ennemi
-   **sans rien lancer** : la boule de feu sera un effet du jeu (à faire, comme les flèches de l'Archer). PixelLab
+   **sans rien lancer** : la boule de feu sera un effet du jeu (à faire ; le jeu ne dessine encore aucun projectile, ni les flèches de l'Archer). PixelLab
    dessine quand même éclairs et flammes : l'image de l'éclair est remplacée par la pose tendue, gardée au moment du
    coup. Le Loup renifle, trotte, et bondit gueule ouverte. PixelLab n'accepte que 8 animations à la fois.
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par

@@ -116,7 +116,7 @@ forte) ; la **Banshee** sera le Fantôme amélioré.
 | 6 | Liche | le tireur | **nuage de mort** : son tir touche aussi les cases voisines, sauf les morts-vivants |
 | 7 | Colosse d'os | le géant du sommet (fort comme l'Ange) | **balayage** : frappe tous les ennemis voisins |
 Écartés pour le niveau 4 : la Banshee (trop proche du Fantôme : elle sera sa version améliorée), la Goule, le
-Chevalier noir. Images : Squelette, Fantôme et Colosse faits ; Zombie, Araignée, Vampire, Liche à faire.
+Chevalier noir. Images de combat : toutes faites (Squelette, Zombie, Fantôme, Araignée, Vampire, Liche, Colosse d'os).
 Décidé : **tous les morts-vivants sont insensibles aux sorts de l'esprit** (aveuglement, malédiction, faiblesse), et
 **soins et résurrection n'ont pas d'effet sur eux** (les premières créatures qui résistent à la magie).
 Chiffres décidés (2026-11-06), chaque créature à peu près aussi forte que celle du Château du même niveau (paysans pour
@@ -143,8 +143,8 @@ troupes (avec deux factions, il y a plus de créatures que de places). Option `-
 `VilleMortsVivantsTests`. Mesuré (un adversaire, Normal, six semaines) : Château 16 100 or d'armée, morts-vivants
 12 700 : un peu plus faibles, à revoir (avec le Colosse). L'amplificateur de nécromancie : plus tard, une fois la
 nécromancie essayée.
-3. Les images qui manquent : les images de combat de l'Araignée, du Vampire et de la Liche (faites par l'utilisateur dans
-une autre session) ; la ville des morts-vivants. ✅ Les petites images de la carte (24 × 24) : Zombie et Fantôme par
+3. Les images qui manquent : les petites images de la carte de l'Araignée, du Vampire et de la Liche ; la ville des
+morts-vivants. ✅ Les images de combat sont faites. ✅ Les petites images de la carte (24 × 24) : Zombie et Fantôme par
 Retro Diffusion (d'après une description) ; Squelette (refait : il ne ressemblait plus à son image de combat) et Colosse
 par **PixelLab** (`pro` à 24 × 24 : l'image de combat comme sujet, la petite image du Gobelin comme style ; 64
 candidats d'un coup) : réduire une image de combat à 24 px, même redessinée par Retro Diffusion, donnait une bouillie.

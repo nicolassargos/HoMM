@@ -71,9 +71,19 @@ public partial class BattleFieldView : Control
     private static int Frames(BattleUnit unit, string state) =>
         Setting(unit, state + "Frames") is double frames and >= 1 ? (int)frames : AnimationFrames;
 
-    /// <summary>Le temps pour traverser une case en marchant (« stepTime », en secondes ; 0,09 par défaut) : un zombie
-    /// avance lentement, au pas de son animation.</summary>
-    private static double StepTime(BattleUnit unit) => Setting(unit, "stepTime") is double time and > 0 ? time : 0.09;
+    /// <summary>
+    /// Le temps pour traverser une case (« stepTime », en secondes) : par défaut, une créature qui marche fait un cycle
+    /// de son animation de déplacement par case (ses pieds ne glissent pas) ; une créature qui vole va vite (0,09 s par
+    /// case : un vol traverse beaucoup de cases d'un coup).
+    /// </summary>
+    private static double StepTime(BattleUnit unit)
+    {
+        if (Setting(unit, "stepTime") is double time and > 0)
+            return time;
+        if (unit.Type.Abilities.Contains("flies") || Sheet(unit, Move) == null)
+            return 0.09;
+        return Frames(unit, Move) / Fps(unit, Move);
+    }
 
     /// <summary>
     /// La pause entre deux attentes (« idlePauseMin » et « idlePauseMax », en secondes) : la créature reste sur sa pose
@@ -109,7 +119,9 @@ public partial class BattleFieldView : Control
     /// <summary>Pendant une attaque animée, le coup porte à ce moment (en secondes), vers la fin du geste.</summary>
     private const double HitDelay = 0.45;
 
-    private const string Idle = "idle", Move = "move", AttackState = "attack";
+    /// <summary>« transform » (facultatif) : jouée avant un déplacement (le Vampire devient chauve-souris), et à
+    /// l'envers à l'arrivée.</summary>
+    private const string Idle = "idle", Move = "move", AttackState = "attack", Transform = "transform";
 
     /// <summary>
     /// La place de chaque côté de la grille (étape 7) : le sol continue, pour les héros (et plus tard les machines de
@@ -171,10 +183,14 @@ public partial class BattleFieldView : Control
         /// camp (l'attaquant regarde à droite, le défenseur à gauche).</summary>
         public bool? FacesLeft;
 
-        public void Play(string state)
+        /// <summary>L'animation est jouée à l'envers (la transformation, au retour).</summary>
+        public bool Backwards;
+
+        public void Play(string state, bool backwards = false)
         {
             State = state;
             StateTime = 0;
+            Backwards = backwards;
         }
     }
 
@@ -315,11 +331,33 @@ public partial class BattleFieldView : Control
                     int step = 0;
                     double t = 0;
                     Vector2? start = null;
+                    // une créature qui se transforme (le Vampire en chauve-souris) : la transformation, puis le
+                    // déplacement, puis la transformation à l'envers
+                    bool transforms = Sheet(moved.Unit, Transform) != null;
+                    double change = transforms ? Frames(moved.Unit, Transform) / Fps(moved.Unit, Transform) : 0;
+                    double changing = 0;
+                    bool arrived = false;
                     _animations.Enqueue(delta =>
                     {
                         if (start == null)
                         {
                             start = shown.Position; // d'où elle part : là où elle est dessinée
+                            if (Math.Abs(points[0].X - start.Value.X) > 1)
+                                shown.FacesLeft = points[0].X < start.Value.X;
+                            shown.Play(transforms ? Transform : Move);
+                        }
+                        if (shown.State == Transform)
+                        {
+                            changing += delta;
+                            if (changing < change)
+                                return false;
+                            changing = 0;
+                            if (arrived)
+                            {
+                                shown.Play(Idle);
+                                shown.FacesLeft = null;
+                                return true;
+                            }
                             shown.Play(Move);
                         }
                         t += delta;
@@ -336,6 +374,12 @@ public partial class BattleFieldView : Control
                         t = 0;
                         if (++step < points.Count)
                             return false;
+                        if (transforms)
+                        {
+                            arrived = true;
+                            shown.Play(Transform, backwards: true);
+                            return false;
+                        }
                         shown.Play(Idle);
                         shown.FacesLeft = null; // arrivée : de nouveau tournée vers le camp adverse
                         return true;
@@ -693,7 +737,10 @@ public partial class BattleFieldView : Control
         int index = shown.State == Idle && IdlePause(unit) is var (least, most)
             ? IdleFrameWithPauses(time, Fps(unit, Idle), least, most, shown.Phase, frames)
             : (int)(time * Fps(unit, state));
-        index = state == AttackState ? Math.Min(index, frames - 1) : index % frames;
+        // l'attaque et la transformation sont jouées une fois (la transformation parfois à l'envers)
+        index = state is AttackState or Transform ? Math.Min(index, frames - 1) : index % frames;
+        if (state == Transform && shown.Backwards)
+            index = frames - 1 - index;
         int rows = (frames + AnimationColumns - 1) / AnimationColumns;
         var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / rows);
         return (sheet, new Rect2(new Vector2(index % AnimationColumns * cell.X, index / AnimationColumns * cell.Y), cell));

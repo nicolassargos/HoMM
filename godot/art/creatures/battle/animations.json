@@ -3,5 +3,6 @@
   "colosse-os": {"idle": 7, "move": 7, "attack": 7},
   "archer": {"idle": 7, "idlePauseMin": 10, "idlePauseMax": 20},
   "zombie": {"move": 8, "moveFrames": 16, "stepTime": 0.45},
-  "troll": {"move": 7, "idle": 6}
+  "troll": {"move": 7, "idle": 6},
+  "vampire": {"stepTime": 0.25}
 }

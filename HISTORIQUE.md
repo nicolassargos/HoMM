@@ -378,6 +378,23 @@ détails, surtout agrandies au combat), dans cet ordre :
    (il se cabre puis frappe des serres et du bec). L'animation « walk » s'appelle maintenant **« move »** (déplacement :
    marche ou vol ; fichiers `-move.png`, réglages `move` et `moveFrames`). La page d'une créature montre un déplacement
    qui traverse quatre cases à la vitesse du jeu, pour voir si le cycle se répète bien.
+   L'**Orc** : animations refaites (2026-11-06) avec l'outil, depuis sa grande image d'origine (82 px) : attente calme,
+   marche, lancer de hache où la hache ne vole pas (elle sera dessinée par le jeu). Une créature qui marche fait
+   maintenant un cycle de déplacement par case (demandé par l'utilisateur).
+   Le **Vampire** (futur mort-vivant, `vampire`) : comte élégant et pâle, cape noire au haut col rouge, d'après une
+   image de l'utilisateur, sans le verre de vin ; 52 px. Pour se déplacer, il **se change en chauve-souris** :
+   nouvelle animation facultative « transform » jouée avant le déplacement et à l'envers à l'arrivée ; la
+   chauve-souris vole sur place (`--depart` : animée depuis la dernière image de la transformation), 0,25 s par case.
+   Attaque : il balaie sa cape devant lui et se penche derrière, on devine la morsure (idée de l'utilisateur ; les
+   attaques « brutales » de PixelLab ont échoué : sans victime dessinée, le geste restait vague).
+   La **Liche** (futur mort-vivant, `liche`) : roi squelette voûté, fine couronne d'or terni, robes en lambeaux bleu nuit
+   presque noir, long bâton ; d'après une image de l'utilisateur, en plus sombre, puis un lot au crâne plus grand (le
+   crâne doit être la partie la plus claire pour se lire). Attente, marche voûtée appuyée sur le bâton, attaque où elle
+   pointe son bâton vers l'ennemi (l'éclair sera dessiné par le jeu).
+   L'**Araignée géante** (mort-vivant de niveau 4, `araignee`), sans image de référence : grande araignée noire aux reflets
+   rouge sombre (un crâne sur le dos était « trop » : remplacé par du rouge ; le violet du candidat choisi a été tourné
+   vers le rouge par l'outil, sans dépense), pattes aux os apparents, yeux et venin verts ; 36 px, plus large que haute.
+   Attente, déplacement, attaque où elle se dresse puis mord (le poison sera un effet du jeu).
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de

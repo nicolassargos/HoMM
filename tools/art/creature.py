@@ -12,15 +12,19 @@ quadrupède, grand) qui donne la fin des textes de demande et les mouvements par
     python -I tools/art/creature.py choisir <id> fixe L3-2
         installe l'image fixe (art/creatures/battle/<id>.png) et garde la grande image pour les animations.
     python -I tools/art/creature.py animer <id> <idle|move|attack> [essais=2] [graine] [--consigne="…"] [--sans="…"]
-            [--enrichir] [--images=16]
+            [--enrichir] [--images=16] [--sans-retour] [--depart=image.png] [--largeur=3]
         <essais> animations (environ 0,02 $ chacune) depuis la grande image choisie, puis réduites en feuilles de 8
         images (traits fins gardés, étincelles retirées) et vérifiées. Les essais alternent les deux modèles de
         PixelLab. Au plus 8 tâches à la fois (les autres attendent). --sans remplace la fin du texte (« pas d'autre
         personnage, pas d'effet… » ; vide : rien) ; --enrichir laisse PixelLab détailler le mouvement ; --images=16 : une
-        feuille de 16 images (4 × 4), pour un mouvement lent mais fluide. Coûte de l'argent.
-    python -I tools/art/creature.py retoucher <id> <nom> [--eclats[=partout]] [--copier=7:8,…] [--corde=7,8] [--nouveau=5] [--recentrer[=tete]]
+        feuille de 16 images (4 × 4), pour un mouvement lent mais fluide ; --sans-retour : l'animation ne revient pas à la
+        pose de départ (une transformation) ; --depart : une autre image de départ, à l'échelle de la grande image (la
+        dernière image d'une transformation, pour animer la chauve-souris) ; --largeur : largeur du cadre d'une attaque,
+        en fois la largeur de la créature (2,2 par défaut ; plus pour une cape ou des ailes déployées). État « transform » : joué avant un déplacement, et à l'envers après.
+        Coûte de l'argent.
+    python -I tools/art/creature.py retoucher <id> <nom> [--eclats[=partout]] [--copier=7:8,…] [--corde=7,8] [--nouveau=5] [--detaches] [--recentrer[=tete]]
         corrige une feuille (écrit <nom>-r) : efface les éclats d'impact (devant la créature, ou partout), remplace l'image 7 par la 8, trace la corde
-        de l'arc sur ces images, efface dans l'image 5 les couleurs absentes des images voisines, garde les pieds (ou la tête) à la même place d'une image à l'autre. Gratuit.
+        de l'arc sur ces images, efface dans l'image 5 les couleurs absentes des images voisines, efface les petits morceaux détachés, garde les pieds (ou la tête) à la même place d'une image à l'autre. Gratuit.
     python -I tools/art/creature.py choisir <id> <idle|move|attack> <nom> [images/s]
         installe la feuille (art/creatures/battle/<id>-idle.png, -move, -attack) et sa vitesse dans animations.json (avec son nombre
         d'images, s'il n'est pas de 8).
@@ -51,7 +55,7 @@ BATAILLE = "godot/art/creatures/battle"
 VITESSES = BATAILLE + "/animations.json"
 EN_COURS = "art-candidats/en-cours"
 GARDEES = "art-candidats/references/derives"
-ETATS = ("idle", "move", "attack")
+ETATS = ("idle", "move", "attack", "transform")  # transform : facultatif, joué avant et après un déplacement
 
 
 def charger():
@@ -169,7 +173,7 @@ def arrondi16(v):
     return int(math.ceil(v / 16) * 16)
 
 
-def departs(f, ident):
+def departs(f, ident, large=2.2):
     """Les images de départ des animations (la grande image dans un cadre plus large), et le facteur de réduction."""
     p = n.recadrer(lire(f["grande"])[2])
     if f.get("miroir"):
@@ -179,12 +183,15 @@ def departs(f, ident):
     os.makedirs(d, exist_ok=True)
     # assez large pour un bras tendu (sinon PixelLab le coupe au bord)
     tailles = {"idle": (min(256, arrondi16(w * 1.8)), arrondi16(h * 1.2)),
-               "attack": (min(256, arrondi16(w * 2.2)), min(256, arrondi16(h * 1.35)))}
-    tailles["move"] = tailles["idle"]
+               "attack": (min(256, arrondi16(w * large)), min(256, arrondi16(h * 1.35)))}
+    tailles["move"] = tailles["transform"] = tailles["idle"]
     chemins = {}
     for etat, (W, H) in tailles.items():
         chemins[etat] = os.path.join(d, f"depart-{etat}.png")
-        ecrire(chemins[etat], n.poser(p, W, H))
+        # écrit à côté puis remplace d'un coup : une autre commande lancée en même temps ne lit jamais un fichier à moitié écrit
+        provisoire = f"{chemins[etat]}.{os.getpid()}.tmp"
+        ecrire(provisoire, n.poser(p, W, H))
+        os.replace(provisoire, chemins[etat])
     return chemins, f["hauteur"] / h
 
 
@@ -217,14 +224,18 @@ def ecrire_verifs(ident, v):
         json.dump(v, fo, ensure_ascii=False, indent=1)
 
 
-def cmd_animer(ident, etat, essais=2, graine=0, consigne=None, sans=None, enrichir=False, nombre=8):
+def cmd_animer(ident, etat, essais=2, graine=0, consigne=None, sans=None, enrichir=False, nombre=8, retour=True,
+               depart=None, large=2.2):
     if etat not in ETATS:
         sys.exit(f"État inconnu : {etat} (idle, move ou attack)")
     donnees = charger()
     f, g = fiche(donnees, ident)
     if not f.get("grande"):
         sys.exit("Choisir d'abord l'image fixe (choisir <id> fixe L…).")
-    chemins, facteur = departs(f, ident)
+    chemins, facteur = departs(f, ident, large)
+    if depart:
+        # une autre image de départ (même échelle que la grande image : par exemple la dernière d'une transformation)
+        chemins[etat] = depart
     mouvement = consigne or f.get("mouvements", {}).get(etat) or g["mouvements"][etat]
     # « sans » : la fin de texte du gabarit (pas d'autre personnage…) ; --sans= la remplace (vide : rien)
     fin = g["sans"] if sans is None else sans
@@ -243,7 +254,7 @@ def cmd_animer(ident, etat, essais=2, graine=0, consigne=None, sans=None, enrich
 
     def essai(i, nom):
         return lambda: pixellab.animer(chemins[etat], os.path.join(d, nom), texte, nombre, graine + 100 * i + len(deja),
-                                       True, i % 2 == 1, f.get("sujet"), enrichir)
+                                       retour, i % 2 == 1, f.get("sujet"), enrichir)
     taches([essai(i, nom) for i, nom in enumerate(noms)])
     verifs = lire_verifs(ident)
     for nom in noms:
@@ -268,7 +279,7 @@ def cmd_retoucher(ident, nom, options):
     total = nombre_images(os.path.join(d, base)) if os.path.isdir(os.path.join(d, base)) else 8
     images = n.decouper(lire(os.path.join(d, nom + ".png"))[2], 4, (total + 3) // 4)
     # les copies d'abord, puis les effacements (sur les bonnes images)
-    ordre = ("--copier", "--nouveau", "--eclats", "--corde", "--recentrer")
+    ordre = ("--copier", "--nouveau", "--eclats", "--detaches", "--corde", "--recentrer")
     options = sorted(options, key=lambda o: next((i for i, d in enumerate(ordre) if o.startswith(d)), 9))
     for o in options:
         if o in ("--eclats", "--eclats=partout"):
@@ -283,6 +294,8 @@ def cmd_retoucher(ident, nom, options):
         elif o.startswith("--nouveau="):
             for k in o.split("=", 1)[1].split(","):
                 print(f"image {k} : {n.effacer_nouveau(images, int(k))} pixels de couleur nouvelle effacés")
+        elif o == "--detaches":
+            print("morceaux détachés effacés :", sum(n.retirer_detaches(q) for q in images))
         elif o.startswith("--recentrer"):
             images = n.recentrer(images, "tete" if o.endswith("=tete") else "pieds")
         elif o.startswith("--corde="):
@@ -471,7 +484,7 @@ def cmd_page(ident):
     voisin = vers_page(f"{BATAILLE}/{comparer[0]}.png") if comparer else ""
     anims, donnees_js = "", []
     d = dossier(ident, "anim")
-    for etat, titre in (("idle", "Attente"), ("move", "Déplacement"), ("attack", "Attaque")):
+    for etat, titre in (("idle", "Attente"), ("move", "Déplacement"), ("attack", "Attaque"), ("transform", "Transformation")):
         noms = sorted((x[:-4] for x in os.listdir(d) if x.startswith(etat + "-") and x.endswith(".png")) if os.path.isdir(d) else [],
                       key=lambda x: [int(v) if v.isdigit() else 0 for v in x.split("-")[1:]], reverse=True)
         if not noms:
@@ -487,8 +500,9 @@ def cmd_page(ident):
             anims += (f"<div class=scene style='max-width:{largeur_scene + 5}px'><canvas id='{fid}' width={largeur_scene} height=210></canvas>"
                       f"<div>{'★ ' if pris else ''}{nom}{f' ({total} images)' if total != 8 else ''}</div>{alertes}</div>")
             donnees_js.append({"id": fid, "feuille": vers_page(os.path.join(d, nom + ".png")), "voisin": voisin, "images": total,
-                               "fps": propre.get(etat, 10), "attaque": etat == "attack", "deplacement": etat == "move",
-                               "pas": propre.get("stepTime", 0.09),
+                               "fps": propre.get(etat, 10), "attaque": etat in ("attack", "transform"), "deplacement": etat == "move",
+                               # comme le jeu : un cycle par case pour une créature qui marche, 0,09 s pour un volant
+                               "pas": propre.get("stepTime", 0.09 if f.get("vole") else total / propre.get("move", 10)),
                                "pause": pause if etat == "idle" and pause[1] > 0 else None})
         anims += "</div>"
     html = PAGE.format(titre=f.get("nom", ident), notes=f.get("notes", ""), fixes=fixes or "<p>Pas encore d'image.</p>",
@@ -513,7 +527,9 @@ def main():
         sans = next((o.split("=", 1)[1] for o in options if o.startswith("--sans=")), None)
         nombre = next((int(o.split("=", 1)[1]) for o in options if o.startswith("--images=")), 8)
         cmd_animer(ident, a[2], int(a[3]) if len(a) > 3 else 2, int(a[4]) if len(a) > 4 else 0, consigne, sans,
-                   "--enrichir" in options, nombre)
+                   "--enrichir" in options, nombre, "--sans-retour" not in options,
+                   next((o.split("=", 1)[1] for o in options if o.startswith("--depart=")), None),
+                   next((float(o.split("=", 1)[1]) for o in options if o.startswith("--largeur=")), 2.2))
     elif commande == "retoucher" and len(a) > 2:
         cmd_retoucher(ident, a[2], options)
     elif commande == "choisir" and len(a) > 3:

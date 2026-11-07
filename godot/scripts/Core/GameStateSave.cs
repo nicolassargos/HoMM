@@ -21,7 +21,7 @@ public sealed partial class GameState
     /// Version 2 : les routes sont une couche à part (<see cref="MapData.Roads"/>). Une sauvegarde de la version 1
     /// (où la route était un terrain, le numéro 1) est encore lue : ses routes deviennent de l'herbe avec une route.
     /// </summary>
-    public const int SaveVersion = 2;
+    public const int SaveVersion = 3; // 3 : les mines sur 3 × 2 cases
 
     private static readonly JsonSerializerOptions SaveOptions = new()
     {
@@ -139,7 +139,7 @@ public sealed partial class GameState
         try
         {
             if (JsonSerializer.Deserialize<SaveFile>(json, SaveOptions) is not { Map: not null, Players.Count: > 0 } save
-                || save.Version is not (1 or SaveVersion))
+                || save.Version is not (1 or 2 or SaveVersion))
                 return null;
             var hero = save.Heroes.Where(h => h.Owner == save.Players[0].Id)
                 .OrderByDescending(h => h.Id == save.CurrentHero).ThenByDescending(h => h.Level).FirstOrDefault();
@@ -165,7 +165,7 @@ public sealed partial class GameState
         }
         if (save == null)
             throw new FormatException("sauvegarde vide");
-        if (save.Version is not (1 or SaveVersion))
+        if (save.Version is not (1 or 2 or SaveVersion))
             throw new FormatException($"version de sauvegarde inconnue : {save.Version} (attendue : {SaveVersion})");
         try
         {
@@ -214,7 +214,8 @@ public sealed partial class GameState
                 "pile" => new ResourcePile(o.Position, o.Resource!.Value, o.Amount!.Value),
                 "chest" => new TreasureChest(o.Position, o.Amount!.Value),
                 "obelisk" => new Obelisk(o.Position),
-                "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null },
+                // avant la version 3, une mine n'occupait qu'une case : ses voisines peuvent être prises
+                "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null, Large = save.Version >= 3 },
                 "guard" => new MonsterGuard(o.Position, data.Creatures.Get(o.Creature!), o.InitialCount!.Value, o.Amount!.Value),
                 "town" => RestoreTown(o, data, id => Owner(id)),
                 _ => throw new KeyNotFoundException($"objet de carte inconnu : {o.Kind}"),

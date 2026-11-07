@@ -197,12 +197,20 @@ public static class MapRenderer
         var c = o + V(T / 2f, T / 2f);
         if (ObjectImage(obj) is { } image)
         {
-            // Une ville occupe 3×3 cases : son entrée (o) est au milieu de la rangée du bas
-            var area = obj is Town ? new Rect2(o + V(-T, -2 * T), 3 * T, 3 * T) : new Rect2(o, T, T);
+            // Une ville occupe 3×3 cases, une mine 3×2 : l'entrée (o) est au milieu de la rangée du bas ; l'image couvre
+            // cette surface, quelle que soit la taille des cases. Une ancienne image carrée de mine (une case) reste dessinée
+            // sur l'entrée, en attendant les images de 3×2.
+            bool wideImage = image.GetWidth() > image.GetHeight();
+            var area = obj switch
+            {
+                Town => new Rect2(o + V(-T, -2 * T), 3 * T, 3 * T),
+                Mine { Large: true } when wideImage => new Rect2(o + V(-T, -T), 3 * T, 2 * T),
+                _ => new Rect2(o, T, T),
+            };
             Art.DrawSprite(ci, image, area);
-            // Le drapeau du propriétaire reste dessiné par-dessus
+            // Le drapeau du propriétaire reste dessiné par-dessus (en haut à gauche de la mine)
             if (obj is Mine mine)
-                DrawFlag(ci, c + V(-14, -2), ColorOf(mine.Owner), 0);
+                DrawFlag(ci, area.Position + new Vector2(0.3f * T, 0.45f * T), ColorOf(mine.Owner), 0);
             else if (obj is Town town)
                 DrawFlag(ci, area.Position + V(1.5f * T, 4), ColorOf(town.Owner), time);
             return;
@@ -229,6 +237,15 @@ public static class MapRenderer
                 ci.DrawColoredPolygon(new[] { c + V(-5, -20), c + V(0, -26), c + V(5, -20) }, Rgb(160, 155, 150));
                 ci.DrawRect(new Rect2(c + V(-11, 14), 22, 5), Rgb(100, 95, 90));
                 ci.DrawRect(new Rect2(c + V(-2, -10), 4, 12), Rgb(90, 170, 230));
+                break;
+
+            case Mine { Large: true } mine:
+                // sans image : une colline de 3×2 cases, l'entrée sombre au milieu en bas (dessinée en fractions de case)
+                var hill = o + new Vector2(-T, -T);
+                Triangle(ci, hill + new Vector2(0.1f * T, 2 * T), hill + new Vector2(1.5f * T, 0.15f * T), hill + new Vector2(2.9f * T, 2 * T), Rgb(90, 80, 70));
+                Ellipse(ci, new Rect2(o + new Vector2(0.3f * T, 0.35f * T), 0.4f * T, 0.55f * T), Rgb(20, 15, 10));
+                DrawResourceIcon(ci, mine.Resource, hill + new Vector2(2.3f * T, 1.6f * T), 0.15f * T);
+                DrawFlag(ci, hill + new Vector2(0.3f * T, 0.45f * T), ColorOf(mine.Owner), 0);
                 break;
 
             case Mine mine:

@@ -155,6 +155,27 @@ public sealed class Mine : MapObject
 {
     public Mine(Cell position, ResourceType resource) : base(position) => Resource = resource;
 
+    /// <summary>
+    /// La mine occupe 3 × 2 cases, comme dans Heroes 3 (choix de l'utilisateur, 2026-11-07) : <see cref="MapObject.Position"/>
+    /// est l'entrée, au milieu de la rangée du bas ; le héros y entre par la case juste en dessous, les 5 autres cases
+    /// bloquent le passage. Les mines des sauvegardes d'avant (version 2) gardent une seule case (<see cref="Large"/> faux).
+    /// </summary>
+    public override IEnumerable<Cell> Footprint => Large ? FootprintAt(Position) : base.Footprint;
+
+    /// <summary>Une mine sur 3 × 2 cases (sinon une seule, celle des anciennes sauvegardes).</summary>
+    public bool Large { get; init; } = true;
+
+    /// <summary>Les 6 cases d'une mine dont l'entrée serait en <paramref name="entrance"/>.</summary>
+    public static IEnumerable<Cell> FootprintAt(Cell entrance)
+    {
+        for (int dy = -1; dy <= 0; dy++)
+        for (int dx = -1; dx <= 1; dx++)
+            yield return entrance.Offset(dx, dy);
+    }
+
+    /// <summary>La case d'où l'on entre dans la mine (juste sous l'entrée).</summary>
+    public Cell Approach => Position.Offset(0, 1);
+
     public ResourceType Resource { get; }
     /// <summary>Le propriétaire, changé par une visite (ou au chargement d'une partie).</summary>
     public Player? Owner { get; internal set; }

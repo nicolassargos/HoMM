@@ -770,6 +770,8 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   croissance, prix, garde éventuelle.
 
 ### 10. Finitions : apparence et détails
+- ✅ Icônes des ressources (2026-11-07) : or, bois, minerai, gemmes, et d'avance mercure, cristal, soufre (pas encore dans
+  les règles) ; 16 × 16 dans la barre et le royaume, 32 × 32 pour plus tard.
 Une fois les écrans fixés (étape 7) et le contenu en place.
 - Interface dessinée avec PixelLab : cadres, boutons, icônes des ressources, cadres des portraits, bandeau de la date.
   Premier essai fait (2026-11-04, 0,24 $) : 4 cadres, 4 boutons et un cadre de l'outil « Create UI panel », bien

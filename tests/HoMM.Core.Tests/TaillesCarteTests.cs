@@ -26,7 +26,8 @@ public class TaillesCarteTests(ITestOutputHelper output)
             Assert.Contains(map.Objects, o => o is Town);
             Assert.Contains(map.Objects, o => o is Obelisk);
             Assert.NotNull(map.Treasure);
-            foreach (var obj in map.Objects.Where(o => o.Position != map.Start)) // sauf le château de départ
+            // les objets se rejoignent sans combat (sauf le château de départ) ; un monstre peut être derrière un autre
+            foreach (var obj in map.Objects.Where(o => o.Position != map.Start && o is not MonsterGuard))
                 Assert.NotNull(Pathfinder.FindPath(map, map.Start, obj.Position));
         }
     }

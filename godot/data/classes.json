@@ -1,10 +1,10 @@
 {
   "classes": [
     { "id": "paladin", "name": "Paladin", "faction": "chateau",
-      "attack": 2, "defense": 2, "power": 1, "knowledge": 2, "charisma": 14, "spells": ["soins"],
+      "attack": 2, "defense": 2, "power": 1, "knowledge": 2, "charisma": 14, "spells": ["soins"], "mainResource": "Crystal", "secondaryResource": "Gems",
       "army": [ { "creature": "paysan", "count": 30 }, { "creature": "archer", "count": 15 }, { "creature": "griffon", "count": 4 } ] },
     { "id": "necromancien", "name": "Nécromancien", "faction": "morts-vivants",
-      "attack": 1, "defense": 1, "power": 2, "knowledge": 2, "charisma": 8, "spells": ["malediction"], "talent": "necromancy",
+      "attack": 1, "defense": 1, "power": 2, "knowledge": 2, "charisma": 8, "spells": ["malediction"], "talent": "necromancy", "mainResource": "Mercury", "secondaryResource": "Gems",
       "army": [ { "creature": "squelette", "count": 20 }, { "creature": "zombie", "count": 10 }, { "creature": "fantome", "count": 2 } ] }
   ]
 }

@@ -26,6 +26,9 @@ public static class Texts
         ResourceType.Wood => "bois",
         ResourceType.Ore => "minerai",
         ResourceType.Gems => "gemmes",
+        ResourceType.Mercury => "mercure",
+        ResourceType.Crystal => "cristal",
+        ResourceType.Sulfur => "soufre",
         _ => resource.ToString(),
     };
 
@@ -64,6 +67,9 @@ public static class Texts
         ResourceType.Wood => "Scierie",
         ResourceType.Ore => "Mine de minerai",
         ResourceType.Gems => "Mine de gemmes",
+        ResourceType.Mercury => "Laboratoire d'alchimiste",
+        ResourceType.Crystal => "Caverne de cristal",
+        ResourceType.Sulfur => "Mine de soufre",
         _ => "Mine",
     };
 
@@ -277,8 +283,17 @@ public static class Texts
     // -------------------------------------------------------------- villes
 
     /// <summary>Un coût : « 2500 or, 10 bois », ou « Gratuit ».</summary>
-    public static string Cost(IReadOnlyDictionary<ResourceType, int> cost) =>
-        cost.Count == 0 ? "Gratuit" : string.Join(", ", cost.Select(c => $"{c.Value} {Resource(c.Key)}"));
+    public static string Cost(IReadOnlyDictionary<ResourceType, int> cost)
+    {
+        if (cost.Count == 0)
+            return "Gratuit";
+        // la même quantité des quatre ressources rares (la guilde des mages) : « 3 de chaque rare »
+        var rare = ResourceInfo.Rare.Select(r => cost.GetValueOrDefault(r)).Distinct().ToList();
+        if (rare.Count == 1 && rare[0] > 0)
+            return string.Join(", ", cost.Where(c => !ResourceInfo.IsRare(c.Key)).Select(c => $"{c.Value} {Resource(c.Key)}")
+                .Append($"{rare[0]} de chaque rare"));
+        return string.Join(", ", cost.Select(c => $"{c.Value} {Resource(c.Key)}"));
+    }
 
     /// <summary>Le texte du bouton de construction, selon ce que disent les règles.</summary>
     public static string BuildStatus(BuildResult result, Town town, BuildingType building) => result switch

@@ -53,15 +53,12 @@ public partial class KingdomScreen : ScreenWindow
             var box = new Panel { Position = new Vector2(Px(12) + i++ * column, Px(36)), Size = new Vector2(column - Px(8), Px(62)), MouseFilter = Control.MouseFilterEnum.Stop };
             box.AddThemeStyleboxOverride("panel", Plate(PanelColor));
             box.AddChild(new ResourceIcon { Resource = resource, Position = V(8, 8), Size = V(20, 20), MouseFilter = Control.MouseFilterEnum.Ignore });
-            var name = At(MakeLabel(Texts.Capitalize(Texts.Resource(resource)), 15, TextColor), 34, 6);
-            name.MouseFilter = Control.MouseFilterEnum.Ignore;
-            box.AddChild(name);
+            // 7 ressources : l'icône suffit (le nom est dans l'info-bulle) ; le revenu à côté de l'icône
             var counts = At(MakeLabel("", 13, SoftTextColor), 10, 34);
             counts.MouseFilter = Control.MouseFilterEnum.Ignore;
             box.AddChild(counts);
-            var income = At(MakeLabel("", 15, TextColor), column / Ui.Scale - 140, 6);
-            income.Size = V(120, 22);
-            income.HorizontalAlignment = HorizontalAlignment.Right;
+            var income = At(MakeLabel("", 15, TextColor), 34, 6);
+            income.Size = new Vector2(column - Px(8) - Px(40), Px(22));
             income.MouseFilter = Control.MouseFilterEnum.Ignore;
             box.AddChild(income);
             var r = resource;
@@ -118,7 +115,7 @@ public partial class KingdomScreen : ScreenWindow
         {
             counts.Text = Texts.MineCounts(player, resource);
             amount.Text = Texts.PerDay(income.GetValueOrDefault(resource));
-            box.TooltipText = Texts.MinesWhere(player, resource);
+            box.TooltipText = $"{Texts.Capitalize(Texts.Resource(resource))}\n{Texts.MinesWhere(player, resource)}";
         }
     }
 

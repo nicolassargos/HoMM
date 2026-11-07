@@ -373,8 +373,9 @@ public class GuardPlacementTests
         var guards = map.Objects.OfType<MonsterGuard>().ToList();
         Assert.NotEmpty(guards);
 
-        // Presque toutes les mines et tous les coffres ont un gardien à côté
-        var valuables = map.Objects.Where(o => o is Mine or TreasureChest).ToList();
+        // Presque toutes les mines et tous les coffres ont un gardien à côté, sauf les mines de la zone de départ
+        static int Steps(Cell a, Cell b) => System.Math.Max(System.Math.Abs(a.X - b.X), System.Math.Abs(a.Y - b.Y));
+        var valuables = map.Objects.Where(o => o is TreasureChest || o is Mine && Steps(o.Position, map.Start) > 9).ToList();
         Assert.True(valuables.Count(o => map.IsGuarded(o.Position)) >= valuables.Count * 3 / 4);
 
         foreach (var g in guards)

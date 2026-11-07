@@ -113,6 +113,13 @@ internal static class BalanceSimulation
         var hero = new Hero("Test", player, map.Start);
         foreach (var stack in StartingArmy().Stacks)
             hero.Army.Add(stack.Type, stack.Count);
+        // Le premier jour, il prend les mines sans gardien près de son départ (dont celle de la ressource principale de sa
+        // faction, le cristal du Château), comme le ferait un joueur
+        foreach (var mine in map.Objects.OfType<Mine>()
+                     .Where(m => Math.Max(Math.Abs(m.Position.X - map.Start.X), Math.Abs(m.Position.Y - map.Start.Y)) <= 9)
+                     .Where(m => !map.Objects.OfType<MonsterGuard>().Any(g => IsNear(g.Position, m.Position)))
+                     .ToList())
+            mine.Visit(hero);
         // Le héros doit d'abord se frayer un chemin jusqu'à une ville : avant, il ne peut pas recruter
         var goldByWeek = new List<int>();
         for (int day = 1; day <= MaxDays; day++)

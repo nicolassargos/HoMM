@@ -3,11 +3,31 @@ using System.Collections.Generic;
 
 namespace HoMM.Core;
 
-public enum ResourceType { Gold, Wood, Ore, Gems }
+/// <summary>
+/// Les 7 ressources (comme Heroes 2 et 3) : l'or, le bois et le minerai, communs ; le mercure, le cristal, le soufre et
+/// les gemmes, rares. Les nouvelles s'ajoutent à la fin (les sauvegardes gardent les noms).
+/// </summary>
+public enum ResourceType { Gold, Wood, Ore, Gems, Mercury, Crystal, Sulfur }
 
 public static class ResourceInfo
 {
     public static readonly ResourceType[] All = Enum.GetValues<ResourceType>();
+
+    /// <summary>
+    /// Les ressources rares : chaque faction en demande deux (data/classes.json : la principale pour son habitation et sa
+    /// créature du niveau 7, la secondaire pour celles des niveaux 5 et 6), et la guilde des mages un peu de chacune.
+    /// </summary>
+    public static readonly ResourceType[] Rare = { ResourceType.Mercury, ResourceType.Crystal, ResourceType.Sulfur, ResourceType.Gems };
+
+    public static bool IsRare(ResourceType resource) => Array.IndexOf(Rare, resource) >= 0;
+
+    /// <summary>Ce qu'une mine produit chaque jour : 250 or, 2 bois ou minerai, 1 d'une ressource rare.</summary>
+    public static int MineProduction(ResourceType resource) => resource switch
+    {
+        ResourceType.Gold => 250,
+        _ when IsRare(resource) => 1,
+        _ => 2,
+    };
 }
 
 /// <summary>Un objet que le héros peut visiter en s'arrêtant sur sa case.</summary>
@@ -65,7 +85,7 @@ public sealed class ResourcePile : MapObject
         : this(position, resource, resource switch
         {
             ResourceType.Gold => rng.Next(5, 11) * 100,
-            ResourceType.Gems => rng.Next(3, 7),
+            _ when ResourceInfo.IsRare(resource) => rng.Next(3, 7),
             _ => rng.Next(5, 11),
         })
     {
@@ -82,7 +102,7 @@ public sealed class ResourcePile : MapObject
 
     public override ObjectVisited Visit(Hero hero)
     {
-        hero.Owner.Resources[Resource] += Amount;
+        hero.Owner.Resources[Resource] = hero.Owner.Resources.GetValueOrDefault(Resource) + Amount;
         return new ResourcesFound(hero, this, Resource, Amount);
     }
 }
@@ -140,12 +160,7 @@ public sealed class Mine : MapObject
     public Player? Owner { get; internal set; }
     public override bool RemovedOnVisit => false;
 
-    public int DailyProduction => Resource switch
-    {
-        ResourceType.Gold => 250,
-        ResourceType.Gems => 1,
-        _ => 2,
-    };
+    public int DailyProduction => ResourceInfo.MineProduction(Resource);
 
     public override ObjectVisited Visit(Hero hero)
     {

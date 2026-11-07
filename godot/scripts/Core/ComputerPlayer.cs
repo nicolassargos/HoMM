@@ -114,7 +114,13 @@ public static class ComputerPlayer
     private static void ManageTown(GameState state, Town town)
     {
         var player = state.CurrentPlayer;
-        BuildNext(state, town, player);
+        // sans aucun héros, il en engage un avant de bâtir, et ne bâtit pas tant qu'il met l'or de côté pour lui : sinon le
+        // bâtiment du jour prend l'or du héros, chaque jour, et il ne joue plus (il ne peut ni prendre ni défendre)
+        bool heroless = player.Heroes.Count == 0 && player.Towns.Any(t => t.Buildings.Any(b => b.Tavern && t.Has(b.Id)));
+        if (heroless && state.CanHireHero(town) == HireResult.Ok)
+            state.HireHero(town);
+        if (!heroless || player.Heroes.Count > 0)
+            BuildNext(state, town, player);
         bool wantsHero = player.Heroes.Count < WantedHeroes(state, player) && town.Buildings.Any(b => b.Tavern && town.Has(b.Id));
         if (wantsHero && player.Resources[ResourceType.Gold] >= GameState.HeroCost && state.CanHireHero(town) == HireResult.Ok)
         {

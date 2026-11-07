@@ -352,7 +352,7 @@ public sealed partial class GameState
             if (player.IsComputer && income.TryGetValue(ResourceType.Gold, out int gold))
                 income[ResourceType.Gold] = gold * ComputerProfile.For(Rules.Difficulty).GoldIncomePercent / 100;
             foreach (var (resource, amount) in income)
-                player.Resources[resource] += amount;
+                player.Resources[resource] = player.Resources.GetValueOrDefault(resource) + amount;
             if (income.Count > 0)
                 Emit(new IncomeReceived(player, income));
         }

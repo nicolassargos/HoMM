@@ -188,6 +188,37 @@ prend le dernier héros de sa faction. Tests : `ClassesTests`.
 À faire avec les factions : leurs classes, puis l'équilibre force / magie (d'abord apprendre à la simulation à ramasser
 les tas de ressources : `Simulation_force_ou_magie`).
 
+### Les ressources rares ✅
+Décidé avec l'utilisateur (2026-11-07), comme Heroes 2 et 3 : **7 ressources**, l'or, le bois et le minerai (communs),
+le **mercure, le cristal, le soufre et les gemmes** (rares). Mines : 250 or, 2 bois ou minerai, 1 d'une ressource rare
+par jour ; tas rares de 3 à 6 ; au départ 2 de chaque ressource rare.
+- **Chaque faction a deux ressources rares** (8 factions pour 4 ressources : chacune sa paire, `classes.json`) : la
+  **principale** pour son habitation et sa créature du niveau 7, la **secondaire** pour ses habitations des niveaux 5 et
+  6. Château : cristal et gemmes (Portail de gloire 5 cristal, Ange 1 cristal) ; morts-vivants : mercure et gemmes
+  (Charnier 5 mercure, Colosse 1 mercure) ; plus tard les Démons : mercure et soufre. Le Dragon rouge (neutre) : 1 soufre.
+- **La guilde des mages** demande un peu de chaque ressource rare : 1, 2, 3 de chacune pour les niveaux 2, 3, 4.
+- **La carte** : **1,5 mine par zone** (au lieu d'une : la carte paraissait vide), plus une de chaque ressource rare ; au-delà
+  d'une de chaque ressource, tour à tour or, rare, bois, or, rare, minerai (`MapGenerator.MinesPerZone`) ; **dans la zone de
+  départ de chaque joueur, une mine de bois, une de minerai et une de sa ressource principale, sans gardien** (comme les
+  cartes aléatoires de Heroes 3 : un joueur n'est jamais bloqué par la carte, sans combat risqué les premiers jours ;
+  gardées, elles faisaient perdre son héros à l'IA des morts-vivants) ; **une mine gardée de sa ressource secondaire dans
+  une zone voisine** ; deux tas sur huit d'une ressource rare. Mesuré (6 cartes) : une très grande carte a 13 mines d'or,
+  7 de bois, 6 de minerai, 3 ou 4 de chaque rare (une seule gemme avant) ; la ressource secondaire est à 11 pas du départ.
+- Corrigé au passage : l'IA sans héros bâtissait avec l'or du héros à engager, chaque jour, et ne jouait plus ; elle
+  engage maintenant un héros d'abord.
+- Interface : la barre du haut montre les 7 ressources ; le royaume, une case par ressource (le nom dans l'info-bulle) ;
+  un coût de la même quantité des quatre rares s'écrit « 3 de chaque rare ». Les images des nouvelles mines et des tas
+  viendront de la session images (en attendant, des formes dessinées).
+- Tests : `RessourcesTests`. À faire ensuite : **le marché** (échanger des ressources, à un taux qui s'améliore avec le
+  nombre de marchés ; la place est prévue dans la vue de la ville).
+
+### La carte (prochaine étape)
+Remarques de l'utilisateur (2026-11-07) : la carte paraît vide. À concevoir ensemble :
+- **Forêts fermées** : traverser une forêt est déroutant (le héros et les objets se cachent derrière les arbres) ; si
+  elles bloquent le passage, il faudra sans doute **moins de montagnes**.
+- **Plus d'objets** : plus de ressources ; des **coffres au choix** (de l'or ou de l'expérience) ; la **cabane du sage**
+  (il enseigne quelque chose) ; d'autres lieux à visiter.
+
 ### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et
 croissance, prix, garde.
@@ -229,11 +260,11 @@ croissance, prix, garde.
   des monstres ; un château par joueur au départ, des villes neutres plus loin.
 - **Difficulté** (`ComputerProfile`) : pertes acceptées 20 / 30 / 40 %, attaque le joueur dès le jour 21 / 0 / 0,
   héros au plus 2 / 3 / 4, revenu d'or 75 / 100 / 125 %.
-- **Équilibre mesuré** (`Mesures`, 2026-11-06, six cartes) : la simulation seule (sans magie) gagne sur les petites
-  cartes vers le jour 60, les normales vers le jour 101 (80 à 154), les grandes vers le jour 146. Un adversaire, après
-  six semaines (héros Paladins, après la correction de l'ordre de construction) : 2,8 à 3,3 villes, une armée de
-  13 000 (Facile), 16 800 (Normal) et 18 700 or (Difficile) en moyenne, tous ses héros ont des sorts. Courbe : Archer 8, Griffon 14, Épéiste 26, Moine 63,
-  Cavalier 116, Ange 1643 paysans.
+- **Équilibre mesuré** (`Mesures`, 2026-11-07, six cartes, avec les ressources rares et 1,5 mine par zone) : la simulation
+  seule (Château, sans magie) gagne sur les petites cartes vers le jour 73, les normales vers le jour 88, les grandes vers
+  le jour 157 (plus de mines, donc plus de gardiens à vaincre). Un adversaire après six semaines : Château 19 400, morts-
+  vivants 20 200 en or d'armée ; Facile 13 500, Normal 20 700, Difficile 23 200. Courbe : Archer 8, Griffon 14, Épéiste
+  26, Moine 63, Cavalier 116, Ange 1643 paysans.
 
 ## Choix à respecter
 - **`GameState` gère plusieurs joueurs**, et l'IA joue avec les mêmes méthodes que le joueur humain.

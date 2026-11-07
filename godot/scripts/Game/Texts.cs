@@ -1037,6 +1037,10 @@ public static class Texts
 
     public static string HeroBonus(Hero hero) => $"Attaque +{hero.Attack} · défense +{hero.Defense}";
     public static string SpellBookButton => "Sorts";
+    public static string BattleOptionsButton => "Options";
+    public static string BattleOptionsTitle => "Options du combat";
+    public static string ProjectileSpeedLabel => "Vitesse des projectiles (flèches, sorts lancés…)";
+    public static readonly string[] ProjectileSpeedNames = { "Lente", "Normale", "Rapide" };
 
     // ------------------------------------------------------------------ marché
 
@@ -1069,6 +1073,7 @@ public static class Texts
 
     public static string MarketNothing(ResourceType give, ResourceType receive) =>
         give == receive ? "Choisissez deux ressources différentes." : $"Pas assez de {Resource(give)} pour en recevoir.";
+
     public static string SpellBookTitle(Hero hero) => $"Livre de sorts de {hero.Name}";
     public static string SpellPointsLine(int points, int max) => $"Points de sort : {points} / {max}";
     public static string SpellPointsDaily => "+1 par jour, tous dans une ville qui a une guilde des mages";

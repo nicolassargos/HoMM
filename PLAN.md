@@ -238,6 +238,8 @@ croissance, prix, garde.
 - Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,
   impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). Reste : les animations des sorts sur le champ
   (étape 9), avec le même système (`BattleEffects`), et peut-être une animation « touché » par créature.
+  ✅ Les options du combat (bouton Options, touche O) : la vitesse des projectiles (lente, normale, rapide), gardée
+  d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la
   date. (Icônes des ressources : faites, 2026-11-07.)
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles

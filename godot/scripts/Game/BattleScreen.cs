@@ -77,6 +77,7 @@ public partial class BattleScreen : CanvasLayer
         _defendButton = AddButton(buttons, Texts.BattleDefend, "D", () => Player(b => b.Defend()));
         _autoButton = AddButton(buttons, Texts.BattleAuto, "A", () => _auto = true);
         _fleeButton = AddButton(buttons, Texts.BattleFlee, "F", () => Player(b => b.Flee()));
+        AddButton(buttons, Texts.BattleOptionsButton, "O", OpenOptions);
         float buttonsWidth = buttons.GetCombinedMinimumSize().X;
         buttons.Position = new Vector2(screenSize.X - Px(16) - buttonsWidth, barY + (OrderHeight - Px(40)) / 2f);
         buttons.Size = new Vector2(buttonsWidth, Px(40));
@@ -217,6 +218,7 @@ public partial class BattleScreen : CanvasLayer
             case Key.D: Player(b => b.Defend()); break;
             case Key.A: _auto = true; break;
             case Key.F: Player(b => b.Flee()); break;
+            case Key.O: OpenOptions(); break;
             default: return;
         }
         GetViewport().SetInputAsHandled();
@@ -248,6 +250,33 @@ public partial class BattleScreen : CanvasLayer
             });
         AddChild(book);
         book.Open();
+    }
+
+    /// <summary>
+    /// Les options du combat (comme Heroes 3) : pour l'instant, la vitesse des projectiles (lent, normal, rapide), gardée
+    /// d'une partie à l'autre (<see cref="Settings"/>).
+    /// </summary>
+    public void OpenOptions()
+    {
+        var dialog = new GameDialog { Title = Texts.BattleOptionsTitle, OkButtonText = Texts.CloseButton };
+        dialog.AddChild(MakeLabel(Texts.ProjectileSpeedLabel, 15, SoftTextColor));
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", (int)Px(8));
+        var group = new ButtonGroup();
+        for (int i = 0; i < Settings.ProjectileSpeeds.Length; i++)
+        {
+            double speed = Settings.ProjectileSpeeds[i];
+            var button = MakeButton(Texts.ProjectileSpeedNames[i], 14);
+            button.ToggleMode = true;
+            button.ButtonGroup = group;
+            button.ButtonPressed = Math.Abs(Settings.ProjectileSpeed - speed) < 0.01;
+            button.CustomMinimumSize = V(120, 40);
+            button.Pressed += () => Settings.ProjectileSpeed = speed;
+            row.AddChild(button);
+        }
+        dialog.AddChild(row);
+        AddChild(dialog);
+        dialog.PopupCentered();
     }
 
     private void CancelSpell()

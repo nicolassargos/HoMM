@@ -16,6 +16,18 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   `tools/art/palette.py entree sortie 16` ramène à 16 couleurs ; `tools/art/adoucir.py` adoucit un contour noir ;
   `tools/art/detourer.py` rend transparent un fond uni ; `tools/art/cadre.py` rend transparent le centre uni d'un cadre.
 
+## Références de Heroes 1 et 2 (règles)
+- Les images de Heroes 1 et 2 (copie de l'utilisateur, `art-candidats/references/heroes1-2/`, hors de git ; extraites de
+  `HEROES2.AGG` par `art-candidats/outils/agg.py`, qui ne fait que lire l'archive) servent **seulement à calibrer** :
+  taille, proportions, composition, lumière ; on peut les montrer à côté de nos candidats sur une page de choix.
+- **Jamais** comme image de départ d'un redessin (« input »), **jamais** comme image de style de PixelLab, **jamais**
+  recopiées morceau par morceau, **jamais** dans `godot/art/` ni dans un commit.
+- Ce qu'elles apprennent : chaque objet de la carte projette une **ombre** douce et semi-transparente (elle l'ancre au
+  sol) ; un objet est un **petit bâtiment entouré de décor** (arbres, rochers, chariots), qui déborde un peu de son
+  emprise ; contours sombres teintés de la couleur de l'objet, jamais noirs ; une ville vue de face fait 640 × 256,
+  bâtiments très imbriqués, un arrière-plan fort (murs, montagnes) et un premier plan chargé. Les cases font 32 px
+  (les nôtres 24 : leurs objets ×0,75 donnent notre échelle).
+
 ## Carte (Retro Diffusion)
 - Images de 24 px (cases de 48 px à ×2, puis ×3 et ×4 en 1920 × 1080). `tools/art/generer.py` estime le prix
   (gratuit), génère des candidats et installe le candidat choisi ; `tools/art/assets.json` décrit les images à produire.
@@ -118,6 +130,19 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - Réglages par créature dans `art/creatures/battle/animations.json` : `projectile`, `launchFrame` (l'image du lâcher),
   `launchPoint` ([x, y] dans l'image d'attaque), `impact`. Le coup d'un tir porte à l'arrivée du projectile.
 - Écarté : le style `rd_animation__vfx` de Retro Diffusion (2026-11-07) : trois essais rendus vides (0,28 $).
+
+## Grands objets de la carte (mines…)
+- **Méthode** : des **pièces** séparées faites par Retro Diffusion (`assets.json`, groupe `pieces/` : cabane, chariot,
+  chevalet, souches, entrée de mine, chariot sur rails…), **sans socle**, puis **assemblées** aux proportions de Heroes
+  (petit bâtiment au fond, décor autour, chemin), à la main dans le **composeur** (`tools/art/composeur.py`) ou par un
+  petit script ; l'image assemblée sert telle quelle (même style partout).
+- Écarté : redessiner la maquette par Retro Diffusion (`input`) : il perd des pièces (rails, chariots, arbres) et le
+  détourage confond un fond vert avec les feuilles (un fond magenta laisse des traces) ; demander tout le décor dans un
+  seul texte (Retro Diffusion n'en garde qu'une partie et pose l'objet sur un socle ou une île) ; PixelLab pour la carte
+  (bien plus de détails, mais des contours plus marqués : l'utilisateur préfère Retro Diffusion) ; 144 × 96 chez Retro
+  Diffusion (refusé à la génération).
+- Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
+  avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

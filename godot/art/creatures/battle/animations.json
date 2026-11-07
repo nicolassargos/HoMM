@@ -7,5 +7,6 @@
   "vampire": {"stepTime": 0.25, "impact": "morsure"},
   "moine": {"projectile": "boule-feu", "launchFrame": 3, "launchPoint": [84, 27]},
   "loup": {"impact": "morsure"},
-  "araignee": {"impact": "morsure"}
+  "araignee": {"impact": "morsure"},
+  "liche": {"projectile": "boule-poison", "launchFrame": 3, "launchPoint": [52, 2]}
 }

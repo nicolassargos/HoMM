@@ -345,8 +345,14 @@ public partial class BattleFieldView : Control
     /// </summary>
     public void Show(IEnumerable<BattleAction> actions, Action<BattleAction>? begin = null)
     {
+        BattleAction? previous = null;
         foreach (var action in actions)
         {
+            // le nuage de mort de la Liche : ses coups sur les troupes autour de la cible suivent aussitôt le tir
+            bool cloud = action is UnitStruck { Ranged: true, Retaliation: false } follow
+                && previous is UnitStruck { Ranged: true } before && before.Attacker == follow.Attacker
+                && follow.Attacker.Has(Ability.DeathCloud);
+            previous = action;
             var told = action;
             _animations.Enqueue(_ =>
             {
@@ -415,6 +421,29 @@ public partial class BattleFieldView : Control
                         return true;
                     });
                     break;
+                case UnitStruck cloudStruck when cloud:
+                    double after = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (after == 0)
+                        {
+                            var target = _shown[cloudStruck.Target];
+                            target.Count = Math.Max(0, target.Count - cloudStruck.Killed);
+                            target.Flash = 1;
+                            target.Recoil = 1;
+                            target.RecoilDirection = target.Position.X >= _shown[cloudStruck.Attacker].Position.X ? 1 : -1;
+                            _floating.Add(($"-{cloudStruck.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(170, 220, 150)));
+                            if (cloudStruck.Killed > 0)
+                                _floating.Add(($"{cloudStruck.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
+                        }
+                        after += Math.Max(delta, 1e-6);
+                        if (after < 0.18)
+                            return false;
+                        if (_shown[cloudStruck.Target].Count == 0)
+                            _shown[cloudStruck.Target].Gone = true;
+                        return true;
+                    });
+                    break;
                 case UnitStruck struck:
                     double age = 0, wind = 0;
                     bool hit = false, launched = false, landed = false;
@@ -467,6 +496,9 @@ public partial class BattleFieldView : Control
                             target.RecoilDirection = direction;
                             string impact = shot != null ? BattleEffects.ImpactOf(shot) : TextSetting(struck.Attacker, "impact") ?? "choc";
                             _effects.Hit(impact, BodyCenter(struck.Target, target), direction);
+                            // le nuage de mort s'étale autour de la cible (ses coups sur les voisines suivent)
+                            if (shot != null && struck.Attacker.Has(Ability.DeathCloud))
+                                _effects.Hit("nuage", target.Position + new Vector2(0, HexHeight / 2 - Ui.Px(24)), direction);
                             _floating.Add(($"-{struck.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 210, 120)));
                             if (struck.Killed > 0)
                                 _floating.Add(($"{struck.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));

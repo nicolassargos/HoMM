@@ -83,10 +83,33 @@ public class RessourcesTests
                 var main = TestData.Data.Classes.ForFaction(player.Towns.Single().Faction)!.MainResource!.Value;
                 // sans gardien : elles assurent de quoi bâtir sans combat risqué dès les premiers jours
                 foreach (var resource in new[] { ResourceType.Wood, ResourceType.Ore, main })
-                    Assert.Contains(mines, m => m.Resource == resource && !state.Map.IsGuarded(m.Position)
-                        && Math.Max(Math.Abs(m.Position.X - start.X), Math.Abs(m.Position.Y - start.Y)) <= 9);
+                    // (à 4 à 11 pas de préférence ; un peu plus loin quand la zone de départ n'a pas la place d'une mine de 3 × 2)
+                    Assert.Contains(mines, m => m.Resource == resource && !state.Map.IsGuarded(m.Approach)
+                        && Math.Max(Math.Abs(m.Position.X - start.X), Math.Abs(m.Position.Y - start.Y)) <= 15);
             }
         }
+    }
+
+    [Fact]
+    public void Une_mine_occupe_trois_cases_sur_deux_et_s_entre_par_le_bas()
+    {
+        var state = new GameState(5, TestData.Data, MapSize.Small);
+        var map = state.Map;
+        foreach (var mine in map.Objects.OfType<Mine>())
+        {
+            Assert.True(mine.Large);
+            Assert.Equal(6, mine.Footprint.Count());
+            // l'entrée se visite ; les 5 autres cases bloquent ; on entre par la case du dessous
+            Assert.True(map.IsPassable(mine.Position));
+            Assert.All(mine.Footprint.Where(c => c != mine.Position), c => Assert.False(map.IsPassable(c)));
+            Assert.True(map.IsPassable(mine.Approach));
+            Assert.Null(map.OccupantAt(mine.Approach));
+            Assert.All(mine.Footprint, c => Assert.Same(mine, map.OccupantAt(c)));
+        }
+        // une sauvegarde d'avant (version 2) : ses mines gardent une seule case
+        var json = state.Save().Replace($"\"version\":{GameState.SaveVersion}", "\"version\":2");
+        Assert.Contains("\"version\":2", json);
+        Assert.All(GameState.Load(json, TestData.Data).Map.Objects.OfType<Mine>(), m => Assert.False(m.Large));
     }
 
     [Fact]

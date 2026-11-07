@@ -173,6 +173,36 @@ public sealed class MapGenerator
     private int[,] _zoneOf = null!;
     private bool[,] _border = null!;
 
+    /// <summary>
+    /// Les cases prises par les mines : leurs 6 cases et la case devant l'entrée (aucun objet ni monstre n'y va, l'entrée
+    /// reste libre).
+    /// </summary>
+    private readonly HashSet<Cell> _mineCells = new();
+
+    /// <summary>
+    /// Pose une mine d'entrée <paramref name="entrance"/> si ses 6 cases et la case devant l'entrée sont libres, et si
+    /// tout reste accessible ; sinon rien (null).
+    /// </summary>
+    private Mine? TryPlaceMine(Cell entrance, ResourceType resource, HashSet<Cell> freeCells)
+    {
+        // ses 6 cases sur des cases libres ; devant l'entrée, une case où l'on passe (une route va bien)
+        var approach = entrance.Offset(0, 1);
+        var cells = Mine.FootprintAt(entrance).Append(approach).ToList();
+        if (!Mine.FootprintAt(entrance).All(c => freeCells.Contains(c))
+            || !_map.IsPassable(approach) || _reserved.Contains(approach) || approach == _map.Treasure
+            || !cells.All(c => !_mineCells.Contains(c) && _map.OccupantAt(c) == null))
+            return null;
+        var mine = new Mine(entrance, resource);
+        _map.AddObject(mine);
+        if (!AllObjectsReachable())
+        {
+            _map.RemoveObject(mine);
+            return null;
+        }
+        _mineCells.UnionWith(cells);
+        return mine;
+    }
+
     /// <summary>Les mines posées dans la zone de départ d'un joueur (bois, minerai, ressource principale) : sans gardien.</summary>
     private readonly HashSet<MapObject> _startZoneMines = new();
 
@@ -718,7 +748,10 @@ public sealed class MapGenerator
         {
             while (next < free.Count)
             {
-                var obj = make(free[next++]);
+                var cell = free[next++];
+                if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null)
+                    continue; // une case d'une mine (ses murs, la case devant son entrée)
+                var obj = make(cell);
                 _map.AddObject(obj);
                 if (AllObjectsReachable())
                     return true;
@@ -740,7 +773,10 @@ public sealed class MapGenerator
             free.Remove(spot);
         }
 
-        // Dans la zone de départ de chaque joueur (à 4 à 9 pas), comme les cartes aléatoires de Heroes 3 : une mine de
+        // les cases libres au départ : une mine (6 cases, et la case devant son entrée) ne se pose que sur elles
+        var freeSet = free.ToHashSet();
+
+        // Dans la zone de départ de chaque joueur (à 4 à 11 pas), comme les cartes aléatoires de Heroes 3 : une mine de
         // bois, une de minerai et une de la ressource rare principale de sa faction (sans elle, il pourrait ne jamais bâtir
         // son habitation du niveau 7). Les cases ne dépendent pas de la faction (la carte reste la même), seulement la
         // ressource de la troisième.
@@ -754,21 +790,25 @@ public sealed class MapGenerator
                 wanted.Add((rare, 36));
             foreach (var (resource, target) in wanted)
             {
-                var spots = free.Where(c => _zones.Count == 0 || ZoneAt(c) == ZoneAt(start))
-                    .Where(c => Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y)) is >= 4 and <= 9)
-                    .OrderBy(c => Math.Abs(SquaredDistance(c, start) - target)).ThenBy(c => c.Y).ThenBy(c => c.X).ToList();
-                foreach (var cell in spots)
+                // de préférence dans sa zone à 4 à 11 pas ; sinon (une mine de 3 × 2 cases ne trouve pas toujours sa place)
+                // n'importe où dans sa zone, puis au plus près hors des zones de départ des autres
+                int Steps(Cell c) => Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y));
+                bool Home(Cell c) => _zones.Count == 0 || ZoneAt(c) == ZoneAt(start);
+                var otherStarts = _map.Starts.Where(o => o != start).Select(o => _zones.Count == 0 ? null : ZoneAt(o)).ToList();
+                var tries = new[]
                 {
-                    var mine = new Mine(cell, resource);
-                    _map.AddObject(mine);
-                    if (AllObjectsReachable())
-                    {
-                        free.Remove(cell);
-                        startMines.Add(resource);
-                        _startZoneMines.Add(mine);
-                        break;
-                    }
-                    _map.RemoveObject(mine);
+                    free.Where(c => Home(c) && Steps(c) is >= 4 and <= 11).OrderBy(c => Math.Abs(SquaredDistance(c, start) - target)),
+                    free.Where(c => Home(c) && Steps(c) >= 3).OrderBy(c => SquaredDistance(c, start)),
+                    free.Where(c => _zones.Count == 0 || !otherStarts.Contains(ZoneAt(c))).OrderBy(c => SquaredDistance(c, start)),
+                };
+                foreach (var spots in tries)
+                {
+                    var placed = spots.ThenBy(c => c.Y).ThenBy(c => c.X).Select(c => TryPlaceMine(c, resource, freeSet)).FirstOrDefault(m => m != null);
+                    if (placed == null)
+                        continue;
+                    startMines.Add(resource);
+                    _startZoneMines.Add(placed);
+                    break;
                 }
             }
         }
@@ -788,17 +828,11 @@ public sealed class MapGenerator
                     : neighbours.Contains(ZoneAt(c).Index) && Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y)) >= 8)
                 .OrderBy(c => SquaredDistance(c, start)).ThenBy(c => c.Y).ThenBy(c => c.X).ToList();
             foreach (var cell in spots)
-            {
-                var mine = new Mine(cell, second);
-                _map.AddObject(mine);
-                if (AllObjectsReachable())
+                if (TryPlaceMine(cell, second, freeSet) is not null)
                 {
-                    free.Remove(cell);
                     startMines.Add(second);
                     break;
                 }
-                _map.RemoveObject(mine);
-            }
         }
 
         // Puis les autres : la carte prévoit une mine de chaque ressource, et d'autres tour à tour (voir ExtraMine) ; celles
@@ -808,8 +842,13 @@ public sealed class MapGenerator
             planned.Remove(resource);
         mines = planned;
         foreach (var resource in mines)
-            if (!Place(c => new Mine(c, resource)))
+        {
+            bool placed = false;
+            while (!placed && next < free.Count)
+                placed = TryPlaceMine(free[next++], resource, freeSet) is not null;
+            if (!placed)
                 return;
+        }
         for (int i = 0; i < Scaled(ChestCount); i++)
             if (!Place(c => new TreasureChest(c, _rng)))
                 return;
@@ -853,6 +892,8 @@ public sealed class MapGenerator
                 foreach (var cell in remaining.Where(c => zone == null || ZoneAt(c).Index == zone).ToList())
                 {
                     remaining.Remove(cell);
+                    if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null)
+                        continue;
                     var obelisk = new Obelisk(cell);
                     _map.AddObject(obelisk);
                     if (AllObjectsReachable())
@@ -931,14 +972,16 @@ public sealed class MapGenerator
     /// </summary>
     private bool CanPlaceGuard(Cell c)
     {
-        if (!_map.IsPassable(c) || _map.ObjectAt(c) != null || _reserved.Contains(c) || c == _map.Treasure)
+        if (!_map.IsPassable(c) || _map.OccupantAt(c) != null || _reserved.Contains(c) || c == _map.Treasure || _mineCells.Contains(c))
             return false;
         if (StepsToStart(c) < 4)
             return false;
         if (DistanceToNearestTown(c) < 4)
             return false;
         // les mines de la zone de départ restent sans gardien (pas même un monstre errant à côté)
-        if (_startZoneMines.Any(m => Math.Max(Math.Abs(m.Position.X - c.X), Math.Abs(m.Position.Y - c.Y)) <= 1))
+        // (ni à côté de son entrée, ni à côté de la case d'où l'on y entre)
+        if (_startZoneMines.OfType<Mine>().Any(m => new[] { m.Position, m.Approach }
+                .Any(p => Math.Max(Math.Abs(p.X - c.X), Math.Abs(p.Y - c.Y)) <= 1)))
             return false;
         for (int dy = -2; dy <= 2; dy++)
         for (int dx = -2; dx <= 2; dx++)

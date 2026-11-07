@@ -218,6 +218,12 @@ par jour ; tas rares de 3 à 6 ; au départ 2 de chaque ressource rare.
   gardant 1000 or pour recruter (plus le prix d'un héros s'il en manque) : sans ces garde-fous, elle bâtissait chaque jour
   et son armée ne grandissait plus. Mesuré (six semaines, un adversaire) : Château 24 500, morts-vivants 24 800 ; Facile
   17 500, Normal 24 500, Difficile 30 100 en or d'armée. Tests : `MarcheTests`.
+- ✅ **Les mines sur 3 × 2 cases**, comme Heroes 3 (choix de l'utilisateur, 2026-11-07) : l'entrée au milieu en bas, on y
+  entre par la case juste en dessous, les 5 autres cases bloquent ; un clic sur la mine mène à l'entrée. Le générateur leur
+  trouve la place (6 cases libres et la case devant l'entrée, qui peut être une route) ; les mines de départ, à 4 à 11 pas
+  de préférence, plus loin si la zone est trop étroite. Sauvegarde version 3 ; les mines des sauvegardes d'avant gardent
+  une case (`Mine.Large`). L'image couvre la surface, quelle que soit la taille des cases (images de 3 × 2 cases : session
+  images ; en attendant, l'ancienne image carrée sur l'entrée, ou une colline dessinée).
 - Corrigé au passage : le joueur sans héros qui perdait sa dernière ville n'avait pas perdu (la partie continuait sans
   lui, à l'infini) ; fin « Eliminated ».
 - **À faire (IA)** : sa prévision d'un combat (jouée trois fois) se trompe dans les combats qui tournent vite (Fantômes qui

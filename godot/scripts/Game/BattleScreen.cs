@@ -511,6 +511,10 @@ public partial class BattleScreen : CanvasLayer
     /// </summary>
     private void RefreshOrder(TacticalBattle battle)
     {
+        // pendant qu'une action est montrée (marche, tir, coup), les règles sont déjà passées à la troupe suivante : la
+        // bande attend la fin de l'animation, pour que la case encadrée d'or reste celle qui agit à l'écran
+        if (_field.IsAnimating && _orderKey != null)
+            return;
         var coming = battle.TurnOrder;
         var played = battle.InitiativeOrder.Where(u => !coming.Contains(u)).ToList();
         string key = string.Join(",", coming.Select(u => $"{u.Id}:{_field.ShownCount(u)}")) + "|"

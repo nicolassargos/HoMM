@@ -105,6 +105,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).
 
 ## Interface
+- **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans
+  la barre des ressources et le royaume ; `-grand.png` en 32 × 32 pour les fenêtres à venir) : PixelLab « Pro » à 32 × 32
+  (64 candidats pour 0,08 $), le tas de la carte comme image de style, puis recadrées et réduites. Le soufre doit se
+  distinguer de l'or (cristaux jaune-vert sur roche sombre), les gemmes sont des pierres taillées (rubis, saphir,
+  émeraude, diamant), pas des cristaux. « crystal » seul est refusé par le filtre de PixelLab (décrire du quartz).
 - Cadre **B2** (argent, une fine bande de bois) affiché ×3, bouton **A1** (pierre grise bordée d'argent, coins un peu
   arrondis, gardés) ×3 ; réglages dans `art/ui/ui.json` (coins, marges, échelles, grain de pierre `panelTexture`).
 - **Creusé pour les places, à plat pour les choses** (comme Heroes 2) : `Ui.Inset` pour les emplacements, listes,

@@ -467,7 +467,13 @@ public sealed partial class GameState
             {
                 hero.Owner.Statistics.TownsCaptured++;
                 if (captured.PreviousOwner is { } loser)
+                {
                     AnnounceDefeat(loser);
+                    // le joueur, déjà sans héros, perd sa dernière ville : la partie est perdue (elle continuait sans lui,
+                    // les adversaires jouant à l'infini)
+                    if (loser == Players[0] && loser.IsDefeated)
+                        EndGame(GameOutcome.Defeat, GameEndReason.Eliminated);
+                }
             }
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
@@ -903,6 +909,25 @@ public sealed partial class GameState
     /// créatures du premier niveau, et devient le héros sélectionné. <paramref name="name"/> : l'un des héros proposés
     /// (<see cref="TavernOffers"/>) ; sans nom, le premier.
     /// </summary>
+    /// <summary>
+    /// Échange au marché : le joueur courant donne ce qu'il faut de <paramref name="give"/> pour recevoir
+    /// <paramref name="count"/> <paramref name="receive"/> (voir <see cref="Market"/> ; il lui faut au moins un marché).
+    /// Renvoie ce qu'il a donné, ou 0 si l'échange n'est pas possible.
+    /// </summary>
+    public int Trade(ResourceType give, ResourceType receive, int count)
+    {
+        var player = CurrentPlayer;
+        int markets = Market.Count(player);
+        if (Outcome != GameOutcome.Playing || count <= 0 || give == receive
+            || count > Market.MaxReceivable(give, receive, player.Resources.GetValueOrDefault(give), markets))
+            return 0;
+        int cost = Market.Cost(give, receive, count, markets);
+        player.Resources[give] = player.Resources.GetValueOrDefault(give) - cost;
+        player.Resources[receive] = player.Resources.GetValueOrDefault(receive) + count;
+        Emit(new ResourcesTraded(player, give, cost, receive, count));
+        return cost;
+    }
+
     public HireResult HireHero(Town town, string? name = null)
     {
         var result = CanHireHero(town);

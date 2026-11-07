@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace HoMM.Core;
 
@@ -98,7 +99,7 @@ public static class ComputerPlayer
         string? Dwelling(int tier) => town.DwellingOfTier(tier)?.Id;
         return new[]
         {
-            Dwelling(2), "taverne", "hotel-ville", Dwelling(3), Dwelling(4), Dwelling(5), "guilde-mages-1",
+            Dwelling(2), "taverne", "hotel-ville", Dwelling(3), "marche", Dwelling(4), Dwelling(5), "guilde-mages-1",
             Dwelling(6), "guilde-mages-2", "grand-hotel-ville", Dwelling(7), "guilde-mages-3", "guilde-mages-4",
         }.OfType<string>();
     }
@@ -169,6 +170,73 @@ public static class ComputerPlayer
                 return;
             }
         }
+        // rien n'a pu être bâti : au marché, ce qui manque au bâtiment attendu contre ce qu'il a en trop
+        if (waiting != null && Market.Count(player) > 0 && TradeFor(state, player, waiting) && town.CanBuild(waiting, player) == BuildResult.Ok)
+            state.Build(town, waiting.Id);
+    }
+
+    /// <summary>
+    /// Échange au marché ce qui manque à <paramref name="building"/> contre ce que le joueur a en trop : le bois, le
+    /// minerai et les ressources rares au-delà d'une petite réserve, et l'or au-delà de ce que demande le bâtiment et de
+    /// quoi recruter. Seulement si tout ce qui manque peut être obtenu (sinon il garde ses ressources). Renvoie true s'il a
+    /// tout obtenu.
+    /// </summary>
+    /// <summary>Le dernier jour où chaque joueur a échangé au marché pour bâtir (un par jour au plus).</summary>
+    private static readonly ConditionalWeakTable<Player, StrongBox<int>> TradedOn = new();
+
+    /// <summary>L'or qu'il garde pour recruter quand il échange au marché pour bâtir.</summary>
+    private const int RecruitReserve = 1000;
+
+    private static bool TradeFor(GameState state, Player player, BuildingType building)
+    {
+        int markets = Market.Count(player);
+        int Have(ResourceType r) => player.Resources.GetValueOrDefault(r);
+        // l'or : celui du bâtiment, plus de quoi recruter ensuite, et de quoi engager un héros s'il lui en manque (sinon tout
+        // son or passait dans les bâtiments : il gardait l'or du héros pour plus tard, sans jamais l'atteindre, et ne
+        // recrutait plus rien)
+        int reserve = RecruitReserve + (player.Heroes.Count < WantedHeroes(state, player) ? GameState.HeroCost : 0);
+        int Needed(ResourceType r) => building.Cost.GetValueOrDefault(r) + (r == ResourceType.Gold ? reserve : 0);
+        int Missing(ResourceType r) => Math.Max(0, Needed(r) - Have(r));
+        int Spare(ResourceType r) => Math.Max(0, Have(r) - building.Cost.GetValueOrDefault(r)
+            - (r == ResourceType.Gold ? 3000 : ResourceInfo.IsRare(r) ? 2 : 10));
+        var missing = building.Cost.Keys.Append(ResourceType.Gold).Distinct().Where(r => Missing(r) > 0).ToList();
+        if (missing.Count == 0)
+            return true;
+        // le marché lui permettait de bâtir chaque jour dans chaque ville, et tout son or y passait (une armée qui ne
+        // grandissait plus de six semaines) : un seul bâtiment par jour grâce au marché, et il garde de quoi recruter
+        // une fois le bâtiment payé (Needed)
+        if (TradedOn.TryGetValue(player, out var day) && day.Value == state.Day)
+            return false;
+        // d'abord vérifier qu'on peut tout obtenir, sans rien échanger
+        var spare = ResourceInfo.All.ToDictionary(r => r, Spare);
+        foreach (var need in missing)
+        {
+            int left = Missing(need);
+            foreach (var give in ResourceInfo.All.Where(r => r != need && !missing.Contains(r)).OrderByDescending(r => spare[r] * Market.Value(r)))
+            {
+                int take = Math.Min(left, Market.MaxReceivable(give, need, spare[give], markets));
+                if (take <= 0)
+                    continue;
+                spare[give] -= Market.Cost(give, need, take, markets);
+                left -= take;
+                if (left == 0)
+                    break;
+            }
+            if (left > 0)
+                return false;
+        }
+        // puis échanger pour de bon
+        TradedOn.AddOrUpdate(player, new StrongBox<int>(state.Day));
+        foreach (var need in missing)
+            foreach (var give in ResourceInfo.All.Where(r => r != need && !missing.Contains(r)).OrderByDescending(r => Spare(r) * Market.Value(r)))
+            {
+                int take = Math.Min(Missing(need), Market.MaxReceivable(give, need, Spare(give), markets));
+                if (take > 0)
+                    state.Trade(give, need, take);
+                if (Missing(need) == 0)
+                    break;
+            }
+        return missing.All(r => Missing(r) == 0);
     }
 
     /// <summary>Après avoir payé <paramref name="building"/>, pourra-t-on encore payer <paramref name="waiting"/> dès qu'il ne manquera plus que ce qui lui manque déjà ?</summary>

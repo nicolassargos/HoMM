@@ -89,4 +89,30 @@ public class CombatIAAdversaireTests
         // les adversaires s'attaquent aussi entre eux (point 5) : l'un peut être éliminé, pas tous
         Assert.Contains(state.Opponents, p => !p.IsDefeated);
     }
+
+    [Fact]
+    public void Le_joueur_sans_heros_qui_perd_sa_derniere_ville_a_perdu()
+    {
+        // le joueur n'a plus de héros ; un adversaire prend sa dernière ville : la partie doit s'arrêter (elle continuait
+        // sans lui, les adversaires jouant à l'infini)
+        var state = new GameState(5, TestData.Data, MapSize.Small, opponents: 1);
+        var human = state.Players[0];
+        var rival = state.Players[1];
+        human.Heroes.Clear();
+        var castle = human.Towns.Single();
+        var raider = rival.Heroes[0];
+        raider.Army.Add(TestData.Creatures.Get("ange"), 50);
+        raider.Position = castle.Approach;
+        state.EndTurn();
+        Assert.Same(rival, state.CurrentPlayer);
+        state.TakeEvents();
+
+        state.SetDestination(castle.Position);
+        while (state.StepAlongPath()) { }
+
+        Assert.Same(rival, castle.Owner);
+        Assert.True(human.IsDefeated);
+        Assert.Equal(GameOutcome.Defeat, state.Outcome);
+        Assert.Contains(state.TakeEvents(), e => e is GameEnded { Reason: GameEndReason.Eliminated });
+    }
 }

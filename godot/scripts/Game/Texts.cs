@@ -387,6 +387,7 @@ public static class Texts
         GameEndReason.OpponentsDefeated => "Vos adversaires sont vaincus. La région est à vous !",
         GameEndReason.TownsCaptured => "Toutes les villes sont à vous. La région est à vous !",
         GameEndReason.HeroesLost => "Votre dernier héros est tombé. La partie est perdue.",
+        GameEndReason.Eliminated => "Votre dernière ville est tombée, et vous n'aviez plus de héros pour la défendre. La partie est perdue.",
         GameEndReason.TreasureFound => "Vous avez déterré le Plastron des Rois : la région vous reconnaît pour son roi !",
         _ => "Le temps est écoulé avant la victoire. La partie est perdue.",
     };
@@ -587,6 +588,8 @@ public static class Texts
         DeadRaised raised => $"Nécromancie : {raised.Count} {Creature(raised.Type, raised.Count)} se relève{(raised.Count == 1 ? "" : "nt")} dans l'armée de {raised.Hero.Name}.",
         SpellsLearned learned when learned.Hero.Owner != viewer => null,
         SpellsLearned learned => $"{learned.Hero.Name} apprend {List(learned.Spells.Select(s => s.Name).ToList())} à la guilde des mages de {learned.Town.Name}.",
+        ResourcesTraded traded when traded.Player != viewer => null,
+        ResourcesTraded traded => $"Marché : {traded.Given} {Resource(traded.Give)} contre {traded.Received} {Resource(traded.Receive)}.",
         HeroHired hired when hired.Hero.Owner != viewer => null,
         HeroHired hired => $"{hired.Hero.Name} rejoint vos rangs à {hired.Town.Name} !",
         CreaturesRecruited recruited when recruited.Town.Owner != viewer => null,
@@ -624,6 +627,7 @@ public static class Texts
         GameEnded { Reason: GameEndReason.OpponentsDefeated } => "Tous vos adversaires sont vaincus. Victoire !",
         GameEnded { Reason: GameEndReason.TownsCaptured } => "Toutes les villes sont à vous. Victoire !",
         GameEnded { Reason: GameEndReason.HeroesLost } => "Vous n'avez plus de héros. Défaite...",
+        GameEnded { Reason: GameEndReason.Eliminated } => "Vous n'avez plus ni héros ni ville. Défaite...",
         GameEnded => "Il est trop tard pour gagner. Défaite...",
         _ => null,
     };
@@ -1033,6 +1037,38 @@ public static class Texts
 
     public static string HeroBonus(Hero hero) => $"Attaque +{hero.Attack} · défense +{hero.Defense}";
     public static string SpellBookButton => "Sorts";
+
+    // ------------------------------------------------------------------ marché
+
+    public static string MarketButton => "Marché";
+    public static string MarketTitle => "Marché";
+    public static string MarketGive => "Donner";
+    public static string MarketReceive => "Recevoir";
+    public static string TradeButton => "Échanger";
+    public static string MaxButton => "Max";
+
+    /// <summary>Le taux du joueur : « 1 marché : vous vendez à 20 % de la valeur (plus de marchés, meilleurs taux). »</summary>
+    public static string MarketRates(int markets) =>
+        $"{markets} marché{(markets > 1 ? "s" : "")} : vous vendez à {Market.RateTenths(markets) * 10} % de la valeur"
+        + (markets < 5 ? " (chaque marché de plus améliore les taux)." : " (le meilleur taux).");
+
+    /// <summary>
+    /// Le taux entre deux ressources : le prix d'une unité (« 63 bois ») ou, si une unité donnée en rapporte plusieurs,
+    /// combien elle rapporte (« 20 / bois ») ; « — » pour la même ressource.
+    /// </summary>
+    public static string MarketUnitPrice(ResourceType give, ResourceType receive, int markets)
+    {
+        if (give == receive)
+            return "—";
+        int perOne = Market.MaxReceivable(give, receive, 1, markets);
+        return perOne > 1 ? $"{perOne} / {Resource(give)}" : $"{Market.Cost(give, receive, 1, markets)} {Resource(give)}";
+    }
+
+    public static string MarketDeal(ResourceType give, int cost, ResourceType receive, int count) =>
+        count == 0 ? "Choisissez combien recevoir." : $"Vous donnez {cost} {Resource(give)} et recevez {count} {Resource(receive)}.";
+
+    public static string MarketNothing(ResourceType give, ResourceType receive) =>
+        give == receive ? "Choisissez deux ressources différentes." : $"Pas assez de {Resource(give)} pour en recevoir.";
     public static string SpellBookTitle(Hero hero) => $"Livre de sorts de {hero.Name}";
     public static string SpellPointsLine(int points, int max) => $"Points de sort : {points} / {max}";
     public static string SpellPointsDaily => "+1 par jour, tous dans une ville qui a une guilde des mages";

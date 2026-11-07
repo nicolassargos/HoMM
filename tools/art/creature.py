@@ -188,7 +188,10 @@ def departs(f, ident, large=2.2):
     chemins = {}
     for etat, (W, H) in tailles.items():
         chemins[etat] = os.path.join(d, f"depart-{etat}.png")
-        ecrire(chemins[etat], n.poser(p, W, H))
+        # écrit à côté puis remplace d'un coup : une autre commande lancée en même temps ne lit jamais un fichier à moitié écrit
+        provisoire = f"{chemins[etat]}.{os.getpid()}.tmp"
+        ecrire(provisoire, n.poser(p, W, H))
+        os.replace(provisoire, chemins[etat])
     return chemins, f["hauteur"] / h
 
 

@@ -19,7 +19,8 @@ public enum VictoryCondition
 }
 
 /// <summary>Pourquoi la partie est finie (l'affichage choisit le texte).</summary>
-public enum GameEndReason { GuardsCleared, TownsCaptured, HeroesLost, TimeOut, TreasureFound, OpponentsDefeated }
+/// <summary>Pourquoi la partie s'arrête. <c>Eliminated</c> : la dernière ville du joueur est prise alors qu'il n'avait plus de héros.</summary>
+public enum GameEndReason { GuardsCleared, TownsCaptured, HeroesLost, TimeOut, TreasureFound, OpponentsDefeated, Eliminated }
 
 /// <summary>La force des adversaires joués par l'ordinateur (voir <see cref="ComputerProfile"/>).</summary>
 public enum Difficulty { Easy, Normal, Hard }

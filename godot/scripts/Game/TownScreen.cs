@@ -35,6 +35,11 @@ public partial class TownScreen : CanvasLayer
     private string? _viewKey;
     private Button _tavernShortcut = null!;
     private Button _guildShortcut = null!;
+    private Button _marketShortcut = null!;
+
+    // le marché : ce qu'on donne, ce qu'on reçoit, et combien (gardés tant que la fenêtre se reconstruit)
+    private ResourceType _marketGive = ResourceType.Wood, _marketReceive = ResourceType.Gold;
+    private int _marketCount;
 
     private ArmySlots _garrison = null!;
     private ArmySlots _visitor = null!;
@@ -98,23 +103,25 @@ public partial class TownScreen : CanvasLayer
         _view.AddChild(new ColorRect { Position = new Vector2(0, Px(ViewHeight * 0.4f)), Size = new Vector2(screenSize.X, Px(ViewHeight * 0.6f)), Color = MapRenderer.Rgb(60, 74, 48), MouseFilter = Control.MouseFilterEnum.Ignore });
 
         // les raccourcis, à droite de la bande du nom (au-dessus de la vue : ils ne cachent aucun bâtiment)
-        float bx = screenSize.X - Px(12 + 4 * 138 - 8);
+        float bx = screenSize.X - Px(12 + 5 * 126 - 8);
         foreach (var (text, open) in new (string, Action)[]
                  {
                      (Texts.BuildButton, OpenBuild), (Texts.RecruitButton, () => OpenRecruitWindow(null)),
-                     (Texts.TavernButton, OpenTavern), (Texts.GuildButton, OpenGuild),
+                     (Texts.TavernButton, OpenTavern), (Texts.GuildButton, OpenGuild), (Texts.MarketButton, OpenMarket),
                  })
         {
             var button = MakeButton(text, 14);
             button.Position = new Vector2(bx, Hud.TopBarHeight + Px(3));
-            button.Size = V(130, 32);
+            button.Size = V(118, 32);
             button.Pressed += open;
             _root.AddChild(button);
             if (text == Texts.TavernButton)
                 _tavernShortcut = button;
             if (text == Texts.GuildButton)
                 _guildShortcut = button;
-            bx += Px(138);
+            if (text == Texts.MarketButton)
+                _marketShortcut = button;
+            bx += Px(126);
         }
 
         // la garnison et le héros présent, toujours visibles
@@ -261,6 +268,8 @@ public partial class TownScreen : CanvasLayer
         RefreshView(town);
         _tavernShortcut.Disabled = !town.Buildings.Any(b => b.Tavern && town.Has(b.Id));
         _guildShortcut.Disabled = town.MageGuildLevel == 0;
+        // le marché sert depuis toute ville du joueur qui en a un (comme dans Heroes 3) : il suffit d'en avoir un
+        _marketShortcut.Disabled = Market.Count(_state.CurrentPlayer) == 0;
 
         var hero = _state.VisitingHero(town);
         _garrison.Show(town.Garrison, null);
@@ -328,6 +337,8 @@ public partial class TownScreen : CanvasLayer
                 OpenTavern();
             else if (building.MageGuild > 0)
                 OpenGuild();
+            else if (building.Market)
+                OpenMarket();
             else if (building.DailyGold > 0)
                 OpenBuild();
         };
@@ -378,6 +389,8 @@ public partial class TownScreen : CanvasLayer
             OpenTavern();
         else if (which == "guild")
             OpenGuild();
+        else if (which == "market")
+            OpenMarket();
         else if (which == "count" && _town is { } town
                  && town.BuiltBuildings.Select(town.DwellingCreature).FirstOrDefault(c => c != null) is { } creature)
             OpenRecruit(town, creature);
@@ -602,6 +615,95 @@ public partial class TownScreen : CanvasLayer
     }
 
     /// <summary>La taverne : les deux héros qu'elle propose, leur prix, et « Recruter ».</summary>
+    /// <summary>
+    /// Le marché : donner une ressource pour en recevoir une autre (<see cref="Market"/>). Deux rangées de boutons (ce
+    /// qu'on donne, avec ce qu'on en a ; ce qu'on reçoit, avec le prix d'une unité), le nombre à recevoir au curseur, le
+    /// marché conclu avant de valider.
+    /// </summary>
+    private void OpenMarket()
+    {
+        var player = _state.CurrentPlayer;
+        int markets = Market.Count(player);
+        if (_town == null || markets == 0)
+            return;
+        var window = OpenWindow(V(860, 372), Texts.MarketTitle, overView: true);
+        window.AddChild(At(MakeLabel(Texts.MarketRates(markets), 13, SoftTextColor), 24, 56));
+
+        int have = player.Resources.GetValueOrDefault(_marketGive);
+        int max = Market.MaxReceivable(_marketGive, _marketReceive, have, markets);
+        _marketCount = Math.Clamp(_marketCount, 0, max);
+
+        Button ResourceButton(ResourceType resource, string text, bool chosen, Action pressed)
+        {
+            var button = MakeButton(text, 13);
+            button.ToggleMode = true;
+            button.ButtonPressed = chosen;
+            button.Alignment = HorizontalAlignment.Right;
+            button.CustomMinimumSize = V(110, 40);
+            button.TooltipText = Texts.Capitalize(Texts.Resource(resource));
+            button.AddChild(new ResourceIcon { Resource = resource, Position = V(6, 10), Size = V(20, 20), MouseFilter = Control.MouseFilterEnum.Ignore });
+            button.Pressed += pressed;
+            // la ressource choisie : un cadre d'argent bien visible
+            if (chosen)
+            {
+                var frame = new Panel { Size = button.CustomMinimumSize, MouseFilter = Control.MouseFilterEnum.Ignore };
+                frame.AddThemeStyleboxOverride("panel", Box(new Color(0, 0, 0, 0), SilverColor, 3, 3, 3, 3));
+                button.AddChild(frame);
+            }
+            return button;
+        }
+        HBoxContainer Row(string label, float y)
+        {
+            window.AddChild(At(MakeLabel(label, 15, TextColor), 24, y));
+            var row = new HBoxContainer { Position = V(24, y + 22) };
+            row.AddThemeConstantOverride("separation", (int)Px(6));
+            window.AddChild(row);
+            return row;
+        }
+        var giveRow = Row(Texts.MarketGive, 82);
+        foreach (var resource in ResourceInfo.All)
+            giveRow.AddChild(ResourceButton(resource, player.Resources.GetValueOrDefault(resource).ToString(), resource == _marketGive,
+                () => { _marketGive = resource; OpenMarket(); }));
+        var receiveRow = Row(Texts.MarketReceive, 156);
+        foreach (var resource in ResourceInfo.All)
+            receiveRow.AddChild(ResourceButton(resource, Texts.MarketUnitPrice(_marketGive, resource, markets), resource == _marketReceive,
+                () => { _marketReceive = resource; OpenMarket(); }));
+
+        // le nombre à recevoir, et le marché conclu
+        var slider = new HSlider { Position = V(24, 244), Size = V(560, 24), MinValue = 0, MaxValue = Math.Max(0, max), Step = 1, Value = _marketCount, Editable = max > 0 };
+        window.AddChild(slider);
+        var max_ = MakeButton(Texts.MaxButton, 13);
+        max_.Position = V(600, 238);
+        max_.Size = V(80, 32);
+        max_.Disabled = max == 0;
+        window.AddChild(max_);
+        var deal = At(MakeLabel("", 15, TextColor), 24, 284);
+        window.AddChild(deal);
+        var trade = MakeButton(Texts.TradeButton, 15);
+        trade.Position = V(620, 316);
+        trade.Size = V(170, 36);
+        window.AddChild(trade);
+        void Show()
+        {
+            int count = (int)slider.Value;
+            deal.Text = max == 0 ? Texts.MarketNothing(_marketGive, _marketReceive)
+                : Texts.MarketDeal(_marketGive, Market.Cost(_marketGive, _marketReceive, count, markets), _marketReceive, count);
+            trade.Disabled = count == 0;
+        }
+        slider.ValueChanged += v => { _marketCount = (int)v; Show(); };
+        max_.Pressed += () => slider.Value = max;
+        trade.Pressed += () =>
+        {
+            if (_state.Trade(_marketGive, _marketReceive, (int)slider.Value) > 0)
+            {
+                _marketCount = 0;
+                Refresh();
+                OpenMarket();
+            }
+        };
+        Show();
+    }
+
     private void OpenTavern()
     {
         if (_town is not { } town)

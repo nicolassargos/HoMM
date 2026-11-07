@@ -83,6 +83,9 @@ public sealed record BuildingType
     /// <summary>Le niveau de guilde des mages que donne ce bâtiment (0 : ce n'est pas une guilde ; étape 9).</summary>
     public int MageGuild { get; init; }
 
+    /// <summary>Le marché : on y échange des ressources (<see cref="Core.Market"/>) ; chaque marché améliore les taux.</summary>
+    public bool Market { get; init; }
+
     /// <summary>
     /// Le bâtiment que celui-ci remplace (l'hôtel de ville remplace la salle du village) : à l'écran, seul le plus récent
     /// est dessiné, à la même place.

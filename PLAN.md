@@ -209,8 +209,19 @@ par jour ; tas rares de 3 à 6 ; au départ 2 de chaque ressource rare.
 - Interface : la barre du haut montre les 7 ressources ; le royaume, une case par ressource (le nom dans l'info-bulle) ;
   un coût de la même quantité des quatre rares s'écrit « 3 de chaque rare ». Les images des nouvelles mines et des tas
   viendront de la session images (en attendant, des formes dessinées).
-- Tests : `RessourcesTests`. À faire ensuite : **le marché** (échanger des ressources, à un taux qui s'améliore avec le
-  nombre de marchés ; la place est prévue dans la vue de la ville).
+- Tests : `RessourcesTests`.
+- ✅ **Le marché** (bâtiment commun, 500 or et 5 bois ; `Market`, `GameState.Trade`) : chaque ressource vaut 1 (or), 100
+  (bois, minerai) ou 250 (rare) ; on vend à 20 % de la valeur avec un marché, 10 % de plus par marché, 60 % au plus, et on
+  achète à la valeur divisée par la même part (un marché : le bois se vend 20 or et s'achète 500). Taux à revoir en
+  jouant (l'utilisateur n'en est pas sûr). Fenêtre : donner, recevoir (avec le taux), combien, « Max ». L'IA le bâtit
+  après l'habitation du niveau 3 et s'en sert quand un bâtiment attend une ressource, un bâtiment par jour au plus, en
+  gardant 1000 or pour recruter (plus le prix d'un héros s'il en manque) : sans ces garde-fous, elle bâtissait chaque jour
+  et son armée ne grandissait plus. Mesuré (six semaines, un adversaire) : Château 24 500, morts-vivants 24 800 ; Facile
+  17 500, Normal 24 500, Difficile 30 100 en or d'armée. Tests : `MarcheTests`.
+- Corrigé au passage : le joueur sans héros qui perdait sa dernière ville n'avait pas perdu (la partie continuait sans
+  lui, à l'infini) ; fin « Eliminated ».
+- **À faire (IA)** : sa prévision d'un combat (jouée trois fois) se trompe dans les combats qui tournent vite (Fantômes qui
+  grossissent, Loups qui frappent deux fois) : l'IA perd parfois son héros dans un combat jugé gagné.
 
 ### La carte (prochaine étape)
 Remarques de l'utilisateur (2026-11-07) : la carte paraît vide. À concevoir ensemble :
@@ -227,6 +238,8 @@ croissance, prix, garde.
 - Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,
   impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). Reste : les animations des sorts sur le champ
   (étape 9), avec le même système (`BattleEffects`), et peut-être une animation « touché » par créature.
+  ✅ Les options du combat (bouton Options, touche O) : la vitesse des projectiles (lente, normale, rapide), gardée
+  d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la
   date. (Icônes des ressources : faites, 2026-11-07.)
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles

@@ -47,6 +47,21 @@ public sealed class BattleEffects
 
     private readonly List<Beam> _beams = new();
 
+    private sealed class Flow
+    {
+        public Vector2 From, To;
+        public double Age;
+        public int Seed;
+    }
+
+    /// <summary>Les flux : des gouttes qui vont d'une troupe à une autre (le Vampire boit la vie de sa victime).</summary>
+    private readonly List<Flow> _flows = new();
+
+    private const double FlowTime = 0.6;
+
+    /// <summary>Un flux de gouttes rouges de <paramref name="from"/> (la victime) à <paramref name="to"/> (le Vampire).</summary>
+    public void Drain(Vector2 from, Vector2 to) => _flows.Add(new Flow { From = from, To = to, Seed = ++_seed });
+
     /// <summary>Durée d'un éclair à l'écran (il touche presque aussitôt, puis s'éteint).</summary>
     private const double BeamTime = 0.3;
     private readonly List<Impact> _impacts = new();
@@ -57,11 +72,12 @@ public sealed class BattleEffects
     {
         "boule-feu" => 1100,
         "boule-poison" => 1500,
+        "hache" => 1200,
         _ => 1500,
     };
 
     /// <summary>Hauteur de la courbe (en part de la distance) : une flèche monte puis redescend, une boule de feu va droit.</summary>
-    private static float Arc(string kind) => kind == "fleche" ? 0.12f : 0;
+    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, _ => 0 };
 
     /// <summary>L'impact joué à l'arrivée d'un projectile.</summary>
     public static string ImpactOf(string projectile) => projectile switch
@@ -70,6 +86,7 @@ public sealed class BattleEffects
         "boule-feu" => "feu",
         "eclair" => "eclair",
         "boule-poison" => "poison",
+        "hache" => "entaille",
         _ => "choc",
     };
 
@@ -104,6 +121,7 @@ public sealed class BattleEffects
         _projectiles.Clear();
         _impacts.Clear();
         _beams.Clear();
+        _flows.Clear();
     }
 
     public void Update(double delta)
@@ -124,15 +142,26 @@ public sealed class BattleEffects
         foreach (var b in _beams)
             b.Age += delta;
         _beams.RemoveAll(b => b.Age > BeamTime);
+        foreach (var w in _flows)
+            w.Age += delta;
+        _flows.RemoveAll(w => w.Age > FlowTime);
     }
 
     /// <summary>Durée d'un impact : bref, sauf le nuage de mort qui s'étale.</summary>
-    private static double ImpactTime(string kind) => kind == "nuage" ? 0.75 : 0.32;
+    private static double ImpactTime(string kind) => kind switch
+    {
+        "nuage" => 0.75,
+        "bulles" or "soin" or "ames" => 0.7,
+        "regeneration" => 1.2,
+        _ => 0.32,
+    };
 
     public void Draw(CanvasItem canvas)
     {
         foreach (var b in _beams)
             DrawBeam(canvas, b);
+        foreach (var w in _flows)
+            DrawFlow(canvas, w);
         foreach (var p in _projectiles)
             DrawProjectile(canvas, p);
         foreach (var i in _impacts)
@@ -195,6 +224,24 @@ public sealed class BattleEffects
                 Blob(canvas, here, 1, new Color(0.75f + 0.2f * pulse, 1, 0.5f));
                 break;
             }
+            case "hache":
+            {
+                // une hache qui tourne sur elle-même : un manche épais (brun, bordé de sombre) et un grand fer (gris clair au
+                // tranchant, plus sombre vers le manche)
+                float angle = (float)p.Age * 20;
+                var turn = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                var across = new Vector2(-turn.Y, turn.X);
+                var dark = new Color(0.18f, 0.12f, 0.08f);
+                Line(canvas, here - turn * Pixel * 6 + across * Pixel, here + turn * Pixel * 3 + across * Pixel, dark);
+                Line(canvas, here - turn * Pixel * 6, here + turn * Pixel * 3, new Color(0.55f, 0.37f, 0.2f));
+                for (int k = -2; k <= 3; k++)
+                {
+                    Dot(canvas, here + turn * Pixel * 3 + across * Pixel * k, new Color(0.45f, 0.46f, 0.5f));
+                    Dot(canvas, here + turn * Pixel * 4 + across * Pixel * k, new Color(0.68f, 0.7f, 0.74f));
+                    Dot(canvas, here + turn * Pixel * 5 + across * Pixel * k, new Color(0.92f, 0.93f, 0.96f));
+                }
+                break;
+            }
             case "":
                 break; // le moment d'un coup, sans image (l'éclair)
             default:
@@ -242,6 +289,11 @@ public sealed class BattleEffects
             DrawCloud(canvas, i, t);
             return;
         }
+        if (i.Kind is "bulles" or "soin" or "ames" or "regeneration")
+        {
+            DrawRising(canvas, i, t);
+            return;
+        }
         var (count, colors, spread, flash) = i.Kind switch
         {
             // un éclat bref et discret : quelques grains qui jaillissent puis tombent et s'éteignent
@@ -250,6 +302,7 @@ public sealed class BattleEffects
             "morsure" => (6, new[] { new Color(0.85f, 0.15f, 0.15f), new Color(1, 0.9f, 0.85f) }, 6f, 1),
             "poison" => (9, new[] { new Color(0.6f, 0.95f, 0.35f), new Color(0.3f, 0.6f, 0.2f) }, 8f, 1),
             "eclair" => (6, new[] { new Color(1, 1, 0.8f), new Color(1, 0.85f, 0.25f) }, 7f, 2),
+            "entaille" => (6, new[] { new Color(1, 1, 0.9f), new Color(0.7f, 0.15f, 0.1f) }, 7f, 1),
             _ => (7, new[] { new Color(1, 1, 0.85f), new Color(0.75f, 0.72f, 0.65f) }, 8f, 1), // « choc »
         };
         // le premier instant : une petite croix claire au point du coup
@@ -293,6 +346,115 @@ public sealed class BattleEffects
             var at = i.At + new Vector2(MathF.Cos(a) * r, MathF.Sin(a) * r * 0.55f) - new Vector2(0, 4 * Pixel * t);
             var color = k % 3 == 0 ? new Color(0.62f, 0.75f, 0.55f) : new Color(0.42f, 0.55f, 0.4f);
             Blob(canvas, at, k % 2 == 0 ? 2 : 1, new Color(color, Math.Clamp(1.2f - t * 1.2f, 0, 0.85f)));
+        }
+    }
+
+    /// <summary>
+    /// Ce qui monte d'une troupe : des bulles vertes (le poison qui la ronge), des étincelles vertes en croix (des soins, la
+    /// régénération du Troll), des âmes bleu pâle (le Fantôme grossit).
+    /// </summary>
+    private static void DrawRising(CanvasItem canvas, Impact i, float t)
+    {
+        var (color, count) = i.Kind switch
+        {
+            "bulles" => (new Color(0.6f, 1, 0.3f), 10),
+            "soin" => (new Color(0.6f, 1, 0.55f), 6),
+            "regeneration" => (new Color(0.6f, 1, 0.55f), 14),
+            _ => (new Color(0.75f, 0.85f, 1), 7), // « ames »
+        };
+        // la régénération part des pieds et monte plus haut, le long du corps
+        float rise = i.Kind == "regeneration" ? 28 : 16;
+        for (int k = 0; k < count; k++)
+        {
+            float start = Noise(i.Seed, k) * 0.35f;
+            float u = Math.Clamp((t - start) / 0.65f, 0, 1);
+            if (u <= 0)
+                continue;
+            float x = (Noise(i.Seed, k + 20) - 0.5f) * 14 * Pixel + MathF.Sin(u * 6 + k) * Pixel;
+            var at = i.At + new Vector2(x, (i.Kind == "regeneration" ? 0 : 6 * Pixel) - u * rise * Pixel);
+            var c = new Color(color, Math.Clamp(1.4f - u * 1.4f, 0, 1));
+            if (i.Kind is "soin" or "regeneration")
+            {
+                // une petite croix (une sur trois plus grande pour la régénération)
+                int arm = i.Kind == "regeneration" && k % 3 == 0 ? 2 : 1;
+                Dot(canvas, at, c);
+                for (int a = 1; a <= arm; a++)
+                {
+                    Dot(canvas, at + new Vector2(a * Pixel, 0), c);
+                    Dot(canvas, at - new Vector2(a * Pixel, 0), c);
+                    Dot(canvas, at + new Vector2(0, a * Pixel), c);
+                    Dot(canvas, at - new Vector2(0, a * Pixel), c);
+                }
+            }
+            else if (i.Kind == "bulles")
+                Bubble(canvas, at, k % 3 == 0 ? 2 : 1, c);
+            else
+            {
+                // une âme : un point clair avec une petite traîne
+                Dot(canvas, at, c);
+                Dot(canvas, at + new Vector2(0, Pixel), new Color(c, c.A * 0.6f));
+                Dot(canvas, at + new Vector2(0, 2 * Pixel), new Color(c, c.A * 0.3f));
+            }
+        }
+    }
+
+    /// <summary>Une bulle : un disque de pixels d'art (rayon 1 ou 2), avec un reflet clair.</summary>
+    private static void Bubble(CanvasItem canvas, Vector2 at, int radius, Color color)
+    {
+        // un disque plein, un peu plus sombre au bord, avec un reflet clair en haut à gauche
+        var edge = new Color(color.R * 0.6f, color.G * 0.75f, color.B * 0.6f, color.A);
+        for (int y = -radius; y <= radius; y++)
+        for (int x = -radius; x <= radius; x++)
+        {
+            int d = x * x + y * y;
+            if (d <= radius * radius + radius / 2)
+                Dot(canvas, at + new Vector2(x, y) * Pixel, d >= radius * radius - radius + 1 && radius > 1 ? edge : color);
+        }
+        if (radius > 1)
+            Dot(canvas, at + new Vector2(-1, -1) * Pixel, new Color(0.95f, 1, 0.85f, color.A));
+    }
+
+    /// <summary>Des gouttes rouges qui vont de la victime au Vampire, le long d'une courbe, l'une après l'autre.</summary>
+    private static void DrawFlow(CanvasItem canvas, Flow w)
+    {
+        float t = (float)(w.Age / FlowTime);
+        for (int k = 0; k < 9; k++)
+        {
+            float u = t * 1.6f - k * 0.08f;
+            if (u <= 0 || u >= 1)
+                continue;
+            var straight = w.From.Lerp(w.To, u);
+            var at = straight - new Vector2(0, MathF.Sin(u * MathF.PI) * 10 * Pixel)
+                     + new Vector2(0, (Noise(w.Seed, k) - 0.5f) * 4 * Pixel);
+            Dot(canvas, at, k % 3 == 0 ? new Color(1, 0.45f, 0.45f) : new Color(0.75f, 0.1f, 0.12f));
+        }
+    }
+
+    /// <summary>
+    /// Une aura discrète sur une troupe tant qu'un état dure : des bulles vertes (empoisonnée), des étincelles dorées (un
+    /// sort utile), des points violets (un sort néfaste). <paramref name="time"/> : le temps du combat ;
+    /// <paramref name="seed"/> : propre à la troupe (les auras ne battent pas ensemble).
+    /// </summary>
+    public static void DrawAura(CanvasItem canvas, string kind, Vector2 center, double time, int seed)
+    {
+        var color = kind switch
+        {
+            "poison" => new Color(0.6f, 1, 0.3f),
+            "benefique" => new Color(1, 0.88f, 0.45f),
+            _ => new Color(0.8f, 0.55f, 1), // « nefaste »
+        };
+        // des grains (des bulles pour le poison) qui montent en boucle, chacun à son rythme, autour du corps
+        int count = kind == "poison" ? 4 : 3;
+        for (int k = 0; k < count; k++)
+        {
+            float u = (float)((time * 0.6 + Noise(seed, k)) % 1);
+            float x = (Noise(seed, k + 10) - 0.5f) * 12 * Pixel;
+            var at = center + new Vector2(x, 5 * Pixel - u * 12 * Pixel);
+            var c = new Color(color, MathF.Sin(u * MathF.PI) * 0.9f);
+            if (kind == "poison")
+                Bubble(canvas, at, k % 2 == 0 ? 2 : 1, c);
+            else
+                Dot(canvas, at, c);
         }
     }
 

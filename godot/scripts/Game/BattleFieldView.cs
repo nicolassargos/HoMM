@@ -205,6 +205,9 @@ public partial class BattleFieldView : Control
         /// <summary>Le recul d'une troupe touchée (de 1 au coup à 0), et son sens (+1 : vers la droite).</summary>
         public float Recoil, RecoilDirection;
 
+        /// <summary>Une lueur verte qui s'éteint (de 1 à 0) : la troupe vient de se régénérer.</summary>
+        public float Glow;
+
         /// <summary>Tournée vers la gauche (dessinée en miroir) pendant une marche ou un coup ; null : le côté de son
         /// camp (l'attaquant regarde à droite, le défenseur à gauche).</summary>
         public bool? FacesLeft;
@@ -225,6 +228,9 @@ public partial class BattleFieldView : Control
 
     /// <summary>Projectiles et impacts (dessinés par le jeu).</summary>
     private readonly BattleEffects _effects = new();
+
+    /// <summary>Le temps du combat à l'écran (pour les auras, qui tournent en boucle).</summary>
+    private double _time;
 
     /// <summary>Les cases à mettre en valeur : où la troupe active peut aller, la case survolée, la cible visée.</summary>
     public IReadOnlyCollection<Hex> Reachable { get; set; } = Array.Empty<Hex>();
@@ -352,6 +358,7 @@ public partial class BattleFieldView : Control
             bool cloud = action is UnitStruck { Ranged: true, Retaliation: false } follow
                 && previous is UnitStruck { Ranged: true } before && before.Attacker == follow.Attacker
                 && follow.Attacker.Has(Ability.DeathCloud);
+            var last = previous; // l'action d'avant (le coup du Vampire, avant qu'il boive)
             previous = action;
             var told = action;
             _animations.Enqueue(_ =>
@@ -585,6 +592,7 @@ public partial class BattleFieldView : Control
                             var target = _shown[poisoned.Unit];
                             target.Count = Math.Max(0, target.Count - poisoned.Killed);
                             target.Flash = 1;
+                            _effects.Hit("bulles", BodyCenter(poisoned.Unit, target), 1);
                             _floating.Add(($"-{poisoned.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(150, 220, 90)));
                         }
                         venom += delta;
@@ -602,6 +610,7 @@ public partial class BattleFieldView : Control
                         if (grow == 0)
                         {
                             _shown[grew.Unit].Count += grew.Added;
+                            _effects.Hit("ames", BodyCenter(grew.Unit, _shown[grew.Unit]), 1);
                             _floating.Add(($"+{grew.Added}", _shown[grew.Unit].Position + Ui.V(0, -50), 0, MapRenderer.Rgb(200, 220, 255)));
                         }
                         grow += delta;
@@ -615,10 +624,25 @@ public partial class BattleFieldView : Control
                         if (drink == 0)
                         {
                             _shown[drained.Unit].Count += drained.Revived;
+                            // la vie bue coule de sa victime jusqu'à lui
+                            if (last is UnitStruck bitten && bitten.Attacker == drained.Unit && _shown.TryGetValue(bitten.Target, out var victim))
+                                _effects.Drain(BodyCenter(bitten.Target, victim), BodyCenter(drained.Unit, _shown[drained.Unit]));
                             _floating.Add(($"+{drained.HitPoints}", _shown[drained.Unit].Position + Ui.V(0, -50), 0, MapRenderer.Rgb(230, 80, 80)));
                         }
                         drink += delta;
                         return drink >= 0.3;
+                    });
+                    break;
+                case UnitRegenerated regenerated:
+                    double regrow = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (regrow == 0)
+                            _shown[regenerated.Unit].Glow = 1;
+                        if (regrow == 0)
+                            _effects.Hit("regeneration", _shown[regenerated.Unit].Position + new Vector2(0, HexHeight / 2 - Ui.Px(10)), 1);
+                        regrow += Math.Max(delta, 1e-6);
+                        return regrow >= 0.3;
                     });
                     break;
                 case UnitHealed healed:
@@ -629,6 +653,7 @@ public partial class BattleFieldView : Control
                         {
                             var target = _shown[healed.Unit];
                             target.Count += healed.Revived;
+                            _effects.Hit("soin", BodyCenter(healed.Unit, target), 1);
                             target.Gone = target.Count == 0;
                             _floating.Add(($"+{healed.HitPoints}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(140, 235, 140)));
                         }
@@ -662,9 +687,11 @@ public partial class BattleFieldView : Control
         {
             shown.Flash = Math.Max(0, shown.Flash - (float)delta * 3);
             shown.Recoil = Math.Max(0, shown.Recoil - (float)delta * 4);
+            shown.Glow = Math.Max(0, shown.Glow - (float)delta * 1.2f);
             shown.StateTime += delta;
         }
         _effects.Update(delta);
+        _time += delta;
         for (int i = _bursts.Count - 1; i >= 0; i--)
         {
             var (hexes, color, age) = _bursts[i];
@@ -770,6 +797,19 @@ public partial class BattleFieldView : Control
                 things.Add((shown.Position.Y, () => DrawUnit(unit, shown)));
         foreach (var (_, draw) in things.OrderBy(t => t.Y))
             draw();
+        // les auras des états qui durent : poison, sorts utiles ou néfastes
+        foreach (var (unit, shown) in _shown)
+        {
+            if (shown.Gone || !unit.IsAlive)
+                continue;
+            var body = BodyCenter(unit, shown);
+            if (unit.PoisonTurnsLeft > 0)
+                BattleEffects.DrawAura(this, "poison", body, _time, unit.Id * 7 + 1);
+            if (unit.Spells.Any(s => !s.Spell.Harmful))
+                BattleEffects.DrawAura(this, "benefique", body, _time, unit.Id * 7 + 2);
+            if (unit.Spells.Any(s => s.Spell.Harmful))
+                BattleEffects.DrawAura(this, "nefaste", body, _time, unit.Id * 7 + 3);
+        }
         _effects.Draw(this);
 
         var font = ThemeDB.FallbackFont;
@@ -861,6 +901,15 @@ public partial class BattleFieldView : Control
         // une troupe touchée recule d'un coup (3 pixels d'art) puis revient à sa place
         var foot = shown.Position + new Vector2(shown.RecoilDirection * shown.Recoil * BattleEffects.Pixel * 3, HexHeight / 2 - Ui.Px(10));
         var tint = shown.Flash > 0 ? new Color(1, 1 - shown.Flash * 0.6f, 1 - shown.Flash * 0.6f) : Colors.White;
+        // une troupe qui se régénère s'éclaire de vert un instant
+        if (shown.Glow > 0)
+            tint *= new Color(1 - 0.35f * shown.Glow, 1, 1 - 0.45f * shown.Glow);
+        // une troupe empoisonnée verdit, en palpitant doucement, tant que le poison dure
+        if (unit.PoisonTurnsLeft > 0)
+        {
+            float pulse = 0.5f + 0.5f * MathF.Sin((float)_time * 3 + unit.Id);
+            tint *= new Color(0.72f - 0.08f * pulse, 1, 0.62f - 0.08f * pulse);
+        }
         // L'image de combat (plus détaillée), sinon la petite de la carte ×3 ; une grande créature est centrée sur ses 2 cases
         var battleImage = Art.Get($"creatures/battle/{unit.Type.Id}");
         var (sheet, frame) = Frame(unit, shown);

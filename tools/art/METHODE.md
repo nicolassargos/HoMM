@@ -108,6 +108,17 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).
 
+## Effets du combat (dessinés par le jeu)
+- **Pas d'effet dans les animations des créatures** : projectiles, impacts, auras sont dessinés par `Game/BattleEffects.cs`,
+  en **pixels d'art de 3 pixels de l'écran** (la finesse des créatures ×3), sans image : flèche (en arc, tournée selon sa
+  course), boule de feu (Moine), boule de poison (Liche), hache qui tourne (Orc) ; éclair (gardé pour plus tard, jaune) ;
+  impacts (choc, piqûre, entaille, morsure, feu, poison) ; nuage de mort ; bulles, soins, âmes ; flux de sang (Vampire) ;
+  auras (poison, sort utile ou néfaste) ; la troupe touchée recule, une troupe empoisonnée verdit, une troupe qui se
+  régénère s'éclaire de vert.
+- Réglages par créature dans `art/creatures/battle/animations.json` : `projectile`, `launchFrame` (l'image du lâcher),
+  `launchPoint` ([x, y] dans l'image d'attaque), `impact`. Le coup d'un tir porte à l'arrivée du projectile.
+- Écarté : le style `rd_animation__vfx` de Retro Diffusion (2026-11-07) : trois essais rendus vides (0,28 $).
+
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans
   la barre des ressources et le royaume ; `-grand.png` en 32 × 32 pour les fenêtres à venir) : PixelLab « Pro » à 32 × 32

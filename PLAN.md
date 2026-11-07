@@ -193,8 +193,9 @@ Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes)
 croissance, prix, garde.
 
 ## Étape 10 : finitions
-- Animations des créatures avec PixelLab (au fil de l'eau) ; projectiles (flèches, boule de feu du Moine) et effets
-  des sorts dessinés par le jeu.
+- Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,
+  impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). Reste : les animations des sorts sur le champ
+  (étape 9), avec le même système (`BattleEffects`), et peut-être une animation « touché » par créature.
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la
   date. (Icônes des ressources : faites, 2026-11-07.)
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles

@@ -770,6 +770,11 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   croissance, prix, garde éventuelle.
 
 ### 10. Finitions : apparence et détails
+- ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui
+  volent jusqu'à leur cible (le coup porte à l'arrivée), un impact à chaque coup, recul de la troupe touchée, nuage de
+  mort et boule de poison de la Liche, hache de l'Orc, flux de sang du Vampire, poison (bulles, troupe qui verdit),
+  régénération du Troll, âmes du Fantôme, auras des sorts. Réglage de la vitesse des projectiles : `ProjectileSpeed`
+  (le bouton de l'écran de combat est fait par l'autre session).
 - ✅ Icônes des ressources (2026-11-07) : or, bois, minerai, gemmes, et d'avance mercure, cristal, soufre (pas encore dans
   les règles) ; 16 × 16 dans la barre et le royaume, 32 × 32 pour plus tard.
 Une fois les écrans fixés (étape 7) et le contenu en place.

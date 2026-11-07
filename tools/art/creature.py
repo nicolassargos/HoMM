@@ -409,8 +409,9 @@ copie retournée (le défenseur) en face ; un déplacement traverse quatre cases
 {anims}
 <script>
 const ANIMS={donnees};
-const HW=73.3,HH=84,PIED=34;
-function hexa(g,cx,cy){{g.beginPath();for(let i=0;i<6;i++){{const a=Math.PI/3*i+Math.PI/6;g.lineTo(cx+HH/2*Math.cos(a),cy+HH/2*Math.sin(a));}}
+// cases du jeu (110 × 100, aplaties) à l'échelle de la page (×2 au lieu de ×3) ; le pied est 35 px sous le centre
+const HW=73.3,HH=66.7,PIED=23.3;
+function hexa(g,cx,cy){{g.beginPath();for(let i=0;i<6;i++){{const a=Math.PI/3*i+Math.PI/6;g.lineTo(cx+HW/2/Math.cos(Math.PI/6)*Math.cos(a),cy+HH/2*Math.sin(a));}}
  g.closePath();g.fillStyle="rgba(0,0,0,0.06)";g.fill();g.strokeStyle="rgba(0,0,0,0.35)";g.stroke();}}
 function bruit(c,p){{return Math.abs(Math.sin(c*12.9898+p*78.233)*43758.5453)%1;}}
 function image(t,fps,attaque,pause,phase,nb){{

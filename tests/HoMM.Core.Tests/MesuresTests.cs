@@ -97,12 +97,49 @@ public class MesuresTests(ITestOutputHelper output)
         }
     }
 
-    /// <summary>La courbe du Château : combien de paysans (héros de départ) pour vaincre une unité de chaque créature.</summary>
+    /// <summary>
+    /// Un adversaire de chaque faction (Normal), six semaines, sur les mêmes cartes : les factions doivent se valoir.
+    /// </summary>
+    [Mesure]
+    public void Adversaires_par_faction()
+    {
+        foreach (var faction in TestData.Data.Classes.PlayableFactions)
+        {
+            var values = new List<int>();
+            int towns = 0, battles = 0, defeated = 0;
+            foreach (int seed in Seeds)
+            {
+                var state = new GameState(seed, TestData.Data, MapSize.Normal, opponents: 1, opponentFactions: new[] { faction });
+                state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
+                state.Players[0].Heroes[0].Army.Add(TestData.Creatures.Get("ange"), 50);
+                PlayDays(state, 42);
+                var rival = state.Players[1];
+                values.Add(rival.Heroes.Sum(h => Battle.ExperienceFor(h.Army.Stacks)) + rival.Towns.Sum(t => Battle.ExperienceFor(t.Garrison.Stacks)));
+                towns += rival.Towns.Count;
+                battles += rival.Statistics.BattlesWon;
+                defeated += rival.IsDefeated ? 1 : 0;
+            }
+            int n = Seeds.Length;
+            output.WriteLine($"{faction} : armée {Range(values)} ; par partie : {towns / (double)n:0.0} villes, "
+                             + $"{battles / (double)n:0.0} combats gagnés ; éliminé {defeated} fois");
+        }
+    }
+
+    /// <summary>
+    /// La courbe de chaque faction : combien de paysans (sans héros) pour vaincre une unité de chaque créature. Deux
+    /// créatures du même niveau devraient en demander à peu près autant.
+    /// </summary>
     [Mesure]
     public void Courbe_du_chateau()
     {
+        foreach (var faction in TestData.Creatures.All.Select(c => c.Faction).Distinct())
+            output.WriteLine($"{faction} : " + string.Join(", ", Curve(faction)));
+    }
+
+    private static IEnumerable<string> Curve(string faction)
+    {
         var line = new List<string>();
-        foreach (var creature in TestData.Creatures.All.Where(c => c.Faction == "chateau" && c.Tier > 1).OrderBy(c => c.Tier))
+        foreach (var creature in TestData.Creatures.All.Where(c => c.Faction == faction && c.Id != "paysan").OrderBy(c => c.Tier))
         {
             int peasants = 1;
             while (peasants < 100_000)
@@ -115,9 +152,9 @@ public class MesuresTests(ITestOutputHelper output)
                     break;
                 peasants = Math.Max(peasants + 1, (int)(peasants * 1.05));
             }
-            line.Add($"{creature.Name} {peasants}");
+            line.Add($"{creature.Tier}. {creature.Name} {peasants}");
         }
-        output.WriteLine("Paysans pour vaincre une unité : " + string.Join(", ", line));
+        return line;
     }
 
     /// <summary>Joue des jours : le joueur passe son tour, les adversaires jouent.</summary>

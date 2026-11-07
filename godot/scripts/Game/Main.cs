@@ -99,8 +99,8 @@ public partial class Main : Node2D
         var setup = _setup;
         _setup = null;
         _state = loaded ?? (setup != null
-            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents, heroName: setup.HeroName)
-            : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents()));
+            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents, heroName: setup.HeroName, faction: setup.Faction)
+            : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents(), faction: ReadFaction()));
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
@@ -271,14 +271,19 @@ public partial class Main : Node2D
             foreach (var spell in _state.Data.Spells.All)
                 mage.Learn(spell);
         }
-        // Développement : « --battle-showcase » : les 7 créatures du Château contre les 7 neutres, sur l'écran de combat
-        // (pour comparer les images ; ce combat ne compte pas dans la partie) ; avec « --battle-auto », il se joue seul
-        if (OS.GetCmdlineUserArgs().Contains("--battle-showcase"))
+        // Développement : « --battle-showcase » : les 7 créatures du Château contre les 7 morts-vivants (« --battle-showcase=neutre » :
+        // contre les neutres), sur l'écran de combat (pour comparer les images ; ce combat ne compte pas dans la partie) ;
+        // avec « --battle-auto », il se joue seul
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--battle-showcase")) is { } showcase)
         {
+            string rivals = showcase.StartsWith("--battle-showcase=") ? showcase["--battle-showcase=".Length..] : "morts-vivants";
             var castle = new Army();
             var neutral = new Army();
             foreach (var creature in _state.Creatures.All.OrderBy(c => c.Tier))
-                (creature.Faction == "chateau" ? castle : neutral).Add(creature, 5);
+                if (creature.Faction == "chateau")
+                    castle.Add(creature, 5);
+                else if (creature.Faction == rivals)
+                    neutral.Add(creature, 5);
             _battleScreen.Open(new TacticalBattle(castle, neutral, new GameRandom(1)), "la vitrine", TerrainType.Grass, () => { },
                 auto: OS.GetCmdlineUserArgs().Contains("--battle-auto"), hero: _state.CurrentHero);
         }
@@ -341,11 +346,11 @@ public partial class Main : Node2D
         var town = _state.Towns.First();
         town.SetOwner(player);
         var data = _state.Data; // les créatures de la partie (une autre copie des données ne fusionnerait pas les troupes)
-        // tous les bâtiments sauf les trois derniers, pour voir aussi des cartes « à construire »
-        foreach (var building in data.Buildings.All.SkipLast(3))
+        // tous les bâtiments de sa faction sauf les trois derniers, pour voir aussi des cartes « à construire »
+        foreach (var building in town.Buildings.ToList().SkipLast(3))
             if (!town.Has(building.Id))
                 _state.AddFreeBuilding(town, building);
-        foreach (var creature in data.Creatures.All.Where(c => c.Faction == "chateau").Take(4))
+        foreach (var creature in data.Creatures.All.Where(c => c.Faction == town.Faction).OrderBy(c => c.Tier).Take(4))
             town.Garrison.Add(creature, 10);
         // le héros dans la ville, pour voir aussi son armée
         if (_state.CurrentHero is { } hero)
@@ -438,6 +443,10 @@ public partial class Main : Node2D
     }
 
     /// <summary>Les données du jeu, décrites dans le dossier data/ (créatures, bâtiments).</summary>
+    /// <summary>Développement : « --faction=morts-vivants » joue cette faction (sans : le Château).</summary>
+    private static string? ReadFaction() =>
+        OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--faction=")) is { } arg ? arg["--faction=".Length..] : null;
+
     /// <summary>Les données du jeu (aussi pour la fenêtre Nouvelle partie : les héros et les classes).</summary>
     internal static GameData LoadData() => GameData.FromJson(
         Godot.FileAccess.GetFileAsString("res://data/creatures.json"),

@@ -88,11 +88,20 @@ public static class ComputerPlayer
     /// L'ordre de construction : les habitations et la taverne d'abord (des troupes, un deuxième héros), puis l'or
     /// (comme la simulation d'équilibrage).
     /// </summary>
-    private static readonly string[] BuildOrder =
+    /// <summary>
+    /// L'ordre de construction d'une ville, pour toutes les factions : l'habitation du niveau 2, la taverne, l'hôtel de
+    /// ville, les habitations des niveaux 3 à 5, la guilde, le niveau 6, la guilde 2, le grand hôtel de ville, le niveau 7,
+    /// puis la fin de la guilde (comme la simulation d'équilibrage pour le Château).
+    /// </summary>
+    private static IEnumerable<string> BuildOrder(Town town)
     {
-        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "caserne", "monastere", "guilde-mages-1",
-        "terrain-entrainement", "guilde-mages-2", "grand-hotel-ville", "portail-gloire", "guilde-mages-3", "guilde-mages-4",
-    };
+        string? Dwelling(int tier) => town.DwellingOfTier(tier)?.Id;
+        return new[]
+        {
+            Dwelling(2), "taverne", "hotel-ville", Dwelling(3), Dwelling(4), Dwelling(5), "guilde-mages-1",
+            Dwelling(6), "guilde-mages-2", "grand-hotel-ville", Dwelling(7), "guilde-mages-3", "guilde-mages-4",
+        }.OfType<string>();
+    }
 
     /// <summary>Le nombre de héros voulus : un de plus que de villes, et pas plus que ne le permet la difficulté.</summary>
     private static int WantedHeroes(GameState state, Player player) => Math.Min(Profile(state).MaxHeroes, player.Towns.Count + 1);
@@ -134,7 +143,7 @@ public static class ComputerPlayer
     private static void BuildNext(GameState state, Town town, Player player)
     {
         BuildingType? waiting = null;
-        foreach (var id in BuildOrder)
+        foreach (var id in BuildOrder(town))
         {
             if (town.Buildings.FirstOrDefault(b => b.Id == id) is not { } building || town.Has(id))
                 continue;

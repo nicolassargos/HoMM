@@ -13,6 +13,8 @@ namespace HoMM.Core;
 public sealed class MapGenerator
 {
     private readonly Random _rng;
+    /// <summary>Le hasard de la faction des villes neutres, à part : il ne change pas le reste de la carte.</summary>
+    private readonly Random _factionRng;
     private readonly GameData? _data;
     private AdventureMap _map = null!;
 
@@ -26,8 +28,15 @@ public sealed class MapGenerator
     public MapGenerator(int seed, GameData? data = null)
     {
         _rng = new Random(seed);
+        _factionRng = new Random(seed * 7919 + 17);
         _data = data;
     }
+
+    /// <summary>La faction de chaque joueur, dans l'ordre des départs (son château de départ) ; sans : le Château.</summary>
+    public IReadOnlyList<string> PlayerFactions { get; init; } = new List<string>();
+
+    /// <summary>La faction par défaut des villes (et des joueurs sans faction choisie).</summary>
+    public const string DefaultFaction = "chateau";
 
     /// <summary>Monstres placés n'importe où, en plus de ceux qui gardent les passages, les mines et les coffres (pour une carte de 40 × 30).</summary>
     public int WanderingGuardCount { get; init; } = 5;
@@ -47,8 +56,11 @@ public sealed class MapGenerator
     /// <summary>Une mine par zone, et au moins une de chaque ressource.</summary>
     public int MineCount => Math.Max(ResourceInfo.All.Length, _zones.Count);
 
-    /// <summary>Les monstres de la carte sont des créatures neutres (les créatures des factions se recrutent en ville).</summary>
-    public const string MonsterFaction = "neutre";
+    /// <summary>
+    /// Les factions dont viennent les monstres de la carte : les neutres, et les morts-vivants (étape 9, en attendant
+    /// qu'ils aient leur ville : on les rencontre déjà sur la carte).
+    /// </summary>
+    public static readonly string[] MonsterFactions = { "neutre", "morts-vivants" };
 
     /// <summary>Coffres et tas de ressources, pour une carte de 40 × 30 (plus sur une grande carte).</summary>
     public int ChestCount { get; init; } = 6;
@@ -456,9 +468,9 @@ public sealed class MapGenerator
         var names = TownNames.ToList();
         Shuffle(names);
         // chaque joueur commence avec son château, l'entrée sur son départ (comme dans Heroes 2 et 3)
-        foreach (var start in StartingTowns ? _map.Starts : new List<Cell>())
+        foreach (var (start, i) in (StartingTowns ? _map.Starts : new List<Cell>()).Select((s, i) => (s, i)))
         {
-            PlaceStartingTown(data, start, names[0]);
+            PlaceStartingTown(data, start, names[0], i < PlayerFactions.Count ? PlayerFactions[i] : DefaultFaction);
             names.RemoveAt(0);
         }
         if (_zones.Count == 1)
@@ -498,7 +510,7 @@ public sealed class MapGenerator
     /// départ, sans route sous les murs), la salle du village et le corps de garde, sans garnison. La partie le donne au
     /// joueur (voir <see cref="GameState"/>).
     /// </summary>
-    private void PlaceStartingTown(GameData data, Cell start, string name)
+    private void PlaceStartingTown(GameData data, Cell start, string name, string faction)
     {
         foreach (var f in Town.FootprintAt(start).Append(start.Offset(0, 1)))
         {
@@ -506,10 +518,18 @@ public sealed class MapGenerator
             if (f != start && f != start.Offset(0, 1))
                 _map.SetRoad(f, false);
         }
-        var town = new Town(start, name, "chateau", data);
+        var town = new Town(start, name, faction, data);
         town.AddBuilding(data.Buildings.Get("salle-village"));
-        town.AddBuilding(data.Buildings.Get("corps-de-garde"));
+        if (town.DwellingOfTier(1) is { } dwelling)
+            town.AddBuilding(dwelling);
         _map.AddObject(town);
+    }
+
+    /// <summary>La faction d'une ville neutre : une des factions qu'on peut jouer, au hasard.</summary>
+    private string NeutralTownFaction(GameData data)
+    {
+        var factions = data.Classes.PlayableFactions;
+        return factions.Count == 0 ? DefaultFaction : factions[_factionRng.Next(factions.Count)];
     }
 
     private bool PlaceTownInZone(GameData data, Zone zone, string name, Cell? towards = null)
@@ -559,19 +579,33 @@ public sealed class MapGenerator
         AddTown(data, candidates[_rng.Next(candidates.Count)], name, 1);
     }
 
-    /// <summary>Une ville neutre, avec une garnison d'autant plus forte que sa zone est lointaine (niveau 1 et plus).</summary>
+    /// <summary>
+    /// Une ville neutre d'une faction au hasard, avec une garnison de ses créatures (niveaux 1 à 4), d'autant plus forte
+    /// que sa zone est lointaine. Les nombres sont ceux d'une garnison du Château, ramenés à la force des créatures de la
+    /// faction (une garnison de morts-vivants vaut une garnison du Château).
+    /// </summary>
     private void AddTown(GameData data, Cell cell, string name, int level)
     {
-        var town = new Town(cell, name, "chateau", data);
+        var town = new Town(cell, name, NeutralTownFaction(data), data);
         town.AddBuilding(data.Buildings.Get("salle-village"));
-        town.AddBuilding(data.Buildings.Get("corps-de-garde"));
+        if (town.DwellingOfTier(1) is { } dwelling)
+            town.AddBuilding(dwelling);
         level = Math.Max(1, level);
-        town.Garrison.Add(data.Creatures.Get("paysan"), _rng.Next(15, 25) * level);
-        town.Garrison.Add(data.Creatures.Get("archer"), _rng.Next(6, 11) * level);
-        if (level >= 2)
-            town.Garrison.Add(data.Creatures.Get("griffon"), _rng.Next(4, 8) * (level - 1));
-        if (level >= 3)
-            town.Garrison.Add(data.Creatures.Get("epeiste"), _rng.Next(3, 6) * (level - 2));
+        var counts = new[]
+        {
+            (Tier: 1, Count: _rng.Next(15, 25) * level), (Tier: 2, Count: _rng.Next(6, 11) * level),
+            (Tier: 3, Count: level >= 2 ? _rng.Next(4, 8) * (level - 1) : 0), (Tier: 4, Count: level >= 3 ? _rng.Next(3, 6) * (level - 2) : 0),
+        };
+        foreach (var (tier, count) in counts.Where(c => c.Count > 0))
+        {
+            var reference = data.Creatures.All.FirstOrDefault(c => c.Faction == DefaultFaction && c.Tier == tier);
+            var type = data.Creatures.All.FirstOrDefault(c => c.Faction == town.Faction && c.Tier == tier);
+            if (type == null || reference == null)
+                continue;
+            double factor = type == reference ? 1
+                : (double)CreatureStrength.PeasantsToBeat(reference, data.Creatures) / CreatureStrength.PeasantsToBeat(type, data.Creatures);
+            town.Garrison.Add(type, Math.Max(1, (int)Math.Round(count * factor)));
+        }
         _map.AddObject(town);
     }
 
@@ -898,7 +932,7 @@ public sealed class MapGenerator
         int tier = Math.Clamp(1 + (int)(danger * 6), 1, MaxGuardTier);
 
         // S'il n'y a pas de monstre de ce niveau, on prend le niveau inférieur le plus proche
-        var monsters = creatures.All.Where(c => c.Faction == MonsterFaction && c.Tier <= tier).ToList();
+        var monsters = creatures.All.Where(c => MonsterFactions.Contains(c.Faction) && c.Tier <= tier).ToList();
         if (monsters.Count == 0)
             return null;
         tier = monsters.Max(c => c.Tier);
@@ -908,9 +942,26 @@ public sealed class MapGenerator
         int count = _rng.Next(baseCount, 2 * baseCount + 1);
         // Les troupes lointaines sont aussi plus nombreuses
         count = (int)Math.Round(count * (1 + GuardSizeGrowth * danger) * sizeFactor);
+        // une créature d'une faction (les morts-vivants) : autant de force qu'un gardien neutre de ce niveau
+        count = Math.Max(1, (int)Math.Round(count * StrengthFactor(creatures, type, tier)));
         var guard = new MonsterGuard(cell, type, count);
         _map.AddObject(guard);
         return guard;
+    }
+
+    /// <summary>
+    /// Les tailles des gardiens sont réglées pour les créatures neutres. Pour une créature d'une autre faction, on la
+    /// compare à la créature neutre du même niveau (ou du niveau en dessous) par sa force mesurée (combien de paysans il
+    /// faut pour en vaincre une, capacités comprises) : la troupe a autant de force que le gardien neutre.
+    /// </summary>
+    private static double StrengthFactor(CreatureCatalog creatures, CreatureType type, int tier)
+    {
+        if (type.Faction == "neutre")
+            return 1;
+        var reference = creatures.All.Where(c => c.Faction == "neutre" && c.Tier <= tier).OrderByDescending(c => c.Tier).FirstOrDefault();
+        if (reference == null)
+            return 1;
+        return (double)CreatureStrength.PeasantsToBeat(reference, creatures) / CreatureStrength.PeasantsToBeat(type, creatures);
     }
 
     private void Shuffle<T>(IList<T> list)

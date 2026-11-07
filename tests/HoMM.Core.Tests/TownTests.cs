@@ -47,11 +47,12 @@ public class TownTests
             Assert.Null(town.Owner);
             Assert.False(town.Garrison.IsEmpty);
             Assert.True(town.Has("salle-village"));
-            Assert.True(town.Has("corps-de-garde"));
+            Assert.True(town.Has(town.DwellingOfTier(1)!.Id)); // l'habitation du niveau 1 de sa faction
             Assert.False(map.IsGuarded(town.Position));
         }
         // La ville la plus proche a la plus petite garnison
-        static int Strength(Town t) => t.Garrison.Stacks.Sum(s => s.Count * s.Type.HitPoints);
+        // la force : combien de paysans valent ses troupes (les factions n'ont pas les mêmes points de vie)
+        static int Strength(Town t) => t.Garrison.Stacks.Sum(s => s.Count * CreatureStrength.PeasantsToBeat(s.Type, TestData.Creatures));
         Assert.All(towns.Skip(1), t => Assert.True(Strength(towns[0]) <= Strength(t)));
     }
 
@@ -254,11 +255,13 @@ public class TownTests
     {
         foreach (var building in TestData.Data.Buildings.All)
         {
-            foreach (var required in building.Requires)
+            foreach (var required in building.RequirementChoices.SelectMany(c => c))
                 Assert.NotNull(TestData.Data.Buildings.Get(required));
             if (building.Dwelling is { } creature)
                 Assert.NotNull(TestData.Creatures.Get(creature));
         }
-        Assert.Equal(7, TestData.Data.Buildings.All.Count(b => b.Dwelling != null));
+        // 7 habitations par faction jouable
+        foreach (var faction in TestData.Data.Classes.PlayableFactions)
+            Assert.Equal(7, TestData.Data.Buildings.All.Count(b => b.Dwelling != null && b.Faction == faction));
     }
 }

@@ -135,6 +135,12 @@ public static class Texts
                         + (s.Killed > 0 ? $", {s.Killed} {(s.Killed == 1 ? "tué" : "tués")}." : "."),
         UnitWaited w => $"{Capitalize(Stack(w.Unit.Stack))} {(w.Unit.Count == 1 ? "attend" : "attendent")}.",
         UnitRegenerated r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "se régénère" : "se régénèrent")}.",
+        UnitPoisoned p => $"Le poison ronge {Stack(new CreatureStack(p.Unit.Type, p.Unit.Count + p.Killed))} : {p.Damage} dégâts"
+                          + (p.Killed > 0 ? $", {p.Killed} {(p.Killed == 1 ? "tué" : "tués")}." : "."),
+        UnitGrew g => $"{g.Added} {Creature(g.Unit.Type, g.Added)} de plus rejoigne{(g.Added == 1 ? "" : "nt")} la troupe !",
+        UnitDrained d => d.Revived > 0
+            ? $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.Revived} {(d.Revived == 1 ? "revient" : "reviennent")} à la vie en buvant le sang."
+            : $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.HitPoints} PV repris en buvant le sang.",
         UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
         SpellCast c => $"{c.Caster.Name} lance {c.Spell.Name}.",
         SpellDamaged d => $"{d.Spell.Name} : {d.Damage} dégâts à {Stack(new CreatureStack(d.Target.Type, d.Target.Count + d.Killed))}"
@@ -281,7 +287,8 @@ public static class Texts
         BuildResult.AlreadyBuilt => "Construit",
         BuildResult.AlreadyBuiltToday => "Un bâtiment par jour",
         BuildResult.MissingRequirement => "Requiert : " + string.Join(", ",
-            town.Buildings.Where(b => building.Requires.Contains(b.Id) && !town.Has(b.Id)).Select(b => b.Name)),
+            building.RequirementChoices.Where(choices => !choices.Any(town.Has))
+                .SelectMany(choices => town.Buildings.Where(b => choices.Contains(b.Id)).Take(1)).Select(b => b.Name)),
         BuildResult.NotEnoughResources => "Ressources insuffisantes",
         BuildResult.NotOwner => "Ville ennemie",
         _ => result.ToString(),
@@ -561,6 +568,8 @@ public static class Texts
         TownEntered entered => $"{entered.Hero.Name} entre dans {entered.Town.Name}.",
         BuildingBuilt built when built.Town.Owner != viewer => null,
         BuildingBuilt built => $"{built.Building.Name} : construit à {built.Town.Name}.",
+        DeadRaised raised when raised.Hero.Owner != viewer => null,
+        DeadRaised raised => $"Nécromancie : {raised.Count} {Creature(raised.Type, raised.Count)} se relève{(raised.Count == 1 ? "" : "nt")} dans l'armée de {raised.Hero.Name}.",
         SpellsLearned learned when learned.Hero.Owner != viewer => null,
         SpellsLearned learned => $"{learned.Hero.Name} apprend {List(learned.Spells.Select(s => s.Name).ToList())} à la guilde des mages de {learned.Town.Name}.",
         HeroHired hired when hired.Hero.Owner != viewer => null,
@@ -726,6 +735,12 @@ public static class Texts
         Ability.Crushing => "coup écrasant",
         Ability.Regenerates => "se régénère",
         Ability.TwoHex => "grande créature",
+        Ability.Undead => "mort-vivant (insensible aux sorts de l'esprit et au poison)",
+        Ability.GhostGrowth => "grossit en tuant",
+        Ability.Poison => "morsure empoisonnée",
+        Ability.LifeDrain => "draine la vie",
+        Ability.DeathCloud => "nuage de mort",
+        Ability.Sweep => "balayage",
         _ => ability,
     };
 
@@ -919,6 +934,7 @@ public static class Texts
     public static string FactionName(string faction) => faction switch
     {
         "chateau" => "Château",
+        "morts-vivants" => "Morts-vivants",
         _ => Capitalize(faction),
     };
 
@@ -927,6 +943,19 @@ public static class Texts
         $"{heroClass.Name} : attaque {heroClass.Attack}, défense {heroClass.Defense}, puissance {heroClass.Power}, "
         + $"savoir {heroClass.Knowledge}, charisme {heroClass.Charisma}"
         + (heroClass.Spells.Count > 0 ? $" ; sort{(heroClass.Spells.Count > 1 ? "s" : "")} : {List(heroClass.Spells.Select(id => spells.Get(id).Name).ToList())}" : "");
+
+    /// <summary>
+    /// Ce que donne une classe, sur quelques lignes : les caractéristiques, le sort, le talent, l'armée de départ.
+    /// </summary>
+    public static string ClassDetails(HeroClass heroClass, GameData data)
+    {
+        var lines = new List<string> { ClassSummary(heroClass, data.Spells).Split(" : ", 2)[1] };
+        if (heroClass.Talent == Talents.Necromancy)
+            lines.Add($"Talent : nécromancie (après une victoire, {Talents.NecromancyBase:P0} des ennemis tués + {Talents.NecromancyPerLevel:P0} par niveau se relèvent en squelettes)");
+        if (heroClass.Army.Count > 0)
+            lines.Add("Armée : " + string.Join(", ", heroClass.Army.Select(s => $"{s.Count} {Creature(data.Creatures.Get(s.Creature), s.Count)}")));
+        return string.Join("\n", lines);
+    }
 
     /// <summary>« SR » pour Sire Roland (un héros sans portrait).</summary>
     public static string Initials(string name) =>

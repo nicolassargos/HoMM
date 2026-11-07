@@ -479,6 +479,12 @@
     { "name": "objects/town-morts-vivants@libre", "style": "rd_tile__tile_object", "size": 72, "remove_bg": true, "variants": 4, "seed": 2512, "input": "art-candidats/en-cours/candidats/objects/town-morts-vivants/2.png", "input_background": [40, 44, 40], "strength": 0.65,
       "prompt": "dark necropolis town with black stone walls, crooked towers with bone spires and pointed slate roofs, many bright glowing green windows, a big skull above the gate, gate at the bottom middle, seen from slightly above" },
     { "name": "objects/town-morts-vivants@neuf", "style": "rd_tile__tile_object", "size": 72, "remove_bg": true, "variants": 4, "seed": 2513, 
-      "prompt": "dark necropolis town with black stone walls, crooked towers with bone spires and pointed slate roofs, many bright glowing green windows, a big skull above the gate, gate at the bottom middle, seen from slightly above" }
+      "prompt": "dark necropolis town with black stone walls, crooked towers with bone spires and pointed slate roofs, many bright glowing green windows, a big skull above the gate, gate at the bottom middle, seen from slightly above" },
+    { "name": "effects/choc", "style": "rd_animation__vfx", "size": 32, "variants": 4, "spritesheet": true, "frames": 6, "seed": 3101,
+      "prompt": "small quick impact hit flash, a white and pale yellow burst with a few grey dust puffs, discreet, transparent background" },
+    { "name": "effects/piqure", "style": "rd_animation__vfx", "size": 32, "variants": 4, "spritesheet": true, "frames": 6, "seed": 3201,
+      "prompt": "small quick piercing hit, a tiny sharp white spark with a few splinters flying back, discreet, transparent background" },
+    { "name": "effects/choc@64", "style": "rd_animation__vfx", "size": 64, "variants": 1, "spritesheet": true, "frames": 8, "seed": 3102,
+      "prompt": "impact hit effect: a bright white and yellow flash burst with small grey dust puffs flying outward" }
   ]
 }

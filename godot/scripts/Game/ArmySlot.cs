@@ -14,6 +14,9 @@ public partial class ArmySlot : Panel
     /// <summary>L'image montrée sous la souris pendant qu'on glisse (null : un emplacement vide, qu'on ne glisse pas).</summary>
     public Texture2D? Picture { get; init; }
 
+    /// <summary>La taille de <see cref="Picture"/> quand on glisse la troupe (pixels de l'écran).</summary>
+    public Vector2 PictureSize { get; init; }
+
     public override Variant _GetDragData(Vector2 atPosition)
     {
         if (Picture == null || !Slots.CanDrag)
@@ -22,8 +25,8 @@ public partial class ArmySlot : Panel
         {
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
             TextureFilter = TextureFilterEnum.Nearest, Texture = Picture,
-            // à la taille de l'emplacement (l'image de combat ou la petite, agrandie d'un nombre entier de fois)
-            Size = Picture.GetSize() * System.Math.Max(1, (int)(Slots.SlotSize.Y * 0.8f / Picture.GetHeight())), Modulate = new Color(1, 1, 1, 0.8f),
+            // à la taille où l'emplacement la montre (l'image de combat ×2, ou la petite ×2)
+            Size = PictureSize, Modulate = new Color(1, 1, 1, 0.8f),
         };
         // l'image centrée sous la souris
         var holder = new Control();

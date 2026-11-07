@@ -102,7 +102,7 @@ public partial class HeroScreen : ScreenWindow
         var army = Section(V(20, 450), V(960, 170), Texts.ArmyHeader);
         _army = new ArmySlots
         {
-            Position = V(12, 32), SlotSize = V(132, 128), ImageScale = 4, CountFontSize = 18,
+            Position = V(12, 32), SlotSize = V(132, 128), CountFontSize = 18,
             ShowCommandPoints = true, DragGroup = this,
         };
         // glisser pour réordonner ou fusionner ; Maj en lâchant, ou clic droit, pour partager

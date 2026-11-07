@@ -143,15 +143,18 @@ troupes (avec deux factions, il y a plus de créatures que de places). Option `-
 `VilleMortsVivantsTests`. Mesuré (un adversaire, Normal, six semaines) : Château 16 100 or d'armée, morts-vivants
 12 700 : un peu plus faibles, à revoir (avec le Colosse). L'amplificateur de nécromancie : plus tard, une fois la
 nécromancie essayée.
-3. Les images qui manquent : les petites images de la carte de l'Araignée, du Vampire et de la Liche ; la ville des
-morts-vivants. ✅ Les images de combat sont faites. ✅ Les petites images de la carte (24 × 24) : Zombie et Fantôme par
-Retro Diffusion (d'après une description) ; Squelette (refait : il ne ressemblait plus à son image de combat) et Colosse
-par **PixelLab** (`pro` à 24 × 24 : l'image de combat comme sujet, la petite image du Gobelin comme style ; 64
-candidats d'un coup) : réduire une image de combat à 24 px, même redessinée par Retro Diffusion, donnait une bouillie.
-✅ **L'interface montre l'image de combat** là où elle se voit au moins aux 4/5 de la taille de la petite image
-(`Ui.CreatureArt`, `CreaturePicture` ; toujours un nombre entier de fois) : écran du héros, cartes de recrutement,
-fenêtre du nombre à recruter, cartes de construction ; la petite image reste sur la carte, dans la garnison, l'ordre de
-jeu et le bilan, où elle se montre plus grande.
+3. ✅ Les images : les images de combat ; la ville des morts-vivants sur la carte (`art/objects/town-morts-vivants.png`,
+`Art.Town` : chaque ville prend l'image de sa faction, sinon le château ; la carte, les listes, le royaume, l'écran de
+ville). Les petites images de la carte (24 × 24) de **toutes les créatures**, refaites d'après leur image de combat
+(PixelLab `pro` : l'image de combat comme sujet, une petite image comme style ; 64 candidats d'un coup), choisies par
+l'utilisateur sur une page de choix ; Zombie et Fantôme par Retro Diffusion. Reste : la ville vue de face en images
+(étape 10, pour toutes les factions).
+✅ **Les créatures dans l'interface, comme Heroes 1 et 2** (choix de l'utilisateur, 2026-11-07, après la liste de toutes
+les places : on y mêlait l'image de combat et la petite image, à des tailles de pixels différentes) : les places
+ordinaires (garnison, héros en ville, écran du héros, recrutement, construction, bilan) montrent **l'image de combat,
+toujours ×2** (`Ui.CreaturePicture`) : les pixels ont la même taille partout, et une grande créature qui ne tient pas
+est coupée en gardant sa tête et son avant ; les places étroites (panneau de la carte, ordre de jeu du combat) montrent
+la petite image (`Ui.SmallCreatureArt`, ×2 dans le panneau). Plus tard peut-être : les créatures animées sur la carte.
 Décidé aussi : la classe **Nécromancien** (attaque 1, défense 1, puissance 2, savoir 2, charisme 8, Malédiction au
 départ, talent **Nécromancie** : après une victoire, 10 % des ennemis tués + 2 % par niveau se relèvent en Squelettes,
 sans dépasser son charisme). À choisir avec la ville : les noms des habitations (proposés : Ossuaire, Cimetière, Étang

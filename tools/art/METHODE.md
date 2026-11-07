@@ -52,7 +52,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Petites images des créatures (24 × 24, la carte)** : ne jamais réduire une image de combat (bouillie), même en la
   donnant à Retro Diffusion comme image de départ. Pour qu'elle ressemble à l'image de combat : PixelLab `pro` à
   24 × 24, l'image de combat comme sujet, la petite image du Gobelin (`godot/art/creatures/gobelin.png`) comme style
-  (64 candidats pour 0,08 à 0,18 $). D'après une description seule : Retro Diffusion `rd_tile__tile_object`, 24 px,
+  (64 candidats pour 0,08 à 0,18 $).
+  **Attention au modèle de style** (2026-11-07) : la petite image du Gobelin a une grosse tête ; elle donne à l'Ange,
+  au Vampire et au Dragon une allure de dessin animé (refusée par l'utilisateur). Pour une créature aux proportions
+  normales, prendre une petite image aux proportions normales (l'Archer) et ajouter « realistic adult proportions,
+  small head, not chibi, not cartoonish » ; pour le Dragon, son ancienne petite image comme style. D'après une description seule : Retro Diffusion `rd_tile__tile_object`, 24 px,
   « front view, simple, clear silhouette, few details ».
 
 ## Créatures de combat (PixelLab)

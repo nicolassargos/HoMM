@@ -168,7 +168,7 @@ public partial class Hud : CanvasLayer
         _army = new ArmySlots
         {
             Position = new Vector2(margin + (inner - 6 * gap - slot * Army.MaxStacks) / 2, y),
-            SlotSize = new Vector2(slot, Px(52)), ImageScale = 2,
+            SlotSize = new Vector2(slot, Px(52)), Compact = true,
         };
         panel.AddChild(_army);
         y += Px(52) + Px(8);
@@ -453,7 +453,7 @@ public partial class Hud : CanvasLayer
         foreach (var town in shown)
         {
             var row = Row(false, $"{town.Name} · {Texts.TownIncome(town)} par jour", () => TownClicked?.Invoke(town));
-            if (Art.Get("objects/town") is { } image)
+            if (Art.Town(town.Faction) is { } image)
                 row.AddChild(Picture(image, new Vector2(2, 2), new Vector2(64, 64)));
             row.AddChild(RowName(town.Name, row.CustomMinimumSize.X));
             var income = MakeLabel(Texts.TownIncome(town), 10, SoftTextColor);

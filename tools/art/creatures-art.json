@@ -452,6 +452,48 @@
       "consignes": {
         "attack": "the lich straightens its hunched back and slowly raises its long staff high above its crowned skull with one bony arm, holds it up toward the sky for a moment as if calling the storm, then lowers the staff and sinks back into its hunched starting pose"
       }
+    },
+    "araignee": {
+      "nom": "Araignée géante",
+      "gabarit": "quadrupede",
+      "description": "a giant undead spider: a huge eight-legged spider with a black and dark purple hairy body, subtle dark blood-red markings and red nuances on its round abdomen and leg joints, no skull pattern, long thin legs with a few bare pale bones showing through torn rotting skin, a cluster of glowing green eyes, big curved fangs dripping green venom, menacing crouched stance",
+      "sujet": "a giant undead black spider with subtle dark red markings, bony legs and glowing green eyes",
+      "hauteur": 36,
+      "generation": [
+        128,
+        104
+      ],
+      "style": "godot/art/creatures/battle/loup.png",
+      "angle": "godot/art/creatures/battle/loup.png",
+      "references": [],
+      "comparer": [
+        "loup",
+        "archer",
+        "fantome"
+      ],
+      "notes": "Mort-vivant de niveau 4 (morsure empoisonnée), sans image de référence : d'après une description.",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "sans crâne, nuances rouges",
+        "L6": "sans crâne, nuances rouges",
+        "L7": "sans crâne, nuances rouges",
+        "L8": "sans crâne, nuances rouges",
+        "L9": "L7-3, rouge renforcé (léger, moyen, fort ; sans dépense)"
+      },
+      "choix": {
+        "fixe": "L9-2",
+        "idle": "idle-2",
+        "move": "move-2",
+        "attack": "attack-2"
+      },
+      "grande": "art-candidats/references/derives/araignee-grand.png",
+      "consignes": {
+        "idle": "the giant spider stays crouched in place, its legs twitch one after another, its fangs click and its round abdomen pulses slowly",
+        "move": "the giant spider scuttles forward to the right, its eight long legs moving quickly in alternating waves, its body staying low, it stays at the same place on the image"
+      }
     }
   }
 }

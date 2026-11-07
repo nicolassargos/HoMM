@@ -391,6 +391,10 @@ détails, surtout agrandies au combat), dans cet ordre :
    presque noir, long bâton ; d'après une image de l'utilisateur, en plus sombre, puis un lot au crâne plus grand (le
    crâne doit être la partie la plus claire pour se lire). Attente, marche voûtée appuyée sur le bâton, attaque où elle
    pointe son bâton vers l'ennemi (l'éclair sera dessiné par le jeu).
+   L'**Araignée géante** (mort-vivant de niveau 4, `araignee`), sans image de référence : grande araignée noire aux reflets
+   rouge sombre (un crâne sur le dos était « trop » : remplacé par du rouge ; le violet du candidat choisi a été tourné
+   vers le rouge par l'outil, sans dépense), pattes aux os apparents, yeux et venin verts ; 36 px, plus large que haute.
+   Attente, déplacement, attaque où elle se dresse puis mord (le poison sera un effet du jeu).
    **Vitesse et pauses des animations** (`art/creatures/battle/animations.json`, facultatif) : images par seconde par
    créature et par animation (`idle`, `walk`, `attack`, 10 par défaut ; une attaque plus lente porte son coup plus
    tard), et une pause entre deux attentes (`idlePauseMin`, `idlePauseMax`, en secondes) : la créature garde sa pose de

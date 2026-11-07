@@ -116,7 +116,7 @@ forte) ; la **Banshee** sera le Fantôme amélioré.
 | 6 | Liche | le tireur | **nuage de mort** : son tir touche aussi les cases voisines, sauf les morts-vivants |
 | 7 | Colosse d'os | le géant du sommet (fort comme l'Ange) | **balayage** : frappe tous les ennemis voisins |
 Écartés pour le niveau 4 : la Banshee (trop proche du Fantôme : elle sera sa version améliorée), la Goule, le
-Chevalier noir. Images : Squelette, Fantôme et Colosse faits ; Zombie, Araignée, Vampire, Liche à faire.
+Chevalier noir. Images de combat : toutes faites (Squelette, Zombie, Fantôme, Araignée, Vampire, Liche, Colosse d'os).
 Décidé : **tous les morts-vivants sont insensibles aux sorts de l'esprit** (aveuglement, malédiction, faiblesse), et
 **soins et résurrection n'ont pas d'effet sur eux** (les premières créatures qui résistent à la magie).
 Chiffres décidés (2026-11-06), chaque créature à peu près aussi forte que celle du Château du même niveau (paysans pour
@@ -143,7 +143,8 @@ troupes (avec deux factions, il y a plus de créatures que de places). Option `-
 `VilleMortsVivantsTests`. Mesuré (un adversaire, Normal, six semaines) : Château 16 100 or d'armée, morts-vivants
 12 700 : un peu plus faibles, à revoir (avec le Colosse). L'amplificateur de nécromancie : plus tard, une fois la
 nécromancie essayée.
-3. Les images qui manquent (Zombie, Araignée, Vampire, Liche ; images de la carte de tous ; la ville des morts-vivants).
+3. Les images qui manquent : images de la carte de tous les morts-vivants ; la ville des morts-vivants (les images de
+   combat sont faites).
 Décidé aussi : la classe **Nécromancien** (attaque 1, défense 1, puissance 2, savoir 2, charisme 8, Malédiction au
 départ, talent **Nécromancie** : après une victoire, 10 % des ennemis tués + 2 % par niveau se relèvent en Squelettes,
 sans dépasser son charisme). À choisir avec la ville : les noms des habitations (proposés : Ossuaire, Cimetière, Étang

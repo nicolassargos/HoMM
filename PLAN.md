@@ -194,8 +194,20 @@ croissance, prix, garde.
 ## Étape 10 : finitions
 - Animations des créatures avec PixelLab (au fil de l'eau) ; projectiles (flèches, boule de feu du Moine) et effets
   des sorts dessinés par le jeu.
-- Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; les bâtiments des villes en images
-  (la ville vue de face est encore en boîtes) ; icônes des ressources, cadres des portraits, bandeau de la date.
+- Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la
+  date. (Icônes des ressources : faites, 2026-11-07.)
+- **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles
+  (`buildings.json`) ne gardent plus la place des bâtiments ; chaque faction a sa **scène** (`art/towns/<faction>/` :
+  un fond de 640 × 195 affiché ×3, et `scene.json` : pour chaque bâtiment, son pied (bas, milieu), sa profondeur et son
+  image `<id>.png`). Chaque amélioration a sa propre image au même pied. Bâtiments dessinés de l'arrière vers l'avant
+  selon leur pied ; clic et survol sur les pixels de l'image (formes irrégulières), léger contour au survol. Chaque
+  faction dessine et place aussi les bâtiments communs (taverne, hôtel de ville, guildes) ; un test vérifie que la
+  scène de chaque faction couvre tous ses bâtiments. Choix de l'utilisateur : une place vide ne montre **rien** (le
+  terrain et les chemins) ; **un seul fond** par faction (pas selon le terrain) ; place pour **au moins 25 bâtiments**
+  par faction ; petits détails animés (fumée, drapeaux…) plus tard. Images : un concept de la ville entière d'abord
+  (référence de disposition et de style), puis le fond, puis chaque bâtiment séparément avec le fond comme référence ;
+  une page HTML pour placer les bâtiments à la souris et écrire `scene.json`. La ville sur la carte change déjà selon
+  la faction (fait dans une autre session).
 - **Une image de combat par héros** (demandé par l'utilisateur, 2026-11-07) : le héros dessiné sur le côté du champ
   (aujourd'hui son image de la carte ×4), qui ressemble à son portrait (PixelLab, le portrait comme référence) ; à
   cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).

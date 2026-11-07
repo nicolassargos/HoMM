@@ -76,6 +76,7 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
+        Settings.Load(); // les réglages du joueur (vitesse des projectiles…)
         // plein écran au lancement (l'écran de 1920 × 1080 passait sous la barre des tâches) ; pas pour une capture
         if (!_windowModeSet)
         {
@@ -868,6 +869,9 @@ public partial class Main : Node2D
             var book = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--battle-book"));
             _battleScreen.OpenSpellBookWhenReady = _battleTest && book != null;
             _battleScreen.ChooseSpellWhenReady = book?.StartsWith("--battle-book=") == true ? book["--battle-book=".Length..] : null;
+            // Développement : « --battle-options » ouvre les options du combat (captures)
+            if (_battleTest && OS.GetCmdlineUserArgs().Contains("--battle-options"))
+                _battleScreen.CallDeferred(BattleScreen.MethodName.OpenOptions);
         }
         void Quick()
         {

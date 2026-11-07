@@ -552,14 +552,15 @@ public partial class BattleScreen : CanvasLayer
             slot.Modulate = new Color(1, 1, 1, 0.5f);
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 0);
-        // l'image ×3, ou ×2 si la case est étroite
-        if (CreatureImage(unit.Type, width >= 78 ? 3 : 2) is { } picture)
-        {
-            picture.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
-            picture.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-            picture.StretchMode = TextureRect.StretchModeEnum.KeepCentered;
-            column.AddChild(picture);
-        }
+        // l'image de combat si elle tient, sinon la petite (agrandies d'un nombre entier de fois)
+        if (CreatureArt(unit.Type, new Vector2(width - Px(6), OrderHeight - Px(22))) is { } art)
+            column.AddChild(new TextureRect
+            {
+                Texture = art.Texture, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = art.Size,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
+                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter, SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            });
         var number = MakeLabel(count.ToString(), 12, TextColor);
         number.HorizontalAlignment = HorizontalAlignment.Center;
         column.AddChild(number);

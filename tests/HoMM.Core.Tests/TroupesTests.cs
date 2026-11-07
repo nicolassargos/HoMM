@@ -137,13 +137,13 @@ public class TroupesTests
     {
         var (state, town, hero) = HeroInTown();
         hero.Position = town.Position.Offset(0, 1); // la place devant la ville doit être libre pour le nouveau héros
-        var offers = state.TavernOffers();
+        var offers = state.TavernOffers(town);
         Assert.Equal(2, offers.Count);
         Assert.Equal(HireResult.NoHeroLeft, state.HireHero(town, "Personne")); // pas un héros proposé
 
         Assert.Equal(HireResult.Ok, state.HireHero(town, offers[1]));
 
         Assert.Equal(offers[1], state.CurrentHero!.Name);
-        Assert.DoesNotContain(offers[1], state.TavernOffers());
+        Assert.DoesNotContain(offers[1], state.TavernOffers(town));
     }
 }

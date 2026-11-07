@@ -143,8 +143,15 @@ troupes (avec deux factions, il y a plus de créatures que de places). Option `-
 `VilleMortsVivantsTests`. Mesuré (un adversaire, Normal, six semaines) : Château 16 100 or d'armée, morts-vivants
 12 700 : un peu plus faibles, à revoir (avec le Colosse). L'amplificateur de nécromancie : plus tard, une fois la
 nécromancie essayée.
-3. Les images qui manquent : images de la carte de tous les morts-vivants ; la ville des morts-vivants (les images de
-   combat sont faites).
+3. Les images qui manquent : les petites images de la carte de l'Araignée, du Vampire et de la Liche ; la ville des
+morts-vivants. ✅ Les images de combat sont faites. ✅ Les petites images de la carte (24 × 24) : Zombie et Fantôme par
+Retro Diffusion (d'après une description) ; Squelette (refait : il ne ressemblait plus à son image de combat) et Colosse
+par **PixelLab** (`pro` à 24 × 24 : l'image de combat comme sujet, la petite image du Gobelin comme style ; 64
+candidats d'un coup) : réduire une image de combat à 24 px, même redessinée par Retro Diffusion, donnait une bouillie.
+✅ **L'interface montre l'image de combat** là où elle se voit au moins aux 4/5 de la taille de la petite image
+(`Ui.CreatureArt`, `CreaturePicture` ; toujours un nombre entier de fois) : écran du héros, cartes de recrutement,
+fenêtre du nombre à recruter, cartes de construction ; la petite image reste sur la carte, dans la garnison, l'ordre de
+jeu et le bilan, où elle se montre plus grande.
 Décidé aussi : la classe **Nécromancien** (attaque 1, défense 1, puissance 2, savoir 2, charisme 8, Malédiction au
 départ, talent **Nécromancie** : après une victoire, 10 % des ennemis tués + 2 % par niveau se relèvent en Squelettes,
 sans dépasser son charisme). À choisir avec la ville : les noms des habitations (proposés : Ossuaire, Cimetière, Étang
@@ -169,6 +176,11 @@ deux colonnes ; à gauche « La partie » (**listes déroulantes** pour la taill
 difficulté, la graine, puis les façons de gagner) ; à droite « Votre héros » (la faction, le héros choisi en grand,
 portrait ×4, son nom, sa classe et ce qu'elle donne, et en bas une **bande de portraits qui défile** ◄ ►, le choisi
 encadré d'argent : la liste des héros peut grandir). Tests : `ClassesTests`.
+✅ **Chaque héros a une faction** (2026-11-07, `faction` dans `data/heroes.json`) : 41 héros, chacun avec son portrait et
+un fond qui lui est propre (Retro Diffusion) ; Château 9, morts-vivants 6, et déjà ceux des factions à venir (Barbares 5,
+Forêt 6, Tour 6, faction sombre 9 : sorciers et démons). La nouvelle partie ne montre que les héros de la faction choisie ;
+une taverne propose d'abord ceux de la faction de sa ville, puis les autres quand il n'y en a plus ; chaque adversaire
+prend le dernier héros de sa faction. Tests : `ClassesTests`.
 À faire avec les factions : leurs classes, puis l'équilibre force / magie (d'abord apprendre à la simulation à ramasser
 les tas de ressources : `Simulation_force_ou_magie`).
 
@@ -181,6 +193,9 @@ croissance, prix, garde.
   des sorts dessinés par le jeu.
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; les bâtiments des villes en images
   (la ville vue de face est encore en boîtes) ; icônes des ressources, cadres des portraits, bandeau de la date.
+- **Une image de combat par héros** (demandé par l'utilisateur, 2026-11-07) : le héros dessiné sur le côté du champ
+  (aujourd'hui son image de la carte ×4), qui ressemble à son portrait (PixelLab, le portrait comme référence) ; à
+  cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).
 - Entraîner les profils de difficulté par des parties entre IA.
 - Petits détails et équilibrage fin.
 

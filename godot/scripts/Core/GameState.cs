@@ -82,17 +82,21 @@ public sealed partial class GameState
     /// </summary>
     private void AddPlayers(int count, string? heroName = null, IReadOnlyList<string>? factions = null)
     {
-        // le joueur : le héros choisi (sinon le premier) ; les adversaires : les derniers de la liste, que la taverne ne
-        // proposera donc plus
-        string playerHero = heroName != null && HeroNames.Contains(heroName) ? heroName : HeroNames[0];
-        var computerHeroes = HeroNames.Reverse().Where(n => n != playerHero).ToList();
+        // le joueur : le héros choisi (sinon le premier de sa faction) ; chaque adversaire : le dernier héros de sa faction
+        // pas encore pris (la taverne le proposerait en dernier)
+        var used = new HashSet<string>();
         for (int i = 0; i < count; i++)
         {
             var player = new Player(PlayerNames[i % PlayerNames.Length], Map) { Id = _nextPlayerId++, IsComputer = i > 0 };
             Players.Add(player);
-            string name = i == 0 ? playerHero : computerHeroes[(i - 1) % computerHeroes.Count];
-            var hero = new Hero(name, player, Map.Starts.Count > i ? Map.Starts[i] : Map.Start) { Id = _nextHeroId++ };
             string faction = factions != null && i < factions.Count ? factions[i] : StartingFaction;
+            var names = HeroNames(faction);
+            string name = i == 0
+                ? heroName != null && HeroNames(null).Contains(heroName) ? heroName : names[0]
+                : Data.Heroes.OfFaction(faction).Select(h => h.Name).Reverse().Concat(names.Reverse())
+                    .FirstOrDefault(n => !used.Contains(n)) ?? names[^1];
+            used.Add(name);
+            var hero = new Hero(name, player, Map.Starts.Count > i ? Map.Starts[i] : Map.Start) { Id = _nextHeroId++ };
             GiveClass(hero, faction);
             // l'armée de départ de sa classe (sans classe : celle du Château)
             var army = Data.Classes.ForFaction(faction)?.Army is { Count: > 0 } stacks
@@ -173,11 +177,11 @@ public sealed partial class GameState
     public const int MaxHeroesPerPlayer = 8;
 
     /// <summary>
-    /// Les héros du jeu, dans l'ordre (data/heroes.json) : on en choisit un au départ, les tavernes proposent les autres.
-    /// Sans données (certains tests), des noms numérotés.
+    /// Les héros du jeu (data/heroes.json), ceux de cette faction d'abord puis les autres (null : tous, dans l'ordre) :
+    /// on en choisit un au départ, les tavernes proposent les autres. Sans données (certains tests), des noms numérotés.
     /// </summary>
-    private IReadOnlyList<string> HeroNames => Data.Heroes.All.Count > 0
-        ? Data.Heroes.All.Select(h => h.Name).ToList()
+    private IReadOnlyList<string> HeroNames(string? faction) => Data.Heroes.All.Count > 0
+        ? (faction == null ? Data.Heroes.All : Data.Heroes.FactionFirst(faction)).Select(h => h.Name).ToList()
         : Enumerable.Range(1, 9).Select(i => $"Héros {i}").ToList();
 
     /// <summary>
@@ -863,11 +867,14 @@ public sealed partial class GameState
         return true;
     }
 
-    /// <summary>Les héros que la taverne propose (deux, comme dans Heroes 3) : les premiers noms pas encore utilisés.</summary>
-    public IReadOnlyList<string> TavernOffers()
+    /// <summary>
+    /// Les héros que la taverne d'une ville propose (deux, comme dans Heroes 3) : les premiers pas encore utilisés, ceux de
+    /// la faction de la ville d'abord.
+    /// </summary>
+    public IReadOnlyList<string> TavernOffers(Town town)
     {
         var used = AllHeroes.Select(h => h.Name).ToHashSet();
-        return HeroNames.Where(n => !used.Contains(n)).Take(TavernOfferCount).ToList();
+        return HeroNames(town.Faction).Where(n => !used.Contains(n)).Take(TavernOfferCount).ToList();
     }
 
     /// <summary>Nombre de héros proposés à la taverne.</summary>
@@ -882,7 +889,7 @@ public sealed partial class GameState
             return HireResult.NoTavern;
         if (CurrentPlayer.Heroes.Count >= MaxHeroesPerPlayer)
             return HireResult.TooManyHeroes;
-        if (NextHeroName() == null)
+        if (NextHeroName(town) == null)
             return HireResult.NoHeroLeft;
         if (VisitingHero(town) != null)
             return HireResult.TownOccupied;
@@ -901,10 +908,10 @@ public sealed partial class GameState
         var result = CanHireHero(town);
         if (result != HireResult.Ok)
             return result;
-        if (name != null && !TavernOffers().Contains(name))
+        if (name != null && !TavernOffers(town).Contains(name))
             return HireResult.NoHeroLeft;
         CurrentPlayer.Resources[ResourceType.Gold] -= HeroCost;
-        var hero = new Hero(name ?? NextHeroName()!, CurrentPlayer, town.Position) { Id = _nextHeroId++ };
+        var hero = new Hero(name ?? NextHeroName(town)!, CurrentPlayer, town.Position) { Id = _nextHeroId++ };
         GiveClass(hero, town.Faction);
         var firstTier = Creatures.All.Where(c => c.Faction == town.Faction).OrderBy(c => c.Tier).First();
         hero.Army.Add(firstTier, 12);
@@ -948,12 +955,8 @@ public sealed partial class GameState
         return DigResult.Found;
     }
 
-    /// <summary>Le nom du prochain héros que la taverne propose : le premier pas encore utilisé dans la partie.</summary>
-    public string? NextHeroName()
-    {
-        var used = AllHeroes.Select(h => h.Name).ToHashSet();
-        return HeroNames.FirstOrDefault(n => !used.Contains(n));
-    }
+    /// <summary>Le prochain héros que la taverne de cette ville propose (<see cref="TavernOffers"/>), ou null.</summary>
+    public string? NextHeroName(Town town) => TavernOffers(town).FirstOrDefault();
 
     /// <summary>Le héros qui se trouve dans la ville (sur sa case), s'il y en a un.</summary>
     public Hero? VisitingHero(Town town) => AllHeroes.FirstOrDefault(h => h.Position == town.Position);

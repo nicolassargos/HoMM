@@ -67,7 +67,7 @@ public partial class ArmySlots : HBoxContainer
     private Control Slot(CreatureStack? stack, int? charisma, int index)
     {
         bool risky = stack != null && charisma is { } c && Command.IsOverLimit(stack.Type, stack.Count, c);
-        var picture = stack != null ? Art.Get($"creatures/{stack.Type.Id}") : null;
+        var picture = stack != null ? Art.Get($"creatures/battle/{stack.Type.Id}") ?? Art.Get($"creatures/{stack.Type.Id}") : null;
         var slot = new ArmySlot { Slots = this, Index = index, Picture = picture, CustomMinimumSize = SlotSize, MouseFilter = MouseFilterEnum.Stop };
         slot.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor, risky ? MapRenderer.Rgb(220, 80, 60) : null));
         slot.GuiInput += e =>
@@ -85,11 +85,9 @@ public partial class ArmySlots : HBoxContainer
         slot.TooltipText = Texts.StackTooltip(stack, charisma);
         float countHeight = Px(CountFontSize + 4), pointsHeight = Px(15);
         float textHeight = countHeight + (ShowCommandPoints ? pointsHeight : 0);
-        if (picture != null)
-        {
-            var size = picture.GetSize() * ImageScale;
-            slot.AddChild(Picture(picture, new Vector2((SlotSize.X - size.X) / 2, Math.Max(1, (SlotSize.Y - textHeight - size.Y) / 2)), size));
-        }
+        // l'image de combat si elle tient, sinon la petite image de la carte (agrandies d'un nombre entier de fois)
+        if (CreaturePicture(stack.Type, new Rect2(Px(2), Px(2), SlotSize.X - Px(4), SlotSize.Y - textHeight - Px(4))) is { } image)
+            slot.AddChild(image);
         // le nombre (et les points de commandement) en bas de l'emplacement
         float bottom = SlotSize.Y - Px(2);
         if (ShowCommandPoints && charisma is { } limit)

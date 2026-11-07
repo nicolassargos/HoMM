@@ -49,6 +49,8 @@ public partial class TownScreen : CanvasLayer
     // fenêtre du nombre à recruter
     private Control _recruitOverlay = null!;
     private TextureRect _recruitPicture = null!;
+    // la place de l'image dans la fenêtre du nombre à recruter (en pixels)
+    private Vector2 _recruitPlace, _recruitPlacePosition;
     private Label _recruitTitle = null!;
     private Label _recruitInfo = null!;
     private Label _recruitStats = null!;
@@ -471,9 +473,9 @@ public partial class TownScreen : CanvasLayer
         if (result is BuildResult.MissingRequirement)
             card.Modulate = new Color(1, 1, 1, 0.6f);
         var x = 8f;
-        if (town.DwellingCreature(building) is { } creature && Art.Get($"creatures/{creature.Id}") is { } image)
+        if (town.DwellingCreature(building) is { } creature && CreaturePicture(creature, new Rect2(V(4, 6), V(52, 52))) is { } image)
         {
-            card.AddChild(Picture(image, V(6, 8), V(48, 48)));
+            card.AddChild(image);
             x = 62;
         }
         card.AddChild(At(MakeLabel(building.Name, 15, TextColor), x, 6));
@@ -547,8 +549,8 @@ public partial class TownScreen : CanvasLayer
         bool built = town.Has(dwelling.Id);
         if (!built)
             card.Modulate = new Color(1, 1, 1, 0.55f);
-        if (Art.Get($"creatures/{creature.Id}") is { } image)
-            card.AddChild(Picture(image, new Vector2((w - 96) / 2, Px(8)), new Vector2(96, 96))); // ×4
+        if (CreaturePicture(creature, new Rect2(Px(4), Px(4), w - Px(8), Px(84))) is { } image)
+            card.AddChild(image);
         Label Centered(string text, int size, Color color, float y)
         {
             var label = MakeLabel(text, size, color);
@@ -614,7 +616,7 @@ public partial class TownScreen : CanvasLayer
         if (status != HireResult.Ok)
             window.AddChild(At(MakeLabel(Texts.HireStatus(status), 14, TextColor), 18, 90));
         float x = 18;
-        foreach (var name in _state.TavernOffers())
+        foreach (var name in _state.TavernOffers(town))
         {
             var card = new Panel { Position = V(x, cardsY), Size = V(284, cardsHeight) };
             card.AddThemeStyleboxOverride("panel", Plate(PanelColor));
@@ -717,7 +719,9 @@ public partial class TownScreen : CanvasLayer
         _recruitTitle = At(MakeLabel("", 20, TextColor), 20, 14);
         window.AddChild(_recruitTitle);
         // l'image à gauche, et à côté : caractéristiques, disponibles et prix, ce qu'on peut payer, où vont les recrues
-        _recruitPicture = Picture(null!, V(20, 52), new Vector2(96, 96)); // ×4
+        _recruitPlacePosition = V(14, 48);
+        _recruitPlace = V(76, 100);
+        _recruitPicture = Picture(null!, _recruitPlacePosition, _recruitPlace);
         window.AddChild(_recruitPicture);
         _recruitStats = At(MakeLabel("", 13, SoftTextColor), 96, 50);
         window.AddChild(_recruitStats);
@@ -765,7 +769,15 @@ public partial class TownScreen : CanvasLayer
         int max = hasRoom ? town.MaxRecruitable(type, player) : 0;
 
         _recruitTitle.Text = Texts.RecruitTitle(type);
-        _recruitPicture.Texture = Art.Get($"creatures/{type.Id}");
+        // l'image de combat si elle tient (sinon la petite), au plus grand nombre entier de fois
+        if (CreatureArt(type, _recruitPlace) is { } art)
+        {
+            _recruitPicture.Texture = art.Texture;
+            _recruitPicture.Size = art.Size;
+            _recruitPicture.Position = _recruitPlacePosition + (_recruitPlace - art.Size) / 2;
+        }
+        else
+            _recruitPicture.Texture = null;
         _recruitStats.Text = Texts.CreatureStats(type);
         _recruitInfo.Text = $"{Texts.RecruitInfo(type, available)}\n{Texts.Affordable(max)}";
         _recruitSlider.MinValue = 0;

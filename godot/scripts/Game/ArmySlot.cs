@@ -22,7 +22,8 @@ public partial class ArmySlot : Panel
         {
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
             TextureFilter = TextureFilterEnum.Nearest, Texture = Picture,
-            Size = Picture.GetSize() * Slots.ImageScale, Modulate = new Color(1, 1, 1, 0.8f),
+            // à la taille de l'emplacement (l'image de combat ou la petite, agrandie d'un nombre entier de fois)
+            Size = Picture.GetSize() * System.Math.Max(1, (int)(Slots.SlotSize.Y * 0.8f / Picture.GetHeight())), Modulate = new Color(1, 1, 1, 0.8f),
         };
         // l'image centrée sous la souris
         var holder = new Control();

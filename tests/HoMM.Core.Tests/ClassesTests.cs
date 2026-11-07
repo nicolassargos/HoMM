@@ -24,18 +24,58 @@ public class ClassesTests
     }
 
     [Fact]
-    public void Le_joueur_choisit_son_heros_et_les_adversaires_prennent_la_fin_de_la_liste()
+    public void Le_joueur_choisit_son_heros_et_les_adversaires_prennent_le_dernier_de_leur_faction()
     {
-        var state = new GameState(5, TestData.Data, MapSize.Normal, opponents: 2, heroName: "Sire Yvain");
+        var state = new GameState(5, TestData.Data, MapSize.Normal, opponents: 2, heroName: "Sire Yvain",
+            opponentFactions: new[] { Chateau, Undead });
 
         Assert.Equal("Sire Yvain", state.Players[0].Heroes[0].Name);
-        var names = TestData.Data.Heroes.All.Select(h => h.Name).ToList();
-        // les adversaires : les derniers de la liste, sans celui du joueur
-        Assert.Equal(new[] { names[^2], names[^3] }, state.Opponents.Select(p => p.Heroes[0].Name));
-        // leur classe : celle de leur faction (tirée au sort), et leur château est de cette faction
+        // les adversaires : le dernier héros de leur faction pas encore pris (Sire Yvain, le dernier du Château, est au joueur)
+        var chateau = TestData.Data.Heroes.OfFaction(Chateau).Select(h => h.Name).ToList();
+        var undead = TestData.Data.Heroes.OfFaction(Undead).Select(h => h.Name).ToList();
+        Assert.Equal("Sire Yvain", chateau[^1]);
+        Assert.Equal(new[] { chateau[^2], undead[^1] }, state.Opponents.Select(p => p.Heroes[0].Name));
+        // leur classe : celle de leur faction, et leur château est de cette faction
         Assert.All(state.Opponents, p => Assert.Equal(TestData.Data.Classes.ForFaction(p.Towns.Single().Faction), p.Heroes[0].Class));
-        // un héros inconnu : le premier de la liste
-        Assert.Equal(names[0], new GameState(5, TestData.Data, MapSize.Small, heroName: "Personne").Players[0].Heroes[0].Name);
+        // un héros inconnu : le premier de sa faction
+        Assert.Equal(chateau[0], new GameState(5, TestData.Data, MapSize.Small, heroName: "Personne").Players[0].Heroes[0].Name);
+        Assert.Equal(undead[0], new GameState(5, TestData.Data, MapSize.Small, faction: Undead).Players[0].Heroes[0].Name);
+    }
+
+    private const string Chateau = "chateau", Undead = "morts-vivants";
+
+    [Fact]
+    public void Chaque_heros_a_une_faction_jouable_ou_prevue_et_chaque_faction_jouable_a_des_heros()
+    {
+        var known = TestData.Data.Creatures.All.Select(c => c.Faction).ToHashSet();
+        Assert.All(TestData.Data.Heroes.All, h => Assert.True(
+            h.Faction != null && (known.Contains(h.Faction) || DataValidation.PlannedFactions.Contains(h.Faction)), h.Name));
+        // assez de héros pour quatre joueurs de la même faction
+        Assert.All(TestData.Data.Classes.PlayableFactions, f => Assert.True(TestData.Data.Heroes.OfFaction(f).Count >= 4, f));
+    }
+
+    [Fact]
+    public void La_taverne_propose_les_heros_de_la_faction_de_la_ville_puis_les_autres()
+    {
+        var state = new GameState(5, TestData.Data, MapSize.Small, faction: Undead);
+        var castle = state.Players[0].Towns.Single();
+        var undead = TestData.Data.Heroes.OfFaction(Undead).Select(h => h.Name).ToList();
+
+        // le joueur a le premier ; la taverne propose les deux suivants
+        Assert.Equal(undead.Skip(1).Take(2), state.TavernOffers(castle));
+        // tous les morts-vivants pris : les autres héros (ceux du Château d'abord, dans l'ordre de la liste)
+        var player = state.Players[0];
+        player.Resources[ResourceType.Gold] = 100_000;
+        player.Resources[ResourceType.Wood] = 50;
+        state.Build(castle, "taverne");
+        player.Heroes[0].Position = castle.Approach;
+        for (int i = 1; i < undead.Count; i++)
+        {
+            Assert.Equal(HireResult.Ok, state.HireHero(castle));
+            state.CurrentHero!.Position = castle.Approach.Offset(i, 1);
+        }
+        Assert.Equal(undead, player.Heroes.Select(h => h.Name));
+        Assert.Equal(TestData.Data.Heroes.FactionFirst(Undead).Skip(undead.Count).Take(2).Select(h => h.Name), state.TavernOffers(castle));
     }
 
     [Fact]
@@ -48,7 +88,7 @@ public class ClassesTests
         var castle = player.Towns.Single();
         state.Build(castle, "taverne");
         player.Heroes[0].Position = castle.Approach;
-        Assert.DoesNotContain(player.Heroes[0].Name, state.TavernOffers());
+        Assert.DoesNotContain(player.Heroes[0].Name, state.TavernOffers(castle));
 
         Assert.Equal(HireResult.Ok, state.HireHero(castle));
 

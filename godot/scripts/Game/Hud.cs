@@ -676,8 +676,8 @@ public partial class Hud : CanvasLayer
         foreach (var stack in losses)
         {
             var slot = new Control { CustomMinimumSize = V(60, 70), TooltipText = Texts.Stack(stack), MouseFilter = Control.MouseFilterEnum.Stop };
-            if (Art.Get($"creatures/{stack.Type.Id}") is { } image)
-                slot.AddChild(Picture(image, V(6, 2), V(48, 48)));
+            if (CreaturePicture(stack.Type, new Rect2(V(2, 2), V(56, 48))) is { } image)
+                slot.AddChild(image);
             var count = At(MakeLabel(minus ? $"−{stack.Count}" : $"{stack.Count}", 13, TextColor), 0, 50);
             count.Size = V(60, 18);
             count.HorizontalAlignment = HorizontalAlignment.Center;

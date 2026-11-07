@@ -4,13 +4,19 @@ using System.Linq;
 namespace HoMM.Core;
 
 /// <summary>
-/// Un héros que l'on peut choisir ou recruter (data/heroes.json) : seulement un nom (son portrait est trouvé d'après son
-/// nom). Tout le reste vient de sa classe (étape 9, choix de l'utilisateur).
+/// Un héros que l'on peut choisir ou recruter (data/heroes.json) : un nom (son portrait est trouvé d'après son nom) et sa
+/// faction. Tout le reste vient de sa classe (étape 9, choix de l'utilisateur).
 /// </summary>
 public sealed record HeroType
 {
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
+
+    /// <summary>
+    /// La faction du héros : on le choisit avec elle, et les tavernes de ses villes le proposent d'abord. Les héros d'une
+    /// faction pas encore jouable (Barbares, Forêt, Tour, faction sombre) l'attendent. Null : de toutes les factions.
+    /// </summary>
+    public string? Faction { get; init; }
 }
 
 /// <summary>Tous les héros du jeu, dans l'ordre (celui de la taverne ; les adversaires prennent la fin de la liste).</summary>
@@ -25,6 +31,14 @@ public sealed class HeroCatalog
     public IReadOnlyList<HeroType> All => _all;
 
     public HeroType? ByName(string name) => _all.FirstOrDefault(h => h.Name == name);
+
+    /// <summary>Les héros de cette faction (et ceux de toutes les factions), dans l'ordre.</summary>
+    public IReadOnlyList<HeroType> OfFaction(string faction) =>
+        _all.Where(h => h.Faction == null || h.Faction == faction).ToList();
+
+    /// <summary>Tous les héros, ceux de cette faction d'abord : une taverne ou un adversaire qui n'en a plus prend les autres.</summary>
+    public IReadOnlyList<HeroType> FactionFirst(string faction) =>
+        OfFaction(faction).Concat(_all.Where(h => h.Faction != null && h.Faction != faction)).ToList();
 
     private sealed record CatalogFile(List<HeroType> Heroes);
 

@@ -1003,7 +1003,7 @@ public static class Texts
     }
 
     public static string TavernTitle => "Taverne";
-    public static string TavernText => $"Deux héros se proposent. Chacun coûte {GameState.HeroCost} or et arrive avec quelques paysans.";
+    public static string TavernText => $"Deux héros se proposent. Chacun coûte {GameState.HeroCost} or et arrive avec quelques créatures du premier niveau de la ville.";
     public static string HireButton => "Recruter";
     public static string NoTavern => "Cette ville n'a pas encore de taverne.";
 

@@ -23,6 +23,7 @@ public partial class TownScreen : CanvasLayer
 
     private GameState _state = null!;
     private Town? _town;
+    private TextureRect _townPicture = null!;
     private Vector2 _screen;
     private Control _root = null!;
 
@@ -48,7 +49,7 @@ public partial class TownScreen : CanvasLayer
 
     // fenêtre du nombre à recruter
     private Control _recruitOverlay = null!;
-    private TextureRect _recruitPicture = null!;
+    private Control _recruitPicture = null!;
     // la place de l'image dans la fenêtre du nombre à recruter (en pixels)
     private Vector2 _recruitPlace, _recruitPlacePosition;
     private Label _recruitTitle = null!;
@@ -121,8 +122,9 @@ public partial class TownScreen : CanvasLayer
         _root.AddChild(At(MakeLabel(Texts.GarrisonHeader, 15, TextColor), 16, y));
         var townPicture = new Panel { Position = V(12, y + 22), Size = new Vector2(132, 132) };
         townPicture.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
-        if (Art.Get("objects/town") is { } image)
-            townPicture.AddChild(Picture(image, new Vector2(30, 30), new Vector2(72, 72))); // l'image de 72 pixels, ×1
+        // l'image de 72 pixels, ×1 : celle de la faction de la ville ouverte (voir Open)
+        _townPicture = Picture(null!, new Vector2(30, 30), new Vector2(72, 72));
+        townPicture.AddChild(_townPicture);
         _root.AddChild(townPicture);
         _garrison = MakeArmy(V(ArmyX, y + 22));
         // à droite des armées : l'aide sur les troupes, et dessous les deux boutons d'échange
@@ -155,7 +157,7 @@ public partial class TownScreen : CanvasLayer
 
     private ArmySlots MakeArmy(Vector2 position)
     {
-        var slots = new ArmySlots { Position = position, SlotSize = V(84, 88), ImageScale = 3, CountFontSize = 14, DragGroup = this };
+        var slots = new ArmySlots { Position = position, SlotSize = V(84, 88), CountFontSize = 14, DragGroup = this };
         slots.SlotClicked += index => Act(() => _state.TransferStack(_town!, fromGarrison: slots == _garrison, index));
         slots.SlotRightClicked += index => Split(slots, index, slots, null);
         slots.TroopDropped += (source, from, to, split) =>
@@ -215,6 +217,7 @@ public partial class TownScreen : CanvasLayer
     public void Open(Town town)
     {
         _town = town;
+        _townPicture.Texture = Art.Town(town.Faction);
         _viewKey = null;
         Visible = true;
         CloseWindow();
@@ -721,7 +724,7 @@ public partial class TownScreen : CanvasLayer
         // l'image à gauche, et à côté : caractéristiques, disponibles et prix, ce qu'on peut payer, où vont les recrues
         _recruitPlacePosition = V(14, 48);
         _recruitPlace = V(76, 100);
-        _recruitPicture = Picture(null!, _recruitPlacePosition, _recruitPlace);
+        _recruitPicture = new Control { Position = _recruitPlacePosition, Size = _recruitPlace, MouseFilter = Control.MouseFilterEnum.Ignore };
         window.AddChild(_recruitPicture);
         _recruitStats = At(MakeLabel("", 13, SoftTextColor), 96, 50);
         window.AddChild(_recruitStats);
@@ -769,15 +772,10 @@ public partial class TownScreen : CanvasLayer
         int max = hasRoom ? town.MaxRecruitable(type, player) : 0;
 
         _recruitTitle.Text = Texts.RecruitTitle(type);
-        // l'image de combat si elle tient (sinon la petite), au plus grand nombre entier de fois
-        if (CreatureArt(type, _recruitPlace) is { } art)
-        {
-            _recruitPicture.Texture = art.Texture;
-            _recruitPicture.Size = art.Size;
-            _recruitPicture.Position = _recruitPlacePosition + (_recruitPlace - art.Size) / 2;
-        }
-        else
-            _recruitPicture.Texture = null;
+        // l'image de combat ×2 (coupée si la créature est trop grande)
+        Clear(_recruitPicture);
+        if (CreaturePicture(type, new Rect2(Vector2.Zero, _recruitPlace)) is { } picture)
+            _recruitPicture.AddChild(picture);
         _recruitStats.Text = Texts.CreatureStats(type);
         _recruitInfo.Text = $"{Texts.RecruitInfo(type, available)}\n{Texts.Affordable(max)}";
         _recruitSlider.MinValue = 0;

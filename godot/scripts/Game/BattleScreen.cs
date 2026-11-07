@@ -552,8 +552,8 @@ public partial class BattleScreen : CanvasLayer
             slot.Modulate = new Color(1, 1, 1, 0.5f);
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 0);
-        // l'image de combat si elle tient, sinon la petite (agrandies d'un nombre entier de fois)
-        if (CreatureArt(unit.Type, new Vector2(width - Px(6), OrderHeight - Px(22))) is { } art)
+        // la petite image (celle de la carte), la plus grande qui tient : la place est étroite
+        if (SmallCreatureArt(unit.Type, new Vector2(width - Px(6), OrderHeight - Px(22))) is { } art)
             column.AddChild(new TextureRect
             {
                 Texture = art.Texture, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,

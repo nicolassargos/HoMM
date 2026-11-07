@@ -156,7 +156,7 @@ public partial class KingdomScreen : ScreenWindow
         foreach (var town in player.Towns)
         {
             var tile = Tile(V(120, 148), false, Texts.TownDetails(town), () => TownChosen?.Invoke(town), null);
-            if (Art.Get("objects/town") is { } image)
+            if (Art.Town(town.Faction) is { } image)
                 tile.AddChild(Picture(image, new Vector2(18, 9), new Vector2(144, 144))); // l'image de 72 pixels, ×2
             var name = At(MakeLabel(town.Name, 13, TextColor), 2, 104);
             name.Size = V(116, 18);

@@ -185,7 +185,7 @@ public static class MapRenderer
         Obelisk => Art.Get("objects/obelisk"),
         Mine mine => Art.Get($"objects/mine-{Art.Name(mine.Resource)}"),
         MonsterGuard guard => Art.Get($"creatures/{guard.Type.Id}"),
-        Town => Art.Get("objects/town"),
+        Town town => Art.Town(town.Faction),
         _ => null,
     };
 

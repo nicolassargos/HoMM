@@ -725,35 +725,69 @@ public static class Ui
         bar.AddThemeFontSizeOverride("font_size", 1);
     }
 
+    // Les images des créatures dans l'interface (choix de l'utilisateur, 2026-11-07, comme Heroes 1 et 2) :
+    // - les places de taille ordinaire montrent l'image de combat, toujours ×2 (CreaturePicture) : les pixels ont la même
+    //   taille partout ; une grande créature qui ne tient pas est coupée, en gardant sa tête et son avant ;
+    // - les places étroites (panneau de la carte, ordre de jeu du combat) montrent la petite image de la carte
+    //   (SmallCreatureArt).
+
+    /// <summary>Agrandissement des images de combat dans l'interface : le même partout.</summary>
+    public const int CreatureArtScale = 2;
+
     /// <summary>
-    /// La meilleure image d'une créature pour une place de cette taille (en pixels de l'écran), agrandie du plus grand
-    /// nombre entier de fois qui tient (pixels réguliers) : son image de combat, plus détaillée, si elle s'y montre au
-    /// moins aux 4/5 de la hauteur qu'aurait la petite image de la carte ; sinon la petite, plus grande. Null s'il n'y a
-    /// pas d'image, ou si rien ne tient.
+    /// La petite image d'une créature (celle de la carte) agrandie du plus grand nombre entier de fois qui tient dans une
+    /// place de cette taille (pixels de l'écran) ; sans petite image, l'image de combat. Null si rien ne tient.
     /// </summary>
-    public static (Texture2D Texture, Vector2 Size)? CreatureArt(CreatureType type, Vector2 box)
+    public static (Texture2D Texture, Vector2 Size)? SmallCreatureArt(CreatureType type, Vector2 box)
     {
-        (Texture2D, Vector2)? Fit(Texture2D? texture)
-        {
-            if (texture == null)
-                return null;
-            var size = texture.GetSize();
-            int scale = (int)Math.Floor(Math.Min(box.X / size.X, box.Y / size.Y));
-            return scale >= 1 ? (texture, size * scale) : null;
-        }
-        var battle = Fit(Art.Get($"creatures/battle/{type.Id}"));
-        var small = Fit(Art.Get($"creatures/{type.Id}"));
-        if (battle is { } b && (small is not { } s || b.Item2.Y >= 0.8f * s.Item2.Y))
-            return battle;
-        return small ?? battle;
+        var texture = Art.Get($"creatures/{type.Id}") ?? Art.Get($"creatures/battle/{type.Id}");
+        if (texture == null)
+            return null;
+        var size = texture.GetSize();
+        int scale = (int)Math.Floor(Math.Min(box.X / size.X, box.Y / size.Y));
+        return scale >= 1 ? (texture, size * scale) : null;
     }
 
-    /// <summary>L'image d'une créature (<see cref="CreatureArt"/>) au milieu d'une place : x, y, largeur, hauteur en pixels.</summary>
-    public static TextureRect? CreaturePicture(CreatureType type, Rect2 place)
+    /// <summary>
+    /// L'image de combat d'une créature dans une place (x, y, largeur, hauteur en pixels de l'écran) : la partie dessinée
+    /// de l'image (sans ses bords vides), ×<see cref="CreatureArtScale"/>, centrée si elle tient ; sinon coupée par la
+    /// place, en gardant le haut (la tête) et la droite (l'avant : les créatures regardent à droite). Sans image de combat,
+    /// la petite image, la plus grande qui tient. Null s'il n'y a aucune image.
+    /// </summary>
+    public static Control? CreaturePicture(CreatureType type, Rect2 place)
     {
-        if (CreatureArt(type, place.Size) is not { } art)
+        var holder = new Control
+        {
+            Position = place.Position, Size = place.Size, ClipContents = true, MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        if (Art.Get($"creatures/battle/{type.Id}") is { } battle)
+        {
+            var used = UsedRect(battle);
+            var size = used.Size * CreatureArtScale;
+            float x = size.X <= place.Size.X ? (place.Size.X - size.X) / 2 : place.Size.X - size.X;
+            float y = size.Y <= place.Size.Y ? (place.Size.Y - size.Y) / 2 : 0;
+            holder.AddChild(Picture(new AtlasTexture { Atlas = battle, Region = used },
+                new Vector2(MathF.Floor(x), MathF.Floor(y)), size));
+            return holder;
+        }
+        if (SmallCreatureArt(type, place.Size) is not { } small)
             return null;
-        return Picture(art.Texture, place.Position + (place.Size - art.Size) / 2, art.Size);
+        holder.AddChild(Picture(small.Texture, ((place.Size - small.Size) / 2).Floor(), small.Size));
+        return holder;
+    }
+
+    private static readonly Dictionary<Texture2D, Rect2> UsedRects = new();
+
+    /// <summary>La partie dessinée d'une image (sans ses bords transparents), en pixels de l'image.</summary>
+    public static Rect2 UsedRect(Texture2D texture)
+    {
+        if (!UsedRects.TryGetValue(texture, out var rect))
+        {
+            var used = texture.GetImage()?.GetUsedRect() ?? new Rect2I();
+            rect = used.Size.X > 0 && used.Size.Y > 0 ? new Rect2(used.Position, used.Size) : new Rect2(Vector2.Zero, texture.GetSize());
+            UsedRects[texture] = rect;
+        }
+        return rect;
     }
 
     /// <summary>Un bouton aux couleurs du jeu. Il ne prend pas le focus, sinon Espace/Entrée le « cliqueraient ».</summary>

@@ -15,11 +15,11 @@ namespace HoMM.Game;
 public partial class ArmySlots : HBoxContainer
 {
     /// <summary>
-    /// Taille d'un emplacement (en pixels de l'écran), et agrandissement de l'image de la créature (son image de la carte,
-    /// 24 px) : un nombre entier, pour des pixels nets.
+    /// Taille d'un emplacement (en pixels de l'écran). Des emplacements étroits (<see cref="Compact"/>, le panneau de la
+    /// carte) montrent la petite image de la créature ; les autres, son image de combat ×2 (voir Ui.CreaturePicture).
     /// </summary>
     public Vector2 SlotSize { get; set; } = new(32, 44);
-    public int ImageScale { get; set; } = 1;
+    public bool Compact { get; set; }
     public int CountFontSize { get; set; } = 12;
 
     /// <summary>Écrire aussi, sous le nombre, les points de commandement de la troupe (« 30 / 100 pts »).</summary>
@@ -67,8 +67,16 @@ public partial class ArmySlots : HBoxContainer
     private Control Slot(CreatureStack? stack, int? charisma, int index)
     {
         bool risky = stack != null && charisma is { } c && Command.IsOverLimit(stack.Type, stack.Count, c);
-        var picture = stack != null ? Art.Get($"creatures/battle/{stack.Type.Id}") ?? Art.Get($"creatures/{stack.Type.Id}") : null;
-        var slot = new ArmySlot { Slots = this, Index = index, Picture = picture, CustomMinimumSize = SlotSize, MouseFilter = MouseFilterEnum.Stop };
+        // l'image qui suit la souris quand on glisse la troupe : celle de l'emplacement, entière
+        var small = stack != null ? Art.Get($"creatures/{stack.Type.Id}") : null;
+        var battle = stack != null && !Compact ? Art.Get($"creatures/battle/{stack.Type.Id}") : null;
+        var picture = battle ?? small;
+        var pictureSize = battle != null ? battle.GetSize() * CreatureArtScale : small != null ? small.GetSize() * 2 : Vector2.Zero;
+        var slot = new ArmySlot
+        {
+            Slots = this, Index = index, Picture = picture, PictureSize = pictureSize, CustomMinimumSize = SlotSize,
+            MouseFilter = MouseFilterEnum.Stop,
+        };
         slot.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor, risky ? MapRenderer.Rgb(220, 80, 60) : null));
         slot.GuiInput += e =>
         {
@@ -85,9 +93,16 @@ public partial class ArmySlots : HBoxContainer
         slot.TooltipText = Texts.StackTooltip(stack, charisma);
         float countHeight = Px(CountFontSize + 4), pointsHeight = Px(15);
         float textHeight = countHeight + (ShowCommandPoints ? pointsHeight : 0);
-        // l'image de combat si elle tient, sinon la petite image de la carte (agrandies d'un nombre entier de fois)
-        if (CreaturePicture(stack.Type, new Rect2(Px(2), Px(2), SlotSize.X - Px(4), SlotSize.Y - textHeight - Px(4))) is { } image)
+        var place = new Rect2(Px(2), Px(2), SlotSize.X - Px(4), SlotSize.Y - textHeight - Px(4));
+        if (!Compact && CreaturePicture(stack.Type, place) is { } image)
             slot.AddChild(image);
+        else if (Compact)
+        {
+            // toute la largeur de l'emplacement : la petite image y tient ×2 (48 pixels), pas seulement ×1
+            var full = new Rect2(0, Px(1), SlotSize.X, SlotSize.Y - textHeight - Px(1));
+            if (SmallCreatureArt(stack.Type, full.Size) is { } art)
+                slot.AddChild(Picture(art.Texture, full.Position + ((full.Size - art.Size) / 2).Floor(), art.Size));
+        }
         // le nombre (et les points de commandement) en bas de l'emplacement
         float bottom = SlotSize.Y - Px(2);
         if (ShowCommandPoints && charisma is { } limit)

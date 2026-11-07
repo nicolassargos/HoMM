@@ -52,6 +52,12 @@ public static class Art
         return image;
     }
 
+    /// <summary>
+    /// L'image d'une ville de cette faction sur la carte (art/objects/town-{faction}.png), sinon le château
+    /// (art/objects/town.png), ou null.
+    /// </summary>
+    public static Texture2D? Town(string faction) => Get($"objects/town-{faction}") ?? Get("objects/town");
+
     /// <summary>Le portrait d'un héros (art/heroes/portraits/{nom en minuscules, sans accents, avec des tirets}), ou null.</summary>
     public static Texture2D? Portrait(string heroName) => Get($"heroes/portraits/{Slug(heroName)}");
 

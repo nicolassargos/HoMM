@@ -128,7 +128,8 @@
         "attack": "attack-1",
         "move": "move-2"
       },
-      "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur)."
+      "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur).",
+      "vole": true
     },
     "archer": {
       "nom": "Archer",
@@ -331,6 +332,125 @@
         "idle": "idle-2",
         "attack": "attack-2",
         "move": "move-2"
+      },
+      "vole": true
+    },
+    "orc": {
+      "nom": "Orc",
+      "gabarit": "humain",
+      "description": "a stocky muscular green orc with big tusks, leather straps and a leather loincloth, holding a throwing axe in each hand",
+      "sujet": "a stocky green orc with tusks, leather straps, an axe in each hand",
+      "hauteur": 41,
+      "comparer": [
+        "archer",
+        "gobelin",
+        "ogre"
+      ],
+      "mouvements": {
+        "idle": "the orc stands with a hunched brutish posture, breathes heavily and turns one axe in his hand, the feet stay in place",
+        "move": "the orc walks forward to the right with heavy confident steps, an axe in each hand, swinging his arms",
+        "attack": "the orc swings one arm far back over his shoulder with an axe, then whips the arm forward and lets go of the axe toward the right, the hand ends open and empty, then he returns to his starting pose with an axe again"
+      },
+      "grande": "art-candidats/references/derives/orc-grand.png",
+      "choix": {
+        "fixe": "O1",
+        "move": "move-2",
+        "idle": "idle-1",
+        "attack": "attack-2-r"
+      },
+      "notes": "Fait avant l'outil (2026-11-04), animations refaites le 2026-11-06. Il lance des haches (tir court) : la hache en vol sera dessinée par le jeu.",
+      "consignes": {
+        "idle": "the orc stands with a hunched brutish posture, breathes heavily and turns one axe in his hand, the feet stay in place"
+      }
+    },
+    "vampire": {
+      "nom": "Vampire",
+      "gabarit": "humain",
+      "description": "a classic old-school vampire count in the style of an early 1990s fantasy strategy game: very pale face, slicked-back black hair with a widow's peak, long sharp white fangs, a long black cape with a high stiff red collar and red lining draped around him, black tailcoat, white shirt front, empty hands, no glass, calm menacing pose, bold simple shapes",
+      "sujet": "an elegant pale vampire count with slicked black hair, mustache, long fangs, a black cape with a high red collar",
+      "hauteur": 52,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "references": [
+        "art-candidats/en-cours/candidats/vampire/fixe/l4/3.png::pose, costume, cape and camera angle reference: keep this pose and this draped cape, but with empty hands and no glass",
+        "art-candidats/en-cours/candidats/vampire/fixe/l6/3.png::face and hair reference only: the pale face with a widow's peak and long fangs"
+      ],
+      "comparer": [
+        "archer",
+        "chevalier",
+        "fantome"
+      ],
+      "notes": "Futur mort-vivant. D'après une image de l'utilisateur (comte vampire élégant), avec de longs crocs.",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "comte « rétro », cape ouverte, sans verre",
+        "L6": "comte « rétro », cape ouverte, sans verre",
+        "L7": "seigneur médiéval, sans verre",
+        "L8": "seigneur médiéval, sans verre",
+        "L9": "pose de L4-3, visage de L6-3",
+        "L10": "pose de L4-3, visage de L6-3",
+        "L11": "L4-3 retouché : sans verre, visage de vampire"
+      },
+      "angle": "godot/art/creatures/battle/troll.png",
+      "choix": {
+        "fixe": "L11-1",
+        "transform": "transform-1",
+        "move": "move-1",
+        "attack": "attack-14",
+        "idle": "idle-1"
+      },
+      "grande": "art-candidats/references/derives/vampire-grand.png",
+      "consignes": {
+        "idle": "the vampire stands still, his cape sways gently, he slowly tilts his head and bares his long fangs with a thin smile, the feet stay in place",
+        "move": "a small black bat with a pale vampire face flies in place, beating its wings up and down in a steady flying cycle, facing right, it stays at the same place",
+        "attack": "the vampire takes a long step forward to the right and sweeps his huge black cape forward with his outstretched arm, the cape opens enormous and wide like a dark curtain covering everything in front of him, he bends deeply forward behind it and stays completely hidden behind the cape for a long moment, only a dark shape leaning over his prey, then he slowly pulls back to his starting place and wraps the cape around himself"
+      }
+    },
+    "liche": {
+      "nom": "Liche",
+      "gabarit": "humain",
+      "description": "a dark lich king: a hunched skeleton with a LARGE clearly readable skull, bright bone white with deep black eye sockets glowing faintly pale blue, a visible jaw with teeth, a thin tarnished gold crown sitting on top of the skull without hiding the face, layered tattered robes of very dark navy blue and black with faded dull gold embroidery, a long thin gnarled dark staff in one bony hand, the other skeletal hand reaching forward, dark and menacing, the face is the brightest part of the image",
+      "sujet": "a hunched skeletal lich king with a thin gold crown, dark tattered robes and a long thin staff",
+      "hauteur": 52,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "references": [
+        "art-candidats/references/Lich.png::character reference only (hunched skeletal king, thin crown, layered tattered robes, long thin staff): make it darker, simplify it, do not copy its camera angle or its realistic style"
+      ],
+      "comparer": [
+        "archer",
+        "vampire",
+        "moine"
+      ],
+      "notes": "Futur mort-vivant. D'après une image de l'utilisateur (roi squelette voûté), en plus sombre.",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "d'après L3-4, crâne plus grand",
+        "L6": "d'après L3-4, crâne plus grand",
+        "L7": "texte seul, crâne plus grand"
+      },
+      "angle": "godot/art/creatures/battle/troll.png",
+      "choix": {
+        "fixe": "L5-4",
+        "idle": "idle-1",
+        "move": "move-2",
+        "attack": "attack-4"
+      },
+      "grande": "art-candidats/references/derives/liche-grand.png",
+      "consignes": {
+        "attack": "the lich straightens its hunched back and slowly raises its long staff high above its crowned skull with one bony arm, holds it up toward the sky for a moment as if calling the storm, then lowers the staff and sinks back into its hunched starting pose"
       }
     }
   }

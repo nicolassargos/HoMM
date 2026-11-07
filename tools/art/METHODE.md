@@ -60,10 +60,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   Une attente ou un déplacement : sur place (le jeu déplace la créature) ; pour un volant, un battement d'ailes sur place.
 - **À retirer après coup** (`creature.py retoucher`) : étincelles cyan, éclats d'impact (`--eclats`, ou
   `--eclats=partout` : rouge vif et blanc pur aussi sur le corps), couleurs absentes des images voisines (`--nouveau=5`),
-  une image ratée remplacée par une autre (`--copier=7:8`), une marche qui glisse (`--recentrer`), la corde d'un arc
+  une image ratée remplacée par une autre (`--copier=7:8`), un petit morceau détaché (`--detaches`), une marche qui glisse (`--recentrer`), la corde d'un arc
   (`--corde=7,8`) ; un adversaire dessiné dans l'animation : jeter l'essai.
+- **Transformation** (facultative) : `{id}-transform.png`, jouée une fois avant un déplacement et à l'envers à l'arrivée
+  (`animer … transform --sans-retour`) ; puis animer le déplacement depuis sa dernière image (`--depart=…/9.png`).
+  `--largeur=3` élargit le cadre d'une attaque (cape ou ailes déployées).
 - **Vitesse et pauses** : `art/creatures/battle/animations.json` (images par seconde par animation, pause de 3 à 6 s
-  entre deux attentes, `stepTime` : temps pour traverser une case, 0,09 s par défaut, 0,45 pour le Zombie). Au combat,
+  entre deux attentes, `stepTime` : temps pour traverser une case ; par défaut, une créature qui marche fait **un cycle de déplacement
+  par case** (8 images à 10 par seconde : 0,8 s), un volant 0,09 s ; le Zombie 0,45). Au combat,
   une troupe regarde où elle va (miroir) et se tourne vers sa cible. L'utilisateur trouve les animations un peu chargées : préférer des mouvements discrets.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone

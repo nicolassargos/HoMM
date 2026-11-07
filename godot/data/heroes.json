@@ -1,13 +1,50 @@
 {
   "heroes": [
-    { "id": "sire-roland",      "name": "Sire Roland" },
-    { "id": "dame-isolde",      "name": "Dame Isolde" },
-    { "id": "sire-gauvain",     "name": "Sire Gauvain" },
-    { "id": "dame-morgane",     "name": "Dame Morgane" },
-    { "id": "sire-perceval",    "name": "Sire Perceval" },
-    { "id": "renaud-le-goupil", "name": "Renaud le Goupil" },
-    { "id": "brann-le-rouge",   "name": "Brann le Rouge" },
-    { "id": "dame-viviane",     "name": "Dame Viviane" },
-    { "id": "sire-yvain",       "name": "Sire Yvain" }
+    { "id": "sire-roland",           "name": "Sire Roland",             "faction": "chateau" },
+    { "id": "dame-isolde",           "name": "Dame Isolde",             "faction": "chateau" },
+    { "id": "sire-gauvain",          "name": "Sire Gauvain",            "faction": "chateau" },
+    { "id": "sire-perceval",         "name": "Sire Perceval",           "faction": "chateau" },
+    { "id": "sire-bertrand",         "name": "Sire Bertrand",           "faction": "chateau" },
+    { "id": "dame-alienor",          "name": "Dame Aliénor",            "faction": "chateau" },
+    { "id": "sire-godefroy",         "name": "Sire Godefroy",           "faction": "chateau" },
+    { "id": "dame-blanche",          "name": "Dame Blanche",            "faction": "chateau" },
+    { "id": "sire-yvain",            "name": "Sire Yvain",              "faction": "chateau" },
+
+    { "id": "comte-morvan",          "name": "Comte Morvan",            "faction": "morts-vivants" },
+    { "id": "dame-severine",         "name": "Dame Séverine",           "faction": "morts-vivants" },
+    { "id": "sire-lugubre",          "name": "Sire Lugubre",            "faction": "morts-vivants" },
+    { "id": "mortimer",              "name": "Mortimer",                "faction": "morts-vivants" },
+    { "id": "baron-mordrel",         "name": "Baron Mordrel",           "faction": "morts-vivants" },
+    { "id": "dame-ossiane",          "name": "Dame Ossiane",            "faction": "morts-vivants" },
+
+    { "id": "brann-le-rouge",        "name": "Brann le Rouge",          "faction": "barbares" },
+    { "id": "ulrik-brise-crane",     "name": "Ulrik Brise-Crâne",       "faction": "barbares" },
+    { "id": "hilda-la-louve",        "name": "Hilda la Louve",          "faction": "barbares" },
+    { "id": "gorm-le-vieux",         "name": "Gorm le Vieux",           "faction": "barbares" },
+    { "id": "tarka-la-balafree",     "name": "Tarka la Balafrée",       "faction": "barbares" },
+
+    { "id": "sylvain-le-druide",     "name": "Sylvain le Druide",       "faction": "foret" },
+    { "id": "liane",                 "name": "Liane",                   "faction": "foret" },
+    { "id": "mere-ronce",            "name": "Mère Ronce",              "faction": "foret" },
+    { "id": "ewen-l-archer",         "name": "Ewen l'Archer",           "faction": "foret" },
+    { "id": "renaud-le-goupil",      "name": "Renaud le Goupil",        "faction": "foret" },
+    { "id": "dame-viviane",          "name": "Dame Viviane",            "faction": "foret" },
+
+    { "id": "maitre-aldric",         "name": "Maître Aldric",           "faction": "tour" },
+    { "id": "dame-eleonore",         "name": "Dame Éléonore",           "faction": "tour" },
+    { "id": "theodric-l-alchimiste", "name": "Théodric l'Alchimiste",   "faction": "tour" },
+    { "id": "iselda-des-etoiles",    "name": "Iselda des Étoiles",      "faction": "tour" },
+    { "id": "frere-anselme",         "name": "Frère Anselme",           "faction": "tour" },
+    { "id": "dame-melisande",        "name": "Dame Mélisande",          "faction": "tour" },
+
+    { "id": "corvin-le-maudit",      "name": "Corvin le Maudit",        "faction": "sombre" },
+    { "id": "ysolde-la-noire",       "name": "Ysolde la Noire",         "faction": "sombre" },
+    { "id": "malachar",              "name": "Malachar",                "faction": "sombre" },
+    { "id": "dame-sombreval",        "name": "Dame Sombreval",          "faction": "sombre" },
+    { "id": "dame-morgane",          "name": "Dame Morgane",            "faction": "sombre" },
+    { "id": "mephis-le-cornu",       "name": "Méphis le Cornu",         "faction": "sombre" },
+    { "id": "dame-cendre",           "name": "Dame Cendre",             "faction": "sombre" },
+    { "id": "zarkhan",               "name": "Zarkhan",                 "faction": "sombre" },
+    { "id": "sorcha-la-damnee",      "name": "Sorcha la Damnée",        "faction": "sombre" }
   ]
 }

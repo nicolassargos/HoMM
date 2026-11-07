@@ -251,12 +251,20 @@ public partial class NewGameWindow : ScreenWindow
         var heroClass = _data.Classes.ForFaction(faction);
         _className.Text = heroClass?.Name ?? "";
         _classDetails.Text = heroClass != null ? Texts.ClassDetails(heroClass, _data) : "";
+        // les héros de cette faction : la bande repart du premier
+        _hero = _firstShown = 0;
+        if (_heroCount != null)
+            ShowHero();
     }
+
+    /// <summary>Les héros qu'on peut choisir : ceux de la faction choisie (tous, si elle n'en a aucun).</summary>
+    private IReadOnlyList<HeroType> Heroes =>
+        _data.Heroes.OfFaction(_faction) is { Count: > 0 } heroes ? heroes : _data.Heroes.All;
 
     /// <summary>Choisit ce héros (en boucle) ; la bande défile pour qu'il reste visible.</summary>
     private void SelectHero(int index)
     {
-        int count = _data.Heroes.All.Count;
+        int count = Heroes.Count;
         if (count == 0)
             return;
         _hero = (index % count + count) % count;
@@ -269,7 +277,7 @@ public partial class NewGameWindow : ScreenWindow
 
     private void ShowHero()
     {
-        var heroes = _data.Heroes.All;
+        var heroes = Heroes;
         if (heroes.Count == 0)
             return;
         var hero = heroes[_hero];
@@ -306,7 +314,7 @@ public partial class NewGameWindow : ScreenWindow
         int seed = int.TryParse(_seed.Text, out int typed) ? typed : Random.Shared.Next(1, 1_000_000);
         var victory = _goals.Where(g => g.Value.ButtonPressed).Aggregate(VictoryCondition.None, (all, g) => all | g.Key);
         var rules = new GameRules(victory, _limit.ButtonPressed ? GameRules.StandardDayLimit : null, _difficulty);
-        string? hero = _data.Heroes.All.Count > 0 ? _data.Heroes.All[_hero].Name : null;
+        string? hero = Heroes.Count > 0 ? Heroes[_hero].Name : null;
         Close();
         Started?.Invoke(new GameSetup(seed, _size, rules, _opponents, hero, _faction));
     }

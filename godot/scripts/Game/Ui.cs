@@ -726,23 +726,34 @@ public static class Ui
     }
 
     /// <summary>
-    /// L'image d'une créature (art/creatures/{id}.png), agrandie <paramref name="scale"/> fois à l'écran (un nombre
-    /// entier : pixels nets), ou null si elle n'a pas d'image.
+    /// La meilleure image d'une créature pour une place de cette taille (en pixels de l'écran), agrandie du plus grand
+    /// nombre entier de fois qui tient (pixels réguliers) : son image de combat, plus détaillée, si elle s'y montre au
+    /// moins aux 4/5 de la hauteur qu'aurait la petite image de la carte ; sinon la petite, plus grande. Null s'il n'y a
+    /// pas d'image, ou si rien ne tient.
     /// </summary>
-    public static TextureRect? CreatureImage(CreatureType type, int scale = 2)
+    public static (Texture2D Texture, Vector2 Size)? CreatureArt(CreatureType type, Vector2 box)
     {
-        if (Art.Get($"creatures/{type.Id}") is not { } texture)
-            return null;
-        return new TextureRect
+        (Texture2D, Vector2)? Fit(Texture2D? texture)
         {
-            Texture = texture,
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-            StretchMode = TextureRect.StretchModeEnum.Scale,
-            CustomMinimumSize = texture.GetSize() * scale,
-            TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
-        };
+            if (texture == null)
+                return null;
+            var size = texture.GetSize();
+            int scale = (int)Math.Floor(Math.Min(box.X / size.X, box.Y / size.Y));
+            return scale >= 1 ? (texture, size * scale) : null;
+        }
+        var battle = Fit(Art.Get($"creatures/battle/{type.Id}"));
+        var small = Fit(Art.Get($"creatures/{type.Id}"));
+        if (battle is { } b && (small is not { } s || b.Item2.Y >= 0.8f * s.Item2.Y))
+            return battle;
+        return small ?? battle;
+    }
+
+    /// <summary>L'image d'une créature (<see cref="CreatureArt"/>) au milieu d'une place : x, y, largeur, hauteur en pixels.</summary>
+    public static TextureRect? CreaturePicture(CreatureType type, Rect2 place)
+    {
+        if (CreatureArt(type, place.Size) is not { } art)
+            return null;
+        return Picture(art.Texture, place.Position + (place.Size - art.Size) / 2, art.Size);
     }
 
     /// <summary>Un bouton aux couleurs du jeu. Il ne prend pas le focus, sinon Espace/Entrée le « cliqueraient ».</summary>

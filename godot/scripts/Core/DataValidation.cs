@@ -39,7 +39,10 @@ public static class DataValidation
         }
     }
 
-    /// <summary>Les héros (noms uniques) et les classes (une faction connue, des sorts connus, des caractéristiques positives).</summary>
+    /// <summary>Les factions prévues, sans créatures pour l'instant : leurs héros attendent (data/heroes.json).</summary>
+    public static readonly IReadOnlySet<string> PlannedFactions = new HashSet<string> { "barbares", "foret", "tour", "sombre" };
+
+    /// <summary>Les héros (noms uniques, faction connue ou prévue) et les classes (une faction connue, des sorts connus, des caractéristiques positives).</summary>
     public static void CheckHeroes(IReadOnlyCollection<HeroType> heroes, IReadOnlyCollection<HeroClass> classes,
         IReadOnlyCollection<CreatureType> creatures, IReadOnlyCollection<SpellType> spells, List<string> errors)
     {
@@ -47,6 +50,9 @@ public static class DataValidation
             errors.Add($"héros en double : {group.Key}");
         foreach (var h in heroes.Where(h => string.IsNullOrWhiteSpace(h.Name)))
             errors.Add($"héros sans nom ({h.Id})");
+        var known = creatures.Select(c => c.Faction).ToHashSet();
+        foreach (var h in heroes.Where(h => h.Faction != null && !known.Contains(h.Faction) && !PlannedFactions.Contains(h.Faction)))
+            errors.Add($"{h.Id} : faction inconnue ({h.Faction})");
         var factions = creatures.Select(c => c.Faction).ToHashSet();
         foreach (var group in classes.GroupBy(c => c.Id).Where(g => g.Count() > 1))
             errors.Add($"classe en double : {group.Key}");

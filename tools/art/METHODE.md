@@ -23,6 +23,37 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   image par case (trous réguliers).
 - Terrains : deux images par terrain (`grass-2.png`…), les bords sont calculés par le shader (pas d'images de bords).
 - Portraits : 64 × 64, style « retro », des visages marqués plutôt qu'idéalisés, trouvés d'après le nom du héros.
+  28 portraits de plus (2026-11-07, 5,58 $ : 3 candidats chacun, 3 refaits) : barbares, chevaliers, sorciers, mages,
+  gens des bois, morts-vivants, démons. Ce qui marche : décrire un détail qui se voit (cicatrice, cache-œil,
+  corbeau, lunettes) et **l'âge** (« about fifty ») ; sans âge, une femme mage sort jeune et lisse, et un
+  vampire tourne au Dracula de dessin animé (préciser « old, gaunt, not cartoonish »).
+  **Un fond par héros** (choix de l'utilisateur, 2026-11-07) : tous les portraits (35) refaits avec une scène
+  (« background: a snowy pine forest at dusk ») à la place de « dark plain background » (`slug@fond` dans
+  `assets.json`, 6,48 $). La lumière de la scène tombe sur le personnage. Écartés : détourer le noir et poser un
+  fond dessiné ou généré (le personnage a l'air collé, et les habits noirs se trouent au détourage).
+  **Garder un visage et changer le fond** (Sire Roland) : son fond est du noir pur, et rien de noir sur lui ; détouré
+  (le noir relié aux bords, seuil 6) puis posé sur un fond généré seul (« empty background scene, no people »),
+  assombri à 85 % : propre, sans contour. Le refaire passer par Retro Diffusion pour fondre la lumière (`input`,
+  `strength` 0,2 ou 0,35) change l'expression du visage : écarté.
+  **Des visages nuancés** (demandé par l'utilisateur, 2026-11-07 : assez des jeunes beautés, des vieillards et des
+  laiderons) : « characterful imperfect features, not idealized, gritty » poussait vers la laideur, et sans âge les
+  femmes sortent jeunes et belles. Ce qui marche (`slug@nuance`) : un **âge en chiffres** (35 à 60), **une expression
+  nette** (« a cocky smirk on one side of the mouth », « deadpan unimpressed stare », « a sly knowing grin »), et
+  « a real lived-in face, ordinary proportions, neither pretty nor ugly » à la fin. Pour une femme, l'âge ne suffit
+  pas : ajouter « visible wrinkles around the eyes and mouth, a few grey hairs, weathered skin, a slightly crooked
+  nose, no makeup » (`@nuance2`). Des « gueules » de films d'action des années 80-90 : décrire les traits (yeux
+  lourds et lèvre retroussée, crâne rasé et barbe de trois jours…), **sans nom d'acteur** (pas de ressemblance avec
+  une vraie personne).
+  **Le choix de l'utilisateur** (2026-11-07) : une page de choix (artifact claude.ai, un clic par héros, choix lus
+  ensuite) avec tous les candidats de chaque héros ; il a choisi les 41 lui-même. Pour les prochains portraits :
+  **pas seulement des humains** (squelette, orc, nain, elfe, gnome, barbare vraiment sauvage), **l'allure des jeux
+  des années 80-90** avec des **fonds simples et dramatiques** (un ciel de feu, une lune, une lueur verte), pas
+  seulement de belles images. Ses préférés : Comte Morvan, Mortimer, Tarka, Ulrik.
+- **Petites images des créatures (24 × 24, la carte)** : ne jamais réduire une image de combat (bouillie), même en la
+  donnant à Retro Diffusion comme image de départ. Pour qu'elle ressemble à l'image de combat : PixelLab `pro` à
+  24 × 24, l'image de combat comme sujet, la petite image du Gobelin (`godot/art/creatures/gobelin.png`) comme style
+  (64 candidats pour 0,08 à 0,18 $). D'après une description seule : Retro Diffusion `rd_tile__tile_object`, 24 px,
+  « front view, simple, clear silhouette, few details ».
 
 ## Créatures de combat (PixelLab)
 - **Échelle commune** : un humain fait environ 46 à 54 px de haut (à peu près une case), le Gobelin environ 28, l'Orc 41,

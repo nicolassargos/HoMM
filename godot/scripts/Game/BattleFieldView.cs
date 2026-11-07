@@ -46,9 +46,11 @@ public partial class BattleFieldView : Control
     /// <summary>
     /// Les vitesses propres à certaines créatures (un géant lent…), dans <c>art/creatures/battle/animations.json</c>
     /// (facultatif) : <c>{ "colosse-os": { "idle": 6, "move": 7 } }</c>, en images par seconde. L'entrée « * » vaut
-    /// pour toutes les créatures (une créature peut la remplacer).
+    /// pour toutes les créatures (une créature peut la remplacer). Aussi les effets de la créature : « projectile »
+    /// (« fleche », « boule-feu »), « launchFrame » (l'image de l'attaque où le tir part), « launchPoint » ([x, y] dans
+    /// cette image, en pixels d'art), « impact » (« choc » par défaut, « morsure »…).
     /// </summary>
-    private static Dictionary<string, Dictionary<string, double>>? _speeds;
+    private static Dictionary<string, Dictionary<string, System.Text.Json.JsonElement>>? _speeds;
 
     /// <summary>Images par seconde de cette animation de la créature (10 par défaut).</summary>
     private static double Fps(BattleUnit unit, string state)
@@ -57,7 +59,7 @@ public partial class BattleFieldView : Control
         {
             const string path = Art.Root + "creatures/battle/animations.json";
             _speeds = Godot.FileAccess.FileExists(path)
-                ? System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, double>>>(
+                ? System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, System.Text.Json.JsonElement>>>(
                     Godot.FileAccess.GetFileAsString(path)) ?? new()
                 : new();
         }
@@ -65,7 +67,19 @@ public partial class BattleFieldView : Control
     }
 
     /// <summary>Un réglage de <c>animations.json</c> pour cette créature, ou null.</summary>
-    private static double? Setting(BattleUnit unit, string key)
+    private static double? Setting(BattleUnit unit, string key) =>
+        Raw(unit, key) is { ValueKind: System.Text.Json.JsonValueKind.Number } value ? value.GetDouble() : null;
+
+    /// <summary>Un réglage texte de <c>animations.json</c> (« projectile », « impact »), ou null.</summary>
+    private static string? TextSetting(BattleUnit unit, string key) =>
+        Raw(unit, key) is { ValueKind: System.Text.Json.JsonValueKind.String } value ? value.GetString() : null;
+
+    /// <summary>Un point [x, y] de <c>animations.json</c> (« launchPoint »), ou null.</summary>
+    private static Vector2? PointSetting(BattleUnit unit, string key) =>
+        Raw(unit, key) is { ValueKind: System.Text.Json.JsonValueKind.Array } value && value.GetArrayLength() == 2
+            ? new Vector2((float)value[0].GetDouble(), (float)value[1].GetDouble()) : null;
+
+    private static System.Text.Json.JsonElement? Raw(BattleUnit unit, string key)
     {
         if (_speeds == null)
             Fps(unit, Idle);
@@ -188,6 +202,12 @@ public partial class BattleFieldView : Control
         /// <summary>Décalage de l'attente, pour que les troupes ne respirent pas toutes ensemble.</summary>
         public double Phase;
 
+        /// <summary>Le recul d'une troupe touchée (de 1 au coup à 0), et son sens (+1 : vers la droite).</summary>
+        public float Recoil, RecoilDirection;
+
+        /// <summary>Une lueur verte qui s'éteint (de 1 à 0) : la troupe vient de se régénérer.</summary>
+        public float Glow;
+
         /// <summary>Tournée vers la gauche (dessinée en miroir) pendant une marche ou un coup ; null : le côté de son
         /// camp (l'attaquant regarde à droite, le défenseur à gauche).</summary>
         public bool? FacesLeft;
@@ -205,6 +225,12 @@ public partial class BattleFieldView : Control
 
     private readonly Dictionary<BattleUnit, Shown> _shown = new();
     private readonly List<(string Text, Vector2 Position, float Age, Color Color)> _floating = new();
+
+    /// <summary>Projectiles et impacts (dessinés par le jeu).</summary>
+    private readonly BattleEffects _effects = new();
+
+    /// <summary>Le temps du combat à l'écran (pour les auras, qui tournent en boucle).</summary>
+    private double _time;
 
     /// <summary>Les cases à mettre en valeur : où la troupe active peut aller, la case survolée, la cible visée.</summary>
     public IReadOnlyCollection<Hex> Reachable { get; set; } = Array.Empty<Hex>();
@@ -240,6 +266,7 @@ public partial class BattleFieldView : Control
         _terrain = terrain;
         _shown.Clear();
         _floating.Clear();
+        _effects.Clear();
         foreach (var unit in battle.Units)
             _shown[unit] = new Shown { Position = UnitCenter(unit, unit.Position), Count = unit.Count, Phase = unit.Id * 0.37 };
         CustomMinimumSize = FieldSize;
@@ -324,8 +351,15 @@ public partial class BattleFieldView : Control
     /// </summary>
     public void Show(IEnumerable<BattleAction> actions, Action<BattleAction>? begin = null)
     {
+        BattleAction? previous = null;
         foreach (var action in actions)
         {
+            // le nuage de mort de la Liche : ses coups sur les troupes autour de la cible suivent aussitôt le tir
+            bool cloud = action is UnitStruck { Ranged: true, Retaliation: false } follow
+                && previous is UnitStruck { Ranged: true } before && before.Attacker == follow.Attacker
+                && follow.Attacker.Has(Ability.DeathCloud);
+            var last = previous; // l'action d'avant (le coup du Vampire, avant qu'il boive)
+            previous = action;
             var told = action;
             _animations.Enqueue(_ =>
             {
@@ -394,9 +428,35 @@ public partial class BattleFieldView : Control
                         return true;
                     });
                     break;
+                case UnitStruck cloudStruck when cloud:
+                    double after = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (after == 0)
+                        {
+                            var target = _shown[cloudStruck.Target];
+                            target.Count = Math.Max(0, target.Count - cloudStruck.Killed);
+                            target.Flash = 1;
+                            target.Recoil = 1;
+                            target.RecoilDirection = target.Position.X >= _shown[cloudStruck.Attacker].Position.X ? 1 : -1;
+                            _floating.Add(($"-{cloudStruck.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(170, 220, 150)));
+                            if (cloudStruck.Killed > 0)
+                                _floating.Add(($"{cloudStruck.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
+                        }
+                        after += Math.Max(delta, 1e-6);
+                        if (after < 0.18)
+                            return false;
+                        if (_shown[cloudStruck.Target].Count == 0)
+                            _shown[cloudStruck.Target].Gone = true;
+                        return true;
+                    });
+                    break;
                 case UnitStruck struck:
                     double age = 0, wind = 0;
-                    bool hit = false;
+                    bool hit = false, launched = false, landed = false;
+                    // un tir avec un projectile (flèche, boule de feu) : il part à l'image du lâcher et le coup porte à son
+                    // arrivée ; sinon le coup porte au moment habituel du geste
+                    string? shot = struck.Ranged ? TextSetting(struck.Attacker, "projectile") : null;
                     _animations.Enqueue(delta =>
                     {
                         // l'attaquant fait son geste (s'il a une animation d'attaque) ; le coup porte vers la fin
@@ -414,18 +474,38 @@ public partial class BattleFieldView : Control
                                 striker.Play(AttackState);
                         }
                         // une attaque plus lente porte son coup plus tard, au même moment du geste
-                        if (striker.State == AttackState && wind < HitDelay * AnimationFps / Fps(struck.Attacker, AttackState))
+                        double release = shot != null && Setting(struck.Attacker, "launchFrame") is double frame
+                            ? frame / Fps(struck.Attacker, AttackState)
+                            : HitDelay * AnimationFps / Fps(struck.Attacker, AttackState);
+                        if (striker.State == AttackState && wind < release)
                         {
                             wind += delta;
                             return false;
                         }
                         wind = Math.Max(wind, 1e-6);
+                        if (shot != null && !launched)
+                        {
+                            launched = true;
+                            _effects.Launch(shot, LaunchPoint(struck.Attacker, striker), BodyCenter(struck.Target, _shown[struck.Target]),
+                                () => landed = true);
+                        }
+                        if (shot != null && !landed)
+                            return false;
                         if (!hit)
                         {
                             hit = true;
                             var target = _shown[struck.Target];
                             target.Count = Math.Max(0, target.Count - struck.Killed);
                             target.Flash = 1;
+                            // un éclat sur la troupe touchée, et elle recule un peu, dans le sens du coup
+                            float direction = target.Position.X >= striker.Position.X ? 1 : -1;
+                            target.Recoil = 1;
+                            target.RecoilDirection = direction;
+                            string impact = shot != null ? BattleEffects.ImpactOf(shot) : TextSetting(struck.Attacker, "impact") ?? "choc";
+                            _effects.Hit(impact, BodyCenter(struck.Target, target), direction);
+                            // le nuage de mort s'étale autour de la cible (ses coups sur les voisines suivent)
+                            if (shot != null && struck.Attacker.Has(Ability.DeathCloud))
+                                _effects.Hit("nuage", target.Position + new Vector2(0, HexHeight / 2 - Ui.Px(24)), direction);
                             _floating.Add(($"-{struck.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 210, 120)));
                             if (struck.Killed > 0)
                                 _floating.Add(($"{struck.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
@@ -512,6 +592,7 @@ public partial class BattleFieldView : Control
                             var target = _shown[poisoned.Unit];
                             target.Count = Math.Max(0, target.Count - poisoned.Killed);
                             target.Flash = 1;
+                            _effects.Hit("bulles", BodyCenter(poisoned.Unit, target), 1);
                             _floating.Add(($"-{poisoned.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(150, 220, 90)));
                         }
                         venom += delta;
@@ -529,6 +610,7 @@ public partial class BattleFieldView : Control
                         if (grow == 0)
                         {
                             _shown[grew.Unit].Count += grew.Added;
+                            _effects.Hit("ames", BodyCenter(grew.Unit, _shown[grew.Unit]), 1);
                             _floating.Add(($"+{grew.Added}", _shown[grew.Unit].Position + Ui.V(0, -50), 0, MapRenderer.Rgb(200, 220, 255)));
                         }
                         grow += delta;
@@ -542,10 +624,25 @@ public partial class BattleFieldView : Control
                         if (drink == 0)
                         {
                             _shown[drained.Unit].Count += drained.Revived;
+                            // la vie bue coule de sa victime jusqu'à lui
+                            if (last is UnitStruck bitten && bitten.Attacker == drained.Unit && _shown.TryGetValue(bitten.Target, out var victim))
+                                _effects.Drain(BodyCenter(bitten.Target, victim), BodyCenter(drained.Unit, _shown[drained.Unit]));
                             _floating.Add(($"+{drained.HitPoints}", _shown[drained.Unit].Position + Ui.V(0, -50), 0, MapRenderer.Rgb(230, 80, 80)));
                         }
                         drink += delta;
                         return drink >= 0.3;
+                    });
+                    break;
+                case UnitRegenerated regenerated:
+                    double regrow = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (regrow == 0)
+                            _shown[regenerated.Unit].Glow = 1;
+                        if (regrow == 0)
+                            _effects.Hit("regeneration", _shown[regenerated.Unit].Position + new Vector2(0, HexHeight / 2 - Ui.Px(10)), 1);
+                        regrow += Math.Max(delta, 1e-6);
+                        return regrow >= 0.3;
                     });
                     break;
                 case UnitHealed healed:
@@ -556,6 +653,7 @@ public partial class BattleFieldView : Control
                         {
                             var target = _shown[healed.Unit];
                             target.Count += healed.Revived;
+                            _effects.Hit("soin", BodyCenter(healed.Unit, target), 1);
                             target.Gone = target.Count == 0;
                             _floating.Add(($"+{healed.HitPoints}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(140, 235, 140)));
                         }
@@ -588,8 +686,12 @@ public partial class BattleFieldView : Control
         foreach (var shown in _shown.Values)
         {
             shown.Flash = Math.Max(0, shown.Flash - (float)delta * 3);
+            shown.Recoil = Math.Max(0, shown.Recoil - (float)delta * 4);
+            shown.Glow = Math.Max(0, shown.Glow - (float)delta * 1.2f);
             shown.StateTime += delta;
         }
+        _effects.Update(delta);
+        _time += delta;
         for (int i = _bursts.Count - 1; i >= 0; i--)
         {
             var (hexes, color, age) = _bursts[i];
@@ -695,6 +797,20 @@ public partial class BattleFieldView : Control
                 things.Add((shown.Position.Y, () => DrawUnit(unit, shown)));
         foreach (var (_, draw) in things.OrderBy(t => t.Y))
             draw();
+        // les auras des états qui durent : poison, sorts utiles ou néfastes
+        foreach (var (unit, shown) in _shown)
+        {
+            if (shown.Gone || !unit.IsAlive)
+                continue;
+            var body = BodyCenter(unit, shown);
+            if (unit.PoisonTurnsLeft > 0)
+                BattleEffects.DrawAura(this, "poison", body, _time, unit.Id * 7 + 1);
+            if (unit.Spells.Any(s => !s.Spell.Harmful))
+                BattleEffects.DrawAura(this, "benefique", body, _time, unit.Id * 7 + 2);
+            if (unit.Spells.Any(s => s.Spell.Harmful))
+                BattleEffects.DrawAura(this, "nefaste", body, _time, unit.Id * 7 + 3);
+        }
+        _effects.Draw(this);
 
         var font = ThemeDB.FallbackFont;
         foreach (var (text, position, age, color) in _floating)
@@ -755,10 +871,45 @@ public partial class BattleFieldView : Control
         return (sheet, new Rect2(new Vector2(index % AnimationColumns * cell.X, index / AnimationColumns * cell.Y), cell));
     }
 
-    private void DrawUnit(BattleUnit unit, Shown shown)
+    /// <summary>Le milieu du corps d'une troupe (là où un projectile la touche) : la moitié de la hauteur de son image.</summary>
+    private static Vector2 BodyCenter(BattleUnit unit, Shown shown)
     {
         var foot = shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10));
+        float height = Art.Get($"creatures/battle/{unit.Type.Id}") is { } image ? image.GetHeight() * BattleSpriteScale : Ui.Px(48);
+        return foot - new Vector2(0, height * 0.5f);
+    }
+
+    /// <summary>
+    /// D'où part le tir : le « launchPoint » de la créature dans son image d'attaque (pixels d'art depuis le coin en haut à
+    /// gauche), à l'écran et retourné si elle regarde à gauche ; sinon le milieu de son corps.
+    /// </summary>
+    private static Vector2 LaunchPoint(BattleUnit unit, Shown shown)
+    {
+        if (PointSetting(unit, "launchPoint") is not { } point || Sheet(unit, AttackState) is not { } sheet)
+            return BodyCenter(unit, shown);
+        var foot = shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10));
+        int rows = (Frames(unit, AttackState) + AnimationColumns - 1) / AnimationColumns;
+        var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / rows);
+        float x = (point.X - cell.X / 2) * BattleSpriteScale;
+        if (shown.FacesLeft ?? unit.Side == BattleSide.Defender)
+            x = -x;
+        return foot + new Vector2(x, (point.Y - cell.Y) * BattleSpriteScale);
+    }
+
+    private void DrawUnit(BattleUnit unit, Shown shown)
+    {
+        // une troupe touchée recule d'un coup (3 pixels d'art) puis revient à sa place
+        var foot = shown.Position + new Vector2(shown.RecoilDirection * shown.Recoil * BattleEffects.Pixel * 3, HexHeight / 2 - Ui.Px(10));
         var tint = shown.Flash > 0 ? new Color(1, 1 - shown.Flash * 0.6f, 1 - shown.Flash * 0.6f) : Colors.White;
+        // une troupe qui se régénère s'éclaire de vert un instant
+        if (shown.Glow > 0)
+            tint *= new Color(1 - 0.35f * shown.Glow, 1, 1 - 0.45f * shown.Glow);
+        // une troupe empoisonnée verdit, en palpitant doucement, tant que le poison dure
+        if (unit.PoisonTurnsLeft > 0)
+        {
+            float pulse = 0.5f + 0.5f * MathF.Sin((float)_time * 3 + unit.Id);
+            tint *= new Color(0.72f - 0.08f * pulse, 1, 0.62f - 0.08f * pulse);
+        }
         // L'image de combat (plus détaillée), sinon la petite de la carte ×3 ; une grande créature est centrée sur ses 2 cases
         var battleImage = Art.Get($"creatures/battle/{unit.Type.Id}");
         var (sheet, frame) = Frame(unit, shown);

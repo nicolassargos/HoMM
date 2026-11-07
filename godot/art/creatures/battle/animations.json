@@ -1,8 +1,15 @@
 {
   "*": {"idlePauseMin": 3, "idlePauseMax": 6},
   "colosse-os": {"idle": 7, "move": 7, "attack": 7},
-  "archer": {"idle": 7, "idlePauseMin": 10, "idlePauseMax": 20},
+  "archer": {"idle": 7, "idlePauseMin": 10, "idlePauseMax": 20, "projectile": "fleche", "launchFrame": 5, "launchPoint": [56, 22]},
   "zombie": {"move": 8, "moveFrames": 16, "stepTime": 0.45},
   "troll": {"move": 7, "idle": 6},
-  "vampire": {"stepTime": 0.25}
+  "vampire": {"stepTime": 0.25, "impact": "morsure"},
+  "moine": {"projectile": "boule-feu", "launchFrame": 3, "launchPoint": [84, 27]},
+  "loup": {"impact": "morsure"},
+  "araignee": {"impact": "poison"},
+  "liche": {"projectile": "boule-poison", "launchFrame": 3, "launchPoint": [52, 2]},
+  "orc": {"projectile": "hache", "launchFrame": 3, "launchPoint": [86, 25]},
+  "chevalier": {"impact": "choc"},
+  "squelette": {"impact": "entaille"}
 }

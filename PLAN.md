@@ -23,7 +23,8 @@ termine, et ne garder ici qu'une ligne. La méthode des images est dans `tools/a
 4. ✅ Parties complètes : conditions de victoire (cumulables), trésor enfoui et obélisques, générateur v2 (zones et
    passages gardés), sauvegarde exacte (le hasard compris).
 5. ✅ Graphismes de la carte et de l'interface (terrains par shader, décor, curseurs, zoom, routes, portraits).
-6. ✅ Combat tactique (11 × 9 cases, capacités des créatures, grandes créatures sur 2 cases, combat rapide joué par
+6. ✅ Combat tactique (11 × 9 cases aplaties comme Heroes 3, du sol au-dessus de la grille pour la tête des grandes
+   créatures, capacités des créatures, grandes créatures sur 2 cases, combat rapide joué par
    l'IA) ; créatures refaites une à une avec PixelLab (en cours au fil de l'eau, voir `tools/art/METHODE.md`).
 7. ✅ Refonte de l'interface (carte, héros, royaume, ville vue de face, combat, fenêtres, menu, sauvegardes, 1920 × 1080).
    **Reste** : une nouvelle revue de toutes les captures avec l'utilisateur, quand les écrans qui manquent seront là

@@ -14,10 +14,19 @@ namespace HoMM.Game;
 /// </summary>
 public partial class BattleFieldView : Control
 {
-    /// <summary>Taille d'une case : largeur (écart entre deux colonnes) et hauteur (pointe à pointe).</summary>
-    /// <summary>(Écran de 1920 × 1080 : les cases, les images et les marges sont en pixels de l'écran.)</summary>
-    public const float HexWidth = 110, HexHeight = 126;
+    /// <summary>
+    /// Taille d'une case : largeur (écart entre deux colonnes) et hauteur (pointe à pointe). Les cases sont aplaties (plus
+    /// larges que hautes, le champ vu un peu de biais, comme Heroes 3) : la place gagnée en hauteur va au-dessus de la
+    /// grille (<see cref="TopMargin"/>). Écran de 1920 × 1080 : les cases, les images et les marges sont en pixels de l'écran.
+    /// </summary>
+    public const float HexWidth = 110, HexHeight = 100;
     private const float RowStep = HexHeight * 0.75f;
+
+    /// <summary>
+    /// Le sol au-dessus de la grille : les créatures sont plus hautes que leur case (l'Ange, le Colosse), et celles de la
+    /// première rangée y ont la place de leur tête (choix de l'utilisateur, 2026-11-07 : elles étaient coupées).
+    /// </summary>
+    public const float TopMargin = 177; // le champ remplit toute la hauteur entre la ligne du haut et la barre du bas (1920 × 1080)
     private const int SpriteScale = 4;
 
     /// <summary>Agrandissement des images de combat (art/creatures/battle/).</summary>
@@ -129,7 +138,7 @@ public partial class BattleFieldView : Control
     /// </summary>
     public const float SideMargin = 318;
 
-    public static Vector2 FieldSize => new(Battlefield.Columns * HexWidth + HexWidth / 2 + 2 * SideMargin, (Battlefield.Rows - 1) * RowStep + HexHeight);
+    public static Vector2 FieldSize => new(Battlefield.Columns * HexWidth + HexWidth / 2 + 2 * SideMargin, TopMargin + (Battlefield.Rows - 1) * RowStep + HexHeight);
 
     /// <summary>Le héros de l'attaquant, dessiné à gauche de la grille (null : pas de héros, une vitrine…).</summary>
     public Hero? AttackerHero { get; set; }
@@ -151,7 +160,7 @@ public partial class BattleFieldView : Control
     private static Rect2 HeroRectAt(float centerX)
     {
         var size = (Art.Get("heroes/hero")?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
-        return new Rect2(new Vector2(centerX - size.X / 2, FieldSize.Y / 2 - size.Y / 2), size);
+        return new Rect2(new Vector2(centerX - size.X / 2, (FieldSize.Y + TopMargin) / 2 - size.Y / 2), size); // au milieu de la grille
     }
 
     /// <summary>Un clic sur un des héros.</summary>
@@ -243,7 +252,7 @@ public partial class BattleFieldView : Control
 
     /// <summary>Le centre d'une case, dans le dessin (les rangées impaires sont décalées d'une demi-case).</summary>
     public static Vector2 Center(Hex hex) =>
-        new(SideMargin + hex.Col * HexWidth + HexWidth / 2 + ((hex.Row & 1) == 1 ? HexWidth / 2 : 0), hex.Row * RowStep + HexHeight / 2);
+        new(SideMargin + hex.Col * HexWidth + HexWidth / 2 + ((hex.Row & 1) == 1 ? HexWidth / 2 : 0), TopMargin + hex.Row * RowStep + HexHeight / 2);
 
     /// <summary>Où dessiner une troupe dont la tête est sur cette case : au milieu de ses cases (2 pour une grande créature).</summary>
     public static Vector2 UnitCenter(BattleUnit unit, Hex head)

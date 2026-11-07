@@ -44,6 +44,9 @@ public static class MapRenderer
         ResourceType.Wood => Rgb(140, 90, 40),
         ResourceType.Ore => Rgb(110, 110, 120),
         ResourceType.Gems => Rgb(200, 60, 200),
+        ResourceType.Mercury => Rgb(190, 200, 215),
+        ResourceType.Crystal => Rgb(120, 220, 240),
+        ResourceType.Sulfur => Rgb(230, 210, 60),
         _ => Colors.Magenta,
     };
 

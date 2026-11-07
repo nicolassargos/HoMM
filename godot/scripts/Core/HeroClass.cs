@@ -69,6 +69,14 @@ public sealed record HeroClass
 
     /// <summary>Le talent de la classe (null : aucun) ; pour l'instant, <see cref="Talents.Necromancy"/>.</summary>
     public string? Talent { get; init; }
+
+    /// <summary>
+    /// Les deux ressources rares de la faction : la principale (son habitation et sa créature du niveau 7 ; une mine près
+    /// du départ de chaque joueur de cette faction) et la secondaire (ses habitations des niveaux 5 et 6). Choix de
+    /// l'utilisateur (2026-11-07) : chaque faction a sa paire, 8 factions pour 4 ressources rares.
+    /// </summary>
+    public ResourceType? MainResource { get; init; }
+    public ResourceType? SecondaryResource { get; init; }
 }
 
 /// <summary>Une troupe de l'armée de départ d'une classe.</summary>

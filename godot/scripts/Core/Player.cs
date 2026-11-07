@@ -13,13 +13,15 @@ public sealed class Player
     {
         Name = name;
         Fog = new FogOfWar(map.Width, map.Height);
+        // au départ : 2500 or, 10 bois et minerai, 2 de chaque ressource rare
         Resources = new Dictionary<ResourceType, int>
         {
             [ResourceType.Gold] = 2500,
             [ResourceType.Wood] = 10,
             [ResourceType.Ore] = 10,
-            [ResourceType.Gems] = 2,
         };
+        foreach (var rare in ResourceInfo.Rare)
+            Resources[rare] = 2;
     }
 
     public string Name { get; }

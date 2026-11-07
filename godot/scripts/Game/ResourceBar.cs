@@ -28,7 +28,8 @@ public partial class ResourceBar : Panel
         {
             resources.AddChild(new ResourceIcon { Resource = resource, CustomMinimumSize = new Vector2(Px(18), height) });
             var label = MakeLabel("", 16, TextColor);
-            label.CustomMinimumSize = new Vector2(Px(118), 0);
+            // l'or a des nombres plus longs (« 12500 (+850) ») ; les autres tiennent dans moins de place (7 ressources)
+            label.CustomMinimumSize = new Vector2(Px(resource == ResourceType.Gold ? 118 : 72), 0);
             label.VerticalAlignment = VerticalAlignment.Center;
             label.MouseFilter = MouseFilterEnum.Stop; // pour son info-bulle
             resources.AddChild(label);
@@ -50,7 +51,7 @@ public partial class ResourceBar : Panel
         var income = player.DailyIncome();
         foreach (var (resource, label) in _amounts)
         {
-            label.Text = Texts.ResourceAmount(player.Resources[resource], income.GetValueOrDefault(resource));
+            label.Text = Texts.ResourceAmount(player.Resources.GetValueOrDefault(resource), income.GetValueOrDefault(resource));
             label.TooltipText = Texts.ResourceTooltip(player, resource);
         }
         _date.Text = Texts.Date(state.Day);

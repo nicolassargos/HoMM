@@ -66,6 +66,10 @@ public static class DataValidation
                 errors.Add($"{c.Id} : sort inconnu ({spell})");
             foreach (var stack in c.Army.Where(s => creatures.All(cr => cr.Id != s.Creature) || s.Count < 1))
                 errors.Add($"{c.Id} : armée de départ invalide ({stack.Creature})");
+            if (c.MainResource is { } main && !ResourceInfo.IsRare(main) || c.SecondaryResource is { } second && !ResourceInfo.IsRare(second))
+                errors.Add($"{c.Id} : ses ressources principale et secondaire doivent être rares");
+            if (c.MainResource != null && c.MainResource == c.SecondaryResource)
+                errors.Add($"{c.Id} : la ressource principale et la secondaire doivent être différentes");
             if (c.Talent is { } talent && talent != Talents.Necromancy)
                 errors.Add($"{c.Id} : talent inconnu ({talent})");
         }

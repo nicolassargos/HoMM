@@ -54,7 +54,12 @@ public sealed class MapGenerator
     public double GuardSizeGrowth { get; init; } = 1.0;
 
     /// <summary>Une mine par zone, et au moins une de chaque ressource.</summary>
-    public int MineCount => Math.Max(ResourceInfo.All.Length, _zones.Count);
+    // une mine par zone comme avant (les gemmes comprises), plus une de chacune des trois autres ressources rares : autant
+    // de mines d'or, de bois et de minerai qu'avant
+    public int MineCount => Math.Max(ResourceInfo.All.Length, (int)Math.Round(_zones.Count * MinesPerZone) + ResourceInfo.Rare.Length - 1);
+
+    /// <summary>Mines par zone (la carte paraissait vide avec une seule ; Heroes 3 en met souvent 2 à 4).</summary>
+    public double MinesPerZone { get; init; } = 1.5;
 
     /// <summary>
     /// Les factions dont viennent les monstres de la carte : les neutres, et les morts-vivants (étape 9, en attendant
@@ -167,6 +172,9 @@ public sealed class MapGenerator
     private readonly List<Passage> _passages = new();
     private int[,] _zoneOf = null!;
     private bool[,] _border = null!;
+
+    /// <summary>Les mines posées dans la zone de départ d'un joueur (bois, minerai, ressource principale) : sans gardien.</summary>
+    private readonly HashSet<MapObject> _startZoneMines = new();
 
     /// <summary>Cases des passages et leurs abords : ni objet, ni ville, ni autre monstre.</summary>
     private readonly HashSet<Cell> _reserved = new();
@@ -691,9 +699,20 @@ public sealed class MapGenerator
         int next = 0;
 
         // Sur une petite carte, on pose ce qui rentre : les mines d'abord, puis les coffres, puis les tas
-        // Une de chaque ressource, puis surtout du bois et du minerai (pour bâtir dans plusieurs villes)
-        var extraMines = new[] { ResourceType.Wood, ResourceType.Ore, ResourceType.Gold };
-        var mines = ResourceInfo.All.Concat(Enumerable.Range(0, MineCount - ResourceInfo.All.Length).Select(i => extraMines[i % extraMines.Length]));
+        // Les mines au-delà d'une de chaque ressource, tour à tour : or, rare, bois, or, rare, minerai (le bois et le minerai
+        // abondent déjà : chaque zone de départ en a) ; les rares tour à tour, les gemmes et le soufre d'abord (le cristal
+        // et le mercure ont déjà une mine près des départs du Château et des morts-vivants)
+        var extraPattern = new ResourceType?[] { ResourceType.Gold, null, ResourceType.Wood, ResourceType.Gold, null, ResourceType.Ore };
+        var extraRare = new[] { ResourceType.Gems, ResourceType.Sulfur, ResourceType.Crystal, ResourceType.Mercury };
+        ResourceType ExtraMine(int i)
+        {
+            if (extraPattern[i % extraPattern.Length] is { } common)
+                return common;
+            // la n-ième mine rare de la suite (deux par tour du motif)
+            int rare = i / extraPattern.Length * 2 + (i % extraPattern.Length == 1 ? 0 : 1);
+            return extraRare[rare % extraRare.Length];
+        }
+        IEnumerable<ResourceType> mines;
         // Un objet bloque sa case : on n'en pose pas un qui couperait le chemin vers un autre
         bool Place(Func<Cell, MapObject> make)
         {
@@ -721,6 +740,73 @@ public sealed class MapGenerator
             free.Remove(spot);
         }
 
+        // Dans la zone de départ de chaque joueur (à 4 à 9 pas), comme les cartes aléatoires de Heroes 3 : une mine de
+        // bois, une de minerai et une de la ressource rare principale de sa faction (sans elle, il pourrait ne jamais bâtir
+        // son habitation du niveau 7). Les cases ne dépendent pas de la faction (la carte reste la même), seulement la
+        // ressource de la troisième.
+        var startMines = new List<ResourceType>();
+        foreach (var (start, i) in _map.Starts.Select((s, i) => (s, i)))
+        {
+            var main = _data?.Classes.ForFaction(i < PlayerFactions.Count ? PlayerFactions[i] : DefaultFaction)?.MainResource;
+            // chaque mine vise sa propre distance, pour ne pas s'entasser
+            var wanted = new List<(ResourceType Resource, int SquaredDistance)> { (ResourceType.Wood, 25), (ResourceType.Ore, 49) };
+            if (main is { } rare)
+                wanted.Add((rare, 36));
+            foreach (var (resource, target) in wanted)
+            {
+                var spots = free.Where(c => _zones.Count == 0 || ZoneAt(c) == ZoneAt(start))
+                    .Where(c => Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y)) is >= 4 and <= 9)
+                    .OrderBy(c => Math.Abs(SquaredDistance(c, start) - target)).ThenBy(c => c.Y).ThenBy(c => c.X).ToList();
+                foreach (var cell in spots)
+                {
+                    var mine = new Mine(cell, resource);
+                    _map.AddObject(mine);
+                    if (AllObjectsReachable())
+                    {
+                        free.Remove(cell);
+                        startMines.Add(resource);
+                        _startZoneMines.Add(mine);
+                        break;
+                    }
+                    _map.RemoveObject(mine);
+                }
+            }
+        }
+        // Une mine de la ressource rare secondaire de chaque joueur dans une zone voisine de sa zone de départ, la plus proche
+        // possible (au moins 8 pas) : gardée, c'est un but tout proche. Sur une carte d'une seule zone, à 10 à 16 pas.
+        var startZones = _zones.Count == 0 ? new List<Zone>() : _map.Starts.Select(ZoneAt).Distinct().ToList();
+        foreach (var (start, i) in _map.Starts.Select((s, i) => (s, i)))
+        {
+            if (_data?.Classes.ForFaction(i < PlayerFactions.Count ? PlayerFactions[i] : DefaultFaction)?.SecondaryResource is not { } second)
+                continue;
+            int home = _zones.Count == 0 ? -1 : ZoneAt(start).Index;
+            var neighbours = _passages.Where(p => p.A == home || p.B == home).Select(p => p.A == home ? p.B : p.A)
+                .Where(z => !startZones.Any(sz => sz.Index == z)).ToHashSet();
+            var spots = free
+                .Where(c => _zones.Count <= 1
+                    ? Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y)) is >= 10 and <= 16
+                    : neighbours.Contains(ZoneAt(c).Index) && Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y)) >= 8)
+                .OrderBy(c => SquaredDistance(c, start)).ThenBy(c => c.Y).ThenBy(c => c.X).ToList();
+            foreach (var cell in spots)
+            {
+                var mine = new Mine(cell, second);
+                _map.AddObject(mine);
+                if (AllObjectsReachable())
+                {
+                    free.Remove(cell);
+                    startMines.Add(second);
+                    break;
+                }
+                _map.RemoveObject(mine);
+            }
+        }
+
+        // Puis les autres : la carte prévoit une mine de chaque ressource, et d'autres tour à tour (voir ExtraMine) ; celles
+        // posées près des départs en font partie (elles ne s'y ajoutent que si elles dépassent ce qui était prévu)
+        var planned = ResourceInfo.All.Concat(Enumerable.Range(0, MineCount - ResourceInfo.All.Length).Select(ExtraMine)).ToList();
+        foreach (var resource in startMines)
+            planned.Remove(resource);
+        mines = planned;
         foreach (var resource in mines)
             if (!Place(c => new Mine(c, resource)))
                 return;
@@ -728,12 +814,17 @@ public sealed class MapGenerator
             if (!Place(c => new TreasureChest(c, _rng)))
                 return;
 
-        // L'or, le bois et le minerai sont plus fréquents que les gemmes
+        // L'or, le bois et le minerai sont plus fréquents que les ressources rares (deux tas sur huit, l'une des quatre)
         var pileTypes = new[] { ResourceType.Gold, ResourceType.Gold, ResourceType.Wood, ResourceType.Wood,
-                                ResourceType.Ore, ResourceType.Ore, ResourceType.Gems };
+                                ResourceType.Ore, ResourceType.Ore, ResourceType.Gems, ResourceType.Gems };
         for (int i = 0; i < Scaled(PileCount); i++)
-            if (!Place(c => new ResourcePile(c, pileTypes[_rng.Next(pileTypes.Length)], _rng)))
+        {
+            var type = pileTypes[_rng.Next(pileTypes.Length)];
+            if (ResourceInfo.IsRare(type))
+                type = ResourceInfo.Rare[_rng.Next(ResourceInfo.Rare.Length)];
+            if (!Place(c => new ResourcePile(c, type, _rng)))
                 return;
+        }
 
         PlaceObelisks(free, next);
     }
@@ -796,7 +887,9 @@ public sealed class MapGenerator
                     FitToStartingArmy(creatures, guard);
             }
 
-        var guarded = _map.Objects.Where(o => o is Mine or TreasureChest)
+        // les mines de la zone de départ ne sont pas gardées (comme dans Heroes 3) : elles assurent à chacun de quoi bâtir,
+        // sans combat risqué dès les premiers jours
+        var guarded = _map.Objects.Where(o => o is Mine or TreasureChest && !_startZoneMines.Contains(o))
             .OrderBy(o => o.Position.Y).ThenBy(o => o.Position.X)
             .ToList();
         foreach (var target in guarded)
@@ -843,6 +936,9 @@ public sealed class MapGenerator
         if (StepsToStart(c) < 4)
             return false;
         if (DistanceToNearestTown(c) < 4)
+            return false;
+        // les mines de la zone de départ restent sans gardien (pas même un monstre errant à côté)
+        if (_startZoneMines.Any(m => Math.Max(Math.Abs(m.Position.X - c.X), Math.Abs(m.Position.Y - c.Y)) <= 1))
             return false;
         for (int dy = -2; dy <= 2; dy++)
         for (int dx = -2; dx <= 2; dx++)

@@ -242,6 +242,12 @@ croissance, prix, garde.
   d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la
   date. (Icônes des ressources : faites, 2026-11-07.)
+- **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
+  ×3, mines sur 3 × 2 cases (96 × 64), villes 96 × 96. Images refaites (terrains, décor, objets, mines assemblées de
+  pièces, petites images des créatures, héros), choix provisoires à revoir avec l'utilisateur
+  (`art-candidats/en-cours/revue-carte-32px.html`) ; le code (taille des cases, shader, décor, empreintes) vient de
+  l'autre session (branche `tuiles-32`), les images fusionnent juste après. Plus tard : une ombre dessinée par le jeu
+  sous les objets de la carte.
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles
   (`buildings.json`) ne gardent plus la place des bâtiments ; chaque faction a sa **scène** (`art/towns/<faction>/` :
   un fond de 640 × 195 affiché ×3, et `scene.json` : pour chaque bâtiment, son pied (bas, milieu), sa profondeur et son

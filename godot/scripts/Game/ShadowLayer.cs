@@ -22,13 +22,15 @@ public partial class ShadowLayer : Node2D
     public ActorLayer Actors { get; set; } = null!;
 
     /// <summary>L'opacité de l'ombre portée (0 : aucune, 1 : noire).</summary>
-    public static float Strength { get; set; } = 0.35f;
+    public static float Strength { get; set; } = 0.45f;
     /// <summary>La longueur de l'ombre sur le sol, par rapport à la hauteur de l'image (1 : aussi longue qu'elle est haute).</summary>
     public static float Length { get; set; } = 0.5f;
     /// <summary>De combien l'ombre penche vers la gauche : décalage vers la gauche du haut de l'image, par rapport à sa hauteur.</summary>
-    public static float Lean { get; set; } = 0.6f;
+    public static float Lean { get; set; } = 0.45f;
     /// <summary>L'opacité de l'ombre de contact, au pied des objets (0 : aucune ; pas encore au point, éteinte par défaut).</summary>
     public static float Contact { get; set; } = 0f;
+    /// <summary>Le flou du bord de l'ombre portée, en pixels d'art (0 : bord net).</summary>
+    public static float Blur { get; set; } = 1f;
 
     private CanvasGroup _cast = null!;
     private CanvasGroup _contact = null!;
@@ -38,7 +40,7 @@ public partial class ShadowLayer : Node2D
     public override void _Ready()
     {
         ReadOptions();
-        _cast = MakeGroup(c => ForEachDecor(c, DrawCast), c => ForEachActor(c, DrawCast), TextureFilterEnum.Nearest);
+        _cast = MakeGroup(c => ForEachDecor(c, DrawCast), c => ForEachActor(c, DrawCast), TextureFilterEnum.Linear);
         _contact = MakeGroup(c => ForEachDecor(c, DrawContact), c => ForEachActor(c, DrawContact), TextureFilterEnum.Linear);
         Apply();
         if (OS.GetCmdlineUserArgs().Contains("--shadow-tune"))
@@ -80,7 +82,7 @@ public partial class ShadowLayer : Node2D
     }
 
     /// <summary>
-    /// Développement : « --shadow=force,longueur,penche,contact » (par exemple --shadow=0.35,0.5,0.6,0.5) pour les captures.
+    /// Développement : « --shadow=force,longueur,penche,contact,flou » (par exemple --shadow=0.45,0.5,0.45,0,1) pour les captures.
     /// </summary>
     private static void ReadOptions()
     {
@@ -93,6 +95,7 @@ public partial class ShadowLayer : Node2D
         Length = Read(1, Length);
         Lean = Read(2, Lean);
         Contact = Read(3, Contact);
+        Blur = Read(4, Blur);
     }
 
     private void ForEachDecor(CanvasItem ci, Action<CanvasItem, Texture2D, Rect2> draw)
@@ -145,7 +148,7 @@ public partial class ShadowLayer : Node2D
     private const int PathWidth = 8;
 
     /// <summary>De combien (en pixels d'art) on bouche les trous et les creux de l'ombre : une tache simple, pas un dessin.</summary>
-    private const int Smoothing = 2;
+    private const int Smoothing = 0;
 
     /// <summary>
     /// L'ombre portée d'une image, en pixels d'art (calculée une fois par image et par réglage). L'image est découpée en
@@ -162,9 +165,10 @@ public partial class ShadowLayer : Node2D
         if (CastImages.TryGetValue(texture, out var cached))
             return cached;
         int w = texture.GetWidth(), h = texture.GetHeight();
-        int padSide = (int)MathF.Ceiling(Math.Abs(Lean) * h) + 1;
-        int padTop = (int)MathF.Ceiling(Math.Max(0, Length - 1) * h) + 1;
-        int padBottom = (int)MathF.Ceiling(Length * h) + 1; // les pixels plus bas que le pied (les côtés d'un tas)
+        int margin = 2 * (int)MathF.Ceiling(Blur) + Smoothing + 1; // la place du flou autour de la tache
+        int padSide = (int)MathF.Ceiling(Math.Abs(Lean) * h) + margin;
+        int padTop = (int)MathF.Ceiling(Math.Max(0, Length - 1) * h) + margin;
+        int padBottom = (int)MathF.Ceiling(Length * h) + margin; // les pixels plus bas que le pied (les côtés d'un tas)
         int sw = w + 2 * padSide, sh = h + padTop + padBottom;
         var mask = new bool[sw, sh];
         if (texture.GetImage() is { } image && !image.IsEmpty())
@@ -181,22 +185,25 @@ public partial class ShadowLayer : Node2D
                 if (maxY == h - 1 && maxX - minX + 1 <= PathWidth)
                     continue; // un chemin qui part de l'entrée vers la case de devant : posé à plat
                 bool wide = maxX - minX + 1 > WidePiece;
-                if (wide)
-                {
-                    // un grand objet : ses parties fines (chemin vers l'entrée, rails, mâts) ne comptent ni pour le sol ni
-                    // pour l'ombre, sinon le sol de ces colonnes descendrait jusqu'au bout du chemin
-                    piece = Core(piece, minX, minY, maxX, maxY);
-                    if (piece.Count == 0)
-                        continue;
-                }
-                // le sol de chaque colonne du morceau (son pixel le plus bas), et le pied (le plus bas du tiers du milieu)
-                var bottoms = piece.GroupBy(p => p.X).ToDictionary(g => g.Key, g => g.Max(p => p.Y));
+                // le sol de chaque colonne : son pixel le plus bas. Pour un grand objet, sans ses parties fines (chemin
+                // vers l'entrée, rails, mâts), sinon le sol de ces colonnes descendrait jusqu'au bout du chemin ; une
+                // colonne sans cœur (une flèche, un drapeau) prend le sol de la colonne du cœur la plus proche.
+                var groundOf = (wide ? Core(piece, minX, minY, maxX, maxY) : piece)
+                    .GroupBy(p => p.X).ToDictionary(g => g.Key, g => g.Max(p => p.Y));
+                if (groundOf.Count == 0)
+                    continue;
+                // le pied d'un morceau étroit : le plus bas du tiers du milieu
                 int third = (maxX - minX + 1) / 3;
-                int pivot = bottoms.Where(b => b.Key >= minX + third && b.Key <= maxX - third).Select(b => b.Value)
-                    .DefaultIfEmpty(bottoms.Values.Max()).Max();
+                int pivot = groundOf.Where(b => b.Key >= minX + third && b.Key <= maxX - third).Select(b => b.Value)
+                    .DefaultIfEmpty(groundOf.Values.Max()).Max();
+                var columns = groundOf.Keys.ToArray();
+                int GroundAt(int x) =>
+                    groundOf.TryGetValue(x, out int g) ? g : groundOf[columns.MinBy(c => Math.Abs(c - x))];
                 foreach (var (x, y) in piece)
                 {
-                    int ground = wide ? bottoms[x] : pivot;
+                    int ground = wide ? GroundAt(x) : pivot;
+                    if (wide && y > ground)
+                        continue; // sous le sol du grand objet : posé à plat (le bout du chemin)
                     // le pixel (x, y) couvre, sur le sol, un petit parallélogramme : on remplit le rectangle qui l'entoure
                     float up = ground + 1 - y, down = ground - y;
                     float x0 = x - Lean * up, x1 = x + 1 - Lean * down;
@@ -211,12 +218,20 @@ public partial class ShadowLayer : Node2D
                 }
             }
         }
-        mask = Grow(Grow(mask, Smoothing, true), Smoothing, false); // grossir puis amincir : les trous et les creux se bouchent
+        mask = Grow(Grow(mask, Smoothing, true), Smoothing, false); // grossir puis amincir : les trous se bouchent
+        // le bord de l'ombre est flou : la tache est adoucie (deux passes d'une moyenne sur un carré, presque un flou gaussien)
+        var alpha = new float[sw, sh];
+        for (int y = 0; y < sh; y++)
+        for (int x = 0; x < sw; x++)
+            alpha[x, y] = mask[x, y] ? 1 : 0;
+        int blur = (int)MathF.Round(Blur);
+        for (int pass = 0; pass < 2 && blur > 0; pass++)
+            alpha = BoxBlur(alpha, blur);
         var shadow = Image.CreateEmpty(sw, sh, false, Image.Format.Rgba8);
         for (int y = 0; y < sh; y++)
         for (int x = 0; x < sw; x++)
-            if (mask[x, y])
-                shadow.SetPixel(x, y, Colors.Black);
+            if (alpha[x, y] > 0)
+                shadow.SetPixel(x, y, new Color(0, 0, 0, alpha[x, y]));
         var result = (ImageTexture.CreateFromImage(shadow), padSide, padTop);
         CastImages[texture] = result;
         return result;
@@ -233,6 +248,34 @@ public partial class ShadowLayer : Node2D
             mask[x - minX, y - minY] = true;
         var opened = Grow(Grow(mask, ThinPart, false), ThinPart, true);
         return piece.Where(p => opened[p.X - minX, p.Y - minY]).ToList();
+    }
+
+    /// <summary>La moyenne de chaque point sur un carré de côté 2 × <paramref name="radius"/> + 1 (d'abord en ligne, puis en colonne).</summary>
+    private static float[,] BoxBlur(float[,] values, int radius)
+    {
+        int w = values.GetLength(0), h = values.GetLength(1);
+        var rows = new float[w, h];
+        var result = new float[w, h];
+        float n = 2 * radius + 1;
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            float sum = 0;
+            for (int d = -radius; d <= radius; d++)
+                if (x + d >= 0 && x + d < w)
+                    sum += values[x + d, y];
+            rows[x, y] = sum / n;
+        }
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            float sum = 0;
+            for (int d = -radius; d <= radius; d++)
+                if (y + d >= 0 && y + d < h)
+                    sum += rows[x, y + d];
+            result[x, y] = sum / n;
+        }
+        return result;
     }
 
     /// <summary>

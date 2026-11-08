@@ -287,6 +287,15 @@ prend le dernier héros de sa faction. Tests : `ClassesTests`.
 À faire avec les factions : leurs classes, puis l'équilibre force / magie (d'abord apprendre à la simulation à ramasser
 les tas de ressources : `Simulation_force_ou_magie`).
 
+### Les compétences des héros et les artefacts (à concevoir)
+Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemble, avec la même méthode que les factions
+(l'idée d'abord, puis le détail).
+- **Les compétences** : ce qu'un héros apprend en montant de niveau, en plus des caractéristiques (comme les
+  compétences secondaires de Heroes 3 : écoles de magie, logistique, tir…), avec les classes de héros et les cavernes
+  de la carte.
+- **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le
+  héros, leurs effets, où on les trouve (gardiens, coffres, cavernes), peut-être des ensembles.
+
 ### Les ressources rares ✅
 Décidé avec l'utilisateur (2026-11-07), comme Heroes 2 et 3 : **7 ressources**, l'or, le bois et le minerai (communs),
 le **mercure, le cristal, le soufre et les gemmes** (rares). Mines : 250 or, 2 bois ou minerai, 1 d'une ressource rare

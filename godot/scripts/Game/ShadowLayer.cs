@@ -27,10 +27,10 @@ public partial class ShadowLayer : Node2D
     public static float Length { get; set; } = 0.5f;
     /// <summary>De combien l'ombre penche vers la gauche : décalage vers la gauche du haut de l'image, par rapport à sa hauteur.</summary>
     public static float Lean { get; set; } = 0.45f;
-    /// <summary>L'opacité de l'ombre de contact, au pied des objets (0 : aucune ; pas encore au point, éteinte par défaut).</summary>
-    public static float Contact { get; set; } = 0f;
-    /// <summary>Le flou du bord de l'ombre portée, en pixels d'art (0 : bord net).</summary>
-    public static float Blur { get; set; } = 1f;
+    /// <summary>L'opacité de l'ombre de contact, au pied des objets (0 : aucune).</summary>
+    public static float Contact { get; set; } = 0.5f;
+    /// <summary>Le flou du bord de l'ombre portée, en pixels d'art (écart d'un flou gaussien ; 0 : bord net).</summary>
+    public static float Blur { get; set; } = 0.6f;
 
     private CanvasGroup _cast = null!;
     private CanvasGroup _contact = null!;
@@ -76,13 +76,14 @@ public partial class ShadowLayer : Node2D
     {
         _cast.SelfModulate = new Color(0, 0, 0, Strength);
         _contact.SelfModulate = new Color(0, 0, 0, Contact);
-        CastImages.Clear(); // la forme des ombres portées a peut-être changé
+        CastImages.Clear(); // la forme des ombres a peut-être changé
+        ContactImages.Clear();
         foreach (var painter in _painters)
             painter.QueueRedraw();
     }
 
     /// <summary>
-    /// Développement : « --shadow=force,longueur,penche,contact,flou » (par exemple --shadow=0.45,0.5,0.45,0,1) pour les captures.
+    /// Développement : « --shadow=force,longueur,penche,contact,flou » (par exemple --shadow=0.45,0.5,0.45,0.5,0.6) pour les captures.
     /// </summary>
     private static void ReadOptions()
     {
@@ -124,22 +125,166 @@ public partial class ShadowLayer : Node2D
     /// L'ombre portée d'une image dessinée en <paramref name="rect"/> : la même image, noire, couchée sur le sol à partir
     /// de son pied ; le haut de l'image va vers la gauche et un peu vers le haut.
     /// </summary>
-    private static void DrawCast(CanvasItem ci, Texture2D image, Rect2 rect)
+    private static void DrawCast(CanvasItem ci, Texture2D image, Rect2 rect) =>
+        DrawMask(ci, image, rect, CastImages, CastImage);
+
+    /// <summary>L'ombre de contact d'une image dessinée en <paramref name="rect"/> : une tache sombre et floue autour de son pied.</summary>
+    private static void DrawContact(CanvasItem ci, Texture2D image, Rect2 rect) =>
+        DrawMask(ci, image, rect, ContactImages, ContactImage);
+
+    /// <summary>Dessine une image d'ombre (calculée une fois par image et par réglage) à la place de l'image <paramref name="image"/>.</summary>
+    private static void DrawMask(CanvasItem ci, Texture2D image, Rect2 rect, Dictionary<Texture2D, ShadowImage> cache,
+        Func<Texture2D, ShadowImage> make)
     {
-        var (shadow, padLeft, padTop) = CastImage(image);
+        if (!cache.TryGetValue(image, out var shadow))
+            cache[image] = shadow = make(image);
         float scale = rect.Size.Y / image.GetHeight();
-        var at = rect.Position - new Vector2(padLeft, padTop) * scale;
-        ci.DrawTextureRect(shadow, new Rect2(at, shadow.GetSize() * scale), false);
+        var at = rect.Position - new Vector2(shadow.PadLeft, shadow.PadTop) * scale;
+        ci.DrawTextureRect(shadow.Texture, new Rect2(at, shadow.Texture.GetSize() * scale), false);
     }
 
-    private static readonly Dictionary<Texture2D, (Texture2D Shadow, int PadLeft, int PadTop)> CastImages = new();
+    /// <summary>Une image d'ombre, et la marge ajoutée à gauche et en haut de l'image de l'objet.</summary>
+    private readonly record struct ShadowImage(Texture2D Texture, int PadLeft, int PadTop);
+
+    private static readonly Dictionary<Texture2D, ShadowImage> CastImages = new();
+    private static readonly Dictionary<Texture2D, ShadowImage> ContactImages = new();
+
+    /// <summary>
+    /// L'ombre portée d'une image, en pixels d'art. Chaque morceau de l'image (voir <see cref="PartsOf"/>) se couche sur
+    /// le sol : un pixel à la hauteur h au-dessus de son sol va à h × penche vers la gauche et h × longueur vers le haut.
+    /// Le bord est flou (<see cref="Blur"/>).
+    /// </summary>
+    private static ShadowImage CastImage(Texture2D texture)
+    {
+        int h = texture.GetHeight();
+        var canvas = new Canvas(texture.GetWidth(), h, (int)MathF.Ceiling(Math.Abs(Lean) * h),
+            (int)MathF.Ceiling(Math.Max(0, Length - 1) * h), (int)MathF.Ceiling(Length * h), Blur);
+        foreach (var part in PartsOf(texture))
+            foreach (var (x, y) in part.Pixels)
+            {
+                int ground = part.GroundAt(x);
+                if (part.Wide && y > ground)
+                    continue; // sous le sol du grand objet : posé à plat (le bout du chemin)
+                // le pixel (x, y) couvre, sur le sol, un petit parallélogramme : on remplit le rectangle qui l'entoure
+                float up = ground + 1 - y, down = ground - y;
+                canvas.Fill(x - Lean * up, x + 1 - Lean * down, ground + 1 - Length * up, ground + 1 - Length * down, 1);
+            }
+        return canvas.ToImage(Blur);
+    }
+
+    /// <summary>Hauteur (en pixels d'art) du bas d'un objet qui touche le sol, pour l'ombre de contact.</summary>
+    private const int FootBand = 3;
+    /// <summary>De combien (en pixels d'art) l'ombre de contact déborde du pied, sur les côtés et vers le haut et le bas.</summary>
+    private const float ContactWidth = 3f, ContactHeight = 1.5f;
+    /// <summary>Le flou de l'ombre de contact, en pixels d'art : elle est toujours douce.</summary>
+    private const float ContactBlur = 1.5f;
+
+    /// <summary>
+    /// L'ombre de contact d'une image, en pixels d'art : là où l'objet touche le sol (le bas de chaque morceau, sur
+    /// <see cref="FootBand"/> pixels), une tache aplatie qui déborde un peu du pied, poussée d'un pixel vers la gauche (à
+    /// l'opposé de la lumière), très floue.
+    /// </summary>
+    private static ShadowImage ContactImage(Texture2D texture)
+    {
+        int margin = (int)MathF.Ceiling(ContactWidth) + 1;
+        var canvas = new Canvas(texture.GetWidth(), texture.GetHeight(), margin, margin, margin, ContactBlur);
+        foreach (var part in PartsOf(texture))
+            foreach (var (x, y) in part.Pixels)
+            {
+                int ground = part.GroundAt(x);
+                if (y > ground || y <= ground - FootBand)
+                    continue;
+                float cx = x + 0.5f - 1, cy = ground + 0.5f;
+                canvas.Fill(cx - ContactWidth, cx + ContactWidth, cy - ContactHeight, cy + ContactHeight, 1);
+            }
+        return canvas.ToImage(ContactBlur);
+    }
+
+    /// <summary>
+    /// Une image d'ombre en cours de dessin : l'image de l'objet avec des marges autour (pour ce qui déborde et pour le
+    /// flou), en pixels d'art.
+    /// </summary>
+    private sealed class Canvas
+    {
+        private readonly float[,] _alpha;
+        private readonly int _left, _top;
+
+        public Canvas(int width, int height, int side, int top, int bottom, float blur)
+        {
+            int margin = 3 * (int)MathF.Ceiling(blur) + 1;
+            _left = side + margin;
+            _top = top + margin;
+            _alpha = new float[width + 2 * _left, height + _top + bottom + margin];
+        }
+
+        /// <summary>Remplit le rectangle de x0 à x1 et de y0 à y1 (dans l'ordre qu'on veut, en pixels de l'image de l'objet).</summary>
+        public void Fill(float x0, float x1, float y0, float y1, float value)
+        {
+            for (int y = (int)MathF.Floor(Math.Min(y0, y1)); y < (int)MathF.Ceiling(Math.Max(y0, y1)); y++)
+            for (int x = (int)MathF.Floor(Math.Min(x0, x1)); x < (int)MathF.Ceiling(Math.Max(x0, x1)); x++)
+            {
+                int px = x + _left, py = y + _top;
+                if (px >= 0 && py >= 0 && px < _alpha.GetLength(0) && py < _alpha.GetLength(1))
+                    _alpha[px, py] = Math.Max(_alpha[px, py], value);
+            }
+        }
+
+        /// <summary>L'image finie, floutée de <paramref name="blur"/> pixels (un flou gaussien ; 0 : bord net).</summary>
+        public ShadowImage ToImage(float blur)
+        {
+            var alpha = blur > 0 ? GaussianBlur(_alpha, blur) : _alpha;
+            int w = alpha.GetLength(0), h = alpha.GetLength(1);
+            var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+            for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+                if (alpha[x, y] > 0.004f)
+                    image.SetPixel(x, y, new Color(0, 0, 0, Math.Min(1, alpha[x, y])));
+            return new ShadowImage(ImageTexture.CreateFromImage(image), _left, _top);
+        }
+    }
+
+    /// <summary>Un flou gaussien d'écart <paramref name="sigma"/> (en pixels), d'abord en ligne, puis en colonne.</summary>
+    private static float[,] GaussianBlur(float[,] values, float sigma)
+    {
+        int radius = (int)MathF.Ceiling(2.5f * sigma);
+        var kernel = new float[2 * radius + 1];
+        for (int d = -radius; d <= radius; d++)
+            kernel[d + radius] = MathF.Exp(-d * d / (2 * sigma * sigma));
+        float total = kernel.Sum();
+        for (int k = 0; k < kernel.Length; k++)
+            kernel[k] /= total;
+        int w = values.GetLength(0), h = values.GetLength(1);
+        var rows = new float[w, h];
+        var result = new float[w, h];
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            float sum = 0;
+            for (int d = -radius; d <= radius; d++)
+                if (x + d >= 0 && x + d < w)
+                    sum += values[x + d, y] * kernel[d + radius];
+            rows[x, y] = sum;
+        }
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            float sum = 0;
+            for (int d = -radius; d <= radius; d++)
+                if (y + d >= 0 && y + d < h)
+                    sum += rows[x, y + d] * kernel[d + radius];
+            result[x, y] = sum;
+        }
+        return result;
+    }
+
+    // ------------------------------------------------------------------ morceaux
 
     /// <summary>Largeur (en pixels d'art) au-delà de laquelle un morceau d'image est un grand objet vu de trois quarts.</summary>
     private const int WidePiece = 40;
 
     /// <summary>
     /// Un morceau plus petit (en pixels) ou plus creux (part de son rectangle couverte) ne fait pas d'ombre : un point
-    /// isolé, des rails, un chemin, un détail posé à plat sur le sol.
+    /// isolé, des rails, un détail posé à plat sur le sol.
     /// </summary>
     private const int TinyPiece = 12;
     private const float HollowPiece = 0.3f;
@@ -147,37 +292,42 @@ public partial class ShadowLayer : Node2D
     /// <summary>Un morceau étroit (en pixels d'art) qui touche le bas de l'image est un chemin vers l'entrée : pas d'ombre.</summary>
     private const int PathWidth = 8;
 
-    /// <summary>De combien (en pixels d'art) on bouche les trous et les creux de l'ombre : une tache simple, pas un dessin.</summary>
-    private const int Smoothing = 0;
+    /// <summary>Épaisseur (en pixels d'art) sous laquelle une partie d'un grand objet est fine (un chemin, des rails, un mât).</summary>
+    private const int ThinPart = 3;
 
     /// <summary>
-    /// L'ombre portée d'une image, en pixels d'art (calculée une fois par image et par réglage). L'image est découpée en
-    /// morceaux (les pixels opaques qui se touchent : un arbre, un rocher, un tas de bûches). Un morceau étroit tourne
-    /// autour de son pied, son pixel le plus bas au milieu du morceau (le tronc d'un arbre, les pieds d'une créature) : un
-    /// pixel à la hauteur h au-dessus du pied va à h × penche vers la gauche et h × longueur vers le haut.
-    /// Un morceau large (les remparts d'une ville) est vu de trois quarts : le bas d'une tour du fond est plus haut dans
-    /// l'image que le bas du mur de devant ; chacune de ses colonnes se tient alors sur son propre sol (son pixel le plus
-    /// bas). Les morceaux minuscules ou creux (rails, chemins) n'en font pas, et l'ombre est lissée (trous et creux
-    /// bouchés). Renvoie aussi la marge ajoutée à gauche et en haut.
+    /// Un morceau d'image qui fait une ombre, et son sol. Un morceau étroit (un arbre, un rocher, une créature) tourne
+    /// autour de son pied : son pixel le plus bas au milieu du morceau. Un morceau large (les remparts d'une ville) est vu
+    /// de trois quarts : le bas d'une tour du fond est plus haut dans l'image que le bas du mur de devant ; chacune de ses
+    /// colonnes se tient alors sur son propre sol.
     /// </summary>
-    private static (Texture2D Shadow, int PadLeft, int PadTop) CastImage(Texture2D texture)
+    private sealed record Part(List<(int X, int Y)> Pixels, bool Wide, Dictionary<int, int> Ground, int Pivot)
     {
-        if (CastImages.TryGetValue(texture, out var cached))
+        private readonly int[] _columns = Ground.Keys.ToArray();
+
+        /// <summary>Le sol sous la colonne <paramref name="x"/> (celui de la colonne la plus proche si elle n'en a pas).</summary>
+        public int GroundAt(int x) =>
+            !Wide ? Pivot : Ground.TryGetValue(x, out int g) ? g : Ground[_columns.MinBy(c => Math.Abs(c - x))];
+    }
+
+    private static readonly Dictionary<Texture2D, List<Part>> Parts = new();
+
+    /// <summary>
+    /// Les morceaux d'une image qui font une ombre (calculés une fois par image) : les pixels opaques qui se touchent,
+    /// sans les morceaux minuscules ou creux (rails) ni les chemins étroits qui touchent le bas de l'image.
+    /// </summary>
+    private static List<Part> PartsOf(Texture2D texture)
+    {
+        if (Parts.TryGetValue(texture, out var cached))
             return cached;
-        int w = texture.GetWidth(), h = texture.GetHeight();
-        int margin = 2 * (int)MathF.Ceiling(Blur) + Smoothing + 1; // la place du flou autour de la tache
-        int padSide = (int)MathF.Ceiling(Math.Abs(Lean) * h) + margin;
-        int padTop = (int)MathF.Ceiling(Math.Max(0, Length - 1) * h) + margin;
-        int padBottom = (int)MathF.Ceiling(Length * h) + margin; // les pixels plus bas que le pied (les côtés d'un tas)
-        int sw = w + 2 * padSide, sh = h + padTop + padBottom;
-        var mask = new bool[sw, sh];
+        var parts = new List<Part>();
         if (texture.GetImage() is { } image && !image.IsEmpty())
         {
             if (image.IsCompressed())
                 image.Decompress();
-            foreach (var whole in Pieces(image))
+            int h = image.GetHeight();
+            foreach (var piece in Pieces(image))
             {
-                var piece = whole;
                 int minX = piece.Min(p => p.X), maxX = piece.Max(p => p.X);
                 int minY = piece.Min(p => p.Y), maxY = piece.Max(p => p.Y);
                 if (piece.Count < TinyPiece || piece.Count < HollowPiece * (maxX - minX + 1) * (maxY - minY + 1))
@@ -185,60 +335,22 @@ public partial class ShadowLayer : Node2D
                 if (maxY == h - 1 && maxX - minX + 1 <= PathWidth)
                     continue; // un chemin qui part de l'entrée vers la case de devant : posé à plat
                 bool wide = maxX - minX + 1 > WidePiece;
-                // le sol de chaque colonne : son pixel le plus bas. Pour un grand objet, sans ses parties fines (chemin
-                // vers l'entrée, rails, mâts), sinon le sol de ces colonnes descendrait jusqu'au bout du chemin ; une
-                // colonne sans cœur (une flèche, un drapeau) prend le sol de la colonne du cœur la plus proche.
-                var groundOf = (wide ? Core(piece, minX, minY, maxX, maxY) : piece)
+                // le sol de chaque colonne : son pixel le plus bas ; pour un grand objet, sans ses parties fines (chemin
+                // vers l'entrée, rails, mâts), sinon le sol de ces colonnes descendrait jusqu'au bout du chemin
+                var ground = (wide ? Core(piece, minX, minY, maxX, maxY) : piece)
                     .GroupBy(p => p.X).ToDictionary(g => g.Key, g => g.Max(p => p.Y));
-                if (groundOf.Count == 0)
+                if (ground.Count == 0)
                     continue;
                 // le pied d'un morceau étroit : le plus bas du tiers du milieu
                 int third = (maxX - minX + 1) / 3;
-                int pivot = groundOf.Where(b => b.Key >= minX + third && b.Key <= maxX - third).Select(b => b.Value)
-                    .DefaultIfEmpty(groundOf.Values.Max()).Max();
-                var columns = groundOf.Keys.ToArray();
-                int GroundAt(int x) =>
-                    groundOf.TryGetValue(x, out int g) ? g : groundOf[columns.MinBy(c => Math.Abs(c - x))];
-                foreach (var (x, y) in piece)
-                {
-                    int ground = wide ? GroundAt(x) : pivot;
-                    if (wide && y > ground)
-                        continue; // sous le sol du grand objet : posé à plat (le bout du chemin)
-                    // le pixel (x, y) couvre, sur le sol, un petit parallélogramme : on remplit le rectangle qui l'entoure
-                    float up = ground + 1 - y, down = ground - y;
-                    float x0 = x - Lean * up, x1 = x + 1 - Lean * down;
-                    float y0 = ground + 1 - Length * up, y1 = ground + 1 - Length * down;
-                    for (int sy = (int)MathF.Floor(Math.Min(y0, y1)); sy < (int)MathF.Ceiling(Math.Max(y0, y1)); sy++)
-                    for (int sx = (int)MathF.Floor(Math.Min(x0, x1)); sx < (int)MathF.Ceiling(Math.Max(x0, x1)); sx++)
-                    {
-                        int px = sx + padSide, py = sy + padTop;
-                        if (px >= 0 && py >= 0 && px < sw && py < sh)
-                            mask[px, py] = true;
-                    }
-                }
+                int pivot = ground.Where(b => b.Key >= minX + third && b.Key <= maxX - third).Select(b => b.Value)
+                    .DefaultIfEmpty(ground.Values.Max()).Max();
+                parts.Add(new Part(piece, wide, ground, pivot));
             }
         }
-        mask = Grow(Grow(mask, Smoothing, true), Smoothing, false); // grossir puis amincir : les trous se bouchent
-        // le bord de l'ombre est flou : la tache est adoucie (deux passes d'une moyenne sur un carré, presque un flou gaussien)
-        var alpha = new float[sw, sh];
-        for (int y = 0; y < sh; y++)
-        for (int x = 0; x < sw; x++)
-            alpha[x, y] = mask[x, y] ? 1 : 0;
-        int blur = (int)MathF.Round(Blur);
-        for (int pass = 0; pass < 2 && blur > 0; pass++)
-            alpha = BoxBlur(alpha, blur);
-        var shadow = Image.CreateEmpty(sw, sh, false, Image.Format.Rgba8);
-        for (int y = 0; y < sh; y++)
-        for (int x = 0; x < sw; x++)
-            if (alpha[x, y] > 0)
-                shadow.SetPixel(x, y, new Color(0, 0, 0, alpha[x, y]));
-        var result = (ImageTexture.CreateFromImage(shadow), padSide, padTop);
-        CastImages[texture] = result;
-        return result;
+        Parts[texture] = parts;
+        return parts;
     }
-
-    /// <summary>Épaisseur (en pixels d'art) sous laquelle une partie d'un grand objet est fine (un chemin, des rails, un mât).</summary>
-    private const int ThinPart = 3;
 
     /// <summary>Le cœur d'un morceau : ses pixels sans les parties fines (amincir puis regrossir de <see cref="ThinPart"/>).</summary>
     private static List<(int X, int Y)> Core(List<(int X, int Y)> piece, int minX, int minY, int maxX, int maxY)
@@ -248,34 +360,6 @@ public partial class ShadowLayer : Node2D
             mask[x - minX, y - minY] = true;
         var opened = Grow(Grow(mask, ThinPart, false), ThinPart, true);
         return piece.Where(p => opened[p.X - minX, p.Y - minY]).ToList();
-    }
-
-    /// <summary>La moyenne de chaque point sur un carré de côté 2 × <paramref name="radius"/> + 1 (d'abord en ligne, puis en colonne).</summary>
-    private static float[,] BoxBlur(float[,] values, int radius)
-    {
-        int w = values.GetLength(0), h = values.GetLength(1);
-        var rows = new float[w, h];
-        var result = new float[w, h];
-        float n = 2 * radius + 1;
-        for (int y = 0; y < h; y++)
-        for (int x = 0; x < w; x++)
-        {
-            float sum = 0;
-            for (int d = -radius; d <= radius; d++)
-                if (x + d >= 0 && x + d < w)
-                    sum += values[x + d, y];
-            rows[x, y] = sum / n;
-        }
-        for (int y = 0; y < h; y++)
-        for (int x = 0; x < w; x++)
-        {
-            float sum = 0;
-            for (int d = -radius; d <= radius; d++)
-                if (y + d >= 0 && y + d < h)
-                    sum += rows[x, y + d];
-            result[x, y] = sum / n;
-        }
-        return result;
     }
 
     /// <summary>
@@ -338,76 +422,5 @@ public partial class ShadowLayer : Node2D
             pieces.Add(piece);
         }
         return pieces;
-    }
-
-    /// <summary>
-    /// L'ombre de contact d'une image dessinée en <paramref name="rect"/> : une tache floue sous la base de l'objet (la
-    /// largeur de son bas), un peu poussée vers la gauche, à l'opposé de la lumière.
-    /// </summary>
-    private static void DrawContact(CanvasItem ci, Texture2D image, Rect2 rect)
-    {
-        float scale = rect.Size.Y / image.GetHeight();
-        var profile = ProfileOf(image);
-        float left = rect.Position.X + profile.Left * scale, right = rect.Position.X + (profile.Right + 1) * scale;
-        float foot = rect.Position.Y + (profile.Bottom + 1) * scale;
-        float width = (right - left) * 1.2f + 6;
-        float height = Math.Clamp(width * 0.3f, 8, MapRenderer.TileSize * 0.6f);
-        var center = new Vector2((left + right) / 2 - width * 0.06f, foot - height * 0.2f);
-        ci.DrawTextureRect(Blot, new Rect2(center - new Vector2(width, height) / 2, width, height), false);
-    }
-
-    /// <summary>Une tache ronde, noire au centre et transparente au bord.</summary>
-    private static readonly GradientTexture2D Blot = new()
-    {
-        Width = 64,
-        Height = 64,
-        Fill = GradientTexture2D.FillEnum.Radial,
-        FillFrom = new Vector2(0.5f, 0.5f),
-        FillTo = new Vector2(1f, 0.5f),
-        Gradient = new Gradient
-        {
-            Offsets = new[] { 0f, 0.45f, 1f },
-            Colors = new[] { Colors.Black, new Color(0, 0, 0, 0.75f), new Color(0, 0, 0, 0) },
-        },
-    };
-
-    /// <summary>Le bas du dessin d'une image : sa dernière rangée opaque (le pied) et la largeur de sa base.</summary>
-    private readonly record struct Profile(int Bottom, int Left, int Right);
-
-    private static readonly Dictionary<Texture2D, Profile> Profiles = new();
-
-    /// <summary>
-    /// Le pied de l'image (sa dernière rangée opaque) et la largeur de sa base (les pixels opaques du bas, sur le
-    /// cinquième de la hauteur du dessin). Calculé une fois par image.
-    /// </summary>
-    private static Profile ProfileOf(Texture2D texture)
-    {
-        if (Profiles.TryGetValue(texture, out var cached))
-            return cached;
-        int w = texture.GetWidth(), h = texture.GetHeight();
-        var profile = new Profile(h - 1, 0, w - 1);
-        if (texture.GetImage() is { } image && !image.IsEmpty())
-        {
-            if (image.IsCompressed())
-                image.Decompress();
-            bool Row(int y) => Enumerable.Range(0, w).Any(x => image.GetPixel(x, y).A > 0.5f);
-            int bottom = Enumerable.Range(0, h).Reverse().FirstOrDefault(Row, -1);
-            int top = Enumerable.Range(0, h).FirstOrDefault(Row, -1);
-            if (bottom >= 0)
-            {
-                int band = Math.Max(2, (bottom - top + 1) / 5);
-                int left = w, right = -1;
-                for (int y = bottom - band + 1; y <= bottom; y++)
-                for (int x = 0; x < w; x++)
-                    if (image.GetPixel(x, y).A > 0.5f)
-                    {
-                        left = Math.Min(left, x);
-                        right = Math.Max(right, x);
-                    }
-                profile = new Profile(bottom, left, right);
-            }
-        }
-        Profiles[texture] = profile;
-        return profile;
     }
 }

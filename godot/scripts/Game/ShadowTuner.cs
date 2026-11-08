@@ -29,7 +29,7 @@ public partial class ShadowTuner : CanvasLayer
         AddSlider(box, "Longueur", 0, 1.5f, () => ShadowLayer.Length, v => ShadowLayer.Length = v);
         AddSlider(box, "Penche", -0.5f, 2, () => ShadowLayer.Lean, v => ShadowLayer.Lean = v);
         AddSlider(box, "Contact", 0, 1, () => ShadowLayer.Contact, v => ShadowLayer.Contact = v);
-        AddSlider(box, "Flou", 0, 4, () => ShadowLayer.Blur, v => ShadowLayer.Blur = v);
+        AddSlider(box, "Flou", 0, 3, () => ShadowLayer.Blur, v => ShadowLayer.Blur = v);
         _summary = Ui.MakeLabel("", 14, MapRenderer.Rgb(230, 210, 150));
         box.AddChild(_summary);
         AddChild(panel);

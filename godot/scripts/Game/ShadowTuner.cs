@@ -5,8 +5,8 @@ using Godot;
 namespace HoMM.Game;
 
 /// <summary>
-/// Développement (« -- --shadow-tune ») : trois curseurs en haut à gauche de l'écran pour régler les ombres de la carte
-/// pendant la partie (force, longueur, penche). Les valeurs choisies s'affichent sous la forme de l'option --shadow=…
+/// Développement (« -- --shadow-tune ») : des curseurs en haut à gauche de l'écran pour régler les ombres de la carte
+/// pendant la partie (force, longueur, penche, contact). Les valeurs choisies s'affichent sous la forme de l'option --shadow=…
 /// </summary>
 public partial class ShadowTuner : CanvasLayer
 {
@@ -28,6 +28,7 @@ public partial class ShadowTuner : CanvasLayer
         AddSlider(box, "Force", 0, 1, () => ShadowLayer.Strength, v => ShadowLayer.Strength = v);
         AddSlider(box, "Longueur", 0, 1.5f, () => ShadowLayer.Length, v => ShadowLayer.Length = v);
         AddSlider(box, "Penche", -0.5f, 2, () => ShadowLayer.Lean, v => ShadowLayer.Lean = v);
+        AddSlider(box, "Contact", 0, 1, () => ShadowLayer.Contact, v => ShadowLayer.Contact = v);
         _summary = Ui.MakeLabel("", 14, MapRenderer.Rgb(230, 210, 150));
         box.AddChild(_summary);
         AddChild(panel);
@@ -54,6 +55,6 @@ public partial class ShadowTuner : CanvasLayer
     {
         _shadows.Apply();
         string F(float v) => v.ToString("0.00", CultureInfo.InvariantCulture);
-        _summary.Text = $"--shadow={F(ShadowLayer.Strength)},{F(ShadowLayer.Length)},{F(ShadowLayer.Lean)}";
+        _summary.Text = $"--shadow={F(ShadowLayer.Strength)},{F(ShadowLayer.Length)},{F(ShadowLayer.Lean)},{F(ShadowLayer.Contact)}";
     }
 }

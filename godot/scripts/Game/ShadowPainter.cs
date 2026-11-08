@@ -9,6 +9,8 @@ public partial class ShadowPainter : Node2D
     private readonly Action<CanvasItem> _draw;
     public ShadowPainter() => _draw = _ => { };
     public ShadowPainter(Action<CanvasItem> draw) => _draw = draw;
-    public override void _Ready() => TextureFilter = TextureFilterEnum.Nearest;
+    /// <summary>Pixels nets par défaut ; lissé pour les taches floues des ombres de contact.</summary>
+    public TextureFilterEnum Filter { get; init; } = TextureFilterEnum.Nearest;
+    public override void _Ready() => TextureFilter = Filter;
     public override void _Draw() => _draw(this);
 }

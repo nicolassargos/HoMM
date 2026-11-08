@@ -12,5 +12,6 @@
   "orc": {"projectile": "hache", "launchFrame": 3, "launchPoint": [86, 25]},
   "chevalier": {"impact": "choc"},
   "squelette": {"impact": "entaille"},
-  "nomades": {"move": 16, "moveFrames": 12, "stepTime": 0.4}
+  "nomades": {"move": 16, "moveFrames": 12, "stepTime": 0.4},
+  "oiseau-tonnerre": {"move": 14, "stepTime": 0.57}
 }

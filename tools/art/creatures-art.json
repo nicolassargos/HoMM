@@ -573,7 +573,7 @@
         "idle": "idle-3",
         "attack": "attack-4",
         "move": "move-7",
-        "transform": "transform-2"
+        "transform": "transform-2, images 1 à 5 (sans la pose tenue), 12 images/s"
       },
       "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png",
       "consignes": {

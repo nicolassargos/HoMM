@@ -775,6 +775,19 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   mort et boule de poison de la Liche, hache de l'Orc, flux de sang du Vampire, poison (bulles, troupe qui verdit),
   régénération du Troll, âmes du Fantôme, auras des sorts. Réglage de la vitesse des projectiles : `ProjectileSpeed`
   (le bouton de l'écran de combat est fait par l'autre session).
+- ✅ Créatures barbares (2026-11-09, branche `creatures-barbares`, PixelLab, environ 3 $) : fiches dans
+  `tools/art/creatures-art.json`, faites avec `tools/art/creature.py`. Choix de l'utilisateur : **Nomades**, archers à cheval des
+  steppes au repos (sabre baissé), sur **2 cases** ; **Oiseau-tonnerre**, oiseau-totem (rouge, noir et blanc), ailes repliées,
+  **1 case** ; **Béhémoth**, pas un ours mais une bête mythique **debout sur deux jambes**, visage de singe, crocs, crinière
+  rousse, mousse, **1 case** (les tailles en cases ont changé en route : la session règles a suivi).
+  - Nomades : visage retouché (réduit, il était dans l'ombre du chapeau) ; galop en boucle (images 3 à 14 d'un essai de 16,
+    sans le départ ni le retour au pas), 16 images/s, 0,4 s par case.
+  - Oiseau-tonnerre : attente (se lisse l'aile), attaque (la foudre frappe le sol devant lui), vol à l'horizontale serres
+    repliées (animé depuis une pose en vol faite par retouche), un battement par case (0,57 s par case), envol en état
+    « transform » (images 1 à 5, 12 images/s ; à l'envers à l'atterrissage).
+  - Béhémoth : attente (frappe le sol), marche (bras l'un après l'autre), attaque (trous de la main comblés après
+    l'effacement de l'éclat).
+  - Images de la carte : PixelLab « Pro » à 32 px (Nomades 14, Oiseau-tonnerre 2, Béhémoth 37), pieds proposés.
 - ✅ Ombres de la carte (2026-11-08, branche `ombres-carte`), dessinées par le jeu (`Game/ShadowLayer.cs`, un calque sous
   le décor et les objets ; pas d'ombre peinte dans les images). Lumière d'en haut à droite, comme Heroes 1 et 2.
   - **Ombre portée** : l'image noire, couchée sur le sol vers la gauche. L'image est découpée en morceaux (pixels qui se

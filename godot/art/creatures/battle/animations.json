@@ -13,5 +13,5 @@
   "chevalier": {"impact": "choc"},
   "squelette": {"impact": "entaille"},
   "nomades": {"move": 16, "moveFrames": 12, "stepTime": 0.4},
-  "oiseau-tonnerre": {"move": 14, "stepTime": 0.57}
+  "oiseau-tonnerre": {"move": 14, "stepTime": 0.57, "transform": 12, "transformFrames": 5}
 }

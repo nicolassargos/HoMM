@@ -27,8 +27,8 @@ public partial class ShadowLayer : Node2D
     public static float Length { get; set; } = 0.5f;
     /// <summary>De combien l'ombre penche vers la gauche : décalage vers la gauche du haut de l'image, par rapport à sa hauteur.</summary>
     public static float Lean { get; set; } = 0.6f;
-    /// <summary>L'opacité de l'ombre de contact, au pied des objets (0 : aucune).</summary>
-    public static float Contact { get; set; } = 0.5f;
+    /// <summary>L'opacité de l'ombre de contact, au pied des objets (0 : aucune ; pas encore au point, éteinte par défaut).</summary>
+    public static float Contact { get; set; } = 0f;
 
     private CanvasGroup _cast = null!;
     private CanvasGroup _contact = null!;
@@ -74,6 +74,7 @@ public partial class ShadowLayer : Node2D
     {
         _cast.SelfModulate = new Color(0, 0, 0, Strength);
         _contact.SelfModulate = new Color(0, 0, 0, Contact);
+        CastImages.Clear(); // la forme des ombres portées a peut-être changé
         foreach (var painter in _painters)
             painter.QueueRedraw();
     }
@@ -122,13 +123,60 @@ public partial class ShadowLayer : Node2D
     /// </summary>
     private static void DrawCast(CanvasItem ci, Texture2D image, Rect2 rect)
     {
+        var (shadow, padLeft, padTop) = CastImage(image);
         float scale = rect.Size.Y / image.GetHeight();
-        float foot = rect.Position.Y + (ProfileOf(image).Bottom + 1) * scale;
-        float x0 = rect.Position.X + rect.Size.X / 2;
-        // Un point à la hauteur h au-dessus du pied va à h × penche vers la gauche et h × longueur vers le haut
-        ci.DrawSetTransformMatrix(new Transform2D(new Vector2(1, 0), new Vector2(Lean, Length), new Vector2(x0, foot)));
-        ci.DrawTextureRect(image, new Rect2(rect.Position.X - x0, rect.Position.Y - foot, rect.Size.X, rect.Size.Y), false, Colors.Black);
-        ci.DrawSetTransformMatrix(Transform2D.Identity);
+        var at = rect.Position - new Vector2(padLeft, padTop) * scale;
+        ci.DrawTextureRect(shadow, new Rect2(at, shadow.GetSize() * scale), false);
+    }
+
+    private static readonly Dictionary<Texture2D, (Texture2D Shadow, int PadLeft, int PadTop)> CastImages = new();
+
+    /// <summary>
+    /// L'ombre portée d'une image, en pixels d'art (calculée une fois par image et par réglage) : chaque colonne de l'image
+    /// se tient sur son propre sol, son pixel opaque le plus bas (les images sont vues de trois quarts : le bas d'une tour
+    /// du fond est plus haut dans l'image que le bas du mur de devant). Un pixel à la hauteur h au-dessus de ce sol va à
+    /// h × penche vers la gauche et h × longueur vers le haut. Renvoie aussi la marge ajoutée à gauche et en haut.
+    /// </summary>
+    private static (Texture2D Shadow, int PadLeft, int PadTop) CastImage(Texture2D texture)
+    {
+        if (CastImages.TryGetValue(texture, out var cached))
+            return cached;
+        int w = texture.GetWidth(), h = texture.GetHeight();
+        int padLeft = (int)MathF.Ceiling(Math.Max(0, Lean) * h) + 1;
+        int padRight = (int)MathF.Ceiling(Math.Max(0, -Lean) * h) + 1;
+        int padTop = (int)MathF.Ceiling(Math.Max(0, Length - 1) * h) + 1;
+        var shadow = Image.CreateEmpty(w + padLeft + padRight, h + padTop, false, Image.Format.Rgba8);
+        if (texture.GetImage() is { } image && !image.IsEmpty())
+        {
+            if (image.IsCompressed())
+                image.Decompress();
+            for (int x = 0; x < w; x++)
+            {
+                int ground = -1;
+                for (int y = h - 1; y >= 0 && ground < 0; y--)
+                    if (image.GetPixel(x, y).A > 0.5f)
+                        ground = y;
+                for (int y = 0; y <= ground; y++)
+                {
+                    if (image.GetPixel(x, y).A <= 0.5f)
+                        continue;
+                    // le pixel (x, y) couvre, sur le sol, un petit parallélogramme : on remplit le rectangle qui l'entoure
+                    float up = ground + 1 - y, down = ground - y;
+                    float x0 = x - Lean * up, x1 = x + 1 - Lean * down;
+                    float y0 = ground + 1 - Length * up, y1 = ground + 1 - Length * down;
+                    for (int sy = (int)MathF.Floor(Math.Min(y0, y1)); sy < (int)MathF.Ceiling(Math.Max(y0, y1)); sy++)
+                    for (int sx = (int)MathF.Floor(Math.Min(x0, x1)); sx < (int)MathF.Ceiling(Math.Max(x0, x1)); sx++)
+                    {
+                        int px = sx + padLeft, py = sy + padTop;
+                        if (px >= 0 && py >= 0 && px < shadow.GetWidth() && py < shadow.GetHeight())
+                            shadow.SetPixel(px, py, Colors.Black);
+                    }
+                }
+            }
+        }
+        var result = (ImageTexture.CreateFromImage(shadow), padLeft, padTop);
+        CastImages[texture] = result;
+        return result;
     }
 
     /// <summary>

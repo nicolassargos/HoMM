@@ -300,9 +300,11 @@ public static class MapRenderer
     /// <summary>Un drapeau sur son mât, planté en <paramref name="foot"/> (il flotte si <paramref name="time"/> avance).</summary>
     private static void DrawFlag(CanvasItem ci, Vector2 foot, Color color, double time)
     {
+        // réglé pour des cases de 48 : à l'échelle de la case
+        float k = T / 48f;
         float wave = (int)(time * 3) % 2 == 1 ? 3 : 0;
-        ci.DrawLine(foot, foot + V(0, -18), Rgb(60, 40, 20), 2);
-        Triangle(ci, foot + V(1, -18), foot + V(12, -14 + wave), foot + V(1, -10), color);
+        ci.DrawLine(foot, foot + k * V(0, -18), Rgb(60, 40, 20), 2 * k);
+        Triangle(ci, foot + k * V(1, -18), foot + k * V(12, -14 + wave), foot + k * V(1, -10), color);
     }
 
     /// <summary>

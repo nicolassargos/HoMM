@@ -1,7 +1,9 @@
 """Les pieds des images de la carte : où chaque objet touche le sol, pour l'ombre de contact dessinée par le jeu.
 
-    python -I tools/art/pieds.py proposer [--tout]   propose les pieds des images qui n'en ont pas encore (--tout : toutes
-                                                     les images non vérifiées) et les écrit dans godot/art/pieds.json
+    python -I tools/art/pieds.py proposer [--tout] [noms…]
+                                                     propose les pieds des images qui n'en ont pas encore (--tout : toutes
+                                                     les images non vérifiées ; des noms : ces images-là, vérifiées ou non,
+                                                     par exemple après avoir changé l'image) et les écrit dans godot/art/pieds.json
     python -I tools/art/pieds.py page                écrit art-candidats/en-cours/revue-pieds.html (la page de revue)
     python -I tools/art/revue.py serveur             (à lancer à côté) écrit les réponses de la page sur le disque
     python -I tools/art/pieds.py appliquer [fichier] reporte les réponses (en-cours/revue-pieds.json, sinon le dernier
@@ -191,10 +193,13 @@ def ecrire(donnees):
                 + "\n}\n")
 
 
-def proposer(tout):
+def proposer(tout, noms=()):
     donnees = charger()
     for nom in images():
-        if nom in donnees and (donnees[nom].get("verifie") or not tout):
+        if noms:
+            if nom not in noms:
+                continue
+        elif nom in donnees and (donnees[nom].get("verifie") or not tout):
             continue
         donnees[nom] = {"pieds": proposer_pieds(os.path.join(ART, nom + ".png")), "verifie": False}
         print(f"{nom} : {len(donnees[nom]['pieds'])} pied(s)", flush=True)
@@ -207,9 +212,11 @@ def page():
     items = []
     for nom in images():
         with open(os.path.join(ART, nom + ".png"), "rb") as f:
-            src = "data:image/png;base64," + base64.b64encode(f.read()).decode()
+            octets = f.read()
+        src = "data:image/png;base64," + base64.b64encode(octets).decode()
         d = donnees.get(nom, {"pieds": [], "verifie": False})
         items.append({"nom": nom, "src": src, "pieds": d["pieds"], "verifie": d.get("verifie", False),
+                      "empreinte": zlib.crc32(octets),
                       "etalement": d.get("etalement", ETALEMENT)})
     html = PAGE_HTML.replace("%ITEMS%", json.dumps(items)).replace("%PAGE%", PAGE).replace("%PORT%", str(PORT))
     os.makedirs(EN_COURS, exist_ok=True)
@@ -267,7 +274,10 @@ const ITEMS=%ITEMS%;const CLE='%PAGE%';const ETALEMENT=3;
 // les bagues : de 55 % de noir près du pied à presque rien, en « étalement » pas (comme ShadowLayer.ContactShades)
 const shades=n=>Array.from({length:n},(_,i)=>0.55*Math.pow((n-i)/n,1.4));const ARC_K=0.12,ARC_MAX=2.5,PATH=8;
 let etat={};try{etat=JSON.parse(localStorage.getItem(CLE))||{}}catch(e){}
-function it(n){const d=ITEMS.find(i=>i.nom===n);const s=etat[n]||(etat[n]={pieds:JSON.parse(JSON.stringify(d.pieds)),verifie:d.verifie,commentaire:''});
+function it(n){const d=ITEMS.find(i=>i.nom===n);
+ // une image changée depuis la dernière visite (une nouvelle scierie) repart de sa proposition
+ if(etat[n]&&etat[n].empreinte!==d.empreinte)delete etat[n];
+ const s=etat[n]||(etat[n]={pieds:JSON.parse(JSON.stringify(d.pieds)),verifie:d.verifie,commentaire:'',empreinte:d.empreinte});
  if(s.etalement==null)s.etalement=d.etalement||ETALEMENT;return s}
 function sauver(){try{localStorage.setItem(CLE,JSON.stringify(etat))}catch(e){}clearTimeout(sauver.t);sauver.t=setTimeout(envoyer,400);compter()}
 function reponses(){const items={};for(const i of ITEMS)items[i.nom]=it(i.nom);return{page:CLE,items}}
@@ -328,7 +338,7 @@ envoyer();
 if __name__ == "__main__":
     args = sys.argv[1:]
     if args and args[0] == "proposer":
-        proposer("--tout" in args)
+        proposer("--tout" in args, [a for a in args[1:] if not a.startswith("--")])
     elif args and args[0] == "page":
         page()
     elif args and args[0] == "appliquer":

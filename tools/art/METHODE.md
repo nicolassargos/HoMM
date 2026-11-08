@@ -174,6 +174,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   seul texte (Retro Diffusion n'en garde qu'une partie et pose l'objet sur un socle ou une île) ; PixelLab pour la carte
   (bien plus de détails, mais des contours plus marqués : l'utilisateur préfère Retro Diffusion) ; 144 × 96 chez Retro
   Diffusion (refusé à la génération).
+- **Scierie refaite (2026-11-08)** : une cabane vue de **trois quarts**, porte au bout du chemin, avec une **pièce en plus**,
+  **sol transparent**. Retro Diffusion donnait des cabanes trop simples ou posées sur un carré de sable ou d'herbe, et à
+  partir d'une image (« input », force 0,55 puis 0,8) il ne la changeait presque pas. **PixelLab** a réussi : « retoucher »
+  la cabane choisie (« add a second, lower room… ; remove the sand and ground… », 0,08 $) ; « pro » à 48 × 48 (25 cabanes
+  pour 0,08 $, avec la cabane comme style et un modèle) en donnait aussi de bonnes. La cabane (42 × 42) est à l'échelle des
+  autres bâtiments de mine (38 × 32 à 52 × 51) ; sa porte n'est pas au milieu : l'assemblage la pose au-dessus du chemin.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 

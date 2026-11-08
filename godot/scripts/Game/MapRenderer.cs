@@ -213,7 +213,12 @@ public static class MapRenderer
             if (obj is Mine mine)
                 DrawFlag(ci, area.Position + new Vector2(0.3f * T, 0.45f * T), ColorOf(mine.Owner), 0);
             else if (obj is Town town)
-                DrawFlag(ci, area.Position + V(area.Size.X / 2, 4), ColorOf(town.Owner), time);
+            {
+                // planté sur le dessin (sa tour ou son rempart de gauche), pas dans le fond transparent au-dessus
+                var drawn = Art.SpriteRect(image, area);
+                float top = Art.OpaqueTop(image, TownFlagColumn);
+                DrawFlag(ci, drawn.Position + new Vector2(TownFlagColumn * drawn.Size.X, top * drawn.Size.Y + 3), ColorOf(town.Owner), time);
+            }
             return;
         }
         switch (obj)
@@ -268,6 +273,9 @@ public static class MapRenderer
     }
 
     public static readonly Color NeutralColor = Rgb(200, 200, 200);
+
+    /// <summary>Où se plante le drapeau du propriétaire sur l'image d'une ville : à 30 % de sa largeur.</summary>
+    private const float TownFlagColumn = 0.3f;
 
     /// <summary>Un drapeau sur son mât, planté en <paramref name="foot"/> (il flotte si <paramref name="time"/> avance).</summary>
     private static void DrawFlag(CanvasItem ci, Vector2 foot, Color color, double time)

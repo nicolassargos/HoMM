@@ -59,42 +59,44 @@ def composer(pieces):
     return img
 
 
+def enceinte(prefixe, tour, mur, h_tour, h_mur, miroir_mur=False):
+    """Les murs qui prennent toute la largeur : un mur du fond, deux tours au fond, des murs de côté et de face, deux
+    grosses tours devant, aux coins."""
+    pieces = []
+    for x in (36, 64, 96, 124):
+        pieces.append((pc(f"{prefixe}-mur", mur), h_mur - 2, x, 52))
+    pieces += [(pc(f"{prefixe}-tour", tour), h_tour - 8, 14, 60, {"fondu": True}),
+               (pc(f"{prefixe}-tour", tour), h_tour - 8, 146, 60, {"fondu": True, "miroir": True})]
+    for x in (26, 54, 106, 134):
+        pieces.append((pc(f"{prefixe}-mur", mur), h_mur, x, 118, {"miroir": miroir_mur and x > 80}))
+    pieces += [(pc(f"{prefixe}-tour", tour), h_tour, 12, 126, {"fondu": True}),
+               (pc(f"{prefixe}-tour", tour), h_tour, 148, 126, {"fondu": True, "miroir": True})]
+    return pieces
+
+
 def chateau(donjon, tour, porte, mur, maisons, chapelle):
-    """Le château du chevalier, serré comme dans Heroes 2 : arbres et chapelle au fond, grand donjon, maisons de chaque côté,
-    deux tours, murs, porte au milieu du bas, maisons devant."""
-    return [
-        (f"{D}/oak.png", None, 12, 46), (f"{D}/pine.png", None, 150, 44), (f"{D}/autumn.png", None, 26, 36),
-        (f"{D}/pine-2.png", None, 138, 34),
-        (pc("chateau-chapelle", chapelle), 36, 124, 66, {"fondu": True}),
-        (pc("chateau-maison", maisons[0]), 28, 34, 72, {"fondu": True}),
-        (pc("chateau-donjon", donjon), 84, 80, 92, {"fondu": True}),
-        (pc("chateau-maison", maisons[1]), 26, 52, 92, {"fondu": True}),
-        (pc("chateau-maison", maisons[0]), 26, 110, 92, {"fondu": True, "miroir": True}),
-        (pc("chateau-tour", tour), 46, 42, 112, {"fondu": True}),
-        (pc("chateau-tour", tour), 46, 118, 112, {"fondu": True, "miroir": True}),
-        (pc("chateau-mur", mur), 16, 60, 116), (pc("chateau-mur", mur), 16, 100, 116),
-        (pc("chateau-porte", porte), 44, 80, 127, {"fondu": True}),
-        (pc("chateau-maison", maisons[1]), 28, 16, 120, {"fondu": True}),
-        (pc("chateau-maison", maisons[0]), 28, 144, 120, {"fondu": True, "miroir": True}),
-        (f"{D}/oak-2.png", None, 154, 100), (f"{D}/oak-3.png", None, 6, 98),
+    """Le château du chevalier, qui remplit ses 5 × 4 cases : enceinte, grand donjon au milieu, chapelle et maisons à
+    l'intérieur, porte au milieu du bas. Rien dehors."""
+    return enceinte("chateau", tour, mur, 56, 22) + [
+        (pc("chateau-chapelle", chapelle), 40, 128, 84, {"fondu": True}),
+        (pc("chateau-maison", maisons[0]), 30, 32, 84, {"fondu": True}),
+        (pc("chateau-donjon", donjon), 100, 80, 100, {"fondu": True}),
+        (pc("chateau-maison", maisons[1]), 30, 40, 108, {"fondu": True}),
+        (pc("chateau-maison", maisons[0]), 30, 120, 108, {"fondu": True, "miroir": True}),
+        (pc("chateau-porte", porte), 50, 80, 127, {"fondu": True}),
     ]
 
 
 def necropole(donjon, tour, porte, mur, crypte, cimetiere):
-    """La nécropole, serrée : cimetières et arbres morts au fond, grand donjon, cryptes de chaque côté, tours, murs, porte
-    au crâne, cryptes devant."""
-    return [
-        (pc("mv-cimetiere", cimetiere), 34, 22, 56, {"fondu": True}),
-        (pc("mv-cimetiere", cimetiere), 32, 138, 52, {"fondu": True, "miroir": True}),
-        (pc("mv-crypte", crypte), 28, 40, 76, {"fondu": True}),
-        (pc("mv-crypte", crypte), 28, 120, 76, {"fondu": True, "miroir": True}),
-        (pc("mv-donjon", donjon), 86, 80, 92, {"fondu": True}),
-        (pc("mv-tour", tour), 52, 42, 112, {"fondu": True}),
-        (pc("mv-tour", tour), 52, 118, 112, {"fondu": True, "miroir": True}),
-        (pc("mv-mur", mur), 18, 60, 116), (pc("mv-mur", mur), 18, 100, 116, {"miroir": True}),
-        (pc("mv-porte", porte), 46, 80, 127, {"fondu": True}),
-        (pc("mv-crypte", crypte), 28, 16, 122, {"fondu": True}),
-        (pc("mv-cimetiere", cimetiere), 28, 146, 124, {"fondu": True, "miroir": True}),
+    """La nécropole, qui remplit ses 5 × 4 cases : enceinte, grand donjon, cimetière et cryptes à l'intérieur, porte au
+    crâne au milieu du bas. Rien dehors."""
+    return enceinte("mv", tour, mur, 60, 22, miroir_mur=True) + [
+        (pc("mv-cimetiere", cimetiere), 30, 34, 84, {"fondu": True}),
+        (pc("mv-crypte", crypte), 32, 128, 84, {"fondu": True, "miroir": True}),
+        (pc("mv-donjon", donjon), 100, 80, 100, {"fondu": True}),
+        (pc("mv-crypte", crypte), 30, 40, 108, {"fondu": True}),
+        (pc("mv-cimetiere", cimetiere), 28, 120, 108, {"fondu": True, "miroir": True}),
+        (pc("mv-porte", porte), 50, 80, 127, {"fondu": True}),
     ]
 
 

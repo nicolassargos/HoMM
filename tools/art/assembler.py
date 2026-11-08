@@ -38,7 +38,7 @@ def p(nom, i):
 # un chemin (liste de points) ou des rails (début, fin)
 MINES = {
     "mine-wood": {
-        "batiment": (p("cabane", 3), None, 44),
+        "batiment": (p("cabane", 2), None, 44),
         "pieces": [(f"{DECOR}/pine.png", None, 6, 2), (f"{DECOR}/oak.png", None, 20, -2), (f"{DECOR}/pine-2.png", None, 64, 0),
                    (f"{DECOR}/autumn.png", None, 76, 6), (p("charrette-bois", 1), 20, 2, 32), (f"{OBJETS}/pile-wood.png", 16, 22, 44),
                    (p("chevalet-scie", 3), 22, 62, 34), (p("souches", 2), 18, 78, 44)],
@@ -52,7 +52,7 @@ MINES = {
         "rails": ((44, 38), (20, 63)),
     },
     "mine-gold": {
-        "batiment": (p("entree-or", 3), None, 40),
+        "batiment": (p("entree-or", 4), None, 40),
         "pieces": [(f"{DECOR}/peak-small.png", 20, 2, 8), (f"{DECOR}/oak-2.png", None, 76, 4), (p("chariot-or", 3), 22, 60, 40),
                    (f"{OBJETS}/pile-gold.png", 16, 10, 44), (f"{OBJETS}/pile-gold.png", 14, 24, 50), (f"{DECOR}/peak-small-2.png", 16, 84, 34)],
         "rails": ((52, 38), (76, 63)),

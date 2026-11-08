@@ -28,6 +28,19 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   bâtiments très imbriqués, un arrière-plan fort (murs, montagnes) et un premier plan chargé. Les cases font 32 px
   (les nôtres 24 : leurs objets ×0,75 donnent notre échelle).
 
+## Ombres de la carte (dessinées par le jeu, 2026-11-08)
+- Ombre portée : `Game/ShadowLayer.cs`, réglages `--shadow=force,longueur,penche,contact,flou` et `--shadow-tune` (curseurs).
+  Chaque morceau de l'image tourne autour de son pied ; un grand morceau (remparts) pose chaque colonne sur son sol ; les
+  chemins vers l'entrée et les rails ne font pas d'ombre.
+- Ombre de contact : d'après les **pieds** de chaque image (`godot/art/pieds.json`), proposés puis revus par l'utilisateur
+  avec `tools/art/pieds.py` (page `revue-pieds.html` : glisser les points, ajouter ou retirer un pied, régler l'étalement).
+  Méthode de l'utilisateur : le bas du contour entre le pixel le plus à gauche et le plus à droite, fermé par un arc au-dessus,
+  puis des bagues de plus en plus claires.
+- Ce que la revue a appris (les propositions corrigées) : les pieds proposés étaient trop larges (1 à 2 pixels de chaque côté)
+  et un pixel trop haut (corrigé dans `proposer`) ; un sommet ne garde qu'une petite base au milieu ; le château a un
+  second pied le long de la rangée de tours du fond ; une mine a un pied par objet (un arbre collé à la cabane, une souche,
+  une pierre), et l'entrée coupe le pied du rocher en deux.
+
 ## Carte (Retro Diffusion)
 - Images de 24 px (cases de 48 px à ×2, puis ×3 et ×4 en 1920 × 1080). `tools/art/generer.py` estime le prix
   (gratuit), génère des candidats et installe le candidat choisi ; `tools/art/assets.json` décrit les images à produire.
@@ -161,6 +174,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   seul texte (Retro Diffusion n'en garde qu'une partie et pose l'objet sur un socle ou une île) ; PixelLab pour la carte
   (bien plus de détails, mais des contours plus marqués : l'utilisateur préfère Retro Diffusion) ; 144 × 96 chez Retro
   Diffusion (refusé à la génération).
+- **Scierie refaite (2026-11-08)** : une cabane vue de **trois quarts**, porte au bout du chemin, avec une **pièce en plus**,
+  **sol transparent**. Retro Diffusion donnait des cabanes trop simples ou posées sur un carré de sable ou d'herbe, et à
+  partir d'une image (« input », force 0,55 puis 0,8) il ne la changeait presque pas. **PixelLab** a réussi : « retoucher »
+  la cabane choisie (« add a second, lower room… ; remove the sand and ground… », 0,08 $) ; « pro » à 48 × 48 (25 cabanes
+  pour 0,08 $, avec la cabane comme style et un modèle) en donnait aussi de bonnes. La cabane (42 × 42) est à l'échelle des
+  autres bâtiments de mine (38 × 32 à 52 × 51) ; sa porte n'est pas au milieu : l'assemblage la pose au-dessus du chemin.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 

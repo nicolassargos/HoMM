@@ -34,14 +34,15 @@ def p(nom, i, lot="32px"):
     return f"{PIECES}/{nom}@{lot}/{i}.png"
 
 
-# chaque mine : le bâtiment (centré en x, son bas à cette hauteur), puis les autres pièces (x, y du coin haut-gauche),
+# chaque mine : le bâtiment (centré en x, ou sa porte au-dessus du chemin ; son bas à cette hauteur), puis les autres pièces (x, y du coin haut-gauche),
 # un chemin (liste de points) ou des rails (début, fin)
 MINES = {
     "mine-wood": {
-        "batiment": (p("cabane", 2), None, 44),
-        "pieces": [(f"{DECOR}/pine.png", None, 6, 2), (f"{DECOR}/oak.png", None, 20, -2), (f"{DECOR}/pine-2.png", None, 64, 0),
-                   (f"{DECOR}/autumn.png", None, 76, 6), (p("charrette-bois", 1), 20, 2, 32), (f"{OBJETS}/pile-wood.png", 16, 22, 44),
-                   (p("chevalet-scie", 3), 22, 62, 34), (p("souches", 2), 18, 78, 44)],
+        # cabane de PixelLab (retouche de la cabane@v4b n° 2 : une pièce en plus, sans sol), choisie le 2026-11-08 ; sa
+        # porte (à 35 % de sa largeur) au-dessus du bout du chemin
+        "batiment": (f"{PIECES}/cabane@pl-retouche/1.png", None, 46, 0.35),
+        "pieces": [(f"{DECOR}/oak.png", None, 2, 2), (f"{DECOR}/pine-2.png", None, 80, 4), (p("charrette-bois", 1), 20, 2, 36),
+                   (f"{OBJETS}/pile-wood.png", 16, 24, 47), (p("chevalet-scie", 3), 16, 60, 48), (p("souches", 2), 14, 80, 49)],
         "chemin": [(49 + ((y // 5) % 2), y) for y in range(42, 64)],
     },
     "mine-ore": {
@@ -111,9 +112,11 @@ def assembler(desc):
         chemin(img, desc["chemin"])
     if "rails" in desc:
         rails(img, *desc["rails"])
-    src, h, bas = desc["batiment"]
+    src, h, bas, *porte = desc["batiment"]
     bat = piece(src, h)
-    objets = [(bat, (W - len(bat[0])) // 2, bas - len(bat))]
+    # centré, ou sa porte (à cette part de sa largeur) au-dessus du bout du chemin (x = 49)
+    x = 49 - round(porte[0] * len(bat[0])) if porte else (W - len(bat[0])) // 2
+    objets = [(bat, x, bas - len(bat))]
     for src, h, x, y in desc["pieces"]:
         objets.append((piece(src, h), x, y))
     # de l'arrière vers l'avant : par le bas de chaque pièce

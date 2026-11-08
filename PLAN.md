@@ -368,7 +368,10 @@ croissance, prix, garde.
   meilleur que l'assemblage de pièces ; l'empreinte et le drapeau viennent de l'autre session, PR #76 et #77), ✅ la
   mine de soufre (entrée plus grande), ✅ le squelette et le colosse d'os (PixelLab « Pro », l'image de combat comme
   sujet), ✅ sommets fondus dans le terrain (`tools/art/fondu.py`).
-  - plus tard : une ombre dessinée par le jeu sous les objets de la carte.
+  ✅ **Ombres de la carte** (2026-11-08, dessinées par le jeu) : ombre portée vers la gauche et ombre de contact au pied
+  de chaque objet, d'après des pieds revus par l'utilisateur (`godot/art/pieds.json`, `tools/art/pieds.py`) ; scierie
+  refaite (cabane de trois quarts, PixelLab). Détail dans `HISTORIQUE.md`. Reste : vérifier les pieds des mines de
+  mercure, minerai et soufre, et la force de l'ombre de contact en jeu.
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles
   (`buildings.json`) ne gardent plus la place des bâtiments ; chaque faction a sa **scène** (`art/towns/<faction>/` :
   un fond de 640 × 195 affiché ×3, et `scene.json` : pour chaque bâtiment, son pied (bas, milieu), sa profondeur et son

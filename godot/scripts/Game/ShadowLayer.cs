@@ -119,7 +119,7 @@ public partial class ShadowLayer : Node2D
 
     /// <summary>
     /// L'ombre portée d'une image dessinée en <paramref name="rect"/> : la même image, noire, couchée sur le sol à partir
-    /// de son pied (sa dernière rangée opaque) ; le haut de l'image va vers la gauche et un peu vers le haut.
+    /// de son pied ; le haut de l'image va vers la gauche et un peu vers le haut.
     /// </summary>
     private static void DrawCast(CanvasItem ci, Texture2D image, Rect2 rect)
     {
@@ -131,35 +131,43 @@ public partial class ShadowLayer : Node2D
 
     private static readonly Dictionary<Texture2D, (Texture2D Shadow, int PadLeft, int PadTop)> CastImages = new();
 
+    /// <summary>Largeur (en pixels d'art) au-delà de laquelle un morceau d'image est un grand objet vu de trois quarts.</summary>
+    private const int WidePiece = 40;
+
     /// <summary>
-    /// L'ombre portée d'une image, en pixels d'art (calculée une fois par image et par réglage) : chaque colonne de l'image
-    /// se tient sur son propre sol, son pixel opaque le plus bas (les images sont vues de trois quarts : le bas d'une tour
-    /// du fond est plus haut dans l'image que le bas du mur de devant). Un pixel à la hauteur h au-dessus de ce sol va à
-    /// h × penche vers la gauche et h × longueur vers le haut. Renvoie aussi la marge ajoutée à gauche et en haut.
+    /// L'ombre portée d'une image, en pixels d'art (calculée une fois par image et par réglage). L'image est découpée en
+    /// morceaux (les pixels opaques qui se touchent : un arbre, un rocher, un tas de bûches). Un morceau étroit tourne
+    /// autour de son pied, son pixel le plus bas au milieu du morceau (le tronc d'un arbre, les pieds d'une créature) : un
+    /// pixel à la hauteur h au-dessus du pied va à h × penche vers la gauche et h × longueur vers le haut.
+    /// Un morceau large (les remparts d'une ville) est vu de trois quarts : le bas d'une tour du fond est plus haut dans
+    /// l'image que le bas du mur de devant ; chacune de ses colonnes se tient alors sur son propre sol (son pixel le plus
+    /// bas). Renvoie aussi la marge ajoutée à gauche et en haut.
     /// </summary>
     private static (Texture2D Shadow, int PadLeft, int PadTop) CastImage(Texture2D texture)
     {
         if (CastImages.TryGetValue(texture, out var cached))
             return cached;
         int w = texture.GetWidth(), h = texture.GetHeight();
-        int padLeft = (int)MathF.Ceiling(Math.Max(0, Lean) * h) + 1;
-        int padRight = (int)MathF.Ceiling(Math.Max(0, -Lean) * h) + 1;
+        int padSide = (int)MathF.Ceiling(Math.Abs(Lean) * h) + 1;
         int padTop = (int)MathF.Ceiling(Math.Max(0, Length - 1) * h) + 1;
-        var shadow = Image.CreateEmpty(w + padLeft + padRight, h + padTop, false, Image.Format.Rgba8);
+        int padBottom = (int)MathF.Ceiling(Length * h) + 1; // les pixels plus bas que le pied (les côtés d'un tas)
+        var shadow = Image.CreateEmpty(w + 2 * padSide, h + padTop + padBottom, false, Image.Format.Rgba8);
         if (texture.GetImage() is { } image && !image.IsEmpty())
         {
             if (image.IsCompressed())
                 image.Decompress();
-            for (int x = 0; x < w; x++)
+            foreach (var piece in Pieces(image))
             {
-                int ground = -1;
-                for (int y = h - 1; y >= 0 && ground < 0; y--)
-                    if (image.GetPixel(x, y).A > 0.5f)
-                        ground = y;
-                for (int y = 0; y <= ground; y++)
+                int minX = piece.Min(p => p.X), maxX = piece.Max(p => p.X);
+                bool wide = maxX - minX + 1 > WidePiece;
+                // le sol de chaque colonne du morceau (son pixel le plus bas), et le pied (le plus bas du tiers du milieu)
+                var bottoms = piece.GroupBy(p => p.X).ToDictionary(g => g.Key, g => g.Max(p => p.Y));
+                int third = (maxX - minX + 1) / 3;
+                int pivot = bottoms.Where(b => b.Key >= minX + third && b.Key <= maxX - third).Select(b => b.Value)
+                    .DefaultIfEmpty(bottoms.Values.Max()).Max();
+                foreach (var (x, y) in piece)
                 {
-                    if (image.GetPixel(x, y).A <= 0.5f)
-                        continue;
+                    int ground = wide ? bottoms[x] : pivot;
                     // le pixel (x, y) couvre, sur le sol, un petit parallélogramme : on remplit le rectangle qui l'entoure
                     float up = ground + 1 - y, down = ground - y;
                     float x0 = x - Lean * up, x1 = x + 1 - Lean * down;
@@ -167,16 +175,51 @@ public partial class ShadowLayer : Node2D
                     for (int sy = (int)MathF.Floor(Math.Min(y0, y1)); sy < (int)MathF.Ceiling(Math.Max(y0, y1)); sy++)
                     for (int sx = (int)MathF.Floor(Math.Min(x0, x1)); sx < (int)MathF.Ceiling(Math.Max(x0, x1)); sx++)
                     {
-                        int px = sx + padLeft, py = sy + padTop;
+                        int px = sx + padSide, py = sy + padTop;
                         if (px >= 0 && py >= 0 && px < shadow.GetWidth() && py < shadow.GetHeight())
                             shadow.SetPixel(px, py, Colors.Black);
                     }
                 }
             }
         }
-        var result = (ImageTexture.CreateFromImage(shadow), padLeft, padTop);
+        var result = (ImageTexture.CreateFromImage(shadow), padSide, padTop);
         CastImages[texture] = result;
         return result;
+    }
+
+    /// <summary>Les morceaux d'une image : les groupes de pixels opaques qui se touchent (par un côté ou un coin).</summary>
+    private static List<List<(int X, int Y)>> Pieces(Image image)
+    {
+        int w = image.GetWidth(), h = image.GetHeight();
+        var seen = new bool[w, h];
+        var pieces = new List<List<(int X, int Y)>>();
+        for (int sy = 0; sy < h; sy++)
+        for (int sx = 0; sx < w; sx++)
+        {
+            if (seen[sx, sy] || image.GetPixel(sx, sy).A <= 0.5f)
+                continue;
+            var piece = new List<(int X, int Y)>();
+            var todo = new Stack<(int X, int Y)>();
+            todo.Push((sx, sy));
+            seen[sx, sy] = true;
+            while (todo.Count > 0)
+            {
+                var (x, y) = todo.Pop();
+                piece.Add((x, y));
+                for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int nx = x + dx, ny = y + dy;
+                    if (nx >= 0 && ny >= 0 && nx < w && ny < h && !seen[nx, ny] && image.GetPixel(nx, ny).A > 0.5f)
+                    {
+                        seen[nx, ny] = true;
+                        todo.Push((nx, ny));
+                    }
+                }
+            }
+            pieces.Add(piece);
+        }
+        return pieces;
     }
 
     /// <summary>

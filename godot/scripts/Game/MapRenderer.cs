@@ -12,7 +12,13 @@ namespace HoMM.Game;
 /// </summary>
 public static class MapRenderer
 {
-    public const int TileSize = 48;
+    /// <summary>
+    /// La taille d'une case en pixels d'art (32, comme Heroes 2 ; choix de l'utilisateur, 2026-11-07 : 24 avant), et la
+    /// taille d'une case sur la carte : chaque pixel d'art y compte pour 2 (la caméra agrandit ensuite ×1 ou ×1,5).
+    /// </summary>
+    public const int ArtTile = 32;
+    public const int ArtScale = 2;
+    public const int TileSize = ArtTile * ArtScale;
     private const int T = TileSize;
 
     public static readonly Color PlayerColor = Rgb(200, 40, 40);
@@ -57,6 +63,9 @@ public static class MapRenderer
     }
 
     private static Vector2 V(float x, float y) => new(x, y);
+
+    /// <summary>Les tailles en pixels fixes (anneau, marques du chemin) ont été réglées pour des cases de 48 : elles suivent la case.</summary>
+    private const float K = T / 48f;
 
     private static void Triangle(CanvasItem ci, Vector2 a, Vector2 b, Vector2 c, Color color) =>
         ci.DrawColoredPolygon(new[] { a, b, c }, color);
@@ -197,17 +206,15 @@ public static class MapRenderer
         var c = o + V(T / 2f, T / 2f);
         if (ObjectImage(obj) is { } image)
         {
-            // Une ville occupe 3×3 cases, une mine 3×2 : l'entrée (o) est au milieu de la rangée du bas ; l'image couvre
-            // cette surface, quelle que soit la taille des cases. Une ancienne image carrée de mine (une case) reste dessinée
-            // sur l'entrée, en attendant les images de 3×2.
-            bool wideImage = image.GetWidth() > image.GetHeight();
+            // Une ville occupe 3×3 cases, une mine 3×2 : l'entrée (o) est au milieu de la rangée du bas. L'image est posée
+            // en bas de cette surface, centrée (une image de 96 × 64 la couvre juste).
             var area = obj switch
             {
                 Town => new Rect2(o + V(-T, -2 * T), 3 * T, 3 * T),
-                Mine { Large: true } when wideImage => new Rect2(o + V(-T, -T), 3 * T, 2 * T),
+                Mine { Large: true } => new Rect2(o + V(-T, -T), 3 * T, 2 * T),
                 _ => new Rect2(o, T, T),
             };
-            Art.DrawSprite(ci, image, area);
+            DrawArt(ci, image, area);
             // Le drapeau du propriétaire reste dessiné par-dessus (en haut à gauche de la mine)
             if (obj is Mine mine)
                 DrawFlag(ci, area.Position + new Vector2(0.3f * T, 0.45f * T), ColorOf(mine.Owner), 0);
@@ -264,6 +271,18 @@ public static class MapRenderer
                 DrawTown(ci, town, o + V(T / 2f, -T / 2f), time);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Dessine une image de la carte à sa taille : un pixel d'art y vaut <see cref="ArtScale"/> pixels de la carte (les
+    /// pixels ont la même taille partout). Elle est posée sur le bas de <paramref name="area"/> et centrée ; une image plus
+    /// grande que la zone en déborde (vers le haut et sur les côtés).
+    /// </summary>
+    private static void DrawArt(CanvasItem ci, Texture2D image, Rect2 area)
+    {
+        var size = image.GetSize() * ArtScale;
+        var position = new Vector2(MathF.Floor(area.Position.X + (area.Size.X - size.X) / 2), area.End.Y - size.Y);
+        ci.DrawTextureRect(image, new Rect2(position, size), false);
     }
 
     public static readonly Color NeutralColor = Rgb(200, 200, 200);
@@ -387,7 +406,7 @@ public static class MapRenderer
     {
         if (HeroImage(owner) is { } image)
         {
-            Art.DrawSprite(ci, image, new Rect2(c - V(T / 2f, T / 2f + 4), T, T));
+            DrawArt(ci, image, new Rect2(c - V(T / 2f, T / 2f + 4), T, T));
             return;
         }
         var horse = Rgb(240, 235, 225);
@@ -414,9 +433,9 @@ public static class MapRenderer
         for (int i = 0; i < points.Length; i++)
         {
             float angle = Mathf.Tau * i / (points.Length - 1);
-            points[i] = c + new Vector2(Mathf.Cos(angle) * 19, Mathf.Sin(angle) * 7);
+            points[i] = c + new Vector2(Mathf.Cos(angle) * 19 * K, Mathf.Sin(angle) * 7 * K);
         }
-        ci.DrawPolyline(points, gold, 2.5f);
+        ci.DrawPolyline(points, gold, 2.5f * K);
     }
 
     /// <summary>Marque de chemin : un point, ou une croix pour la destination.</summary>
@@ -425,13 +444,13 @@ public static class MapRenderer
         var color = reachable ? Rgb(60, 220, 60) : Rgb(220, 60, 60);
         if (isDestination)
         {
-            ci.DrawLine(c + V(-9, -9), c + V(9, 9), color, 4);
-            ci.DrawLine(c + V(-9, 9), c + V(9, -9), color, 4);
+            ci.DrawLine(c + V(-9, -9) * K, c + V(9, 9) * K, color, 4 * K);
+            ci.DrawLine(c + V(-9, 9) * K, c + V(9, -9) * K, color, 4 * K);
         }
         else
         {
-            ci.DrawCircle(c, 6, Colors.Black);
-            ci.DrawCircle(c, 5, color);
+            ci.DrawCircle(c, 6 * K, Colors.Black);
+            ci.DrawCircle(c, 5 * K, color);
         }
     }
 }

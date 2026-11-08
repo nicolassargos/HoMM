@@ -14,8 +14,11 @@ public partial class MapCamera : Camera2D
     private const int T = MapRenderer.TileSize;
     private const float ScrollSpeed = 1050;
 
-    /// <summary>Les niveaux de zoom (molette de la souris, touches + et -).</summary>
-    public static readonly float[] Zooms = { 1.5f, 2f };
+    /// <summary>
+    /// Les niveaux de zoom (molette de la souris, touches + et -). Un pixel d'art vaut 2 pixels de la carte : ×1 le montre
+    /// ×2 à l'écran (64 pixels par case), ×1,5 le montre ×3 (96 pixels par case).
+    /// </summary>
+    public static readonly float[] Zooms = { 1f, 1.5f };
 
     private AdventureMap _map = null!;
     private Minimap _minimap = null!;

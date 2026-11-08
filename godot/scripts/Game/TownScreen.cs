@@ -129,8 +129,8 @@ public partial class TownScreen : CanvasLayer
         _root.AddChild(At(MakeLabel(Texts.GarrisonHeader, 15, TextColor), 16, y));
         var townPicture = new Panel { Position = V(12, y + 22), Size = new Vector2(132, 132) };
         townPicture.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
-        // l'image de 72 pixels, ×1 : celle de la faction de la ville ouverte (voir Open)
-        _townPicture = Picture(null!, new Vector2(30, 30), new Vector2(72, 72));
+        // l'image de 96 pixels, ×1 : celle de la faction de la ville ouverte (voir Open)
+        _townPicture = Picture(null!, new Vector2(18, 18), new Vector2(96, 96));
         townPicture.AddChild(_townPicture);
         _root.AddChild(townPicture);
         _garrison = MakeArmy(V(ArmyX, y + 22));

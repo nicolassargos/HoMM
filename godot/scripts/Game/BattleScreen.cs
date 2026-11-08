@@ -585,15 +585,23 @@ public partial class BattleScreen : CanvasLayer
             slot.Modulate = new Color(1, 1, 1, 0.5f);
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 0);
-        // la petite image (celle de la carte), la plus grande qui tient : la place est étroite
-        if (SmallCreatureArt(unit.Type, new Vector2(width - Px(6), OrderHeight - Px(22))) is { } art)
+        // la petite image (celle de la carte), sans ses bords vides, agrandie du plus grand nombre entier de fois qui tient
+        // (la place est étroite : ×2 pour une image de 32 quand il y a peu de troupes)
+        var box = new Vector2(width - Px(6), OrderHeight - Px(22));
+        if (SmallCreatureArt(unit.Type, box) is { } art)
+        {
+            var used = UsedRect(art.Texture);
+            int scale = (int)MathF.Floor(MathF.Min(box.X / used.Size.X, box.Y / used.Size.Y));
+            var texture = scale >= 1 ? new AtlasTexture { Atlas = art.Texture, Region = used } : art.Texture;
+            var size = scale >= 1 ? used.Size * scale : art.Size;
             column.AddChild(new TextureRect
             {
-                Texture = art.Texture, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = art.Size,
+                Texture = texture, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = size,
                 TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
                 SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter, SizeFlagsVertical = Control.SizeFlags.ExpandFill,
             });
+        }
         var number = MakeLabel(count.ToString(), 12, TextColor);
         number.HorizontalAlignment = HorizontalAlignment.Center;
         column.AddChild(number);

@@ -1,9 +1,12 @@
 """Revue des images de la carte en 32 px : une page où l'on choisit un candidat par image et où l'on laisse un commentaire.
 
-    python -I tools/art/revue.py                      écrit art-candidats/en-cours/revue-32px.html
-    python -I tools/art/revue.py serveur              écrit les réponses de la page sur le disque à chaque changement
-    python -I tools/art/revue.py appliquer [fichier]  applique les réponses (par défaut : en-cours/revue-32px.json, sinon
-                                                      le dernier revue-32px*.json des Téléchargements)
+    python -I tools/art/revue.py [lot]                      écrit art-candidats/en-cours/revue-<lot>.html
+    python -I tools/art/revue.py serveur                    écrit les réponses des pages sur le disque à chaque changement
+    python -I tools/art/revue.py appliquer [lot] [fichier]  applique les réponses (par défaut : en-cours/revue-<lot>.json,
+                                                            sinon le dernier revue-<lot>*.json des Téléchargements)
+
+Un lot est une série de candidats (LOTS) : « 32px » (le premier passage, par défaut), « v2 » (les images refaites
+d'après la revue du 2026-11-08 ; candidats dans les dossiers <nom>@v2).
 
 Sur la page : un clic sur un candidat le choisit, « Garder » ou « À refaire » donne l'avis, et chaque image a sa zone de
 commentaire. Les réponses restent dans le navigateur (on peut fermer la page et revenir) ; « Télécharger » les écrit dans
@@ -26,13 +29,11 @@ RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 EN_COURS = os.path.join(RACINE, "art-candidats", "en-cours")
 CANDIDATS = os.path.join(EN_COURS, "candidats")
 ART = os.path.join(RACINE, "godot", "art")
-PAGE = os.path.join(EN_COURS, "revue-32px.html")
 VARIANTES = os.path.join(CANDIDATS, "mines-32", "variantes")
-REPONSES = os.path.join(EN_COURS, "revue-32px.json")
 PORT = 8765
 
 # les images revues, par groupe (nom dans godot/art, sans .png)
-GROUPES = [
+GROUPES_32PX = [
     ("Terrains", ["terrain/grass", "terrain/grass-2", "terrain/road", "terrain/forest", "terrain/sand", "terrain/sand-2",
                   "terrain/swamp", "terrain/swamp-2", "terrain/water", "terrain/water-2", "terrain/mountain"]),
     ("Décor", ["decor/pine", "decor/pine-2", "decor/oak", "decor/oak-2", "decor/oak-3", "decor/autumn", "decor/autumn-2",
@@ -48,9 +49,36 @@ GROUPES = [
                              "troll", "dragon"]] + ["heroes/hero"]),
 ]
 
+GROUPES_V2 = [
+    ("Terrains", ["terrain/grass", "terrain/grass-2"]),
+    ("Décor (montagnes comme Heroes 2 : roche grise et herbe, sans neige, plus grandes)",
+     ["decor/peak", "decor/peak-2", "decor/peak-small", "decor/peak-small-2"]),
+    ("Objets", ["objects/chest", "objects/pile-gems", "objects/pile-mercury", "objects/pile-crystal", "objects/pile-sulfur"]),
+    ("Mines (bâtiment plus grand ; le décor autour sera replacé ensuite)",
+     ["objects/mine-gems", "objects/mine-crystal", "objects/mine-sulfur", "objects/mine-mercury"]),
+]
+
 CAPTURES = [("jeu-32-revele.png", "Carte révélée, zoom ×2"), ("jeu-32-depart-zoom3.png", "Départ, zoom ×3"),
             ("jeu-32-morts-vivants.png", "Morts-vivants"), ("jeu-32-revele-adversaire.png", "Chez l'adversaire"),
             ("jeu-32-tresor.png", "Autour de l'obélisque")]
+
+LOTS = {
+    "32px": {"titre": "Carte en 32 px : tes choix", "groupes": GROUPES_32PX, "captures": CAPTURES},
+    "v2": {"titre": "Images refaites (2026-11-08) : tes choix", "groupes": GROUPES_V2, "captures": []},
+}
+LOT = "32px"
+
+
+def regler(lot):
+    global LOT, PAGE, REPONSES
+    if lot not in LOTS:
+        sys.exit(f"Lot inconnu : {lot} ({', '.join(LOTS)})")
+    LOT = lot
+    PAGE = os.path.join(EN_COURS, f"revue-{lot}.html")
+    REPONSES = os.path.join(EN_COURS, f"revue-{lot}.json")
+
+
+regler("32px")
 
 
 def lire_octets(chemin):
@@ -61,27 +89,27 @@ def lire_octets(chemin):
 def dossier_candidats(nom):
     """Le dossier des candidats d'une image : « decor/pine-2 » prend ceux de decor/pine@32px s'il n'a pas les siens."""
     for essai in (nom, re.sub(r"-\d+$", "", nom)):
-        d = os.path.join(CANDIDATS, *essai.split("/")) + "@32px"
+        d = os.path.join(CANDIDATS, *essai.split("/")) + f"@{LOT}"
         if os.path.isdir(d):
             return d
     return None
 
 
 def batiment_de(mine):
-    """(pièce, numéro) du bâtiment d'une mine dans assembler.MINES."""
+    """(pièce, numéro, lot) du bâtiment d'une mine dans assembler.MINES."""
     import assembler
     chemin = assembler.MINES[mine]["batiment"][0]
-    m = re.search(r"pieces/([^/@]+)@32px/(\d+)\.png$", chemin.replace("\\", "/"))
-    return m.group(1), int(m.group(2))
+    m = re.search(r"pieces/([^/@]+)@([\w-]+)/(\d+)\.png$", chemin.replace("\\", "/"))
+    return m.group(1), int(m.group(3)), m.group(2)
 
 
-def mine_avec(mine, numero):
+def mine_avec(mine, numero, lot="32px"):
     """La description de la mine avec un autre candidat pour son bâtiment."""
     import assembler
     desc = copy.deepcopy(assembler.MINES[mine])
-    piece, _ = batiment_de(mine)
+    piece, _, _ = batiment_de(mine)
     b = desc["batiment"]
-    desc["batiment"] = (assembler.p(piece, numero), *b[1:])
+    desc["batiment"] = (assembler.p(piece, numero, lot), *b[1:])
     return desc
 
 
@@ -96,15 +124,16 @@ def options(nom):
         import assembler
         from reduire import ecrire
         mine = nom.split("/")[1]
-        piece, actuel = batiment_de(mine)
+        piece, actuel, lot_actuel = batiment_de(mine)
         os.makedirs(VARIANTES, exist_ok=True)
         res.append(("installee", rel_installee, f"★ installée ({piece} {actuel})", True))
         for n in range(1, 5):
-            if n == actuel or not os.path.exists(os.path.join(CANDIDATS, "pieces", f"{piece}@32px", f"{n}.png")):
+            if (n == actuel and LOT == lot_actuel) or not os.path.exists(
+                    os.path.join(CANDIDATS, "pieces", f"{piece}@{LOT}", f"{n}.png")):
                 continue
-            sortie = os.path.join(VARIANTES, f"{mine}-{n}.png")
-            ecrire(sortie, assembler.assembler(mine_avec(mine, n)))
-            res.append((f"mine:{n}", os.path.relpath(sortie, EN_COURS).replace("\\", "/"), f"{piece} {n}", False))
+            sortie = os.path.join(VARIANTES, f"{mine}-{LOT}-{n}.png")
+            ecrire(sortie, assembler.assembler(mine_avec(mine, n, LOT)))
+            res.append((f"mine:{LOT}:{n}", os.path.relpath(sortie, EN_COURS).replace("\\", "/"), f"{piece} {LOT} {n}", False))
         return res
     res.append(("installee", rel_installee, "★ installée", True))
     d = dossier_candidats(nom)
@@ -149,7 +178,7 @@ textarea{width:100%;margin-top:8px;background:#202326;color:var(--texte);border:
 """
 
 SCRIPT = r"""
-const CLE='revue-32px';let etat={general:'',items:{}};
+const CLE='%PAGE%';let etat={general:'',items:{}};
 try{etat=JSON.parse(localStorage.getItem(CLE))||etat}catch(e){}
 const zoomSauve=(()=>{try{return +localStorage.getItem(CLE+'-zoom')||2}catch(e){return 2}})();
 function sauver(){try{localStorage.setItem(CLE,JSON.stringify(etat))}catch(e){}clearTimeout(sauver.t);sauver.t=setTimeout(envoyer,400)}
@@ -185,14 +214,14 @@ const g=document.getElementById('general');g.value=etat.general||'';g.oninput=()
 document.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>zoom(+b.dataset.zoom));
 document.querySelectorAll('[data-filtre]').forEach(b=>b.onclick=()=>{filtre=b.dataset.filtre;filtrer()});
 function note(t){const n=document.getElementById('note');n.textContent=t;n.style.display='block';setTimeout(()=>n.style.display='none',2500)}
-function reponses(){const items={};for(const[n,it]of Object.entries(etat.items))if(vu(it))items[n]=it;return{page:'revue-32px',general:etat.general,items}}
+function reponses(){const items={};for(const[n,it]of Object.entries(etat.items))if(vu(it))items[n]=it;return{page:'%PAGE%',general:etat.general,items}}
 function texte(){const r=reponses();let s='';for(const[n,it]of Object.entries(r.items)){
  const d=document.querySelector(`.item[data-nom="${n}"]`);const lib=d?d.querySelector(`.opt[data-id="${it.choix}"] span`).textContent:it.choix;
  s+=`${n} : ${it.avis==='refaire'?'à refaire':it.choix!=='installee'?'changer pour '+lib:it.avis==='garder'?'garder':'—'}${it.commentaire?' — '+it.commentaire:''}\n`}
  return (r.general?'Général : '+r.general+'\n':'')+s}
 document.getElementById('copier').onclick=async()=>{try{await navigator.clipboard.writeText(texte()+'\n'+JSON.stringify(reponses()));note('Réponses copiées : colle-les dans la conversation')}catch(e){note('Copie impossible : utilise Télécharger')}};
 document.getElementById('telecharger').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(reponses(),null,1)],{type:'application/json'}));
- a.download='revue-32px.json';a.click();note('Fichier revue-32px.json enregistré dans Téléchargements')};
+ a.download='%PAGE%.json';a.click();note('Fichier %PAGE%.json enregistré dans Téléchargements')};
 document.getElementById('effacer').onclick=()=>{if(confirm('Effacer toutes tes réponses de cette page ?')){etat={general:'',items:{}};sauver();location.reload()}};
 const loupe=document.getElementById('loupe');document.querySelectorAll('.captures img').forEach(i=>i.onclick=()=>{loupe.querySelector('img').src=i.src;loupe.style.display='flex'});
 loupe.onclick=()=>loupe.style.display='none';
@@ -210,7 +239,7 @@ def page():
     herbe = os.path.relpath(os.path.join(ART, "terrain", "grass.png"), EN_COURS).replace("\\", "/")
     morceaux = [f"<!doctype html><html lang=fr><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
                 f"<title>Revue carte 32 px</title><style>{STYLE}</style><body>"
-                "<header><h1>Carte en 32 px : tes choix</h1><span class=compte></span><div class=barre><i></i></div>"
+                f"<header><h1>{LOTS[LOT]['titre']}</h1><span class=compte></span><div class=barre><i></i></div>"
                 "<span>Zoom</span><button data-zoom=2>×2</button><button data-zoom=3>×3</button>"
                 "<span>Montrer</span><button data-filtre=tout>tout</button><button data-filtre=reste>pas vues</button>"
                 "<button data-filtre=repondu>vues</button>"
@@ -221,13 +250,13 @@ def page():
                 "Quand « ✓ enregistré sur le disque » s'affiche en haut, chaque réponse est déjà écrite pour Claude : à la fin, dis-lui simplement « c'est fait ». Sinon : <b>Télécharger</b>.</p>"
                 "<textarea id=general placeholder='Commentaire général (style, couleurs, ce qui manque…)'></textarea>"
                 "<h2>Dans le jeu</h2><div class=captures>"]
-    for f, legende in CAPTURES:
+    for f, legende in LOTS[LOT]["captures"]:
         if os.path.exists(os.path.join(EN_COURS, f)):
             v = int(os.path.getmtime(os.path.join(EN_COURS, f)))
             morceaux.append(f"<figure><img src='{f}?v={v}' alt='{html.escape(legende)}'><figcaption>{html.escape(legende)}</figcaption></figure>")
     morceaux.append("</div>")
     total = 0
-    for titre, noms in GROUPES:
+    for titre, noms in LOTS[LOT]["groupes"]:
         morceaux.append(f"<h2>{html.escape(titre)}</h2><div class=grille>")
         for nom in noms:
             total += 1
@@ -244,7 +273,7 @@ def page():
                 morceaux.append(f"<div class=opt data-id='{ident}'{fond}>{vue}<span>{html.escape(libelle)}</span></div>")
             morceaux.append("</div><textarea placeholder='Commentaire'></textarea></div>")
         morceaux.append("</div>")
-    morceaux.append(f"</main><div id=loupe><img alt=''></div><div id=note></div><script>{SCRIPT.replace('%PORT%', str(PORT))}</script></body></html>")
+    morceaux.append(f"</main><div id=loupe><img alt=''></div><div id=note></div><script>{SCRIPT.replace('%PORT%', str(PORT)).replace('%PAGE%', 'revue-' + LOT)}</script></body></html>")
     with open(PAGE, "w", encoding="utf-8") as f:
         f.write("".join(morceaux))
     print(f"{total} images : {os.path.relpath(PAGE, RACINE)}")
@@ -255,9 +284,9 @@ def appliquer(fichier):
         fichier = REPONSES
     if fichier is None:
         dl = os.path.join(os.path.expanduser("~"), "Downloads")
-        fichiers = sorted(glob.glob(os.path.join(dl, "revue-32px*.json")), key=os.path.getmtime)
+        fichiers = sorted(glob.glob(os.path.join(dl, f"revue-{LOT}*.json")), key=os.path.getmtime)
         if not fichiers:
-            sys.exit(f"Aucun revue-32px*.json dans {dl}")
+            sys.exit(f"Aucun revue-{LOT}*.json dans {dl}")
         fichier = fichiers[-1]
     with open(fichier, encoding="utf-8") as f:
         r = json.load(f)
@@ -271,21 +300,24 @@ def appliquer(fichier):
         if choix.startswith("mine:"):
             import assembler
             from reduire import ecrire
-            mine, n = nom.split("/")[1], int(choix[5:])
-            piece, actuel = batiment_de(mine)
+            # « mine:3 » (lot 32px, ancienne forme) ou « mine:v2:3 »
+            parts = choix.split(":")
+            lot, n = (parts[1], int(parts[2])) if len(parts) == 3 else ("32px", int(parts[1]))
+            mine = nom.split("/")[1]
+            piece, _, _ = batiment_de(mine)
             source = os.path.join(RACINE, "tools", "art", "assembler.py")
             texte = open(source, encoding="utf-8").read()
             debut = texte.index(f'"{mine}": {{')
             ligne = texte.index('"batiment"', debut)
-            ancien = f'p("{piece}", {actuel})'
-            pos = texte.index(ancien, ligne)
-            texte = texte[:pos] + f'p("{piece}", {n})' + texte[pos + len(ancien):]
+            m = re.compile(r'p\("' + re.escape(piece) + r'", \d+(, "[\w-]+")?\)').search(texte, ligne)
+            nouveau = f'p("{piece}", {n})' if lot == "32px" else f'p("{piece}", {n}, "{lot}")'
+            texte = texte[:m.start()] + nouveau + texte[m.end():]
             with open(source, "w", encoding="utf-8", newline="\n") as f:
                 f.write(texte)
-            assembler.MINES[mine] = mine_avec(mine, n)
+            assembler.MINES[mine] = mine_avec(mine, n, lot)
             ecrire(os.path.join(CANDIDATS, "mines-32", f"{mine}.png"), assembler.assembler(assembler.MINES[mine]))
             ecrire(cible, assembler.assembler(assembler.MINES[mine]))
-            changes.append(f"{nom} : bâtiment {piece} {n} (assembler.py mis à jour)")
+            changes.append(f"{nom} : bâtiment {piece} {lot} {n} (assembler.py mis à jour)")
         elif choix != "installee":
             shutil.copyfile(os.path.join(CANDIDATS, *choix.split("/")), cible)
             changes.append(f"{nom} : {choix}")
@@ -297,7 +329,7 @@ def appliquer(fichier):
 
 
 def serveur():
-    """Reçoit les réponses de la page à chaque changement et les écrit dans en-cours/revue-32px.json."""
+    """Reçoit les réponses de la page à chaque changement et les écrit dans en-cours/revue-<lot>.json."""
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
     class Reponses(BaseHTTPRequestHandler):
@@ -315,27 +347,34 @@ def serveur():
             corps = self.rfile.read(int(self.headers.get("Content-Length", 0)))
             try:
                 r = json.loads(corps)
-                assert r.get("page") == "revue-32px"
+                assert r.get("page", "")[len("revue-"):] in LOTS
             except Exception:
                 return self._entetes(400)
-            temp = REPONSES + ".tmp"
+            fichier = os.path.join(EN_COURS, r["page"] + ".json")
+            temp = fichier + ".tmp"
             with open(temp, "w", encoding="utf-8") as f:
                 json.dump(r, f, ensure_ascii=False, indent=1)
-            os.replace(temp, REPONSES)
-            print(f"{len(r.get('items', {}))} réponses enregistrées", flush=True)
+            os.replace(temp, fichier)
+            print(f"{r['page']} : {len(r.get('items', {}))} réponses enregistrées", flush=True)
             self._entetes(200)
 
         def log_message(self, *args):
             pass
 
-    print(f"Réponses écrites dans {os.path.relpath(REPONSES, RACINE)} (port {PORT}) ; Ctrl+C pour arrêter", flush=True)
+    print(f"Réponses écrites dans {os.path.relpath(EN_COURS, RACINE)}/revue-<lot>.json (port {PORT}) ; Ctrl+C pour arrêter",
+          flush=True)
     HTTPServer(("127.0.0.1", PORT), Reponses).serve_forever()
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "serveur":
+    args = sys.argv[1:]
+    if args and args[0] == "serveur":
         serveur()
-    elif len(sys.argv) > 1 and sys.argv[1] == "appliquer":
-        appliquer(sys.argv[2] if len(sys.argv) > 2 else None)
+    elif args and args[0] == "appliquer":
+        reste = args[1:]
+        if reste and reste[0] in LOTS:
+            regler(reste.pop(0))
+        appliquer(reste[0] if reste else None)
     else:
+        regler(args[0] if args else "32px")
         page()

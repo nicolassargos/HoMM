@@ -30,8 +30,8 @@ def piece(chemin, h=None, miroir=False):
     return n.miroir(p) if miroir else p
 
 
-def p(nom, i):
-    return f"{PIECES}/{nom}@32px/{i}.png"
+def p(nom, i, lot="32px"):
+    return f"{PIECES}/{nom}@{lot}/{i}.png"
 
 
 # chaque mine : le bâtiment (centré en x, son bas à cette hauteur), puis les autres pièces (x, y du coin haut-gauche),

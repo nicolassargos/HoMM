@@ -6,7 +6,8 @@
                                                             sinon le dernier revue-<lot>*.json des Téléchargements)
 
 Un lot est une série de candidats (LOTS) : « 32px » (le premier passage, par défaut), « v2 » (les images refaites
-d'après la revue du 2026-11-08 ; candidats dans les dossiers <nom>@v2), « v3 » (la mine de soufre).
+d'après la revue du 2026-11-08 ; candidats dans les dossiers <nom>@v2), « v3 » (la mine de soufre),
+« villes » (les villes de 5 × 4 cases, tools/art/villes.py).
 
 Sur la page : un clic sur un candidat le choisit, « Garder » ou « À refaire » donne l'avis, et chaque image a sa zone de
 commentaire. Les réponses restent dans le navigateur (on peut fermer la page et revenir) ; « Télécharger » les écrit dans
@@ -65,6 +66,9 @@ CAPTURES = [("jeu-32-revele.png", "Carte révélée, zoom ×2"), ("jeu-32-depart
 LOTS = {
     "32px": {"titre": "Carte en 32 px : tes choix", "groupes": GROUPES_32PX, "captures": CAPTURES},
     "v2": {"titre": "Images refaites (2026-11-08) : tes choix", "groupes": GROUPES_V2, "captures": CAPTURES},
+    "villes": {"titre": "Villes sur 5 × 4 cases (2026-11-08) : ton choix", "captures": [],
+               "groupes": [("Villes (160 × 128, assemblées de pièces : tools/art/villes.py)",
+                            ["objects/town", "objects/town-morts-vivants"])]},
     "v3": {"titre": "Mine de soufre (2026-11-08) : ton choix", "captures": [],
            "groupes": [("Mine de soufre (entrée plus grande, tas de soufre)", ["objects/mine-sulfur"])]},
 }

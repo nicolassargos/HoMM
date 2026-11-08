@@ -102,22 +102,27 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Château** (humains) | équilibré, le plus charismatique ; classe Paladin | Ange → Archange | cristal | gemmes | jouable |
 | **Morts-vivants** | magie | Colosse d'os → Colosse funèbre | mercure | gemmes | jouable |
 | **Barbares** | force, peu de magie | Béhémoth → Béhémoth ancien | soufre | cristal | **la prochaine** |
-| **Forêt** | équilibrée, tireurs, magie de la nature | Dragon vert → Dragon d'or | gemmes | cristal | à faire |
+| **Forêt** | équilibrée, tireurs, magie de la nature | Troll → Troll ancien | gemmes | cristal | à faire |
 | **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | à faire |
-| **Démons** | agressifs, magie du feu | Diable → Archidiable | mercure | soufre | à faire |
+| **Enfer** | agressifs, magie du feu | Démon → Archidémon | mercure | soufre | à faire |
 | **Donjon** | souterrain | Tyran œil → Tyran ancien | soufre | mercure | à faire |
 | **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
 
 - Le **Colosse d'os** reste au niveau 7 des morts-vivants, rendu aussi fort que l'Ange (il est plus faible : à revoir) ;
   le Colosse funèbre a plus de vie et son balayage effraie (les ennemis touchés ne ripostent plus).
-- Les **Barbares** : nos créatures neutres actuelles (Gobelin, Loup, Orc, Ogre, Troll) en forment l'essentiel, plus une
-  créature au niveau 6 et le Béhémoth (ses griffes ignorent une part de la défense ennemie). Leurs prix et
+- Les **Barbares** : nos créatures neutres actuelles (Gobelin, Loup, Orc, Ogre) en forment l'essentiel, plus deux
+  créatures aux niveaux 5 et 6 et le Béhémoth (ses griffes ignorent une part de la défense ennemie).
+- La **Forêt** : le **Troll** (l'image de combat existe) au niveau 7, rendu aussi fort que l'Ange (c'est aujourd'hui un
+  neutre du niveau 5) : un troll géant qui se régénère ; le Troll ancien se régénère plus, et ses coups repoussent
+  l'ennemi (il ne riposte plus).
+- L'**Enfer** : le **Démon** au niveau 7 ; l'Archidémon se téléporte n'importe où sur le champ de bataille et met le
+  feu aux cases autour de lui. Leurs prix et
   caractéristiques sont à remettre à l'échelle du Château (un Squelette coûte 60 or, un Archer de même force 18).
 - Le **Tyran œil** : un œil géant qui tire des rayons, chacun un sort néfaste au hasard. La **Machine de guerre** :
   une machine à vapeur avec un canon (un tireur dont le coup touche une zone).
 - La **faction neutre** garde les monstres de la carte seulement : le **Dragon rouge** (et d'autres au fil du temps).
-- Les **héros** : ceux de la « faction sombre » (`data/heroes.json` : sorciers et démons) sont à répartir entre les
-  Démons et le Donjon ; les Nains n'en ont pas encore.
+- Les **héros** : ceux de la « faction sombre » (`data/heroes.json` : sorciers et démons) sont à répartir entre
+  l'Enfer et le Donjon ; les Nains n'en ont pas encore.
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
 

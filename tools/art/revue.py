@@ -192,6 +192,8 @@ function zoom(z){document.querySelectorAll('img[data-w]').forEach(i=>{i.style.wi
  document.documentElement.style.setProperty('--case',32*z+'px');
  document.querySelectorAll('[data-zoom]').forEach(b=>b.classList.toggle('on',+b.dataset.zoom===z));try{localStorage.setItem(CLE+'-zoom',z)}catch(e){}}
 function majItem(div){const n=div.dataset.nom,it=etat.items[n];
+// un choix déjà installé n'est plus proposé à part : c'est alors l'image installée
+ if(it&&!div.querySelector(`.opt[data-id="${it.choix}"]`))it.choix='installee';
  div.querySelectorAll('.opt').forEach(o=>o.classList.toggle('pris',o.dataset.id===(it?it.choix:'installee')));
  div.classList.remove('garder','refaire','change');
  if(it&&it.avis==='refaire')div.classList.add('refaire');else if(it&&it.choix!=='installee')div.classList.add('change');else if(it&&it.avis==='garder')div.classList.add('garder');
@@ -216,7 +218,7 @@ document.querySelectorAll('[data-filtre]').forEach(b=>b.onclick=()=>{filtre=b.da
 function note(t){const n=document.getElementById('note');n.textContent=t;n.style.display='block';setTimeout(()=>n.style.display='none',2500)}
 function reponses(){const items={};for(const[n,it]of Object.entries(etat.items))if(vu(it))items[n]=it;return{page:'%PAGE%',general:etat.general,items}}
 function texte(){const r=reponses();let s='';for(const[n,it]of Object.entries(r.items)){
- const d=document.querySelector(`.item[data-nom="${n}"]`);const lib=d?d.querySelector(`.opt[data-id="${it.choix}"] span`).textContent:it.choix;
+ const d=document.querySelector(`.item[data-nom="${n}"]`);const o=d&&d.querySelector(`.opt[data-id="${it.choix}"] span`);const lib=o?o.textContent:it.choix;
  s+=`${n} : ${it.avis==='refaire'?'à refaire':it.choix!=='installee'?'changer pour '+lib:it.avis==='garder'?'garder':'—'}${it.commentaire?' — '+it.commentaire:''}\n`}
  return (r.general?'Général : '+r.general+'\n':'')+s}
 document.getElementById('copier').onclick=async()=>{try{await navigator.clipboard.writeText(texte()+'\n'+JSON.stringify(reponses()));note('Réponses copiées : colle-les dans la conversation')}catch(e){note('Copie impossible : utilise Télécharger')}};

@@ -248,13 +248,14 @@ def page():
                 "<p class=aide>Pour chaque image : clique un candidat pour le choisir (cadre doré ; ★ = l'image actuelle du jeu), "
                 "ou « Garder » / « À refaire », et écris un commentaire si tu veux. Tes réponses restent dans ce navigateur. "
                 "Quand « ✓ enregistré sur le disque » s'affiche en haut, chaque réponse est déjà écrite pour Claude : à la fin, dis-lui simplement « c'est fait ». Sinon : <b>Télécharger</b>.</p>"
-                "<textarea id=general placeholder='Commentaire général (style, couleurs, ce qui manque…)'></textarea>"
-                "<h2>Dans le jeu</h2><div class=captures>"]
-    for f, legende in LOTS[LOT]["captures"]:
-        if os.path.exists(os.path.join(EN_COURS, f)):
+                "<textarea id=general placeholder='Commentaire général (style, couleurs, ce qui manque…)'></textarea>"]
+    captures = [(f, legende) for f, legende in LOTS[LOT]["captures"] if os.path.exists(os.path.join(EN_COURS, f))]
+    if captures:
+        morceaux.append("<h2>Dans le jeu</h2><div class=captures>")
+        for f, legende in captures:
             v = int(os.path.getmtime(os.path.join(EN_COURS, f)))
             morceaux.append(f"<figure><img src='{f}?v={v}' alt='{html.escape(legende)}'><figcaption>{html.escape(legende)}</figcaption></figure>")
-    morceaux.append("</div>")
+        morceaux.append("</div>")
     total = 0
     for titre, noms in LOTS[LOT]["groupes"]:
         morceaux.append(f"<h2>{html.escape(titre)}</h2><div class=grille>")

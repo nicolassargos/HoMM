@@ -17,6 +17,7 @@ public sealed partial class GameState
     private int _currentPlayer;
     private readonly GameRandom _rng;
     private readonly List<HeroLevelChoice> _pendingChoices = new();
+    private readonly List<ChestOpened> _pendingChests = new();
     private int _nextPlayerId = 1;
     private int _nextHeroId = 1;
 
@@ -477,6 +478,8 @@ public sealed partial class GameState
             }
             if (obj.RemovedOnVisit)
                 Map.RemoveObject(obj);
+            if (visit is ChestOpened chest)
+                _pendingChests.Add(chest);
             Emit(visit);
             if (obj is Town town)
                 VisitGuild(hero, town);
@@ -682,6 +685,23 @@ public sealed partial class GameState
         return true;
     }
 
+    /// <summary>Les coffres ouverts dont l'or ou l'expérience n'est pas encore choisi (tous joueurs).</summary>
+    public IReadOnlyList<ChestOpened> PendingChests => _pendingChests;
+
+    /// <summary>Le joueur prend l'or du coffre (<paramref name="gold"/>) ou l'expérience. Faux si ce coffre n'attend pas.</summary>
+    public bool ChooseChest(ChestOpened chest, bool gold)
+    {
+        if (!_pendingChests.Remove(chest))
+            return false;
+        int amount = gold ? chest.Chest.Gold : chest.Chest.Experience;
+        Emit(new ChestChosen(chest.Hero, gold, amount));
+        if (gold)
+            chest.Hero.Owner.Resources[ResourceType.Gold] += amount;
+        else
+            GrantExperience(chest.Hero, amount);
+        return true;
+    }
+
     /// <summary>Le niveau que le héros atteindra avec son prochain choix (niveaux en attente compris).</summary>
     private int NextLevelAfterPending(Hero hero) =>
         hero.Level + _pendingChoices.Count(c => c.Hero == hero) + 1;
@@ -694,6 +714,7 @@ public sealed partial class GameState
         hero.Owner.Heroes.Remove(hero);
         _paths.Remove(hero);
         _pendingChoices.RemoveAll(c => c.Hero == hero);
+        _pendingChests.RemoveAll(c => c.Hero == hero);
         if (CurrentHero == hero)
             CurrentHero = hero.Owner.Heroes.FirstOrDefault();
         Emit(new HeroDefeated(hero));

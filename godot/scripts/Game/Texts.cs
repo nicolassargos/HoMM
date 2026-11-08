@@ -228,6 +228,16 @@ public static class Texts
     public static string LevelUp(HeroLeveledUp levelUp) =>
         $"{levelUp.Hero.Name} passe au niveau {levelUp.After.Level} ! +1 {StatName(levelUp.Stat)}, +1 charisme.";
 
+    public const string ChestTitle = "Un coffre au trésor !";
+
+    public static string ChestText(ChestOpened chest) =>
+        $"{chest.Hero.Name} ouvre un coffre plein d'or. Garder l'or pour le royaume, ou le distribuer aux paysans "
+        + "et gagner de l'expérience ?";
+
+    public static string ChestGold(TreasureChest chest) => $"{chest.Gold} or";
+
+    public static string ChestExperience(TreasureChest chest) => $"{chest.Experience} points d'expérience";
+
     /// <summary>Le titre de la fenêtre de choix : « Niveau 2 : choisissez une caractéristique ».</summary>
     public static string LevelChoiceTitle(HeroLevelChoice choice) =>
         $"Niveau {choice.Level} : choisissez une caractéristique";
@@ -574,7 +584,10 @@ public static class Texts
         TownCaptured { PreviousOwner: { } loser } lost when loser == viewer && lost.Hero.Owner != viewer =>
             $"{HeroWithColor(lost.Hero)} vous prend {lost.Town.Name} !",
         ObjectVisited visit when visit.Hero.Owner != viewer => null,
-        ResourcesFound { Object: TreasureChest } found => $"Un coffre au trésor ! +{found.Amount} {Resource(found.Resource)}.",
+        ChestOpened => null, // la fenêtre du choix
+        ChestChosen chosen when chosen.Hero.Owner != viewer => null,
+        ChestChosen { Gold: true } chosen => $"Un coffre au trésor ! +{chosen.Amount} or.",
+        ChestChosen chosen => $"Un coffre au trésor ! {chosen.Hero.Name} gagne {chosen.Amount} points d'expérience.",
         ResourcesFound found => $"Vous trouvez {found.Amount} {Resource(found.Resource)}.",
         MineCaptured captured =>
             $"{MineName(captured.Mine)} capturée ! +{captured.Mine.DailyProduction} {Resource(captured.Mine.Resource)} par jour.",

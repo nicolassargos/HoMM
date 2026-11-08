@@ -36,7 +36,7 @@ public sealed partial class GameState
     private sealed record SaveFile(
         int Version, int Seed, int Day, int CurrentPlayer, int? CurrentHero, GameOutcome Outcome, GameRules Rules,
         ulong Random, int NextPlayerId, int NextHeroId,
-        MapData Map, List<PlayerData> Players, List<HeroData> Heroes, List<ChoiceData> Choices);
+        MapData Map, List<PlayerData> Players, List<HeroData> Heroes, List<ChoiceData> Choices, List<ChestData>? Chests = null);
 
     /// <summary>
     /// Le terrain : une ligne de chiffres par rangée de la carte (le numéro du terrain). Les routes : une ligne
@@ -71,6 +71,9 @@ public sealed partial class GameState
     /// <summary>Un niveau gagné dont la caractéristique n'a pas encore été choisie.</summary>
     private sealed record ChoiceData(int Hero, int Level, List<HeroStat> Options);
 
+    /// <summary>Un coffre ouvert dont le choix (or ou expérience) attend.</summary>
+    private sealed record ChestData(int Hero, Cell Position, int Gold);
+
     // ------------------------------------------------------------- sauvegarde
 
     /// <summary>La partie entière, en JSON (les événements pas encore affichés ne sont pas gardés).</summary>
@@ -91,7 +94,8 @@ public sealed partial class GameState
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
                 Stacks(h.Army), _paths.GetValueOrDefault(h)?.ToList(), h.Artifacts.Count > 0 ? h.Artifacts.Select(a => a.Id).ToList() : null,
                 h.SpellPoints, h.Spells.Count > 0 ? h.Spells.Select(s => s.Id).ToList() : null, h.Class?.Id)).ToList(),
-            _pendingChoices.Select(c => new ChoiceData(c.Hero.Id, c.Level, c.Options.ToList())).ToList());
+            _pendingChoices.Select(c => new ChoiceData(c.Hero.Id, c.Level, c.Options.ToList())).ToList(),
+            _pendingChests.Count > 0 ? _pendingChests.Select(c => new ChestData(c.Hero.Id, c.Chest.Position, c.Chest.Gold)).ToList() : null);
         return JsonSerializer.Serialize(save, SaveOptions);
     }
 
@@ -275,6 +279,13 @@ public sealed partial class GameState
             var choice = new HeroLevelChoice(hero, c.Level, c.Options);
             state._pendingChoices.Add(choice);
             state.Emit(choice);
+        }
+        foreach (var c in save.Chests ?? new List<ChestData>())
+        {
+            var hero = state.HeroById(c.Hero) ?? throw new KeyNotFoundException($"héros inconnu : {c.Hero}");
+            var chest = new ChestOpened(hero, new TreasureChest(c.Position, c.Gold));
+            state._pendingChests.Add(chest);
+            state.Emit(chest);
         }
         return state;
     }

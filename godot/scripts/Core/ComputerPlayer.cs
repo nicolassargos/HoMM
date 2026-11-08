@@ -286,9 +286,14 @@ public static class ComputerPlayer
         return -1;
     }
 
-    /// <summary>Les niveaux gagnés : l'attaque d'abord, puis la défense (des troupes plus fortes).</summary>
+    /// <summary>
+    /// Les coffres : l'or tant que le joueur en manque pour recruter et bâtir (moins de 5000), sinon l'expérience. Puis
+    /// les niveaux gagnés : l'attaque d'abord, puis la défense (des troupes plus fortes).
+    /// </summary>
     private static void ChooseLevels(GameState state)
     {
+        foreach (var chest in state.PendingChests.Where(c => c.Hero.Owner == state.CurrentPlayer).ToList())
+            state.ChooseChest(chest, gold: state.CurrentPlayer.Resources.GetValueOrDefault(ResourceType.Gold) < 5000);
         foreach (var choice in state.PendingChoices.Where(c => c.Hero.Owner == state.CurrentPlayer).ToList())
         {
             var stat = choice.Options.Contains(HeroStat.Attack) ? HeroStat.Attack

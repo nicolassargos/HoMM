@@ -1092,6 +1092,55 @@ public partial class Hud : CanvasLayer
         dialog.PopupCentered(new Vector2I((int)Px(560), 0));
     });
 
+    /// <summary>Un coffre ouvert : deux grands boutons, l'or ou l'expérience (<paramref name="choose"/> reçoit vrai pour l'or).</summary>
+    public void ShowChestChoice(ChestOpened chest, Action<bool> choose) => Enqueue(done =>
+    {
+        var dialog = new GameDialog { Title = Texts.ChestTitle, Exclusive = true, Unresizable = true };
+        dialog.GetOkButton().Hide();
+        bool chosen = false;
+        void Choose(bool gold)
+        {
+            if (chosen)
+                return;
+            chosen = true;
+            choose(gold);
+            dialog.QueueFree();
+            done();
+        }
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", (int)Px(10));
+        var top = new HBoxContainer();
+        top.AddThemeConstantOverride("separation", (int)Px(12));
+        if (Art.Portrait(chest.Hero.Name) is { } portrait)
+            top.AddChild(new TextureRect
+            {
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest, Texture = portrait,
+                CustomMinimumSize = new Vector2(128, 128), // le portrait ×2
+            });
+        var intro = MakeLabel(Texts.ChestText(chest), 15, TextColor);
+        intro.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        intro.CustomMinimumSize = V(340, 0);
+        intro.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        top.AddChild(intro);
+        content.AddChild(top);
+        var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        buttons.AddThemeConstantOverride("separation", (int)Px(10));
+        foreach (var (gold, text) in new[] { (true, Texts.ChestGold(chest.Chest)), (false, Texts.ChestExperience(chest.Chest)) })
+        {
+            var button = MakeButton(text, 16);
+            button.CustomMinimumSize = V(230, 70);
+            bool picked = gold;
+            button.Pressed += () => Choose(picked);
+            buttons.AddChild(button);
+        }
+        content.AddChild(buttons);
+        dialog.AddChild(content);
+        dialog.Canceled += () => Choose(true);
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I((int)Px(500), 0));
+    });
+
     private void Enqueue(Action<Action> open)
     {
         _pendingDialogs.Enqueue(open);

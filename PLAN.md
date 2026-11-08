@@ -399,6 +399,13 @@ croissance, prix, garde.
   de chaque objet, d'après des pieds revus par l'utilisateur (`godot/art/pieds.json`, `tools/art/pieds.py`) ; scierie
   refaite (cabane de trois quarts, PixelLab). Détail dans `HISTORIQUE.md`. Reste : vérifier les pieds des mines de
   mercure, minerai et soufre, et la force de l'ombre de contact en jeu.
+  ✅ **Créatures barbares** (2026-11-09, branche `creatures-barbares`) : Nomades (2 cases), Oiseau-tonnerre (1 case, vol
+  avec envol et atterrissage), Béhémoth (1 case, debout) : images de combat, animations et images de la carte. Détail
+  dans `HISTORIQUE.md`.
+  - plus tard (idée de l'utilisateur, 2026-11-09) : les effets d'attaque comme la **foudre de l'Oiseau-tonnerre** joués à
+    part, sur la case de la cible (`BattleEffects`), et non dans l'animation de l'attaquant : la foudre frappe la cible
+    même si elle n'est pas juste devant lui (un peu plus bas…). Il faudra alors refaire son attaque sans éclair dessiné,
+    et voir avec la session règles où se joue l'éclat jaune de la foudre (`BattleFieldView`).
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles
   (`buildings.json`) ne gardent plus la place des bâtiments ; chaque faction a sa **scène** (`art/towns/<faction>/` :
   un fond de 640 × 195 affiché ×3, et `scene.json` : pour chaque bâtiment, son pied (bas, milieu), sa profondeur et son

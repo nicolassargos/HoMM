@@ -85,6 +85,20 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   « front view, simple, clear silhouette, few details ».
 
 ## Créatures de combat (PixelLab)
+- **Leçons des Barbares (2026-11-09)** :
+  - Un **visage** se perd une fois réduit (dans l'ombre d'un chapeau) : `pixellab.py retoucher` la grande image
+    (« make the face bigger and clearly visible… keep everything else ») puis la réduire de nouveau.
+  - Un **éclat** dessiné par-dessus une main : l'effacer laisse des trous (rien dessous). Combler les petits trous de la
+    couleur des voisins (seulement autour de la main), ou remplacer l'image par sa voisine (`retoucher --copier`).
+    `--eclats` ne touche pas un blanc ou un orange que la créature porte déjà (l'Oiseau-tonnerre) : remplacer l'image.
+  - Un **volant** au repos debout : son vol doit partir d'une **pose en vol** (retouche de la grande image : corps à
+    l'horizontale, serres repliées, ailes levées) avec `animer … --depart=` ; l'envol est un état `transform` (joué avant
+    le déplacement et à l'envers après). Couper les images où la pose est tenue (sinon il « lévite »).
+  - Une **boucle** (galop) : retirer les images du départ et du retour à l'arrêt ; « moveFrames », « move » (images/s) et
+    « stepTime » dans `animations.json` règlent la vitesse (une marche fait un cycle par case par défaut).
+  - Demander un **éclair** dans une attaque : remplacer la fin « no visual effects » (`--sans="no other character, no
+    explosion, no white flash"`). Mieux, plus tard : un effet du jeu sur la case de la cible (voir `PLAN.md`).
+
 - **Échelle commune** : un humain fait environ 46 à 54 px de haut (à peu près une case), le Gobelin environ 28, l'Orc 41,
   le Zombie 44, l'Ogre 58, le Troll 64 (orc < ogre < troll), le Colosse 70 ; le Cavalier et le Dragon, longs, couvrent 2 cases (environ 90 × 80).
 - **Une créature à la fois** : d'abord l'image fixe (qui sert aussi d'icône), puis, une fois acceptée, ses animations

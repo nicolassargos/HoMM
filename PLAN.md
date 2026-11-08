@@ -151,8 +151,10 @@ Décidé avec l'utilisateur (2026-11-08).
 - **La classe Barbare** : attaque 3, défense 2, puissance 0, savoir 1, charisme 10, aucun sort au départ ; armée de
   départ : 25 Gobelins, 8 Loups, 3 Orcs.
 - Le Gobelin, le Loup, l'Orc et l'Ogre deviennent barbares et restent des monstres de la carte (comme les morts-vivants).
-  Mis à l'échelle de prix du Château, ils rapportent bien moins d'expérience : **l'expérience sera redéfinie**
-  (choix de l'utilisateur).
+  Mis à l'échelle de prix du Château, ils rapportent moins d'expérience : ✅ l'expérience reste le prix des créatures
+  tuées (juste aussi pour les créatures magiques, puisque les prix se règlent à prix égal), et chaque niveau en demande
+  moins (2026-11-09, choix de l'utilisateur) : 700 × (n−1) × n / 2 au lieu de 1000. Mesuré : la simulation gagne au
+  niveau 21 environ (20 avant les Barbares ; 300 la menait au niveau 31).
 
 | Niveau | Créature | Rôle | Capacité | Habitation |
 |---|---|---|---|---|
@@ -425,7 +427,8 @@ croissance, prix, garde.
 - Petits détails et équilibrage fin.
 
 ## Repères (choix encore valables)
-- **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à 1000 × (n−1) × n / 2 d'expérience (= l'or des créatures
+- **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à 700 × (n−1) × n / 2 d'expérience (1000 avant les prix barbares, 2026-11-09 : la simulation gagne
+  de nouveau vers le niveau 20) (= l'or des créatures
   tuées) ; chaque niveau : +1 charisme et +1 au choix. Une troupe obéit si nombre × coût de commandement ≤ charisme
   × 10, sinon elle peut se révolter au début d'un combat (≈ 50 % à deux fois la limite), ou pendant
   si elle grossit (Fantômes) ; le héros attaqué aussi (ses révoltés combattent avec l'attaquant). Les garnisons n'ont

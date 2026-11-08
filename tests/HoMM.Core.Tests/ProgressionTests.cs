@@ -54,10 +54,10 @@ public class ProgressionTests
     }
 
     [Fact]
-    public void Il_faut_1000_puis_3000_points_d_experience_pour_les_niveaux_2_et_3()
+    public void Il_faut_700_puis_2100_points_d_experience_pour_les_niveaux_2_et_3()
     {
-        Assert.Equal(1000, Hero.ExperienceForLevel(2));
-        Assert.Equal(3000, Hero.ExperienceForLevel(3));
+        Assert.Equal(700, Hero.ExperienceForLevel(2));
+        Assert.Equal(2100, Hero.ExperienceForLevel(3));
     }
 
     [Fact]

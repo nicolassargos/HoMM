@@ -17,7 +17,7 @@ public class LevelChoiceTests
         var hero = HeroOf(state);
         state.TakeEvents();
 
-        state.GrantExperience(hero, 1000);
+        state.GrantExperience(hero, Hero.ExperienceForLevel(2));
 
         var choice = state.TakeEvents().OfType<HeroLevelChoice>().Single();
         Assert.Equal(2, choice.Level);
@@ -31,7 +31,7 @@ public class LevelChoiceTests
     {
         var state = new GameState(7, TestData.Data);
         var hero = HeroOf(state);
-        state.GrantExperience(hero, 1000);
+        state.GrantExperience(hero, Hero.ExperienceForLevel(2));
         var choice = state.TakeEvents().OfType<HeroLevelChoice>().Single();
         var stat = choice.Options[1];
         int before = hero.Statistics.Charisma;
@@ -50,7 +50,7 @@ public class LevelChoiceTests
     {
         var state = new GameState(7, TestData.Data);
         var hero = HeroOf(state);
-        state.GrantExperience(hero, 1000);
+        state.GrantExperience(hero, Hero.ExperienceForLevel(2));
         var choice = state.TakeEvents().OfType<HeroLevelChoice>().Single();
 
         Assert.True(state.ChooseStat(choice, HeroStat.Power));
@@ -65,7 +65,7 @@ public class LevelChoiceTests
         var state = new GameState(7, TestData.Data);
         var hero = HeroOf(state);
 
-        state.GrantExperience(hero, 6000);
+        state.GrantExperience(hero, Hero.ExperienceForLevel(4));
 
         var levels = state.TakeEvents().OfType<HeroLevelChoice>().Select(c => c.Level);
         Assert.Equal(new[] { 2, 3, 4 }, levels);

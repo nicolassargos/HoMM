@@ -215,7 +215,7 @@ par jour ; tas rares de 3 à 6 ; au départ 2 de chaque ressource rare.
 - **Chaque faction a deux ressources rares** (8 factions pour 4 ressources : chacune sa paire, `classes.json`) : la
   **principale** pour son habitation et sa créature du niveau 7, la **secondaire** pour ses habitations des niveaux 5 et
   6. Château : cristal et gemmes (Portail de gloire 5 cristal, Ange 1 cristal) ; morts-vivants : mercure et gemmes
-  (Charnier 5 mercure, Colosse 1 mercure) ; plus tard les Démons : mercure et soufre. Le Dragon rouge (neutre) : 1 soufre.
+  (Charnier 5 mercure, Colosse 1 mercure) ; plus tard l'Enfer : mercure et soufre. Le Dragon rouge (neutre) : 1 soufre.
 - **La guilde des mages** demande un peu de chaque ressource rare : 1, 2, 3 de chacune pour les niveaux 2, 3, 4.
 - **La carte** : **1,5 mine par zone** (au lieu d'une : la carte paraissait vide), plus une de chaque ressource rare ; au-delà
   d'une de chaque ressource, tour à tour or, rare, bois, or, rare, minerai (`MapGenerator.MinesPerZone`) ; **dans la zone de

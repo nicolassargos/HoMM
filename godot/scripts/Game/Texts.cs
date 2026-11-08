@@ -92,6 +92,11 @@ public static class Texts
         ResourcePile pile => $"Tas de {Resource(pile.Resource)}",
         TreasureChest => "Coffre au trésor",
         Obelisk => "Obélisque",
+        Shrine shrine => $"Autel {OfStat(shrine.Stat)}",
+        SageHut hut => $"Cabane du sage ({hut.Spell.Name})",
+        WeeklyProducer { IsWaterWheel: true } => "Roue à eau",
+        WeeklyProducer producer => $"Moulin ({Resource(producer.Resource)})",
+        ObservationTower => "Tour d'observation",
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
         Town town => town.Name,
@@ -208,6 +213,25 @@ public static class Texts
         : $"Combat contre {Enemy(battle)}";
 
     // ------------------------------------------------------------ héros
+
+    /// <summary>« de l'attaque », « de la défense », « de la puissance », « du savoir ».</summary>
+    public static string OfStat(HeroStat stat) => stat switch
+    {
+        HeroStat.Attack => "de l'attaque",
+        HeroStat.Defense => "de la défense",
+        HeroStat.Power => "de la puissance",
+        _ => "du savoir",
+    };
+
+    /// <summary>Ce que le lieu survolé donne encore : « déjà visité », « vide cette semaine »… (vide s'il donne).</summary>
+    public static string SiteState(MapObject obj, Hero? hero, Player viewer) => obj switch
+    {
+        Shrine shrine when hero != null && shrine.Visitors.Contains(hero.Id) => $" (déjà visité par {hero.Name})",
+        SageHut hut when hero != null && hero.Knows(hut.Spell) => $" ({hero.Name} connaît ce sort)",
+        WeeklyProducer { Stocked: false } => " (vide cette semaine)",
+        ObservationTower tower when tower.Visitors.Contains(viewer.Id) => " (déjà visitée)",
+        _ => "",
+    };
 
     public static string StatName(HeroStat stat) => stat switch
     {
@@ -632,6 +656,13 @@ public static class Texts
             $"Objectif : {Objective(chosen.Rules)}. Le trésor est enfoui {Where(where)} de la carte : les obélisques en dévoilent la carte (touche M).",
         RulesChosen chosen => $"Objectif : {Objective(chosen.Rules)}.",
         GameEnded { Reason: GameEndReason.TreasureFound } => "Le trésor est à vous. Victoire !",
+        ShrineVisited { Gained: true } shrine => $"{shrine.Hero.Name} prie à l'autel {OfStat(shrine.Shrine.Stat)} : +1 {StatName(shrine.Shrine.Stat)}.",
+        ShrineVisited shrine => $"{shrine.Hero.Name} a déjà prié à cet autel.",
+        SageVisited { Learned: true } sage => $"Le sage enseigne {sage.Hut.Spell.Name} à {sage.Hero.Name}.",
+        SageVisited sage => $"{sage.Hero.Name} connaît déjà le sort du sage ({sage.Hut.Spell.Name}).",
+        ProducerVisited { Amount: > 0 } producer => $"{ObjectName(producer.Producer)} : +{producer.Amount} {Resource(producer.Producer.Resource)}.",
+        ProducerVisited producer => $"{ObjectName(producer.Producer)} : rien à prendre avant la semaine prochaine.",
+        TowerVisited tower => $"Du haut de la tour, {tower.Hero.Name} découvre les environs.",
         ObeliskVisited { FirstVisit: true } => "Un obélisque ! Un morceau de la carte au trésor apparaît.",
         ObeliskVisited => "Vous avez déjà lu cet obélisque.",
         NothingDug dug => $"{dug.Hero.Name} creuse… il n'y a rien ici.",

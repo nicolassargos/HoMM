@@ -342,8 +342,12 @@ public sealed partial class GameState
                 town.NewWeek();
         }
         if (newWeek)
+        {
             foreach (var guard in Map.Objects.OfType<MonsterGuard>())
                 guard.GrowWeekly();
+            foreach (var producer in Map.Objects.OfType<WeeklyProducer>())
+                producer.Stocked = true;
+        }
         Emit(new DayStarted(Day, newWeek));
 
         foreach (var player in Players)

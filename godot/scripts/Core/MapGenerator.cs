@@ -69,7 +69,7 @@ public sealed class MapGenerator
 
     /// <summary>Coffres et tas de ressources, pour une carte de 40 × 30 (plus sur une grande carte).</summary>
     public int ChestCount { get; init; } = 6;
-    public int PileCount { get; init; } = 28;
+    public int PileCount { get; init; } = 42; // 28 avant (la carte paraissait vide)
 
     /// <summary>Taille visée d'une zone, en cases : la carte est découpée en autant de zones qu'il en rentre.</summary>
     public const int ZoneWidth = 18;
@@ -970,6 +970,60 @@ public sealed class MapGenerator
         }
 
         PlaceObelisks(free, next);
+        PlaceSites(free.Skip(next).ToList());
+    }
+
+    /// <summary>Autels (un de chaque caractéristique, tour à tour), pour une carte de 40 × 30 (plus sur une grande carte).</summary>
+    public int ShrineCount { get; init; } = 4;
+    public int SageCount { get; init; } = 2;
+    /// <summary>Moulins et roues à eau, tour à tour.</summary>
+    public int ProducerCount { get; init; } = 2;
+    public int TowerCount { get; init; } = 1;
+
+    /// <summary>
+    /// Les lieux à visiter (après tout le reste : sur une petite carte, on pose ce qui rentre) : tours d'observation,
+    /// cabanes du sage, moulins et roues à eau, autels.
+    /// </summary>
+    private void PlaceSites(List<Cell> free)
+    {
+        int next = 0;
+        bool Place(Func<Cell, MapObject> make)
+        {
+            while (next < free.Count)
+            {
+                var cell = free[next++];
+                if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null || cell == _map.Treasure)
+                    continue;
+                var obj = make(cell);
+                _map.AddObject(obj);
+                if (AllObjectsReachable())
+                    return true;
+                _map.RemoveObject(obj);
+            }
+            return false;
+        }
+
+        for (int i = 0; i < Math.Max(1, Scaled(TowerCount)); i++)
+            if (!Place(c => new ObservationTower(c)))
+                return;
+        var spells = _data?.Spells.All.Where(sp => sp.Level <= 2).OrderBy(sp => sp.Id).ToList() ?? new List<SpellType>();
+        if (spells.Count > 0)
+            for (int i = 0; i < Scaled(SageCount); i++)
+            {
+                var spell = spells[_rng.Next(spells.Count)];
+                if (!Place(c => new SageHut(c, spell)))
+                    return;
+            }
+        for (int i = 0; i < Scaled(ProducerCount); i++)
+        {
+            var resource = i % 2 == 0 ? ResourceType.Gold : ResourceInfo.Rare[_rng.Next(ResourceInfo.Rare.Length)];
+            if (!Place(c => new WeeklyProducer(c, resource)))
+                return;
+        }
+        var stats = Enum.GetValues<HeroStat>();
+        for (int i = 0; i < Scaled(ShrineCount); i++)
+            if (!Place(c => new Shrine(c, stats[i % stats.Length])))
+                return;
     }
 
     /// <summary>Nombre d'obélisques : autant de morceaux de la carte au trésor.</summary>

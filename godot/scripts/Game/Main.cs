@@ -230,6 +230,9 @@ public partial class Main : Node2D
         // Développement : « --center=treasure » centre la vue sur le trésor (pour une capture d'écran)
         if (OS.GetCmdlineUserArgs().Contains("--center=treasure") && _state.Map.Treasure is { } hidden)
             _camera.CenterOn(hidden);
+        // « --center=sites » : la vue sur la tour d'observation (les lieux de la carte, pour une capture)
+        if (OS.GetCmdlineUserArgs().Contains("--center=sites") && _state.Map.Objects.OfType<ObservationTower>().FirstOrDefault() is { } tower)
+            _camera.CenterOn(tower.Position);
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
             _camera.CenterOn(firstObelisk.Position);
         // « --turns=5 » : joue 5 jours dès le lancement (adversaires compris), pour voir où ils en sont

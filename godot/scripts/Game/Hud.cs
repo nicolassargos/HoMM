@@ -606,7 +606,7 @@ public partial class Hud : CanvasLayer
             Town town => Join($"{town.Name} ({(town.Owner != null ? Texts.EnemyOwned : Texts.Neutral)})",
                 town.Garrison.IsEmpty ? "" : Texts.GarrisonOf(Prediction(town.Garrison))),
             null => null,
-            _ => Texts.ObjectName(obj),
+            _ => Texts.ObjectName(obj) + Texts.SiteState(obj, ShownHero, Viewer),
         };
         if (obj is not MonsterGuard && _state.Map.IsGuarded(cell))
             second = Join(second ?? "", Texts.Guarded);

@@ -154,7 +154,7 @@ public partial class KingdomScreen : ScreenWindow
         {
             var tile = Tile(V(120, 148), false, Texts.TownDetails(town), () => TownChosen?.Invoke(town), null);
             if (Art.Town(town.Faction) is { } image)
-                tile.AddChild(Picture(image, new Vector2(18, 9), new Vector2(144, 144))); // l'image de 72 pixels, ×2
+                tile.AddChild(Picture(image, new Vector2(12, 6), new Vector2(96, 96))); // l'image de 96 pixels, ×1
             var name = At(MakeLabel(town.Name, 13, TextColor), 2, 104);
             name.Size = V(116, 18);
             name.HorizontalAlignment = HorizontalAlignment.Center;

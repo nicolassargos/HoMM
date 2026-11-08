@@ -60,6 +60,14 @@ public partial class SmoothGround : ColorRect
         return ImageTexture.CreateFromImage(plain);
     }
 
+    /// <summary>Les réglages du shader qui sont des longueurs (en pixels d'art), tels qu'ils ont été choisis pour des cases de 24.</summary>
+    private static readonly (string Name, float Value)[] LengthsAt24 =
+    {
+        ("edge_bias", 2.0f), ("edge_wave", 5.5f), ("wave_scale", 13.0f), ("blend", 3.5f), ("grain_scale", 3.0f),
+        ("variant_scale", 30.0f), ("road_width", 4.5f), ("road_wave", 1.5f), ("road_wave_scale", 7.0f),
+        ("road_blend", 1.0f), ("shade_scale", 70.0f),
+    };
+
     /// <summary>
     /// Le sol de la carte, ou null s'il manque le shader ou les images des terrains
     /// (le sol est alors dessiné case par case, sans bords).
@@ -126,6 +134,12 @@ public partial class SmoothGround : ColorRect
             ranks[(int)terrain] = Rank(terrain);
         material.SetShaderParameter("priority", ranks);
         material.SetShaderParameter("water", (int)TerrainType.Water);
+        // la taille d'une case en pixels d'art (celle des images des terrains) ; les longueurs du shader, réglées pour des
+        // cases de 24, gardent les mêmes proportions
+        material.SetShaderParameter("ART", (float)size.X);
+        float k = size.X / 24f;
+        foreach (var (name, value) in LengthsAt24)
+            material.SetShaderParameter(name, value * k);
         ApplyDevelopmentSettings(material);
 
         return new SmoothGround

@@ -98,7 +98,8 @@ public partial class ArmySlots : HBoxContainer
             slot.AddChild(image);
         else if (Compact)
         {
-            // toute la largeur de l'emplacement : la petite image y tient ×2 (48 pixels), pas seulement ×1
+            // toute la largeur de l'emplacement : la petite image entière, ×1 avec les images de 32 (choix de l'utilisateur,
+            // 2026-11-08 : plutôt que ×2 coupée)
             var full = new Rect2(0, Px(1), SlotSize.X, SlotSize.Y - textHeight - Px(1));
             if (SmallCreatureArt(stack.Type, full.Size) is { } art)
                 slot.AddChild(Picture(art.Texture, full.Position + ((full.Size - art.Size) / 2).Floor(), art.Size));

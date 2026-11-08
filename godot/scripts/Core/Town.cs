@@ -35,13 +35,28 @@ public sealed class Town : MapObject
     public override bool RemovedOnVisit => false;
 
     /// <summary>
-    /// La ville occupe 3×3 cases. <see cref="MapObject.Position"/> est l'entrée, au milieu
-    /// de la rangée du bas : le héros y entre par la case juste en dessous.
+    /// La ville occupe 5 × 4 cases, comme dans Heroes 2 (choix de l'utilisateur, 2026-11-08 ; 3 × 3 avant).
+    /// <see cref="MapObject.Position"/> est l'entrée, au milieu de la rangée du bas : le héros y entre par la case juste en
+    /// dessous. Les villes des sauvegardes d'avant (version 3) gardent 3 × 3 cases (<see cref="Large"/> faux).
     /// </summary>
-    public override IEnumerable<Cell> Footprint => FootprintAt(Position);
+    public override IEnumerable<Cell> Footprint => Large ? FootprintAt(Position) : SmallFootprintAt(Position);
 
-    /// <summary>Les 9 cases d'une ville dont l'entrée serait en <paramref name="entrance"/>.</summary>
+    /// <summary>Une ville sur 5 × 4 cases (sinon 3 × 3, celle des anciennes sauvegardes).</summary>
+    public bool Large { get; init; } = true;
+
+    /// <summary>Largeur et hauteur d'une ville, en cases.</summary>
+    public const int Width = 5, Height = 4;
+
+    /// <summary>Les 20 cases d'une ville dont l'entrée serait en <paramref name="entrance"/>.</summary>
     public static IEnumerable<Cell> FootprintAt(Cell entrance)
+    {
+        for (int dy = 1 - Height; dy <= 0; dy++)
+        for (int dx = -Width / 2; dx <= Width / 2; dx++)
+            yield return entrance.Offset(dx, dy);
+    }
+
+    /// <summary>Les 9 cases d'une ville d'une ancienne sauvegarde (3 × 3).</summary>
+    private static IEnumerable<Cell> SmallFootprintAt(Cell entrance)
     {
         for (int dy = -2; dy <= 0; dy++)
         for (int dx = -1; dx <= 1; dx++)

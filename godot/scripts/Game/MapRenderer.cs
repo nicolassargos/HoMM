@@ -197,12 +197,13 @@ public static class MapRenderer
         var c = o + V(T / 2f, T / 2f);
         if (ObjectImage(obj) is { } image)
         {
-            // Une ville occupe 3×3 cases, une mine 3×2 : l'entrée (o) est au milieu de la rangée du bas ; l'image couvre
-            // cette surface, quelle que soit la taille des cases. Une ancienne image carrée de mine (une case) reste dessinée
+            // Une ville occupe 5×4 cases (3×3 dans les anciennes sauvegardes), une mine 3×2 : l'entrée (o) est au milieu de la
+            // rangée du bas ; l'image couvre cette surface, quelle que soit la taille des cases. Une ancienne image carrée de mine (une case) reste dessinée
             // sur l'entrée, en attendant les images de 3×2.
             bool wideImage = image.GetWidth() > image.GetHeight();
             var area = obj switch
             {
+                Town { Large: true } => new Rect2(o + V(-2 * T, -3 * T), 5 * T, 4 * T),
                 Town => new Rect2(o + V(-T, -2 * T), 3 * T, 3 * T),
                 Mine { Large: true } when wideImage => new Rect2(o + V(-T, -T), 3 * T, 2 * T),
                 _ => new Rect2(o, T, T),
@@ -212,7 +213,7 @@ public static class MapRenderer
             if (obj is Mine mine)
                 DrawFlag(ci, area.Position + new Vector2(0.3f * T, 0.45f * T), ColorOf(mine.Owner), 0);
             else if (obj is Town town)
-                DrawFlag(ci, area.Position + V(1.5f * T, 4), ColorOf(town.Owner), time);
+                DrawFlag(ci, area.Position + V(area.Size.X / 2, 4), ColorOf(town.Owner), time);
             return;
         }
         switch (obj)
@@ -260,7 +261,7 @@ public static class MapRenderer
                 break;
 
             case Town town:
-                // La ville couvre 3×3 cases : l'entrée (o) est au milieu de la rangée du bas
+                // sans image : un château de 3×3 cases, posé en bas de la ville, sur l'entrée (o, au milieu de la rangée du bas)
                 DrawTown(ci, town, o + V(T / 2f, -T / 2f), time);
                 break;
         }

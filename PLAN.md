@@ -92,19 +92,34 @@ cet ordre :
    (lueur, aura tant qu'un sort dure…). Puis le reste au fil des idées (sons…).
 
 ### Les factions (en cours de conception)
-Décidé avec l'utilisateur (2026-11-06) : **6 factions + 1 faction neutre** :
-- le **Château** (humains, équilibré ; classe Paladin) ; au Château, l'Épéiste deviendra un **Chevalier** ;
-- les **morts-vivants** (magie ; conçus en premier, ci-dessous) ;
-- les **Barbares** (force, peu de magie) : **nos créatures neutres actuelles** (Gobelin, Orc, Loup, Ogre, Troll) en
-  forment l'essentiel, avec une ou deux créatures de plus au sommet ;
-- la **Forêt** (équilibrée, tireurs, magie de la nature) ;
-- la **Tour de magie** (la faction de la magie) ;
-- une faction **sombre** : Donjon ou Démons (à trancher, ou un mélange), conçue en dernier.
-La **faction neutre** garde les monstres de la carte seulement (le Dragon rouge, et d'autres au fil du temps). Les prix
-et les caractéristiques des créatures neutres actuelles sont à remettre à l'échelle du Château (un Squelette coûte 60
-or, un Archer de même force 18) quand elles rejoignent une faction. L'IA devra apprendre les nouvelles factions.
-**Plus tard : les créatures améliorées** (comme Heroes 3 : un bâtiment améliore une créature en une version plus
-forte) ; la **Banshee** sera le Fantôme amélioré.
+Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouables + 1 faction neutre**. Chacune a sa
+créature du niveau 7 et, plus tard, sa **version améliorée** (comme Heroes 3 : un bâtiment améliore une créature) ; ses
+deux ressources rares (la **principale** pour l'habitation et la créature du niveau 7, la **secondaire** pour les
+niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondaire pour deux autres).
+
+| Faction | Style | Niveau 7 → amélioré | Principale | Secondaire | État |
+|---|---|---|---|---|---|
+| **Château** (humains) | équilibré, le plus charismatique ; classe Paladin | Ange → Archange | cristal | gemmes | jouable |
+| **Morts-vivants** | magie | Colosse d'os → Colosse funèbre | mercure | gemmes | jouable |
+| **Barbares** | force, peu de magie | Béhémoth → Béhémoth ancien | soufre | cristal | **la prochaine** |
+| **Forêt** | équilibrée, tireurs, magie de la nature | Dragon vert → Dragon d'or | gemmes | cristal | à faire |
+| **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | à faire |
+| **Démons** | agressifs, magie du feu | Diable → Archidiable | mercure | soufre | à faire |
+| **Donjon** | souterrain | Tyran œil → Tyran ancien | soufre | mercure | à faire |
+| **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
+
+- Le **Colosse d'os** reste au niveau 7 des morts-vivants, rendu aussi fort que l'Ange (il est plus faible : à revoir) ;
+  le Colosse funèbre a plus de vie et son balayage effraie (les ennemis touchés ne ripostent plus).
+- Les **Barbares** : nos créatures neutres actuelles (Gobelin, Loup, Orc, Ogre, Troll) en forment l'essentiel, plus une
+  créature au niveau 6 et le Béhémoth (ses griffes ignorent une part de la défense ennemie). Leurs prix et
+  caractéristiques sont à remettre à l'échelle du Château (un Squelette coûte 60 or, un Archer de même force 18).
+- Le **Tyran œil** : un œil géant qui tire des rayons, chacun un sort néfaste au hasard. La **Machine de guerre** :
+  une machine à vapeur avec un canon (un tireur dont le coup touche une zone).
+- La **faction neutre** garde les monstres de la carte seulement : le **Dragon rouge** (et d'autres au fil du temps).
+- Les **héros** : ceux de la « faction sombre » (`data/heroes.json` : sorciers et démons) sont à répartir entre les
+  Démons et le Donjon ; les Nains n'en ont pas encore.
+- L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
+  Fantôme amélioré.
 
 #### Les morts-vivants (en cours)
 | Niveau | Créature | Rôle | Capacité (proposition) |

@@ -174,6 +174,51 @@ public class MesuresTests(ITestOutputHelper output)
         }
     }
 
+    /// <summary>
+    /// Les créatures d'un même niveau, de factions différentes, l'une contre l'autre pour le même prix en or (environ
+    /// 3000 or chacune, au moins 3 créatures, sans héros), sur 20 combats joués par l'IA, chacune à son tour attaquante : les victoires de la
+    /// première, et ce qui reste au vainqueur. Plus fin que la courbe des paysans pour comparer un niveau.
+    /// </summary>
+    [Mesure]
+    public void Duels_a_prix_egal()
+    {
+        const int gold = 3000;
+        var factions = new[] { "chateau", "morts-vivants", "barbares" };
+        for (int tier = 1; tier <= 7; tier++)
+        {
+            var creatures = factions.Select(f => TestData.Creatures.All.FirstOrDefault(c => c.Faction == f && c.Tier == tier))
+                .OfType<CreatureType>().ToList();
+            for (int i = 0; i < creatures.Count; i++)
+            for (int j = i + 1; j < creatures.Count; j++)
+            {
+                var (a, b) = (creatures[i], creatures[j]);
+                int Count(CreatureType c) => Math.Max(1, (int)Math.Round((double)Math.Max(gold, 3 * c.Cost[ResourceType.Gold]) / c.Cost[ResourceType.Gold]));
+                int winsA = 0;
+                double leftA = 0, leftB = 0;
+                for (int seed = 0; seed < 20; seed++)
+                {
+                    bool aAttacks = seed % 2 == 0;
+                    var armyA = new Army();
+                    armyA.Add(a, Count(a));
+                    var armyB = new Army();
+                    armyB.Add(b, Count(b));
+                    var battle = aAttacks ? new TacticalBattle(armyA, armyB, new GameRandom(seed)) : new TacticalBattle(armyB, armyA, new GameRandom(seed));
+                    BattleAI.PlayOut(battle);
+                    if (armyA.TotalCount > 0 && armyB.TotalCount == 0)
+                    {
+                        winsA++;
+                        leftA += armyA.TotalCount / (double)Count(a);
+                    }
+                    else if (armyB.TotalCount > 0)
+                        leftB += armyB.TotalCount / (double)Count(b);
+                }
+                int winsB = 20 - winsA;
+                output.WriteLine($"{tier}. {Count(a)} {a.Plural} contre {Count(b)} {b.Plural} : {winsA}/20 (reste {(winsA == 0 ? 0 : 100 * leftA / winsA):0} %)"
+                                 + $" contre {winsB}/20 (reste {(winsB == 0 ? 0 : 100 * leftB / winsB):0} %)");
+            }
+        }
+    }
+
     private static IEnumerable<string> Curve(string faction)
     {
         var line = new List<string>();

@@ -132,7 +132,12 @@ Décidé avec l'utilisateur (2026-11-08).
 - **Philosophie : la horde.** La force brute, le nombre et la vitesse : ils frappent les premiers et fort, et méprisent
   la magie.
 - **Forces** : des troupes bon marché qui grandissent vite (la faction la plus forte des premières semaines) ; beaucoup
-  d'attaque et de dégâts, des créatures rapides ; le héros qui a le plus d'attaque.
+  d'attaque et de dégâts, des créatures rapides ; le héros qui a le plus d'attaque. **La horde** (choix de
+  l'utilisateur) : aux niveaux 1 à 4, des créatures moins chères, plus nombreuses chaque semaine et plus faibles une à
+  une ; à prix égal, un combat reste égal : leur avantage est d'en avoir plus.
+- **Aux sièges** (quand les combats en ville auront des murs ; idée de l'utilisateur, 2026-11-08) : les troupes barbares
+  peuvent frapper les murs directement, contrairement aux autres factions ; ils prennent ainsi une ville sans attendre
+  leurs Oiseaux-tonnerre, leurs Orcs tirant mal.
 - **Faiblesses** : peu de défense (ils frappent fort mais meurent vite) ; peu de tireurs, à courte portée ; peu de
   magie, par le héros seulement (la guilde des mages est complète) ; moins disciplinés que le Château (charisme 10
   contre 14).
@@ -152,22 +157,36 @@ Décidé avec l'utilisateur (2026-11-08).
 | 4 | Ogre (des neutres) | la brute | coup écrasant : ignore 40 % de la défense (déjà) | Fort des ogres |
 | 5 | **Nomades** (choix de l'utilisateur) | cavaliers rapides | **frappe et repart** : après l'attaque, ils se déplacent avec ce qui leur reste de mouvement (l'ennemi riposte comme d'habitude) ; à mesurer contre les armées lentes | Campement nomade |
 | 6 | **Oiseau-tonnerre** | le volant | vole ; ses coups appellent parfois la foudre (des dégâts en plus) | Nid du tonnerre |
-| 7 | Béhémoth | le géant | ses griffes ignorent 80 % de la défense | Repaire du béhémoth |
+| 7 | Béhémoth | le géant | ses griffes ignorent 60 % de la défense | Repaire du béhémoth |
 
 Habitations : mêmes prix et places que celles du Château, cristal (secondaire) aux niveaux 5 et 6, soufre (principale)
 au niveau 7 et pour le Béhémoth. Découpage comme les morts-vivants :
 1. ✅ Les créatures et leurs capacités (2026-11-08) : `rage` (+2 attaque par coup reçu, +6 au plus), `hit-and-run`
    (`TacticalBattle.RetreatSteps` ; le bouton « Se défendre » devient « Rester » ; l'IA repart vers la case que le moins
-   d'ennemis au corps à corps peuvent atteindre), `lightning` (une chance sur cinq, 15 dégâts par oiseau, sans
-   défense), `rending` (80 %). Prix à l'échelle du Château (Gobelin 9, Loup 25, Orc 38, Ogre 90, Nomade 165,
-   Oiseau-tonnerre 320, Béhémoth 4900 et 1 soufre). Paysans pour en vaincre un : Gobelin 3, Loup 9, Orc 13, Ogre 32,
-   Nomade 56, Oiseau-tonnerre 111, Béhémoth 1643 (comme l'Ange). Les gardiens de la carte se mesurent à une force de
-   référence par niveau (`MapGenerator.GuardReferenceStrength`, celle des anciens neutres). **Frappe et repart n'est pas
-   trop fort** (mesure `Nomades_frappe_et_repart`, armées du même prix, avec et sans la capacité : mêmes victoires, pertes
-   à peu près égales) : chaque attaque prend toujours la riposte. Mesuré : la simulation gagne les petites cartes vers
-   le jour 101 (88 avant ; deux cartes sur six à 158 et 174), les normales 89, les grandes 152 ; un adversaire : Facile
-   14 900, Normal 18 000, Difficile 19 700 en or d'armée. Sans doute l'expérience (les anciens neutres en rapportent
-   quatre fois moins) : à revoir avec l'expérience. Tests : `BarbaresTests`.
+   d'ennemis au corps à corps peuvent atteindre, mais reste à côté d'un tireur pour l'empêcher de tirer), `lightning`
+   (une chance sur cinq, 15 dégâts par oiseau, sans défense), `rending` (60 %). Les gardiens de la carte se mesurent à
+   une force de référence par niveau (`MapGenerator.GuardReferenceStrength`, celle des anciens neutres).
+   Chiffres réglés avec l'utilisateur, par une nouvelle mesure, **`Duels_a_prix_egal`** (chaque créature contre celles
+   du même niveau pour le même prix en or : plus juste que la courbe des paysans, qui ne voit pas la taille des troupes)
+   : chaque créature barbare est au milieu de son niveau (elle bat l'une, perd contre l'autre, ou de peu).
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Gobelin | 2 | 1 | 1-2 | 3 | 5 | 30 | 6 |
+   | Loup | 6 | 4 | 2-4 | 9 | 6 | 18 | 21 |
+   | Orc | 8 | 3 | 2-5 | 15 | 4 | 14 | 32 |
+   | Ogre | 10 | 5 | 4-6 | 30 | 4 | 9 | 76 |
+   | Nomade | 13 | 8 | 10-14 | 45 | 8 | 6 | 165 |
+   | Oiseau-tonnerre | 16 | 10 | 18-24 | 90 | 11 | 4 | 320 |
+   | Béhémoth | 22 | 20 | 80-90 | 1400 | 7 | 2 | 4900 et 1 soufre |
+   **Frappe et repart** (mesure `Nomades_frappe_et_repart`) aide contre les troupes lentes (contre des Vampires du même
+   prix : 15 victoires sur 20 avec, aucune sans) sans rendre les Nomades plus forts que les autres créatures du niveau 5.
+   Mesuré (avec 30 paysans par semaine) : la simulation gagne les petites cartes vers le jour 89, les normales 86, les
+   grandes 152 ; un adversaire : Facile 11 700, Normal 15 400, Difficile 20 600 en or d'armée ; Château 21 900,
+   morts-vivants 15 600. Les anciens neutres rapportent moins d'expérience (prix plus bas) : **l'expérience sera
+   redéfinie**. Tests : `BarbaresTests`.
+   Vu au passage (`Duels_a_prix_egal`, à revoir avec l'utilisateur) : l'Archer perd contre tous les niveaux 2, le
+   Griffon bat largement les niveaux 3, le Vampire écrase le Moine, le Cavalier écrase les niveaux 6, l'Ange écrase le
+   Colosse d'os.
 2. La ville (7 habitations), la classe Barbare et les héros, l'IA, les mesures.
 3. Les images (session images : Nomades, Oiseau-tonnerre, Béhémoth, la ville ; en attendant, des ronds de couleur).
 
@@ -373,7 +392,7 @@ croissance, prix, garde.
   tuées) ; chaque niveau : +1 charisme et +1 au choix. Une troupe obéit si nombre × coût de commandement ≤ charisme
   × 10, sinon elle peut se révolter au début d'un combat (≈ 50 % à deux fois la limite). Les garnisons n'ont pas de limite.
 - **Château** : départ 30 paysans, 15 archers, 4 griffons ; prix 3 or par « paysan équivalent » (Archer 18, Griffon 40,
-  Épéiste 80, Moine 150, Cavalier 300, Ange 4900 et 1 gemme) ; croissance 28, 18, 14, 8, 6, 4, 2 ; paysans pour vaincre
+  Épéiste 80, Moine 150, Cavalier 300, Ange 4900 et 1 gemme) ; croissance 30 (28 avant le 2026-11-08), 18, 14, 8, 6, 4, 2 ; paysans pour vaincre
   une unité : Archer 8, Griffon 13, Épéiste 26, Moine 58, Cavalier 112, Ange 1560 (`UnitCurveTests`).
 - **Économie** : villes 150 / 300 / 600 or par jour, mines d'or 250 ; héros de taverne 2500 or (8 au plus).
 - **Combat** : dégâts tirés au sort puis règle attaque / défense de Heroes 3 ; tir à moitié au-delà de 6 cases ou

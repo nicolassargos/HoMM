@@ -85,7 +85,7 @@ public static class Ability
     /// <summary>Foudre (Oiseau-tonnerre) : son attaque appelle parfois la foudre sur la cible (dégâts sans défense).</summary>
     public const string Lightning = "lightning";
 
-    /// <summary>Griffes : ignore 80 % de la défense de la cible (Béhémoth).</summary>
+    /// <summary>Griffes : ignore 60 % de la défense de la cible (Béhémoth).</summary>
     public const string Rending = "rending";
 
     public static readonly string[] Known =

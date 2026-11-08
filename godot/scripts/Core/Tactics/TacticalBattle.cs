@@ -74,8 +74,8 @@ public sealed partial class TacticalBattle
     /// <summary>Bonus de charge par case parcourue avant l'attaque (+5 %).</summary>
     public const double ChargeBonus = 0.05;
 
-    /// <summary>Part de la défense ignorée par un coup écrasant (40 %) et par les griffes (80 %).</summary>
-    public const double CrushingShare = 0.4, RendingShare = 0.8;
+    /// <summary>Part de la défense ignorée par un coup écrasant (40 %) et par les griffes (60 %).</summary>
+    public const double CrushingShare = 0.4, RendingShare = 0.6;
 
     /// <summary>La rage (Barbares) : attaque gagnée à chaque coup reçu, et au plus dans un combat.</summary>
     public const int RagePerHit = 2, RageMax = 6;

@@ -812,7 +812,7 @@ public static class Texts
         Ability.Rage => "rage (chaque coup reçu donne de l'attaque)",
         Ability.HitAndRun => "frappe et repart",
         Ability.Lightning => "appelle la foudre",
-        Ability.Rending => "griffes (ignorent 80 % de la défense)",
+        Ability.Rending => "griffes (ignorent 60 % de la défense)",
         _ => ability,
     };
 

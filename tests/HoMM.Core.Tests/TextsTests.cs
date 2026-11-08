@@ -111,7 +111,7 @@ public class TextsTests
         var (_, town) = OwnedTown();
         var b = TestData.Data.Buildings;
 
-        Assert.Equal("28 Paysans disponibles (+28 par semaine)", Texts.BuildingEffect(town, b.Get("corps-de-garde")));
+        Assert.Equal("30 Paysans disponibles (+30 par semaine)", Texts.BuildingEffect(town, b.Get("corps-de-garde")));
         Assert.Equal("Produit des Archers (+18 par semaine)", Texts.BuildingEffect(town, b.Get("tour-archers")));
         Assert.Equal("+300 or par jour", Texts.BuildingEffect(town, b.Get("hotel-ville")));
         Assert.Equal("Permet de recruter des héros", Texts.BuildingEffect(town, b.Get("taverne")));

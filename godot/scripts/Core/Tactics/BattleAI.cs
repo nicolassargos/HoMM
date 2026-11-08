@@ -115,10 +115,13 @@ public static class BattleAI
     /// <summary>
     /// Où repart une troupe qui a frappé (<see cref="Ability.HitAndRun"/>) : la case la moins menacée, c'est-à-dire
     /// celle que le moins d'ennemis du corps à corps pourraient atteindre à leur prochain tour (à vol d'oiseau, une
-    /// estimation), puis la plus éloignée des ennemis ; à égalité, rester sur place.
+    /// estimation), puis la plus éloignée des ennemis ; à égalité, rester sur place. À côté d'un tireur ennemi, elle
+    /// reste : tant qu'elle le touche, il ne peut pas tirer.
     /// </summary>
     private static Hex Retreat(TacticalBattle battle, BattleUnit unit, IReadOnlyList<BattleUnit> enemies)
     {
+        if (enemies.Any(e => e.CanShoot && TacticalBattle.Distance(unit, e) == 1))
+            return unit.Position;
         var melee = enemies.Where(e => !e.CanShoot).ToList();
         double Danger(Hex h) => melee.Where(e => unit.HexesAt(h).Min(x => e.Hexes.Min(x.DistanceTo)) <= battle.SpeedOf(e) + 1).Sum(Threat);
         int Nearest(Hex h) => enemies.Count == 0 ? 0 : enemies.Min(e => unit.HexesAt(h).Min(x => e.Hexes.Min(x.DistanceTo)));

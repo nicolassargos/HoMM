@@ -42,6 +42,9 @@ public partial class DecorLayer : Node2D
         var peaks = Peaks;
         var smallPeaks = SmallPeaks;
         const int t = MapRenderer.TileSize;
+        // les placements ont été réglés pour des cases de 48 pixels de la carte : ils suivent la taille des cases
+        const float k = t / 48f;
+        int R(int min, int max, Random rng) => (int)MathF.Round(rng.Next(min, max) * k);
 
         // Chaque image est repérée par son pied (le milieu de son bas), puis tout est trié de haut en bas
         var sprites = new List<(Vector2 Foot, Texture2D Image)>();
@@ -56,17 +59,17 @@ public partial class DecorLayer : Node2D
                     // quatre arbres en carré, un peu décalés, et parfois un cinquième n'importe où
                     for (int row = 0; row < 2; row++)
                     for (int col = 0; col < 2; col++)
-                        sprites.Add((o + new Vector2(12 + col * 24 + rng.Next(-6, 7), 20 + row * 22 + rng.Next(-4, 5)),
+                        sprites.Add((o + new Vector2((12 + col * 24) * k + R(-6, 7, rng), (20 + row * 22) * k + R(-4, 5, rng)),
                             trees[rng.Next(trees.Length)]));
                     if (rng.Next(2) == 0)
-                        sprites.Add((o + new Vector2(rng.Next(6, t - 6), rng.Next(14, t)), trees[rng.Next(trees.Length)]));
+                        sprites.Add((o + new Vector2(R(6, 42, rng), R(14, 48, rng)), trees[rng.Next(trees.Length)]));
                     break;
 
                 case TerrainType.Mountain when peaks.Length > 0:
                     // un sommet derrière, sur un côté, puis le grand devant, qui déborde sur les cases voisines
-                    sprites.Add((o + new Vector2(rng.Next(2) == 0 ? 12 : 36, 26 + rng.Next(-3, 4)),
+                    sprites.Add((o + new Vector2((rng.Next(2) == 0 ? 12 : 36) * k, 26 * k + R(-3, 4, rng)),
                         smallPeaks[rng.Next(smallPeaks.Length)]));
-                    sprites.Add((o + new Vector2(t / 2 + rng.Next(-6, 7), t - 2 + rng.Next(-2, 3)), peaks[rng.Next(peaks.Length)]));
+                    sprites.Add((o + new Vector2(t / 2 + R(-6, 7, rng), t - 2 * k + R(-2, 3, rng)), peaks[rng.Next(peaks.Length)]));
                     break;
             }
         }
@@ -74,7 +77,7 @@ public partial class DecorLayer : Node2D
         sprites.Sort((a, b) => a.Foot.Y != b.Foot.Y ? a.Foot.Y.CompareTo(b.Foot.Y) : a.Foot.X.CompareTo(b.Foot.X));
         foreach (var (foot, image) in sprites)
         {
-            var size = image.GetSize() * 2;
+            var size = image.GetSize() * MapRenderer.ArtScale;
             DrawTextureRect(image, new Rect2(foot - new Vector2(size.X / 2, size.Y), size), false);
         }
     }

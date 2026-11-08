@@ -159,7 +159,7 @@ public partial class Hud : CanvasLayer
 
         y = BuildHeroCard(panel, margin, y, inner) + Px(6);
 
-        // son armée, en 7 emplacements (images ×2)
+        // son armée, en 7 emplacements (petites images ×1)
         panel.AddChild(At(MakeLabel(Texts.ArmyHeader, 12, SoftTextColor), margin / Ui.Scale, y / Ui.Scale));
         y += Px(16);
         // des emplacements de largeur entière (sinon les arrondis débordent du panneau)
@@ -454,7 +454,7 @@ public partial class Hud : CanvasLayer
         {
             var row = Row(false, $"{town.Name} · {Texts.TownIncome(town)} par jour", () => TownClicked?.Invoke(town));
             if (Art.Town(town.Faction) is { } image)
-                row.AddChild(Picture(image, new Vector2(2, 2), new Vector2(64, 64)));
+                row.AddChild(Picture(TownThumbnail(image), new Vector2(2, 2), new Vector2(64, 64)));
             row.AddChild(RowName(town.Name, row.CustomMinimumSize.X));
             var income = MakeLabel(Texts.TownIncome(town), 10, SoftTextColor);
             income.Position = new Vector2(70, RowHeight - Px(18));
@@ -462,6 +462,28 @@ public partial class Hud : CanvasLayer
             _townRows.AddChild(row);
         }
         _townsUp.Visible = _townsDown.Visible = player.Towns.Count > ListRows;
+    }
+
+    private static readonly Dictionary<Texture2D, Texture2D> TownThumbnails = new();
+
+    /// <summary>
+    /// L'image d'une ville dans la liste : 64 × 64 pixels pris dans sa partie dessinée, ×1 (l'image entière, de 96, ne
+    /// tient pas ; la réduire rendrait les pixels inégaux). Centrée et calée en bas : la porte et les remparts restent.
+    /// </summary>
+    private static Texture2D TownThumbnail(Texture2D image)
+    {
+        const float side = 64;
+        if (image.GetWidth() <= side && image.GetHeight() <= side)
+            return image;
+        if (!TownThumbnails.TryGetValue(image, out var thumbnail))
+        {
+            var used = UsedRect(image);
+            float x = Math.Clamp(MathF.Floor(used.GetCenter().X - side / 2), 0, image.GetWidth() - side);
+            float y = Math.Clamp(used.End.Y - side, 0, image.GetHeight() - side);
+            thumbnail = new AtlasTexture { Atlas = image, Region = new Rect2(x, y, side, side) };
+            TownThumbnails[image] = thumbnail;
+        }
+        return thumbnail;
     }
 
     /// <summary>Le nom d'un héros ou d'une ville dans une ligne de liste : sur deux lignes au plus, à côté de l'image.</summary>

@@ -47,7 +47,7 @@ public partial class ActorLayer : Node2D
 
         // Le héros sélectionné a un anneau doré à ses pieds
         if (mine && State.CurrentHero is { } selected)
-            MapRenderer.DrawSelection(this, ToPixels(selected.Position) + half + new Vector2(0, 14), _time);
+            MapRenderer.DrawSelection(this, ToPixels(selected.Position) + half + new Vector2(0, 14 * t / 48f), _time);
         foreach (var hero in State.AllHeroes)
         {
             var at = ShownAt.TryGetValue(hero, out var shown) ? shown : hero.Position;

@@ -53,7 +53,8 @@ uniform float road_edge = 0.15;
 uniform float shade = 0.08;
 uniform float shade_scale = 70.0;
 
-const float ART = 24.0;
+// La taille d'une case en pixels d'art (32 ; réglée par le jeu : MapRenderer.ArtTile)
+uniform float ART = 32.0;
 
 int terrain_at(ivec2 c) {
 	c = clamp(c, ivec2(0), map_cells - ivec2(1));

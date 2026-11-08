@@ -22,12 +22,15 @@ public static class TerrainInfo
     public static int MoveCost(TerrainType terrain) => terrain switch
     {
         TerrainType.Grass => 100,
-        TerrainType.Forest => 150,
         TerrainType.Sand => 150,
         TerrainType.Swamp => 175,
         _ => 0,
     };
 
+    /// <summary>
+    /// L'eau, la montagne et la forêt bloquent le passage : comme dans Heroes 1 à 3, les arbres sont des obstacles qu'on
+    /// contourne (choix de l'utilisateur, 2026-11-08 : traverser une forêt cachait le héros et les objets).
+    /// </summary>
     public static bool IsPassable(TerrainType terrain) =>
-        terrain is not (TerrainType.Water or TerrainType.Mountain);
+        terrain is not (TerrainType.Water or TerrainType.Mountain or TerrainType.Forest);
 }

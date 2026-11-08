@@ -259,7 +259,10 @@ internal static class BalanceSimulation
         map.RemoveObject(best.Target);
         foreach (var obj in map.Objects.Where(o => o is Mine or TreasureChest && IsNear(o.Position, best.Target.Position)).ToList())
         {
-            obj.Visit(hero);
+            if (obj is TreasureChest chest) // la simulation prend l'or du coffre
+                hero.Owner.Resources[ResourceType.Gold] += chest.Gold;
+            else
+                obj.Visit(hero);
             if (obj.RemovedOnVisit)
                 map.RemoveObject(obj);
         }

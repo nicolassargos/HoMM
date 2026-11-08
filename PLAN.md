@@ -241,12 +241,21 @@ par jour ; tas rares de 3 à 6 ; au départ 2 de chaque ressource rare.
 - **À faire (IA)** : sa prévision d'un combat (jouée trois fois) se trompe dans les combats qui tournent vite (Fantômes qui
   grossissent, Loups qui frappent deux fois) : l'IA perd parfois son héros dans un combat jugé gagné.
 
-### La carte (prochaine étape)
-Remarques de l'utilisateur (2026-11-07) : la carte paraît vide. À concevoir ensemble :
-- **Forêts fermées** : traverser une forêt est déroutant (le héros et les objets se cachent derrière les arbres) ; si
-  elles bloquent le passage, il faudra sans doute **moins de montagnes**.
-- **Plus d'objets** : plus de ressources ; des **coffres au choix** (de l'or ou de l'expérience) ; la **cabane du sage**
-  (il enseigne quelque chose) ; d'autres lieux à visiter.
+### La carte ✅ (premier passage)
+Remarques de l'utilisateur (2026-11-07) : la carte paraît vide, traverser une forêt est déroutant. Fait (2026-11-08,
+choix de l'utilisateur) :
+- **Les forêts bloquent le passage** (comme Heroes 1 à 3 : les arbres sont des obstacles qu'on contourne) ; les murs
+  entre zones sont de montagne, de forêt ou d'eau (35 / 35 / 30 %) ; moins de taches de montagne et de forêt.
+- **Les coffres au choix** : 1000, 1500 ou 2000 or, ou 500 de moins en expérience (une fenêtre ; l'IA prend l'or sous
+  5000).
+- **Des lieux** (pour 40 × 30 cases, plus sur une grande carte) : 4 **autels** (+1 attaque, défense, puissance ou savoir,
+  une fois par héros), 2 **cabanes du sage** (un sort des niveaux 1 et 2), une **roue à eau** (500 or par semaine) et un
+  **moulin** (2 d'une ressource rare par semaine), une **tour d'observation** (dévoile 20 cases autour) ; **42 tas** au
+  lieu de 28. Sauvegarde version 5. Images : dessins par formes en attendant la session images (`objects/shrine-attack`,
+  `-defense`, `-power`, `-knowledge`, `sage`, `water-wheel`, `windmill`, `tower`). Tests : `CarteObjetsTests`.
+- Mesuré (`Mesures`) : la simulation gagne toujours (petites cartes jour 88, normales 86, grandes 154) ; un adversaire
+  après six semaines : Facile 17 200, Normal 16 800, Difficile 22 900 en or d'armée.
+- **Plus tard** : des **cavernes** où l'on apprend un talent (avec les classes) ou trouve un artefact.
 
 ### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

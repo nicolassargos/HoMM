@@ -110,6 +110,8 @@ public sealed partial class TacticalBattle
     private readonly Dictionary<BattleUnit, int> _startCounts = new();
     private readonly List<CreatureStack> _fleeLosses = new();
     private readonly List<CreatureStack> _rebelsBefore;
+    private readonly List<CreatureStack> _defenderRebelsBefore;
+    private readonly Army? _defenderRebels;
     private readonly Army _attacker;
     private readonly Army _defender;
     private readonly Army? _rebels;
@@ -121,15 +123,23 @@ public sealed partial class TacticalBattle
     /// </summary>
     /// <param name="defenderHero">Le héros qui se défend (combat entre héros, étape 8) : son attaque et sa défense
     /// s'ajoutent à celles de ses troupes, comme pour l'attaquant.</param>
-    public TacticalBattle(Army attacker, Army defender, GameRandom rng, Hero? hero = null, Army? rebels = null, Hero? defenderHero = null)
+    /// <param name="defenderRebels">Les troupes révoltées du héros qui se défend : elles combattent avec l'attaquant, sans
+    /// bonus de héros. Elles ne sauvent pas l'attaquant : il a perdu quand ses propres troupes sont toutes tombées.</param>
+    public TacticalBattle(Army attacker, Army defender, GameRandom rng, Hero? hero = null, Army? rebels = null, Hero? defenderHero = null,
+        Army? defenderRebels = null)
     {
         _rng = rng;
         _attacker = attacker;
         _defender = defender;
         _rebels = rebels;
         _rebelsBefore = rebels?.Stacks.Where(s => s.Count > 0).Select(s => new CreatureStack(s.Type, s.Count)).ToList() ?? new();
+        _defenderRebels = defenderRebels;
+        _defenderRebelsBefore = defenderRebels?.Stacks.Where(s => s.Count > 0).Select(s => new CreatureStack(s.Type, s.Count)).ToList() ?? new();
 
-        Place(attacker.Stacks, BattleSide.Attacker, 0, hero?.Attack ?? 0, hero?.Defense ?? 0, isRebel: false);
+        var attackers = attacker.Stacks.Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: false))
+            .Concat((defenderRebels?.Stacks ?? new List<CreatureStack>()).Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: true)))
+            .ToList();
+        PlaceColumn(attackers, BattleSide.Attacker, 0, hero?.Attack ?? 0, hero?.Defense ?? 0);
         var defenders = defender.Stacks.Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: false))
             .Concat((rebels?.Stacks ?? new List<CreatureStack>()).Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: true)))
             .ToList();
@@ -326,8 +336,8 @@ public sealed partial class TacticalBattle
             return true;
         if (!Alive(BattleSide.Defender).Any())
             End(BattleOutcome.AttackerWon);
-        else if (!Alive(BattleSide.Attacker).Any())
-            End(BattleOutcome.DefenderWon);
+        else if (!Alive(BattleSide.Attacker).Any(u => !u.IsRebel))
+            End(BattleOutcome.DefenderWon); // les révoltés du défenseur ne gagnent pas pour l'attaquant
         return IsOver;
     }
 
@@ -676,12 +686,16 @@ public sealed partial class TacticalBattle
             DefenderLosses = Losses(BattleSide.Defender),
             Rounds = Round,
             Rebels = _rebelsBefore,
+            DefenderRebels = _defenderRebelsBefore,
             AttackerSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Attacker],
             DefenderSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Defender],
         };
         _attacker.RemoveEmpty();
         _defender.RemoveEmpty();
         _rebels?.RemoveEmpty();
+        _defenderRebels?.RemoveEmpty();
+        report.DefenderRebelSurvivors.AddRange(_defenderRebels?.Stacks.Where(s => s.Count > 0).Select(s => new CreatureStack(s.Type, s.Count))
+                                               ?? Enumerable.Empty<CreatureStack>());
         report.RebelSurvivors.AddRange(_rebels?.Stacks.Where(s => s.Count > 0).Select(s => new CreatureStack(s.Type, s.Count))
                                        ?? Enumerable.Empty<CreatureStack>());
         return report;

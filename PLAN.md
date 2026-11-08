@@ -110,6 +110,9 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Donjon** | souterrain | Tyran œil → Tyran ancien | soufre | mercure | à faire |
 | **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
 
+- **L'Ange ressuscite** (idée de l'utilisateur, 2026-11-08, à faire) : à la place de son action, il ramène des créatures
+  amies tuées dans ce combat (pas les morts-vivants). Puissant, mais il y passe tout son tour. À régler : combien de
+  points de vie par Ange, une fois par combat ou non ; puis refaire la mesure `Duels_a_prix_egal`.
 - Le **Colosse d'os** reste au niveau 7 des morts-vivants, rendu aussi fort que l'Ange (il est plus faible : à revoir) ;
   le Colosse funèbre a plus de vie et son balayage effraie (les ennemis touchés ne ripostent plus).
 - Les **Barbares** : voir plus bas.
@@ -364,6 +367,9 @@ croissance, prix, garde.
 - ✅ **Des cases de 32 pixels d'art** (au lieu de 24 ; décision de l'utilisateur, 2026-11-08) : cases de 64 pixels à
   l'écran (×2), zooms ×2 et ×3 ; chaque image de la carte à ×2 exactement, posée en bas et centrée (`MapRenderer.DrawArt`) ;
   les images de 32 pixels viennent de la session images (`graphismes-suite-4`).
+- **Des icônes plutôt que du texte sur la plupart des boutons**, pour gagner de la place (demandé par l'utilisateur,
+  2026-11-08 ; le nom dans l'info-bulle).
+- **Les barres de défilement** : la poignée comme taillée dans la pierre (demandé par l'utilisateur, 2026-11-08).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la
   date. (Icônes des ressources : faites, 2026-11-07.)
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et

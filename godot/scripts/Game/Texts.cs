@@ -209,9 +209,17 @@ public static class Texts
             ? $"Expérience : +{Battle.ExperienceFor(battle.Report.AttackerLosses)}" : "";
 
     /// <summary>« Révolte : 40 Paysans refusent d'obéir… », ou null s'il n'y a pas eu de révolte.</summary>
-    public static string? Revolt(BattleReport report) => report.Rebels.Count == 0 ? null
-        : $"Révolte : {string.Join(", ", report.Rebels.Select(Stack))} refusent d'obéir et combattent l'ennemi"
-          + (report.RebelSurvivors.Count > 0 ? ", les survivants quittent l'armée." : ".");
+    public static string? Revolt(BattleReport report)
+    {
+        var lines = new List<string>();
+        if (report.Rebels.Count > 0)
+            lines.Add($"Révolte : {string.Join(", ", report.Rebels.Select(Stack))} refusent d'obéir et combattent l'ennemi"
+                      + (report.RebelSurvivors.Count > 0 ? ", les survivants quittent l'armée." : "."));
+        if (report.DefenderRebels.Count > 0)
+            lines.Add($"Révolte chez le défenseur : {string.Join(", ", report.DefenderRebels.Select(Stack))} refusent d'obéir et combattent avec l'attaquant"
+                      + (report.DefenderRebelSurvivors.Count > 0 ? ", les survivants quittent son armée." : "."));
+        return lines.Count == 0 ? null : string.Join(" ", lines);
+    }
 
     public static string BattleTitle(BattleFought battle) => battle.Defender is Town town
         ? $"Assaut de {town.Name}"

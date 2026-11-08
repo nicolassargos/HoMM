@@ -57,12 +57,18 @@ public class TownTests
     }
 
     [Fact]
-    public void La_ville_occupe_3x3_cases_et_ne_s_ouvre_que_par_son_entree()
+    public void La_ville_occupe_5x4_cases_et_ne_s_ouvre_que_par_son_entree()
     {
         var (state, town) = GameWithTownNearby();
         var map = state.Map;
 
-        Assert.Equal(9, town.Footprint.Count());
+        // 5 cases de large, 4 de haut, l'entrée au milieu de la rangée du bas
+        Assert.True(town.Large);
+        Assert.Equal(20, town.Footprint.Count());
+        Assert.Equal(town.Position.X - 2, town.Footprint.Min(c => c.X));
+        Assert.Equal(town.Position.X + 2, town.Footprint.Max(c => c.X));
+        Assert.Equal(town.Position.Y - 3, town.Footprint.Min(c => c.Y));
+        Assert.Equal(town.Position.Y, town.Footprint.Max(c => c.Y));
         foreach (var cell in town.Footprint)
         {
             Assert.Same(town, map.OccupantAt(cell));
@@ -76,10 +82,28 @@ public class TownTests
     }
 
     [Fact]
+    public void Les_villes_d_une_ancienne_sauvegarde_gardent_3x3_cases()
+    {
+        var (state, _) = GameWithTownNearby();
+        // une sauvegarde d'avant (version 3) : ses villes gardent 3 × 3 cases
+        var json = state.Save().Replace($"\"version\":{GameState.SaveVersion}", "\"version\":3");
+        Assert.Contains("\"version\":3", json);
+        var towns = GameState.Load(json, TestData.Data).Map.Objects.OfType<Town>().ToList();
+        Assert.NotEmpty(towns);
+        Assert.All(towns, t => Assert.False(t.Large));
+        Assert.All(towns, t => Assert.Equal(9, t.Footprint.Count()));
+        // sauvegardées de nouveau (version d'aujourd'hui), elles gardent toujours 3 × 3 cases
+        var again = GameState.Load(json, TestData.Data);
+        Assert.All(GameState.Load(again.Save(), TestData.Data).Map.Objects.OfType<Town>(), t => Assert.False(t.Large));
+        // la sauvegarde d'aujourd'hui les garde sur 5 × 4
+        Assert.All(GameState.Load(state.Save(), TestData.Data).Map.Objects.OfType<Town>(), t => Assert.True(t.Large));
+    }
+
+    [Fact]
     public void Un_clic_sur_les_murs_mene_a_l_entree()
     {
         var (state, town) = GameWithTownNearby();
-        var wall = town.Position.Offset(0, -2);
+        var wall = town.Position.Offset(-2, -3); // le coin du haut à gauche
 
         state.SetDestination(wall);
 

@@ -42,7 +42,7 @@ public abstract class MapObject
     public Cell Position { get; }
 
     /// <summary>
-    /// Toutes les cases occupées par l'objet. Par défaut, seulement sa case ; une ville en occupe 3×3.
+    /// Toutes les cases occupées par l'objet. Par défaut, seulement sa case ; une ville en occupe 5 × 4, une mine 3 × 2.
     /// Les cases autres que <see cref="Position"/> sont infranchissables.
     /// </summary>
     public virtual IEnumerable<Cell> Footprint

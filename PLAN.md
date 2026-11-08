@@ -224,6 +224,14 @@ par jour ; tas rares de 3 à 6 ; au départ 2 de chaque ressource rare.
   de préférence, plus loin si la zone est trop étroite. Sauvegarde version 3 ; les mines des sauvegardes d'avant gardent
   une case (`Mine.Large`). L'image couvre la surface, quelle que soit la taille des cases (images de 3 × 2 cases : session
   images ; en attendant, l'ancienne image carrée sur l'entrée, ou une colline dessinée).
+- ✅ **Les villes sur 5 × 4 cases**, comme Heroes 2 (choix de l'utilisateur, 2026-11-08 ; 3 × 3 avant) : l'entrée au milieu
+  de la rangée du bas, image de 160 × 128 pixels d'art (session images ; en attendant, l'ancienne image en bas au milieu).
+  Le générateur cherche la ville, sa case d'approche et une case tout autour dans la zone ; la ville proche de chaque
+  joueur est d'abord cherchée plus près de lui que des autres départs, dans chacune des zones voisines (sinon une
+  ville trop grande pour sa zone lui manquait). Sauvegarde version 4 : les villes d'avant gardent 3 × 3 cases
+  (`Town.Large`), et une sauvegarde le note pour chaque mine ou ville petite (sinon, sauvegardée de nouveau, elle
+  grandissait). Mesuré : la simulation et l'adversaire comme avant (sur 18 autres cartes, Normal : 15 400 or d'armée
+  contre 16 000 ; les 6 cartes des `Mesures` ont changé, leurs chiffres aussi : Normal 16 700 contre 23 700).
 - Corrigé au passage : le joueur sans héros qui perdait sa dernière ville n'avait pas perdu (la partie continuait sans
   lui, à l'infini) ; fin « Eliminated ».
 - **À faire (IA)** : sa prévision d'un combat (jouée trois fois) se trompe dans les combats qui tournent vite (Fantômes qui

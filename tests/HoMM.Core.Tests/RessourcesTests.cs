@@ -110,6 +110,9 @@ public class RessourcesTests
         var json = state.Save().Replace($"\"version\":{GameState.SaveVersion}", "\"version\":2");
         Assert.Contains("\"version\":2", json);
         Assert.All(GameState.Load(json, TestData.Data).Map.Objects.OfType<Mine>(), m => Assert.False(m.Large));
+        // sauvegardées de nouveau (version d'aujourd'hui), elles gardent toujours une case
+        var again = GameState.Load(json, TestData.Data);
+        Assert.All(GameState.Load(again.Save(), TestData.Data).Map.Objects.OfType<Mine>(), m => Assert.False(m.Large));
     }
 
     [Fact]

@@ -38,6 +38,19 @@ public partial class DecorLayer : Node2D
 
     public override void _Draw()
     {
+        foreach (var (foot, image) in Sprites(Map))
+        {
+            var size = image.GetSize() * MapRenderer.ArtScale;
+            DrawTextureRect(image, new Rect2(foot - new Vector2(size.X / 2, size.Y), size), false);
+        }
+    }
+
+    /// <summary>
+    /// Les arbres et les sommets de la carte, repérés par leur pied (le milieu du bas de l'image), triés de haut en bas
+    /// (l'ordre du dessin). Toujours les mêmes pour une carte : les ombres (<see cref="ShadowLayer"/>) les relisent.
+    /// </summary>
+    public static List<(Vector2 Foot, Texture2D Image)> Sprites(AdventureMap map)
+    {
         var trees = Trees;
         var peaks = Peaks;
         var smallPeaks = SmallPeaks;
@@ -48,12 +61,12 @@ public partial class DecorLayer : Node2D
 
         // Chaque image est repérée par son pied (le milieu de son bas), puis tout est trié de haut en bas
         var sprites = new List<(Vector2 Foot, Texture2D Image)>();
-        for (int y = 0; y < Map.Height; y++)
-        for (int x = 0; x < Map.Width; x++)
+        for (int y = 0; y < map.Height; y++)
+        for (int x = 0; x < map.Width; x++)
         {
             var o = new Vector2(x, y) * t;
             var rng = new Random(Seed(x, y));
-            switch (Map.GetTerrain(new Cell(x, y)))
+            switch (map.GetTerrain(new Cell(x, y)))
             {
                 case TerrainType.Forest when trees.Length > 0:
                     // quatre arbres en carré, un peu décalés, et parfois un cinquième n'importe où
@@ -75,11 +88,7 @@ public partial class DecorLayer : Node2D
         }
 
         sprites.Sort((a, b) => a.Foot.Y != b.Foot.Y ? a.Foot.Y.CompareTo(b.Foot.Y) : a.Foot.X.CompareTo(b.Foot.X));
-        foreach (var (foot, image) in sprites)
-        {
-            var size = image.GetSize() * MapRenderer.ArtScale;
-            DrawTextureRect(image, new Rect2(foot - new Vector2(size.X / 2, size.Y), size), false);
-        }
+        return sprites;
     }
 
     /// <summary>Un nombre fixe par case, mélangé pour que les cases voisines n'aient pas le même décor.</summary>

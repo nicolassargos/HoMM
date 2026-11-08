@@ -114,8 +114,9 @@ public partial class Main : Node2D
             PaintTerrainTest();
 
         AddChild(new TerrainLayer { Map = _state.Map });
-        AddChild(new DecorLayer { Map = _state.Map });
         _actors = new ActorLayer { State = _state };
+        AddChild(new ShadowLayer { State = _state, Actors = _actors }); // sous le décor et les objets
+        AddChild(new DecorLayer { Map = _state.Map });
         AddChild(_actors);
         AddChild(new FogLayer { State = _state });
 

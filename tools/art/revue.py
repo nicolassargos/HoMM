@@ -7,7 +7,7 @@
 
 Un lot est une série de candidats (LOTS) : « 32px » (le premier passage, par défaut), « v2 » (les images refaites
 d'après la revue du 2026-11-08 ; candidats dans les dossiers <nom>@v2), « v3 » (la mine de soufre),
-« villes » (les villes de 5 × 4 cases, tools/art/villes.py).
+« villes » (les villes de 5 × 4 cases, tools/art/villes.py), « pro » (squelette et colosse d'os, PixelLab).
 
 Sur la page : un clic sur un candidat le choisit, « Garder » ou « À refaire » donne l'avis, et chaque image a sa zone de
 commentaire. Les réponses restent dans le navigateur (on peut fermer la page et revenir) ; « Télécharger » les écrit dans
@@ -66,6 +66,8 @@ CAPTURES = [("jeu-32-revele.png", "Carte révélée, zoom ×2"), ("jeu-32-depart
 LOTS = {
     "32px": {"titre": "Carte en 32 px : tes choix", "groupes": GROUPES_32PX, "captures": CAPTURES},
     "v2": {"titre": "Images refaites (2026-11-08) : tes choix", "groupes": GROUPES_V2, "captures": CAPTURES},
+    "pro": {"titre": "Squelette et colosse d'os (2026-11-08) : ton choix", "captures": [],
+            "groupes": [("Créatures (PixelLab « Pro », 64 candidats chacune)", ["creatures/squelette", "creatures/colosse-os"])]},
     "villes": {"titre": "Villes sur 5 × 4 cases (2026-11-08) : ton choix", "captures": [],
                "groupes": [("Villes (160 × 128 ; 1 à 3 : assemblées de pièces, tools/art/villes.py ; 4 à 7 : PixelLab d un seul coup)",
                             ["objects/town", "objects/town-morts-vivants"])]},
@@ -144,7 +146,8 @@ def options(nom):
     res.append(("installee", rel_installee, "★ installée", True))
     d = dossier_candidats(nom)
     if d:
-        for f in sorted(glob.glob(os.path.join(d, "*.png")), key=lambda x: int(re.sub(r"\D", "", os.path.basename(x)) or 0)):
+        numeros = [f for f in glob.glob(os.path.join(d, "*.png")) if os.path.basename(f)[:-4].isdigit()]
+        for f in sorted(numeros, key=lambda x: int(os.path.basename(x)[:-4])):
             if lire_octets(f) == octets:
                 continue  # c'est l'image installée
             rel = os.path.relpath(f, CANDIDATS).replace("\\", "/")
@@ -270,9 +273,12 @@ def page():
         for nom in noms:
             total += 1
             terrain = nom.startswith("terrain/")
-            morceaux.append(f"<div class=item data-nom='{nom}'><div class=tete><b>{nom.split('/')[1]}</b><span class=etat></span>"
+            choix = options(nom)
+            # beaucoup de candidats : la carte prend toute la largeur
+            large = " style='grid-column:1/-1'" if len(choix) > 8 else ""
+            morceaux.append(f"<div class=item data-nom='{nom}'{large}><div class=tete><b>{nom.split('/')[1]}</b><span class=etat></span>"
                             "<button data-avis=garder>Garder</button><button data-avis=refaire>À refaire</button></div><div class=opts>")
-            for ident, src, libelle, _ in options(nom):
+            for ident, src, libelle, _ in choix:
                 if terrain:
                     vue = f"<div class=tuile style=\"background-image:url('{src}')\"></div>"
                     fond = ""
@@ -356,7 +362,8 @@ def serveur():
             corps = self.rfile.read(int(self.headers.get("Content-Length", 0)))
             try:
                 r = json.loads(corps)
-                assert r.get("page", "")[len("revue-"):] in LOTS
+                # toute page de revue (un lot ajouté après le lancement du serveur aussi)
+                assert re.fullmatch(r"revue-[\w-]+", r.get("page", ""))
             except Exception:
                 return self._entetes(400)
             fichier = os.path.join(EN_COURS, r["page"] + ".json")

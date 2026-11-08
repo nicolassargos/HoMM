@@ -67,7 +67,7 @@ public class BarbaresTests
         Assert.False(battle.Wait());
         Assert.All(battle.Reachable(nomads).Values, path => Assert.True(path.Count <= nomads.Type.Speed - 2));
 
-        Assert.True(battle.Move(new Hex(0, 4)));
+        Assert.True(battle.Move(new Hex(1, 4))); // leur cheval sur (0, 4)
         Assert.NotEqual(nomads, battle.Active);
         Assert.False(battle.IsRetreating);
     }

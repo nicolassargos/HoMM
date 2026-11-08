@@ -155,9 +155,9 @@ Décidé avec l'utilisateur (2026-11-08).
 | 2 | Loup (des neutres) | le harceleur | frappe deux fois (déjà) | Tanière des loups |
 | 3 | Orc (des neutres) | le seul tireur | tir court (déjà) | Camp des orcs |
 | 4 | Ogre (des neutres) | la brute | coup écrasant : ignore 40 % de la défense (déjà) | Fort des ogres |
-| 5 | **Nomades** (choix de l'utilisateur) | cavaliers rapides | **frappe et repart** : après l'attaque, ils se déplacent avec ce qui leur reste de mouvement (l'ennemi riposte comme d'habitude) ; à mesurer contre les armées lentes | Campement nomade |
-| 6 | **Oiseau-tonnerre** | le volant | vole ; ses coups appellent parfois la foudre (des dégâts en plus) | Nid du tonnerre |
-| 7 | Béhémoth | le géant | ses griffes ignorent 60 % de la défense | Repaire du béhémoth |
+| 5 | **Nomades** (choix de l'utilisateur) | cavaliers rapides, sur 2 cases | **frappe et repart** : après l'attaque, ils se déplacent avec ce qui leur reste de mouvement (l'ennemi riposte comme d'habitude) ; à mesurer contre les armées lentes | Campement nomade |
+| 6 | **Oiseau-tonnerre** | le volant, sur 2 cases | vole ; ses coups appellent parfois la foudre (des dégâts en plus) | Nid du tonnerre |
+| 7 | Béhémoth | le géant, debout sur une case | ses griffes ignorent 60 % de la défense | Repaire du béhémoth |
 
 Habitations : mêmes prix et places que celles du Château, cristal (secondaire) aux niveaux 5 et 6, soufre (principale)
 au niveau 7 et pour le Béhémoth. Découpage comme les morts-vivants :
@@ -178,8 +178,11 @@ au niveau 7 et pour le Béhémoth. Découpage comme les morts-vivants :
    | Nomade | 13 | 8 | 10-14 | 45 | 8 | 6 | 165 |
    | Oiseau-tonnerre | 16 | 10 | 18-24 | 90 | 11 | 4 | 320 |
    | Béhémoth | 22 | 20 | 80-90 | 1400 | 7 | 2 | 4900 et 1 soufre |
-   **Frappe et repart** (mesure `Nomades_frappe_et_repart`) aide contre les troupes lentes (contre des Vampires du même
-   prix : 15 victoires sur 20 avec, aucune sans) sans rendre les Nomades plus forts que les autres créatures du niveau 5.
+   **Frappe et repart** (mesure `Nomades_frappe_et_repart`) aide un peu contre les troupes lentes (contre des Ogres ou
+   des Vampires du même prix : 2 victoires sur 20 avec, aucune sans) sans rendre les Nomades plus forts que les autres
+   créatures du niveau 5. **Tailles** (choix de l'utilisateur, avec les images) : les Nomades sur 2 cases (un vrai
+   cheval), le Béhémoth sur une seule (debout sur deux jambes) ; à prix égal, les Nomades battent les Moines (il leur
+   reste 71 %) et perdent contre les Vampires (93 % restent aux Vampires) ; le Béhémoth ne change pas.
    Mesuré (avec 30 paysans par semaine) : la simulation gagne les petites cartes vers le jour 89, les normales 86, les
    grandes 152 ; un adversaire : Facile 11 700, Normal 15 400, Difficile 20 600 en or d'armée ; Château 21 900,
    morts-vivants 15 600. Les anciens neutres rapportent moins d'expérience (prix plus bas) : **l'expérience sera

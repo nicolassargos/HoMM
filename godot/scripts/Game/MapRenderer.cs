@@ -513,6 +513,7 @@ public static class MapRenderer
                     image.SetPixel(x, y, Color.FromHsv(hue, p.S, p.V, p.A));
             }
             texture = ImageTexture.CreateFromImage(image);
+            Art.Alias(texture, "heroes/hero");
         }
         HeroImages[id] = texture;
         return texture;

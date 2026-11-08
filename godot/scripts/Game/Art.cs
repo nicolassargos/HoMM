@@ -31,8 +31,18 @@ public static class Art
             return cached;
         var texture = Load($"{Root}{name}.png");
         Cache[name] = texture;
+        if (texture != null)
+            Names[texture] = name;
         return texture;
     }
+
+    private static readonly Dictionary<Texture2D, string> Names = new();
+
+    /// <summary>Le nom d'une image (« objects/mine-wood »), ou null : pour retrouver ce qui la concerne (ses pieds).</summary>
+    public static string? NameOf(Texture2D texture) => Names.TryGetValue(texture, out var name) ? name : null;
+
+    /// <summary>Donne un nom à une image faite par le jeu (le héros aux couleurs d'un joueur porte celui de son image).</summary>
+    public static void Alias(Texture2D texture, string name) => Names[texture] = name;
 
     private static Texture2D? Load(string path) => LoadImageFile(path) is { } image ? ImageTexture.CreateFromImage(image) : null;
 

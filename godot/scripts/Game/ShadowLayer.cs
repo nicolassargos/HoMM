@@ -41,7 +41,7 @@ public partial class ShadowLayer : Node2D
     {
         ReadOptions();
         _cast = MakeGroup(c => ForEachDecor(c, DrawCast), c => ForEachActor(c, DrawCast), TextureFilterEnum.Linear);
-        _contact = MakeGroup(c => ForEachDecor(c, DrawContact), c => ForEachActor(c, DrawContact), TextureFilterEnum.Linear);
+        _contact = MakeGroup(c => ForEachDecor(c, DrawContact), c => ForEachActor(c, DrawContact), TextureFilterEnum.Nearest);
         Apply();
         if (OS.GetCmdlineUserArgs().Contains("--shadow-tune"))
             AddChild(new ShadowTuner(this));
@@ -172,32 +172,138 @@ public partial class ShadowLayer : Node2D
         return canvas.ToImage(Blur);
     }
 
-    /// <summary>Hauteur (en pixels d'art) du bas d'un objet qui touche le sol, pour l'ombre de contact.</summary>
-    private const int FootBand = 3;
-    /// <summary>De combien (en pixels d'art) l'ombre de contact déborde du pied, sur les côtés et vers le haut et le bas.</summary>
-    private const float ContactWidth = 3f, ContactHeight = 1.5f;
-    /// <summary>Le flou de l'ombre de contact, en pixels d'art : elle est toujours douce.</summary>
-    private const float ContactBlur = 1.5f;
+    /// <summary>Les bagues de l'ombre de contact, de la plus proche du pied à la plus éloignée (part de noir, avant <see cref="Contact"/>).</summary>
+    private static readonly float[] ContactShades = { 0.55f, 0.3f, 0.12f };
+    /// <summary>La hauteur de l'arc qui ferme la forme du pied, par rapport à sa largeur, et au plus (en pixels d'art).</summary>
+    private const float ArcRatio = 0.12f, ArcMax = 2.5f;
+    /// <summary>Jusqu'où (en pixels d'art, au-dessus et au-dessous du segment du pied) on cherche le bas du dessin.</summary>
+    private const int FootSearch = 8;
 
     /// <summary>
-    /// L'ombre de contact d'une image, en pixels d'art : là où l'objet touche le sol (le bas de chaque morceau, sur
-    /// <see cref="FootBand"/> pixels), une tache aplatie qui déborde un peu du pied, poussée d'un pixel vers la gauche (à
-    /// l'opposé de la lumière), très floue.
+    /// L'ombre de contact d'une image, en pixels d'art, d'après ses pieds (godot/art/pieds.json, revus par l'utilisateur ;
+    /// tools/art/pieds.py) : pour chaque pied, du pixel le plus à gauche au plus à droite de la base, on suit le bas du
+    /// dessin, on ferme la forme par un arc au-dessus, on la remplit, puis on l'entoure de bagues de plus en plus claires.
+    /// La page de revue (revue-pieds.html) calcule le même aperçu.
     /// </summary>
     private static ShadowImage ContactImage(Texture2D texture)
     {
-        int margin = (int)MathF.Ceiling(ContactWidth) + 1;
-        var canvas = new Canvas(texture.GetWidth(), texture.GetHeight(), margin, margin, margin, ContactBlur);
-        foreach (var part in PartsOf(texture))
-            foreach (var (x, y) in part.Pixels)
+        int w = texture.GetWidth(), h = texture.GetHeight(), rings = ContactShades.Length;
+        var canvas = new Canvas(w, h, rings + 1, rings + 1, rings + 1, 0);
+        var feet = FeetOf(texture);
+        if (feet.Count == 0 || texture.GetImage() is not { } image || image.IsEmpty())
+            return canvas.ToImage(0);
+        if (image.IsCompressed())
+            image.Decompress();
+        var opaque = WithoutPath(image);
+        // la forme des pieds, dans une grille avec une marge pour les bagues
+        int m = rings + 1, gw = w + 2 * m, gh = h + 2 * m;
+        var shape = new bool[gw, gh];
+        foreach (var ((xl, yl), (xr, yr)) in feet)
+        {
+            int a = Math.Min(xl, xr), b = Math.Max(xl, xr);
+            float ya = xl <= xr ? yl : yr, yb = xl <= xr ? yr : yl;
+            int width = b - a + 1;
+            float arc = Math.Min(ArcMax, Math.Max(1, ArcRatio * width));
+            for (int x = a; x <= b; x++)
             {
-                int ground = part.GroundAt(x);
-                if (y > ground || y <= ground - FootBand)
-                    continue;
-                float cx = x + 0.5f - 1, cy = ground + 0.5f;
-                canvas.Fill(cx - ContactWidth, cx + ContactWidth, cy - ContactHeight, cy + ContactHeight, 1);
+                float t = (x + 0.5f - a) / width;
+                float line = ya + (yb - ya) * (b > a ? (float)(x - a) / (b - a) : 0);
+                // le bas du dessin dans cette colonne, près du segment (sinon le segment : un creux enjambé)
+                float bottom = line;
+                if (x >= 0 && x < w)
+                    for (int y = Math.Min(h - 1, (int)MathF.Round(line) + FootSearch); y >= Math.Max(0, (int)MathF.Round(line) - FootSearch); y--)
+                        if (opaque[x, y])
+                        {
+                            bottom = y;
+                            break;
+                        }
+                float top = line - arc * MathF.Sqrt(Math.Max(0, 1 - (2 * t - 1) * (2 * t - 1)));
+                for (int y = (int)MathF.Floor(Math.Min(top, bottom)); y <= (int)MathF.Round(bottom); y++)
+                    if (x + m >= 0 && y + m >= 0 && x + m < gw && y + m < gh)
+                        shape[x + m, y + m] = true;
             }
-        return canvas.ToImage(ContactBlur);
+        }
+        // les bagues : on grossit la forme d'un pixel (en croix) à chaque fois, de plus en plus clair
+        var current = GrowCross(shape);
+        foreach (float shade in ContactShades)
+        {
+            for (int y = 0; y < gh; y++)
+            for (int x = 0; x < gw; x++)
+                if (current[x, y])
+                    canvas.Fill(x - m, x - m + 1, y - m, y - m + 1, shade);
+            current = GrowCross(current);
+        }
+        return canvas.ToImage(0);
+    }
+
+    private static bool[,] GrowCross(bool[,] mask)
+    {
+        int w = mask.GetLength(0), h = mask.GetLength(1);
+        var result = new bool[w, h];
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+            result[x, y] = mask[x, y] || (y > 0 && mask[x, y - 1]) || (y < h - 1 && mask[x, y + 1])
+                || (x > 0 && mask[x - 1, y]) || (x < w - 1 && mask[x + 1, y]);
+        return result;
+    }
+
+    /// <summary>
+    /// Les pixels opaques d'une image, sans le chemin étroit (<see cref="PathWidth"/> pixels au plus) qui part du bas de
+    /// l'image vers la case d'entrée d'une mine : il est posé à plat.
+    /// </summary>
+    private static bool[,] WithoutPath(Image image)
+    {
+        int w = image.GetWidth(), h = image.GetHeight();
+        var m = new bool[w, h];
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+            m[x, y] = image.GetPixel(x, y).A > 0.5f;
+        for (int x0 = 0; x0 < w; x0++)
+        {
+            if (!m[x0, h - 1] || (x0 > 0 && m[x0 - 1, h - 1]))
+                continue;
+            int x1 = x0;
+            while (x1 + 1 < w && m[x1 + 1, h - 1])
+                x1++;
+            int lo = x0, hi = x1;
+            for (int y = h - 1; y >= 0; y--)
+            {
+                var row = Enumerable.Range(Math.Max(0, lo - 2), Math.Min(w, hi + 3) - Math.Max(0, lo - 2)).Where(x => m[x, y]).ToList();
+                if (row.Count == 0 || row.Max() - row.Min() + 1 > PathWidth)
+                    break;
+                foreach (int x in row)
+                    m[x, y] = false;
+                lo = row.Min();
+                hi = row.Max();
+            }
+        }
+        return m;
+    }
+
+    private static Dictionary<string, List<((int X, int Y) Left, (int X, int Y) Right)>>? _feet;
+
+    /// <summary>Les pieds d'une image, d'après godot/art/pieds.json (aucun si l'image n'y est pas).</summary>
+    private static List<((int X, int Y) Left, (int X, int Y) Right)> FeetOf(Texture2D texture)
+    {
+        if (_feet == null)
+        {
+            _feet = new();
+            const string path = Art.Root + "pieds.json";
+            if (Godot.FileAccess.FileExists(path))
+                using (var doc = System.Text.Json.JsonDocument.Parse(Godot.FileAccess.GetFileAsString(path)))
+                    foreach (var entry in doc.RootElement.EnumerateObject())
+                    {
+                        var list = new List<((int, int), (int, int))>();
+                        foreach (var foot in entry.Value.GetProperty("pieds").EnumerateArray())
+                        {
+                            var l = foot[0];
+                            var r = foot[1];
+                            list.Add(((l[0].GetInt32(), l[1].GetInt32()), (r[0].GetInt32(), r[1].GetInt32())));
+                        }
+                        _feet[entry.Name] = list;
+                    }
+        }
+        return Art.NameOf(texture) is { } name && _feet.TryGetValue(name, out var feet) ? feet : new();
     }
 
     /// <summary>

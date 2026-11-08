@@ -47,6 +47,7 @@ Décision de l'utilisateur, valable pour toutes les sessions :
 - `art-candidats/references/` : images données par l'utilisateur (modèles, captures), à garder telles quelles.
 - Outils : `tools/art/generer.py` (prix, génération, choix ; `choisir` retrouve aussi un candidat archivé),
   `tools/art/apercu.py` (page de choix dans `en-cours/`), `tools/art/revue.py` (page de revue où l'on choisit et commente chaque image, une par lot de candidats : `32px`, `v2` ; `serveur` écrit les réponses sur le disque, `appliquer` les installe), `tools/art/zoom.py` (agrandir une capture),
+  `tools/art/pieds.py` (les pieds des images de la carte pour l'ombre de contact : `proposer`, `page` de revue où l'on corrige les points, `appliquer` ; écrit `godot/art/pieds.json`),
   `tools/art/reduire.py` (réduire ou retourner une image sans la flouter), `tools/art/cadre.py` (rendre transparent le
   centre uni d'un cadre généré), `tools/art/detourer.py` (rendre
   transparent un fond uni), `tools/art/pixellab.py` (PixelLab : solde, animations, éléments d'interface).

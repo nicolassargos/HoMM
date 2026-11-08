@@ -46,7 +46,7 @@ Décision de l'utilisateur, valable pour toutes les sessions :
   `python -I tools/art/archiver.py sujet`. Ne rien laisser traîner à la racine de `art-candidats/`.
 - `art-candidats/references/` : images données par l'utilisateur (modèles, captures), à garder telles quelles.
 - Outils : `tools/art/generer.py` (prix, génération, choix ; `choisir` retrouve aussi un candidat archivé),
-  `tools/art/apercu.py` (page de choix dans `en-cours/`), `tools/art/zoom.py` (agrandir une capture),
+  `tools/art/apercu.py` (page de choix dans `en-cours/`), `tools/art/revue.py` (page de revue où l'on choisit et commente chaque image ; `appliquer` installe les réponses téléchargées), `tools/art/zoom.py` (agrandir une capture),
   `tools/art/reduire.py` (réduire ou retourner une image sans la flouter), `tools/art/cadre.py` (rendre transparent le
   centre uni d'un cadre généré), `tools/art/detourer.py` (rendre
   transparent un fond uni), `tools/art/pixellab.py` (PixelLab : solde, animations, éléments d'interface).

@@ -31,7 +31,7 @@ public class RecruitTests
         Assert.Equal(RecruitResult.Ok, state.Recruit(town, C("paysan"), 10));
 
         Assert.Equal(gold - 30, player.Resources[ResourceType.Gold]);
-        Assert.Equal(18, town.Available[C("paysan")]);
+        Assert.Equal(20, town.Available[C("paysan")]);
         Assert.Equal(10, town.Garrison.Stacks.Single().Count);
         Assert.Equal(new CreaturesRecruited(town, C("paysan"), 10, false),
             state.TakeEvents().OfType<CreaturesRecruited>().Single());
@@ -42,7 +42,7 @@ public class RecruitTests
     {
         var (state, town, player) = OwnedTown(heroInside: false);
 
-        Assert.Equal(RecruitResult.NotAvailable, state.Recruit(town, C("paysan"), 29));
+        Assert.Equal(RecruitResult.NotAvailable, state.Recruit(town, C("paysan"), 31));
         Assert.Equal(RecruitResult.NotAvailable, state.Recruit(town, C("archer"), 1));
         player.Resources[ResourceType.Gold] = 5;
         Assert.Equal(1, town.MaxRecruitable(C("paysan"), player));

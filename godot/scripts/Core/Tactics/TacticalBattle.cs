@@ -40,6 +40,18 @@ public sealed record UnitDrained(BattleUnit Unit, int HitPoints, int Revived) : 
 public sealed record UnitRegenerated(BattleUnit Unit) : BattleAction;
 public sealed record UnitDefended(BattleUnit Unit) : BattleAction;
 
+/// <summary>La troupe enrage (Barbares) : son attaque gagnée par la rage vaut maintenant <paramref name="Rage"/>.</summary>
+public sealed record UnitEnraged(BattleUnit Unit, int Rage) : BattleAction;
+
+/// <summary>La foudre appelée par <paramref name="Attacker"/> (Oiseau-tonnerre) frappe la cible.</summary>
+public sealed record LightningStruck(BattleUnit Attacker, BattleUnit Target, int Damage, int Killed) : BattleAction;
+
+/// <summary>La troupe a trop grossi pour le charisme de son héros : elle se révolte et change de camp.</summary>
+public sealed record UnitRevolted(BattleUnit Unit) : BattleAction;
+
+/// <summary>La troupe a frappé et peut repartir (Nomades) : <paramref name="Steps"/> cases de mouvement lui restent.</summary>
+public sealed record UnitMayRetreat(BattleUnit Unit, int Steps) : BattleAction;
+
 /// <summary>Le héros s'enfuit : <paramref name="Losses"/>, les créatures perdues dans la fuite.</summary>
 public sealed record AttackerFled(IReadOnlyList<CreatureStack> Losses) : BattleAction;
 
@@ -65,8 +77,15 @@ public sealed partial class TacticalBattle
     /// <summary>Bonus de charge par case parcourue avant l'attaque (+5 %).</summary>
     public const double ChargeBonus = 0.05;
 
-    /// <summary>Part de la défense ignorée par un coup écrasant (40 %).</summary>
-    public const double CrushingShare = 0.4;
+    /// <summary>Part de la défense ignorée par un coup écrasant (40 %) et par les griffes (60 %).</summary>
+    public const double CrushingShare = 0.4, RendingShare = 0.6;
+
+    /// <summary>La rage (Barbares) : attaque gagnée à chaque coup reçu, et au plus dans un combat.</summary>
+    public const int RagePerHit = 2, RageMax = 6;
+
+    /// <summary>La foudre de l'Oiseau-tonnerre : une chance sur cinq à chaque attaque, tant de dégâts par oiseau.</summary>
+    public const double LightningChance = 0.2;
+    public const int LightningPerCreature = 15;
 
     /// <summary>Le poison de l'Araignée : dégâts par créature qui mord, et pendant combien de tours de la cible.</summary>
     public const int PoisonPerCreature = 2, PoisonTurns = 3;
@@ -92,8 +111,13 @@ public sealed partial class TacticalBattle
     private readonly List<BattleUnit> _waiting = new();
     private readonly List<BattleAction> _log = new();
     private readonly Dictionary<BattleUnit, int> _startCounts = new();
+
+    /// <summary>Les troupes révoltées pendant le combat : leur camp d'avant, et leur nombre au moment de la révolte.</summary>
+    private readonly Dictionary<BattleUnit, (BattleSide Side, int Count)> _turned = new();
     private readonly List<CreatureStack> _fleeLosses = new();
     private readonly List<CreatureStack> _rebelsBefore;
+    private readonly List<CreatureStack> _defenderRebelsBefore;
+    private readonly Army? _defenderRebels;
     private readonly Army _attacker;
     private readonly Army _defender;
     private readonly Army? _rebels;
@@ -105,15 +129,23 @@ public sealed partial class TacticalBattle
     /// </summary>
     /// <param name="defenderHero">Le héros qui se défend (combat entre héros, étape 8) : son attaque et sa défense
     /// s'ajoutent à celles de ses troupes, comme pour l'attaquant.</param>
-    public TacticalBattle(Army attacker, Army defender, GameRandom rng, Hero? hero = null, Army? rebels = null, Hero? defenderHero = null)
+    /// <param name="defenderRebels">Les troupes révoltées du héros qui se défend : elles combattent avec l'attaquant, sans
+    /// bonus de héros. Elles ne sauvent pas l'attaquant : il a perdu quand ses propres troupes sont toutes tombées.</param>
+    public TacticalBattle(Army attacker, Army defender, GameRandom rng, Hero? hero = null, Army? rebels = null, Hero? defenderHero = null,
+        Army? defenderRebels = null)
     {
         _rng = rng;
         _attacker = attacker;
         _defender = defender;
         _rebels = rebels;
         _rebelsBefore = rebels?.Stacks.Where(s => s.Count > 0).Select(s => new CreatureStack(s.Type, s.Count)).ToList() ?? new();
+        _defenderRebels = defenderRebels;
+        _defenderRebelsBefore = defenderRebels?.Stacks.Where(s => s.Count > 0).Select(s => new CreatureStack(s.Type, s.Count)).ToList() ?? new();
 
-        Place(attacker.Stacks, BattleSide.Attacker, 0, hero?.Attack ?? 0, hero?.Defense ?? 0, isRebel: false);
+        var attackers = attacker.Stacks.Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: false))
+            .Concat((defenderRebels?.Stacks ?? new List<CreatureStack>()).Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: true)))
+            .ToList();
+        PlaceColumn(attackers, BattleSide.Attacker, 0, hero?.Attack ?? 0, hero?.Defense ?? 0);
         var defenders = defender.Stacks.Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: false))
             .Concat((rebels?.Stacks ?? new List<CreatureStack>()).Where(s => s.Count > 0).Select(s => (Stack: s, Rebel: true)))
             .ToList();
@@ -133,6 +165,14 @@ public sealed partial class TacticalBattle
 
     /// <summary>La troupe qui doit jouer (null quand le combat est fini).</summary>
     public BattleUnit? Active { get; private set; }
+
+    /// <summary>
+    /// La troupe active a frappé et peut repartir (<see cref="Ability.HitAndRun"/>) : le mouvement qui lui reste, sinon
+    /// null. Elle ne peut alors que se déplacer (<see cref="Move"/>) ou rester (<see cref="Defend"/>, sans le bonus).
+    /// </summary>
+    public int? RetreatSteps { get; private set; }
+
+    public bool IsRetreating => RetreatSteps != null;
 
     /// <summary>Ce qui s'est passé depuis le dernier appel (pour l'écran de combat).</summary>
     public List<BattleAction> TakeLog()
@@ -302,8 +342,8 @@ public sealed partial class TacticalBattle
             return true;
         if (!Alive(BattleSide.Defender).Any())
             End(BattleOutcome.AttackerWon);
-        else if (!Alive(BattleSide.Attacker).Any())
-            End(BattleOutcome.DefenderWon);
+        else if (!Alive(BattleSide.Attacker).Any(u => !u.IsRebel))
+            End(BattleOutcome.DefenderWon); // les révoltés du défenseur ne gagnent pas pour l'attaquant
         return IsOver;
     }
 
@@ -311,6 +351,7 @@ public sealed partial class TacticalBattle
     {
         Outcome = outcome;
         Active = null;
+        RetreatSteps = null;
         _log.Add(new BattleEnded(outcome));
     }
 
@@ -334,7 +375,7 @@ public sealed partial class TacticalBattle
     /// </summary>
     public Dictionary<Hex, List<Hex>> Reachable(BattleUnit unit)
     {
-        int speed = SpeedOf(unit);
+        int speed = unit == Active && RetreatSteps is { } steps ? steps : SpeedOf(unit);
         if (unit.Has(Ability.Flies))
         {
             var flights = new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
@@ -372,7 +413,7 @@ public sealed partial class TacticalBattle
 
     /// <summary>Un tireur peut tirer s'il a une cible ennemie et qu'aucun ennemi ne se tient à côté de lui.</summary>
     public bool CanShoot(BattleUnit unit, BattleUnit target) =>
-        unit.CanShoot && AreEnemies(unit, target) && !IsEngaged(unit);
+        unit.CanShoot && AreEnemies(unit, target) && !IsEngaged(unit) && !(unit == Active && IsRetreating);
 
     /// <summary>Un ennemi se tient-il à côté de la troupe ?</summary>
     public bool IsEngaged(BattleUnit unit) =>
@@ -384,7 +425,7 @@ public sealed partial class TacticalBattle
     /// </summary>
     public IEnumerable<Hex> AttackPositions(BattleUnit unit, BattleUnit target)
     {
-        if (!AreEnemies(unit, target))
+        if (!AreEnemies(unit, target) || unit == Active && IsRetreating)
             return Enumerable.Empty<Hex>();
         var reachable = Reachable(unit);
         return reachable.Keys.Where(h => Touches(unit, h, target));
@@ -408,7 +449,7 @@ public sealed partial class TacticalBattle
     /// </summary>
     public bool Attack(BattleUnit target, Hex from)
     {
-        if (Active is not { } unit || !AreEnemies(unit, target) || !Touches(unit, from, target))
+        if (Active is not { } unit || IsRetreating || !AreEnemies(unit, target) || !Touches(unit, from, target))
             return false;
         if (!Reachable(unit).TryGetValue(from, out var path))
             return false;
@@ -426,6 +467,14 @@ public sealed partial class TacticalBattle
         // deux attaques : la seconde après la riposte
         if (unit.Has(Ability.DoubleAttack) && target.IsAlive && unit.IsAlive)
             Melee(unit, target, moved);
+        // frappe et repart : la troupe garde le mouvement qui lui reste
+        int left = SpeedOf(unit) - moved;
+        if (unit.Has(Ability.HitAndRun) && unit.IsAlive && left > 0 && _units.Any(u => AreEnemies(unit, u)))
+        {
+            RetreatSteps = left;
+            _log.Add(new UnitMayRetreat(unit, left));
+            return true;
+        }
         EndTurn();
         return true;
     }
@@ -464,7 +513,7 @@ public sealed partial class TacticalBattle
     /// <summary>La troupe active tire sur la cible (pas de riposte). Renvoie false si elle ne peut pas tirer.</summary>
     public bool Shoot(BattleUnit target)
     {
-        if (Active is not { } unit || !CanShoot(unit, target))
+        if (Active is not { } unit || IsRetreating || !CanShoot(unit, target))
             return false;
         var around = unit.Has(Ability.DeathCloud)
             ? Neighbours(target).Where(o => o != unit && !o.IsUndead).ToList()
@@ -480,7 +529,7 @@ public sealed partial class TacticalBattle
     /// <summary>La troupe active attend : elle jouera à la fin du round (une seule fois par round).</summary>
     public bool Wait()
     {
-        if (Active is not { } unit || unit.HasWaited)
+        if (Active is not { } unit || unit.HasWaited || IsRetreating)
             return false;
         unit.HasWaited = true;
         _waiting.Add(unit);
@@ -490,11 +539,19 @@ public sealed partial class TacticalBattle
         return true;
     }
 
-    /// <summary>La troupe active se défend : +20 % de défense jusqu'à son prochain tour.</summary>
+    /// <summary>
+    /// La troupe active se défend : +20 % de défense jusqu'à son prochain tour. Une troupe qui a frappé et pourrait
+    /// repartir reste simplement sur place (sans le bonus).
+    /// </summary>
     public bool Defend()
     {
         if (Active is not { } unit)
             return false;
+        if (IsRetreating)
+        {
+            EndTurn();
+            return true;
+        }
         _log.Add(new UnitDefended(unit));
         EndTurn();
         unit.IsDefending = true;
@@ -532,6 +589,7 @@ public sealed partial class TacticalBattle
     private void EndTurn()
     {
         Active = null;
+        RetreatSteps = null;
         NextUnit();
     }
 
@@ -553,12 +611,21 @@ public sealed partial class TacticalBattle
         int killed = to.TakeDamage(damage);
         to.Wake();
         _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation));
+        if (to.Has(Ability.Rage) && to.Enrage(RagePerHit, RageMax))
+            _log.Add(new UnitEnraged(to, to.Rage));
         if (!from.IsAlive)
             return;
+        // la foudre : une chance à chaque attaque (pas à la riposte), sans compter la défense
+        if (from.Has(Ability.Lightning) && !retaliation && to.IsAlive && _rng.NextDouble() < LightningChance)
+        {
+            int bolt = LightningPerCreature * from.Count;
+            _log.Add(new LightningStruck(from, to, bolt, to.TakeDamage(bolt)));
+        }
         if (from.Has(Ability.GhostGrowth) && killed > 0)
         {
             from.Grow(killed);
             _log.Add(new UnitGrew(from, killed));
+            CheckRevolt(from);
         }
         if (from.Has(Ability.LifeDrain) && lost > 0)
         {
@@ -583,7 +650,8 @@ public sealed partial class TacticalBattle
             sum += from.Type.MinDamage + Next(from.Type.MaxDamage - from.Type.MinDamage + 1);
         double damage = from.Count <= 10 ? sum : sum * (double)from.Count / 10;
         // un coup écrasant ignore une partie de la défense
-        int defense = from.Has(Ability.Crushing) && !ranged ? (int)Math.Round(to.Defense * (1 - CrushingShare)) : to.Defense;
+        double ignored = ranged ? 0 : from.Has(Ability.Rending) ? RendingShare : from.Has(Ability.Crushing) ? CrushingShare : 0;
+        int defense = (int)Math.Round(to.Defense * (1 - ignored));
         damage *= Battle.DamageModifier(from.Attack, defense);
         int range = from.Has(Ability.ShortRange) ? ShortRange : LongRange;
         if (ranged && from.HasRangePenalty && Distance(from, to) > range)
@@ -601,6 +669,22 @@ public sealed partial class TacticalBattle
         return Math.Max(1, (int)Math.Round(damage));
     }
 
+    /// <summary>
+    /// Une troupe qui grossit pendant le combat (Fantôme) peut dépasser le charisme de son héros : elle peut alors se
+    /// révolter aussitôt, comme au début d'un combat (<see cref="Command.RevoltChance"/>), et passer dans l'autre camp.
+    /// </summary>
+    private void CheckRevolt(BattleUnit unit)
+    {
+        if (unit.IsRebel || !unit.IsAlive || HeroOf(unit.Side) is not { } hero)
+            return;
+        double chance = Command.RevoltChance(unit.Type, unit.Count, hero.Charisma);
+        if (chance <= 0 || _rng.NextDouble() >= chance)
+            return;
+        _turned[unit] = (unit.Side, unit.Count);
+        unit.Turn();
+        _log.Add(new UnitRevolted(unit));
+    }
+
     /// <summary>Un nombre entier entre 0 (compris) et <paramref name="max"/> (exclu).</summary>
     private int Next(int max) => max <= 1 ? 0 : (int)(_rng.NextDouble() * max);
 
@@ -612,10 +696,14 @@ public sealed partial class TacticalBattle
     /// </summary>
     public BattleReport Report()
     {
+        // une troupe révoltée pendant le combat compte pour son ancien camp ce qu'elle a perdu avant de se révolter
+        int Lost(BattleUnit u, BattleSide side) => _turned.TryGetValue(u, out var before)
+            ? (before.Side == side ? Math.Max(0, _startCounts[u] - before.Count) : 0)
+            : (u.Side == side && !u.IsRebel ? Math.Max(0, _startCounts[u] - u.Count) : 0);
         List<CreatureStack> Losses(BattleSide side) => _units
-            .Where(u => u.Side == side && !u.IsRebel && _startCounts[u] > u.Count)
+            .Where(u => Lost(u, side) > 0)
             .GroupBy(u => u.Type)
-            .Select(g => new CreatureStack(g.Key, g.Sum(u => _startCounts[u] - u.Count)))
+            .Select(g => new CreatureStack(g.Key, g.Sum(u => Lost(u, side))))
             .ToList();
         var report = new BattleReport
         {
@@ -624,13 +712,29 @@ public sealed partial class TacticalBattle
             AttackerLosses = Losses(BattleSide.Attacker),
             DefenderLosses = Losses(BattleSide.Defender),
             Rounds = Round,
-            Rebels = _rebelsBefore,
+            Rebels = _rebelsBefore.ToList(),
+            DefenderRebels = _defenderRebelsBefore.ToList(),
             AttackerSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Attacker],
             DefenderSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Defender],
         };
+        // les révoltés pendant le combat quittent l'armée de leur héros
+        foreach (var (unit, before) in _turned)
+        {
+            var army = before.Side == BattleSide.Attacker ? _attacker : _defender;
+            int index = army.Stacks.ToList().IndexOf(unit.Stack);
+            if (index < 0)
+                continue;
+            army.MoveStackTo(index, new Army());
+            (before.Side == BattleSide.Attacker ? report.Rebels : report.DefenderRebels).Add(new CreatureStack(unit.Type, before.Count));
+            if (unit.Count > 0)
+                (before.Side == BattleSide.Attacker ? report.RebelSurvivors : report.DefenderRebelSurvivors).Add(new CreatureStack(unit.Type, unit.Count));
+        }
         _attacker.RemoveEmpty();
         _defender.RemoveEmpty();
         _rebels?.RemoveEmpty();
+        _defenderRebels?.RemoveEmpty();
+        report.DefenderRebelSurvivors.AddRange(_defenderRebels?.Stacks.Where(s => s.Count > 0).Select(s => new CreatureStack(s.Type, s.Count))
+                                               ?? Enumerable.Empty<CreatureStack>());
         report.RebelSurvivors.AddRange(_rebels?.Stacks.Where(s => s.Count > 0).Select(s => new CreatureStack(s.Type, s.Count))
                                        ?? Enumerable.Empty<CreatureStack>());
         return report;

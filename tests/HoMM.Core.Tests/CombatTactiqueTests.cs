@@ -156,8 +156,9 @@ public class CombatTactiqueTests
     [Fact]
     public void Les_degats_sont_tires_entre_le_minimum_et_le_maximum()
     {
-        // Ogres (6 à 12 dégâts) contre Épéistes (35 points de vie) : 3 Ogres font entre 18 et 36, avant la règle attaque / défense
-        // (leur coup écrasant ignore 40 % de la défense)
+        // 3 Ogres contre des Épéistes : entre 3 fois leurs dégâts minimum et 3 fois leur maximum, avant la règle attaque /
+        // défense (leur coup écrasant ignore 40 % de la défense)
+        var ogre = Creature("ogre");
         int defense = (int)Math.Round(Creature("epeiste").Defense * (1 - TacticalBattle.CrushingShare));
         double modifier = HoMM.Core.Battle.DamageModifier(Creature("ogre").Attack, defense);
         var seen = new HashSet<int>();
@@ -170,7 +171,7 @@ public class CombatTactiqueTests
             battle.ForceTurn(ogres, new Hex(4, 4));
             battle.Attack(target, new Hex(4, 4));
             int damage = battle.TakeLog().OfType<UnitStruck>().First(s => !s.Retaliation).Damage;
-            Assert.InRange(damage, (int)Math.Floor(18 * modifier), (int)Math.Ceiling(36 * modifier));
+            Assert.InRange(damage, (int)Math.Floor(3 * ogre.MinDamage * modifier), (int)Math.Ceiling(3 * ogre.MaxDamage * modifier));
             seen.Add(damage);
         }
         Assert.True(seen.Count > 3, "les dégâts devraient varier d'un combat à l'autre");

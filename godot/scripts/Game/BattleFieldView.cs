@@ -617,6 +617,55 @@ public partial class BattleFieldView : Control
                         return grow >= 0.3;
                     });
                     break;
+                case UnitRevolted revolted:
+                    double revolt = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (revolt == 0)
+                        {
+                            // elle se tourne vers ses nouveaux ennemis
+                            var turned = _shown[revolted.Unit];
+                            turned.FacesLeft = null;
+                            turned.Flash = 1;
+                            _floating.Add(("Révolte !", turned.Position + Ui.V(0, -70), 0, MapRenderer.Rgb(240, 150, 130)));
+                        }
+                        revolt += Math.Max(delta, 1e-6);
+                        return revolt >= 0.4;
+                    });
+                    break;
+                case UnitEnraged enraged:
+                    double fury = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (fury == 0)
+                            _floating.Add(($"+{enraged.Rage} att.", _shown[enraged.Unit].Position + Ui.V(0, -70), 0, MapRenderer.Rgb(240, 90, 60)));
+                        fury += Math.Max(delta, 1e-6);
+                        return fury >= 0.15;
+                    });
+                    break;
+                case LightningStruck bolt:
+                    double flash = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (flash == 0)
+                        {
+                            // la foudre tombe sur la cible
+                            _bursts.Add((bolt.Target.Hexes.ToList(), MapRenderer.Rgb(255, 240, 120), 0));
+                            var target = _shown[bolt.Target];
+                            target.Count = Math.Max(0, target.Count - bolt.Killed);
+                            target.Flash = 1;
+                            _floating.Add(($"-{bolt.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 240, 120)));
+                            if (bolt.Killed > 0)
+                                _floating.Add(($"{bolt.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
+                        }
+                        flash += delta;
+                        if (flash < 0.35)
+                            return false;
+                        if (_shown[bolt.Target].Count == 0)
+                            _shown[bolt.Target].Gone = true;
+                        return true;
+                    });
+                    break;
                 case UnitDrained drained:
                     double drink = 0;
                     _animations.Enqueue(delta =>

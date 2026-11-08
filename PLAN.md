@@ -96,6 +96,8 @@ Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouable
 créature du niveau 7 et, plus tard, sa **version améliorée** (comme Heroes 3 : un bâtiment améliore une créature) ; ses
 deux ressources rares (la **principale** pour l'habitation et la créature du niveau 7, la **secondaire** pour les
 niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondaire pour deux autres).
+**Méthode pour chaque faction** (choix de l'utilisateur, 2026-11-08) : définir ensemble d'abord sa **philosophie**, ses
+**forces** et ses **faiblesses** (et ce qui la distingue des autres), puis ses créatures niveau par niveau.
 
 | Faction | Style | Niveau 7 → amélioré | Principale | Secondaire | État |
 |---|---|---|---|---|---|
@@ -108,10 +110,14 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Donjon** | souterrain | Tyran œil → Tyran ancien | soufre | mercure | à faire |
 | **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
 
+- **L'Ange ressuscite** (idée de l'utilisateur, 2026-11-08, **plus tard**, sur une branche à part) : à la place de son
+  action, il ramène des créatures amies tuées dans ce combat (pas les morts-vivants), **à chacun de ses tours** s'il le
+  veut : puissant, mais il y passe tout son tour. Proposé : autant de points de vie par Ange que ses dégâts (80), pour
+  que soigner ou frapper soit un vrai choix (100, comme Heroes 3, en vaut un peu plus). Puis refaire la mesure
+  `Duels_a_prix_egal`.
 - Le **Colosse d'os** reste au niveau 7 des morts-vivants, rendu aussi fort que l'Ange (il est plus faible : à revoir) ;
   le Colosse funèbre a plus de vie et son balayage effraie (les ennemis touchés ne ripostent plus).
-- Les **Barbares** : nos créatures neutres actuelles (Gobelin, Loup, Orc, Ogre) en forment l'essentiel, plus deux
-  créatures aux niveaux 5 et 6 et le Béhémoth (ses griffes ignorent une part de la défense ennemie).
+- Les **Barbares** : voir plus bas.
 - La **Forêt** : le **Troll** (l'image de combat existe) au niveau 7, rendu aussi fort que l'Ange (c'est aujourd'hui un
   neutre du niveau 5) : un troll géant qui se régénère ; le Troll ancien se régénère plus, et ses coups repoussent
   l'ennemi (il ne riposte plus).
@@ -126,12 +132,85 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
 
+#### Les Barbares (en cours)
+Décidé avec l'utilisateur (2026-11-08).
+- **Philosophie : la horde.** La force brute, le nombre et la vitesse : ils frappent les premiers et fort, et méprisent
+  la magie.
+- **Forces** : des troupes bon marché qui grandissent vite (la faction la plus forte des premières semaines) ; beaucoup
+  d'attaque et de dégâts, des créatures rapides ; le héros qui a le plus d'attaque. **La horde** (choix de
+  l'utilisateur) : aux niveaux 1 à 4, des créatures moins chères, plus nombreuses chaque semaine et plus faibles une à
+  une ; à prix égal, un combat reste égal : leur avantage est d'en avoir plus.
+- **Aux sièges** (quand les combats en ville auront des murs ; idée de l'utilisateur, 2026-11-08) : les troupes barbares
+  peuvent frapper les murs directement, contrairement aux autres factions ; ils prennent ainsi une ville sans attendre
+  leurs Oiseaux-tonnerre, leurs Orcs tirant mal.
+- **Faiblesses** : peu de défense (ils frappent fort mais meurent vite) ; peu de tireurs, à courte portée ; peu de
+  magie, par le héros seulement (la guilde des mages est complète) ; moins disciplinés que le Château (charisme 10
+  contre 14).
+- **Leur marque : la Rage** (comme la nécromancie des morts-vivants) : une troupe barbare frappée gagne de l'attaque
+  jusqu'à la fin du combat (chiffres à régler en mesurant).
+- **La classe Barbare** : attaque 3, défense 2, puissance 0, savoir 1, charisme 10, aucun sort au départ ; armée de
+  départ : 25 Gobelins, 8 Loups, 3 Orcs.
+- Le Gobelin, le Loup, l'Orc et l'Ogre deviennent barbares et restent des monstres de la carte (comme les morts-vivants).
+  Mis à l'échelle de prix du Château, ils rapportent bien moins d'expérience : **l'expérience sera redéfinie**
+  (choix de l'utilisateur).
+
+| Niveau | Créature | Rôle | Capacité | Habitation |
+|---|---|---|---|---|
+| 1 | Gobelin (des neutres) | la masse | rapide au premier round (déjà) | Hutte des gobelins |
+| 2 | Loup (des neutres) | le harceleur | frappe deux fois (déjà) | Tanière des loups |
+| 3 | Orc (des neutres) | le seul tireur | tir court (déjà) | Camp des orcs |
+| 4 | Ogre (des neutres) | la brute | coup écrasant : ignore 40 % de la défense (déjà) | Fort des ogres |
+| 5 | **Nomades** (choix de l'utilisateur) | cavaliers rapides, sur 2 cases | **frappe et repart** : après l'attaque, ils se déplacent avec ce qui leur reste de mouvement (l'ennemi riposte comme d'habitude) ; à mesurer contre les armées lentes | Campement nomade |
+| 6 | **Oiseau-tonnerre** | le volant, sur une case (ailes repliées) | vole ; ses coups appellent parfois la foudre (des dégâts en plus) | Nid du tonnerre |
+| 7 | Béhémoth | le géant, debout sur une case | ses griffes ignorent 60 % de la défense | Repaire du béhémoth |
+
+Habitations : mêmes prix et places que celles du Château, cristal (secondaire) aux niveaux 5 et 6, soufre (principale)
+au niveau 7 et pour le Béhémoth. Découpage comme les morts-vivants :
+1. ✅ Les créatures et leurs capacités (2026-11-08) : `rage` (+2 attaque par coup reçu, +6 au plus), `hit-and-run`
+   (`TacticalBattle.RetreatSteps` ; le bouton « Se défendre » devient « Rester » ; l'IA repart vers la case que le moins
+   d'ennemis au corps à corps peuvent atteindre, mais reste à côté d'un tireur pour l'empêcher de tirer), `lightning`
+   (une chance sur cinq, 15 dégâts par oiseau, sans défense), `rending` (60 %). Les gardiens de la carte se mesurent à
+   une force de référence par niveau (`MapGenerator.GuardReferenceStrength`, celle des anciens neutres).
+   Chiffres réglés avec l'utilisateur, par une nouvelle mesure, **`Duels_a_prix_egal`** (chaque créature contre celles
+   du même niveau pour le même prix en or : plus juste que la courbe des paysans, qui ne voit pas la taille des troupes)
+   : chaque créature barbare est au milieu de son niveau (elle bat l'une, perd contre l'autre, ou de peu).
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Gobelin | 2 | 1 | 1-2 | 3 | 5 | 30 | 6 |
+   | Loup | 6 | 4 | 2-4 | 9 | 6 | 18 | 21 |
+   | Orc | 8 | 3 | 2-5 | 15 | 4 | 14 | 32 |
+   | Ogre | 10 | 5 | 4-6 | 30 | 4 | 9 | 76 |
+   | Nomade | 13 | 8 | 10-14 | 45 | 8 | 6 | 165 |
+   | Oiseau-tonnerre | 16 | 10 | 18-24 | 90 | 11 | 4 | 320 |
+   | Béhémoth | 22 | 20 | 80-90 | 1400 | 7 | 2 | 4900 et 1 soufre |
+   **Frappe et repart** (mesure `Nomades_frappe_et_repart`) aide un peu contre les troupes lentes (contre des Ogres ou
+   des Vampires du même prix : 2 victoires sur 20 avec, aucune sans) sans rendre les Nomades plus forts que les autres
+   créatures du niveau 5. **Tailles** (choix de l'utilisateur, avec les images) : les Nomades sur 2 cases (un vrai
+   cheval), le Béhémoth et l'Oiseau-tonnerre sur une seule (debout ; l'oiseau, ailes repliées) ; à prix égal, les Nomades battent les Moines (il leur
+   reste 71 %) et perdent contre les Vampires (93 % restent aux Vampires) ; le Béhémoth ne change pas.
+   Mesuré (avec 30 paysans par semaine) : la simulation gagne les petites cartes vers le jour 89, les normales 86, les
+   grandes 152 ; un adversaire : Facile 11 700, Normal 15 400, Difficile 20 600 en or d'armée ; Château 21 900,
+   morts-vivants 15 600. Les anciens neutres rapportent moins d'expérience (prix plus bas) : **l'expérience sera
+   redéfinie**. Tests : `BarbaresTests`.
+   Vu au passage (`Duels_a_prix_egal`, à revoir avec l'utilisateur) : l'Archer perd contre tous les niveaux 2, le
+   Griffon bat largement les niveaux 3, le Vampire écrase le Moine, le Cavalier écrase les niveaux 6, l'Ange écrase le
+   Colosse d'os.
+2. ✅ La ville et le jeu (2026-11-08) : les 7 habitations (`hutte-gobelins`, `taniere-loups`, `camp-orcs`, `fort-ogres`,
+   `campement-nomade`, `nid-tonnerre`, `repaire-behemoth` : prix et places de celles du Château ; le grand hôtel de
+   ville demande aussi bien le Fort des ogres), la classe Barbare (armée de départ ramenée au prix des autres : 30
+   Gobelins, 10 Loups, 4 Orcs), les 5 héros barbares jouables ; rien à changer dans l'IA ni la nouvelle partie (tout
+   vient des données). Option `--faction=barbares`. Tests : `VilleBarbaresTests`. Mesuré (un adversaire, Normal, six
+   semaines, en or d'armée, ce qui compare bien puisqu'à prix égal un combat est égal) : Château 22 500, morts-vivants
+   16 100, **Barbares 17 400** ; la simulation seule comme avant (jours 87, 87, 152). À voir : la horde devrait être
+   la plus forte des premières semaines.
+3. Les images (session images : Nomades, Oiseau-tonnerre, Béhémoth, la ville ; en attendant, des ronds de couleur).
+
 #### Les morts-vivants (en cours)
 | Niveau | Créature | Rôle | Capacité (proposition) |
 |---|---|---|---|
 | 1 | Squelette (des neutres) | l'infanterie de base, nombreuse | encaisse les tirs (déjà) |
 | 2 | Zombie | un mur lent et solide | lent, beaucoup de PV |
-| 3 | Fantôme | grossit en tuant (choix de l'utilisateur) | vole ; **chaque créature ennemie tuée ajoute un fantôme à sa troupe**, pour de bon : une troupe qui grossit peut dépasser le charisme du héros et se révolter (des fantômes « incontrôlables ») |
+| 3 | Fantôme | grossit en tuant (choix de l'utilisateur) | vole ; **chaque créature ennemie tuée ajoute un fantôme à sa troupe**, pour de bon : une troupe qui grossit peut dépasser le charisme du héros et se révolter **aussitôt, pendant le combat** (elle change de camp ; ses survivants quittent l'armée ; 2026-11-08) |
 | 4 | Araignée géante | (choix de l'utilisateur) | morsure **empoisonnée** : des dégâts au début de chaque tour de la cible |
 | 5 | Vampire | le tueur au corps à corps | vole, **draine la vie** : ses dégâts soignent sa créature de tête, puis ramènent des vampires tués dans ce combat (jamais plus qu'au début) |
 | 6 | Liche | le tireur | **nuage de mort** : son tir touche aussi les cases voisines, sauf les morts-vivants |
@@ -207,6 +286,15 @@ une taverne propose d'abord ceux de la faction de sa ville, puis les autres quan
 prend le dernier héros de sa faction. Tests : `ClassesTests`.
 À faire avec les factions : leurs classes, puis l'équilibre force / magie (d'abord apprendre à la simulation à ramasser
 les tas de ressources : `Simulation_force_ou_magie`).
+
+### Les compétences des héros et les artefacts (à concevoir)
+Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemble, avec la même méthode que les factions
+(l'idée d'abord, puis le détail).
+- **Les compétences** : ce qu'un héros apprend en montant de niveau, en plus des caractéristiques (comme les
+  compétences secondaires de Heroes 3 : écoles de magie, logistique, tir…), avec les classes de héros et les cavernes
+  de la carte.
+- **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le
+  héros, leurs effets, où on les trouve (gardiens, coffres, cavernes), peut-être des ensembles.
 
 ### Les ressources rares ✅
 Décidé avec l'utilisateur (2026-11-07), comme Heroes 2 et 3 : **7 ressources**, l'or, le bois et le minerai (communs),
@@ -290,6 +378,9 @@ croissance, prix, garde.
 - ✅ **Des cases de 32 pixels d'art** (au lieu de 24 ; décision de l'utilisateur, 2026-11-08) : cases de 64 pixels à
   l'écran (×2), zooms ×2 et ×3 ; chaque image de la carte à ×2 exactement, posée en bas et centrée (`MapRenderer.DrawArt`) ;
   les images de 32 pixels viennent de la session images (`graphismes-suite-4`).
+- **Des icônes plutôt que du texte sur la plupart des boutons**, pour gagner de la place (demandé par l'utilisateur,
+  2026-11-08 ; le nom dans l'info-bulle).
+- **Les barres de défilement** : la poignée comme taillée dans la pierre (demandé par l'utilisateur, 2026-11-08).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la
   date. (Icônes des ressources : faites, 2026-11-07.)
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
@@ -336,9 +427,11 @@ croissance, prix, garde.
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à 1000 × (n−1) × n / 2 d'expérience (= l'or des créatures
   tuées) ; chaque niveau : +1 charisme et +1 au choix. Une troupe obéit si nombre × coût de commandement ≤ charisme
-  × 10, sinon elle peut se révolter au début d'un combat (≈ 50 % à deux fois la limite). Les garnisons n'ont pas de limite.
+  × 10, sinon elle peut se révolter au début d'un combat (≈ 50 % à deux fois la limite), ou pendant
+  si elle grossit (Fantômes) ; le héros attaqué aussi (ses révoltés combattent avec l'attaquant). Les garnisons n'ont
+  pas de limite.
 - **Château** : départ 30 paysans, 15 archers, 4 griffons ; prix 3 or par « paysan équivalent » (Archer 18, Griffon 40,
-  Épéiste 80, Moine 150, Cavalier 300, Ange 4900 et 1 gemme) ; croissance 28, 18, 14, 8, 6, 4, 2 ; paysans pour vaincre
+  Épéiste 80, Moine 150, Cavalier 300, Ange 4900 et 1 gemme) ; croissance 30 (28 avant le 2026-11-08), 18, 14, 8, 6, 4, 2 ; paysans pour vaincre
   une unité : Archer 8, Griffon 13, Épéiste 26, Moine 58, Cavalier 112, Ange 1560 (`UnitCurveTests`).
 - **Économie** : villes 150 / 300 / 600 or par jour, mines d'or 250 ; héros de taverne 2500 or (8 au plus).
 - **Combat** : dégâts tirés au sort puis règle attaque / défense de Heroes 3 ; tir à moitié au-delà de 6 cases ou

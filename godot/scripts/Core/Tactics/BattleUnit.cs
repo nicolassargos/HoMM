@@ -76,11 +76,24 @@ public static class Ability
     /// <summary>Balayage : au corps à corps, frappe aussi tous les autres ennemis voisins (Colosse d'os).</summary>
     public const string Sweep = "sweep";
 
+    /// <summary>Rage (Barbares) : chaque coup reçu donne de l'attaque à la troupe, jusqu'à la fin du combat.</summary>
+    public const string Rage = "rage";
+
+    /// <summary>Frappe et repart (Nomades) : après son attaque, la troupe se déplace avec le mouvement qui lui reste.</summary>
+    public const string HitAndRun = "hit-and-run";
+
+    /// <summary>Foudre (Oiseau-tonnerre) : son attaque appelle parfois la foudre sur la cible (dégâts sans défense).</summary>
+    public const string Lightning = "lightning";
+
+    /// <summary>Griffes : ignore 60 % de la défense de la cible (Béhémoth).</summary>
+    public const string Rending = "rending";
+
     public static readonly string[] Known =
     {
         Shoots, NoRangePenalty, Flies, DoubleRetaliation, NoRetaliation, Breath, RangedResistance,
         Charge, QuickStart, DoubleAttack, ShortRange, Crushing, Regenerates, TwoHex,
         Undead, GhostGrowth, Poison, LifeDrain, DeathCloud, Sweep,
+        Rage, HitAndRun, Lightning, Rending,
     };
 }
 
@@ -108,7 +121,7 @@ public sealed class BattleUnit
     public CreatureStack Stack { get; }
     public CreatureType Type => Stack.Type;
     public int Count => Stack.Count;
-    public BattleSide Side { get; }
+    public BattleSide Side { get; private set; }
 
     /// <summary>Place de la troupe dans son armée (départage l'ordre de jeu).</summary>
     public int Slot { get; }
@@ -136,11 +149,25 @@ public sealed class BattleUnit
     public bool Occupies(Hex hex) => Hexes.Contains(hex);
 
     /// <summary>Une troupe révoltée : elle combat dans le camp du défenseur, sans le bonus du héros.</summary>
-    public bool IsRebel { get; }
+    public bool IsRebel { get; private set; }
+
+    /// <summary>
+    /// La troupe se révolte pendant le combat : elle passe dans l'autre camp, sans le bonus de son héros. Une grande
+    /// créature garde ses deux cases (sa tête devient la case de derrière, vue de son nouveau camp).
+    /// </summary>
+    internal void Turn()
+    {
+        var back = Hexes.Last();
+        Side = Side == BattleSide.Attacker ? BattleSide.Defender : BattleSide.Attacker;
+        IsRebel = true;
+        AttackBonus = DefenseBonus = 0;
+        if (IsLarge)
+            Position = back;
+    }
 
     /// <summary>Bonus du héros (attaque et défense).</summary>
-    public int AttackBonus { get; }
-    public int DefenseBonus { get; }
+    public int AttackBonus { get; private set; }
+    public int DefenseBonus { get; private set; }
 
     /// <summary>Points de vie de la créature de tête (les autres sont intactes).</summary>
     public int TopHitPoints { get; private set; }
@@ -173,8 +200,20 @@ public sealed class BattleUnit
     /// <summary>La troupe a choisi d'attendre : elle jouera après les autres dans ce round.</summary>
     public bool HasWaited { get; internal set; }
 
-    /// <summary>Attaque, bonus du héros compris, moins la faiblesse.</summary>
-    public int Attack => Math.Max(0, Type.Attack + AttackBonus + SpellAmount(SpellEffect.Bloodlust) - SpellAmount(SpellEffect.Weakness));
+    /// <summary>Attaque, bonus du héros et rage compris, moins la faiblesse.</summary>
+    public int Attack => Math.Max(0, Type.Attack + AttackBonus + Rage + SpellAmount(SpellEffect.Bloodlust) - SpellAmount(SpellEffect.Weakness));
+
+    /// <summary>L'attaque gagnée par la rage dans ce combat (<see cref="Ability.Rage"/>).</summary>
+    public int Rage { get; private set; }
+
+    /// <summary>La troupe enrage : <paramref name="amount"/> d'attaque en plus, sans dépasser <paramref name="max"/>. Renvoie false si elle est déjà au plus fort.</summary>
+    internal bool Enrage(int amount, int max)
+    {
+        if (!IsAlive || Rage >= max)
+            return false;
+        Rage = Math.Min(max, Rage + amount);
+        return true;
+    }
 
     /// <summary>Défense, bonus du héros et peau de pierre compris, et +20 % (arrondi au-dessus) quand la troupe se défend.</summary>
     public int Defense

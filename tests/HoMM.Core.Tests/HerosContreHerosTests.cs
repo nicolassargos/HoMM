@@ -50,6 +50,41 @@ public class HerosContreHerosTests
     }
 
     [Fact]
+    public void Les_troupes_trop_nombreuses_du_heros_attaque_peuvent_se_revolter()
+    {
+        // ses Fantômes dépassent de loin son charisme (95 % de chances de révolte) : ils combattent avec le joueur
+        var (state, me, him) = FaceToFace(mine: 40, rival: 10);
+        var ghost = TestData.Creatures.Get("fantome");
+        him.Army.Add(ghost, 20 * Command.Limit(him.Charisma) / ghost.CommandCost);
+
+        state.SetDestination(him.Position);
+        state.StepAlongPath();
+
+        var fought = state.TakeEvents().OfType<BattleFought>().Single();
+        Assert.Equal(ghost, Assert.Single(fought.Report.DefenderRebels).Type);
+        Assert.True(fought.Report.AttackerWon);
+        Assert.DoesNotContain(me.Army.Stacks, s => s.Type == ghost); // ils ne rejoignent pas le vainqueur
+    }
+
+    [Fact]
+    public void Les_revoltes_du_defenseur_ne_gagnent_pas_a_la_place_de_l_attaquant()
+    {
+        var attacker = new Army();
+        attacker.Add(TestData.Creatures.Get("paysan"), 1);
+        var defender = new Army();
+        defender.Add(TestData.Creatures.Get("ange"), 1);
+        var rebels = new Army();
+        rebels.Add(TestData.Creatures.Get("ange"), 5);
+        var battle = new TacticalBattle(attacker, defender, new GameRandom(1), defenderRebels: rebels);
+
+        BattleAI.PlayOut(battle);
+
+        // le paysan tombe vite : le combat s'arrête là, même si les anges révoltés auraient battu l'ange
+        Assert.Equal(BattleOutcome.DefenderWon, battle.Outcome);
+        Assert.True(battle.Report().DefenderRebelSurvivors.Count > 0);
+    }
+
+    [Fact]
     public void Le_heros_qui_se_defend_et_gagne_gagne_de_l_experience()
     {
         var (state, me, him) = FaceToFace(mine: 80, rival: 3);

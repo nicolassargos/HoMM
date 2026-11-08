@@ -5,6 +5,9 @@
       "army": [ { "creature": "paysan", "count": 30 }, { "creature": "archer", "count": 15 }, { "creature": "griffon", "count": 4 } ] },
     { "id": "necromancien", "name": "Nécromancien", "faction": "morts-vivants",
       "attack": 1, "defense": 1, "power": 2, "knowledge": 2, "charisma": 8, "spells": ["malediction"], "talent": "necromancy", "mainResource": "Mercury", "secondaryResource": "Gems",
-      "army": [ { "creature": "squelette", "count": 20 }, { "creature": "zombie", "count": 10 }, { "creature": "fantome", "count": 2 } ] }
+      "army": [ { "creature": "squelette", "count": 20 }, { "creature": "zombie", "count": 10 }, { "creature": "fantome", "count": 2 } ] },
+    { "id": "barbare", "name": "Barbare", "faction": "barbares",
+      "attack": 3, "defense": 2, "power": 0, "knowledge": 1, "charisma": 10, "spells": [], "mainResource": "Sulfur", "secondaryResource": "Crystal",
+      "army": [ { "creature": "gobelin", "count": 30 }, { "creature": "loup", "count": 10 }, { "creature": "orc", "count": 4 } ] }
   ]
 }

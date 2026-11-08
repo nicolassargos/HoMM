@@ -132,6 +132,7 @@ public static class Texts
 
     public static string BattleWait => "Attendre";
     public static string BattleDefend => "Se défendre";
+    public static string BattleStay => "Rester";
     public static string BattleAuto => "Auto";
     public static string BattleFlee => "Fuir";
 
@@ -153,6 +154,11 @@ public static class Texts
             ? $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.Revived} {(d.Revived == 1 ? "revient" : "reviennent")} à la vie en buvant le sang."
             : $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.HitPoints} PV repris en buvant le sang.",
         UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
+        UnitRevolted v => $"{Capitalize(Stack(v.Unit.Stack))} {(v.Unit.Count == 1 ? "se révolte et change" : "se révoltent et changent")} de camp !",
+        UnitMayRetreat r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "peut" : "peuvent")} repartir ({r.Steps} {(r.Steps == 1 ? "case" : "cases")}).",
+        UnitEnraged e => $"{Capitalize(Stack(e.Unit.Stack))} {(e.Unit.Count == 1 ? "enrage" : "enragent")} : +{e.Rage} en attaque.",
+        LightningStruck l => $"La foudre frappe {Stack(new CreatureStack(l.Target.Type, l.Target.Count + l.Killed))} : {l.Damage} dégâts"
+                             + (l.Killed > 0 ? $", {l.Killed} {(l.Killed == 1 ? "tué" : "tués")}." : "."),
         SpellCast c => $"{c.Caster.Name} lance {c.Spell.Name}.",
         SpellDamaged d => $"{d.Spell.Name} : {d.Damage} dégâts à {Stack(new CreatureStack(d.Target.Type, d.Target.Count + d.Killed))}"
                           + (d.Killed > 0 ? $", {d.Killed} {(d.Killed == 1 ? "tué" : "tués")}." : "."),
@@ -204,9 +210,17 @@ public static class Texts
             ? $"Expérience : +{Battle.ExperienceFor(battle.Report.AttackerLosses)}" : "";
 
     /// <summary>« Révolte : 40 Paysans refusent d'obéir… », ou null s'il n'y a pas eu de révolte.</summary>
-    public static string? Revolt(BattleReport report) => report.Rebels.Count == 0 ? null
-        : $"Révolte : {string.Join(", ", report.Rebels.Select(Stack))} refusent d'obéir et combattent l'ennemi"
-          + (report.RebelSurvivors.Count > 0 ? ", les survivants quittent l'armée." : ".");
+    public static string? Revolt(BattleReport report)
+    {
+        var lines = new List<string>();
+        if (report.Rebels.Count > 0)
+            lines.Add($"Révolte : {string.Join(", ", report.Rebels.Select(Stack))} refusent d'obéir et combattent l'ennemi"
+                      + (report.RebelSurvivors.Count > 0 ? ", les survivants quittent l'armée." : "."));
+        if (report.DefenderRebels.Count > 0)
+            lines.Add($"Révolte chez le défenseur : {string.Join(", ", report.DefenderRebels.Select(Stack))} refusent d'obéir et combattent avec l'attaquant"
+                      + (report.DefenderRebelSurvivors.Count > 0 ? ", les survivants quittent son armée." : "."));
+        return lines.Count == 0 ? null : string.Join(" ", lines);
+    }
 
     public static string BattleTitle(BattleFought battle) => battle.Defender is Town town
         ? $"Assaut de {town.Name}"
@@ -754,7 +768,7 @@ public static class Texts
     {
         HeroStat.Attack => $"Attaque {hero.Attack} : s'ajoute à l'attaque de chaque troupe du héros.",
         HeroStat.Defense => $"Défense {hero.Defense} : s'ajoute à la défense de chaque troupe du héros.",
-        HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (dégâts, soins) et leur durée ({hero.Power + 1} rounds).",
+        HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (dégâts, soins) et leur durée ({hero.Power + 1} round{(hero.Power + 1 > 1 ? "s" : "")}).",
         HeroStat.Knowledge => $"Savoir {hero.Knowledge} : {Hero.SpellPointsPerKnowledge} points de sort par point (points de sort : {hero.SpellPoints} / {hero.MaxSpellPoints}, +1 par jour).",
         _ => $"Charisme {hero.Charisma} : le héros commande au plus {Command.Limit(hero.Charisma)} points par troupe "
              + "(nombre × coût de la créature). Au-delà, la troupe risque de se révolter au combat.",
@@ -804,6 +818,10 @@ public static class Texts
         Ability.LifeDrain => "draine la vie",
         Ability.DeathCloud => "nuage de mort",
         Ability.Sweep => "balayage",
+        Ability.Rage => "rage (chaque coup reçu donne de l'attaque)",
+        Ability.HitAndRun => "frappe et repart",
+        Ability.Lightning => "appelle la foudre",
+        Ability.Rending => "griffes (ignorent 60 % de la défense)",
         _ => ability,
     };
 
@@ -866,7 +884,7 @@ public static class Texts
     {
         HeroStat.Attack => "+ à l'attaque de chaque troupe",
         HeroStat.Defense => "+ à la défense de chaque troupe",
-        HeroStat.Power => $"force et durée des sorts ({hero.Power + 1} rounds)",
+        HeroStat.Power => $"force et durée des sorts ({hero.Power + 1} round{(hero.Power + 1 > 1 ? "s" : "")})",
         HeroStat.Knowledge => $"{hero.MaxSpellPoints} points de sort au plus",
         _ => $"commande {Command.Limit(hero.Charisma)} points par troupe",
     };

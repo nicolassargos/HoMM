@@ -21,6 +21,12 @@ public sealed class BattleReport
     /// <summary>Survivants des troupes révoltées : ils quittent l'armée après le combat.</summary>
     public List<CreatureStack> RebelSurvivors { get; init; } = new();
 
+    /// <summary>Troupes révoltées du héros qui se défendait : elles ont combattu avec l'attaquant.</summary>
+    public List<CreatureStack> DefenderRebels { get; init; } = new();
+
+    /// <summary>Survivants des révoltés du défenseur : ils ont quitté son armée.</summary>
+    public List<CreatureStack> DefenderRebelSurvivors { get; init; } = new();
+
     /// <summary>Les points de sort dépensés par le héros de chaque camp (retirés au héros après le combat).</summary>
     public int AttackerSpellPointsSpent { get; init; }
     public int DefenderSpellPointsSpent { get; init; }

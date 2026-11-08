@@ -551,8 +551,11 @@ public sealed partial class GameState
         }
         var (defender, army) = step.Opponents.Dequeue();
         var rebels = RollRevolts(step.Hero);
+        // le héros attaqué aussi : ses troupes trop nombreuses peuvent se révolter et combattre avec l'attaquant
+        var defenderHero = (defender as HeroDefender)?.Hero;
+        var defenderRebels = defenderHero != null ? RollRevolts(defenderHero) : null;
         _battle = new BattleContext(step.Hero, defender, army.Clone().Stacks);
-        CurrentBattle = new TacticalBattle(step.Hero.Army, army, _rng, step.Hero, rebels, (defender as HeroDefender)?.Hero);
+        CurrentBattle = new TacticalBattle(step.Hero.Army, army, _rng, step.Hero, rebels, defenderHero, defenderRebels);
         Emit(new BattleStarted(step.Hero, defender, CurrentBattle));
         if (QuickBattles && !(HumansDefend && DefendedByHuman(defender)))
         {

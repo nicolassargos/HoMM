@@ -527,9 +527,17 @@
         "L6": "angle seul"
       },
       "choix": {
-        "fixe": "L6-2 + visage"
+        "fixe": "L6-2 + visage",
+        "idle": "idle-2",
+        "attack": "attack-2-r",
+        "move": "move-4 (images 3 à 14 : galop sans retour au pas), 16 images/s, 0,4 s par case"
       },
-      "grande": "art-candidats/references/derives/nomades-grand.png"
+      "grande": "art-candidats/references/derives/nomades-grand.png",
+      "consignes": {
+        "idle": "the small horse paws the ground with one hoof and shakes its mane, the rider shifts in the saddle and looks around, the hooves stay in place",
+        "move": "the horse gallops forward to the right, its four legs in a clear fast gallop, the rider leaning forward",
+        "attack": "the horse lunges forward and the rider slashes down with the curved sabre at the enemy in front of it, then the horse wheels back to its starting place"
+      }
     },
     "oiseau-tonnerre": {
       "nom": "Oiseau-tonnerre",
@@ -554,7 +562,7 @@
         "move": "the thunderbird spreads its huge wings and flies forward to the right with powerful wing beats"
       },
       "vole": true,
-      "notes": "Barbares, niveau 6 : vole, grande créature sur 2 cases, appelle la foudre (l'effet vient du jeu, pas de l'image). Choix de l'utilisateur (2026-11-08) : oiseau-totem mythique. Revu : ailes repliées le long du corps.",
+      "notes": "Barbares, niveau 6 : vole, 1 case (choix de l'utilisateur, 2026-11-08), appelle la foudre (l'effet vient du jeu, pas de l'image). Choix de l'utilisateur (2026-11-08) : oiseau-totem mythique. Revu : ailes repliées le long du corps. Animations (revu) : au repos il se gratte l'aile avec le bec ; il se déplace trop vite pour battre des ailes ; l'attaque montre la foudre, sans éclat.",
       "lots": {
         "L1": "angle seul",
         "L2": "angle seul",
@@ -566,7 +574,12 @@
       "choix": {
         "fixe": "L6-3"
       },
-      "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png"
+      "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png",
+      "consignes": {
+        "idle": "the thunderbird stands on its talons, turns its head and slowly scratches and preens the feathers of its folded wing with its hooked beak, then looks back forward, the talons stay in place",
+        "move": "the thunderbird darts forward to the right extremely fast in a low straight swift glide, its wings stay folded tight against its body, no wing flapping at all, like a streak",
+        "attack": "the thunderbird raises its wings and its head toward the sky, a jagged blue-white lightning bolt crackles down from above and strikes the ground in front of it, then the bird folds its wings back to its starting pose"
+      }
     },
     "behemoth": {
       "nom": "Béhémoth",
@@ -604,7 +617,12 @@
       "choix": {
         "fixe": "L8-1"
       },
-      "grande": "art-candidats/references/derives/behemoth-grand.png"
+      "grande": "art-candidats/references/derives/behemoth-grand.png",
+      "consignes": {
+        "idle": "the behemoth slowly raises one huge clawed hand and scratches the top of its shaggy head, looking puzzled, then lowers the arm back down, the feet stay in place",
+        "move": "the behemoth walks forward to the right on its two legs with slow heavy steps, its long arms swinging, its shoulders rolling",
+        "attack": "the behemoth raises one huge clawed hand high and rakes it down hard at the enemy in front of it, its long claws tearing, then straightens up to its starting pose"
+      }
     }
   }
 }

@@ -70,7 +70,7 @@ MINES = {
         "chemin": [(48 + ((y // 5) % 2), y) for y in range(42, 64)],
     },
     "mine-sulfur": {
-        "batiment": (p("entree-soufre", 1), None, 42),
+        "batiment": (p("entree-soufre", 2, "v3"), None, 42),
         "pieces": [(f"{DECOR}/peak-small-2.png", 20, 2, 6), (f"{DECOR}/peak-small.png", 18, 80, 8), (f"{OBJETS}/pile-sulfur.png", 16, 14, 44),
                    (f"{OBJETS}/pile-sulfur.png", 16, 66, 44), (f"{OBJETS}/pile-sulfur.png", 12, 4, 30)],
         "chemin": [(48 + ((y // 5) % 2), y) for y in range(42, 64)],

@@ -107,6 +107,19 @@ public sealed class ResourcePile : MapObject
     }
 }
 
+/// <summary>
+/// Le héros a ouvert un coffre : son joueur choisit l'or ou l'expérience (<see cref="GameState.ChooseChest"/>). En
+/// attendant, le choix reste dans <see cref="GameState.PendingChests"/>.
+/// </summary>
+public sealed record ChestOpened(Hero Hero, TreasureChest Chest) : ObjectVisited(Hero, Chest);
+
+/// <summary>Le coffre a donné de l'or (<paramref name="Gold"/>) ou de l'expérience.</summary>
+public sealed record ChestChosen(Hero Hero, bool Gold, int Amount) : GameEvent;
+
+/// <summary>
+/// Un coffre au trésor : comme dans Heroes 2 et 3, le joueur choisit 1000, 1500 ou 2000 or, ou 500 de moins en
+/// expérience (choix de l'utilisateur, 2026-11-08).
+/// </summary>
 public sealed class TreasureChest : MapObject
 {
     private static readonly int[] PossibleGold = { 1000, 1500, 2000 };
@@ -119,11 +132,11 @@ public sealed class TreasureChest : MapObject
 
     public int Gold { get; }
 
-    public override ObjectVisited Visit(Hero hero)
-    {
-        hero.Owner.Resources[ResourceType.Gold] += Gold;
-        return new ResourcesFound(hero, this, ResourceType.Gold, Gold);
-    }
+    /// <summary>L'expérience offerte à la place de l'or.</summary>
+    public int Experience => Gold - 500;
+
+    /// <summary>Rien n'est donné tout de suite : le joueur choisit (voir <see cref="ChestOpened"/>).</summary>
+    public override ObjectVisited Visit(Hero hero) => new ChestOpened(hero, this);
 }
 
 /// <summary>Le héros a visité un obélisque. <paramref name="FirstVisit"/> : un nouveau morceau de la carte au trésor.</summary>

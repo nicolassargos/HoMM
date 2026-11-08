@@ -195,6 +195,11 @@ public static class MapRenderer
         ResourcePile pile => Art.Get($"objects/pile-{Art.Name(pile.Resource)}"),
         TreasureChest => Art.Get("objects/chest"),
         Obelisk => Art.Get("objects/obelisk"),
+        Shrine shrine => Art.Get($"objects/shrine-{shrine.Stat.ToString().ToLowerInvariant()}"),
+        SageHut => Art.Get("objects/sage"),
+        WeeklyProducer { IsWaterWheel: true } => Art.Get("objects/water-wheel"),
+        WeeklyProducer => Art.Get("objects/windmill"),
+        ObservationTower => Art.Get("objects/tower"),
         Mine mine => Art.Get($"objects/mine-{Art.Name(mine.Resource)}"),
         MonsterGuard guard => Art.Get($"creatures/{guard.Type.Id}"),
         Town town => Art.Town(town.Faction),
@@ -233,6 +238,10 @@ public static class MapRenderer
                 ci.DrawRect(new Rect2(c + V(-3, -4), 6, 7), Rgb(230, 190, 60));
                 if ((int)(time * 2) % 2 == 0) // petit scintillement
                     ci.DrawCircle(c + V(10, -13), 2, Rgb(255, 255, 200));
+                break;
+
+            case Shrine or SageHut or WeeklyProducer or ObservationTower:
+                DrawSite(ci, obj, c, time);
                 break;
 
             case Obelisk:
@@ -313,6 +322,79 @@ public static class MapRenderer
         var size = image.GetSize() * ArtScale;
         var position = new Vector2(MathF.Floor(area.Position.X + (area.Size.X - size.X) / 2), area.End.Y - size.Y);
         return new Rect2(position, size);
+    }
+
+    /// <summary>
+    /// Les lieux sans image (en attendant celles de la session images) : un dessin par formes, réglé pour des cases de 48
+    /// pixels et mis à l'échelle de la case.
+    /// </summary>
+    private static void DrawSite(CanvasItem ci, MapObject obj, Vector2 c, double time)
+    {
+        float k = T / 48f;
+        Vector2 P(float x, float y) => c + k * V(x, y);
+        Rect2 R(float x, float y, float w, float h) => new(P(x, y), k * w, k * h);
+        var stone = Rgb(135, 130, 122);
+        var darkStone = Rgb(95, 90, 85);
+        var wood = Rgb(120, 80, 40);
+        switch (obj)
+        {
+            case Shrine shrine:
+                // un autel de pierre et sa flamme : rouge (attaque), bleue (défense), violette (puissance), verte (savoir)
+                var flame = shrine.Stat switch
+                {
+                    HeroStat.Attack => Rgb(230, 70, 40),
+                    HeroStat.Defense => Rgb(70, 130, 230),
+                    HeroStat.Power => Rgb(170, 80, 220),
+                    _ => Rgb(80, 200, 90),
+                };
+                ci.DrawRect(R(-14, 6, 28, 10), darkStone);
+                ci.DrawRect(R(-10, -4, 20, 11), stone);
+                float flicker = (int)(time * 4) % 2 == 0 ? 0 : 2;
+                Triangle(ci, P(-7, -4), P(0, -20 - flicker), P(7, -4), flame);
+                Triangle(ci, P(-3, -4), P(0, -12), P(3, -4), Rgb(255, 240, 180));
+                break;
+            case SageHut:
+                // une hutte de bois au toit de chaume, une fenêtre éclairée
+                ci.DrawRect(R(-13, -2, 26, 18), wood);
+                Triangle(ci, P(-18, -1), P(0, -20), P(18, -1), Rgb(200, 170, 80));
+                ci.DrawRect(R(-4, 6, 8, 10), Rgb(50, 30, 15));
+                ci.DrawRect(R(6, 2, 5, 5), Rgb(250, 220, 120));
+                break;
+            case WeeklyProducer { IsWaterWheel: true }:
+                // une maisonnette et sa roue
+                ci.DrawRect(R(-2, -6, 18, 22), stone);
+                Triangle(ci, P(-4, -5), P(7, -16), P(18, -5), Rgb(150, 60, 40));
+                ci.DrawCircle(P(-8, 6), 11 * k, wood);
+                ci.DrawCircle(P(-8, 6), 6 * k, Rgb(80, 140, 200));
+                float turn = (float)(time * 1.5);
+                for (int i = 0; i < 4; i++)
+                {
+                    var d = new Vector2(Mathf.Cos(turn + i * Mathf.Pi / 4), Mathf.Sin(turn + i * Mathf.Pi / 4)) * 11 * k;
+                    ci.DrawLine(P(-8, 6) - d, P(-8, 6) + d, Rgb(70, 45, 20), 2 * k);
+                }
+                break;
+            case WeeklyProducer:
+                // un moulin : une tour claire et ses ailes qui tournent
+                ci.DrawColoredPolygon(new[] { P(-8, -10), P(8, -10), P(11, 16), P(-11, 16) }, Rgb(215, 200, 170));
+                Triangle(ci, P(-10, -10), P(0, -19), P(10, -10), Rgb(150, 60, 40));
+                ci.DrawRect(R(-3, 8, 6, 8), Rgb(70, 45, 20));
+                float spin = (float)(time * 1.2);
+                for (int i = 0; i < 4; i++)
+                {
+                    var d = new Vector2(Mathf.Cos(spin + i * Mathf.Pi / 2), Mathf.Sin(spin + i * Mathf.Pi / 2)) * 17 * k;
+                    ci.DrawLine(P(0, -8), P(0, -8) + d, Rgb(240, 235, 220), 3 * k);
+                }
+                break;
+            case ObservationTower:
+                // une haute tour de pierre crénelée, plus haute que sa case
+                ci.DrawRect(R(-9, -26, 18, 42), stone);
+                for (int i = 0; i < 3; i++)
+                    ci.DrawRect(R(-11 + i * 8, -32, 6, 6), stone);
+                ci.DrawRect(R(-11, -27, 22, 3), darkStone);
+                ci.DrawRect(R(-2, -18, 4, 7), Rgb(40, 35, 30));
+                ci.DrawRect(R(-4, 6, 8, 10), Rgb(50, 30, 15));
+                break;
+        }
     }
 
     public static readonly Color NeutralColor = Rgb(200, 200, 200);

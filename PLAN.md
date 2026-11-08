@@ -110,9 +110,11 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Donjon** | souterrain | Tyran œil → Tyran ancien | soufre | mercure | à faire |
 | **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
 
-- **L'Ange ressuscite** (idée de l'utilisateur, 2026-11-08, à faire) : à la place de son action, il ramène des créatures
-  amies tuées dans ce combat (pas les morts-vivants). Puissant, mais il y passe tout son tour. À régler : combien de
-  points de vie par Ange, une fois par combat ou non ; puis refaire la mesure `Duels_a_prix_egal`.
+- **L'Ange ressuscite** (idée de l'utilisateur, 2026-11-08, **plus tard**, sur une branche à part) : à la place de son
+  action, il ramène des créatures amies tuées dans ce combat (pas les morts-vivants), **à chacun de ses tours** s'il le
+  veut : puissant, mais il y passe tout son tour. Proposé : autant de points de vie par Ange que ses dégâts (80), pour
+  que soigner ou frapper soit un vrai choix (100, comme Heroes 3, en vaut un peu plus). Puis refaire la mesure
+  `Duels_a_prix_egal`.
 - Le **Colosse d'os** reste au niveau 7 des morts-vivants, rendu aussi fort que l'Ange (il est plus faible : à revoir) ;
   le Colosse funèbre a plus de vie et son balayage effraie (les ennemis touchés ne ripostent plus).
 - Les **Barbares** : voir plus bas.
@@ -159,7 +161,7 @@ Décidé avec l'utilisateur (2026-11-08).
 | 3 | Orc (des neutres) | le seul tireur | tir court (déjà) | Camp des orcs |
 | 4 | Ogre (des neutres) | la brute | coup écrasant : ignore 40 % de la défense (déjà) | Fort des ogres |
 | 5 | **Nomades** (choix de l'utilisateur) | cavaliers rapides, sur 2 cases | **frappe et repart** : après l'attaque, ils se déplacent avec ce qui leur reste de mouvement (l'ennemi riposte comme d'habitude) ; à mesurer contre les armées lentes | Campement nomade |
-| 6 | **Oiseau-tonnerre** | le volant, sur 2 cases | vole ; ses coups appellent parfois la foudre (des dégâts en plus) | Nid du tonnerre |
+| 6 | **Oiseau-tonnerre** | le volant, sur une case (ailes repliées) | vole ; ses coups appellent parfois la foudre (des dégâts en plus) | Nid du tonnerre |
 | 7 | Béhémoth | le géant, debout sur une case | ses griffes ignorent 60 % de la défense | Repaire du béhémoth |
 
 Habitations : mêmes prix et places que celles du Château, cristal (secondaire) aux niveaux 5 et 6, soufre (principale)
@@ -184,7 +186,7 @@ au niveau 7 et pour le Béhémoth. Découpage comme les morts-vivants :
    **Frappe et repart** (mesure `Nomades_frappe_et_repart`) aide un peu contre les troupes lentes (contre des Ogres ou
    des Vampires du même prix : 2 victoires sur 20 avec, aucune sans) sans rendre les Nomades plus forts que les autres
    créatures du niveau 5. **Tailles** (choix de l'utilisateur, avec les images) : les Nomades sur 2 cases (un vrai
-   cheval), le Béhémoth sur une seule (debout sur deux jambes) ; à prix égal, les Nomades battent les Moines (il leur
+   cheval), le Béhémoth et l'Oiseau-tonnerre sur une seule (debout ; l'oiseau, ailes repliées) ; à prix égal, les Nomades battent les Moines (il leur
    reste 71 %) et perdent contre les Vampires (93 % restent aux Vampires) ; le Béhémoth ne change pas.
    Mesuré (avec 30 paysans par semaine) : la simulation gagne les petites cartes vers le jour 89, les normales 86, les
    grandes 152 ; un adversaire : Facile 11 700, Normal 15 400, Difficile 20 600 en or d'armée ; Château 21 900,
@@ -208,7 +210,7 @@ au niveau 7 et pour le Béhémoth. Découpage comme les morts-vivants :
 |---|---|---|---|
 | 1 | Squelette (des neutres) | l'infanterie de base, nombreuse | encaisse les tirs (déjà) |
 | 2 | Zombie | un mur lent et solide | lent, beaucoup de PV |
-| 3 | Fantôme | grossit en tuant (choix de l'utilisateur) | vole ; **chaque créature ennemie tuée ajoute un fantôme à sa troupe**, pour de bon : une troupe qui grossit peut dépasser le charisme du héros et se révolter (des fantômes « incontrôlables ») |
+| 3 | Fantôme | grossit en tuant (choix de l'utilisateur) | vole ; **chaque créature ennemie tuée ajoute un fantôme à sa troupe**, pour de bon : une troupe qui grossit peut dépasser le charisme du héros et se révolter **aussitôt, pendant le combat** (elle change de camp ; ses survivants quittent l'armée ; 2026-11-08) |
 | 4 | Araignée géante | (choix de l'utilisateur) | morsure **empoisonnée** : des dégâts au début de chaque tour de la cible |
 | 5 | Vampire | le tueur au corps à corps | vole, **draine la vie** : ses dégâts soignent sa créature de tête, puis ramènent des vampires tués dans ce combat (jamais plus qu'au début) |
 | 6 | Liche | le tireur | **nuage de mort** : son tir touche aussi les cases voisines, sauf les morts-vivants |
@@ -409,7 +411,9 @@ croissance, prix, garde.
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à 1000 × (n−1) × n / 2 d'expérience (= l'or des créatures
   tuées) ; chaque niveau : +1 charisme et +1 au choix. Une troupe obéit si nombre × coût de commandement ≤ charisme
-  × 10, sinon elle peut se révolter au début d'un combat (≈ 50 % à deux fois la limite). Les garnisons n'ont pas de limite.
+  × 10, sinon elle peut se révolter au début d'un combat (≈ 50 % à deux fois la limite), ou pendant
+  si elle grossit (Fantômes) ; le héros attaqué aussi (ses révoltés combattent avec l'attaquant). Les garnisons n'ont
+  pas de limite.
 - **Château** : départ 30 paysans, 15 archers, 4 griffons ; prix 3 or par « paysan équivalent » (Archer 18, Griffon 40,
   Épéiste 80, Moine 150, Cavalier 300, Ange 4900 et 1 gemme) ; croissance 30 (28 avant le 2026-11-08), 18, 14, 8, 6, 4, 2 ; paysans pour vaincre
   une unité : Archer 8, Griffon 13, Épéiste 26, Moine 58, Cavalier 112, Ange 1560 (`UnitCurveTests`).

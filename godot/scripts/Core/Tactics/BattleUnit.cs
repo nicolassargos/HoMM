@@ -121,7 +121,7 @@ public sealed class BattleUnit
     public CreatureStack Stack { get; }
     public CreatureType Type => Stack.Type;
     public int Count => Stack.Count;
-    public BattleSide Side { get; }
+    public BattleSide Side { get; private set; }
 
     /// <summary>Place de la troupe dans son armée (départage l'ordre de jeu).</summary>
     public int Slot { get; }
@@ -149,11 +149,25 @@ public sealed class BattleUnit
     public bool Occupies(Hex hex) => Hexes.Contains(hex);
 
     /// <summary>Une troupe révoltée : elle combat dans le camp du défenseur, sans le bonus du héros.</summary>
-    public bool IsRebel { get; }
+    public bool IsRebel { get; private set; }
+
+    /// <summary>
+    /// La troupe se révolte pendant le combat : elle passe dans l'autre camp, sans le bonus de son héros. Une grande
+    /// créature garde ses deux cases (sa tête devient la case de derrière, vue de son nouveau camp).
+    /// </summary>
+    internal void Turn()
+    {
+        var back = Hexes.Last();
+        Side = Side == BattleSide.Attacker ? BattleSide.Defender : BattleSide.Attacker;
+        IsRebel = true;
+        AttackBonus = DefenseBonus = 0;
+        if (IsLarge)
+            Position = back;
+    }
 
     /// <summary>Bonus du héros (attaque et défense).</summary>
-    public int AttackBonus { get; }
-    public int DefenseBonus { get; }
+    public int AttackBonus { get; private set; }
+    public int DefenseBonus { get; private set; }
 
     /// <summary>Points de vie de la créature de tête (les autres sont intactes).</summary>
     public int TopHitPoints { get; private set; }

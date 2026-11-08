@@ -46,6 +46,9 @@ public sealed record UnitEnraged(BattleUnit Unit, int Rage) : BattleAction;
 /// <summary>La foudre appelée par <paramref name="Attacker"/> (Oiseau-tonnerre) frappe la cible.</summary>
 public sealed record LightningStruck(BattleUnit Attacker, BattleUnit Target, int Damage, int Killed) : BattleAction;
 
+/// <summary>La troupe a trop grossi pour le charisme de son héros : elle se révolte et change de camp.</summary>
+public sealed record UnitRevolted(BattleUnit Unit) : BattleAction;
+
 /// <summary>La troupe a frappé et peut repartir (Nomades) : <paramref name="Steps"/> cases de mouvement lui restent.</summary>
 public sealed record UnitMayRetreat(BattleUnit Unit, int Steps) : BattleAction;
 
@@ -108,6 +111,9 @@ public sealed partial class TacticalBattle
     private readonly List<BattleUnit> _waiting = new();
     private readonly List<BattleAction> _log = new();
     private readonly Dictionary<BattleUnit, int> _startCounts = new();
+
+    /// <summary>Les troupes révoltées pendant le combat : leur camp d'avant, et leur nombre au moment de la révolte.</summary>
+    private readonly Dictionary<BattleUnit, (BattleSide Side, int Count)> _turned = new();
     private readonly List<CreatureStack> _fleeLosses = new();
     private readonly List<CreatureStack> _rebelsBefore;
     private readonly List<CreatureStack> _defenderRebelsBefore;
@@ -619,6 +625,7 @@ public sealed partial class TacticalBattle
         {
             from.Grow(killed);
             _log.Add(new UnitGrew(from, killed));
+            CheckRevolt(from);
         }
         if (from.Has(Ability.LifeDrain) && lost > 0)
         {
@@ -662,6 +669,22 @@ public sealed partial class TacticalBattle
         return Math.Max(1, (int)Math.Round(damage));
     }
 
+    /// <summary>
+    /// Une troupe qui grossit pendant le combat (Fantôme) peut dépasser le charisme de son héros : elle peut alors se
+    /// révolter aussitôt, comme au début d'un combat (<see cref="Command.RevoltChance"/>), et passer dans l'autre camp.
+    /// </summary>
+    private void CheckRevolt(BattleUnit unit)
+    {
+        if (unit.IsRebel || !unit.IsAlive || HeroOf(unit.Side) is not { } hero)
+            return;
+        double chance = Command.RevoltChance(unit.Type, unit.Count, hero.Charisma);
+        if (chance <= 0 || _rng.NextDouble() >= chance)
+            return;
+        _turned[unit] = (unit.Side, unit.Count);
+        unit.Turn();
+        _log.Add(new UnitRevolted(unit));
+    }
+
     /// <summary>Un nombre entier entre 0 (compris) et <paramref name="max"/> (exclu).</summary>
     private int Next(int max) => max <= 1 ? 0 : (int)(_rng.NextDouble() * max);
 
@@ -673,10 +696,14 @@ public sealed partial class TacticalBattle
     /// </summary>
     public BattleReport Report()
     {
+        // une troupe révoltée pendant le combat compte pour son ancien camp ce qu'elle a perdu avant de se révolter
+        int Lost(BattleUnit u, BattleSide side) => _turned.TryGetValue(u, out var before)
+            ? (before.Side == side ? Math.Max(0, _startCounts[u] - before.Count) : 0)
+            : (u.Side == side && !u.IsRebel ? Math.Max(0, _startCounts[u] - u.Count) : 0);
         List<CreatureStack> Losses(BattleSide side) => _units
-            .Where(u => u.Side == side && !u.IsRebel && _startCounts[u] > u.Count)
+            .Where(u => Lost(u, side) > 0)
             .GroupBy(u => u.Type)
-            .Select(g => new CreatureStack(g.Key, g.Sum(u => _startCounts[u] - u.Count)))
+            .Select(g => new CreatureStack(g.Key, g.Sum(u => Lost(u, side))))
             .ToList();
         var report = new BattleReport
         {
@@ -685,11 +712,23 @@ public sealed partial class TacticalBattle
             AttackerLosses = Losses(BattleSide.Attacker),
             DefenderLosses = Losses(BattleSide.Defender),
             Rounds = Round,
-            Rebels = _rebelsBefore,
-            DefenderRebels = _defenderRebelsBefore,
+            Rebels = _rebelsBefore.ToList(),
+            DefenderRebels = _defenderRebelsBefore.ToList(),
             AttackerSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Attacker],
             DefenderSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Defender],
         };
+        // les révoltés pendant le combat quittent l'armée de leur héros
+        foreach (var (unit, before) in _turned)
+        {
+            var army = before.Side == BattleSide.Attacker ? _attacker : _defender;
+            int index = army.Stacks.ToList().IndexOf(unit.Stack);
+            if (index < 0)
+                continue;
+            army.MoveStackTo(index, new Army());
+            (before.Side == BattleSide.Attacker ? report.Rebels : report.DefenderRebels).Add(new CreatureStack(unit.Type, before.Count));
+            if (unit.Count > 0)
+                (before.Side == BattleSide.Attacker ? report.RebelSurvivors : report.DefenderRebelSurvivors).Add(new CreatureStack(unit.Type, unit.Count));
+        }
         _attacker.RemoveEmpty();
         _defender.RemoveEmpty();
         _rebels?.RemoveEmpty();

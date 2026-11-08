@@ -154,6 +154,7 @@ public static class Texts
             ? $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.Revived} {(d.Revived == 1 ? "revient" : "reviennent")} à la vie en buvant le sang."
             : $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.HitPoints} PV repris en buvant le sang.",
         UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
+        UnitRevolted v => $"{Capitalize(Stack(v.Unit.Stack))} {(v.Unit.Count == 1 ? "se révolte et change" : "se révoltent et changent")} de camp !",
         UnitMayRetreat r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "peut" : "peuvent")} repartir ({r.Steps} {(r.Steps == 1 ? "case" : "cases")}).",
         UnitEnraged e => $"{Capitalize(Stack(e.Unit.Stack))} {(e.Unit.Count == 1 ? "enrage" : "enragent")} : +{e.Rage} en attaque.",
         LightningStruck l => $"La foudre frappe {Stack(new CreatureStack(l.Target.Type, l.Target.Count + l.Killed))} : {l.Damage} dégâts"

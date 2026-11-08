@@ -617,6 +617,22 @@ public partial class BattleFieldView : Control
                         return grow >= 0.3;
                     });
                     break;
+                case UnitRevolted revolted:
+                    double revolt = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (revolt == 0)
+                        {
+                            // elle se tourne vers ses nouveaux ennemis
+                            var turned = _shown[revolted.Unit];
+                            turned.FacesLeft = null;
+                            turned.Flash = 1;
+                            _floating.Add(("Révolte !", turned.Position + Ui.V(0, -70), 0, MapRenderer.Rgb(240, 150, 130)));
+                        }
+                        revolt += Math.Max(delta, 1e-6);
+                        return revolt >= 0.4;
+                    });
+                    break;
                 case UnitEnraged enraged:
                     double fury = 0;
                     _animations.Enqueue(delta =>

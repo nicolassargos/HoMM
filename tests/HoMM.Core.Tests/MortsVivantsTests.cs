@@ -57,6 +57,43 @@ public class MortsVivantsTests
     }
 
     [Fact]
+    public void Des_fantomes_qui_grossissent_au_dela_du_charisme_peuvent_se_revolter_pendant_le_combat()
+    {
+        var ghost = Creature("fantome");
+        int revolts = 0;
+        for (int seed = 0; seed < 10; seed++)
+        {
+            var map = new AdventureMap(5, 5);
+            var hero = new Hero("Mortimer", new Player("Rouge", map), new Cell(1, 1)) { Charisma = 5 };
+            int atLimit = Command.Limit(hero.Charisma) / ghost.CommandCost; // juste à la limite : ils obéissent au départ
+            var army = new Army();
+            army.Add(ghost, atLimit);
+            var battle = new TacticalBattle(army, ArmyOf("paysan", 500), new GameRandom(seed), hero);
+            battle.Field.Obstacles.Clear();
+            var ghosts = battle.Units.Single(u => u.Side == BattleSide.Attacker);
+            var peasants = battle.Units.Single(u => u.Side == BattleSide.Defender);
+            peasants.Position = new Hex(5, 4);
+            battle.ForceTurn(ghosts, new Hex(4, 4));
+
+            battle.Attack(peasants, new Hex(4, 4)); // ils tuent, grossissent et dépassent la limite
+
+            var log = battle.TakeLog();
+            Assert.True(log.OfType<UnitGrew>().Any());
+            if (log.OfType<UnitRevolted>().SingleOrDefault() is not { } revolted)
+                continue;
+            revolts++;
+            Assert.Equal(BattleSide.Defender, revolted.Unit.Side); // ils combattent maintenant le héros
+            Assert.True(revolted.Unit.IsRebel);
+            BattleAI.PlayOut(battle);
+            var report = battle.Report();
+            Assert.Equal(ghost, Assert.Single(report.Rebels).Type);
+            Assert.DoesNotContain(army.Stacks, s => s.Type == ghost); // ils ont quitté son armée
+            Assert.Equal(BattleOutcome.DefenderWon, battle.Outcome); // le héros n'a plus de troupe à lui
+        }
+        Assert.True(revolts > 0);
+    }
+
+    [Fact]
     public void Le_fantome_grossit_de_chaque_creature_qu_il_tue_et_le_garde_apres_le_combat()
     {
         var army = ArmyOf("fantome", 10);

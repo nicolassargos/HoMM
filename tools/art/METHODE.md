@@ -131,6 +131,13 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   `launchPoint` ([x, y] dans l'image d'attaque), `impact`. Le coup d'un tir porte à l'arrivée du projectile.
 - Écarté : le style `rd_animation__vfx` de Retro Diffusion (2026-11-07) : trois essais rendus vides (0,28 $).
 
+## Sommets de la carte (32 px, 2026-11-08)
+- Comme Heroes 2 : roche grise avec de l'herbe dans les creux, sans neige, plus grands (64 × 48). Retro Diffusion les pose
+  sur un socle d'herbe en losange : en jeu, les chaînes ressemblaient à des cases empilées. `tools/art/fondu.py` fond ce
+  socle dans le terrain (transparent peu à peu selon la distance à la roche, 7 pixels) : l'utilisateur voulait garder un
+  peu de sol, pas le couper net. Compte comme roche un pixel gris ou brun assez clair (les contours sombres du socle
+  doivent fondre aussi, sinon le bord reste net).
+
 ## Grands objets de la carte (mines…)
 - **Méthode** : des **pièces** séparées faites par Retro Diffusion (`assets.json`, groupe `pieces/` : cabane, chariot,
   chevalet, souches, entrée de mine, chariot sur rails…), **sans socle**, puis **assemblées** aux proportions de Heroes

@@ -146,6 +146,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - Vue plus basse : ajouter « seen from the front at a low angle, almost a straight side view, not seen from above » ;
   Retro Diffusion penche encore un peu vers le dessus, garder les candidats les plus de face.
 - Ne pas fondre (`fondu.py`) une pièce verdâtre (cryptes) : elle passe pour de l'herbe et devient floue.
+- **PixelLab « Pro » d'un seul coup** (160 × 128, 4 candidats pour 0,115 $) : bien meilleur que l'assemblage, une
+  ville cohérente, vue de face, serrée, porte au milieu du bas (comme Heroes 2, où chaque ville est une seule image
+  découpée en cases). Description « seen from the front at a low angle, almost a straight side view », la ville
+  assemblée comme modèle (disposition), `objects/mine-gold.png` comme style. Un candidat sur quatre recopie le modèle.
 
 ## Grands objets de la carte (mines…)
 - **Méthode** : des **pièces** séparées faites par Retro Diffusion (`assets.json`, groupe `pieces/` : cabane, chariot,

@@ -67,7 +67,7 @@ LOTS = {
     "32px": {"titre": "Carte en 32 px : tes choix", "groupes": GROUPES_32PX, "captures": CAPTURES},
     "v2": {"titre": "Images refaites (2026-11-08) : tes choix", "groupes": GROUPES_V2, "captures": CAPTURES},
     "villes": {"titre": "Villes sur 5 × 4 cases (2026-11-08) : ton choix", "captures": [],
-               "groupes": [("Villes (160 × 128, assemblées de pièces : tools/art/villes.py)",
+               "groupes": [("Villes (160 × 128 ; 1 à 3 : assemblées de pièces, tools/art/villes.py ; 4 à 7 : PixelLab d un seul coup)",
                             ["objects/town", "objects/town-morts-vivants"])]},
     "v3": {"titre": "Mine de soufre (2026-11-08) : ton choix", "captures": [],
            "groupes": [("Mine de soufre (entrée plus grande, tas de soufre)", ["objects/mine-sulfur"])]},

@@ -267,10 +267,11 @@ croissance, prix, garde.
   des montagnes est de l'herbe (`terrain/forest.png` et `mountain.png` retirées). Reste :
   - **l'herbe** : les choix sont bons mais le vert est trop vif ; à régler dans une session à part, en changeant les
     couleurs de façon interactive (ou dans un logiciel de dessin), peut-être une troisième case avec des fleurs ;
-  - **les villes sur 5 × 4 cases** comme Heroes 2 (image de 160 × 128, fond transparent, entrée au milieu en bas ;
-    l'empreinte vient de l'autre session, branche `villes-5x4`), plus colorées et plus ambitieuses, assemblées de pièces ;
-  - la **mine de soufre** (entrée plus grande, avec le soufre choisi), le **squelette** (tête trop grosse) et le
-    **colosse d'os** (illisible) ; le **héros** plus tard ;
+  - le **héros** de la carte, plus tard.
+  Fait (2026-11-08) : ✅ les **villes sur 5 × 4 cases** (160 × 128, PixelLab « Pro » d'un seul coup, vues de face : bien
+  meilleur que l'assemblage de pièces ; l'empreinte et le drapeau viennent de l'autre session, PR #76 et #77), ✅ la
+  mine de soufre (entrée plus grande), ✅ le squelette et le colosse d'os (PixelLab « Pro », l'image de combat comme
+  sujet), ✅ sommets fondus dans le terrain (`tools/art/fondu.py`).
   - plus tard : une ombre dessinée par le jeu sous les objets de la carte.
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles
   (`buildings.json`) ne gardent plus la place des bâtiments ; chaque faction a sa **scène** (`art/towns/<faction>/` :

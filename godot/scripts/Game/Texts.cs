@@ -759,7 +759,7 @@ public static class Texts
     {
         HeroStat.Attack => $"Attaque {hero.Attack} : s'ajoute à l'attaque de chaque troupe du héros.",
         HeroStat.Defense => $"Défense {hero.Defense} : s'ajoute à la défense de chaque troupe du héros.",
-        HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (dégâts, soins) et leur durée ({hero.Power + 1} rounds).",
+        HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (dégâts, soins) et leur durée ({hero.Power + 1} round{(hero.Power + 1 > 1 ? "s" : "")}).",
         HeroStat.Knowledge => $"Savoir {hero.Knowledge} : {Hero.SpellPointsPerKnowledge} points de sort par point (points de sort : {hero.SpellPoints} / {hero.MaxSpellPoints}, +1 par jour).",
         _ => $"Charisme {hero.Charisma} : le héros commande au plus {Command.Limit(hero.Charisma)} points par troupe "
              + "(nombre × coût de la créature). Au-delà, la troupe risque de se révolter au combat.",
@@ -875,7 +875,7 @@ public static class Texts
     {
         HeroStat.Attack => "+ à l'attaque de chaque troupe",
         HeroStat.Defense => "+ à la défense de chaque troupe",
-        HeroStat.Power => $"force et durée des sorts ({hero.Power + 1} rounds)",
+        HeroStat.Power => $"force et durée des sorts ({hero.Power + 1} round{(hero.Power + 1 > 1 ? "s" : "")})",
         HeroStat.Knowledge => $"{hero.MaxSpellPoints} points de sort au plus",
         _ => $"commande {Command.Limit(hero.Charisma)} points par troupe",
     };

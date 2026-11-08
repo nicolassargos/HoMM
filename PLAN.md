@@ -187,7 +187,14 @@ au niveau 7 et pour le Béhémoth. Découpage comme les morts-vivants :
    Vu au passage (`Duels_a_prix_egal`, à revoir avec l'utilisateur) : l'Archer perd contre tous les niveaux 2, le
    Griffon bat largement les niveaux 3, le Vampire écrase le Moine, le Cavalier écrase les niveaux 6, l'Ange écrase le
    Colosse d'os.
-2. La ville (7 habitations), la classe Barbare et les héros, l'IA, les mesures.
+2. ✅ La ville et le jeu (2026-11-08) : les 7 habitations (`hutte-gobelins`, `taniere-loups`, `camp-orcs`, `fort-ogres`,
+   `campement-nomade`, `nid-tonnerre`, `repaire-behemoth` : prix et places de celles du Château ; le grand hôtel de
+   ville demande aussi bien le Fort des ogres), la classe Barbare (armée de départ ramenée au prix des autres : 30
+   Gobelins, 10 Loups, 4 Orcs), les 5 héros barbares jouables ; rien à changer dans l'IA ni la nouvelle partie (tout
+   vient des données). Option `--faction=barbares`. Tests : `VilleBarbaresTests`. Mesuré (un adversaire, Normal, six
+   semaines, en or d'armée, ce qui compare bien puisqu'à prix égal un combat est égal) : Château 22 500, morts-vivants
+   16 100, **Barbares 17 400** ; la simulation seule comme avant (jours 87, 87, 152). À voir : la horde devrait être
+   la plus forte des premières semaines.
 3. Les images (session images : Nomades, Oiseau-tonnerre, Béhémoth, la ville ; en attendant, des ronds de couleur).
 
 #### Les morts-vivants (en cours)

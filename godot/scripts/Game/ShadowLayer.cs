@@ -135,13 +135,27 @@ public partial class ShadowLayer : Node2D
     private const int WidePiece = 40;
 
     /// <summary>
+    /// Un morceau plus petit (en pixels) ou plus creux (part de son rectangle couverte) ne fait pas d'ombre : un point
+    /// isolé, des rails, un chemin, un détail posé à plat sur le sol.
+    /// </summary>
+    private const int TinyPiece = 12;
+    private const float HollowPiece = 0.3f;
+
+    /// <summary>Un morceau étroit (en pixels d'art) qui touche le bas de l'image est un chemin vers l'entrée : pas d'ombre.</summary>
+    private const int PathWidth = 8;
+
+    /// <summary>De combien (en pixels d'art) on bouche les trous et les creux de l'ombre : une tache simple, pas un dessin.</summary>
+    private const int Smoothing = 2;
+
+    /// <summary>
     /// L'ombre portée d'une image, en pixels d'art (calculée une fois par image et par réglage). L'image est découpée en
     /// morceaux (les pixels opaques qui se touchent : un arbre, un rocher, un tas de bûches). Un morceau étroit tourne
     /// autour de son pied, son pixel le plus bas au milieu du morceau (le tronc d'un arbre, les pieds d'une créature) : un
     /// pixel à la hauteur h au-dessus du pied va à h × penche vers la gauche et h × longueur vers le haut.
     /// Un morceau large (les remparts d'une ville) est vu de trois quarts : le bas d'une tour du fond est plus haut dans
     /// l'image que le bas du mur de devant ; chacune de ses colonnes se tient alors sur son propre sol (son pixel le plus
-    /// bas). Renvoie aussi la marge ajoutée à gauche et en haut.
+    /// bas). Les morceaux minuscules ou creux (rails, chemins) n'en font pas, et l'ombre est lissée (trous et creux
+    /// bouchés). Renvoie aussi la marge ajoutée à gauche et en haut.
     /// </summary>
     private static (Texture2D Shadow, int PadLeft, int PadTop) CastImage(Texture2D texture)
     {
@@ -151,15 +165,30 @@ public partial class ShadowLayer : Node2D
         int padSide = (int)MathF.Ceiling(Math.Abs(Lean) * h) + 1;
         int padTop = (int)MathF.Ceiling(Math.Max(0, Length - 1) * h) + 1;
         int padBottom = (int)MathF.Ceiling(Length * h) + 1; // les pixels plus bas que le pied (les côtés d'un tas)
-        var shadow = Image.CreateEmpty(w + 2 * padSide, h + padTop + padBottom, false, Image.Format.Rgba8);
+        int sw = w + 2 * padSide, sh = h + padTop + padBottom;
+        var mask = new bool[sw, sh];
         if (texture.GetImage() is { } image && !image.IsEmpty())
         {
             if (image.IsCompressed())
                 image.Decompress();
-            foreach (var piece in Pieces(image))
+            foreach (var whole in Pieces(image))
             {
+                var piece = whole;
                 int minX = piece.Min(p => p.X), maxX = piece.Max(p => p.X);
+                int minY = piece.Min(p => p.Y), maxY = piece.Max(p => p.Y);
+                if (piece.Count < TinyPiece || piece.Count < HollowPiece * (maxX - minX + 1) * (maxY - minY + 1))
+                    continue;
+                if (maxY == h - 1 && maxX - minX + 1 <= PathWidth)
+                    continue; // un chemin qui part de l'entrée vers la case de devant : posé à plat
                 bool wide = maxX - minX + 1 > WidePiece;
+                if (wide)
+                {
+                    // un grand objet : ses parties fines (chemin vers l'entrée, rails, mâts) ne comptent ni pour le sol ni
+                    // pour l'ombre, sinon le sol de ces colonnes descendrait jusqu'au bout du chemin
+                    piece = Core(piece, minX, minY, maxX, maxY);
+                    if (piece.Count == 0)
+                        continue;
+                }
                 // le sol de chaque colonne du morceau (son pixel le plus bas), et le pied (le plus bas du tiers du milieu)
                 var bottoms = piece.GroupBy(p => p.X).ToDictionary(g => g.Key, g => g.Max(p => p.Y));
                 int third = (maxX - minX + 1) / 3;
@@ -176,14 +205,60 @@ public partial class ShadowLayer : Node2D
                     for (int sx = (int)MathF.Floor(Math.Min(x0, x1)); sx < (int)MathF.Ceiling(Math.Max(x0, x1)); sx++)
                     {
                         int px = sx + padSide, py = sy + padTop;
-                        if (px >= 0 && py >= 0 && px < shadow.GetWidth() && py < shadow.GetHeight())
-                            shadow.SetPixel(px, py, Colors.Black);
+                        if (px >= 0 && py >= 0 && px < sw && py < sh)
+                            mask[px, py] = true;
                     }
                 }
             }
         }
+        mask = Grow(Grow(mask, Smoothing, true), Smoothing, false); // grossir puis amincir : les trous et les creux se bouchent
+        var shadow = Image.CreateEmpty(sw, sh, false, Image.Format.Rgba8);
+        for (int y = 0; y < sh; y++)
+        for (int x = 0; x < sw; x++)
+            if (mask[x, y])
+                shadow.SetPixel(x, y, Colors.Black);
         var result = (ImageTexture.CreateFromImage(shadow), padSide, padTop);
         CastImages[texture] = result;
+        return result;
+    }
+
+    /// <summary>Épaisseur (en pixels d'art) sous laquelle une partie d'un grand objet est fine (un chemin, des rails, un mât).</summary>
+    private const int ThinPart = 3;
+
+    /// <summary>Le cœur d'un morceau : ses pixels sans les parties fines (amincir puis regrossir de <see cref="ThinPart"/>).</summary>
+    private static List<(int X, int Y)> Core(List<(int X, int Y)> piece, int minX, int minY, int maxX, int maxY)
+    {
+        var mask = new bool[maxX - minX + 1, maxY - minY + 1];
+        foreach (var (x, y) in piece)
+            mask[x - minX, y - minY] = true;
+        var opened = Grow(Grow(mask, ThinPart, false), ThinPart, true);
+        return piece.Where(p => opened[p.X - minX, p.Y - minY]).ToList();
+    }
+
+    /// <summary>
+    /// Grossit (<paramref name="grow"/>) ou amincit une tache de <paramref name="radius"/> pixels, dans un disque.
+    /// </summary>
+    private static bool[,] Grow(bool[,] mask, int radius, bool grow)
+    {
+        int w = mask.GetLength(0), h = mask.GetLength(1);
+        var result = new bool[w, h];
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            // grossir : vrai si un voisin du disque est vrai ; amincir : vrai si tous le sont (le bord compte comme vide)
+            bool value = !grow;
+            for (int dy = -radius; dy <= radius && value != grow; dy++)
+            for (int dx = -radius; dx <= radius && value != grow; dx++)
+            {
+                if (dx * dx + dy * dy > radius * radius + radius)
+                    continue;
+                int nx = x + dx, ny = y + dy;
+                bool inside = nx >= 0 && ny >= 0 && nx < w && ny < h && mask[nx, ny];
+                if (inside == grow)
+                    value = grow;
+            }
+            result[x, y] = value;
+        }
         return result;
     }
 

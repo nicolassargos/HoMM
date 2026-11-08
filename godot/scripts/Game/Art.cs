@@ -118,14 +118,45 @@ public static class Art
     /// Dessine une image dans une zone, posée en bas et centrée, sans la déformer. Agrandie d'un nombre
     /// entier de fois quand c'est possible, pour que les pixels restent nets.
     /// </summary>
-    public static void DrawSprite(CanvasItem ci, Texture2D texture, Rect2 area)
+    public static void DrawSprite(CanvasItem ci, Texture2D texture, Rect2 area) =>
+        ci.DrawTextureRect(texture, SpriteRect(texture, area), false);
+
+    /// <summary>Où <see cref="DrawSprite"/> dessine l'image dans <paramref name="area"/> (en bas, centrée, sans flou).</summary>
+    public static Rect2 SpriteRect(Texture2D texture, Rect2 area)
     {
         var size = texture.GetSize();
         float scale = Math.Min(area.Size.X / size.X, area.Size.Y / size.Y);
         if (scale >= 1)
             scale = MathF.Floor(scale);
         var drawn = size * scale;
-        var position = new Vector2(area.Position.X + (area.Size.X - drawn.X) / 2, area.End.Y - drawn.Y);
-        ci.DrawTextureRect(texture, new Rect2(position, drawn), false);
+        return new Rect2(new Vector2(area.Position.X + (area.Size.X - drawn.X) / 2, area.End.Y - drawn.Y), drawn);
+    }
+
+    private static readonly Dictionary<Texture2D, float> OpaqueTops = new();
+
+    /// <summary>
+    /// La hauteur (de 0, le haut de l'image, à 1, le bas) du premier pixel opaque de la colonne prise à
+    /// <paramref name="column"/> de la largeur (0 à 1) : le haut du dessin à cet endroit, sous le fond transparent.
+    /// 0 si la colonne est vide. Calculé une fois par image.
+    /// </summary>
+    public static float OpaqueTop(Texture2D texture, float column)
+    {
+        if (OpaqueTops.TryGetValue(texture, out var cached))
+            return cached;
+        float top = 0;
+        if (texture.GetImage() is { } image && !image.IsEmpty())
+        {
+            if (image.IsCompressed())
+                image.Decompress();
+            int x = Math.Clamp((int)(column * image.GetWidth()), 0, image.GetWidth() - 1);
+            for (int y = 0; y < image.GetHeight(); y++)
+                if (image.GetPixel(x, y).A > 0.5f)
+                {
+                    top = (float)y / image.GetHeight();
+                    break;
+                }
+        }
+        OpaqueTops[texture] = top;
+        return top;
     }
 }

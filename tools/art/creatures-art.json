@@ -571,13 +571,16 @@
       "choix": {
         "fixe": "L6-3",
         "idle": "idle-3",
-        "attack": "attack-4"
+        "attack": "attack-4",
+        "move": "move-7",
+        "transform": "transform-2"
       },
       "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png",
       "consignes": {
         "idle": "the thunderbird stands on its talons, turns its head and slowly scratches and preens the feathers of its folded wing with its hooked beak, then looks back forward, the talons stay in place",
-        "move": "the thunderbird hovers in place a little above the ground, beating its large totem-patterned wings up and down in a steady fast flying cycle, its talons tucked under its body, facing right, it stays at the same place",
-        "attack": "the thunderbird raises its wings and its head toward the sky, a jagged blue-white lightning bolt crackles down from above and strikes the ground in front of it, then the bird folds its wings back to its starting pose"
+        "move": "the thunderbird flies to the right with its body kept horizontal, beating its great wings down and up in one full steady flying cycle, its talons stay tucked under its belly, its head forward, it stays at the same place",
+        "attack": "the thunderbird raises its wings and its head toward the sky, a jagged blue-white lightning bolt crackles down from above and strikes the ground in front of it, then the bird folds its wings back to its starting pose",
+        "transform": "the thunderbird takes off: standing on its talons, it crouches, spreads its great totem-patterned wings, leaps up and tilts its body forward until it is flying horizontally to the right, its talons retracting and tucking under its belly, ending in a level flying pose with the wings raised"
       }
     },
     "behemoth": {

@@ -28,6 +28,19 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   bâtiments très imbriqués, un arrière-plan fort (murs, montagnes) et un premier plan chargé. Les cases font 32 px
   (les nôtres 24 : leurs objets ×0,75 donnent notre échelle).
 
+## Ombres de la carte (dessinées par le jeu, 2026-11-08)
+- Ombre portée : `Game/ShadowLayer.cs`, réglages `--shadow=force,longueur,penche,contact,flou` et `--shadow-tune` (curseurs).
+  Chaque morceau de l'image tourne autour de son pied ; un grand morceau (remparts) pose chaque colonne sur son sol ; les
+  chemins vers l'entrée et les rails ne font pas d'ombre.
+- Ombre de contact : d'après les **pieds** de chaque image (`godot/art/pieds.json`), proposés puis revus par l'utilisateur
+  avec `tools/art/pieds.py` (page `revue-pieds.html` : glisser les points, ajouter ou retirer un pied, régler l'étalement).
+  Méthode de l'utilisateur : le bas du contour entre le pixel le plus à gauche et le plus à droite, fermé par un arc au-dessus,
+  puis des bagues de plus en plus claires.
+- Ce que la revue a appris (les propositions corrigées) : les pieds proposés étaient trop larges (1 à 2 pixels de chaque côté)
+  et un pixel trop haut (corrigé dans `proposer`) ; un sommet ne garde qu'une petite base au milieu ; le château a un
+  second pied le long de la rangée de tours du fond ; une mine a un pied par objet (un arbre collé à la cabane, une souche,
+  une pierre), et l'entrée coupe le pied du rocher en deux.
+
 ## Carte (Retro Diffusion)
 - Images de 24 px (cases de 48 px à ×2, puis ×3 et ×4 en 1920 × 1080). `tools/art/generer.py` estime le prix
   (gratuit), génère des candidats et installe le candidat choisi ; `tools/art/assets.json` décrit les images à produire.

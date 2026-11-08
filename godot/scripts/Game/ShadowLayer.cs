@@ -172,8 +172,14 @@ public partial class ShadowLayer : Node2D
         return canvas.ToImage(Blur);
     }
 
-    /// <summary>Les bagues de l'ombre de contact, de la plus proche du pied à la plus éloignée (part de noir, avant <see cref="Contact"/>).</summary>
-    private static readonly float[] ContactShades = { 0.55f, 0.3f, 0.12f };
+    /// <summary>
+    /// Les bagues de l'ombre de contact, de la plus proche du pied à la plus éloignée (part de noir, avant
+    /// <see cref="Contact"/>) : de 55 % à presque rien, en <paramref name="spread"/> pas (l'étalement de l'image, 3 par défaut).
+    /// </summary>
+    private static float[] ContactShades(int spread) =>
+        Enumerable.Range(0, spread).Select(i => 0.55f * MathF.Pow((float)(spread - i) / spread, 1.4f)).ToArray();
+
+    private const int DefaultSpread = 3;
     /// <summary>La hauteur de l'arc qui ferme la forme du pied, par rapport à sa largeur, et au plus (en pixels d'art).</summary>
     private const float ArcRatio = 0.12f, ArcMax = 2.5f;
     /// <summary>Jusqu'où (en pixels d'art, au-dessus et au-dessous du segment du pied) on cherche le bas du dessin.</summary>
@@ -187,9 +193,10 @@ public partial class ShadowLayer : Node2D
     /// </summary>
     private static ShadowImage ContactImage(Texture2D texture)
     {
-        int w = texture.GetWidth(), h = texture.GetHeight(), rings = ContactShades.Length;
+        var (feet, spread) = FeetOf(texture);
+        var shades = ContactShades(spread);
+        int w = texture.GetWidth(), h = texture.GetHeight(), rings = shades.Length;
         var canvas = new Canvas(w, h, rings + 1, rings + 1, rings + 1, 0);
-        var feet = FeetOf(texture);
         if (feet.Count == 0 || texture.GetImage() is not { } image || image.IsEmpty())
             return canvas.ToImage(0);
         if (image.IsCompressed())
@@ -225,7 +232,7 @@ public partial class ShadowLayer : Node2D
         }
         // les bagues : on grossit la forme d'un pixel (en croix) à chaque fois, de plus en plus clair
         var current = GrowCross(shape);
-        foreach (float shade in ContactShades)
+        foreach (float shade in shades)
         {
             for (int y = 0; y < gh; y++)
             for (int x = 0; x < gw; x++)
@@ -280,10 +287,10 @@ public partial class ShadowLayer : Node2D
         return m;
     }
 
-    private static Dictionary<string, List<((int X, int Y) Left, (int X, int Y) Right)>>? _feet;
+    private static Dictionary<string, (List<((int X, int Y) Left, (int X, int Y) Right)> Feet, int Spread)>? _feet;
 
-    /// <summary>Les pieds d'une image, d'après godot/art/pieds.json (aucun si l'image n'y est pas).</summary>
-    private static List<((int X, int Y) Left, (int X, int Y) Right)> FeetOf(Texture2D texture)
+    /// <summary>Les pieds d'une image et son étalement, d'après godot/art/pieds.json (aucun pied si l'image n'y est pas).</summary>
+    private static (List<((int X, int Y) Left, (int X, int Y) Right)> Feet, int Spread) FeetOf(Texture2D texture)
     {
         if (_feet == null)
         {
@@ -300,10 +307,11 @@ public partial class ShadowLayer : Node2D
                             var r = foot[1];
                             list.Add(((l[0].GetInt32(), l[1].GetInt32()), (r[0].GetInt32(), r[1].GetInt32())));
                         }
-                        _feet[entry.Name] = list;
+                        int spread = entry.Value.TryGetProperty("etalement", out var e) ? Math.Clamp(e.GetInt32(), 1, 6) : DefaultSpread;
+                        _feet[entry.Name] = (list, spread);
                     }
         }
-        return Art.NameOf(texture) is { } name && _feet.TryGetValue(name, out var feet) ? feet : new();
+        return Art.NameOf(texture) is { } name && _feet.TryGetValue(name, out var feet) ? feet : (new(), DefaultSpread);
     }
 
     /// <summary>

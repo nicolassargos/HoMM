@@ -132,6 +132,7 @@ public static class Texts
 
     public static string BattleWait => "Attendre";
     public static string BattleDefend => "Se défendre";
+    public static string BattleStay => "Rester";
     public static string BattleAuto => "Auto";
     public static string BattleFlee => "Fuir";
 
@@ -153,6 +154,10 @@ public static class Texts
             ? $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.Revived} {(d.Revived == 1 ? "revient" : "reviennent")} à la vie en buvant le sang."
             : $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.HitPoints} PV repris en buvant le sang.",
         UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
+        UnitMayRetreat r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "peut" : "peuvent")} repartir ({r.Steps} {(r.Steps == 1 ? "case" : "cases")}).",
+        UnitEnraged e => $"{Capitalize(Stack(e.Unit.Stack))} {(e.Unit.Count == 1 ? "enrage" : "enragent")} : +{e.Rage} en attaque.",
+        LightningStruck l => $"La foudre frappe {Stack(new CreatureStack(l.Target.Type, l.Target.Count + l.Killed))} : {l.Damage} dégâts"
+                             + (l.Killed > 0 ? $", {l.Killed} {(l.Killed == 1 ? "tué" : "tués")}." : "."),
         SpellCast c => $"{c.Caster.Name} lance {c.Spell.Name}.",
         SpellDamaged d => $"{d.Spell.Name} : {d.Damage} dégâts à {Stack(new CreatureStack(d.Target.Type, d.Target.Count + d.Killed))}"
                           + (d.Killed > 0 ? $", {d.Killed} {(d.Killed == 1 ? "tué" : "tués")}." : "."),
@@ -804,6 +809,10 @@ public static class Texts
         Ability.LifeDrain => "draine la vie",
         Ability.DeathCloud => "nuage de mort",
         Ability.Sweep => "balayage",
+        Ability.Rage => "rage (chaque coup reçu donne de l'attaque)",
+        Ability.HitAndRun => "frappe et repart",
+        Ability.Lightning => "appelle la foudre",
+        Ability.Rending => "griffes (ignorent 80 % de la défense)",
         _ => ability,
     };
 

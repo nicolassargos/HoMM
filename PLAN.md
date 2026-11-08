@@ -96,6 +96,8 @@ Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouable
 créature du niveau 7 et, plus tard, sa **version améliorée** (comme Heroes 3 : un bâtiment améliore une créature) ; ses
 deux ressources rares (la **principale** pour l'habitation et la créature du niveau 7, la **secondaire** pour les
 niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondaire pour deux autres).
+**Méthode pour chaque faction** (choix de l'utilisateur, 2026-11-08) : définir ensemble d'abord sa **philosophie**, ses
+**forces** et ses **faiblesses** (et ce qui la distingue des autres), puis ses créatures niveau par niveau.
 
 | Faction | Style | Niveau 7 → amélioré | Principale | Secondaire | État |
 |---|---|---|---|---|---|
@@ -110,8 +112,7 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 
 - Le **Colosse d'os** reste au niveau 7 des morts-vivants, rendu aussi fort que l'Ange (il est plus faible : à revoir) ;
   le Colosse funèbre a plus de vie et son balayage effraie (les ennemis touchés ne ripostent plus).
-- Les **Barbares** : nos créatures neutres actuelles (Gobelin, Loup, Orc, Ogre) en forment l'essentiel, plus deux
-  créatures aux niveaux 5 et 6 et le Béhémoth (ses griffes ignorent une part de la défense ennemie).
+- Les **Barbares** : voir plus bas.
 - La **Forêt** : le **Troll** (l'image de combat existe) au niveau 7, rendu aussi fort que l'Ange (c'est aujourd'hui un
   neutre du niveau 5) : un troll géant qui se régénère ; le Troll ancien se régénère plus, et ses coups repoussent
   l'ennemi (il ne riposte plus).
@@ -125,6 +126,50 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
   l'Enfer et le Donjon ; les Nains n'en ont pas encore.
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
+
+#### Les Barbares (en cours)
+Décidé avec l'utilisateur (2026-11-08).
+- **Philosophie : la horde.** La force brute, le nombre et la vitesse : ils frappent les premiers et fort, et méprisent
+  la magie.
+- **Forces** : des troupes bon marché qui grandissent vite (la faction la plus forte des premières semaines) ; beaucoup
+  d'attaque et de dégâts, des créatures rapides ; le héros qui a le plus d'attaque.
+- **Faiblesses** : peu de défense (ils frappent fort mais meurent vite) ; peu de tireurs, à courte portée ; peu de
+  magie, par le héros seulement (la guilde des mages est complète) ; moins disciplinés que le Château (charisme 10
+  contre 14).
+- **Leur marque : la Rage** (comme la nécromancie des morts-vivants) : une troupe barbare frappée gagne de l'attaque
+  jusqu'à la fin du combat (chiffres à régler en mesurant).
+- **La classe Barbare** : attaque 3, défense 2, puissance 0, savoir 1, charisme 10, aucun sort au départ ; armée de
+  départ : 25 Gobelins, 8 Loups, 3 Orcs.
+- Le Gobelin, le Loup, l'Orc et l'Ogre deviennent barbares et restent des monstres de la carte (comme les morts-vivants).
+  Mis à l'échelle de prix du Château, ils rapportent bien moins d'expérience : **l'expérience sera redéfinie**
+  (choix de l'utilisateur).
+
+| Niveau | Créature | Rôle | Capacité | Habitation |
+|---|---|---|---|---|
+| 1 | Gobelin (des neutres) | la masse | rapide au premier round (déjà) | Hutte des gobelins |
+| 2 | Loup (des neutres) | le harceleur | frappe deux fois (déjà) | Tanière des loups |
+| 3 | Orc (des neutres) | le seul tireur | tir court (déjà) | Camp des orcs |
+| 4 | Ogre (des neutres) | la brute | coup écrasant : ignore 40 % de la défense (déjà) | Fort des ogres |
+| 5 | **Nomades** (choix de l'utilisateur) | cavaliers rapides | **frappe et repart** : après l'attaque, ils se déplacent avec ce qui leur reste de mouvement (l'ennemi riposte comme d'habitude) ; à mesurer contre les armées lentes | Campement nomade |
+| 6 | **Oiseau-tonnerre** | le volant | vole ; ses coups appellent parfois la foudre (des dégâts en plus) | Nid du tonnerre |
+| 7 | Béhémoth | le géant | ses griffes ignorent 80 % de la défense | Repaire du béhémoth |
+
+Habitations : mêmes prix et places que celles du Château, cristal (secondaire) aux niveaux 5 et 6, soufre (principale)
+au niveau 7 et pour le Béhémoth. Découpage comme les morts-vivants :
+1. ✅ Les créatures et leurs capacités (2026-11-08) : `rage` (+2 attaque par coup reçu, +6 au plus), `hit-and-run`
+   (`TacticalBattle.RetreatSteps` ; le bouton « Se défendre » devient « Rester » ; l'IA repart vers la case que le moins
+   d'ennemis au corps à corps peuvent atteindre), `lightning` (une chance sur cinq, 15 dégâts par oiseau, sans
+   défense), `rending` (80 %). Prix à l'échelle du Château (Gobelin 9, Loup 25, Orc 38, Ogre 90, Nomade 165,
+   Oiseau-tonnerre 320, Béhémoth 4900 et 1 soufre). Paysans pour en vaincre un : Gobelin 3, Loup 9, Orc 13, Ogre 32,
+   Nomade 56, Oiseau-tonnerre 111, Béhémoth 1643 (comme l'Ange). Les gardiens de la carte se mesurent à une force de
+   référence par niveau (`MapGenerator.GuardReferenceStrength`, celle des anciens neutres). **Frappe et repart n'est pas
+   trop fort** (mesure `Nomades_frappe_et_repart`, armées du même prix, avec et sans la capacité : mêmes victoires, pertes
+   à peu près égales) : chaque attaque prend toujours la riposte. Mesuré : la simulation gagne les petites cartes vers
+   le jour 101 (88 avant ; deux cartes sur six à 158 et 174), les normales 89, les grandes 152 ; un adversaire : Facile
+   14 900, Normal 18 000, Difficile 19 700 en or d'armée. Sans doute l'expérience (les anciens neutres en rapportent
+   quatre fois moins) : à revoir avec l'expérience. Tests : `BarbaresTests`.
+2. La ville (7 habitations), la classe Barbare et les héros, l'IA, les mesures.
+3. Les images (session images : Nomades, Oiseau-tonnerre, Béhémoth, la ville ; en attendant, des ronds de couleur).
 
 #### Les morts-vivants (en cours)
 | Niveau | Créature | Rôle | Capacité (proposition) |

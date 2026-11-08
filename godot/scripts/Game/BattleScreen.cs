@@ -471,7 +471,9 @@ public partial class BattleScreen : CanvasLayer
             CancelSpell();
         // on ne fuit qu'en attaquant (celui qui se défend n'a nulle part où aller)
         _fleeButton.Disabled = !mine || _playerSide != BattleSide.Attacker;
-        _waitButton.Disabled = !mine || unit!.HasWaited;
+        _waitButton.Disabled = !mine || unit!.HasWaited || battle.IsRetreating;
+        // après avoir frappé, une troupe qui peut repartir (Nomades) choisit sa case, ou reste
+        _defendButton.Text = mine && battle.IsRetreating ? Texts.BattleStay : Texts.BattleDefend;
         _autoButton.Disabled = _auto;
 
         _field.ActiveUnit = unit;

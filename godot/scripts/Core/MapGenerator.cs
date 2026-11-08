@@ -62,10 +62,17 @@ public sealed class MapGenerator
     public double MinesPerZone { get; init; } = 1.5;
 
     /// <summary>
-    /// Les factions dont viennent les monstres de la carte : les neutres, et les morts-vivants (étape 9, en attendant
-    /// qu'ils aient leur ville : on les rencontre déjà sur la carte).
+    /// Les factions dont viennent les monstres de la carte : les neutres, les morts-vivants et les Barbares (étape 9 :
+    /// le Gobelin, le Loup, l'Orc et l'Ogre étaient des neutres et gardent la carte).
     /// </summary>
-    public static readonly string[] MonsterFactions = { "neutre", "morts-vivants" };
+    public static readonly string[] MonsterFactions = { "neutre", "morts-vivants", "barbares" };
+
+    /// <summary>
+    /// La force (paysans pour en vaincre une, <see cref="CreatureStrength"/>) du gardien pour lequel
+    /// <see cref="GuardBaseCount"/> est réglé, par niveau : celle des neutres d'avant les factions (Gobelin 3, Loup 9,
+    /// Orc 13, Ogre 31, Troll 50, le Troll encore au niveau 6, Dragon rouge 242).
+    /// </summary>
+    private static readonly int[] GuardReferenceStrength = { 0, 3, 9, 13, 31, 50, 50, 242 };
 
     /// <summary>Coffres et tas de ressources, pour une carte de 40 × 30 (plus sur une grande carte).</summary>
     public int ChestCount { get; init; } = 6;
@@ -1247,18 +1254,16 @@ public sealed class MapGenerator
     }
 
     /// <summary>
-    /// Les tailles des gardiens sont réglées pour les créatures neutres. Pour une créature d'une autre faction, on la
-    /// compare à la créature neutre du même niveau (ou du niveau en dessous) par sa force mesurée (combien de paysans il
-    /// faut pour en vaincre une, capacités comprises) : la troupe a autant de force que le gardien neutre.
+    /// Les tailles des gardiens sont réglées pour les créatures neutres d'avant les factions. Pour une autre créature, on
+    /// la compare à la force de référence de son niveau (<see cref="GuardReferenceStrength"/>) par sa force mesurée
+    /// (combien de paysans il faut pour en vaincre une, capacités comprises) : la troupe a autant de force que le
+    /// gardien de référence. Le Troll et le Dragon rouge, encore neutres, gardent leurs tailles.
     /// </summary>
     private static double StrengthFactor(CreatureCatalog creatures, CreatureType type, int tier)
     {
         if (type.Faction == "neutre")
             return 1;
-        var reference = creatures.All.Where(c => c.Faction == "neutre" && c.Tier <= tier).OrderByDescending(c => c.Tier).FirstOrDefault();
-        if (reference == null)
-            return 1;
-        return (double)CreatureStrength.PeasantsToBeat(reference, creatures) / CreatureStrength.PeasantsToBeat(type, creatures);
+        return (double)GuardReferenceStrength[tier] / CreatureStrength.PeasantsToBeat(type, creatures);
     }
 
     private void Shuffle<T>(IList<T> list)

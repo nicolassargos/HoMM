@@ -136,6 +136,44 @@ public class MesuresTests(ITestOutputHelper output)
             output.WriteLine($"{faction} : " + string.Join(", ", Curve(faction)));
     }
 
+    /// <summary>
+    /// Les Nomades (frappe et repart) contre des armées du même prix en or, avec et sans leur capacité : la part de
+    /// l'armée perdue par le vainqueur, sur 20 combats (les deux camps joués par l'IA). Pour voir si la capacité est trop
+    /// forte contre les armées lentes.
+    /// </summary>
+    [Mesure]
+    public void Nomades_frappe_et_repart()
+    {
+        var nomads = TestData.Creatures.Get("nomades");
+        var without = nomads with { Abilities = nomads.Abilities.Where(a => a != Ability.HitAndRun).ToList() };
+        const int count = 20;
+        int gold = count * nomads.Cost[ResourceType.Gold];
+        foreach (var id in new[] { "zombie", "ogre", "epeiste", "moine", "vampire", "cavalier", "troll" })
+        {
+            var enemy = TestData.Creatures.Get(id);
+            string Line(CreatureType type)
+            {
+                int wins = 0;
+                double lost = 0;
+                for (int seed = 0; seed < 20; seed++)
+                {
+                    var ours = new Army();
+                    ours.Add(type, count);
+                    var theirs = new Army();
+                    theirs.Add(enemy, Math.Max(1, (int)Math.Round((double)gold / enemy.Cost[ResourceType.Gold])));
+                    var battle = new TacticalBattle(ours, theirs, new GameRandom(seed));
+                    BattleAI.PlayOut(battle);
+                    bool won = battle.Outcome == BattleOutcome.AttackerWon;
+                    if (won)
+                        wins++;
+                    lost += won ? 1 - ours.TotalCount / (double)count : 0;
+                }
+                return $"{wins}/20 gagnés, pertes {(wins == 0 ? 0 : 100 * lost / wins):0} %";
+            }
+            output.WriteLine($"{enemy.Plural} : avec {Line(nomads)} ; sans {Line(without)}");
+        }
+    }
+
     private static IEnumerable<string> Curve(string faction)
     {
         var line = new List<string>();

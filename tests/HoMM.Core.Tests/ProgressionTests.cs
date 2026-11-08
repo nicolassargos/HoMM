@@ -110,7 +110,8 @@ public class ProgressionTests
         var gobelins = ArmyOf("gobelin", 10);
         var report = Battle.Resolve(ArmyOf("paysan", 40), gobelins);
 
-        // Un gobelin vaut 40 or
-        Assert.Equal(report.DefenderLosses.Sum(s => s.Count) * 40, report.Experience);
+        // chaque gobelin tué rapporte son prix en or
+        int price = TestData.Creatures.Get("gobelin").Cost[ResourceType.Gold];
+        Assert.Equal(report.DefenderLosses.Sum(s => s.Count) * price, report.Experience);
     }
 }

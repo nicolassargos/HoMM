@@ -112,6 +112,22 @@ public static class BattleAI
         return value;
     }
 
+    /// <summary>
+    /// Où repart une troupe qui a frappé (<see cref="Ability.HitAndRun"/>) : la case la moins menacée, c'est-à-dire
+    /// celle que le moins d'ennemis du corps à corps pourraient atteindre à leur prochain tour (à vol d'oiseau, une
+    /// estimation), puis la plus éloignée des ennemis ; à égalité, rester sur place.
+    /// </summary>
+    private static Hex Retreat(TacticalBattle battle, BattleUnit unit, IReadOnlyList<BattleUnit> enemies)
+    {
+        var melee = enemies.Where(e => !e.CanShoot).ToList();
+        double Danger(Hex h) => melee.Where(e => unit.HexesAt(h).Min(x => e.Hexes.Min(x.DistanceTo)) <= battle.SpeedOf(e) + 1).Sum(Threat);
+        int Nearest(Hex h) => enemies.Count == 0 ? 0 : enemies.Min(e => unit.HexesAt(h).Min(x => e.Hexes.Min(x.DistanceTo)));
+        return battle.Reachable(unit).Keys
+            .OrderBy(Danger).ThenByDescending(Nearest).ThenBy(h => h == unit.Position ? 0 : 1)
+            .ThenBy(h => h.DistanceTo(unit.Position)).ThenBy(h => h.Col).ThenBy(h => h.Row)
+            .First();
+    }
+
     /// <summary>Fait jouer la troupe active (son héros lance d'abord un sort, s'il en vaut la peine).</summary>
     public static void PlayTurn(TacticalBattle battle)
     {
@@ -123,6 +139,15 @@ public static class BattleAI
             .OrderByDescending(Threat).ThenBy(e => e.Id).ToList();
         if (enemies.Count == 0)
             return;
+
+        // A frappé et peut repartir (Nomades) : s'éloigner des ennemis qui pourraient l'atteindre
+        if (battle.IsRetreating)
+        {
+            var refuge = Retreat(battle, unit, enemies);
+            if (refuge == unit.Position || !battle.Move(refuge))
+                battle.Defend();
+            return;
+        }
 
         // Tirer, si possible
         if (unit.CanShoot && !battle.IsEngaged(unit))

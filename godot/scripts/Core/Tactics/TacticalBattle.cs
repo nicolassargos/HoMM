@@ -40,6 +40,15 @@ public sealed record UnitDrained(BattleUnit Unit, int HitPoints, int Revived) : 
 public sealed record UnitRegenerated(BattleUnit Unit) : BattleAction;
 public sealed record UnitDefended(BattleUnit Unit) : BattleAction;
 
+/// <summary>La troupe enrage (Barbares) : son attaque gagnée par la rage vaut maintenant <paramref name="Rage"/>.</summary>
+public sealed record UnitEnraged(BattleUnit Unit, int Rage) : BattleAction;
+
+/// <summary>La foudre appelée par <paramref name="Attacker"/> (Oiseau-tonnerre) frappe la cible.</summary>
+public sealed record LightningStruck(BattleUnit Attacker, BattleUnit Target, int Damage, int Killed) : BattleAction;
+
+/// <summary>La troupe a frappé et peut repartir (Nomades) : <paramref name="Steps"/> cases de mouvement lui restent.</summary>
+public sealed record UnitMayRetreat(BattleUnit Unit, int Steps) : BattleAction;
+
 /// <summary>Le héros s'enfuit : <paramref name="Losses"/>, les créatures perdues dans la fuite.</summary>
 public sealed record AttackerFled(IReadOnlyList<CreatureStack> Losses) : BattleAction;
 
@@ -65,8 +74,15 @@ public sealed partial class TacticalBattle
     /// <summary>Bonus de charge par case parcourue avant l'attaque (+5 %).</summary>
     public const double ChargeBonus = 0.05;
 
-    /// <summary>Part de la défense ignorée par un coup écrasant (40 %).</summary>
-    public const double CrushingShare = 0.4;
+    /// <summary>Part de la défense ignorée par un coup écrasant (40 %) et par les griffes (80 %).</summary>
+    public const double CrushingShare = 0.4, RendingShare = 0.8;
+
+    /// <summary>La rage (Barbares) : attaque gagnée à chaque coup reçu, et au plus dans un combat.</summary>
+    public const int RagePerHit = 2, RageMax = 6;
+
+    /// <summary>La foudre de l'Oiseau-tonnerre : une chance sur cinq à chaque attaque, tant de dégâts par oiseau.</summary>
+    public const double LightningChance = 0.2;
+    public const int LightningPerCreature = 15;
 
     /// <summary>Le poison de l'Araignée : dégâts par créature qui mord, et pendant combien de tours de la cible.</summary>
     public const int PoisonPerCreature = 2, PoisonTurns = 3;
@@ -133,6 +149,14 @@ public sealed partial class TacticalBattle
 
     /// <summary>La troupe qui doit jouer (null quand le combat est fini).</summary>
     public BattleUnit? Active { get; private set; }
+
+    /// <summary>
+    /// La troupe active a frappé et peut repartir (<see cref="Ability.HitAndRun"/>) : le mouvement qui lui reste, sinon
+    /// null. Elle ne peut alors que se déplacer (<see cref="Move"/>) ou rester (<see cref="Defend"/>, sans le bonus).
+    /// </summary>
+    public int? RetreatSteps { get; private set; }
+
+    public bool IsRetreating => RetreatSteps != null;
 
     /// <summary>Ce qui s'est passé depuis le dernier appel (pour l'écran de combat).</summary>
     public List<BattleAction> TakeLog()
@@ -311,6 +335,7 @@ public sealed partial class TacticalBattle
     {
         Outcome = outcome;
         Active = null;
+        RetreatSteps = null;
         _log.Add(new BattleEnded(outcome));
     }
 
@@ -334,7 +359,7 @@ public sealed partial class TacticalBattle
     /// </summary>
     public Dictionary<Hex, List<Hex>> Reachable(BattleUnit unit)
     {
-        int speed = SpeedOf(unit);
+        int speed = unit == Active && RetreatSteps is { } steps ? steps : SpeedOf(unit);
         if (unit.Has(Ability.Flies))
         {
             var flights = new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
@@ -372,7 +397,7 @@ public sealed partial class TacticalBattle
 
     /// <summary>Un tireur peut tirer s'il a une cible ennemie et qu'aucun ennemi ne se tient à côté de lui.</summary>
     public bool CanShoot(BattleUnit unit, BattleUnit target) =>
-        unit.CanShoot && AreEnemies(unit, target) && !IsEngaged(unit);
+        unit.CanShoot && AreEnemies(unit, target) && !IsEngaged(unit) && !(unit == Active && IsRetreating);
 
     /// <summary>Un ennemi se tient-il à côté de la troupe ?</summary>
     public bool IsEngaged(BattleUnit unit) =>
@@ -384,7 +409,7 @@ public sealed partial class TacticalBattle
     /// </summary>
     public IEnumerable<Hex> AttackPositions(BattleUnit unit, BattleUnit target)
     {
-        if (!AreEnemies(unit, target))
+        if (!AreEnemies(unit, target) || unit == Active && IsRetreating)
             return Enumerable.Empty<Hex>();
         var reachable = Reachable(unit);
         return reachable.Keys.Where(h => Touches(unit, h, target));
@@ -408,7 +433,7 @@ public sealed partial class TacticalBattle
     /// </summary>
     public bool Attack(BattleUnit target, Hex from)
     {
-        if (Active is not { } unit || !AreEnemies(unit, target) || !Touches(unit, from, target))
+        if (Active is not { } unit || IsRetreating || !AreEnemies(unit, target) || !Touches(unit, from, target))
             return false;
         if (!Reachable(unit).TryGetValue(from, out var path))
             return false;
@@ -426,6 +451,14 @@ public sealed partial class TacticalBattle
         // deux attaques : la seconde après la riposte
         if (unit.Has(Ability.DoubleAttack) && target.IsAlive && unit.IsAlive)
             Melee(unit, target, moved);
+        // frappe et repart : la troupe garde le mouvement qui lui reste
+        int left = SpeedOf(unit) - moved;
+        if (unit.Has(Ability.HitAndRun) && unit.IsAlive && left > 0 && _units.Any(u => AreEnemies(unit, u)))
+        {
+            RetreatSteps = left;
+            _log.Add(new UnitMayRetreat(unit, left));
+            return true;
+        }
         EndTurn();
         return true;
     }
@@ -464,7 +497,7 @@ public sealed partial class TacticalBattle
     /// <summary>La troupe active tire sur la cible (pas de riposte). Renvoie false si elle ne peut pas tirer.</summary>
     public bool Shoot(BattleUnit target)
     {
-        if (Active is not { } unit || !CanShoot(unit, target))
+        if (Active is not { } unit || IsRetreating || !CanShoot(unit, target))
             return false;
         var around = unit.Has(Ability.DeathCloud)
             ? Neighbours(target).Where(o => o != unit && !o.IsUndead).ToList()
@@ -480,7 +513,7 @@ public sealed partial class TacticalBattle
     /// <summary>La troupe active attend : elle jouera à la fin du round (une seule fois par round).</summary>
     public bool Wait()
     {
-        if (Active is not { } unit || unit.HasWaited)
+        if (Active is not { } unit || unit.HasWaited || IsRetreating)
             return false;
         unit.HasWaited = true;
         _waiting.Add(unit);
@@ -490,11 +523,19 @@ public sealed partial class TacticalBattle
         return true;
     }
 
-    /// <summary>La troupe active se défend : +20 % de défense jusqu'à son prochain tour.</summary>
+    /// <summary>
+    /// La troupe active se défend : +20 % de défense jusqu'à son prochain tour. Une troupe qui a frappé et pourrait
+    /// repartir reste simplement sur place (sans le bonus).
+    /// </summary>
     public bool Defend()
     {
         if (Active is not { } unit)
             return false;
+        if (IsRetreating)
+        {
+            EndTurn();
+            return true;
+        }
         _log.Add(new UnitDefended(unit));
         EndTurn();
         unit.IsDefending = true;
@@ -532,6 +573,7 @@ public sealed partial class TacticalBattle
     private void EndTurn()
     {
         Active = null;
+        RetreatSteps = null;
         NextUnit();
     }
 
@@ -553,8 +595,16 @@ public sealed partial class TacticalBattle
         int killed = to.TakeDamage(damage);
         to.Wake();
         _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation));
+        if (to.Has(Ability.Rage) && to.Enrage(RagePerHit, RageMax))
+            _log.Add(new UnitEnraged(to, to.Rage));
         if (!from.IsAlive)
             return;
+        // la foudre : une chance à chaque attaque (pas à la riposte), sans compter la défense
+        if (from.Has(Ability.Lightning) && !retaliation && to.IsAlive && _rng.NextDouble() < LightningChance)
+        {
+            int bolt = LightningPerCreature * from.Count;
+            _log.Add(new LightningStruck(from, to, bolt, to.TakeDamage(bolt)));
+        }
         if (from.Has(Ability.GhostGrowth) && killed > 0)
         {
             from.Grow(killed);
@@ -583,7 +633,8 @@ public sealed partial class TacticalBattle
             sum += from.Type.MinDamage + Next(from.Type.MaxDamage - from.Type.MinDamage + 1);
         double damage = from.Count <= 10 ? sum : sum * (double)from.Count / 10;
         // un coup écrasant ignore une partie de la défense
-        int defense = from.Has(Ability.Crushing) && !ranged ? (int)Math.Round(to.Defense * (1 - CrushingShare)) : to.Defense;
+        double ignored = ranged ? 0 : from.Has(Ability.Rending) ? RendingShare : from.Has(Ability.Crushing) ? CrushingShare : 0;
+        int defense = (int)Math.Round(to.Defense * (1 - ignored));
         damage *= Battle.DamageModifier(from.Attack, defense);
         int range = from.Has(Ability.ShortRange) ? ShortRange : LongRange;
         if (ranged && from.HasRangePenalty && Distance(from, to) > range)

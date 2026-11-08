@@ -341,7 +341,13 @@ public sealed class MapGenerator
     /// <summary>Chaque frontière entre deux zones est faite de montagnes ou d'une rivière.</summary>
     private void PaintWalls(IEnumerable<(int A, int B)> neighbours)
     {
-        var wallOf = neighbours.ToDictionary(n => n, _ => _rng.NextDouble() < 0.6 ? TerrainType.Mountain : TerrainType.Water);
+        // des murs de montagne, de forêt ou d'eau (moins de montagnes depuis que la forêt bloque aussi)
+        var wallOf = neighbours.ToDictionary(n => n, _ => _rng.NextDouble() switch
+        {
+            < 0.35 => TerrainType.Mountain,
+            < 0.7 => TerrainType.Forest,
+            _ => TerrainType.Water,
+        });
         for (int y = 0; y < _map.Height; y++)
         for (int x = 0; x < _map.Width; x++)
         {
@@ -646,25 +652,38 @@ public sealed class MapGenerator
     {
         bool Free(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone.Index && !_border[c.X, c.Y]
             && !_reserved.Contains(c) && _map.ObjectAt(c) == null && DistanceToStart(c) > 4;
-        // Les murs de la ville ne coupent aucune route ; l'entrée et ses abords (une case de plus tout autour de la ville et
-        // de sa case d'approche) restent dans la zone
-        var candidates = AllCells()
+        // L'entrée et ses abords (une case de plus tout autour de la ville et de sa case d'approche) restent dans la zone ;
+        // de préférence, les murs de la ville ne coupent aucune route (sinon, dans une petite zone que ses routes
+        // traversent de partout, la route coupée est détournée jusqu'à la porte)
+        var places = AllCells()
             .Where(c => _zoneOf[c.X, c.Y] == zone.Index)
             .Where(c => TownMargin(c).All(Free))
             .Where(c => !ownOnly || towards is not { } own || _map.Starts.All(s => s == own || SquaredDistance(c, own) < SquaredDistance(c, s)))
-            .Where(c => Town.FootprintAt(c).All(f => !_map.HasRoad(f)))
             .OrderBy(c => SquaredDistance(c, towards ?? zone.Center)).ThenBy(c => c.Y).ThenBy(c => c.X)
-            .Take(5).ToList();
+            .ToList();
+        var candidates = places.Where(c => Town.FootprintAt(c).All(f => !_map.HasRoad(f))).Take(5).ToList();
+        if (candidates.Count == 0)
+            candidates = places.Take(5).ToList();
         if (candidates.Count == 0)
             return false;
         var cell = candidates[_rng.Next(candidates.Count)];
 
         var footprint = Town.FootprintAt(cell).ToHashSet();
-        foreach (var f in footprint.Append(cell.Offset(0, 1)))
+        var approach = cell.Offset(0, 1);
+        // les bouts d'une route coupée par les murs : ils rejoindront la porte en contournant la ville
+        var cut = footprint.Where(_map.HasRoad).SelectMany(Orthogonal)
+            .Where(c => !footprint.Contains(c) && _map.InBounds(c) && _map.HasRoad(c)).Distinct().ToList();
+        foreach (var f in footprint.Append(approach))
+        {
             _map.SetTerrain(f, TerrainType.Grass);
+            if (footprint.Contains(f))
+                _map.SetRoad(f, false);
+        }
+        foreach (var end in cut)
+            Road(end, approach, zone.Index, new HashSet<Cell>(), footprint);
         // la route part de la porte et rejoint la route la plus proche (sinon le centre de la zone)
-        Road(cell.Offset(0, 1), zone.Center, zone.Index, new HashSet<Cell>(), footprint, joinRoad: true);
-        TrimRoadsAgainst(footprint, cell.Offset(0, 1));
+        Road(approach, zone.Center, zone.Index, new HashSet<Cell>(), footprint, joinRoad: true);
+        TrimRoadsAgainst(footprint, approach);
         AddTown(data, cell, name, zone.Level);
         return true;
     }
@@ -744,11 +763,11 @@ public sealed class MapGenerator
         int area = _map.Width * _map.Height;
         var patches = new (TerrainType Terrain, int Count, int Size)[]
         {
-            (TerrainType.Forest, area / 120, 25),
+            (TerrainType.Forest, area / 250, 25),
             (TerrainType.Sand, area / 400, 20),
             (TerrainType.Swamp, area / 400, 18),
             (TerrainType.Water, area / 300, 30),
-            (TerrainType.Mountain, area / 200, 18),
+            (TerrainType.Mountain, area / 500, 18),
         };
         foreach (var (terrain, count, size) in patches)
             for (int i = 0; i < count; i++)

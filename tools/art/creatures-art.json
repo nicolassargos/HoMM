@@ -494,6 +494,117 @@
         "idle": "the giant spider stays crouched in place, its legs twitch one after another, its fangs click and its round abdomen pulses slowly",
         "move": "the giant spider scuttles forward to the right, its eight long legs moving quickly in alternating waves, its body staying low, it stays at the same place on the image"
       }
+    },
+    "nomades": {
+      "nom": "Nomades",
+      "gabarit": "quadrupede",
+      "description": "a steppe nomad horseman at rest: a lean rider in fur and leather with a round fur hat and a long braid, a short recurved bow on his back, his curved sabre held low and pointing down along the horse's flank, a calm watchful passive pose, riding a sturdy shaggy brown steppe horse standing still on its four hooves, a short mane, a simple saddle with colorful tassels",
+      "sujet": "a calm steppe nomad rider with a fur hat, sabre held low, on a small shaggy brown horse standing still, side view facing right",
+      "hauteur": 62,
+      "generation": [
+        128,
+        104
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/loup.png",
+      "references": [],
+      "comparer": [
+        "archer",
+        "loup"
+      ],
+      "mouvements": {
+        "idle": "the small horse paws the ground with one hoof and shakes its mane, the rider shifts in the saddle and looks around, the hooves stay in place",
+        "attack": "the horse lunges forward and the rider slashes down with the curved sabre at the enemy in front of it, then the horse wheels back to its starting place",
+        "move": "the horse gallops forward to the right, its four legs in a clear fast gallop, the rider leaning forward"
+      },
+      "notes": "Barbares, niveau 5 (session règles, branche barbares) : cavaliers rapides qui frappent et repartent, 2 cases (choix de l'utilisateur, 2026-11-08 ; d'abord 1). Choix de l'utilisateur (2026-11-08) : archer à cheval des steppes. Revu : position passive, sabre baissé. Visage retouché (PixelLab « retoucher », 0,08 $) : réduit, il était dans l'ombre du chapeau.",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul"
+      },
+      "choix": {
+        "fixe": "L6-2 + visage"
+      },
+      "grande": "art-candidats/references/derives/nomades-grand.png"
+    },
+    "oiseau-tonnerre": {
+      "nom": "Oiseau-tonnerre",
+      "gabarit": "volant",
+      "description": "a huge mythic thunderbird in the style of native totem carvings, standing on its strong talons with its great wings folded and held closed along its body, not spread: a large eagle-like bird with bold red, black and white feather patterns in geometric shapes on its folded wings and chest, a big curved hooked yellow beak, fierce eyes outlined in black, a proud upright pose",
+      "sujet": "a huge totem-style thunderbird standing with its wings folded along its body, red, black and white geometric feathers, side view facing right",
+      "hauteur": 60,
+      "generation": [
+        128,
+        104
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "references": [],
+      "comparer": [
+        "griffon",
+        "dragon"
+      ],
+      "mouvements": {
+        "idle": "the thunderbird stands on its talons with its wings folded along its body, breathes slowly, ruffles its totem-patterned feathers and turns its head proudly, the talons stay in place",
+        "attack": "the thunderbird half opens its great wings, leaps forward and strikes the enemy in front of it with its talons and hooked beak, then folds its wings and steps back to its starting pose",
+        "move": "the thunderbird spreads its huge wings and flies forward to the right with powerful wing beats"
+      },
+      "vole": true,
+      "notes": "Barbares, niveau 6 : vole, grande créature sur 2 cases, appelle la foudre (l'effet vient du jeu, pas de l'image). Choix de l'utilisateur (2026-11-08) : oiseau-totem mythique. Revu : ailes repliées le long du corps.",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul"
+      },
+      "choix": {
+        "fixe": "L6-3"
+      },
+      "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png"
+    },
+    "behemoth": {
+      "nom": "Béhémoth",
+      "gabarit": "grand",
+      "description": "a behemoth, a colossal mythical beast (not a bear) standing upright on its two hind legs: a huge hunched ape-like monster with an ape face, a heavy brow, a flat nose and a wide snarling mouth with big curved fangs and two bone-white tusks, a thick wild mane of extra shaggy fur over its shoulders and neck, dark brown fur with a reddish-orange mane and grey streaks, patches of green moss on its back and shoulders, huge long arms with enormous hands ending in long curved claws, a threatening stance leaning forward, bigger than a troll",
+      "sujet": "a colossal behemoth standing on two legs, ape-like snarling face, fangs and tusks, reddish shaggy mane, moss on its shoulders, huge clawed hands, side view facing right",
+      "hauteur": 72,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [],
+      "comparer": [
+        "troll",
+        "ogre"
+      ],
+      "mouvements": {
+        "idle": "the behemoth breathes slowly and heavily, its huge shoulders and mane rise and fall, it flexes its long claws, the feet stay in place",
+        "attack": "the behemoth raises one huge clawed hand high and rakes it down hard at the enemy in front of it, its long claws tearing, then straightens up to its starting pose",
+        "move": "the behemoth walks forward to the right on its two legs with slow heavy steps, its long arms swinging, its shoulders rolling"
+      },
+      "notes": "Barbares, niveau 7 : griffes qui déchirent. Choix de l'utilisateur (2026-11-08) : une bête mythique (pas un ours), debout sur deux jambes, visage de singe, crocs et défenses, fourrure fournie, crinière rousse, mousse, menaçant ; 1 case (d'abord 2).",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L8-1"
+      },
+      "grande": "art-candidats/references/derives/behemoth-grand.png"
     }
   }
 }

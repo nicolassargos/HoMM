@@ -206,15 +206,7 @@ public static class MapRenderer
         var c = o + V(T / 2f, T / 2f);
         if (ObjectImage(obj) is { } image)
         {
-            // Une ville occupe 5×4 cases (3×3 dans les anciennes sauvegardes), une mine 3×2 : l'entrée (o) est au milieu de la
-            // rangée du bas. L'image est posée en bas de cette surface, centrée, à ×2 (une ville de 160 × 128 la couvre juste).
-            var area = obj switch
-            {
-                Town { Large: true } => new Rect2(o + V(-2 * T, -3 * T), 5 * T, 4 * T),
-                Town => new Rect2(o + V(-T, -2 * T), 3 * T, 3 * T),
-                Mine { Large: true } => new Rect2(o + V(-T, -T), 3 * T, 2 * T),
-                _ => new Rect2(o, T, T),
-            };
+            var area = ObjectArea(obj, o);
             var drawn = DrawArt(ci, image, area);
             // Le drapeau du propriétaire reste dessiné par-dessus (en haut à gauche de la mine)
             if (obj is Mine mine)
@@ -278,6 +270,31 @@ public static class MapRenderer
         }
     }
 
+    /// <summary>La surface d'un objet dont l'image se pose en bas (voir <see cref="DrawArt"/>), l'entrée étant en <paramref name="o"/>.</summary>
+    private static Rect2 ObjectArea(MapObject obj, Vector2 o)
+    {
+        // Une ville occupe 5×4 cases (3×3 dans les anciennes sauvegardes), une mine 3×2 : l'entrée (o) est au milieu de la
+        // rangée du bas. L'image est posée en bas de cette surface, centrée, à ×2 (une ville de 160 × 128 la couvre juste).
+        return obj switch
+        {
+            Town { Large: true } => new Rect2(o + V(-2 * T, -3 * T), 5 * T, 4 * T),
+            Town => new Rect2(o + V(-T, -2 * T), 3 * T, 3 * T),
+            Mine { Large: true } => new Rect2(o + V(-T, -T), 3 * T, 2 * T),
+            _ => new Rect2(o, T, T),
+        };
+    }
+
+    /// <summary>L'image d'un objet et l'endroit où elle est dessinée (pour son ombre) ; null s'il est dessiné par formes.</summary>
+    public static (Texture2D Image, Rect2 Rect)? ObjectArt(MapObject obj, Vector2 o) =>
+        ObjectImage(obj) is { } image ? (image, ArtRect(image, ObjectArea(obj, o))) : null;
+
+    /// <summary>L'image du héros posé sur la case <paramref name="o"/> et l'endroit où elle est dessinée (pour son ombre).</summary>
+    public static (Texture2D Image, Rect2 Rect)? HeroArt(Player? owner, Vector2 o) =>
+        HeroImage(owner) is { } image ? (image, ArtRect(image, HeroArea(o + V(T / 2f, T / 2f + 4)))) : null;
+
+    /// <summary>La case où se pose l'image du héros, <paramref name="c"/> étant le point où il est dessiné.</summary>
+    private static Rect2 HeroArea(Vector2 c) => new(c - V(T / 2f, T / 2f + 4), T, T);
+
     /// <summary>
     /// Dessine une image de la carte à sa taille : un pixel d'art y vaut <see cref="ArtScale"/> pixels de la carte (les
     /// pixels ont la même taille partout). Elle est posée sur le bas de <paramref name="area"/> et centrée ; une image plus
@@ -285,11 +302,17 @@ public static class MapRenderer
     /// </summary>
     private static Rect2 DrawArt(CanvasItem ci, Texture2D image, Rect2 area)
     {
-        var size = image.GetSize() * ArtScale;
-        var position = new Vector2(MathF.Floor(area.Position.X + (area.Size.X - size.X) / 2), area.End.Y - size.Y);
-        var drawn = new Rect2(position, size);
+        var drawn = ArtRect(image, area);
         ci.DrawTextureRect(image, drawn, false);
         return drawn;
+    }
+
+    /// <summary>Où <see cref="DrawArt"/> dessine une image dans <paramref name="area"/>.</summary>
+    private static Rect2 ArtRect(Texture2D image, Rect2 area)
+    {
+        var size = image.GetSize() * ArtScale;
+        var position = new Vector2(MathF.Floor(area.Position.X + (area.Size.X - size.X) / 2), area.End.Y - size.Y);
+        return new Rect2(position, size);
     }
 
     public static readonly Color NeutralColor = Rgb(200, 200, 200);
@@ -418,7 +441,7 @@ public static class MapRenderer
     {
         if (HeroImage(owner) is { } image)
         {
-            DrawArt(ci, image, new Rect2(c - V(T / 2f, T / 2f + 4), T, T));
+            DrawArt(ci, image, HeroArea(c));
             return;
         }
         var horse = Rgb(240, 235, 225);

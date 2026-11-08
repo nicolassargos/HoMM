@@ -44,6 +44,37 @@ public class RoutesTests
         }
     }
 
+    /// <summary>
+    /// Les routes mènent à la porte des villes : la case d'approche (sous l'entrée) est sur la route, aucune route ne passe
+    /// sous les murs, et aucune ne s'arrête contre le flanc d'une ville.
+    /// </summary>
+    [Theory]
+    [InlineData(1, 1, 36, 27)]
+    [InlineData(2, 2, 54, 27)]
+    [InlineData(3, 3, 54, 40)]
+    [InlineData(4, 4, 72, 53)]
+    [InlineData(5, 1, 54, 40)]
+    [InlineData(6, 2, 54, 40)]
+    [InlineData(7, 3, 90, 66)]
+    [InlineData(8, 4, 90, 66)]
+    public void Les_routes_menent_a_la_porte_des_villes(int seed, int players, int width, int height)
+    {
+        var map = new MapGenerator(seed, TestData.Data) { Players = players }.Generate(width, height);
+        bool Road(Cell c) => map.InBounds(c) && map.HasRoad(c);
+        Cell[] Around(Cell c) => new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) };
+
+        foreach (var town in map.Objects.OfType<Town>())
+        {
+            var walls = town.Footprint.ToHashSet();
+            Assert.True(Road(town.Approach), $"pas de route devant la porte de {town.Name} ({town.Position})");
+            foreach (var wall in walls.Where(w => w != town.Position))
+                Assert.False(Road(wall), $"route sous les murs de {town.Name} en {wall}");
+            // une route qui finit (une seule voisine) contre la ville ne peut finir que devant la porte
+            foreach (var end in walls.SelectMany(Around).Where(c => !walls.Contains(c) && c != town.Approach).Distinct())
+                Assert.False(Road(end) && Around(end).Count(Road) <= 1, $"route en cul-de-sac contre {town.Name} en {end}");
+        }
+    }
+
     [Fact]
     public void Les_routes_sont_sauvegardees()
     {

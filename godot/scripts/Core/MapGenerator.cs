@@ -251,7 +251,7 @@ public sealed class MapGenerator
         if (_zones.Count == 1)
         {
             startZone.Level = 0;
-            Road(_map.Start, startZone.Center, startZone.Index, new HashSet<Cell>());
+            StartRoad(_map.Start, startZone, new HashSet<Cell>());
             return;
         }
 
@@ -282,13 +282,13 @@ public sealed class MapGenerator
         foreach (var (a, b) in links)
             OpenPassage(a, b, openings[(a, b)], carved);
 
-        // Les routes : du centre de chaque zone à ses passages (et au départ)
+        // Les routes : du centre de chaque zone à ses passages (et à la porte du château de départ)
         foreach (var zone in _zones)
         {
             foreach (var passage in _passages.Where(p => p.A == zone.Index || p.B == zone.Index))
-                Road(zone.Center, PassageSide(passage, zone.Index), zone.Index, carved);
+                Road(Hub(zone), PassageSide(passage, zone.Index), zone.Index, carved);
             foreach (var start in _map.Starts.Where(s => ZoneAt(s) == zone))
-                Road(start, zone.Center, zone.Index, carved);
+                StartRoad(start, zone, carved);
         }
     }
 
@@ -443,16 +443,22 @@ public sealed class MapGenerator
     /// Trace une route (ponts et cols compris) par le plus court chemin à l'intérieur d'une zone,
     /// sans passer par ses murs (sauf les passages ouverts) ni par les cases interdites.
     /// </summary>
-    private void Road(Cell from, Cell to, int zone, HashSet<Cell> carved, HashSet<Cell>? forbidden = null)
+    private void Road(Cell from, Cell to, int zone, HashSet<Cell> carved, HashSet<Cell>? forbidden = null, bool joinRoad = false)
     {
         bool Allowed(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone
-            && (!_border[c.X, c.Y] || carved.Contains(c)) && forbidden?.Contains(c) != true;
+            && (!_border[c.X, c.Y] || carved.Contains(c)) && forbidden?.Contains(c) != true && !InStartingTown(c);
 
         var previous = new Dictionary<Cell, Cell> { [from] = from };
         var queue = new Queue<Cell>(new[] { from });
         while (queue.Count > 0 && !previous.ContainsKey(to))
         {
             var c = queue.Dequeue();
+            // joinRoad : on s'arrête à la première route rencontrée (la plus proche)
+            if (joinRoad && c != from && _map.HasRoad(c))
+            {
+                to = c;
+                break;
+            }
             foreach (var next in Orthogonal(c))
                 if ((Allowed(next) || next == to) && previous.TryAdd(next, c))
                     queue.Enqueue(next);
@@ -462,6 +468,55 @@ public sealed class MapGenerator
         for (var c = to; c != from; c = previous[c])
             PaveRoad(c);
         PaveRoad(from);
+    }
+
+    /// <summary>
+    /// La route d'un départ : de la case d'approche (sous l'entrée du château) au centre de la zone, en contournant les
+    /// murs, pour qu'elle arrive à la porte et pas contre le flanc de la ville. Sans château, du départ lui-même.
+    /// </summary>
+    private void StartRoad(Cell start, Zone zone, HashSet<Cell> carved)
+    {
+        if (!StartingTowns)
+        {
+            Road(start, zone.Center, zone.Index, carved);
+            return;
+        }
+        Road(start.Offset(0, 1), Hub(zone), zone.Index, carved);
+    }
+
+    /// <summary>Les cases des murs d'un château de départ (posé plus tard, sur chaque départ) : aucune route n'y passe.</summary>
+    private bool InStartingTown(Cell c) => StartingTowns && _map.Starts.Any(s => Town.FootprintAt(s).Contains(c));
+
+    /// <summary>
+    /// Le carrefour d'une zone, où se rejoignent ses routes : son centre, sauf s'il tombe sous les murs d'un château de
+    /// départ (la route s'y arrêterait) : alors la case devant la porte de ce château.
+    /// </summary>
+    private Cell Hub(Zone zone)
+    {
+        foreach (var start in _map.Starts)
+            if (StartingTowns && Town.FootprintAt(start).Contains(zone.Center))
+                return start.Offset(0, 1);
+        return zone.Center;
+    }
+
+    /// <summary>
+    /// Retire les bouts de route qui finissent contre les murs d'une ville (ailleurs que devant sa porte) : une ville posée
+    /// au bout d'une route, ou à côté, ne laisse pas de route s'arrêter contre son flanc.
+    /// </summary>
+    private void TrimRoadsAgainst(IReadOnlyCollection<Cell> walls, Cell approach)
+    {
+        bool Road(Cell c) => _map.InBounds(c) && _map.HasRoad(c);
+        bool trimmed = true;
+        while (trimmed)
+        {
+            trimmed = false;
+            foreach (var c in walls.SelectMany(Orthogonal).Distinct().ToList())
+                if (Road(c) && !walls.Contains(c) && c != approach && Orthogonal(c).Count(Road) <= 1)
+                {
+                    _map.SetRoad(c, false);
+                    trimmed = true;
+                }
+        }
     }
 
     /// <summary>
@@ -568,6 +623,7 @@ public sealed class MapGenerator
             if (f != start && f != start.Offset(0, 1))
                 _map.SetRoad(f, false);
         }
+        TrimRoadsAgainst(Town.FootprintAt(start).ToList(), start.Offset(0, 1));
         var town = new Town(start, name, faction, data);
         town.AddBuilding(data.Buildings.Get("salle-village"));
         if (town.DwellingOfTier(1) is { } dwelling)
@@ -606,7 +662,9 @@ public sealed class MapGenerator
         var footprint = Town.FootprintAt(cell).ToHashSet();
         foreach (var f in footprint.Append(cell.Offset(0, 1)))
             _map.SetTerrain(f, TerrainType.Grass);
-        Road(cell.Offset(0, 1), zone.Center, zone.Index, new HashSet<Cell>(), footprint);
+        // la route part de la porte et rejoint la route la plus proche (sinon le centre de la zone)
+        Road(cell.Offset(0, 1), zone.Center, zone.Index, new HashSet<Cell>(), footprint, joinRoad: true);
+        TrimRoadsAgainst(footprint, cell.Offset(0, 1));
         AddTown(data, cell, name, zone.Level);
         return true;
     }

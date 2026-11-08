@@ -232,6 +232,10 @@ par jour ; tas rares de 3 à 6 ; au départ 2 de chaque ressource rare.
   (`Town.Large`), et une sauvegarde le note pour chaque mine ou ville petite (sinon, sauvegardée de nouveau, elle
   grandissait). Mesuré : la simulation et l'adversaire comme avant (sur 18 autres cartes, Normal : 15 400 or d'armée
   contre 16 000 ; les 6 cartes des `Mesures` ont changé, leurs chiffres aussi : Normal 16 700 contre 23 700).
+  **Les routes mènent à la porte** (demandé par l'utilisateur, 2026-11-08) : la route d'un départ part de la case devant
+  la porte du château et contourne ses murs (avant, elle partait de côté et s'arrêtait contre le flanc) ; celle d'une
+  ville neutre rejoint la route la plus proche ; un bout de route qui finit contre les murs d'une ville est retiré.
+  Vérifié sur 420 cartes (`RoutesTests`).
 - Corrigé au passage : le joueur sans héros qui perdait sa dernière ville n'avait pas perdu (la partie continuait sans
   lui, à l'infini) ; fin « Eliminated ».
 - **À faire (IA)** : sa prévision d'un combat (jouée trois fois) se trompe dans les combats qui tournent vite (Fantômes qui

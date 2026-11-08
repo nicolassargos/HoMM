@@ -21,7 +21,7 @@ public sealed partial class GameState
     /// Version 2 : les routes sont une couche à part (<see cref="MapData.Roads"/>). Une sauvegarde de la version 1
     /// (où la route était un terrain, le numéro 1) est encore lue : ses routes deviennent de l'herbe avec une route.
     /// </summary>
-    public const int SaveVersion = 3; // 3 : les mines sur 3 × 2 cases
+    public const int SaveVersion = 4; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4
 
     private static readonly JsonSerializerOptions SaveOptions = new()
     {
@@ -51,7 +51,8 @@ public sealed partial class GameState
         ResourceType? Resource = null, int? Amount = null, int? Owner = null,
         string? Creature = null, int? InitialCount = null,
         string? Name = null, string? Faction = null, List<string>? Buildings = null, bool BuiltToday = false,
-        Dictionary<string, int>? Available = null, List<StackData>? Garrison = null, List<string>? GuildSpells = null);
+        Dictionary<string, int>? Available = null, List<StackData>? Garrison = null, List<string>? GuildSpells = null,
+        bool? Small = null); // une mine sur une case, une ville sur 3 × 3 (venues d'une sauvegarde d'avant)
 
     private sealed record StackData(string Creature, int Count);
 
@@ -111,13 +112,13 @@ public sealed partial class GameState
         ResourcePile pile => new ObjectData("pile", obj.Id, obj.Position, Resource: pile.Resource, Amount: pile.Amount),
         TreasureChest chest => new ObjectData("chest", obj.Id, obj.Position, Amount: chest.Gold),
         Obelisk => new ObjectData("obelisk", obj.Id, obj.Position),
-        Mine mine => new ObjectData("mine", obj.Id, obj.Position, Resource: mine.Resource, Owner: mine.Owner?.Id),
+        Mine mine => new ObjectData("mine", obj.Id, obj.Position, Resource: mine.Resource, Owner: mine.Owner?.Id, Small: mine.Large ? null : true),
         MonsterGuard guard => new ObjectData("guard", obj.Id, obj.Position, Creature: guard.Type.Id,
             InitialCount: guard.InitialCount, Amount: guard.Count),
         Town town => new ObjectData("town", obj.Id, obj.Position, Owner: town.Owner?.Id,
             Name: town.Name, Faction: town.Faction, Buildings: town.Built.ToList(), BuiltToday: town.BuiltToday,
             Available: town.Available.ToDictionary(a => a.Key.Id, a => a.Value), Garrison: Stacks(town.Garrison),
-            GuildSpells: town.GuildSpells.Count > 0 ? town.GuildSpells.Select(s => s.Id).ToList() : null),
+            GuildSpells: town.GuildSpells.Count > 0 ? town.GuildSpells.Select(s => s.Id).ToList() : null, Small: town.Large ? null : true),
         _ => throw new InvalidOperationException($"Objet de carte non prévu dans la sauvegarde : {obj.GetType().Name}"),
     };
 
@@ -139,7 +140,7 @@ public sealed partial class GameState
         try
         {
             if (JsonSerializer.Deserialize<SaveFile>(json, SaveOptions) is not { Map: not null, Players.Count: > 0 } save
-                || save.Version is not (1 or 2 or SaveVersion))
+                || save.Version is not (1 or 2 or 3 or SaveVersion))
                 return null;
             var hero = save.Heroes.Where(h => h.Owner == save.Players[0].Id)
                 .OrderByDescending(h => h.Id == save.CurrentHero).ThenByDescending(h => h.Level).FirstOrDefault();
@@ -165,7 +166,7 @@ public sealed partial class GameState
         }
         if (save == null)
             throw new FormatException("sauvegarde vide");
-        if (save.Version is not (1 or 2 or SaveVersion))
+        if (save.Version is not (1 or 2 or 3 or SaveVersion))
             throw new FormatException($"version de sauvegarde inconnue : {save.Version} (attendue : {SaveVersion})");
         try
         {
@@ -215,9 +216,9 @@ public sealed partial class GameState
                 "chest" => new TreasureChest(o.Position, o.Amount!.Value),
                 "obelisk" => new Obelisk(o.Position),
                 // avant la version 3, une mine n'occupait qu'une case : ses voisines peuvent être prises
-                "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null, Large = save.Version >= 3 },
+                "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null, Large = save.Version >= 3 && o.Small != true },
                 "guard" => new MonsterGuard(o.Position, data.Creatures.Get(o.Creature!), o.InitialCount!.Value, o.Amount!.Value),
-                "town" => RestoreTown(o, data, id => Owner(id)),
+                "town" => RestoreTown(o, data, id => Owner(id), large: save.Version >= 4 && o.Small != true),
                 _ => throw new KeyNotFoundException($"objet de carte inconnu : {o.Kind}"),
             };
             obj.Id = o.Id;
@@ -314,12 +315,14 @@ public sealed partial class GameState
         return map;
     }
 
-    private static Town RestoreTown(ObjectData o, GameData data, Func<int, Player> owner)
+    private static Town RestoreTown(ObjectData o, GameData data, Func<int, Player> owner, bool large)
     {
         var town = new Town(o.Position, o.Name!, o.Faction!, data)
         {
             Owner = o.Owner is { } id ? owner(id) : null,
             BuiltToday = o.BuiltToday,
+            // avant la version 4, une ville occupait 3 × 3 cases : les cases voisines peuvent être prises
+            Large = large,
         };
         foreach (var building in o.Buildings ?? new List<string>())
             town.RestoreBuilding(building);

@@ -206,20 +206,25 @@ public static class MapRenderer
         var c = o + V(T / 2f, T / 2f);
         if (ObjectImage(obj) is { } image)
         {
-            // Une ville occupe 3×3 cases, une mine 3×2 : l'entrée (o) est au milieu de la rangée du bas. L'image est posée
-            // en bas de cette surface, centrée (une image de 96 × 64 la couvre juste).
+            // Une ville occupe 5×4 cases (3×3 dans les anciennes sauvegardes), une mine 3×2 : l'entrée (o) est au milieu de la
+            // rangée du bas. L'image est posée en bas de cette surface, centrée, à ×2 (une ville de 160 × 128 la couvre juste).
             var area = obj switch
             {
+                Town { Large: true } => new Rect2(o + V(-2 * T, -3 * T), 5 * T, 4 * T),
                 Town => new Rect2(o + V(-T, -2 * T), 3 * T, 3 * T),
                 Mine { Large: true } => new Rect2(o + V(-T, -T), 3 * T, 2 * T),
                 _ => new Rect2(o, T, T),
             };
-            DrawArt(ci, image, area);
+            var drawn = DrawArt(ci, image, area);
             // Le drapeau du propriétaire reste dessiné par-dessus (en haut à gauche de la mine)
             if (obj is Mine mine)
                 DrawFlag(ci, area.Position + new Vector2(0.3f * T, 0.45f * T), ColorOf(mine.Owner), 0);
             else if (obj is Town town)
-                DrawFlag(ci, area.Position + V(1.5f * T, 4), ColorOf(town.Owner), time);
+            {
+                // planté sur le dessin (sa tour ou son rempart de gauche), pas dans le fond transparent au-dessus
+                float top = Art.OpaqueTop(image, TownFlagColumn);
+                DrawFlag(ci, drawn.Position + new Vector2(TownFlagColumn * drawn.Size.X, top * drawn.Size.Y + 3), ColorOf(town.Owner), time);
+            }
             return;
         }
         switch (obj)
@@ -267,7 +272,7 @@ public static class MapRenderer
                 break;
 
             case Town town:
-                // La ville couvre 3×3 cases : l'entrée (o) est au milieu de la rangée du bas
+                // sans image : un château de 3×3 cases, posé en bas de la ville, sur l'entrée (o, au milieu de la rangée du bas)
                 DrawTown(ci, town, o + V(T / 2f, -T / 2f), time);
                 break;
         }
@@ -278,14 +283,19 @@ public static class MapRenderer
     /// pixels ont la même taille partout). Elle est posée sur le bas de <paramref name="area"/> et centrée ; une image plus
     /// grande que la zone en déborde (vers le haut et sur les côtés).
     /// </summary>
-    private static void DrawArt(CanvasItem ci, Texture2D image, Rect2 area)
+    private static Rect2 DrawArt(CanvasItem ci, Texture2D image, Rect2 area)
     {
         var size = image.GetSize() * ArtScale;
         var position = new Vector2(MathF.Floor(area.Position.X + (area.Size.X - size.X) / 2), area.End.Y - size.Y);
-        ci.DrawTextureRect(image, new Rect2(position, size), false);
+        var drawn = new Rect2(position, size);
+        ci.DrawTextureRect(image, drawn, false);
+        return drawn;
     }
 
     public static readonly Color NeutralColor = Rgb(200, 200, 200);
+
+    /// <summary>Où se plante le drapeau du propriétaire sur l'image d'une ville : à 30 % de sa largeur.</summary>
+    private const float TownFlagColumn = 0.3f;
 
     /// <summary>Un drapeau sur son mât, planté en <paramref name="foot"/> (il flotte si <paramref name="time"/> avance).</summary>
     private static void DrawFlag(CanvasItem ci, Vector2 foot, Color color, double time)

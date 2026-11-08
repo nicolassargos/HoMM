@@ -58,13 +58,13 @@ MINES = {
         "rails": ((52, 38), (76, 63)),
     },
     "mine-gems": {
-        "batiment": (p("grotte-gemmes", 1), None, 42),
+        "batiment": (p("grotte-gemmes", 4, "v2"), None, 42),
         "pieces": [(f"{DECOR}/peak-small.png", 20, 2, 10), (f"{DECOR}/pine-2.png", None, 80, 4), (f"{OBJETS}/pile-gems.png", 16, 14, 44),
                    (f"{OBJETS}/pile-gems.png", 14, 66, 46), (f"{DECOR}/peak-small-2.png", 16, 82, 38)],
         "chemin": [(48 + ((y // 5) % 2), y) for y in range(42, 64)],
     },
     "mine-crystal": {
-        "batiment": (p("caverne-cristal", 2), None, 42),
+        "batiment": (p("caverne-cristal", 3, "v2"), None, 42),
         "pieces": [(f"{DECOR}/peak-small-2.png", 20, 2, 8), (f"{DECOR}/peak-small.png", 18, 78, 6), (f"{OBJETS}/pile-crystal.png", 16, 12, 44),
                    (f"{OBJETS}/pile-crystal.png", 16, 68, 44), (f"{OBJETS}/pile-crystal.png", 12, 84, 30)],
         "chemin": [(48 + ((y // 5) % 2), y) for y in range(42, 64)],

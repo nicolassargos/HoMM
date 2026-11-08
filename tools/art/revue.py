@@ -64,7 +64,7 @@ CAPTURES = [("jeu-32-revele.png", "Carte révélée, zoom ×2"), ("jeu-32-depart
 
 LOTS = {
     "32px": {"titre": "Carte en 32 px : tes choix", "groupes": GROUPES_32PX, "captures": CAPTURES},
-    "v2": {"titre": "Images refaites (2026-11-08) : tes choix", "groupes": GROUPES_V2, "captures": []},
+    "v2": {"titre": "Images refaites (2026-11-08) : tes choix", "groupes": GROUPES_V2, "captures": CAPTURES},
 }
 LOT = "32px"
 

@@ -775,6 +775,24 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   mort et boule de poison de la Liche, hache de l'Orc, flux de sang du Vampire, poison (bulles, troupe qui verdit),
   régénération du Troll, âmes du Fantôme, auras des sorts. Réglage de la vitesse des projectiles : `ProjectileSpeed`
   (le bouton de l'écran de combat est fait par l'autre session).
+- ✅ Ombres de la carte (2026-11-08, branche `ombres-carte`), dessinées par le jeu (`Game/ShadowLayer.cs`, un calque sous
+  le décor et les objets ; pas d'ombre peinte dans les images). Lumière d'en haut à droite, comme Heroes 1 et 2.
+  - **Ombre portée** : l'image noire, couchée sur le sol vers la gauche. L'image est découpée en morceaux (pixels qui se
+    touchent) ; un morceau étroit (arbre, créature, tas) tourne autour de son pied (pixel le plus bas du milieu) ; un
+    morceau large (remparts) pose chaque colonne sur son propre sol (sinon l'ombre des tours du fond passe sous le
+    château), sans compter ses parties fines ; les morceaux minuscules ou creux (rails) et le chemin vers l'entrée d'une
+    mine n'en font pas. Bord flou (gaussien). Réglages par défaut : force 0,45, longueur 0,5, penche 0,45, flou 0,6.
+    Essais écartés : une seule ligne de pied par image (ombres sous les objets), une colonne par pixel pour tous (les
+    arbres perdaient leur ombre quand l'angle changeait), un contour lissé (les flèches et drapeaux disparaissaient).
+  - **Ombre de contact** (méthode de l'utilisateur) : pour chaque pied (du pixel le plus à gauche au plus à droite de la
+    base), le bas du dessin entre les deux, fermé par un arc au-dessus, puis des bagues de plus en plus claires (55 %,
+    31 %, 12 % ; « étalement » de 1 à 6 bagues par image), multipliées par la force « contact » (0,5). Les pieds sont
+    proposés par `tools/art/pieds.py` (morceaux séparés à leurs passages étroits, suivi du bas du contour) puis revus sur
+    une page (`revue-pieds.html` : glisser les points, ajouter, retirer, étalement) : 47 images sur 51 vérifiées. Écarté :
+    une tache ronde sous l'objet, et toute règle automatique seule (château, mines, objets collés).
+  - Réglage en jeu : `--shadow=force,longueur,penche,contact,flou` et `--shadow-tune` (curseurs).
+  - **Scierie refaite** : cabane de trois quarts avec une pièce en plus, porte au bout du chemin, sol transparent
+    (retouche PixelLab d'un candidat de Retro Diffusion, 0,08 $), décor replacé sans que rien ne se touche.
 - ✅ Icônes des ressources (2026-11-07) : or, bois, minerai, gemmes, et d'avance mercure, cristal, soufre (pas encore dans
   les règles) ; 16 × 16 dans la barre et le royaume, 32 × 32 pour plus tard.
 Une fois les écrans fixés (étape 7) et le contenu en place.

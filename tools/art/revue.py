@@ -216,9 +216,10 @@ let filtre='tout';function filtrer(){document.querySelectorAll('.item').forEach(
  d.classList.toggle('cache',filtre==='reste'?!!vu(it):filtre==='repondu'?!vu(it):false)});
  document.querySelectorAll('[data-filtre]').forEach(b=>b.classList.toggle('on',b.dataset.filtre===filtre))}
 document.querySelectorAll('.item').forEach(div=>{const n=div.dataset.nom;
- div.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{const it=item(n);it.choix=o.dataset.id;if(it.avis==='garder'&&o.dataset.id!=='installee')it.avis='';if(it.choix!=='installee'&&it.avis==='refaire')it.avis='';sauver();majItem(div);compter()});
+ div.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{const it=item(n);it.choix=o.dataset.id;if(it.choix!=='installee'&&it.avis==='refaire')it.avis='';sauver();majItem(div);compter()});
  div.querySelectorAll('[data-avis]').forEach(b=>b.onclick=()=>{const it=item(n);it.avis=it.avis===b.dataset.avis?'':b.dataset.avis;
-  if(it.avis)it.choix='installee';sauver();majItem(div);compter()});
+  // « Garder » valide l'image encadrée (installée ou choisie) ; « À refaire » revient à l'image installée
+  if(it.avis==='refaire')it.choix='installee';sauver();majItem(div);compter()});
  const t=div.querySelector('textarea');t.value=(etat.items[n]||{}).commentaire||'';t.oninput=()=>{item(n).commentaire=t.value;sauver();majItem(div);compter()};
  majItem(div)});
 const g=document.getElementById('general');g.value=etat.general||'';g.oninput=()=>{etat.general=g.value;sauver()};
@@ -257,7 +258,7 @@ def page():
                 "<button id=copier>Copier mes réponses</button><button id=telecharger>Télécharger</button>"
                 "<button id=effacer title='Tout effacer'>Effacer</button><span id=disque class=compte></span></header><main>"
                 "<p class=aide>Pour chaque image : clique un candidat pour le choisir (cadre doré ; ★ = l'image actuelle du jeu), "
-                "ou « Garder » / « À refaire », et écris un commentaire si tu veux. Tes réponses restent dans ce navigateur. "
+                "puis « Garder » pour valider l'image encadrée, ou « À refaire », et écris un commentaire si tu veux. Tes réponses restent dans ce navigateur. "
                 "Quand « ✓ enregistré sur le disque » s'affiche en haut, chaque réponse est déjà écrite pour Claude : à la fin, dis-lui simplement « c'est fait ». Sinon : <b>Télécharger</b>.</p>"
                 "<textarea id=general placeholder='Commentaire général (style, couleurs, ce qui manque…)'></textarea>"]
     captures = [(f, legende) for f, legende in LOTS[LOT]["captures"] if os.path.exists(os.path.join(EN_COURS, f))]

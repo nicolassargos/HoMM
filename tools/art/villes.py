@@ -24,7 +24,9 @@ SORTIE = "art-candidats/en-cours/candidats/objects"
 
 
 def pc(nom, i):
-    return f"{P}/{nom}@32px/{i}.png"
+    """Un candidat de pièce : un numéro (lot 32px) ou (lot, numéro), par exemple ("v2", 3) : vus de face, plus bas."""
+    lot, i = i if isinstance(i, tuple) else ("32px", i)
+    return f"{P}/{nom}@{lot}/{i}.png"
 
 
 def charger(chemin, h=None, miroir=False, fondu=False):
@@ -92,17 +94,20 @@ def necropole(donjon, tour, porte, mur, crypte, cimetiere):
     crâne au milieu du bas. Rien dehors."""
     return enceinte("mv", tour, mur, 60, 22, miroir_mur=True) + [
         (pc("mv-cimetiere", cimetiere), 30, 34, 84, {"fondu": True}),
-        (pc("mv-crypte", crypte), 32, 128, 84, {"fondu": True, "miroir": True}),
+        (pc("mv-crypte", crypte), 32, 128, 84, {"miroir": True}),
         (pc("mv-donjon", donjon), 100, 80, 100, {"fondu": True}),
-        (pc("mv-crypte", crypte), 30, 40, 108, {"fondu": True}),
+        (pc("mv-crypte", crypte), 30, 40, 108),
         (pc("mv-cimetiere", cimetiere), 28, 120, 108, {"fondu": True, "miroir": True}),
         (pc("mv-porte", porte), 50, 80, 127, {"fondu": True}),
     ]
 
 
+V = lambda i: ("v2", i)
 ESSAIS = {
-    "town": [chateau(3, 4, 3, 2, (2, 3), 2), chateau(2, 1, 1, 3, (1, 2), 3), chateau(1, 4, 3, 4, (3, 4), 4)],
-    "town-morts-vivants": [necropole(3, 2, 2, 2, 2, 2), necropole(1, 3, 2, 4, 3, 4), necropole(4, 2, 3, 2, 2, 3)],
+    "town": [chateau(V(2), V(4), 3, 2, (V(4), V(2)), V(2)), chateau(V(4), V(1), 1, 3, (V(2), V(4)), V(4)),
+             chateau(V(2), V(1), 3, 4, (V(4), V(1)), V(3))],
+    "town-morts-vivants": [necropole(V(4), V(4), 2, 2, V(2), V(1)), necropole(V(3), V(1), 2, 4, V(4), V(3)),
+                           necropole(V(4), V(1), 3, 2, V(2), V(3))],
 }
 
 

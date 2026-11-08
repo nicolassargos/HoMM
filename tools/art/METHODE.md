@@ -138,6 +138,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   peu de sol, pas le couper net. Compte comme roche un pixel gris ou brun assez clair (les contours sombres du socle
   doivent fondre aussi, sinon le bord reste net).
 
+## Villes de la carte (5 × 4 cases, 160 × 128, 2026-11-08)
+- Assemblées de pièces (`tools/art/villes.py`) comme les mines : enceinte sur **toute la largeur** (tours aux coins, mur du
+  fond, mur de face), grand donjon au milieu, maisons, chapelle, cryptes **à l'intérieur des murs**, porte au milieu du
+  bas. Refusé par l'utilisateur : des pièces semées autour des murs (la ville paraît petite) et la vue trop haute.
+- Couleurs vives (grès, toits rouges et bleus ; nécropole violette aux fenêtres vertes) : le gris a été refusé.
+- Vue plus basse : ajouter « seen from the front at a low angle, almost a straight side view, not seen from above » ;
+  Retro Diffusion penche encore un peu vers le dessus, garder les candidats les plus de face.
+- Ne pas fondre (`fondu.py`) une pièce verdâtre (cryptes) : elle passe pour de l'herbe et devient floue.
+
 ## Grands objets de la carte (mines…)
 - **Méthode** : des **pièces** séparées faites par Retro Diffusion (`assets.json`, groupe `pieces/` : cabane, chariot,
   chevalet, souches, entrée de mine, chariot sur rails…), **sans socle**, puis **assemblées** aux proportions de Heroes

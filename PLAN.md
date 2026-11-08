@@ -263,6 +263,19 @@ croissance, prix, garde.
   les images de 32 pixels viennent de la session images (`graphismes-suite-4`).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la
   date. (Icônes des ressources : faites, 2026-11-07.)
+- **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
+  ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix
+  `art-candidats/en-cours/revue-<lot>.html`, faites par `tools/art/revue.py`, 2026-11-08) ; le code (taille des cases,
+  shader, décor) vient de l'autre session (branche `tuiles-32`), les images fusionnent juste après. Le sol des forêts et
+  des montagnes est de l'herbe (`terrain/forest.png` et `mountain.png` retirées). Reste :
+  - **l'herbe** : les choix sont bons mais le vert est trop vif ; à régler dans une session à part, en changeant les
+    couleurs de façon interactive (ou dans un logiciel de dessin), peut-être une troisième case avec des fleurs ;
+  - le **héros** de la carte, plus tard.
+  Fait (2026-11-08) : ✅ les **villes sur 5 × 4 cases** (160 × 128, PixelLab « Pro » d'un seul coup, vues de face : bien
+  meilleur que l'assemblage de pièces ; l'empreinte et le drapeau viennent de l'autre session, PR #76 et #77), ✅ la
+  mine de soufre (entrée plus grande), ✅ le squelette et le colosse d'os (PixelLab « Pro », l'image de combat comme
+  sujet), ✅ sommets fondus dans le terrain (`tools/art/fondu.py`).
+  - plus tard : une ombre dessinée par le jeu sous les objets de la carte.
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles
   (`buildings.json`) ne gardent plus la place des bâtiments ; chaque faction a sa **scène** (`art/towns/<faction>/` :
   un fond de 640 × 195 affiché ×3, et `scene.json` : pour chaque bâtiment, son pied (bas, milieu), sa profondeur et son

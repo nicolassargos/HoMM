@@ -1,8 +1,9 @@
 """Revue des images de la carte en 32 px : une page où l'on choisit un candidat par image et où l'on laisse un commentaire.
 
     python -I tools/art/revue.py                      écrit art-candidats/en-cours/revue-32px.html
-    python -I tools/art/revue.py appliquer [fichier]  applique les réponses (par défaut : le dernier revue-32px*.json
-                                                      du dossier Téléchargements)
+    python -I tools/art/revue.py serveur              écrit les réponses de la page sur le disque à chaque changement
+    python -I tools/art/revue.py appliquer [fichier]  applique les réponses (par défaut : en-cours/revue-32px.json, sinon
+                                                      le dernier revue-32px*.json des Téléchargements)
 
 Sur la page : un clic sur un candidat le choisit, « Garder » ou « À refaire » donne l'avis, et chaque image a sa zone de
 commentaire. Les réponses restent dans le navigateur (on peut fermer la page et revenir) ; « Télécharger » les écrit dans
@@ -27,6 +28,8 @@ CANDIDATS = os.path.join(EN_COURS, "candidats")
 ART = os.path.join(RACINE, "godot", "art")
 PAGE = os.path.join(EN_COURS, "revue-32px.html")
 VARIANTES = os.path.join(CANDIDATS, "mines-32", "variantes")
+REPONSES = os.path.join(EN_COURS, "revue-32px.json")
+PORT = 8765
 
 # les images revues, par groupe (nom dans godot/art, sans .png)
 GROUPES = [
@@ -149,7 +152,11 @@ SCRIPT = r"""
 const CLE='revue-32px';let etat={general:'',items:{}};
 try{etat=JSON.parse(localStorage.getItem(CLE))||etat}catch(e){}
 const zoomSauve=(()=>{try{return +localStorage.getItem(CLE+'-zoom')||2}catch(e){return 2}})();
-function sauver(){try{localStorage.setItem(CLE,JSON.stringify(etat))}catch(e){}}
+function sauver(){try{localStorage.setItem(CLE,JSON.stringify(etat))}catch(e){}clearTimeout(sauver.t);sauver.t=setTimeout(envoyer,400)}
+// les réponses sont aussi écrites sur le disque par « revue.py serveur » s'il tourne (sinon : Télécharger)
+async function envoyer(){const d=document.getElementById('disque');try{const r=await fetch('http://127.0.0.1:%PORT%/reponses',{method:'POST',
+ headers:{'Content-Type':'text/plain'},body:JSON.stringify(reponses(),null,1)});if(!r.ok)throw 0;d.textContent='✓ enregistré sur le disque';d.style.color='var(--vert)'}
+ catch(e){d.textContent='non enregistré sur le disque : utilise Télécharger';d.style.color='var(--rouge)'}}
 function item(n){return etat.items[n]||(etat.items[n]={choix:'installee',avis:'',commentaire:''})}
 function zoom(z){document.querySelectorAll('img[data-w]').forEach(i=>{i.style.width=i.dataset.w*z+'px'});
  document.querySelectorAll('.tuile').forEach(t=>{const c=32*z;t.style.width=t.style.height=3*c+'px';t.style.backgroundSize=c+'px '+c+'px'});
@@ -189,7 +196,7 @@ document.getElementById('telecharger').onclick=()=>{const a=document.createEleme
 document.getElementById('effacer').onclick=()=>{if(confirm('Effacer toutes tes réponses de cette page ?')){etat={general:'',items:{}};sauver();location.reload()}};
 const loupe=document.getElementById('loupe');document.querySelectorAll('.captures img').forEach(i=>i.onclick=()=>{loupe.querySelector('img').src=i.src;loupe.style.display='flex'});
 loupe.onclick=()=>loupe.style.display='none';
-zoom(zoomSauve);compter();
+zoom(zoomSauve);compter();envoyer();
 """
 
 
@@ -208,10 +215,10 @@ def page():
                 "<span>Montrer</span><button data-filtre=tout>tout</button><button data-filtre=reste>pas vues</button>"
                 "<button data-filtre=repondu>vues</button>"
                 "<button id=copier>Copier mes réponses</button><button id=telecharger>Télécharger</button>"
-                "<button id=effacer title='Tout effacer'>Effacer</button></header><main>"
+                "<button id=effacer title='Tout effacer'>Effacer</button><span id=disque class=compte></span></header><main>"
                 "<p class=aide>Pour chaque image : clique un candidat pour le choisir (cadre doré ; ★ = l'image actuelle du jeu), "
                 "ou « Garder » / « À refaire », et écris un commentaire si tu veux. Tes réponses restent dans ce navigateur. "
-                "À la fin : <b>Télécharger</b> (puis dis-moi « c'est fait ») ou <b>Copier mes réponses</b> et colle-les ici.</p>"
+                "Quand « ✓ enregistré sur le disque » s'affiche en haut, chaque réponse est déjà écrite pour Claude : à la fin, dis-lui simplement « c'est fait ». Sinon : <b>Télécharger</b>.</p>"
                 "<textarea id=general placeholder='Commentaire général (style, couleurs, ce qui manque…)'></textarea>"
                 "<h2>Dans le jeu</h2><div class=captures>"]
     for f, legende in CAPTURES:
@@ -237,13 +244,15 @@ def page():
                 morceaux.append(f"<div class=opt data-id='{ident}'{fond}>{vue}<span>{html.escape(libelle)}</span></div>")
             morceaux.append("</div><textarea placeholder='Commentaire'></textarea></div>")
         morceaux.append("</div>")
-    morceaux.append(f"</main><div id=loupe><img alt=''></div><div id=note></div><script>{SCRIPT}</script></body></html>")
+    morceaux.append(f"</main><div id=loupe><img alt=''></div><div id=note></div><script>{SCRIPT.replace('%PORT%', str(PORT))}</script></body></html>")
     with open(PAGE, "w", encoding="utf-8") as f:
         f.write("".join(morceaux))
     print(f"{total} images : {os.path.relpath(PAGE, RACINE)}")
 
 
 def appliquer(fichier):
+    if fichier is None and os.path.exists(REPONSES):
+        fichier = REPONSES
     if fichier is None:
         dl = os.path.join(os.path.expanduser("~"), "Downloads")
         fichiers = sorted(glob.glob(os.path.join(dl, "revue-32px*.json")), key=os.path.getmtime)
@@ -287,8 +296,46 @@ def appliquer(fichier):
         f"\n  {'[à refaire] ' if refaire else ''}{nom}{' — ' + c if c else ''}" for nom, refaire, c in a_refaire))
 
 
+def serveur():
+    """Reçoit les réponses de la page à chaque changement et les écrit dans en-cours/revue-32px.json."""
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    class Reponses(BaseHTTPRequestHandler):
+        def _entetes(self, code):
+            self.send_response(code)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Private-Network", "true")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.end_headers()
+
+        def do_OPTIONS(self):
+            self._entetes(204)
+
+        def do_POST(self):
+            corps = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+            try:
+                r = json.loads(corps)
+                assert r.get("page") == "revue-32px"
+            except Exception:
+                return self._entetes(400)
+            temp = REPONSES + ".tmp"
+            with open(temp, "w", encoding="utf-8") as f:
+                json.dump(r, f, ensure_ascii=False, indent=1)
+            os.replace(temp, REPONSES)
+            print(f"{len(r.get('items', {}))} réponses enregistrées", flush=True)
+            self._entetes(200)
+
+        def log_message(self, *args):
+            pass
+
+    print(f"Réponses écrites dans {os.path.relpath(REPONSES, RACINE)} (port {PORT}) ; Ctrl+C pour arrêter", flush=True)
+    HTTPServer(("127.0.0.1", PORT), Reponses).serve_forever()
+
+
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "appliquer":
+    if len(sys.argv) > 1 and sys.argv[1] == "serveur":
+        serveur()
+    elif len(sys.argv) > 1 and sys.argv[1] == "appliquer":
         appliquer(sys.argv[2] if len(sys.argv) > 2 else None)
     else:
         page()

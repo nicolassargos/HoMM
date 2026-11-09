@@ -224,7 +224,7 @@ public class MoralChanceTests
     {
         var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false) { QuickBattles = false };
         var hero = state.CurrentHero!;
-        state.Map.AddObject(new MonsterGuard(hero.Position.Offset(2, 0), Creature("gobelin"), 3));
+        state.Map.AddObject(new MonsterGuard(hero.Position.Offset(2, 0), Creature("gobelin"), 10)); // assez pour ne pas s'enfuir
         hero.SiteMorale = hero.SiteLuck = 1;
         state.SetDestination(hero.Position.Offset(1, 0));
         state.StepAlongPath();

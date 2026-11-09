@@ -46,7 +46,7 @@ public static class Skills
 
     public const string Logistics = "logistique", Scouting = "eclaireur", Pathfinding = "orientation", Estates = "intendance",
         Leadership = "commandement", Discipline = "discipline", Recruiter = "recruteur", Inspiration = "inspiration",
-        Mysticism = "mysticisme", Morale = "moral", Luck = "chance";
+        Mysticism = "mysticisme", Morale = "moral", Luck = "chance", Diplomacy = "diplomatie";
 }
 
 /// <summary>Pourquoi un héros ne peut pas apprendre une compétence (ou <see cref="Ok"/>).</summary>

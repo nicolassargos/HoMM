@@ -215,6 +215,9 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   découpée en cases). Description « seen from the front at a low angle, almost a straight side view », la ville
   assemblée comme modèle (disposition), `objects/mine-gold.png` comme style. Un candidat sur quatre recopie le modèle.
 
+- **Ville de la Forêt (2026-11-09)** : une ville faite d'arbres tend à remplir tout le rectangle (une scène, arbres
+  coupés aux bords) ; une idée centrée sur un seul grand arbre dans une palissade ronde reste un objet détouré. Montrer
+  plusieurs idées d'un coup (un lot de quatre chacune, 0,115 $) pour que l'utilisateur compare.
 - **Ville barbare (2026-11-09)** : une image trop détaillée (« croustillante ») s'adoucit en ajoutant « simple clean
   shapes, smooth soft shading, few small details, not noisy, not grainy » et en prenant `objects/town.png` comme style ;
   le contour noir épais des villes de PixelLab s'adoucit avec `adoucir.py` (0,7, 60, 2 passes : le bord prend une teinte

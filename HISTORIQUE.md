@@ -856,6 +856,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   trop « croustillant » : le second demande des formes simples et un ombrage doux, avec la ville du Château comme image
   de style (au lieu de la mine d'or) et le candidat aimé comme modèle. Le contour noir trop épais est adouci
   (`tools/art/adoucir.py`, assombrir 0,7, seuil 60, 2 passes), et la ville des morts-vivants de même.
+- ✅ Ville de la Forêt sur la carte (2026-11-09, branche `ville-foret`, PixelLab « Pro » 160 × 128, 0,35 $) : trois idées
+  montrées à l'utilisateur, un lot de quatre chacune (la ville barbare comme style, la ville du Château comme modèle de
+  disposition) : un grand arbre aux maisons perchées, un cercle de druides, une citadelle elfe. Choix : **a-2**, un grand
+  chêne aux maisons et ponts de corde dans ses branches, au milieu d'une palissade ronde, la porte en bas au milieu.
+  Contour adouci (`adoucir.py` 0,7, 60, 2 passes) ; pieds proposés (trois, à vérifier). Le cercle et la citadelle
+  remplissaient tout le rectangle (arbres coupés aux bords) : une scène, pas un objet détouré.
 - ✅ Créatures de la Forêt (2026-11-09, branche `creatures-foret`, PixelLab, environ 6 $ avec les essais), une à la fois,
   choisies en combat (`essai-<k>.png` posés dans le jeu avec `--creature-preview`) et sur la page d'aperçu des
   animations (à la taille du jeu, un adversaire devant les attaques) :

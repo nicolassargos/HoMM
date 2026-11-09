@@ -421,6 +421,12 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
   carte ×2, posé au sol comme un objet à ramasser, une ombre ou une lueur dessinée par le jeu dessous) ; une seconde
   image pour la carte seulement si celle-ci s'y lit mal. Images à faire (session images) : 41 héros en pied, une icône
   par compétence.
+  ✅ **Construit avec des images d'attente** (2026-11-09, branche `ecran-heros`) : les onglets sur la ligne du titre
+  (le choisi en or), une silhouette dessinée à la place du héros en pied (`HeroFigure`), les emplacements de 64 unités
+  (l'artefact ×3), le coffre 4 × 4, des ronds aux deux premières lettres pour les icônes des compétences (un clic
+  apprend) ; la fenêtre des arbres à part est retirée. Chaque artefact a sa place (`slot` dans `artifacts.json`) et va
+  à la première libre de son genre, sinon au coffre (`Equipment.Arrange`) ; **on ne les déplace pas encore à la main**
+  (avec la conception des artefacts). Tests : `EquipementTests`.
 
 ### Les ressources rares ✅
 Décidé avec l'utilisateur (2026-11-07), comme Heroes 2 et 3 : **7 ressources**, l'or, le bois et le minerai (communs),

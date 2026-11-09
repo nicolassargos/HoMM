@@ -325,12 +325,49 @@ public partial class BattleScreen : CanvasLayer
     {
         if (!Icons.TryGetValue(name, out var icon))
             Icons[name] = icon = Art.GetImage($"ui/icons/{name}") is { } image
-                ? ImageTexture.CreateFromImage(image.GetRegion(image.GetUsedRect())) : null;
+                ? ImageTexture.CreateFromImage(Engrave(image.GetRegion(image.GetUsedRect()))) : null;
         return icon;
     }
 
     /// <summary>
-    /// Un bouton carré de pierre avec son icône d'argent (<c>art/ui/icons/{icon}.png</c>, PixelLab, 32 × 32, ×2) ; le nom et la
+    /// L'icône gravée dans la pierre du bouton (choix de l'utilisateur, 2026-11-09, parmi l'argent seul, gravé et incrusté),
+    /// pixel par pixel : un creux de pierre plus sombre, les détails de l'icône en nuances, dont le bord du haut et de
+    /// gauche est dans l'ombre et celui du bas et de droite prend la lumière (la lumière vient d'en haut à gauche).
+    /// </summary>
+    private static Image Engrave(Image icon)
+    {
+        icon.Convert(Image.Format.Rgba8);
+        int w = icon.GetWidth() + 2, h = icon.GetHeight() + 2;
+        bool Inside(int x, int y) => x >= 1 && y >= 1 && x <= w - 2 && y <= h - 2 && icon.GetPixel(x - 1, y - 1).A > 0.5f;
+        var result = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        // des contrastes doux (remarque de l'utilisateur : trop brut au premier essai)
+        var hollow = MapRenderer.Rgb(64, 61, 56);
+        var shadow = new Color(0, 0, 0, 0.35f);
+        var light = new Color(1, 0.97f, 0.9f, 0.25f);
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            if (Inside(x, y))
+            {
+                var source = icon.GetPixel(x - 1, y - 1);
+                float lum = source.R * 0.3f + source.G * 0.59f + source.B * 0.11f;
+                var color = hollow.Lightened(lum * 0.3f);
+                // le bord du creux en haut à gauche est dans l'ombre
+                if (!Inside(x - 1, y) || !Inside(x, y - 1))
+                    color = color.Darkened(0.25f);
+                result.SetPixel(x, y, color);
+            }
+            // autour du creux : la pierre prend la lumière en bas à droite, et l'ombre en haut à gauche
+            else if (Inside(x - 1, y) || Inside(x, y - 1) || Inside(x - 1, y - 1))
+                result.SetPixel(x, y, light);
+            else if (Inside(x + 1, y) || Inside(x, y + 1))
+                result.SetPixel(x, y, shadow);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Un bouton carré de pierre avec son icône gravée (<c>art/ui/icons/{icon}.png</c>, PixelLab, 32 × 32, ×2) ; le nom et la
     /// touche en info-bulle. Sans image, les deux premières lettres du nom.
     /// </summary>
     private static Button AddButton(Control parent, string icon, string text, string key, Action pressed)

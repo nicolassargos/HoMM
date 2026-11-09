@@ -534,7 +534,7 @@ croissance, prix, garde.
   2026-11-08 ; le nom dans l'info-bulle).
   ✅ **Au combat** (2026-11-09, branche `boutons-combat`) : la barre du bas comme Heroes 3, à gauche Options, Fuir, Auto,
   au milieu le round et l'ordre de jeu (plus long), à droite Sorts, Attendre, Se défendre (Rester, Commencer) ; des boutons
-  carrés de pierre, une icône d'argent gravé (PixelLab, 32 × 32, ×2, choisies par l'utilisateur), le nom et la touche en
+  carrés de pierre, une icône gravée dans la pierre (PixelLab, 32 × 32, ×2, choisies par l'utilisateur), le nom et la touche en
   info-bulle. Reste : les autres écrans (le panneau de la carte…).
 - **Les barres de défilement** : la poignée comme taillée dans la pierre (demandé par l'utilisateur, 2026-11-08).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la

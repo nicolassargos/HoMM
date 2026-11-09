@@ -870,9 +870,9 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
     (grands battements d'ailes ; les 16 images de move-2 plient le corps, bizarre sur un long vol), attaque attack-8-r
     (une gifle à hauteur de poitrine ; consigne sans lumière ni traînée, puis éclat effacé). L'Ange vole lentement
     (`stepTime` 0,4 s par case, un battement toutes les deux cases) : à 0,09 s (les volants par défaut), il traversait le
-    champ sans avoir le temps de battre des ailes (remarque de l'utilisateur). Les icônes **gravées** dans la pierre (`Engrave` : un creux de pierre plus
-  sombre, les détails en nuances, l'ombre en haut à gauche et la lumière en bas à droite, contrastes doux), choisies par
-  l'utilisateur parmi l'argent seul, gravé et incrusté (l'argent dans le creux) ; un premier essai trop brut a été adouci. L'Épéiste et le Cavalier restent (plus
+    champ sans avoir le temps de battre des ailes (remarque de l'utilisateur). Les icônes d'argent **incrustées** dans la pierre (`Engrave` : l'argent posé dans un creux, l'ombre en haut
+  à gauche et la lumière en bas à droite, contrastes doux), choisies par l'utilisateur parmi l'argent seul, gravé (un
+  creux de pierre plus sombre) et incrusté ; un premier essai trop brut a été adouci. L'Épéiste et le Cavalier restent (plus
     petits au combat), à refaire plus tard (choix de l'utilisateur).
   - Effets (`BattleEffects`) : points de 2 pixels (`Pixel`), tailles et distances dans l'unité `U` (3 pixels : l'ancien
     pixel d'art) pour garder leur taille à l'écran ; les formes pleines (bulles, boules, largeur de l'éclair, fer de la

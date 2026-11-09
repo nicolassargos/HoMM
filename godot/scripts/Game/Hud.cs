@@ -1141,6 +1141,64 @@ public partial class Hud : CanvasLayer
         dialog.PopupCentered(new Vector2I((int)Px(500), 0));
     });
 
+    /// <summary>
+    /// Un gardien propose de rejoindre le héros (Diplomatie) ou s'enfuit : la troupe, ce qu'elle propose, et les choix
+    /// possibles (accepter, les laisser partir, combattre ou les poursuivre). Fermer la fenêtre, c'est combattre.
+    /// </summary>
+    public void ShowEncounter(GuardEncounter encounter, Action<EncounterChoice> choose) => Enqueue(done =>
+    {
+        var dialog = new GameDialog { Title = Texts.EncounterTitle(encounter), Exclusive = true, Unresizable = true };
+        dialog.GetOkButton().Hide();
+        bool chosen = false;
+        void Choose(EncounterChoice choice)
+        {
+            if (chosen)
+                return;
+            chosen = true;
+            choose(choice);
+            dialog.QueueFree();
+            done();
+        }
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", (int)Px(10));
+        var top = new HBoxContainer();
+        top.AddThemeConstantOverride("separation", (int)Px(12));
+        var stack = new CreatureStack(encounter.Guard.Type, encounter.Guard.Count);
+        if (CreaturePicture(stack.Type, new Rect2(Vector2.Zero, V(120, 120))) is { } picture)
+        {
+            var frame = new Panel { CustomMinimumSize = V(120, 120) };
+            frame.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
+            frame.AddChild(picture);
+            top.AddChild(frame);
+        }
+        var intro = MakeLabel(Texts.EncounterText(encounter), 15, TextColor);
+        intro.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        intro.CustomMinimumSize = V(380, 0);
+        intro.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        top.AddChild(intro);
+        content.AddChild(top);
+        var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        buttons.AddThemeConstantOverride("separation", (int)Px(10));
+        void Add(string text, EncounterChoice choice, bool enabled = true)
+        {
+            var button = MakeButton(text, 15);
+            button.CustomMinimumSize = V(170, 50);
+            button.Disabled = !enabled;
+            button.Pressed += () => Choose(choice);
+            buttons.AddChild(button);
+        }
+        if (encounter.Offer is { } offer)
+            Add(Texts.EncounterJoin(encounter), EncounterChoice.Join, offer.CanAccept);
+        if (encounter.Flees)
+            Add(Texts.EncounterLetFlee, EncounterChoice.LetFlee);
+        Add(Texts.EncounterFight(encounter), EncounterChoice.Fight);
+        content.AddChild(buttons);
+        dialog.AddChild(content);
+        dialog.Canceled += () => Choose(EncounterChoice.Fight);
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I((int)Px(580), 0));
+    });
+
     private void Enqueue(Action<Action> open)
     {
         _pendingDialogs.Enqueue(open);

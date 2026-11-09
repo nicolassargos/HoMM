@@ -272,11 +272,14 @@ public class GameStateTests
         state.SetDestination(start.Offset(1, 0));
         state.TakeEvents();
         state.StepAlongPath();
+        // trois gobelins s'enfuient devant l'armée de départ : on les poursuit
+        Assert.True(state.ResolveEncounter(EncounterChoice.Fight));
 
         var events = state.TakeEvents();
         Assert.IsType<HeroMoved>(events[0]);
-        Assert.IsType<BattleStarted>(events[1]);
-        var battle = Assert.IsType<BattleFought>(events[2]);
+        Assert.IsType<GuardEncounter>(events[1]);
+        Assert.IsType<BattleStarted>(events[2]);
+        var battle = Assert.IsType<BattleFought>(events[3]);
         Assert.True(battle.Report.AttackerWon);
         Assert.Equal(3, battle.DefenderArmy.Sum(s => s.Count));
         Assert.Same(guard, battle.Defender);
@@ -324,6 +327,7 @@ public class GameStateTests
 
         state.SetDestination(start.Offset(1, 0));
         state.StepAlongPath();
+        state.ResolveEncounter(EncounterChoice.Fight); // il s'enfuit : on le poursuit
 
         Assert.Equal(GameOutcome.Victory, state.Outcome);
         Assert.Equal(new GameEnded(GameOutcome.Victory, GameEndReason.GuardsCleared), state.TakeEvents().OfType<GameEnded>().Single());

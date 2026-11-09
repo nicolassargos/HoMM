@@ -65,7 +65,7 @@ public partial class SmoothGround : ColorRect
     {
         ("edge_bias", 2.0f), ("edge_wave", 5.5f), ("wave_scale", 13.0f), ("blend", 3.5f), ("grain_scale", 3.0f),
         ("variant_scale", 30.0f), ("road_width", 4.5f), ("road_wave", 1.5f), ("road_wave_scale", 7.0f),
-        ("road_blend", 1.0f), ("shade_scale", 70.0f),
+        ("road_blend", 1.0f), ("shade_scale", 70.0f), ("beach_width", 6.0f), ("beach_wave", 1.5f), ("flower_cell", 7.0f),
     };
 
     /// <summary>
@@ -134,6 +134,8 @@ public partial class SmoothGround : ColorRect
             ranks[(int)terrain] = Rank(terrain);
         material.SetShaderParameter("priority", ranks);
         material.SetShaderParameter("water", (int)TerrainType.Water);
+        material.SetShaderParameter("sand", (int)TerrainType.Sand);
+        material.SetShaderParameter("grass", (int)TerrainType.Grass);
         // la taille d'une case en pixels d'art (celle des images des terrains) ; les longueurs du shader, réglées pour des
         // cases de 24, gardent les mêmes proportions
         material.SetShaderParameter("ART", (float)size.X);

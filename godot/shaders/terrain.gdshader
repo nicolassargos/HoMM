@@ -21,8 +21,10 @@ uniform int variants = 1;
 uniform ivec2 map_cells = ivec2(1, 1);
 // Rang de chaque terrain : un terrain de rang plus élevé déborde davantage sur l'autre
 uniform int priority[8];
-// Numéro du terrain « eau » (rives nettes et écume)
+// Numéro du terrain « eau » (rives nettes et écume), du sable (les plages) et de l'herbe (les fleurs)
 uniform int water = 5;
+uniform int sand = 3;
+uniform int grass = 0;
 
 // La ligne entre deux terrains : décalage vers le terrain du dessous (pixels d'art), ondulations
 uniform float edge_bias = 2.0;
@@ -49,6 +51,17 @@ uniform float road_wave = 1.5;
 uniform float road_wave_scale = 7.0;
 uniform float road_blend = 1.0;
 uniform float road_edge = 0.15;
+// Plages : largeur de la bande de sable côté terre (pixels d'art, 0 = aucune), ondulation de son bord,
+// sable mouillé (assombrissement) sur les derniers pixels avant l'eau
+uniform float beach_width = 8.0;
+uniform float beach_wave = 2.0;
+uniform float wet = 0.15;
+uniform float wet_width = 2.0;
+// Fleurs sur l'herbe : l'herbe est découpée en carrés de « flower_cell » pixels d'art ; une part « flower_density » de
+// ces carrés porte une fleur (un cœur, quatre pétales et un pixel d'ombre) ou, plus rarement, un petit caillou
+uniform float flower_density = 0.1;
+uniform float flower_cell = 9.0;
+uniform float pebble_share = 0.2;
 // Grandes zones un peu plus claires ou plus sombres : force et taille (pixels d'art)
 uniform float shade = 0.08;
 uniform float shade_scale = 70.0;
@@ -210,6 +223,61 @@ int owner(vec2 p) {
 	return share >= 0.5 ? b : a;
 }
 
+// Distance du pixel d'art p (qui appartient à la terre) à la rive la plus proche, en pixels d'art (très grande loin de
+// l'eau). La rive est la même ligne ondulée que dans mixture() : elle avance dans la case d'eau de
+// edge_bias + ondulation pixels.
+float shore_distance(vec2 p) {
+	ivec2 c = ivec2(floor(p / ART));
+	vec2 local = p - vec2(c) * ART + 0.5;
+	int a = terrain_at(c);
+	float line = edge_bias + wave(p + 0.5) * edge_wave;
+	// une case de terre : la rive la plus proche ; une case d'eau gagnée par la terre : la terre la couvre jusqu'à la
+	// rive la plus éloignée (celle du côté de terre qui avance le plus)
+	float best = a == water ? -1e5 : 1e5;
+	for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 1; dx++) {
+			if (dx == 0 && dy == 0) continue;
+			int t = terrain_at(c + ivec2(dx, dy));
+			if ((a == water) == (t == water)) continue;
+			float ex = dx == 1 ? ART - local.x : (dx == -1 ? local.x : 0.0);
+			float ey = dy == 1 ? ART - local.y : (dy == -1 ? local.y : 0.0);
+			float d = length(vec2(ex, ey));
+			// une case de terre : la rive est au-delà du bord ; une case d'eau gagnée par la terre : la rive est devant
+			best = a == water ? max(best, line - d) : min(best, d + line);
+		}
+	}
+	return a == water && best < 0.0 ? 1e5 : best;
+}
+
+// Une fleur (ou un caillou) au pixel d'art p, s'il y en a une : sa couleur dans « flower », et vrai
+bool flower_at(vec2 p, vec3 under, out vec3 flower) {
+	flower = under;
+	if (flower_density <= 0.0) return false;
+	float size = floor(max(flower_cell, 6.0));
+	vec2 cell = floor(p / size);
+	if (hash(cell + vec2(17.3, 5.1)) >= flower_density) return false;
+	// la place dans le carré, assez loin de ses bords pour que pétales et ombre y restent
+	vec2 spot = cell * size + 1.0 + floor(vec2(hash(cell + vec2(3.1, 9.2)), hash(cell + vec2(7.7, 1.3))) * (size - 3.0));
+	vec2 d = p - spot;
+	float kind = hash(cell + vec2(11.0, 23.0));
+	if (kind < pebble_share) {
+		// un petit caillou de 2 × 2, éclairé en haut à gauche
+		if (d == vec2(0.0)) { flower = vec3(0.62, 0.62, 0.58); return true; }
+		if (d == vec2(1.0, 0.0)) { flower = vec3(0.52, 0.52, 0.49); return true; }
+		if (d == vec2(0.0, 1.0)) { flower = vec3(0.44, 0.44, 0.41); return true; }
+		if (d == vec2(1.0, 1.0)) { flower = vec3(0.36, 0.36, 0.34); return true; }
+		if (d == vec2(0.0, 2.0) || d == vec2(1.0, 2.0)) { flower = under * 0.8; return true; }
+		return false;
+	}
+	float k = (kind - pebble_share) / (1.0 - pebble_share);
+	vec3 petal = k < 0.4 ? vec3(0.96, 0.95, 0.9) : (k < 0.75 ? vec3(0.95, 0.82, 0.28) : vec3(0.68, 0.5, 0.8));
+	vec3 heart = k < 0.4 ? vec3(0.9, 0.78, 0.25) : (k < 0.75 ? vec3(0.78, 0.48, 0.16) : vec3(0.96, 0.88, 0.5));
+	if (d == vec2(0.0)) { flower = heart; return true; }
+	if (abs(d.x) + abs(d.y) == 1.0) { flower = petal; return true; }
+	if (d == vec2(0.0, 2.0)) { flower = under * 0.75; return true; }
+	return false;
+}
+
 vec3 tile_color(int t, vec2 p) {
 	// la variante suit un grand bruit doux (pas les cases) : de grandes zones sans couture, la frontière est tramée
 	int layer = t * variants;
@@ -255,7 +323,7 @@ void fragment() {
 			// contour de la terre contre l'eau, puis berge un peu sombre
 			if (right == water || left == water || down == water || up == water)
 				color *= 1.0 - outline;
-			else if (right2 == water || left2 == water || down2 == water || up2 == water)
+			else if (beach_width <= 0.0 && (right2 == water || left2 == water || down2 == water || up2 == water))
 				color *= 1.0 - bank;
 		} else if (foam > 0.0) {
 			// écume : forte contre la rive, tramée un pixel plus loin
@@ -264,6 +332,23 @@ void fragment() {
 			else if ((right2 != water || left2 != water || down2 != water || up2 != water) && bayer(p) < 0.5)
 				color = mix(color, foam_color, foam * 0.6);
 		}
+	}
+	// Plage : une bande de sable côté terre, au bord ondulé et tramé, mouillée (plus sombre) contre l'eau
+	if (t != water && beach_width > 0.0) {
+		float sd = shore_distance(p);
+		float width = beach_width + (noise((p + 0.5) / 9.0 + vec2(5.0, 61.0)) * 2.0 - 1.0) * beach_wave;
+		if (sd < width + 1.0 && (sd < width - 1.0 || bayer(p) < (width + 1.0 - sd) / 2.0)) {
+			vec3 beach = tile_color(sand, p);
+			if (sd < 1.5) beach *= 1.0 - outline;
+			else if (sd < wet_width + 1.5) beach *= 1.0 - wet;
+			color = beach;
+			t = sand;
+		}
+	}
+	// Fleurs et cailloux, sur l'herbe franche (pas dans les mélanges)
+	if (t == grass && (share <= 0.0 || share >= 1.0)) {
+		vec3 flower;
+		if (flower_at(p, color, flower)) color = flower;
 	}
 	// La route, par-dessus le sol
 	float dist = road_distance(p);

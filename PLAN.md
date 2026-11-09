@@ -390,8 +390,11 @@ croissance, prix, garde.
   `art-candidats/en-cours/revue-<lot>.html`, faites par `tools/art/revue.py`, 2026-11-08) ; le code (taille des cases,
   shader, décor) vient de l'autre session (branche `tuiles-32`), les images fusionnent juste après. Le sol des forêts et
   des montagnes est de l'herbe (`terrain/forest.png` et `mountain.png` retirées). Reste :
-  - **l'herbe** : les choix sont bons mais le vert est trop vif ; à régler dans une session à part, en changeant les
-    couleurs de façon interactive (ou dans un logiciel de dessin), peut-être une troisième case avec des fleurs ;
+  - ✅ **l'herbe et les rives** (2026-11-09) : un vert plus profond et naturel, des fleurs et des cailloux semés par le
+    shader (sans répétition), des plages de sable le long de l'eau (8 pixels d'art, sable mouillé contre l'eau). Réglables
+    avec `--ground=`. Plus tard : **un style de sol par zone de faction** (comme Heroes 3 : herbe fleurie pour le Château,
+    herbe sèche et rocailleuse pour les Barbares, herbe morte pour les morts-vivants…) ; le générateur sait déjà la zone
+    et la faction de chaque ville (session règles).
   - le **héros** de la carte, plus tard.
   Fait (2026-11-08) : ✅ les **villes sur 5 × 4 cases** (160 × 128, PixelLab « Pro » d'un seul coup, vues de face : bien
   meilleur que l'assemblage de pièces ; l'empreinte et le drapeau viennent de l'autre session, PR #76 et #77), ✅ la

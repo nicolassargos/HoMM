@@ -964,15 +964,43 @@ public static class Texts
         _ => $"commande {hero.CommandLimit} points par troupe",
     };
 
-    public static string ArtifactsHeader => "Artefacts";
+    // ------------------------------------------------------------------ l'écran du héros : onglets et équipement
+
+    public static string EquipmentTab => "Équipement";
+    public static string SkillsTab => "Compétences";
+    public static string MagicTab => "Magie";
+    public static string ChestHeader => "Coffre";
+    public static string ChestTooltip => "Le coffre : les artefacts que le héros porte sans les mettre.";
+
+    /// <summary>Le nom d'un emplacement sur le héros (court : il s'écrit dans l'emplacement vide).</summary>
+    public static string SlotName(ArtifactSlot slot) => slot switch
+    {
+        ArtifactSlot.Head => "Tête",
+        ArtifactSlot.Neck => "Cou",
+        ArtifactSlot.Shoulders => "Cape",
+        ArtifactSlot.Torso => "Torse",
+        ArtifactSlot.Weapon => "Arme",
+        ArtifactSlot.Shield => "Bouclier",
+        ArtifactSlot.Ring => "Anneau",
+        ArtifactSlot.Belt => "Ceinture",
+        ArtifactSlot.Feet => "Pieds",
+        _ => "Divers",
+    };
+
+    /// <summary>L'info-bulle d'un emplacement : ce qu'il porte, ou qu'il est vide.</summary>
+    public static string SlotTooltip(ArtifactSlot slot, ArtifactType? artifact) =>
+        artifact != null ? $"{SlotName(slot)} : {ArtifactTooltip(artifact)}" : $"{SlotName(slot)} : rien pour l'instant.";
+
+    /// <summary>Les deux premières lettres du nom d'une compétence (son icône, en attendant les images).</summary>
+    public static string SkillInitials(SkillType skill) => skill.Name.Length <= 2 ? skill.Name : skill.Name[..2];
+
+    /// <summary>L'info-bulle d'une compétence dans son arbre : son rang, ce que fait le suivant, et comment l'apprendre.</summary>
+    public static string SkillIconTooltip(SkillType skill, int rank, LearnSkillResult result) =>
+        $"{SkillButton(skill, rank)}\n{SkillNextLine(skill, rank)}\n"
+        + (result == LearnSkillResult.Ok ? "Clic : dépenser un point de compétence." : LearnSkillReason(result));
 
     // ------------------------------------------------------------------ compétences (étape 9)
 
-    public static string SkillsHeader => "Compétences";
-    public static string SkillTreesButton => "Arbres de compétences";
-    public static string SkillsTitle(Hero hero) => $"Compétences de {hero.Name}";
-    public static string SkillLearnTooltip => "Dépenser un point de compétence";
-    public static string NoSkills => "Aucune compétence pour l'instant.";
 
     /// <summary>« Points de compétence : 2 · compétences 3 / 6 ».</summary>
     public static string SkillPointsLine(int points, int skills) =>
@@ -985,7 +1013,6 @@ public static class Texts
         _ => "Magie",
     };
 
-    public static string SkillTreePoints(int spent) => $"{spent} point{(spent > 1 ? "s" : "")} dans cet arbre";
 
     public static string SkillRowLine(int row, int needed, bool open) =>
         open ? $"Rangée {row}" : $"Rangée {row} : ouverte après {needed} points dans cet arbre";
@@ -1044,10 +1071,6 @@ public static class Texts
         _ => "",
     };
 
-    /// <summary>« Logistique (avancé) : +20 % de mouvement sur la carte » : une compétence du héros.</summary>
-    public static string HeroSkillLine(SkillType skill, int rank) => $"{SkillButton(skill, rank)} : {SkillEffect(skill, rank)}";
-    public static string NoArtifact => "Aucun artefact pour l'instant.";
-    public static string MagicHeader => "Magie";
     /// <summary>Un sort du livre (écran du héros) : « Flèche magique · niveau 1 · 5 points ».</summary>
     public static string SpellLine(SpellType spell, Hero? hero = null) => $"{spell.Name} · niveau {spell.Level} · {SpellCost(spell, hero)}";
 

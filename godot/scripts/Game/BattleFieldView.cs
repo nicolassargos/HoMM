@@ -647,22 +647,24 @@ public partial class BattleFieldView : Control
                     double flash = 0;
                     _animations.Enqueue(delta =>
                     {
+                        var target = _shown[bolt.Target];
+                        // la foudre tombe du ciel sur la case de la cible ; les dégâts s'affichent quand elle touche le sol
                         if (flash == 0)
+                            _effects.OnHex("foudre", target.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10)));
+                        bool before = flash < BattleEffects.LightningHitTime;
+                        flash += Math.Max(delta, 1e-6);
+                        if (before && flash >= BattleEffects.LightningHitTime)
                         {
-                            // la foudre tombe sur la cible
-                            _bursts.Add((bolt.Target.Hexes.ToList(), MapRenderer.Rgb(255, 240, 120), 0));
-                            var target = _shown[bolt.Target];
                             target.Count = Math.Max(0, target.Count - bolt.Killed);
                             target.Flash = 1;
                             _floating.Add(($"-{bolt.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 240, 120)));
                             if (bolt.Killed > 0)
                                 _floating.Add(($"{bolt.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
                         }
-                        flash += delta;
-                        if (flash < 0.35)
+                        if (flash < 0.6)
                             return false;
-                        if (_shown[bolt.Target].Count == 0)
-                            _shown[bolt.Target].Gone = true;
+                        if (target.Count == 0)
+                            target.Gone = true;
                         return true;
                     });
                     break;
@@ -728,6 +730,37 @@ public partial class BattleFieldView : Control
         }
     }
 
+    /// <summary>
+    /// Développement : « --effect-preview=foudre » joue cet effet sur la case d'une troupe après l'autre, toutes les deux
+    /// secondes ; « --effect-preview=foudre:0.2 » le fige à cet instant (0,2 seconde après son départ) sur la dernière troupe
+    /// du camp de droite (la plus basse : l'éclair le plus long), pour les captures.
+    /// </summary>
+    private static readonly string? EffectPreviewArg = OS.GetCmdlineUserArgs()
+        .FirstOrDefault(a => a.StartsWith("--effect-preview="))?["--effect-preview=".Length..];
+
+    private double _previewClock = -1;
+    private int _previewTurn;
+
+    private void PreviewEffect(double delta)
+    {
+        if (EffectPreviewArg is not { } arg || Battle == null)
+            return;
+        var parts = arg.Split(':');
+        double? frozen = parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var at) ? at : null;
+        if (_previewClock >= 0 && (frozen != null || _previewClock < 2))
+        {
+            _previewClock += delta;
+            return;
+        }
+        _previewClock = 0;
+        var targets = _shown.Where(p => !p.Value.Gone && p.Key.IsAlive && (frozen == null || p.Key.Side == BattleSide.Defender))
+            .Select(p => p.Value).ToList();
+        if (targets.Count > 0)
+            targets = new() { frozen != null ? targets[^1] : targets[_previewTurn++ % targets.Count] };
+        foreach (var shown in targets)
+            _effects.OnHex(parts[0], shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10)), frozen);
+    }
+
     public override void _Process(double delta)
     {
         if (_animations.Count > 0 && _animations.Peek()(delta))
@@ -740,6 +773,7 @@ public partial class BattleFieldView : Control
             shown.StateTime += delta;
         }
         _effects.Update(delta);
+        PreviewEffect(delta);
         _time += delta;
         for (int i = _bursts.Count - 1; i >= 0; i--)
         {
@@ -844,6 +878,7 @@ public partial class BattleFieldView : Control
         foreach (var (unit, shown) in _shown)
             if (!shown.Gone)
                 things.Add((shown.Position.Y, () => DrawUnit(unit, shown)));
+        _effects.DrawGround(this);
         foreach (var (_, draw) in things.OrderBy(t => t.Y))
             draw();
         // les auras des états qui durent : poison, sorts utiles ou néfastes

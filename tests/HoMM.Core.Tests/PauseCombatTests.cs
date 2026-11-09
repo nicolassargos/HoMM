@@ -11,7 +11,7 @@ namespace HoMM.Core.Tests;
 public class PauseCombatTests
 {
     /// <summary>Une partie où un monstre attend à deux cases du héros, et un coffre juste à côté du monstre.</summary>
-    private static (GameState State, MonsterGuard Guard, Cell Next) GameWithGuard(int count = 3, string creature = "gobelin")
+    private static (GameState State, MonsterGuard Guard, Cell Next) GameWithGuard(int count = 10, string creature = "gobelin")
     {
         var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false) { QuickBattles = false };
         var start = state.CurrentHero!.Position;

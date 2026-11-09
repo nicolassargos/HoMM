@@ -802,6 +802,18 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   `tools/art/METHODE.md`). Le ruban sort de `PageTop` au-dessus de sa page, descend de `Overlap` sur son bord ; la page
   est ajoutée après la rangée (elle cache le bas des rubans de derrière) et le choisi a `ZIndex` 1. Les arbres : une
   seule rangée de rubans au-dessus d'un cadre creusé, le contenu refait au choix (`Changed`).
+- ✅ **La Diplomatie et la fuite des gardiens** (2026-11-09, branche `diplomatie`). Choix de l'utilisateur : les seuils
+  proposés (3 / 2 / 1,5 fois, prix entier / moitié / gratuit) **et** le charisme (il abaisse le seuil, un degré par
+  palier comme le moral ; le gardien doit tenir dans le commandement), +1 degré pour un gardien de la faction du héros
+  (la faction de sa classe), tout ou rien, la fuite pour tout héros avec le choix de poursuivre. Code :
+  `Diplomacy.Encounter` (null : il n'y a qu'à combattre), `GuardEncounter`, `JoinOffer`, `JoinRefusal`, `EncounterChoice`,
+  `GuardJoined`, `GuardFled` ; `GameState.NextFight` s'arrête sur `PendingEncounter` (marche, fin de tour et
+  sauvegarde bloquées, comme pendant un combat) ; `ResolveEncounter` combat (`StartFight`, tiré de `NextFight`),
+  prend le gardien (`Player.Pay`, `Army.Add`, retiré de la carte) ou le laisse fuir, puis reprend le pas ; l'IA choisit
+  aussitôt (`ComputerPlayer.ChooseEncounter`). Les prix arrondis au-dessus, ressources rares comprises. Fenêtre
+  `Hud.ShowEncounter` (l'image de combat de la créature, l'offre ou la fuite, ce qui empêche d'accepter ; fermer, c'est
+  combattre), `--open=encounter`. Les textes donnent le nombre exact (on les paie). Cinq tests d'avant entraient à côté
+  de 1 à 3 Gobelins, qui fuient maintenant : ils les poursuivent, ou le gardien est de 10 Gobelins.
 
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui

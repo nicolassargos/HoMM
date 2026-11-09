@@ -359,7 +359,7 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
     | Aventure | 2 | Orientation | le surcoût des terrains difficiles baisse de 25 / 50 / 75 % |
     | Aventure | 2 | Intendance | +100 / 150 / 200 or par jour (à équilibrer après des essais) |
     | Aventure | 2 | Chance | +1 / 2 / 3 de chance aux troupes ; compte aussi pour les artefacts trouvés et les coffres |
-    | Aventure | 3 | Diplomatie | un gardien neutre plus faible que l'armée peut proposer de la rejoindre (règles : PR à part) |
+    | Aventure | 3 | Diplomatie | un gardien bien plus faible propose de rejoindre l'armée (voir plus bas) |
     | Commandement | 1 | Commandement | +10 / 20 / 30 % de points de commandement par charisme |
     | Commandement | 1 | Discipline | révoltes 25 / 50 / 75 % moins probables |
     | Commandement | 1 | Moral | +1 / 2 / 3 de moral aux troupes |
@@ -378,8 +378,19 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
   - Les classes : Paladin (Commandement ; talent **Croisé** : +2 % de dégâts par niveau contre les morts-vivants),
     Nécromancien (École de la terre ; **Nécromancie**), Barbare (Logistique ; **Chef de guerre** : +1 au plus fort de
     la Rage tous les 3 niveaux), Rôdeur (Éclaireur ; **Chasseur** : +1 % de dégâts par niveau pour ses tireurs).
-  - **À concevoir à part**, chacun dans sa propre PR : les règles de la **Diplomatie**, les **quatre sorts spéciaux**
-    des écoles (idées : Prière, Armageddon, Séisme, une invocation).
+  - **À concevoir à part** : les **quatre sorts spéciaux** des écoles (idées : Prière, Armageddon, Séisme, une invocation).
+  - ✅ **La Diplomatie et la fuite des gardiens** (décidées avec l'utilisateur, 2026-11-09, branche `diplomatie`,
+    `Core/Diplomacy.cs`) : avec la Diplomatie, un gardien de la carte bien plus faible **propose de rejoindre** le héros
+    avant le combat (une fenêtre : accepter, combattre). Chaque **degré** le rend plus facile : le rang (1 à 3), +1 pour un
+    gardien de la faction du héros, +1 par palier de charisme (20, 30, 40). Degré 1 : l'armée vaut au moins 3 fois la
+    sienne, à son prix ; 2 : 2 fois, moitié prix ; 3 : 1,5 fois, gratuit ; 4 : 1,25 fois ; 5 et plus : 1 fois. Il doit
+    **tenir dans le commandement** du héros (avec la troupe de la même créature), sinon « il ne lui obéirait pas » ; tout
+    ou rien (de quoi payer, une place). Ni combat ni expérience. Pour **tout héros**, un gardien devant une armée qui vaut
+    **10 fois** la sienne **s'enfuit** : le laisser partir (ni combat ni expérience) ou le poursuivre. Les forces se
+    comparent en or. L'IA prend le gardien si elle garde 1000 or pour recruter, sinon combat (elle poursuit toujours).
+    Mesuré : les adversaires comme avant (leurs six compétences sont prises avant la Diplomatie ; ils poursuivent les
+    gardiens qui fuient, comme ils les combattaient). À voir : l'IA qui choisit la Diplomatie (une classe, plus tard).
+    Tests : `DiplomatieTests`.
   - ✅ **Le moral et la chance** (décidés avec l'utilisateur, 2026-11-09, branche `moral-chance`, `Core/Morale.cs`) :
     de −3 à +3 par troupe. **Bon moral** : après avoir agi (pas attendu ni défendu), la troupe rejoue aussitôt, une fois
     par round, 5 % par point (sans pouvoir attendre) ; **mauvais moral** : elle se fige et passe son tour, 10 % par
@@ -405,7 +416,7 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
     simulation seule n'en prend pas (ses chiffres restent comparables). Mesuré (un adversaire, Normal, six semaines,
     or d'armée) : Château 25 300, morts-vivants 25 700, Barbares 27 700, Forêt 29 200 (sans compétences : 25 000,
     20 900, 23 100, 30 600 : les factions se rapprochent). Tests : `CompetencesTests`.
-  - **Reste** : Diplomatie, Tactique et les sorts spéciaux (chacun après sa conception) ; les talents des
+  - **Reste** : Tactique et les sorts spéciaux (chacun après sa conception) ; les talents des
     classes (Croisé, Chef de guerre, Chasseur) ; la simulation qui prend des compétences.
   - Plus tard : les cavernes de la carte, où l'on apprend une compétence.
 - **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le

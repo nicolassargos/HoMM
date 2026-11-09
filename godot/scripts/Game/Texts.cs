@@ -276,6 +276,38 @@ public static class Texts
 
     public const string ChestTitle = "Un coffre au trésor !";
 
+    // ------------------------------------------------------------- Diplomatie et fuite des gardiens
+
+    public static string EncounterTitle(GuardEncounter e) => e.Offer != null ? "Diplomatie" : "Ils s'enfuient !";
+
+    /// <summary>Ce que propose le gardien (ou qu'il s'enfuit), et ce qui empêche d'accepter.</summary>
+    public static string EncounterText(GuardEncounter e)
+    {
+        var group = Stack(new CreatureStack(e.Guard.Type, e.Guard.Count)); // le nombre exact : on les paie, ils rejoignent l'armée
+        var lines = new List<string>();
+        if (e.Offer is { } offer)
+        {
+            lines.Add($"{Capitalize(group)} {(e.Guard.Count == 1 ? "propose" : "proposent")} de rejoindre {e.Hero.Name}"
+                      + (offer.IsFree ? ", sans rien demander." : $" pour {Cost(offer.Price)}."));
+            lines.Add(offer.Refusal switch
+            {
+                JoinRefusal.Command => $"Mais {e.Hero.Name} n'a pas assez de charisme pour les commander : ils ne lui obéiraient pas.",
+                JoinRefusal.Price => "Mais vous n'avez pas de quoi payer.",
+                JoinRefusal.Slot => "Mais il n'y a plus de place dans l'armée.",
+                _ => "",
+            });
+        }
+        if (e.Flees)
+            lines.Add(e.Offer == null
+                ? $"{Capitalize(group)} {(e.Guard.Count == 1 ? "a peur" : "ont peur")} de votre armée et {(e.Guard.Count == 1 ? "s'enfuit" : "s'enfuient")}. Les laisser partir (sans combat ni expérience), ou les poursuivre ?"
+                : "Sinon, ils s'enfuiront : vous pouvez les laisser partir.");
+        return string.Join("\n", lines.Where(l => l.Length > 0));
+    }
+
+    public static string EncounterJoin(GuardEncounter e) => e.Offer is { IsFree: false } offer ? $"Accepter ({Cost(offer.Price)})" : "Accepter";
+    public const string EncounterLetFlee = "Les laisser partir";
+    public static string EncounterFight(GuardEncounter e) => e.Flees ? "Les poursuivre" : "Combattre";
+
     public static string ChestText(ChestOpened chest) =>
         $"{chest.Hero.Name} ouvre un coffre plein d'or. Garder l'or pour le royaume, ou le distribuer aux paysans "
         + "et gagner de l'expérience ?";
@@ -633,6 +665,12 @@ public static class Texts
             $"{HeroWithColor(lost.Hero)} vous prend {lost.Town.Name} !",
         ObjectVisited visit when visit.Hero.Owner != viewer => null,
         ChestOpened => null, // la fenêtre du choix
+        GuardEncounter => null, // la fenêtre du choix
+        GuardJoined joined when joined.Hero.Owner != viewer => null,
+        GuardJoined joined => $"{Capitalize(Stack(new CreatureStack(joined.Type, joined.Count)))} {(joined.Count == 1 ? "rejoint" : "rejoignent")} {joined.Hero.Name}"
+                              + (joined.Price.Count > 0 ? $" pour {Cost(joined.Price)}." : " sans rien demander."),
+        GuardFled fled when fled.Hero.Owner != viewer => null,
+        GuardFled fled => $"{Capitalize(Stack(new CreatureStack(fled.Type, fled.Count)))} {(fled.Count == 1 ? "s'enfuit" : "s'enfuient")} devant {fled.Hero.Name}.",
         ChestChosen chosen when chosen.Hero.Owner != viewer => null,
         ChestChosen { Gold: true } chosen => $"Un coffre au trésor ! +{chosen.Amount} or.",
         ChestChosen chosen => $"Un coffre au trésor ! {chosen.Hero.Name} gagne {chosen.Amount} points d'expérience.",
@@ -1042,6 +1080,12 @@ public static class Texts
             HoMM.Core.Skills.Mysticism => $"+{v} point{(v > 1 ? "s" : "")} de sort par jour",
             HoMM.Core.Skills.Morale => $"+{v} de moral aux troupes",
             HoMM.Core.Skills.Luck => $"+{v} de chance aux troupes",
+            HoMM.Core.Skills.Diplomacy => rank switch
+            {
+                1 => "un gardien que votre armée vaut 3 fois propose de vous rejoindre, à son prix",
+                2 => "un gardien que votre armée vaut 2 fois propose de vous rejoindre, à moitié prix",
+                _ => "un gardien que votre armée vaut 1,5 fois propose de vous rejoindre, gratuitement",
+            } + " (plus facile pour un gardien de votre faction et avec beaucoup de charisme)",
             _ => "",
         };
     }

@@ -187,6 +187,18 @@ public static class ComputerPlayer
     /// <summary>L'or qu'il garde pour recruter quand il échange au marché pour bâtir.</summary>
     private const int RecruitReserve = 1000;
 
+    /// <summary>
+    /// Devant un gardien qui propose de le rejoindre : l'IA le prend s'il est gratuit, ou si elle garde de quoi recruter ;
+    /// sinon (ou s'il fuit), elle combat : un gardien qui fuit est bien plus faible, et rapporte de l'expérience.
+    /// </summary>
+    internal static EncounterChoice ChooseEncounter(GuardEncounter encounter)
+    {
+        if (encounter.Offer is { CanAccept: true } offer
+            && (offer.IsFree || encounter.Hero.Owner.Resources.GetValueOrDefault(ResourceType.Gold) - offer.Price.GetValueOrDefault(ResourceType.Gold) >= RecruitReserve))
+            return EncounterChoice.Join;
+        return EncounterChoice.Fight;
+    }
+
     private static bool TradeFor(GameState state, Player player, BuildingType building)
     {
         int markets = Market.Count(player);
@@ -312,6 +324,7 @@ public static class ComputerPlayer
     private static readonly string[] SkillOrder =
     {
         Skills.Logistics, Skills.Estates, Skills.Leadership, Skills.Morale, Skills.Discipline, Skills.Recruiter, Skills.Inspiration, Skills.Luck,
+        Skills.Diplomacy,
         Skills.Mysticism, "ecole-terre", "ecole-feu", "ecole-eau", "ecole-air", Skills.Scouting, Skills.Pathfinding,
     };
 

@@ -235,6 +235,10 @@ public partial class Main : Node2D
         // « --open=chest » : la fenêtre d'un coffre (sans rien changer)
         if (OS.GetCmdlineUserArgs().Contains("--open=chest") && _state.CurrentHero is { } opener)
             _hud.ShowChestChoice(new ChestOpened(opener, new TreasureChest(opener.Position, 1500)), _ => { });
+        // « --open=encounter » : 12 Loups proposent de rejoindre le héros (Diplomatie de base), sans rien changer
+        if (OS.GetCmdlineUserArgs().Contains("--open=encounter") && _state.CurrentHero is { } diplomat)
+            _hud.ShowEncounter(new GuardEncounter(diplomat, new MonsterGuard(diplomat.Position, _state.Data.Creatures.Get("loup"), 12),
+                new JoinOffer(new Dictionary<ResourceType, int> { [ResourceType.Gold] = 252 }, JoinRefusal.None), false), _ => { });
         // Développement : « --center=treasure » centre la vue sur le trésor (pour une capture d'écran)
         if (OS.GetCmdlineUserArgs().Contains("--center=treasure") && _state.Map.Treasure is { } hidden)
             _camera.CenterOn(hidden);
@@ -983,6 +987,10 @@ public partial class Main : Node2D
                     break;
                 case ChestOpened chest when chest.Hero.Owner == viewer:
                     _hud.ShowChestChoice(chest, gold => _state.ChooseChest(chest, gold));
+                    break;
+                case GuardEncounter encounter when encounter.Hero.Owner == viewer:
+                    _walking = false;
+                    _hud.ShowEncounter(encounter, choice => _state.ResolveEncounter(choice));
                     break;
                 case BuildingBuilt built:
                     _townScreen.ShowBuilt(built); // le nouveau bâtiment apparaît sur la ville

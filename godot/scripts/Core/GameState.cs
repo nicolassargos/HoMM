@@ -298,7 +298,7 @@ public sealed partial class GameState
     /// <summary>Fin du tour du joueur courant. Quand tous les joueurs ont joué, un nouveau jour commence.</summary>
     public void EndTurn()
     {
-        if (Outcome != GameOutcome.Playing || CurrentBattle != null)
+        if (Outcome != GameOutcome.Playing || CurrentBattle != null || PendingEncounter != null)
             return;
         CheckVictory();
         if (Outcome != GameOutcome.Playing)
@@ -416,7 +416,7 @@ public sealed partial class GameState
     }
 
     public bool CanStartWalking =>
-        Outcome == GameOutcome.Playing && CurrentBattle == null && CurrentHero is { } hero && Path is { Count: > 0 }
+        Outcome == GameOutcome.Playing && CurrentBattle == null && PendingEncounter == null && CurrentHero is { } hero && Path is { Count: > 0 }
         && hero.CanStepTo(Map, Path[0]);
 
     /// <summary>
@@ -557,13 +557,69 @@ public sealed partial class GameState
             return;
         }
         var (defender, army) = step.Opponents.Dequeue();
-        var rebels = RollRevolts(step.Hero);
+        // un gardien de la carte peut proposer de rejoindre le héros (Diplomatie) ou s'enfuir : la partie attend le choix
+        if (defender is MonsterGuard guard && Diplomacy.Encounter(step.Hero, guard) is { } encounter)
+        {
+            PendingEncounter = encounter;
+            if (step.Hero.Owner.IsComputer)
+                ResolveEncounter(ComputerPlayer.ChooseEncounter(encounter));
+            else
+                Emit(encounter);
+            return;
+        }
+        StartFight(step.Hero, defender, army);
+    }
+
+    /// <summary>Un gardien propose de rejoindre le héros ou s'enfuit : la partie attend <see cref="ResolveEncounter"/>.</summary>
+    public GuardEncounter? PendingEncounter { get; private set; }
+
+    /// <summary>
+    /// Le choix du joueur devant le gardien qui attend (<see cref="PendingEncounter"/>) : le combattre (ou le poursuivre),
+    /// le prendre dans l'armée (s'il le propose et que c'est possible : il paie, la troupe rejoint l'armée, le gardien
+    /// quitte la carte, sans expérience), ou le laisser fuir (il quitte la carte, sans expérience). Ensuite, la suite du
+    /// pas (les autres gardiens, puis la visite de la case). Faux si ce choix n'est pas possible.
+    /// </summary>
+    public bool ResolveEncounter(EncounterChoice choice)
+    {
+        if (PendingEncounter is not { } encounter || _step == null)
+            return false;
+        if (choice == EncounterChoice.Join && encounter.Offer is not { CanAccept: true }
+            || choice == EncounterChoice.LetFlee && !encounter.Flees)
+            return false;
+        PendingEncounter = null;
+        var (hero, guard) = (encounter.Hero, encounter.Guard);
+        switch (choice)
+        {
+            case EncounterChoice.Fight:
+                StartFight(hero, guard, guard.Army);
+                return true;
+            case EncounterChoice.Join:
+                var price = encounter.Offer!.Price;
+                hero.Owner.Pay(price);
+                hero.Army.Add(guard.Type, guard.Count);
+                Map.RemoveObject(guard);
+                Emit(new GuardJoined(hero, guard.Type, guard.Count, price));
+                break;
+            case EncounterChoice.LetFlee:
+                Map.RemoveObject(guard);
+                Emit(new GuardFled(hero, guard.Type, guard.Count));
+                break;
+        }
+        CheckVictory(); // le dernier gardien de la carte (condition « vaincre les gardiens »)
+        if (Outcome == GameOutcome.Playing)
+            NextFight();
+        return true;
+    }
+
+    private void StartFight(Hero hero, MapObject defender, Army army)
+    {
+        var rebels = RollRevolts(hero);
         // le héros attaqué aussi : ses troupes trop nombreuses peuvent se révolter et combattre avec l'attaquant
         var defenderHero = (defender as HeroDefender)?.Hero;
         var defenderRebels = defenderHero != null ? RollRevolts(defenderHero) : null;
-        _battle = new BattleContext(step.Hero, defender, army.Clone().Stacks);
-        CurrentBattle = new TacticalBattle(step.Hero.Army, army, _rng, step.Hero, rebels, defenderHero, defenderRebels);
-        Emit(new BattleStarted(step.Hero, defender, CurrentBattle));
+        _battle = new BattleContext(hero, defender, army.Clone().Stacks);
+        CurrentBattle = new TacticalBattle(hero.Army, army, _rng, hero, rebels, defenderHero, defenderRebels);
+        Emit(new BattleStarted(hero, defender, CurrentBattle));
         if (QuickBattles && !(HumansDefend && DefendedByHuman(defender)))
         {
             BattleAI.PlayOut(CurrentBattle);
@@ -745,6 +801,8 @@ public sealed partial class GameState
     {
         if (_step?.Hero == hero)
             _step = null;
+        if (PendingEncounter?.Hero == hero)
+            PendingEncounter = null;
         hero.Owner.Heroes.Remove(hero);
         _paths.Remove(hero);
         _pendingChoices.RemoveAll(c => c.Hero == hero);

@@ -180,7 +180,8 @@ Décidé avec l'utilisateur (2026-11-09).
    feuilles (bord semi-transparent), Sanglier sauvage, Archer elfe encapuchonné, grand Cerf, Druide trapu à la chouette
    (d'après deux références de l'utilisateur ; il lance un tourbillon de feuilles dessiné par le jeu), Tréant en fleurs
    (un arbre qui marche, pas un homme de bois) : images de combat, animations, petites images de la carte. Détail dans
-   `HISTORIQUE.md`. Reste : la ville de la Forêt sur la carte (`objects/town-foret.png`).
+   `HISTORIQUE.md`. ✅ La ville de la Forêt sur la carte (2026-11-09, branche `ville-foret`) : un grand chêne aux maisons
+   perchées dans une palissade ronde (`objects/town-foret.png`).
 
 #### Les Barbares (jouables)
 Décidé avec l'utilisateur (2026-11-08).

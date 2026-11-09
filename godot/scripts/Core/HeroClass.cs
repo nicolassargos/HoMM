@@ -97,6 +97,36 @@ public static class Talents
     /// <summary>La créature que relève la nécromancie, et la part relevée : 10 %, plus 2 % par niveau.</summary>
     public const string RaisedCreature = "squelette";
     public const double NecromancyBase = 0.10, NecromancyPerLevel = 0.02;
+
+    /// <summary>Croisé (le Paladin) : ses troupes font 2 % de dégâts en plus par niveau du héros aux morts-vivants.</summary>
+    public const string Crusader = "crusader";
+    public const double CrusaderPerLevel = 0.02;
+
+    /// <summary>Chef de guerre (le Barbare) : la Rage de ses troupes monte de 1 de plus tous les 3 niveaux du héros.</summary>
+    public const string Warlord = "warlord";
+    public const int WarlordLevels = 3;
+
+    /// <summary>Chasseur (le Rôdeur) : ses tireurs font 1 % de dégâts en plus par niveau du héros.</summary>
+    public const string Hunter = "hunter";
+    public const double HunterPerLevel = 0.01;
+
+    /// <summary>Tous les talents connus (pour vérifier les données).</summary>
+    public static readonly string[] All = { Necromancy, Crusader, Warlord, Hunter };
+
+    /// <summary>La Rage au plus pour les troupes de ce héros (la Rage de base, plus le Chef de guerre).</summary>
+    public static int RageMax(Hero? hero, int baseMax) =>
+        baseMax + (hero?.Class?.Talent == Warlord ? hero.Level / WarlordLevels : 0);
+
+    /// <summary>
+    /// Les dégâts en plus (en part : 0,1 pour +10 %) d'une troupe de ce héros contre cette cible : le Croisé contre les
+    /// morts-vivants, le Chasseur pour un tir.
+    /// </summary>
+    public static double DamageBonus(Hero? hero, bool ranged, bool targetUndead) => hero?.Class?.Talent switch
+    {
+        Crusader when targetUndead => CrusaderPerLevel * hero.Level,
+        Hunter when ranged => HunterPerLevel * hero.Level,
+        _ => 0,
+    };
 }
 
 /// <summary>La nécromancie a relevé des créatures dans l'armée d'un héros après sa victoire.</summary>

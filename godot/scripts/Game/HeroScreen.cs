@@ -127,6 +127,7 @@ public partial class HeroScreen : ScreenWindow
         portraitFrame.AddChild(_portrait);
         // la classe sous le portrait, le niveau à côté
         _class = At(MakeLabel("", 15, SoftTextColor), 20, 152);
+        _class.MouseFilter = Control.MouseFilterEnum.Stop; // pour l'info-bulle du talent
         _class.Size = V(136, 20);
         _class.HorizontalAlignment = HorizontalAlignment.Center;
         Window.AddChild(_class);
@@ -464,6 +465,7 @@ public partial class HeroScreen : ScreenWindow
         _portrait.Texture = Art.Portrait(hero.Name);
         _level.Text = Texts.LevelLine(hero);
         _class.Text = hero.Class?.Name ?? "";
+        _class.TooltipText = hero.Class is { } heroClass ? Texts.TalentText(heroClass) ?? "" : "";
         _experienceText.Text = $"{hero.Experience} / {Hero.ExperienceForLevel(hero.Level + 1)}";
         int floor = Hero.ExperienceForLevel(hero.Level), next = Hero.ExperienceForLevel(hero.Level + 1);
         _experienceBar.MaxValue = next - floor;

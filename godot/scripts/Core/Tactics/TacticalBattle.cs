@@ -790,7 +790,7 @@ public sealed partial class TacticalBattle
         int killed = to.TakeDamage(damage);
         to.Wake();
         _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation, luck));
-        if (to.Has(Ability.Rage) && to.Enrage(RagePerHit, RageMax))
+        if (to.Has(Ability.Rage) && to.Enrage(RagePerHit, Talents.RageMax(to.IsRebel ? null : HeroOf(to.Side), RageMax)))
             _log.Add(new UnitEnraged(to, to.Rage));
         if (!from.IsAlive)
             return;
@@ -844,6 +844,8 @@ public sealed partial class TacticalBattle
             damage *= 0.5;
         // les sorts : bénédiction et malédiction (en pourcentage), bouclier contre les tirs
         damage *= 1 + (from.SpellAmount(SpellEffect.Bless) - from.SpellAmount(SpellEffect.Curse)) / 100.0;
+        // les talents de la classe du héros : le Croisé contre les morts-vivants, le Chasseur pour ses tirs
+        damage *= 1 + Talents.DamageBonus(from.IsRebel ? null : HeroOf(from.Side), ranged, to.IsUndead);
         if (ranged)
             damage *= 1 - to.SpellAmount(SpellEffect.ArrowShield) / 100.0;
         if (!ranged && from.CanShoot)

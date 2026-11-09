@@ -11,7 +11,9 @@ public class CombatIAAdversaireTests
     /// <summary>Une partie à un adversaire, à son tour, sans rien à ramasser (pour qu'il ne fasse que ce qu'on teste).</summary>
     private static (GameState State, Hero Rival) RivalTurn()
     {
-        var state = new GameState(4, TestData.Data, MapSize.Tiny, opponents: 1, startingTowns: false);
+        // un adversaire du Château : la faction tirée au sort changerait avec les factions jouables (un Rôdeur voit plus loin,
+        // aperçoit le héros du joueur et préfère l'attaquer)
+        var state = new GameState(4, TestData.Data, MapSize.Tiny, opponents: 1, startingTowns: false, opponentFactions: new[] { "chateau" });
         state.EndTurn();
         foreach (var obj in state.Map.Objects.Where(o => o is ResourcePile or TreasureChest or Mine or Obelisk or MonsterGuard or Town).ToList())
             state.Map.RemoveObject(obj);

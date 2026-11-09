@@ -401,6 +401,8 @@ croissance, prix, garde.
   de chaque objet, d'après des pieds revus par l'utilisateur (`godot/art/pieds.json`, `tools/art/pieds.py`) ; scierie
   refaite (cabane de trois quarts, PixelLab). Détail dans `HISTORIQUE.md`. Reste : vérifier les pieds des mines de
   mercure, minerai et soufre, et la force de l'ombre de contact en jeu.
+  ✅ **Ville barbare sur la carte** (2026-11-09) : forteresse de pierre brute avec une tente de peau ; contour noir adouci
+  (aussi sur la ville des morts-vivants). La ville vue de face par faction reste à faire (voir plus bas).
   ✅ **Créatures barbares** (2026-11-09, branche `creatures-barbares`) : Nomades (2 cases), Oiseau-tonnerre (1 case, vol
   avec envol et atterrissage), Béhémoth (1 case, debout) : images de combat, animations et images de la carte. Détail
   dans `HISTORIQUE.md`.

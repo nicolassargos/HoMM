@@ -775,6 +775,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   mort et boule de poison de la Liche, hache de l'Orc, flux de sang du Vampire, poison (bulles, troupe qui verdit),
   régénération du Troll, âmes du Fantôme, auras des sorts. Réglage de la vitesse des projectiles : `ProjectileSpeed`
   (le bouton de l'écran de combat est fait par l'autre session).
+- ✅ Ville barbare sur la carte (2026-11-09, branche `ville-barbare`, PixelLab « Pro » 160 × 128, 0,46 $) : choix de
+  l'utilisateur, une **forteresse de pierre brute** (murs de rochers, tours rondes, donjon au toit de chaume, huttes, porte
+  au milieu du bas, crânes, bannières rouges) avec une **grande tente de peau** au milieu des huttes. Le premier lot était
+  trop « croustillant » : le second demande des formes simples et un ombrage doux, avec la ville du Château comme image
+  de style (au lieu de la mine d'or) et le candidat aimé comme modèle. Le contour noir trop épais est adouci
+  (`tools/art/adoucir.py`, assombrir 0,7, seuil 60, 2 passes), et la ville des morts-vivants de même.
 - ✅ Créatures barbares (2026-11-09, branche `creatures-barbares`, PixelLab, environ 3 $) : fiches dans
   `tools/art/creatures-art.json`, faites avec `tools/art/creature.py`. Choix de l'utilisateur : **Nomades**, archers à cheval des
   steppes au repos (sabre baissé), sur **2 cases** ; **Oiseau-tonnerre**, oiseau-totem (rouge, noir et blanc), ailes repliées,

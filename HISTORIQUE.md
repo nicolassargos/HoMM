@@ -788,6 +788,21 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   trop « croustillant » : le second demande des formes simples et un ombrage doux, avec la ville du Château comme image
   de style (au lieu de la mine d'or) et le candidat aimé comme modèle. Le contour noir trop épais est adouci
   (`tools/art/adoucir.py`, assombrir 0,7, seuil 60, 2 passes), et la ville des morts-vivants de même.
+- ✅ Foudre de l'Oiseau-tonnerre sur la case de la cible (2026-11-09, branche `foudre-cible`) : un **effet joué sur
+  une case** (`BattleEffects.OnHex("foudre", sol)`), dessiné par le jeu en pixels d'art, et non plus dans l'animation de
+  l'attaquant (choix de l'utilisateur : dessiné par le jeu plutôt qu'une feuille d'images). Déroulé : un traceur pâle
+  descend du haut du champ (0,12 s, `LightningHitTime`), puis l'éclair éclate (cœur blanc de 3 pixels d'art, halo jaune
+  pâle, trois branches fines, zigzag : des pas de 14 pixels d'art qui changent de côté), s'éteint 0,04 s et éclate de
+  nouveau plus faible ; étincelles au point d'impact ; au sol, sous les troupes (`DrawGround`), une lueur blanche puis
+  une marque brûlée qui s'efface (1,1 s en tout). Les dégâts s'affichent quand l'éclair touche le sol ; l'ancien éclat
+  jaune des cases est retiré. Aperçu : `--effect-preview=foudre` (une troupe après l'autre) ou `foudre:0.2` (figé, pour
+  les captures). Revu par l'utilisateur : **la foudre tombe à chaque coup** de l'Oiseau-tonnerre (son impact,
+  `"impact": "foudre"` dans `animations.json` : l'éclair part un peu avant le coup et touche le sol quand il porte), et la
+  foudre appelée (une attaque sur cinq, règles inchangées) est un second éclair plus fort (`foudre-forte` : plus large,
+  plus de branches, tout le champ s'éclaire un instant), ses dégâts en bleu au-dessus de ceux du coup ; éclair **plus
+  grand et bleu**, puis affiné (cœur blanc bleuté de 3 pixels d'art, halo bleu vif et lueur bleu sombre d'un pixel de
+  chaque côté : 7 en tout ; la forte 5 + 2 + 2 : 13 en tout ; quatre ou six branches). Attaque refaite (PixelLab, 4 essais, 0,06 $) : ailes déployées en totem, cri vers le ciel, sans
+  éclair ; choisie `attack-2-r` (l'image 2 avait une étincelle : remplacée par la 3, morceaux détachés effacés).
 - ✅ Créatures barbares (2026-11-09, branche `creatures-barbares`, PixelLab, environ 3 $) : fiches dans
   `tools/art/creatures-art.json`, faites avec `tools/art/creature.py`. Choix de l'utilisateur : **Nomades**, archers à cheval des
   steppes au repos (sabre baissé), sur **2 cases** ; **Oiseau-tonnerre**, oiseau-totem (rouge, noir et blanc), ailes repliées,

@@ -38,6 +38,23 @@ public sealed class BattleEffects
 
     private readonly List<Projectile> _projectiles = new();
 
+    private sealed class Strike
+    {
+        public string Kind = "";
+        /// <summary>Le sol de la case touchée (le pied de la troupe).</summary>
+        public Vector2 At;
+        public double Age;
+        public int Seed;
+        /// <summary>Figé (aperçu) : il ne vieillit pas.</summary>
+        public bool Frozen;
+    }
+
+    /// <summary>
+    /// Les effets joués sur une case (la foudre de l'Oiseau-tonnerre…) : ils ne partent pas de l'attaquant, ils tombent
+    /// sur la case de la cible, où qu'elle soit.
+    /// </summary>
+    private readonly List<Strike> _strikes = new();
+
     private sealed class Beam
     {
         public Vector2 From, To;
@@ -116,8 +133,28 @@ public sealed class BattleEffects
     public void Hit(string kind, Vector2 at, float direction) =>
         _impacts.Add(new Impact { Kind = kind, At = at, Seed = ++_seed, Direction = direction });
 
+    /// <summary>Le moment où la foudre touche le sol, après son départ (les dégâts s'affichent à cet instant).</summary>
+    public const double LightningHitTime = 0.12;
+
+    /// <summary>Durée d'un effet joué sur une case (la marque brûlée au sol reste un peu après l'éclair).</summary>
+    private static double StrikeTime(string kind) => kind switch { "foudre-forte" => 1.4, _ => 1.1 };
+
+    /// <summary>
+    /// Un effet joué sur la case de la cible plutôt qu'un impact sur son corps : « foudre » (le coup de l'Oiseau-tonnerre),
+    /// « foudre-forte » (la foudre qu'il appelle, une attaque sur cinq).
+    /// </summary>
+    public static bool PlaysOnHex(string? kind) => kind is "foudre" or "foudre-forte";
+
+    /// <summary>
+    /// Joue l'effet <paramref name="kind"/> (« foudre ») sur une case ; <paramref name="ground"/> : le sol de la case.
+    /// <paramref name="frozenAt"/> (aperçu) : l'effet reste figé à cet instant.
+    /// </summary>
+    public void OnHex(string kind, Vector2 ground, double? frozenAt = null) =>
+        _strikes.Add(new Strike { Kind = kind, At = ground, Seed = ++_seed, Age = frozenAt ?? 0, Frozen = frozenAt != null });
+
     public void Clear()
     {
+        _strikes.Clear();
         _projectiles.Clear();
         _impacts.Clear();
         _beams.Clear();
@@ -145,6 +182,10 @@ public sealed class BattleEffects
         foreach (var w in _flows)
             w.Age += delta;
         _flows.RemoveAll(w => w.Age > FlowTime);
+        foreach (var s in _strikes)
+            if (!s.Frozen)
+                s.Age += delta;
+        _strikes.RemoveAll(s => !s.Frozen && s.Age > StrikeTime(s.Kind));
     }
 
     /// <summary>Durée d'un impact : bref, sauf le nuage de mort qui s'étale.</summary>
@@ -156,8 +197,19 @@ public sealed class BattleEffects
         _ => 0.32,
     };
 
+    /// <summary>Ce que les effets laissent au sol, sous les troupes (la lueur et la marque brûlée de la foudre).</summary>
+    public void DrawGround(CanvasItem canvas)
+    {
+        foreach (var s in _strikes)
+            if (PlaysOnHex(s.Kind))
+                DrawLightningGround(canvas, s);
+    }
+
     public void Draw(CanvasItem canvas)
     {
+        foreach (var s in _strikes)
+            if (PlaysOnHex(s.Kind))
+                DrawLightning(canvas, s);
         foreach (var b in _beams)
             DrawBeam(canvas, b);
         foreach (var w in _flows)
@@ -455,6 +507,168 @@ public sealed class BattleEffects
                 Bubble(canvas, at, k % 2 == 0 ? 2 : 1, c);
             else
                 Dot(canvas, at, c);
+        }
+    }
+
+    // ------------------------------------------------------------------ effets sur une case
+
+    /// <summary>
+    /// Les couleurs de la foudre (bleue, choix de l'utilisateur) : un cœur blanc bleuté, un halo bleu vif, une lueur bleu
+    /// sombre autour, et le bleu pâle du traceur.
+    /// </summary>
+    private static readonly Color BoltCore = new(0.92f, 0.97f, 1), BoltHalo = new(0.45f, 0.7f, 1),
+        BoltOuter = new(0.25f, 0.4f, 1), BoltGlow = new(0.75f, 0.88f, 1);
+
+    /// <summary>
+    /// La foudre qui tombe du ciel sur la case : un fin traceur descend du haut du champ, puis l'éclair éclate (un cœur blanc,
+    /// un halo bleu et des branches), s'éteint un instant et éclate une seconde fois, plus faible. Au point d'impact, des
+    /// étincelles jaillissent sur le sol. « foudre-forte » (la foudre appelée) : plus large, plus de branches, et tout le
+    /// champ s'éclaire un instant.
+    /// </summary>
+    private static void DrawLightning(CanvasItem canvas, Strike s)
+    {
+        bool strong = s.Kind == "foudre-forte";
+        double t = s.Age;
+        var top = new Vector2(s.At.X + (Noise(s.Seed, 1) - 0.5f) * 30 * Pixel, 0);
+        if (t < LightningHitTime)
+        {
+            // le traceur : une ligne pâle et brisée qui descend jusqu'au sol
+            float reach = (float)(t / LightningHitTime);
+            var path = BoltPath(top, s.At, s.Seed, 0);
+            int shown = Math.Max(1, (int)(reach * (path.Length - 1)));
+            for (int k = 0; k < shown; k++)
+            {
+                Line(canvas, path[k], path[k + 1], new Color(BoltGlow, 0.65f));
+                Line(canvas, path[k] + new Vector2(Pixel, 0), path[k + 1] + new Vector2(Pixel, 0), new Color(BoltHalo, 0.4f));
+            }
+            return;
+        }
+        // deux éclats : le premier plein, puis une courte nuit, puis un second plus faible qui s'éteint
+        double u = t - LightningHitTime;
+        float strength = u < 0.12 ? 1 : u < 0.16 ? 0 : u < 0.36 ? 0.75f * (1 - (float)((u - 0.16) / 0.2)) : 0;
+        // la foudre appelée éclaire tout le champ, un court instant
+        if (strong && u < 0.1 && canvas is Control field)
+            canvas.DrawRect(new Rect2(Vector2.Zero, field.Size), new Color(BoltGlow, 0.22f * (1 - (float)(u / 0.1))));
+        if (strength > 0)
+        {
+            int flicker = u < 0.12 ? (int)(u / 0.06) : 2; // le premier éclat crépite (la ligne change une fois)
+            var path = BoltPath(top, s.At, s.Seed, flicker);
+            // largeurs en pixels d'art, de part et d'autre du milieu : le cœur, le halo, la lueur
+            // (affinée à la demande de l'utilisateur : 7 pixels d'art en tout, 13 pour la foudre appelée)
+            int coreHalf = strong ? 2 : 1, haloHalf = coreHalf + (strong ? 2 : 1), outerHalf = haloHalf + (strong ? 2 : 1);
+            var outer = new Color(BoltOuter, 0.35f * strength);
+            var halo = new Color(BoltHalo, 0.85f * strength);
+            var core = new Color(BoltCore, strength);
+            for (int k = 0; k < path.Length - 1; k++)
+            {
+                var a = path[k];
+                var b = path[k + 1];
+                for (int x = -outerHalf; x <= outerHalf; x++)
+                {
+                    int d = Math.Abs(x);
+                    var color = d <= coreHalf ? core : d <= haloHalf ? halo : outer;
+                    Line(canvas, a + new Vector2(x * Pixel, 0), b + new Vector2(x * Pixel, 0), color);
+                }
+            }
+            // les branches : elles partent du tronc et s'en vont de biais, plus fines (un cœur et un peu de halo)
+            int branches = strong ? 6 : 4;
+            for (int n = 0; n < branches; n++)
+            {
+                int from = 2 + (int)(Noise(s.Seed + flicker, 10 + n) * (path.Length - 5));
+                float side = Noise(s.Seed + flicker, 20 + n) < 0.5f ? -1 : 1;
+                var at = path[from];
+                int length = (strong ? 5 : 4) + (int)(Noise(s.Seed + flicker, 30 + n) * 5);
+                for (int k = 0; k < length; k++)
+                {
+                    var next = at + new Vector2(side * (4 + Noise(s.Seed + flicker, 40 + n * 9 + k) * 7) * Pixel,
+                        (5 + Noise(s.Seed + flicker, 70 + n * 9 + k) * 7) * Pixel);
+                    float fade = strength * (1 - (float)k / length);
+                    Line(canvas, at + new Vector2(Pixel, 0), next + new Vector2(Pixel, 0), new Color(BoltHalo, 0.8f * fade));
+                    Line(canvas, at - new Vector2(Pixel, 0), next - new Vector2(Pixel, 0), new Color(BoltHalo, 0.8f * fade));
+                    Line(canvas, at, next, new Color(BoltCore, fade));
+                    at = next;
+                }
+            }
+        }
+        // les étincelles : elles jaillissent du point d'impact, s'écartent sur le sol (aplati comme les cases) et retombent
+        float e = (float)(u / 0.6);
+        int sparks = strong ? 28 : 20;
+        if (e < 1)
+            for (int k = 0; k < sparks; k++)
+            {
+                float a = Noise(s.Seed, 100 + k) * MathF.Tau;
+                float speed = 0.5f + Noise(s.Seed, 120 + k);
+                var dir = new Vector2(MathF.Cos(a), MathF.Sin(a) * 0.5f - 0.6f);
+                var at = s.At + dir * (strong ? 26 : 20) * Pixel * speed * e + new Vector2(0, 16 * Pixel * e * e);
+                var color = new Color(k % 3 == 0 ? BoltHalo : BoltCore, Math.Clamp(1.2f - e * 1.2f, 0, 1));
+                Dot(canvas, at, color);
+                if (k % 4 == 0)
+                    Dot(canvas, at + new Vector2(Pixel, 0), color);
+            }
+    }
+
+    /// <summary>
+    /// La foudre au sol, sous les troupes : une lueur bleu-blanc qui inonde la case au moment du choc, puis une marque brûlée
+    /// (sombre, aplatie comme la case) qui s'efface doucement.
+    /// </summary>
+    private static void DrawLightningGround(CanvasItem canvas, Strike s)
+    {
+        double u = s.Age - LightningHitTime;
+        if (u < 0)
+            return;
+        // presque une case (plus pour la foudre appelée), aplatie comme elle
+        float rx = (s.Kind == "foudre-forte" ? 22 : 18) * Pixel, ry = (s.Kind == "foudre-forte" ? 10 : 8) * Pixel;
+        // la marque brûlée : un disque sombre plus net au milieu, qui s'efface à la fin
+        float fade = (float)Math.Clamp((StrikeTime(s.Kind) - s.Age) / 0.5, 0, 1) * 0.55f;
+        Ellipse(canvas, s.At, rx * 0.65f, ry * 0.65f, new Color(0.08f, 0.06f, 0.05f, fade * 0.6f), s.Seed);
+        Ellipse(canvas, s.At, rx * 0.35f, ry * 0.35f, new Color(0.05f, 0.04f, 0.03f, fade), s.Seed);
+        // la lueur du choc : forte et large, puis elle se resserre et s'éteint
+        float glow = (float)Math.Clamp(1 - u / 0.4, 0, 1);
+        if (glow > 0)
+        {
+            Ellipse(canvas, s.At, rx * (0.7f + 0.3f * glow), ry * (0.7f + 0.3f * glow), new Color(BoltHalo, 0.45f * glow), s.Seed);
+            Ellipse(canvas, s.At, rx * 0.45f, ry * 0.45f, new Color(BoltCore, 0.85f * glow), s.Seed);
+        }
+    }
+
+    /// <summary>
+    /// Le chemin brisé d'un éclair, de <paramref name="from"/> (le ciel) à <paramref name="to"/> (le sol) : des pas de
+    /// quelques pixels d'art qui s'écartent au hasard et reviennent vers la cible. Toujours le même pour une même foudre et
+    /// un même <paramref name="flicker"/> (l'éclair change de forme quand il crépite).
+    /// </summary>
+    private static Vector2[] BoltPath(Vector2 from, Vector2 to, int seed, int flicker)
+    {
+        // des pas de hauteur inégale, chacun part franchement d'un côté ou de l'autre (un zigzag, pas une corde)
+        int steps = Math.Max(4, (int)((to.Y - from.Y) / (Pixel * 14)));
+        var points = new Vector2[steps + 1];
+        float x = 0, side = Noise(seed, 5) < 0.5f ? -1 : 1;
+        for (int k = 0; k <= steps; k++)
+        {
+            float f = (k + (k > 0 && k < steps ? (Noise(seed * 3 + flicker * 17, k) - 0.5f) * 0.6f : 0)) / steps;
+            if (k > 0 && k < steps)
+            {
+                if (Noise(seed * 7 + flicker * 31, k + 200) < 0.7f)
+                    side = -side;
+                x += side * (3 + Noise(seed * 7 + flicker * 31, k) * 7) * Pixel;
+                x *= 1 - f * 0.35f; // plus près du sol, l'éclair se resserre sur la cible
+            }
+            else
+                x = 0;
+            points[k] = from.Lerp(to, f) + new Vector2(x, 0);
+        }
+        return points;
+    }
+
+    /// <summary>Une ellipse pleine de pixels d'art, au bord un peu irrégulier.</summary>
+    private static void Ellipse(CanvasItem canvas, Vector2 at, float rx, float ry, Color color, int seed)
+    {
+        int nx = (int)(rx / Pixel), ny = (int)(ry / Pixel);
+        for (int y = -ny; y <= ny; y++)
+        for (int x = -nx; x <= nx; x++)
+        {
+            float d = (float)(x * x) / (nx * nx + 0.01f) + (float)(y * y) / (ny * ny + 0.01f);
+            if (d <= 0.85f + 0.3f * Noise(seed, x * 31 + y))
+                Dot(canvas, at + new Vector2(x, y) * Pixel, color);
         }
     }
 

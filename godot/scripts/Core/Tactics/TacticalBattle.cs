@@ -169,6 +169,80 @@ public sealed partial class TacticalBattle
         SetUpMorale(BattleSide.Attacker, hero);
         SetUpMorale(BattleSide.Defender, defenderHero);
         PlaceObstacles();
+        SetUpTactics(hero, defenderHero);
+        if (!IsPlacing)
+            StartRound();
+    }
+
+    // ------------------------------------------------------------------ la Tactique : placer ses troupes
+
+    /// <summary>Les colonnes où le héros place ses troupes, selon son avance en Tactique (1, 2, 3 rangs de plus).</summary>
+    public static readonly int[] TacticsColumns = { 0, 2, 3, 4 };
+
+    /// <summary>
+    /// Le camp qui place ses troupes avant le premier round (Tactique), ou null : seul le héros qui a le plus haut rang
+    /// en Tactique les place, dans <see cref="PlacementColumns"/> colonnes selon son avance (rangs égaux : personne).
+    /// </summary>
+    public BattleSide? PlacementSide { get; private set; }
+
+    public int PlacementColumns { get; private set; }
+
+    /// <summary>Le combat attend que le camp <see cref="PlacementSide"/> place ses troupes (<see cref="EndPlacement"/>).</summary>
+    public bool IsPlacing => PlacementSide != null;
+
+    private void SetUpTactics(Hero? attacker, Hero? defender)
+    {
+        int lead = (attacker?.SkillRank(Skills.Tactics) ?? 0) - (defender?.SkillRank(Skills.Tactics) ?? 0);
+        if (lead == 0)
+            return;
+        PlacementSide = lead > 0 ? BattleSide.Attacker : BattleSide.Defender;
+        PlacementColumns = TacticsColumns[Math.Min(Math.Abs(lead), TacticsColumns.Length - 1)];
+    }
+
+    /// <summary>La case est-elle dans les colonnes où le camp qui place peut mettre ses troupes ?</summary>
+    public bool InPlacementZone(Hex hex) => PlacementSide switch
+    {
+        BattleSide.Attacker => hex.Col < PlacementColumns,
+        BattleSide.Defender => hex.Col >= Battlefield.Columns - PlacementColumns,
+        _ => false,
+    };
+
+    /// <summary>
+    /// La troupe peut-elle être placée avec sa tête sur cette case : une troupe du camp qui place (pas une troupe
+    /// révoltée), toutes ses cases dans la zone, libres et sans obstacle ?
+    /// </summary>
+    public bool CanPlace(BattleUnit unit, Hex head) =>
+        IsPlacing && unit.IsAlive && unit.Side == PlacementSide && !unit.IsRebel
+        && unit.HexesAt(head).All(h => Battlefield.InBounds(h) && InPlacementZone(h) && Field.IsOpen(h)
+                                       && (UnitAt(h) is not { } other || other == unit));
+
+    /// <summary>Les cases où la troupe peut être placée (pour sa tête).</summary>
+    public IReadOnlyList<Hex> PlacementHexes(BattleUnit unit)
+    {
+        var hexes = new List<Hex>();
+        for (int c = 0; c < Battlefield.Columns; c++)
+        for (int r = 0; r < Battlefield.Rows; r++)
+            if (new Hex(c, r) != unit.Position && CanPlace(unit, new Hex(c, r)))
+                hexes.Add(new Hex(c, r));
+        return hexes;
+    }
+
+    /// <summary>Place la troupe (sa tête sur cette case). Faux si elle ne peut pas y aller.</summary>
+    public bool Place(BattleUnit unit, Hex head)
+    {
+        if (head == unit.Position || !CanPlace(unit, head))
+            return false;
+        unit.Position = head;
+        _log.Add(new UnitMoved(unit, new[] { head }));
+        return true;
+    }
+
+    /// <summary>Les troupes sont placées : le combat commence (premier round).</summary>
+    public void EndPlacement()
+    {
+        if (!IsPlacing)
+            return;
+        PlacementSide = null;
         StartRound();
     }
 

@@ -40,7 +40,13 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>Hauteur de la bande de l'ordre de jeu, en bas de l'écran.</summary>
     private const int OrderHeight = 96; // en pixels
     private BattleFieldView _field = null!;
-    private Button _waitButton = null!, _defendButton = null!, _autoButton = null!, _fleeButton = null!, _spellButton = null!;
+    private Button _waitButton = null!, _defendButton = null!, _autoButton = null!, _fleeButton = null!, _spellButton = null!, _startButton = null!;
+
+    /// <summary>La Tactique : la troupe que le joueur est en train de placer (avant le premier round).</summary>
+    private BattleUnit? _placing;
+
+    /// <summary>Le joueur place ses troupes (Tactique) : le combat attend « Commencer ».</summary>
+    private bool PlayerPlaces => _battle is { IsPlacing: true } battle && battle.PlacementSide == _playerSide && !_auto && !_field.IsAnimating;
 
     /// <summary>Développement : ouvrir le livre de sorts dès que le joueur peut jouer (« --battle-book »).</summary>
     public bool OpenSpellBookWhenReady { get; set; }
@@ -72,6 +78,15 @@ public partial class BattleScreen : CanvasLayer
         // les boutons, en une rangée à droite qui prend la largeur de leurs textes
         var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.End };
         buttons.AddThemeConstantOverride("separation", (int)Px(6));
+        _startButton = AddButton(buttons, Texts.BattleStart, "Entrée", () =>
+        {
+            if (PlayerPlaces)
+            {
+                _battle!.EndPlacement();
+                _placing = null;
+                Show(_battle.TakeLog());
+            }
+        });
         _spellButton = AddButton(buttons, Texts.SpellBookButton, "S", OpenSpellBook);
         _waitButton = AddButton(buttons, Texts.BattleWait, "W", () => Player(b => b.Wait()));
         _defendButton = AddButton(buttons, Texts.BattleDefend, "D", () => Player(b => b.Defend()));
@@ -321,7 +336,9 @@ public partial class BattleScreen : CanvasLayer
         _opponent = enemy;
         _title.Text = Texts.BattleRound(1);
         _title.TooltipText = Texts.BattleTitle(enemy);
-        _message.Text = "";
+        // la Tactique : le joueur place ses troupes avant le premier round
+        _placing = null;
+        _message.Text = battle.IsPlacing && battle.PlacementSide == _playerSide && !auto ? Texts.BattlePlacementPrompt(battle.PlacementColumns) : "";
         _field.Start(battle, terrain);
         Visible = true;
         Show(battle.TakeLog());
@@ -341,6 +358,11 @@ public partial class BattleScreen : CanvasLayer
 
     private void OnClicked(Hex hex, Vector2 point)
     {
+        if (PlayerPlaces)
+        {
+            Place(_battle!, hex);
+            return;
+        }
         if (_battle is not { Active: { } unit } battle || !IsPlayerTurn)
             return;
         // un sort choisi : le clic est sa cible
@@ -382,6 +404,31 @@ public partial class BattleScreen : CanvasLayer
         }
         if (Destination(battle, unit, hex) is { } head)
             Player(b => b.Move(head));
+    }
+
+    /// <summary>
+    /// La Tactique : un clic sur une de ses troupes la choisit ; un clic sur une case où elle peut aller l'y place (pour
+    /// une grande créature, la tête qui met son arrière sur cette case).
+    /// </summary>
+    private void Place(TacticalBattle battle, Hex hex)
+    {
+        if (battle.UnitAt(hex) is { } own && own.Side == _playerSide && !own.IsRebel)
+        {
+            _placing = own;
+            return;
+        }
+        if (_placing is not { } unit || PlacementHead(battle, unit, hex) is not { } head)
+            return;
+        if (battle.Place(unit, head))
+            Show(battle.TakeLog());
+    }
+
+    private static Hex? PlacementHead(TacticalBattle battle, BattleUnit unit, Hex hex)
+    {
+        var heads = battle.PlacementHexes(unit);
+        if (heads.Contains(hex))
+            return hex;
+        return heads.Where(h => unit.HexesAt(h).Contains(hex)).Cast<Hex?>().FirstOrDefault();
     }
 
     /// <summary>Où une téléportation met la tête de la troupe si le joueur clique sur cette case (null : impossible).</summary>
@@ -432,7 +479,8 @@ public partial class BattleScreen : CanvasLayer
             return;
         }
         // L'IA joue les ennemis (et tout, en mode Auto), une action à la fois, quand l'animation précédente est finie
-        if (!_field.IsAnimating && (battle.Active is { } active && active.Side != _playerSide || _auto))
+        if (!_field.IsAnimating && (battle.Active is { } active && active.Side != _playerSide || _auto
+                                    || battle.IsPlacing && battle.PlacementSide != _playerSide))
         {
             _wait -= delta;
             if (_wait <= 0)
@@ -475,6 +523,12 @@ public partial class BattleScreen : CanvasLayer
         // après avoir frappé, une troupe qui peut repartir (Nomades) choisit sa case, ou reste
         _defendButton.Text = mine && battle.IsRetreating ? Texts.BattleStay : Texts.BattleDefend;
         _autoButton.Disabled = _auto;
+        _startButton.Visible = battle.IsPlacing && battle.PlacementSide == _playerSide;
+        if (PlayerPlaces)
+        {
+            RefreshPlacement(battle);
+            return;
+        }
 
         _field.ActiveUnit = unit;
         // pour une grande créature, ses deux cases à chaque arrivée possible
@@ -529,6 +583,28 @@ public partial class BattleScreen : CanvasLayer
             else
                 cursor = CursorKind.Blocked;
         }
+        MapCursor.Show(cursor);
+        RefreshOrder(battle);
+    }
+
+    /// <summary>La Tactique : la troupe choisie, les cases où elle peut aller, le curseur.</summary>
+    private void RefreshPlacement(TacticalBattle battle)
+    {
+        _title.Text = Texts.BattlePlacementTitle;
+        _spellButton.Disabled = true;
+        _placing ??= battle.Units.Where(u => u.IsAlive && u.Side == _playerSide && !u.IsRebel).OrderBy(u => u.Slot).FirstOrDefault();
+        _field.ActiveUnit = _placing;
+        _field.Reachable = _placing is { } unit
+            ? battle.PlacementHexes(unit).SelectMany(h => unit.HexesAt(h)).Distinct().ToList()
+            : Array.Empty<Hex>();
+        _field.Target = null;
+        _field.SpellTargets = Array.Empty<Hex>();
+        _field.SpellArea = Array.Empty<Hex>();
+        var cursor = CursorKind.Pointer;
+        if (_field.Hovered is { } hovered)
+            cursor = battle.UnitAt(hovered) is { } own && own.Side == _playerSide && !own.IsRebel ? CursorKind.Visit
+                : _placing is { } chosen && PlacementHead(battle, chosen, hovered) != null ? CursorKind.Move
+                : CursorKind.Blocked;
         MapCursor.Show(cursor);
         RefreshOrder(battle);
     }

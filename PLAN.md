@@ -365,7 +365,7 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
     | Commandement | 1 | Moral | +1 / 2 / 3 de moral aux troupes |
     | Commandement | 2 | Recruteur | +10 / 20 / 30 % de croissance dans la ville où le héros commence la semaine |
     | Commandement | 2 | Inspiration | les troupes plus rapides au début du combat (+1 / +1 / +2 au premier round, puis +0 / +1 / +1) |
-    | Commandement | 3 | Tactique | placer ses troupes avant le combat, dans les 2 / 3 / 4 premières colonnes |
+    | Commandement | 3 | Tactique | placer ses troupes avant le combat, dans les 2 / 3 / 4 premières colonnes (le plus haut rang, selon son avance) |
     | Magie | 1 | Mysticisme | +1 / 2 / 3 points de sort par jour |
     | Magie | 1 | École de l'eau | ses sorts coûtent 20 / 30 / 40 % de moins, +15 / 30 % de force ; expert : un sort spécial |
     | Magie | 2 | École du feu | de même |
@@ -416,7 +416,11 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
     simulation seule n'en prend pas (ses chiffres restent comparables). Mesuré (un adversaire, Normal, six semaines,
     or d'armée) : Château 25 300, morts-vivants 25 700, Barbares 27 700, Forêt 29 200 (sans compétences : 25 000,
     20 900, 23 100, 30 600 : les factions se rapprochent). Tests : `CompetencesTests`.
-  - **Reste** : Tactique et les sorts spéciaux (chacun après sa conception) ; les talents des
+  - ✅ **La Tactique** (décidée avec l'utilisateur, 2026-11-09, branche `tactique`) : le héros qui a le plus haut rang en
+    Tactique place ses troupes avant le premier round, dans 2 / 3 / 4 colonnes selon son avance (rangs égaux : personne) ;
+    placement seulement. À l'écran : « Placement », cliquer une troupe puis sa case, « Commencer » (« Auto » place pour
+    le joueur). L'IA avance ses troupes de corps à corps au plus loin, garde ses tireurs derrière. Tests : `TactiqueTests`.
+  - **Reste** : les sorts spéciaux (plus tard, quand le jeu sera plus avancé : choix de l'utilisateur) (chacun après sa conception) ; les talents des
     classes (Croisé, Chef de guerre, Chasseur) ; la simulation qui prend des compétences.
   - Plus tard : les cavernes de la carte, où l'on apprend une compétence.
 - **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le

@@ -815,6 +815,14 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   combattre), `--open=encounter`. Les textes donnent le nombre exact (on les paie). Cinq tests d'avant entraient à côté
   de 1 à 3 Gobelins, qui fuient maintenant : ils les poursuivent, ou le gardien est de 10 Gobelins.
 
+- ✅ **La Tactique** (2026-11-09, branche `tactique`). Choix de l'utilisateur : 2 / 3 / 4 colonnes, le plus haut rang
+  seul place, selon son avance (comme Heroes 3), rien d'autre que le placement. `TacticalBattle` : `SetUpTactics` après
+  les obstacles ; `IsPlacing` retarde le premier round (`Active` nul, `Round` 0) jusqu'à `EndPlacement` ; `CanPlace`,
+  `PlacementHexes`, `Place` (consigné en `UnitMoved` d'une case : l'écran fait marcher la troupe jusqu'à sa place, sans
+  toucher `BattleFieldView`). Les troupes révoltées ne se placent pas. `BattleAI.PlaceTroops` (aussi au début de`PlayTurn`,
+  donc combat rapide et « Auto ») ; `GameState.StartFight` place aussitôt pour un héros de l'ordinateur. `BattleScreen` :
+  le mode placement (`PlayerPlaces`, `_placing`, `RefreshPlacement`, le bouton « Commencer »). `--skill=id:rang`.
+
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui
   volent jusqu'à leur cible (le coup porte à l'arrivée), un impact à chaque coup, recul de la troupe touchée, nuage de

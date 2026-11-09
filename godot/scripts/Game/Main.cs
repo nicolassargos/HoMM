@@ -290,6 +290,12 @@ public partial class Main : Node2D
             foreach (var spell in _state.Data.Spells.All)
                 mage.Learn(spell);
         }
+        // Développement : « --skill=tactique:3 » (ou « tactique », au rang de base ; plusieurs : « --skill=a:2,b ») : le héros
+        // a ces compétences, pour les essayer
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--skill=")) is { } skillArg && _state.CurrentHero is { } trained)
+            foreach (var part in skillArg["--skill=".Length..].Split(','))
+                if (_state.Data.Skills.Find(part.Split(':')[0]) is { } skill)
+                    trained.AddSkillRank(skill, part.Contains(':') && int.TryParse(part.Split(':')[1], out int rank) ? rank : 1);
         // Développement : « --battle-showcase » : les 7 créatures du Château contre les 7 morts-vivants (« --battle-showcase=neutre » :
         // contre les neutres), sur l'écran de combat (pour comparer les images ; ce combat ne compte pas dans la partie) ;
         // avec « --battle-auto », il se joue seul

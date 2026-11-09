@@ -845,6 +845,10 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   par deux et n'enchante pas d'un sort néfaste), `Repairs` et `Blessing` dans `BeginTurn` (un tour ordinaire),
   `NoMeleePenalty` dans `RollDamage` ; `CreatureType.Blessings` reliés aux sorts par `GameData` (`BlessingSpells`),
   `SpellCatalog.Find`. Réglage en trois passes de `Duels_a_prix_egal` (la Tour ajoutée aux factions comparées).
+- ✅ **La Tour de magie jouable** (2026-11-10, branche `tour-ville`) : une classe de faction `tour` suffit à la rendre jouable
+  partout (`PlayableFactions` : nouvelle partie, adversaires, villes neutres). `Town.ArcaneLibraryFaction`,
+  `GuildSpellsAt` (aussi dans le texte de la guilde) ; `Talents.Scholar` ajouté au bonus de sort du héros (avec les
+  écoles). `Texts.FactionName` : « Tour de magie ».
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui
   volent jusqu'à leur cible (le coup porte à l'arrivée), un impact à chaque coup, recul de la troupe touchée, nuage de

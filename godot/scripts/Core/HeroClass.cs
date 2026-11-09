@@ -110,8 +110,12 @@ public static class Talents
     public const string Hunter = "hunter";
     public const double HunterPerLevel = 0.01;
 
+    /// <summary>Érudit (le Magicien) : ses sorts sont 2 % plus forts par niveau du héros (dégâts, soins).</summary>
+    public const string Scholar = "scholar";
+    public const int ScholarPercentPerLevel = 2;
+
     /// <summary>Tous les talents connus (pour vérifier les données).</summary>
-    public static readonly string[] All = { Necromancy, Crusader, Warlord, Hunter };
+    public static readonly string[] All = { Necromancy, Crusader, Warlord, Hunter, Scholar };
 
     /// <summary>La Rage au plus pour les troupes de ce héros (la Rage de base, plus le Chef de guerre).</summary>
     public static int RageMax(Hero? hero, int baseMax) =>

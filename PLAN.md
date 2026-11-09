@@ -178,6 +178,16 @@ Découpage comme la Forêt : 1. les créatures et leurs capacités ; 2. la ville
    adversaires (six semaines, Normal, or d'armée) : Château 23 500, morts-vivants 25 800, Barbares 24 900, Forêt 32 000 ;
    Facile 27 200 et Normal 25 200 (Facile au-dessus de Normal sur ces cartes : à surveiller à l'équilibrage), Difficile
    34 700. Tests : `TourTests`.
+2. ✅ La ville et le jeu (2026-11-10, branche `tour-ville`) : 7 habitations (`atelier-gnomes`, `perchoir-gargouilles`,
+   `carriere-golems`, `bassin-nagas`, `lampe-djinns`, `academie-mages`, `sommet-geants` : prix et places de celles de la
+   Forêt ; mercure aux niveaux 5 et 6, gemmes au niveau 7 ; le grand hôtel de ville accepte aussi le Bassin des nagas),
+   la bibliothèque des arcanes (`Town.GuildSpellsAt`), la classe Magicien (armée de départ au prix des autres : 15 Gnomes,
+   6 Gargouilles, 2 Golems de pierre) et son talent Érudit (`Hero.SpellBonus`), les 6 héros de la Tour jouables ;
+   `--faction=tour`. Un test de l'IA fixe la faction de son adversaire (le Rôdeur, qui voit plus loin, préférait attaquer
+   le héros du joueur). Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Tour 27 000**, Château 25 600,
+   morts-vivants 24 000, Barbares 25 600, Forêt 29 200 (les cartes changent un peu : des villes neutres de la Tour).
+   Tests : `VilleTourTests`.
+3. Les images (session images) : les 7 créatures, la ville sur la carte.
 
 #### La Forêt (en cours)
 Décidé avec l'utilisateur (2026-11-09).

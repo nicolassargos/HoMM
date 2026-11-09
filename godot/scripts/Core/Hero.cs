@@ -103,8 +103,10 @@ public sealed class Hero
         SchoolOf(spell) is { Skill: { } skill, Rank: var rank }
             ? System.Math.Max(1, (int)System.Math.Round(spell.Cost * (100 - skill.ValueAt(rank)) / 100.0)) : spell.Cost;
 
-    /// <summary>La force en plus (en pourcentage) des sorts de son école.</summary>
-    public int SpellBonus(SpellType spell) => SchoolOf(spell) is { Skill: { } skill, Rank: var rank } ? skill.Value2At(rank) : 0;
+    /// <summary>La force en plus (en pourcentage) des sorts : son école, et le talent Érudit (Magicien).</summary>
+    public int SpellBonus(SpellType spell) =>
+        (SchoolOf(spell) is { Skill: { } skill, Rank: var rank } ? skill.Value2At(rank) : 0)
+        + (Class?.Talent == Talents.Scholar ? Talents.ScholarPercentPerLevel * Level : 0);
 
     // Caractéristiques. Attaque et défense s'ajoutent à celles des créatures en combat.
     // (internal set : remises telles quelles au chargement d'une partie)

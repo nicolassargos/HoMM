@@ -407,7 +407,7 @@ public static class Texts
             : $"Produit des {creature.Plural} (+{creature.Growth} par semaine)",
         { DailyGold: > 0 } => $"+{building.DailyGold} or par jour",
         { Tavern: true } => "Permet de recruter des héros",
-        { MageGuild: > 0 } => $"Enseigne {Town.GuildSpellsPerLevel[building.MageGuild - 1]} sorts de niveau {building.MageGuild} aux héros"
+        { MageGuild: > 0 } => $"Enseigne {town.GuildSpellsAt(building.MageGuild)} sorts de niveau {building.MageGuild} aux héros"
                               + " et recharge leurs points de sort",
         _ => "",
     };
@@ -1245,6 +1245,7 @@ public static class Texts
         "chateau" => "Château",
         "morts-vivants" => "Morts-vivants",
         "foret" => "Forêt",
+        "tour" => "Tour de magie",
         _ => Capitalize(faction),
     };
 
@@ -1261,6 +1262,7 @@ public static class Texts
         Talents.Crusader => $"Talent : croisé (+{Talents.CrusaderPerLevel:P0} de dégâts par niveau contre les morts-vivants)",
         Talents.Warlord => $"Talent : chef de guerre (la Rage des troupes monte de 1 de plus tous les {Talents.WarlordLevels} niveaux)",
         Talents.Hunter => $"Talent : chasseur (+{Talents.HunterPerLevel:P0} de dégâts par niveau pour les tireurs)",
+        Talents.Scholar => $"Talent : érudit (+{Talents.ScholarPercentPerLevel} % de force des sorts par niveau)",
         _ => null,
     };
 

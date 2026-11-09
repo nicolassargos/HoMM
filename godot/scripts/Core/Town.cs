@@ -144,6 +144,17 @@ public sealed class Town : MapObject
     /// <summary>Combien de sorts offre chaque niveau de la guilde (niveaux 1 à 4).</summary>
     public static readonly int[] GuildSpellsPerLevel = { 3, 3, 2, 2 };
 
+    /// <summary>
+    /// La bibliothèque des arcanes (la marque de la Tour de magie) : la guilde de ses villes offre un sort de plus par
+    /// niveau (4 sur 5, 4 sur 5, 3 sur 5, 3 sur 3).
+    /// </summary>
+    public const string ArcaneLibraryFaction = "tour";
+
+    /// <summary>Combien de sorts offre ce niveau de la guilde de cette ville.</summary>
+    public int GuildSpellsAt(int level) =>
+        level < 1 || level > GuildSpellsPerLevel.Length ? 0
+            : GuildSpellsPerLevel[level - 1] + (Faction == ArcaneLibraryFaction ? 1 : 0);
+
     private readonly List<SpellType> _guildSpells = new();
 
     /// <summary>Le niveau de la guilde des mages (0 : pas de guilde).</summary>
@@ -161,7 +172,7 @@ public sealed class Town : MapObject
         if (level < 1 || level > GuildSpellsPerLevel.Length || _guildSpells.Any(s => s.Level == level))
             return;
         var pool = spells.OfLevel(level).ToList();
-        for (int i = 0; i < GuildSpellsPerLevel[level - 1] && pool.Count > 0; i++)
+        for (int i = 0; i < GuildSpellsAt(level) && pool.Count > 0; i++)
         {
             var spell = pool[next(pool.Count)];
             pool.Remove(spell);

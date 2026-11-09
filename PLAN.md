@@ -346,7 +346,8 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
 - **L'écran du héros, refait** (choix de l'utilisateur, 2026-11-09, parmi trois maquettes :
   `art-candidats/en-cours/disposition-heros.html`) : à gauche, toujours visibles, le portrait, le niveau, l'expérience,
   le mouvement et les caractéristiques ; à droite, **trois grands onglets** : **Équipement** (le héros **en pied**, une
-  image par héros d'après son portrait, avec **11 emplacements** autour : tête, cou, épaules (cape), torse, main de
+  image par héros d'après son portrait, bien visible ; **11 emplacements en deux colonnes**, à sa gauche et à sa droite,
+  **chacun relié par un trait** à l'endroit où il se porte : tête, cou, épaules (cape), torse, main de
   l'arme, main du bouclier, deux anneaux, ceinture, pieds, divers ; et un **coffre de 16 places de la même taille**),
   **Compétences** (trois sous-onglets Aventure, Commandement, Magie ; des icônes, le texte à côté ou en info-bulle),
   **Magie** ; l'armée en bas. **Une image de 32 × 32 par artefact** sert partout (emplacements et coffre ×3, et sur la

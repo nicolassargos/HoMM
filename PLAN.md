@@ -338,9 +338,50 @@ les tas de ressources : `Simulation_force_ou_magie`).
 ### Les compétences des héros et les artefacts (à concevoir)
 Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemble, avec la même méthode que les factions
 (l'idée d'abord, puis le détail).
-- **Les compétences** : ce qu'un héros apprend en montant de niveau, en plus des caractéristiques (comme les
-  compétences secondaires de Heroes 3 : écoles de magie, logistique, tir…), avec les classes de héros et les cavernes
-  de la carte.
+- **Les compétences** (en cours de conception, 2026-11-09, décidé avec l'utilisateur) :
+  - **Trois arbres**, un par famille : **Aventure** (déplacement, vision, économie, diplomatie), **Commandement**
+    (autour du charisme) et **Magie** (écoles de magie). Pas de famille du combat (le combat passe par l'attaque et la
+    défense).
+  - **À chaque niveau** : +1 charisme, +1 à la caractéristique choisie (comme aujourd'hui) **et un point de
+    compétence** : une compétence nouvelle au rang de base, ou un rang de plus (base → avancé → expert).
+  - **Les rangées d'un arbre s'ouvrent selon les points dépensés dans cet arbre** (la deuxième après 3 points, la
+    troisième après 6) : se spécialiser paie.
+  - **Six compétences au plus** par héros, trois rangs chacune : un héros devient un spécialiste.
+  - **La classe** donne une compétence de départ et **son propre talent**, qui grandit avec le niveau (comme la
+    nécromancie du Nécromancien).
+  - Les compétences (rangée : 1 dès le départ, 2 après 3 points dans l'arbre, 3 après 6 ; base / avancé / expert ;
+    chiffres à régler en jouant) :
+
+    | Arbre | Rangée | Compétence | Effet |
+    |---|---|---|---|
+    | Aventure | 1 | Logistique | +10 / 20 / 30 % de mouvement sur la carte |
+    | Aventure | 1 | Éclaireur | voit 2 / 4 / 6 cases plus loin |
+    | Aventure | 2 | Orientation | le surcoût des terrains difficiles baisse de 25 / 50 / 75 % |
+    | Aventure | 2 | Intendance | +100 / 150 / 200 or par jour (à équilibrer après des essais) |
+    | Aventure | 2 | Chance | +1 / 2 / 3 de chance aux troupes ; compte aussi pour les artefacts trouvés et les coffres |
+    | Aventure | 3 | Diplomatie | un gardien neutre plus faible que l'armée peut proposer de la rejoindre (règles : PR à part) |
+    | Commandement | 1 | Commandement | +10 / 20 / 30 % de points de commandement par charisme |
+    | Commandement | 1 | Discipline | révoltes 25 / 50 / 75 % moins probables |
+    | Commandement | 1 | Moral | +1 / 2 / 3 de moral aux troupes |
+    | Commandement | 2 | Recruteur | +10 / 20 / 30 % de croissance dans la ville où le héros commence la semaine |
+    | Commandement | 2 | Inspiration | les troupes plus rapides au début du combat (+1 / +1 / +2 au premier round, puis +0 / +1 / +1) |
+    | Commandement | 3 | Tactique | placer ses troupes avant le combat, dans les 2 / 3 / 4 premières colonnes |
+    | Magie | 1 | Mysticisme | +1 / 2 / 3 points de sort par jour |
+    | Magie | 1 | École de l'eau | ses sorts coûtent 20 / 30 / 40 % de moins, +15 / 30 % de force ; expert : un sort spécial |
+    | Magie | 2 | École du feu | de même |
+    | Magie | 2 | École de la terre | de même |
+    | Magie | 3 | École de l'air | de même |
+
+  - Les écoles : **eau** (Bénédiction, Soins, Faiblesse, Téléportation, Dissipation), **feu** (Soif de sang,
+    Malédiction, Aveuglement, Boule de feu), **terre** (Peau de pierre, Lenteur, Pluie de météores, Résurrection),
+    **air** (Flèche magique, Éclair, Hâte, Bouclier contre les tirs, Chaîne d'éclairs).
+  - Les classes : Paladin (Commandement ; talent **Croisé** : +2 % de dégâts par niveau contre les morts-vivants),
+    Nécromancien (École de la terre ; **Nécromancie**), Barbare (Logistique ; **Chef de guerre** : +1 au plus fort de
+    la Rage tous les 3 niveaux), Rôdeur (Éclaireur ; **Chasseur** : +1 % de dégâts par niveau pour ses tireurs).
+  - **À concevoir à part**, chacun dans sa propre PR : le **moral** et la **chance** (deux notions nouvelles : comme
+    Heroes 3, un tour de plus ou un tour perdu, des dégâts doublés ou divisés par deux ?), les règles de la
+    **Diplomatie**, les **quatre sorts spéciaux** des écoles (idées : Prière, Armageddon, Séisme, une invocation).
+  - Plus tard : les cavernes de la carte, où l'on apprend une compétence.
 - **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le
   héros, leurs effets, où on les trouve (gardiens, coffres, cavernes), peut-être des ensembles.
 

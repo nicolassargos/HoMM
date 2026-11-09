@@ -316,7 +316,7 @@ public partial class BattleScreen : CanvasLayer
     private const float RoundWidth = 144; // en pixels
 
     /// <summary>Le côté d'un bouton du bas (en unités) : l'icône (sa partie visible, ×2) y tient.</summary>
-    private const float ButtonSize = 44;
+    private const float ButtonSize = 58; // presque la hauteur de la barre (96 pixels) : l'icône ×2 y respire
 
     /// <summary>Les icônes des boutons du bas, réduites à leur partie visible (null : pas d'image).</summary>
     private static readonly System.Collections.Generic.Dictionary<string, Texture2D?> Icons = new();

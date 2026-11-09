@@ -104,8 +104,15 @@ public sealed class Hero
     /// <summary>Niveau et caractéristiques actuels (copie figée, pour comparer avant et après un niveau).</summary>
     public HeroStatistics Statistics => new(Level, Attack, Defense, Power, Knowledge, Charisma);
 
+    /// <summary>
+    /// L'expérience du niveau 2 ; le niveau n demande <see cref="ExperienceStep"/> × (n − 1) × n / 2. 700 depuis que les
+    /// anciens monstres neutres (Gobelin, Loup, Orc, Ogre) coûtent le prix du Château (1000 avant) : la simulation gagne
+    /// au niveau 21 environ, comme avant les Barbares (niveau 20), au lieu de 17 ou 18 avec 1000.
+    /// </summary>
+    public const int ExperienceStep = 700;
+
     /// <summary>Expérience totale nécessaire pour atteindre ce niveau.</summary>
-    public static int ExperienceForLevel(int level) => 1000 * (level - 1) * level / 2;
+    public static int ExperienceForLevel(int level) => ExperienceStep * (level - 1) * level / 2;
 
     /// <summary>Un nouveau jour : tout le mouvement, et un point de sort de plus.</summary>
     public void NewDay()

@@ -79,7 +79,7 @@ public class SauvegardeTests
     public void Un_choix_de_niveau_en_attente_est_de_nouveau_propose()
     {
         var state = new GameState(42, TestData.Data);
-        state.GrantExperience(state.CurrentHero!, 1000);
+        state.GrantExperience(state.CurrentHero!, Hero.ExperienceForLevel(2));
         state.TakeEvents();
 
         var loaded = GameState.Load(state.Save(), TestData.Data);

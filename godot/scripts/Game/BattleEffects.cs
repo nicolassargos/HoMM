@@ -98,11 +98,12 @@ public sealed class BattleEffects
         "boule-feu" => 1100,
         "boule-poison" => 1500,
         "hache" => 1200,
+        "feuilles" => 1000,
         _ => 1500,
     };
 
     /// <summary>Hauteur de la courbe (en part de la distance) : une flèche monte puis redescend, une boule de feu va droit.</summary>
-    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, _ => 0 };
+    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, "feuilles" => 0.02f, _ => 0 };
 
     /// <summary>L'impact joué à l'arrivée d'un projectile.</summary>
     public static string ImpactOf(string projectile) => projectile switch
@@ -112,6 +113,7 @@ public sealed class BattleEffects
         "eclair" => "eclair",
         "boule-poison" => "poison",
         "hache" => "entaille",
+        "feuilles" => "feuilles",
         _ => "choc",
     };
 
@@ -267,6 +269,26 @@ public sealed class BattleEffects
                 Blob(canvas, here, 1, new Color(1, 0.85f + 0.15f * pulse, 0.45f));
                 break;
             }
+            case "feuilles":
+            {
+                // le sort du Druide : un tourbillon de feuilles vertes qui tourne sur lui-même, et des feuilles qui
+                // tombent derrière lui en se balançant
+                float spin = (float)p.Age * 14;
+                for (int k = 1; k <= 8; k++)
+                {
+                    float back = Math.Max(0, t - k * 0.04f);
+                    var fall = new Vector2(MathF.Sin(k * 1.7f + (float)p.Age * 9) * U * 2, k * k * 0.3f * U);
+                    Leaf(canvas, At(back) + fall, (float)p.Age * 6 + k, LeafColor(k), 1 - k * 0.1f);
+                }
+                for (int k = 0; k < 7; k++)
+                {
+                    float a = spin + k * MathF.Tau / 7;
+                    var at = here + new Vector2(MathF.Cos(a), MathF.Sin(a) * 0.75f) * U * 5;
+                    Leaf(canvas, at, a + MathF.PI / 2, LeafColor(k), 1);
+                }
+                Blob(canvas, here, 1, new Color(0.7f, 0.95f, 0.45f));
+                break;
+            }
             case "boule-poison":
             {
                 // une boule verte qui palpite, et des gouttes qui tombent derrière elle
@@ -361,6 +383,7 @@ public sealed class BattleEffects
             "feu" => (9, new[] { new Color(1, 0.85f, 0.4f), new Color(1, 0.5f, 0.1f), new Color(0.6f, 0.2f, 0.1f) }, 9f, 2),
             "morsure" => (6, new[] { new Color(0.85f, 0.15f, 0.15f), new Color(1, 0.9f, 0.85f) }, 6f, 1),
             "poison" => (9, new[] { new Color(0.6f, 0.95f, 0.35f), new Color(0.3f, 0.6f, 0.2f) }, 8f, 1),
+            "feuilles" => (12, new[] { new Color(0.55f, 0.85f, 0.3f), new Color(0.3f, 0.6f, 0.2f), new Color(0.8f, 0.9f, 0.35f) }, 10f, 1),
             "eclair" => (6, new[] { new Color(1, 1, 0.8f), new Color(1, 0.85f, 0.25f) }, 7f, 2),
             "entaille" => (6, new[] { new Color(1, 1, 0.9f), new Color(0.7f, 0.15f, 0.1f) }, 7f, 1),
             _ => (7, new[] { new Color(1, 1, 0.85f), new Color(0.75f, 0.72f, 0.65f) }, 8f, 1), // « choc »
@@ -709,6 +732,43 @@ public sealed class BattleEffects
         Line(canvas, at - new Vector2(arm * U, 0), at + new Vector2(arm * U, 0), color);
         Line(canvas, at - new Vector2(0, arm * U), at + new Vector2(0, arm * U), color);
     }
+
+    /// <summary>
+    /// Une feuille : un losange allongé de pixels d'art dans la direction <paramref name="angle"/> (cinq de long, trois de
+    /// large au milieu, une nervure plus claire), à l'opacité <paramref name="alpha"/>.
+    /// </summary>
+    private static void Leaf(CanvasItem canvas, Vector2 at, float angle, Color color, float alpha)
+    {
+        var dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * Pixel;
+        var side = new Vector2(-dir.Y, dir.X);
+        float a = Math.Clamp(alpha, 0, 1);
+        var c = new Color(color, a);
+        var nervure = new Color(color.Lightened(0.35f), a);
+        // un bord vert sombre autour de la feuille : elle se détache de l'herbe
+        var bord = new Color(0.12f, 0.25f, 0.08f, a * 0.9f);
+        Dot(canvas, at + dir * 3, bord);
+        Dot(canvas, at - dir * 3, bord);
+        for (int k = -2; k <= 2; k++)
+        {
+            Dot(canvas, at + dir * k + side * (Math.Abs(k) <= 1 ? 2 : 1), bord);
+            Dot(canvas, at + dir * k - side * (Math.Abs(k) <= 1 ? 2 : 1), bord);
+        }
+        for (int k = -2; k <= 2; k++)
+            Dot(canvas, at + dir * k, k == 0 ? nervure : c);
+        for (int k = -1; k <= 1; k++)
+        {
+            Dot(canvas, at + dir * k + side, c);
+            Dot(canvas, at + dir * k - side, c);
+        }
+    }
+
+    /// <summary>Les couleurs des feuilles du Druide, l'une après l'autre : vert vif, or, vert pâle (elles se voient sur l'herbe).</summary>
+    private static Color LeafColor(int k) => (k % 3) switch
+    {
+        0 => new Color(0.62f, 0.95f, 0.25f),
+        1 => new Color(0.98f, 0.82f, 0.25f),
+        _ => new Color(0.82f, 1f, 0.55f),
+    };
 
     /// <summary>Une longueur comptée dans l'unité U, en pixels d'art (arrondie).</summary>
     private static int Scaled(int units) => (int)MathF.Round(units * U / Pixel);

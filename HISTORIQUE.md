@@ -864,6 +864,35 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   trop « croustillant » : le second demande des formes simples et un ombrage doux, avec la ville du Château comme image
   de style (au lieu de la mine d'or) et le candidat aimé comme modèle. Le contour noir trop épais est adouci
   (`tools/art/adoucir.py`, assombrir 0,7, seuil 60, 2 passes), et la ville des morts-vivants de même.
+- ✅ Ville de la Forêt sur la carte (2026-11-09, branche `ville-foret`, PixelLab « Pro » 160 × 128, 0,35 $) : trois idées
+  montrées à l'utilisateur, un lot de quatre chacune (la ville barbare comme style, la ville du Château comme modèle de
+  disposition) : un grand arbre aux maisons perchées, un cercle de druides, une citadelle elfe. Choix : **a-2**, un grand
+  chêne aux maisons et ponts de corde dans ses branches, au milieu d'une palissade ronde, la porte en bas au milieu.
+  Contour adouci (`adoucir.py` 0,7, 60, 2 passes) ; pieds proposés (trois, à vérifier). Le cercle et la citadelle
+  remplissaient tout le rectangle (arbres coupés aux bords) : une scène, pas un objet détouré.
+- ✅ Créatures de la Forêt (2026-11-09, branche `creatures-foret`, PixelLab, environ 6 $ avec les essais), une à la fois,
+  choisies en combat (`essai-<k>.png` posés dans le jeu avec `--creature-preview`) et sur la page d'aperçu des
+  animations (à la taille du jeu, un adversaire devant les attaques) :
+  - **Farfadet** (45 px, L1-1) : ailes de feuilles d'automne ; « contour » 0,7/70/2 et « bord » à 60 % d'opacité (traits
+    d'un pixel pleins), choisis en combat ; idle-2, vol move-2 (0,25 s par case), attaque attack-4-r (plongée et griffes ;
+    le mot « enemy » faisait dessiner une autre créature : consigne sans lui). Carte p2-24.
+  - **Sanglier** (46 px après ×0,85, L2-1) : idle-2-r, trot move-2, charge attack-2-r (trous de l'éclat comblés :
+    `tools/art/combler.py`). Carte p2-24.
+  - **Archer elfe** (74 px, L2-4) : corde de l'arc non tracée (elle lui barrait le visage) ; attente idle-5-sc (prend une
+    flèche, la regarde, la remet), marche move-3-sc, tir attack-2-r (flèche lancée à l'image 6, depuis [80, 51]). Carte p1-5.
+  - **Cerf** (84 px, L4-1) : attente idle-2 ralentie (4 images/s), marche move-4 (« pas de saut » : les premiers essais
+    galopaient), coup de bois de bas en haut attack-4-r (arcs orange et blancs effacés). Carte p1-15.
+  - **Druide** (72 px, L10-3) : trapu (remarque de l'utilisateur), d'après ses références `druid1.png` (Heroes 2 : capuche
+    pointue, robe brune, ceinture rouge) et `druid2.avif` (chouette sur le bâton ; convertie en PNG par Windows, réduite à
+    256 px). L10-3 regardait déjà à droite : le « miroir » posé par erreur a été retiré, les feuilles d'animation
+    retournées (gratuit). idle-2-r (se caresse la barbe), move-2, attack-2-r (la main tendue). Nouveau projectile du jeu,
+    le **tourbillon de feuilles** (`feuilles` : sept feuilles qui tournent, une traînée qui tombe, un bord sombre pour se
+    voir sur l'herbe ; lancé à l'image 5 depuis la main [108, 46]). Carte p1-3.
+  - **Tréant** (100 px, L10-1) : d'abord trop humain (L1–L4), refait « un arbre qui marche, pas un homme de bois » (L5–L8) ;
+    L5-1 avait la couronne coupée en haut (cadre de génération trop petit, vu par l'utilisateur) : regénéré à 144 × 160
+    avec L5-1 en référence. idle-6, marche move-6, attaque attack-4-r (bras-branche levé puis abattu). Carte p1-6.
+  - Leçons : ne jamais lancer deux commandes qui écrivent `creatures-art.json` en même temps (l'une efface les choix de
+    l'autre) ; vérifier que la grande image ne touche pas son cadre ; pour la carte, 16 candidats suffisent.
 - ✅ Combat à ×2 (2026-11-09, branche `combat-x2`). Question de l'utilisateur : un pixel d'art a-t-il la même taille au
   combat et sur la carte ? Non : 3 pixels de l'écran au combat, 2 sur la carte (zoom ×1 ; 3 au zoom ×1,5). Essai montré
   (page `echelle.html` : même combat à ×3 et à ×2, créatures 1,5 fois plus hautes) ; choix de l'utilisateur : ×2 partout

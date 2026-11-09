@@ -381,9 +381,32 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
   - **À concevoir à part**, chacun dans sa propre PR : le **moral** et la **chance** (deux notions nouvelles : comme
     Heroes 3, un tour de plus ou un tour perdu, des dégâts doublés ou divisés par deux ?), les règles de la
     **Diplomatie**, les **quatre sorts spéciaux** des écoles (idées : Prière, Armageddon, Séisme, une invocation).
+  - ✅ **Fait (2026-11-09)** : les règles (`data/skills.json`, `SkillCatalog`, `Hero.Skills`, `Hero.SkillPoints`,
+    `GameState.LearnSkill`, sauvegarde), la compétence de départ de chaque classe, les écoles des 18 sorts
+    (`spells.json`), et les effets de Logistique, Éclaireur, Orientation, Intendance, Commandement, Discipline,
+    Recruteur, Inspiration, Mysticisme et des quatre écoles (sans leurs sorts spéciaux). Écran du héros : un cadre
+    « Compétences » (les points, les compétences du héros, le bouton des arbres) au-dessus des artefacts ; la fenêtre
+    des arbres (`SkillsWindow`, `--open=skills`), en attendant le nouvel écran du héros (ci-dessous). L'IA dépense ses
+    points (la compétence de sa classe d'abord, jusqu'à expert, puis Logistique, Intendance, Commandement…). La
+    simulation seule n'en prend pas (ses chiffres restent comparables). Mesuré (un adversaire, Normal, six semaines,
+    or d'armée) : Château 25 300, morts-vivants 25 700, Barbares 27 700, Forêt 29 200 (sans compétences : 25 000,
+    20 900, 23 100, 30 600 : les factions se rapprochent). Tests : `CompetencesTests`.
+  - **Reste** : Chance, Moral, Diplomatie, Tactique et les sorts spéciaux (chacun après sa conception) ; les talents des
+    classes (Croisé, Chef de guerre, Chasseur) ; la simulation qui prend des compétences.
   - Plus tard : les cavernes de la carte, où l'on apprend une compétence.
 - **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le
   héros, leurs effets, où on les trouve (gardiens, coffres, cavernes), peut-être des ensembles.
+- **L'écran du héros, refait** (choix de l'utilisateur, 2026-11-09, parmi trois maquettes :
+  `art-candidats/en-cours/disposition-heros.html`) : à gauche, toujours visibles, le portrait, le niveau, l'expérience,
+  le mouvement et les caractéristiques ; à droite, **trois grands onglets** : **Équipement** (le héros **en pied**, une
+  image par héros d'après son portrait, bien visible ; **11 emplacements en deux colonnes**, à sa gauche et à sa droite,
+  **chacun relié par un trait** à l'endroit où il se porte : tête, cou, épaules (cape), torse, main de
+  l'arme, main du bouclier, deux anneaux, ceinture, pieds, divers ; et un **coffre de 16 places de la même taille**),
+  **Compétences** (trois sous-onglets Aventure, Commandement, Magie ; des icônes, le texte à côté ou en info-bulle),
+  **Magie** ; l'armée en bas. **Une image de 32 × 32 par artefact** sert partout (emplacements et coffre ×3, et sur la
+  carte ×2, posé au sol comme un objet à ramasser, une ombre ou une lueur dessinée par le jeu dessous) ; une seconde
+  image pour la carte seulement si celle-ci s'y lit mal. Images à faire (session images) : 41 héros en pied, une icône
+  par compétence.
 
 ### Les ressources rares ✅
 Décidé avec l'utilisateur (2026-11-07), comme Heroes 2 et 3 : **7 ressources**, l'or, le bois et le minerai (communs),

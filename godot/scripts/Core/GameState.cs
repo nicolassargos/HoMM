@@ -200,7 +200,7 @@ public sealed partial class GameState
         int raised = (int)(dead * (Talents.NecromancyBase + Talents.NecromancyPerLevel * hero.Level));
         // pas plus que ce que le charisme commande pour une troupe de squelettes
         int already = hero.Army.Stacks.Where(s => s.Type == skeleton).Select(s => s.Count).DefaultIfEmpty(0).First();
-        int room = Command.Limit(hero.Charisma) / Math.Max(1, skeleton.CommandCost) - already;
+        int room = hero.CommandLimit / Math.Max(1, skeleton.CommandCost) - already;
         raised = Math.Min(raised, Math.Max(0, room));
         if (raised <= 0 || !hero.Army.CanReceive(skeleton))
             return;
@@ -212,7 +212,7 @@ public sealed partial class GameState
     private void GiveClass(Hero hero, string faction)
     {
         if (Data.Classes.ForFaction(faction) is { } heroClass)
-            hero.TakeClass(heroClass, Data.Spells);
+            hero.TakeClass(heroClass, Data.Spells, Data.Skills);
     }
 
     private readonly List<GameEvent> _events = new();
@@ -323,6 +323,13 @@ public sealed partial class GameState
         }
     }
 
+    /// <summary>
+    /// Le Recruteur : le meilleur parmi les héros du propriétaire qui commencent la semaine dans la ville (sur sa case
+    /// d'entrée), en pourcentage de croissance en plus.
+    /// </summary>
+    private static int RecruiterBonus(Town town) =>
+        town.Owner?.Heroes.Where(h => h.Position == town.Position).Select(h => h.SkillValue(Skills.Recruiter)).DefaultIfEmpty(0).Max() ?? 0;
+
     private void NewDay()
     {
         Day++;
@@ -339,7 +346,7 @@ public sealed partial class GameState
         {
             town.NewDay();
             if (newWeek)
-                town.NewWeek();
+                town.NewWeek(RecruiterBonus(town));
         }
         if (newWeek)
         {
@@ -375,7 +382,7 @@ public sealed partial class GameState
         // Un clic sur les murs d'une ville mène à son entrée
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target));
+        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction);
     }
 
     public void ClearPath() => Path = null;
@@ -426,7 +433,7 @@ public sealed partial class GameState
         // Un héros d'un autre joueur sur la case suivante : on l'attaque, sans bouger (comme un monstre)
         if (EnemyHeroAt(next, hero.Owner) is { } enemy)
         {
-            hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next));
+            hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next, hero.RoughTerrainReduction));
             Path = null;
             BeginFights(hero, hero.Position, hero.Position, new[] { ((MapObject)new HeroDefender(enemy), enemy.Army) }, visit: false);
             return false;
@@ -438,7 +445,7 @@ public sealed partial class GameState
         // Attaque directe d'un monstre voisin : le héros reste sur sa case
         if (Map.ObjectAt(next) is MonsterGuard target)
         {
-            hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next));
+            hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next, hero.RoughTerrainReduction));
             Path = null;
             BeginFights(hero, hero.Position, hero.Position, new[] { ((MapObject)target, target.Army) }, visit: false);
             return false;
@@ -655,7 +662,7 @@ public sealed partial class GameState
         for (int i = hero.Army.Stacks.Count - 1; i >= 0; i--)
         {
             var stack = hero.Army.Stacks[i];
-            double chance = Command.RevoltChance(stack.Type, stack.Count, hero.Charisma);
+            double chance = hero.RevoltChance(stack.Type, stack.Count);
             if (chance > 0 && _rng.NextDouble() < chance)
                 hero.Army.MoveStackTo(i, rebels);
         }
@@ -681,6 +688,23 @@ public sealed partial class GameState
     public IReadOnlyList<HeroLevelChoice> PendingChoices => _pendingChoices;
 
     /// <summary>Le joueur choisit la caractéristique gagnée à ce niveau. Renvoie false si ce choix n'est pas proposé.</summary>
+    /// <summary>
+    /// Le héros dépense un point de compétence : une compétence nouvelle au rang de base, ou un rang de plus (étape 9).
+    /// Renvoie pourquoi c'est impossible, sinon <see cref="LearnSkillResult.Ok"/>.
+    /// </summary>
+    public LearnSkillResult LearnSkill(Hero hero, SkillType skill)
+    {
+        var result = hero.CanLearn(skill);
+        if (result != LearnSkillResult.Ok)
+            return result;
+        hero.SkillPoints--;
+        int rank = hero.AddSkillRank(skill);
+        // l'Éclaireur voit plus loin aussitôt
+        hero.Owner.Fog.Reveal(hero.Position, hero.VisionRadius);
+        Emit(new SkillLearned(hero, skill, rank));
+        return LearnSkillResult.Ok;
+    }
+
     public bool ChooseStat(HeroLevelChoice choice, HeroStat stat)
     {
         if (!_pendingChoices.Contains(choice) || !choice.Options.Contains(stat))
@@ -753,13 +777,13 @@ public sealed partial class GameState
             return null;
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target)) is not { } path)
+        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction) is not { } path)
             return null;
         int days = 1, movement = hero.Movement;
         var previous = hero.Position;
         foreach (var cell in path)
         {
-            int cost = Pathfinder.StepCost(Map, previous, cell);
+            int cost = Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
             if (cost > movement)
             {
                 days++;
@@ -780,7 +804,7 @@ public sealed partial class GameState
         var previous = hero.Position;
         foreach (var cell in Path)
         {
-            movement -= Pathfinder.StepCost(Map, previous, cell);
+            movement -= Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
             result.Add(movement >= 0);
             previous = cell;
         }
@@ -796,7 +820,7 @@ public sealed partial class GameState
         if (town.Garrison.CanReceive(type) || VisitingHero(town) is not { } hero)
             return null;
         int inArmy = hero.Army.Stacks.FirstOrDefault(s => s.Type == type)?.Count ?? 0;
-        return Command.IsOverLimit(type, inArmy + count, hero.Charisma) ? hero : null;
+        return hero.IsOverLimit(type, inArmy + count) ? hero : null;
     }
 
     /// <summary>Prévision d'un combat du héros courant contre cette armée, sans rien modifier (pour l'interface).</summary>

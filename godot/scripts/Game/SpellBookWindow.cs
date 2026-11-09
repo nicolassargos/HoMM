@@ -50,7 +50,7 @@ public partial class SpellBookWindow : GameDialog
                 chosen?.Invoke(spell);
             };
             row.AddChild(button);
-            string cost = spell.Cost > points ? $"{Texts.SpellCost(spell)} · {Texts.NotEnoughSpellPoints}" : Texts.SpellCost(spell);
+            string cost = hero.SpellCost(spell) > points ? $"{Texts.SpellCost(spell, hero)} · {Texts.NotEnoughSpellPoints}" : Texts.SpellCost(spell, hero);
             var text = MakeLabel($"{cost}\n{Texts.SpellEffectText(spell, hero)}", 12, SoftTextColor);
             text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
             text.CustomMinimumSize = V(330, 0);

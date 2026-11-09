@@ -67,7 +67,7 @@ public sealed partial class GameState
         int Id, string Name, int Owner, Cell Position, int Movement, int MaxMovement, int VisionRadius,
         int Attack, int Defense, int Power, int Knowledge, int Charisma, int Level, int Experience,
         List<StackData> Army, List<Cell>? Path, List<string>? Artifacts = null, int? SpellPoints = null, List<string>? Spells = null,
-        string? Class = null);
+        string? Class = null, Dictionary<string, int>? Skills = null, int SkillPoints = 0);
 
     /// <summary>Un niveau gagné dont la caractéristique n'a pas encore été choisie.</summary>
     private sealed record ChoiceData(int Hero, int Level, List<HeroStat> Options);
@@ -91,10 +91,11 @@ public sealed partial class GameState
                 new StatisticsData(p.Statistics.BattlesWon, p.Statistics.CreaturesKilled, p.Statistics.CreaturesLost, p.Statistics.TownsCaptured),
                 p.IsComputer)).ToList(),
             AllHeroes.Select(h => new HeroData(
-                h.Id, h.Name, h.Owner.Id, h.Position, h.Movement, h.MaxMovement, h.VisionRadius,
+                h.Id, h.Name, h.Owner.Id, h.Position, h.Movement, h.BaseMovement, h.BaseVisionRadius,
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
                 Stacks(h.Army), _paths.GetValueOrDefault(h)?.ToList(), h.Artifacts.Count > 0 ? h.Artifacts.Select(a => a.Id).ToList() : null,
-                h.SpellPoints, h.Spells.Count > 0 ? h.Spells.Select(s => s.Id).ToList() : null, h.Class?.Id)).ToList(),
+                h.SpellPoints, h.Spells.Count > 0 ? h.Spells.Select(s => s.Id).ToList() : null, h.Class?.Id,
+                h.Skills.Count > 0 ? h.Skills.ToDictionary(p => p.Key.Id, p => p.Value) : null, h.SkillPoints)).ToList(),
             _pendingChoices.Select(c => new ChoiceData(c.Hero.Id, c.Level, c.Options.ToList())).ToList(),
             _pendingChests.Count > 0 ? _pendingChests.Select(c => new ChestData(c.Hero.Id, c.Chest.Position, c.Chest.Gold)).ToList() : null);
         return JsonSerializer.Serialize(save, SaveOptions);
@@ -252,9 +253,11 @@ public sealed partial class GameState
             var hero = new Hero(h.Name, Owner(h.Owner), h.Position)
             {
                 Id = h.Id,
-                MaxMovement = h.MaxMovement,
+                // la sauvegarde garde le mouvement et la vue sans compétence (les compétences s'y ajoutent)
+                BaseMovement = h.MaxMovement,
                 Movement = h.Movement,
-                VisionRadius = h.VisionRadius,
+                BaseVisionRadius = h.VisionRadius,
+                SkillPoints = h.SkillPoints,
                 Attack = h.Attack,
                 Defense = h.Defense,
                 Power = h.Power,
@@ -269,6 +272,8 @@ public sealed partial class GameState
             };
             foreach (var id in h.Spells ?? new List<string>())
                 hero.Learn(data.Spells.Get(id));
+            foreach (var (id, rank) in h.Skills ?? new Dictionary<string, int>())
+                hero.AddSkillRank(data.Skills.Get(id), rank);
             foreach (var s in h.Army)
                 hero.Army.AddStack(data.Creatures.Get(s.Creature), s.Count);
             // ses caractéristiques comptent déjà leurs bonus

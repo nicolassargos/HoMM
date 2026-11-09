@@ -257,7 +257,7 @@ public static class ComputerPlayer
     /// </summary>
     private static void TakeGarrison(GameState state, Town town, Hero hero)
     {
-        int limit = Command.Limit(hero.Charisma);
+        int limit = hero.CommandLimit;
         foreach (var type in town.Garrison.Stacks.Select(s => s.Type).Distinct().OrderByDescending(t => t.Tier).ToList())
         {
             int index = IndexOf(town.Garrison, type);
@@ -300,6 +300,28 @@ public static class ComputerPlayer
                 : choice.Options.Contains(HeroStat.Defense) ? HeroStat.Defense : choice.Options[0];
             state.ChooseStat(choice, stat);
         }
+        foreach (var hero in state.CurrentPlayer.Heroes)
+            SpendSkillPoints(state, hero);
+    }
+
+    /// <summary>
+    /// L'ordre des compétences pour l'IA (étape 9) : la compétence de départ de sa classe, puis celles qui servent le plus
+    /// à son jeu (le mouvement, l'or, le commandement…), les écoles de magie après le Mysticisme. Une compétence apprise
+    /// monte d'abord jusqu'à expert, dans cet ordre.
+    /// </summary>
+    private static readonly string[] SkillOrder =
+    {
+        Skills.Logistics, Skills.Estates, Skills.Leadership, Skills.Discipline, Skills.Recruiter, Skills.Inspiration,
+        Skills.Mysticism, "ecole-terre", "ecole-feu", "ecole-eau", "ecole-air", Skills.Scouting, Skills.Pathfinding,
+    };
+
+    /// <summary>L'IA dépense les points de compétence du héros, dans l'ordre de <see cref="SkillOrder"/>.</summary>
+    internal static void SpendSkillPoints(GameState state, Hero hero)
+    {
+        var order = new[] { hero.Class?.Skill }.Concat(SkillOrder).OfType<string>().Distinct()
+            .Select(state.Data.Skills.Find).OfType<SkillType>().ToList();
+        while (hero.SkillPoints > 0 && order.FirstOrDefault(s => hero.CanLearn(s) == LearnSkillResult.Ok) is { } skill)
+            state.LearnSkill(hero, skill);
     }
 
     private static void MoveHero(GameState state, Hero hero)
@@ -470,7 +492,7 @@ public static class ComputerPlayer
                 int dx = next.X - cell.X, dy = next.Y - cell.Y;
                 if (dx != 0 && dy != 0 && !(map.IsPassable(cell.Offset(dx, 0)) && map.IsPassable(cell.Offset(0, dy))))
                     continue;
-                int nextCost = cost + Pathfinder.StepCost(map, cell, next);
+                int nextCost = cost + Pathfinder.StepCost(map, cell, next, hero.RoughTerrainReduction);
                 if (nextCost < costs.GetValueOrDefault(next, int.MaxValue))
                 {
                     costs[next] = nextCost;
@@ -501,7 +523,7 @@ public static class ComputerPlayer
                 int dx = cell.X - from.X, dy = cell.Y - from.Y;
                 if (dx != 0 && dy != 0 && !(map.IsPassable(from.Offset(dx, 0)) && map.IsPassable(from.Offset(0, dy))))
                     continue;
-                best = Math.Min(best, cost + Pathfinder.StepCost(map, from, cell));
+                best = Math.Min(best, cost + Pathfinder.StepCost(map, from, cell, hero.RoughTerrainReduction));
             }
             if (best != int.MaxValue)
                 yield return (cell, best);

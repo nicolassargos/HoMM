@@ -47,10 +47,12 @@ public sealed partial class TacticalBattle
 
     /// <summary>Le héros du camp actif peut-il lancer ce sort maintenant (il le connaît, a assez de points, pas encore de sort ce round) ?</summary>
     public bool CanCast(SpellType spell) =>
-        !IsOver && CasterSide is { } side && !HasCast(side) && HeroOf(side)!.Knows(spell) && SpellPointsOf(side) >= spell.Cost;
+        !IsOver && CasterSide is { } side && !HasCast(side) && HeroOf(side)!.Knows(spell) && SpellPointsOf(side) >= HeroOf(side)!.SpellCost(spell);
 
     /// <summary>La force du sort lancé par le héros de ce camp : dégâts, points de vie soignés.</summary>
-    public int SpellStrength(SpellType spell, BattleSide side) => spell.Base + spell.PerPower * (HeroOf(side)?.Power ?? 0);
+    /// <summary>La force du sort : base + par point de puissance, plus ce qu'ajoute l'école de magie du héros.</summary>
+    public int SpellStrength(SpellType spell, BattleSide side) =>
+        (spell.Base + spell.PerPower * (HeroOf(side)?.Power ?? 0)) * (100 + (HeroOf(side)?.SpellBonus(spell) ?? 0)) / 100;
 
     /// <summary>Combien de rounds dure un sort du héros de ce camp (le round en cours compris) : puissance + 1.</summary>
     public int SpellDuration(BattleSide side) => (HeroOf(side)?.Power ?? 0) + 1;
@@ -147,8 +149,9 @@ public sealed partial class TacticalBattle
             return false;
         var side = CasterSide!.Value;
         int s = (int)side;
-        _spellPoints[s] -= spell.Cost;
-        _spellPointsSpent[s] += spell.Cost;
+        int cost = HeroOf(side)!.SpellCost(spell);
+        _spellPoints[s] -= cost;
+        _spellPointsSpent[s] += cost;
         _castThisRound[s] = true;
         var hits = SpellHits(spell, target, side);
         _log.Add(new SpellCast(HeroOf(side)!, side, spell, target));

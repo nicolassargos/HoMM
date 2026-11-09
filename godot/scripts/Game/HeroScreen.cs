@@ -27,6 +27,10 @@ public partial class HeroScreen : ScreenWindow
     private ProgressBar _movementBar = null!;
     private readonly List<(HeroStat? Stat, Label Name, Label Value, Label Effect)> _stats = new();
     private VBoxContainer _artifacts = null!;
+    private Label _skillPoints = null!;
+    private VBoxContainer _skills = null!;
+    private Button _skillTrees = null!;
+    private string? _skillsKey;
     private Label _spellPoints = null!;
     private VBoxContainer _spells = null!;
     private string? _spellsKey;
@@ -80,9 +84,21 @@ public partial class HeroScreen : ScreenWindow
             y += 46;
         }
 
+        // les compétences : les points à dépenser, celles du héros, et le bouton des arbres
+        var skills = Section(V(290, 56), V(330, 250), Texts.SkillsHeader);
+        _skillPoints = At(MakeLabel("", 13, TextColor), 12, 32);
+        skills.AddChild(_skillPoints);
+        _skills = new VBoxContainer { Position = V(12, 56), Size = V(306, 140) };
+        _skills.AddThemeConstantOverride("separation", (int)Px(2));
+        skills.AddChild(_skills);
+        _skillTrees = FixedButton(Texts.SkillTreesButton, 14, V(306, 34));
+        _skillTrees.Position = V(12, 206);
+        _skillTrees.Pressed += OpenSkillTrees;
+        skills.AddChild(_skillTrees);
+
         // les artefacts
-        var artifacts = Section(V(290, 56), V(330, 380), Texts.ArtifactsHeader);
-        _artifacts = new VBoxContainer { Position = V(12, 34), Size = V(306, 330) };
+        var artifacts = Section(V(290, 316), V(330, 120), Texts.ArtifactsHeader);
+        _artifacts = new VBoxContainer { Position = V(12, 34), Size = V(306, 80) };
         _artifacts.AddThemeConstantOverride("separation", (int)Px(8));
         artifacts.AddChild(_artifacts);
 
@@ -193,9 +209,10 @@ public partial class HeroScreen : ScreenWindow
             effect.Text = Texts.StatEffect(stat, hero);
             name.TooltipText = value.TooltipText = effect.TooltipText = Texts.StatTooltip(stat, hero);
         }
+        RefreshSkills(hero);
         RefreshArtifacts(hero);
         RefreshSpells(hero);
-        _army.Show(hero.Army, hero.Charisma);
+        _army.Show(hero.Army, hero.CommandLimit);
     }
 
     /// <summary>Les points de sort, et chaque sort du livre : son nom, son niveau, ses points, ce qu'il fait.</summary>
@@ -222,13 +239,48 @@ public partial class HeroScreen : ScreenWindow
         {
             var box = new VBoxContainer();
             box.AddThemeConstantOverride("separation", 0);
-            box.AddChild(MakeLabel(Texts.SpellLine(spell), 14, TextColor));
+            box.AddChild(MakeLabel(Texts.SpellLine(spell, hero), 14, TextColor));
             var effect = MakeLabel(Texts.SpellEffectText(spell, hero), 12, SoftTextColor);
             effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
             effect.CustomMinimumSize = V(310, 0);
             box.AddChild(effect);
             _spells.AddChild(box);
         }
+    }
+
+    /// <summary>Les points de compétence à dépenser, puis chaque compétence du héros et ce qu'elle fait.</summary>
+    private void RefreshSkills(Hero hero)
+    {
+        _skillPoints.Text = Texts.SkillPointsLine(hero.SkillPoints, hero.Skills.Count);
+        _skillTrees.Disabled = _state == null || hero.Owner != _state.CurrentPlayer || hero.Owner.IsComputer;
+        string key = $"{hero.Id}:{string.Join(",", hero.Skills.Select(p => $"{p.Key.Id}{p.Value}"))}";
+        if (key == _skillsKey)
+            return;
+        _skillsKey = key;
+        foreach (var child in _skills.GetChildren())
+        {
+            _skills.RemoveChild(child);
+            child.QueueFree();
+        }
+        if (hero.Skills.Count == 0)
+            _skills.AddChild(MakeLabel(Texts.NoSkills, 12, SoftTextColor));
+        foreach (var (skill, rank) in hero.Skills)
+        {
+            var line = MakeLabel(Texts.SkillButton(skill, rank), 13, TextColor);
+            line.TooltipText = Texts.HeroSkillLine(skill, rank);
+            line.MouseFilter = Control.MouseFilterEnum.Stop;
+            _skills.AddChild(line);
+        }
+    }
+
+    /// <summary>Les arbres de compétences du héros (un clic y dépense un point).</summary>
+    public void OpenSkillTrees()
+    {
+        if (_hero is not { } hero || _state == null)
+            return;
+        var window = new SkillsWindow(_state, hero, Refresh);
+        AddChild(window);
+        window.Open();
     }
 
     private string? _artifactsKey;

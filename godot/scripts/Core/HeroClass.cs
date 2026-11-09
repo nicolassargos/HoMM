@@ -67,6 +67,9 @@ public sealed record HeroClass
     /// <summary>L'armée d'un héros de départ de cette classe (les créatures de sa faction).</summary>
     public List<StartingStack> Army { get; init; } = new();
 
+    /// <summary>La compétence de départ de la classe, au rang de base (data/skills.json ; null : aucune).</summary>
+    public string? Skill { get; init; }
+
     /// <summary>Le talent de la classe (null : aucun) ; pour l'instant, <see cref="Talents.Necromancy"/>.</summary>
     public string? Talent { get; init; }
 

@@ -273,7 +273,7 @@ public partial class TownScreen : CanvasLayer
 
         var hero = _state.VisitingHero(town);
         _garrison.Show(town.Garrison, null);
-        _visitor.Show(hero?.Army, hero?.Charisma);
+        _visitor.Show(hero?.Army, hero?.CommandLimit);
         _visitorLabel.Text = hero != null ? Texts.VisitingHero(hero) : Texts.NoVisitor;
         _visitorPortrait.Texture = hero != null ? Art.Portrait(hero.Name) : null;
         _giveAll.Disabled = hero == null || town.Garrison.Stacks.Count == 0;
@@ -794,7 +794,7 @@ public partial class TownScreen : CanvasLayer
                 card.TooltipText = Texts.SpellEffectText(spell, hero);
                 window.AddChild(card);
                 card.AddChild(At(MakeLabel(spell.Name, 14, TextColor), 10, 4));
-                var cost = MakeLabel(hero != null && hero.Knows(spell) ? $"{Texts.SpellCost(spell)} · {Texts.SpellKnown}" : Texts.SpellCost(spell), 12, SoftTextColor);
+                var cost = MakeLabel(hero != null && hero.Knows(spell) ? $"{Texts.SpellCost(spell, hero)} · {Texts.SpellKnown}" : Texts.SpellCost(spell, hero), 12, SoftTextColor);
                 cost.Position = V(10, 6);
                 cost.Size = V(298, 18);
                 cost.HorizontalAlignment = HorizontalAlignment.Right;
@@ -898,7 +898,7 @@ public partial class TownScreen : CanvasLayer
         int count = (int)_recruitSlider.Value;
         string text = problem ?? Texts.RecruitTotal(type, count);
         if (problem == null && _town is { } town && _state.RecruitOverloads(town, type, count) is { } risky)
-            text += "\n" + Texts.CommandWarning(Command.Limit(risky.Charisma));
+            text += "\n" + Texts.CommandWarning(risky.CommandLimit);
         _recruitTotal.Text = text;
         _recruitButton.Disabled = count == 0;
     }

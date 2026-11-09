@@ -387,8 +387,19 @@ public sealed partial class TacticalBattle
     public int SpeedOf(BattleUnit unit)
     {
         int speed = unit.Type.Speed + (Round == 1 && unit.Has(Ability.QuickStart) ? QuickStartBonus : 0)
-                    + unit.SpellAmount(SpellEffect.Haste);
+                    + unit.SpellAmount(SpellEffect.Haste) + InspirationOf(unit);
         return unit.IsUnder(SpellEffect.Slow) ? Math.Max(1, speed / 2) : speed;
+    }
+
+    /// <summary>
+    /// L'Inspiration du héros de la troupe (pas d'une troupe révoltée) : de la vitesse en plus au premier round, puis un
+    /// peu pour le reste du combat.
+    /// </summary>
+    private int InspirationOf(BattleUnit unit)
+    {
+        if (unit.IsRebel || HeroOf(unit.Side) is not { } hero || hero.Skills.FirstOrDefault(p => p.Key.Id == Skills.Inspiration) is not { Key: { } skill, Value: var rank })
+            return 0;
+        return Round == 1 ? skill.ValueAt(rank) : skill.Value2At(rank);
     }
 
     /// <summary>
@@ -712,7 +723,7 @@ public sealed partial class TacticalBattle
     {
         if (unit.IsRebel || !unit.IsAlive || HeroOf(unit.Side) is not { } hero)
             return;
-        double chance = Command.RevoltChance(unit.Type, unit.Count, hero.Charisma);
+        double chance = hero.RevoltChance(unit.Type, unit.Count);
         if (chance <= 0 || _rng.NextDouble() >= chance)
             return;
         _turned[unit] = (unit.Side, unit.Count);

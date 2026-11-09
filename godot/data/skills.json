@@ -1,0 +1,17 @@
+{
+  "skills": [
+    { "id": "logistique",   "name": "Logistique",        "tree": "Aventure",     "row": 1, "values": [10, 20, 30] },
+    { "id": "eclaireur",    "name": "Éclaireur",         "tree": "Aventure",     "row": 1, "values": [2, 4, 6] },
+    { "id": "orientation",  "name": "Orientation",       "tree": "Aventure",     "row": 2, "values": [25, 50, 75] },
+    { "id": "intendance",   "name": "Intendance",        "tree": "Aventure",     "row": 2, "values": [100, 150, 200] },
+    { "id": "commandement", "name": "Commandement",      "tree": "Commandement", "row": 1, "values": [10, 20, 30] },
+    { "id": "discipline",   "name": "Discipline",        "tree": "Commandement", "row": 1, "values": [25, 50, 75] },
+    { "id": "recruteur",    "name": "Recruteur",         "tree": "Commandement", "row": 2, "values": [10, 20, 30] },
+    { "id": "inspiration",  "name": "Inspiration",       "tree": "Commandement", "row": 2, "values": [1, 1, 2], "values2": [0, 1, 1] },
+    { "id": "mysticisme",   "name": "Mysticisme",        "tree": "Magie",        "row": 1, "values": [1, 2, 3] },
+    { "id": "ecole-eau",    "name": "École de l'eau",    "tree": "Magie",        "row": 1, "values": [20, 30, 40], "values2": [15, 30, 30], "school": "eau" },
+    { "id": "ecole-feu",    "name": "École du feu",      "tree": "Magie",        "row": 2, "values": [20, 30, 40], "values2": [15, 30, 30], "school": "feu" },
+    { "id": "ecole-terre",  "name": "École de la terre", "tree": "Magie",        "row": 2, "values": [20, 30, 40], "values2": [15, 30, 30], "school": "terre" },
+    { "id": "ecole-air",    "name": "École de l'air",    "tree": "Magie",        "row": 3, "values": [20, 30, 40], "values2": [15, 30, 30], "school": "air" }
+  ]
+}

@@ -211,6 +211,13 @@ public partial class Main : Node2D
             _heroScreen.Open(shown);
         if (OS.GetCmdlineUserArgs().Contains("--open=kingdom"))
             _kingdomScreen.Open();
+        // « --open=skills » : l'écran du héros et ses arbres de compétences, avec 4 points à dépenser
+        if (OS.GetCmdlineUserArgs().Contains("--open=skills") && _state.CurrentHero is { } learner)
+        {
+            learner.SkillPoints = 4;
+            _heroScreen.Open(learner);
+            Callable.From(_heroScreen.OpenSkillTrees).CallDeferred();
+        }
         if (OS.GetCmdlineUserArgs().Contains("--open=spellbook"))
             Callable.From(OpenSpellBook).CallDeferred(); // après les autres options (« --spells »)
         // « --open=save » : la fenêtre pour sauvegarder sous un nom
@@ -462,7 +469,8 @@ public partial class Main : Node2D
         Godot.FileAccess.GetFileAsString("res://data/artifacts.json"),
         Godot.FileAccess.GetFileAsString("res://data/spells.json"),
         Godot.FileAccess.GetFileAsString("res://data/heroes.json"),
-        Godot.FileAccess.GetFileAsString("res://data/classes.json"));
+        Godot.FileAccess.GetFileAsString("res://data/classes.json"),
+        Godot.FileAccess.GetFileAsString("res://data/skills.json"));
 
     /// <summary>Le joueur regarde la carte (pas de fenêtre ni d'écran de ville ouverts).</summary>
     /// <summary>Passe au héros suivant et centre la vue sur lui (touche H ou bouton).</summary>

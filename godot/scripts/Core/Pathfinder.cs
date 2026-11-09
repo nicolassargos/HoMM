@@ -24,9 +24,16 @@ public static class Pathfinder
     /// Coût pour aller d'une case à une case voisine. Comme dans Heroes, c'est le terrain
     /// de départ qui compte, et un pas en diagonale coûte environ 1,41 fois plus.
     /// </summary>
-    public static int StepCost(AdventureMap map, Cell from, Cell to)
+    /// <paramref name="roughReduction"/> : la part (en pourcentage) du surcoût des terrains difficiles (plus de 100) que
+    /// le héros ne paie pas (Orientation).
+    public static int StepCost(AdventureMap map, Cell from, Cell to, int roughReduction = 0)
     {
         int cost = map.MoveCost(from);
+        if (cost > TerrainInfo.MoveCost(TerrainType.Grass) && roughReduction > 0)
+        {
+            int grass = TerrainInfo.MoveCost(TerrainType.Grass);
+            cost = grass + (cost - grass) * (100 - roughReduction) / 100;
+        }
         bool diagonal = from.X != to.X && from.Y != to.Y;
         return diagonal ? (int)(cost * Math.Sqrt(2)) : cost;
     }
@@ -38,7 +45,7 @@ public static class Pathfinder
     /// si possible les cases gardées par un monstre (voir <see cref="GuardPenalty"/>).
     /// <paramref name="blocked"/> : cases interdites en plus (les autres héros).
     /// </summary>
-    public static List<Cell>? FindPath(AdventureMap map, Cell start, Cell goal, IReadOnlySet<Cell>? blocked = null)
+    public static List<Cell>? FindPath(AdventureMap map, Cell start, Cell goal, IReadOnlySet<Cell>? blocked = null, int roughReduction = 0)
     {
         if (start == goal || !map.IsPassable(goal) || blocked?.Contains(goal) == true)
             return null;
@@ -77,7 +84,7 @@ public static class Pathfinder
                 // Pas de diagonale qui « coupe » un coin infranchissable
                 if (dx != 0 && dy != 0 && !(map.IsPassable(cell.Offset(dx, 0)) && map.IsPassable(cell.Offset(0, dy))))
                     continue;
-                int newCost = cost + StepCost(map, cell, next) + (map.IsGuarded(next) ? GuardPenalty : 0);
+                int newCost = cost + StepCost(map, cell, next, roughReduction) + (map.IsGuarded(next) ? GuardPenalty : 0);
                 if (newCost < bestCost.GetValueOrDefault(next, int.MaxValue))
                 {
                     bestCost[next] = newCost;

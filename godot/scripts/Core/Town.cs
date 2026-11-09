@@ -173,12 +173,15 @@ public sealed class Town : MapObject
     /// <summary>Remet les sorts de la guilde (chargement d'une partie).</summary>
     internal void RestoreGuildSpell(SpellType spell) => _guildSpells.Add(spell);
 
-    /// <summary>Chaque semaine, chaque habitation produit de nouvelles créatures.</summary>
-    public void NewWeek()
+    /// <summary>
+    /// Chaque semaine, chaque habitation produit de nouvelles créatures ; <paramref name="growthBonus"/> : un pourcentage
+    /// en plus (le Recruteur d'un héros qui commence la semaine dans la ville).
+    /// </summary>
+    public void NewWeek(int growthBonus = 0)
     {
         foreach (var building in BuiltBuildings)
             if (DwellingCreature(building) is { } creature)
-                Available[creature] = Available.GetValueOrDefault(creature) + creature.Growth;
+                Available[creature] = Available.GetValueOrDefault(creature) + creature.Growth * (100 + growthBonus) / 100;
     }
 
     /// <summary>La ville change de propriétaire.</summary>

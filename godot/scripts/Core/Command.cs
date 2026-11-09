@@ -26,9 +26,12 @@ public static class Command
     /// Chance qu'une troupe se révolte : nulle sous la limite, 50 % à deux fois la limite,
     /// et plafonnée à <see cref="MaxRevoltChance"/>.
     /// </summary>
-    public static double RevoltChance(CreatureType type, int count, int charisma)
+    public static double RevoltChance(CreatureType type, int count, int charisma) => RevoltChanceFor(type, count, Limit(charisma));
+
+    /// <summary>La même chance, pour une limite de commandement donnée (celle d'un héros, compétences comprises).</summary>
+    public static double RevoltChanceFor(CreatureType type, int count, int limit)
     {
-        double ratio = (double)Cost(type, count) / Limit(charisma);
+        double ratio = (double)Cost(type, count) / Math.Max(1, limit);
         return Math.Clamp(0.5 * (ratio - 1), 0, MaxRevoltChance);
     }
 }

@@ -51,7 +51,7 @@ public class ConditionsTests
                 town.Garrison.MoveStackTo(i, new Army());
 
         var hero = state.CurrentHero!;
-        hero.MaxMovement = 100_000;
+        hero.BaseMovement = 100_000;
         foreach (var town in towns)
         {
             Assert.Equal(GameOutcome.Playing, state.Outcome);

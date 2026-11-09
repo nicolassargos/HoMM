@@ -283,14 +283,16 @@ public static class Texts
         $"Niveau {choice.Level} : choisissez une caractéristique";
 
     public static string LevelChoiceText(HeroLevelChoice choice) =>
-        $"{choice.Hero.Name} progresse. Le charisme augmente de 1 dans tous les cas.";
+        $"{choice.Hero.Name} progresse. Le charisme augmente de 1 dans tous les cas, et le héros gagne un point de compétence "
+        + "(à dépenser dans l'écran du héros).";
 
     /// <summary>« 2 → 3 » : la caractéristique avant et après ce choix de niveau.</summary>
     public static string StatChange(Hero hero, HeroStat stat) => $"{StatValue(hero, stat)} → {StatValue(hero, stat) + 1}";
 
     /// <summary>Ce que le niveau donne dans tous les cas : un point de charisme, et le commandement qui en découle.</summary>
     public static string CharismaGain(Hero hero) =>
-        $"Charisme : {hero.Charisma} → {hero.Charisma + 1} (commande {Command.Limit(hero.Charisma + 1)} points par troupe).";
+        $"Charisme : {hero.Charisma} → {hero.Charisma + 1} (commande "
+        + $"{Command.Limit(hero.Charisma + 1) * (100 + hero.SkillValue(Skills.Leadership)) / 100} points par troupe).";
 
     private static int StatValue(Hero hero, HeroStat stat) => stat switch
     {
@@ -772,12 +774,12 @@ public static class Texts
         HeroStat.Defense => $"Défense {hero.Defense} : s'ajoute à la défense de chaque troupe du héros.",
         HeroStat.Power => $"Puissance {hero.Power} : la force des sorts (dégâts, soins) et leur durée ({hero.Power + 1} round{(hero.Power + 1 > 1 ? "s" : "")}).",
         HeroStat.Knowledge => $"Savoir {hero.Knowledge} : {Hero.SpellPointsPerKnowledge} points de sort par point (points de sort : {hero.SpellPoints} / {hero.MaxSpellPoints}, +1 par jour).",
-        _ => $"Charisme {hero.Charisma} : le héros commande au plus {Command.Limit(hero.Charisma)} points par troupe "
+        _ => $"Charisme {hero.Charisma} : le héros commande au plus {hero.CommandLimit} points par troupe "
              + "(nombre × coût de la créature). Au-delà, la troupe risque de se révolter au combat.",
     };
 
     /// <summary>L'info-bulle d'une troupe : ses caractéristiques, ses capacités et son commandement.</summary>
-    public static string StackTooltip(CreatureStack stack, int? charisma)
+    public static string StackTooltip(CreatureStack stack, int? commandLimit)
     {
         var t = stack.Type;
         var lines = new List<string>
@@ -788,10 +790,10 @@ public static class Texts
         };
         if (t.Abilities.Count > 0)
             lines.Add(string.Join(" · ", t.Abilities.Select(AbilityName)));
-        if (charisma is { } c)
+        if (commandLimit is { } c)
         {
-            lines.Add($"Commandement : {Command.Cost(t, stack.Count)} / {Command.Limit(c)} points");
-            if (Command.IsOverLimit(t, stack.Count, c))
+            lines.Add($"Commandement : {Command.Cost(t, stack.Count)} / {c} points");
+            if (Command.Cost(t, stack.Count) > c)
                 lines.Add("Trop nombreuse pour le charisme du héros : elle risque de se révolter au combat.");
         }
         return string.Join("\n", lines);
@@ -893,18 +895,97 @@ public static class Texts
         HeroStat.Defense => "+ à la défense de chaque troupe",
         HeroStat.Power => $"force et durée des sorts ({hero.Power + 1} round{(hero.Power + 1 > 1 ? "s" : "")})",
         HeroStat.Knowledge => $"{hero.MaxSpellPoints} points de sort au plus",
-        _ => $"commande {Command.Limit(hero.Charisma)} points par troupe",
+        _ => $"commande {hero.CommandLimit} points par troupe",
     };
 
     public static string ArtifactsHeader => "Artefacts";
+
+    // ------------------------------------------------------------------ compétences (étape 9)
+
+    public static string SkillsHeader => "Compétences";
+    public static string SkillTreesButton => "Arbres de compétences";
+    public static string SkillsTitle(Hero hero) => $"Compétences de {hero.Name}";
+    public static string SkillLearnTooltip => "Dépenser un point de compétence";
+    public static string NoSkills => "Aucune compétence pour l'instant.";
+
+    /// <summary>« Points de compétence : 2 · compétences 3 / 6 ».</summary>
+    public static string SkillPointsLine(int points, int skills) =>
+        $"Points de compétence : {points} · compétences {skills} / {HoMM.Core.Skills.MaxSkills}";
+
+    public static string SkillTreeName(SkillTree tree) => tree switch
+    {
+        SkillTree.Aventure => "Aventure",
+        SkillTree.Commandement => "Commandement",
+        _ => "Magie",
+    };
+
+    public static string SkillTreePoints(int spent) => $"{spent} point{(spent > 1 ? "s" : "")} dans cet arbre";
+
+    public static string SkillRowLine(int row, int needed, bool open) =>
+        open ? $"Rangée {row}" : $"Rangée {row} : ouverte après {needed} points dans cet arbre";
+
+    public static string RankName(int rank) => rank switch { 1 => "base", 2 => "avancé", _ => "expert" };
+
+    /// <summary>« Logistique (avancé) », ou le nom seul si le héros ne l'a pas.</summary>
+    public static string SkillButton(SkillType skill, int rank) => rank == 0 ? skill.Name : $"{skill.Name} ({RankName(rank)})";
+
+    /// <summary>Ce que fait la compétence à ce rang.</summary>
+    public static string SkillEffect(SkillType skill, int rank)
+    {
+        int v = skill.ValueAt(rank), v2 = skill.Value2At(rank);
+        if (skill.School is { } school)
+            return $"sorts {SchoolName(school)} : {v} % moins chers, +{v2} % de force"
+                   + (rank >= HoMM.Core.Skills.MaxRank ? " ; plus tard, un sort spécial" : "");
+        return skill.Id switch
+        {
+            HoMM.Core.Skills.Logistics => $"+{v} % de mouvement sur la carte",
+            HoMM.Core.Skills.Scouting => $"voit {v} cases plus loin",
+            HoMM.Core.Skills.Pathfinding => $"le surcoût des terrains difficiles baisse de {v} %",
+            HoMM.Core.Skills.Estates => $"+{v} or par jour",
+            HoMM.Core.Skills.Leadership => $"+{v} % de points de commandement par troupe",
+            HoMM.Core.Skills.Discipline => $"révoltes {v} % moins probables",
+            HoMM.Core.Skills.Recruiter => $"+{v} % de créatures chaque semaine dans la ville où le héros commence la semaine",
+            HoMM.Core.Skills.Inspiration => $"+{v} de vitesse au premier round" + (v2 > 0 ? $", puis +{v2} pour tout le combat" : ""),
+            HoMM.Core.Skills.Mysticism => $"+{v} point{(v > 1 ? "s" : "")} de sort par jour",
+            _ => "",
+        };
+    }
+
+    /// <summary>« de l'eau », « du feu »… : l'école de magie d'un sort.</summary>
+    public static string SchoolName(string school) => school switch
+    {
+        "eau" => "de l'eau",
+        "feu" => "du feu",
+        "terre" => "de la terre",
+        "air" => "de l'air",
+        _ => school,
+    };
+
+    /// <summary>« Avancé : +20 % de mouvement sur la carte » : le rang suivant, ou le rang expert atteint.</summary>
+    public static string SkillNextLine(SkillType skill, int rank) =>
+        rank >= HoMM.Core.Skills.MaxRank
+            ? $"Expert : {SkillEffect(skill, rank)}"
+            : $"{Capitalize(RankName(rank + 1))} : {SkillEffect(skill, rank + 1)}";
+
+    public static string LearnSkillReason(LearnSkillResult result) => result switch
+    {
+        LearnSkillResult.NoPoint => "Aucun point de compétence (un par niveau)",
+        LearnSkillResult.MaxRank => "Déjà expert",
+        LearnSkillResult.TooManySkills => $"Six compétences au plus",
+        LearnSkillResult.RowLocked => "Rangée pas encore ouverte : dépenser plus de points dans cet arbre",
+        _ => "",
+    };
+
+    /// <summary>« Logistique (avancé) : +20 % de mouvement sur la carte » : une compétence du héros.</summary>
+    public static string HeroSkillLine(SkillType skill, int rank) => $"{SkillButton(skill, rank)} : {SkillEffect(skill, rank)}";
     public static string NoArtifact => "Aucun artefact pour l'instant.";
     public static string MagicHeader => "Magie";
     /// <summary>Un sort du livre (écran du héros) : « Flèche magique · niveau 1 · 5 points ».</summary>
-    public static string SpellLine(SpellType spell) => $"{spell.Name} · niveau {spell.Level} · {SpellCost(spell)}";
+    public static string SpellLine(SpellType spell, Hero? hero = null) => $"{spell.Name} · niveau {spell.Level} · {SpellCost(spell, hero)}";
 
     /// <summary>« 30 / 100 points » : le commandement d'une troupe.</summary>
-    public static string CommandPoints(CreatureStack stack, int charisma) =>
-        $"{Command.Cost(stack.Type, stack.Count)} / {Command.Limit(charisma)} pts";
+    public static string CommandPoints(CreatureStack stack, int commandLimit) =>
+        $"{Command.Cost(stack.Type, stack.Count)} / {commandLimit} pts";
 
     public static string KingdomTitle => "Le royaume";
     public static string KingdomHeroes(int count) =>
@@ -1058,7 +1139,8 @@ public static class Texts
     public static string GuildLevelMissing => "pas encore construit";
     public static string SpellKnown => "connu";
     public static string NoGuild => "Cette ville n'a pas encore de guilde des mages.";
-    public static string SpellCost(SpellType spell) => $"{spell.Cost} points";
+    /// <summary>« 5 points » : ce que coûte le sort, à ce héros s'il est donné (son école de magie le rend moins cher).</summary>
+    public static string SpellCost(SpellType spell, Hero? hero = null) => $"{hero?.SpellCost(spell) ?? spell.Cost} points";
 
     /// <summary>
     /// Ce que fait un sort, en une phrase ; avec un héros, la force calculée d'après sa puissance (« 30 dégâts »), sinon

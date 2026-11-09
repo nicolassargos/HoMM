@@ -48,25 +48,26 @@ public partial class ArmySlots : HBoxContainer
 
     private string? _key;
 
-    /// <summary>Montre cette armée ; <paramref name="charisma"/> : celui du héros (null pour une garnison, sans limite).</summary>
-    public void Show(Army? army, int? charisma)
+    /// <summary>Montre cette armée ; <paramref name="commandLimit"/> : les points de commandement par troupe du héros
+    /// (<see cref="Hero.CommandLimit"/> ; null pour une garnison, sans limite).</summary>
+    public void Show(Army? army, int? commandLimit)
     {
         var stacks = army?.Stacks ?? new System.Collections.Generic.List<CreatureStack>();
-        string key = string.Join(",", stacks.Select(s => $"{s.Type.Id}:{s.Count}")) + $"#{charisma}";
+        string key = string.Join(",", stacks.Select(s => $"{s.Type.Id}:{s.Count}")) + $"#{commandLimit}";
         if (key == _key)
             return;
         _key = key;
         AddThemeConstantOverride("separation", (int)Px(2));
         Clear(this);
         for (int i = 0; i < Army.MaxStacks; i++)
-            AddChild(Slot(i < stacks.Count ? stacks[i] : null, charisma, i));
+            AddChild(Slot(i < stacks.Count ? stacks[i] : null, commandLimit, i));
     }
 
     internal void Drop(ArmySlots source, int from, int to, bool split) => TroopDropped?.Invoke(source, from, to, split);
 
-    private Control Slot(CreatureStack? stack, int? charisma, int index)
+    private Control Slot(CreatureStack? stack, int? commandLimit, int index)
     {
-        bool risky = stack != null && charisma is { } c && Command.IsOverLimit(stack.Type, stack.Count, c);
+        bool risky = stack != null && commandLimit is { } c && Command.Cost(stack.Type, stack.Count) > c;
         // l'image qui suit la souris quand on glisse la troupe : celle de l'emplacement, entière
         var small = stack != null ? Art.Get($"creatures/{stack.Type.Id}") : null;
         var battle = stack != null && !Compact ? Art.Get($"creatures/battle/{stack.Type.Id}") : null;
@@ -90,7 +91,7 @@ public partial class ArmySlots : HBoxContainer
             return slot;
         if (CanDrag)
             slot.MouseDefaultCursorShape = CursorShape.Drag;
-        slot.TooltipText = Texts.StackTooltip(stack, charisma);
+        slot.TooltipText = Texts.StackTooltip(stack, commandLimit);
         float countHeight = Px(CountFontSize + 4), pointsHeight = Px(15);
         float textHeight = countHeight + (ShowCommandPoints ? pointsHeight : 0);
         var place = new Rect2(Px(2), Px(2), SlotSize.X - Px(4), SlotSize.Y - textHeight - Px(4));
@@ -106,7 +107,7 @@ public partial class ArmySlots : HBoxContainer
         }
         // le nombre (et les points de commandement) en bas de l'emplacement
         float bottom = SlotSize.Y - Px(2);
-        if (ShowCommandPoints && charisma is { } limit)
+        if (ShowCommandPoints && commandLimit is { } limit)
         {
             var points = MakeLabel(Texts.CommandPoints(stack, limit), 11, risky ? MapRenderer.Rgb(255, 150, 130) : SoftTextColor);
             points.HorizontalAlignment = HorizontalAlignment.Center;

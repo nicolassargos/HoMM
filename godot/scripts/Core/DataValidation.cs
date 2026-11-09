@@ -18,6 +18,25 @@ public static class DataValidation
     }
 
     /// <summary>Les sorts (data/spells.json) : identifiants uniques, niveau de 1 à 4, coût positif, force cohérente.</summary>
+    /// <summary>Les compétences (rangs, rangées, écoles connues) et la compétence de départ de chaque classe.</summary>
+    public static void CheckSkills(IReadOnlyCollection<SkillType> skills, IReadOnlyCollection<HeroClass> classes,
+        IReadOnlyCollection<SpellType> spells, List<string> errors)
+    {
+        foreach (var group in skills.GroupBy(s => s.Id).Where(g => g.Count() > 1))
+            errors.Add($"compétence en double : {group.Key}");
+        foreach (var s in skills)
+        {
+            if (s.Values.Count != Skills.MaxRank || s.Values2.Count is not (0 or Skills.MaxRank))
+                errors.Add($"{s.Id} : il faut une valeur par rang ({Skills.MaxRank})");
+            if (s.Row is < 1 or > 3)
+                errors.Add($"{s.Id} : rangée 1 à 3");
+            if (s.School is { } school && spells.All(sp => sp.School != school))
+                errors.Add($"{s.Id} : aucun sort de l'école {school}");
+        }
+        foreach (var c in classes.Where(c => c.Skill != null && skills.Count > 0 && skills.All(s => s.Id != c.Skill)))
+            errors.Add($"{c.Id} : compétence de départ inconnue ({c.Skill})");
+    }
+
     public static void CheckSpells(IReadOnlyCollection<SpellType> spells, List<string> errors)
     {
         foreach (var group in spells.GroupBy(s => s.Id).Where(g => g.Count() > 1))

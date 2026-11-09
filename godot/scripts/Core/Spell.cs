@@ -54,6 +54,9 @@ public sealed record SpellType
     /// <summary>Points de sort pour le lancer.</summary>
     public int Cost { get; init; }
 
+    /// <summary>L'école de magie du sort (eau, feu, terre, air) : une compétence d'école le rend moins cher et plus fort.</summary>
+    public string? School { get; init; }
+
     public SpellEffect Effect { get; init; }
     public SpellTarget Target { get; init; }
 

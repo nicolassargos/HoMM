@@ -54,13 +54,14 @@ public sealed class Player
             Resources[resource] = Resources.GetValueOrDefault(resource) - amount;
     }
 
-    /// <summary>Ce que rapportent chaque jour les mines et les villes.</summary>
+    /// <summary>Ce que rapportent chaque jour les mines, les villes et l'Intendance des héros.</summary>
     public Dictionary<ResourceType, int> DailyIncome()
     {
         var income = new Dictionary<ResourceType, int>();
         foreach (var mine in Mines)
             income[mine.Resource] = income.GetValueOrDefault(mine.Resource) + mine.DailyProduction;
-        int townGold = Towns.Sum(t => t.DailyGold);
+        // l'Intendance de ses héros rapporte de l'or chaque jour
+        int townGold = Towns.Sum(t => t.DailyGold) + Heroes.Sum(h => h.SkillValue(Skills.Estates));
         if (townGold > 0)
             income[ResourceType.Gold] = income.GetValueOrDefault(ResourceType.Gold) + townGold;
         return income;

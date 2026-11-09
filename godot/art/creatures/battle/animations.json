@@ -14,5 +14,8 @@
   "squelette": {"impact": "entaille"},
   "nomades": {"move": 16, "moveFrames": 12, "stepTime": 0.4},
   "oiseau-tonnerre": {"move": 14, "stepTime": 0.57, "transform": 12, "transformFrames": 5, "impact": "foudre"},
-  "ange": {"move": 10, "stepTime": 0.4}
+  "ange": {"move": 10, "stepTime": 0.4},
+  "farfadet": {"move": 16, "stepTime": 0.25},
+  "archer-elfe": {"projectile": "fleche", "launchFrame": 5, "launchPoint": [80, 51]},
+  "cerf": {"idle": 4}
 }

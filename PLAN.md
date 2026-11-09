@@ -356,7 +356,7 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
     |---|---|---|---|
     | Aventure | 1 | Logistique | +10 / 20 / 30 % de mouvement sur la carte |
     | Aventure | 1 | Éclaireur | voit 2 / 4 / 6 cases plus loin |
-    | Aventure | 2 | Orientation | les terrains difficiles coûtent 25 / 50 / 75 % de mouvement en plus en moins |
+    | Aventure | 2 | Orientation | le surcoût des terrains difficiles baisse de 25 / 50 / 75 % |
     | Aventure | 2 | Intendance | +100 / 150 / 200 or par jour (à équilibrer après des essais) |
     | Aventure | 2 | Chance | +1 / 2 / 3 de chance aux troupes ; compte aussi pour les artefacts trouvés et les coffres |
     | Aventure | 3 | Diplomatie | un gardien neutre plus faible que l'armée peut proposer de la rejoindre (règles : PR à part) |

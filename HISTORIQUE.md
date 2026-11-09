@@ -834,6 +834,9 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   de `BattleScreen` dans `IconButtons` (`Icon`, `Inlay`, `Make`, `SetIcon`, `Dim`), utilisés par la barre du combat et
   le panneau (`Hud` : deux rangées de quatre, côté calculé sur la largeur du panneau). « Fin du tour » garde son texte.
   L'info-bulle d'Options donne sa vraie touche (Échap).
+- ✅ **Les talents des classes** (2026-11-09, branche `talents-classes`) : `Talents.Crusader`, `Warlord`, `Hunter` (`classes.json`),
+  `Talents.DamageBonus` (dans `RollDamage`, après les sorts), `Talents.RageMax` (à chaque coup reçu) ; une troupe révoltée
+  n'a plus le talent de son héros. `Texts.TalentText` (détails de la classe, info-bulle de la classe sur l'écran du héros).
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui
   volent jusqu'à leur cible (le coup porte à l'arrivée), un impact à chaque coup, recul de la troupe touchée, nuage de

@@ -1,16 +1,16 @@
 {
   "classes": [
     { "id": "paladin", "name": "Paladin", "faction": "chateau",
-      "attack": 2, "defense": 2, "power": 1, "knowledge": 2, "charisma": 14, "spells": ["soins"], "skill": "commandement", "mainResource": "Crystal", "secondaryResource": "Gems",
+      "attack": 2, "defense": 2, "power": 1, "knowledge": 2, "charisma": 14, "spells": ["soins"], "skill": "commandement", "talent": "crusader", "mainResource": "Crystal", "secondaryResource": "Gems",
       "army": [ { "creature": "paysan", "count": 30 }, { "creature": "archer", "count": 15 }, { "creature": "griffon", "count": 4 } ] },
     { "id": "necromancien", "name": "Nécromancien", "faction": "morts-vivants",
       "attack": 1, "defense": 1, "power": 2, "knowledge": 2, "charisma": 8, "spells": ["malediction"], "skill": "ecole-terre", "talent": "necromancy", "mainResource": "Mercury", "secondaryResource": "Gems",
       "army": [ { "creature": "squelette", "count": 20 }, { "creature": "zombie", "count": 10 }, { "creature": "fantome", "count": 2 } ] },
     { "id": "barbare", "name": "Barbare", "faction": "barbares",
-      "attack": 3, "defense": 2, "power": 0, "knowledge": 1, "charisma": 10, "spells": [], "skill": "logistique", "mainResource": "Sulfur", "secondaryResource": "Crystal",
+      "attack": 3, "defense": 2, "power": 0, "knowledge": 1, "charisma": 10, "spells": [], "skill": "logistique", "talent": "warlord", "mainResource": "Sulfur", "secondaryResource": "Crystal",
       "army": [ { "creature": "gobelin", "count": 30 }, { "creature": "loup", "count": 10 }, { "creature": "orc", "count": 4 } ] },
     { "id": "rodeur", "name": "Rôdeur", "faction": "foret",
-      "attack": 3, "defense": 1, "power": 1, "knowledge": 2, "charisma": 9, "spells": ["soins"], "skill": "eclaireur", "mainResource": "Gems", "secondaryResource": "Crystal",
+      "attack": 3, "defense": 1, "power": 1, "knowledge": 2, "charisma": 9, "spells": ["soins"], "skill": "eclaireur", "talent": "hunter", "mainResource": "Gems", "secondaryResource": "Crystal",
       "army": [ { "creature": "farfadet", "count": 15 }, { "creature": "sanglier", "count": 5 }, { "creature": "archer-elfe", "count": 2 } ] }
   ]
 }

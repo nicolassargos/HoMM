@@ -263,4 +263,5 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   visible (réduites à 16 × 16, elles perdaient leurs détails). Choisies par l'utilisateur sur une page
   (`art-candidats/en-cours/icones-combat.html`) : livre 33, sablier 34, bouclier 26, rester 1, auto 5, options 2,
   commencer 62 ; fuir refait (« de profil, vers la gauche, tête basse de honte » : n° 4 ; le premier lot, vu de dos,
-  ressemblait à des cosmonautes). Le jeu les **grave** dans la pierre du bouton (``BattleScreen.Engrave``, contrastes doux) :`r`n  l'image reste l'icône d'argent, seule sa forme et ses nuances servent.
+  ressemblait à des cosmonautes). Le jeu les **incruste** dans la pierre du bouton (`BattleScreen.Engrave` : un creux
+  autour de l'argent, l'ombre en haut à gauche, la lumière en bas à droite, contrastes doux).

@@ -30,6 +30,15 @@ public sealed record CreatureType
     /// <summary>Capacités au combat tactique (voir <see cref="Ability"/>) : « shoots »…</summary>
     public List<string> Abilities { get; init; } = new();
 
+    /// <summary>
+    /// Les sorts qu'une créature à bénédiction (le Djinn) lance au hasard sur une troupe amie au début de son tour (leurs
+    /// identifiants dans data/spells.json ; reliés à <see cref="BlessingSpells"/> au chargement des données).
+    /// </summary>
+    public List<string> Blessings { get; init; } = new();
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public IReadOnlyList<SpellType> BlessingSpells { get; internal set; } = System.Array.Empty<SpellType>();
+
     public double AverageDamage => (MinDamage + MaxDamage) / 2.0;
 }
 

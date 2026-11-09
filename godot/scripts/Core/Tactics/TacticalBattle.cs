@@ -98,6 +98,9 @@ public sealed partial class TacticalBattle
 
     /// <summary>L'aura de soin : points de vie rendus par Druide à la créature de tête de chaque troupe amie voisine.</summary>
     public const int HealingAuraPerCreature = 5;
+
+    /// <summary>Points de vie rendus par Gnome à la créature de tête de chaque troupe façonnée amie voisine.</summary>
+    public const int RepairPerCreature = 1;
     public const int LightningPerCreature = 15;
 
     /// <summary>Le poison de l'Araignée : dégâts par créature qui mord, et pendant combien de tours de la cible.</summary>
@@ -455,6 +458,23 @@ public sealed partial class TacticalBattle
             foreach (var ally in Neighbours(unit).Where(u => u.Side == unit.Side && u.IsAlive && !u.IsUndead).ToList())
                 if (ally.Heal(HealingAuraPerCreature * unit.Count) is > 0 and var healed)
                     _log.Add(new UnitSoothed(unit, ally, healed));
+        // le Gnome répare les créatures façonnées voisines
+        if (unit.Has(Ability.Repairs))
+            foreach (var ally in Neighbours(unit).Where(u => u.Side == unit.Side && u.IsAlive && u.IsMade).ToList())
+                if (ally.Heal(RepairPerCreature * unit.Count) is > 0 and var repaired)
+                    _log.Add(new UnitSoothed(unit, ally, repaired));
+        // le Djinn bénit une troupe amie au hasard (pour ce round), d'un sort qu'elle n'a pas déjà
+        if (unit.Has(Ability.Blessing) && unit.Type.BlessingSpells.Count > 0)
+        {
+            var allies = _units.Where(u => u.Side == unit.Side && u.IsAlive && !u.IsRebel).ToList();
+            var choices = allies.SelectMany(a => unit.Type.BlessingSpells.Where(s => !a.IsUnder(s.Effect)).Select(s => (Ally: a, Spell: s))).ToList();
+            if (choices.Count > 0)
+            {
+                var (ally, spell) = choices[Next(choices.Count)];
+                ally.Enchant(spell, Round);
+                _log.Add(new SpellApplied(ally, spell));
+            }
+        }
     }
 
     /// <summary>Le moral et la chance des troupes du héros de ce camp (sans héros : 0).</summary>
@@ -848,7 +868,7 @@ public sealed partial class TacticalBattle
         damage *= 1 + Talents.DamageBonus(from.IsRebel ? null : HeroOf(from.Side), ranged, to.IsUndead);
         if (ranged)
             damage *= 1 - to.SpellAmount(SpellEffect.ArrowShield) / 100.0;
-        if (!ranged && from.CanShoot)
+        if (!ranged && from.CanShoot && !from.Has(Ability.NoMeleePenalty))
             damage *= 0.5;
         if (!ranged && from.Has(Ability.Charge))
             damage *= 1 + ChargeBonus * moved;

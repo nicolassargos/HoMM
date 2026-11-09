@@ -837,6 +837,14 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
 - ✅ **Les talents des classes** (2026-11-09, branche `talents-classes`) : `Talents.Crusader`, `Warlord`, `Hunter` (`classes.json`),
   `Talents.DamageBonus` (dans `RollDamage`, après les sorts), `Talents.RageMax` (à chaque coup reçu) ; une troupe révoltée
   n'a plus le talent de son héros. `Texts.TalentText` (détails de la classe, info-bulle de la classe sur l'écran du héros).
+- ✅ **La Tour de magie, ses créatures** (2026-11-09, branche `tour-de-magie`). Conception avec l'utilisateur : philosophie du
+  savoir (mages, créatures façonnées, géants), la marque « bibliothèque des arcanes » (préférée à l'écho des sorts et à
+  « fait pour durer ») ; les créatures après un rappel des Heroes 2, 3, 5 et 7 : le Gnome (idée de l'utilisateur, qui
+  répare les créatures façonnées) au lieu d'un Apprenti, la Naga et le Djinn de la tradition, le Mage au niveau 6.
+  Code : `Ability.Made` (`BattleUnit.IsMade` ; `IsValidTarget` refuse les sorts néfastes, `Apply` divise les dégâts
+  par deux et n'enchante pas d'un sort néfaste), `Repairs` et `Blessing` dans `BeginTurn` (un tour ordinaire),
+  `NoMeleePenalty` dans `RollDamage` ; `CreatureType.Blessings` reliés aux sorts par `GameData` (`BlessingSpells`),
+  `SpellCatalog.Find`. Réglage en trois passes de `Duels_a_prix_egal` (la Tour ajoutée aux factions comparées).
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui
   volent jusqu'à leur cible (le coup porte à l'arrivée), un impact à chaque coup, recul de la troupe touchée, nuage de

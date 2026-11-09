@@ -105,7 +105,7 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Morts-vivants** | magie | Colosse d'os → Colosse funèbre | mercure | gemmes | jouable |
 | **Barbares** | force, la horde | Béhémoth → Béhémoth ancien | soufre | cristal | jouable |
 | **Forêt** | les meilleurs tireurs, plantes et soins | Troll → Troll ancien | gemmes | cristal | **en cours** |
-| **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | à faire |
+| **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | **en cours** |
 | **Enfer** | agressifs, magie du feu | Démon → Archidémon | mercure | soufre | à faire |
 | **Donjon** | souterrain | Tyran œil → Tyran ancien | soufre | mercure | à faire |
 | **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
@@ -130,6 +130,54 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
   l'Enfer et le Donjon ; les Nains n'en ont pas encore.
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
+
+#### La Tour de magie (en cours)
+Décidée avec l'utilisateur (2026-11-09).
+- **Philosophie : le savoir.** Une cité de savants qui lient les esprits et animent la pierre et le métal : des mages,
+  des créatures **façonnées** (gargouilles, golems) et des géants gardiens de la Tour.
+- **Forces** : la magie la plus forte (la classe Magicien, la ville qui apprend plus de sorts) ; les créatures façonnées
+  **résistent à la magie** ; forte en fin de partie (le Géant, puis le Titan ; les mages qui tirent de loin).
+- **Faiblesses** : lente et chère au début (peu de troupes, des golems lents, une croissance faible) ; un charisme bas
+  (les grosses troupes se révoltent plus vite) ; fragile au corps à corps contre les troupes rapides qui atteignent ses
+  mages.
+- **Sa marque : la bibliothèque des arcanes** : la guilde des mages de la Tour propose un sort de plus par niveau
+  (4 sur 5 aux niveaux 1 et 2, 3 sur 5 au niveau 3, 3 sur 3 au niveau 4).
+- **Résiste à la magie** (les créatures façonnées) : les sorts de dégâts font moitié moins, les sorts néfastes
+  (Lenteur, Faiblesse, Malédiction, Aveuglement) ne les touchent pas ; les sorts amis marchent.
+- **La classe Magicien** : attaque 0, défense 1, puissance 3, savoir 3, charisme 8 ; Flèche magique et Bénédiction ;
+  Mysticisme au départ ; talent **Érudit** (+2 % de force des sorts par niveau).
+- Ressources : gemmes (principale), mercure (secondaire).
+
+| Niveau | Créature (→ amélioration plus tard) | Rôle | Capacité | Habitation |
+|---|---|---|---|---|
+| 1 | Gnome | petit et vif | **répare les créatures façonnées** : au début de son tour, soigne la créature de tête de chaque troupe façonnée voisine | Atelier des gnomes |
+| 2 | Gargouille | le volant | vole ; façonnée : résiste à la magie | Perchoir des gargouilles |
+| 3 | Golem de pierre (→ Golem d'airain) | le mur lent | façonné : résiste à la magie | Carrière des golems |
+| 4 | Naga | la lame rapide | pas de riposte contre elle | Bassin des nagas |
+| 5 | Djinn | le soutien volant | vole ; au début de son tour, une petite bénédiction au hasard sur une troupe amie (Bénédiction, Peau de pierre ou Hâte) | Lampe des djinns |
+| 6 | Mage (→ Archimage) | le grand tireur | tire ; pas de pénalité au corps à corps | Académie des mages |
+| 7 | Géant (→ Titan) | le gardien | fort au corps à corps (le Titan lancera la foudre de loin) | Sommet des géants |
+
+Découpage comme la Forêt : 1. les créatures et leurs capacités ; 2. la ville, la bibliothèque des arcanes et la classe ;
+3. les images (session images).
+1. ✅ Les créatures et leurs capacités (2026-11-09, branche `tour-de-magie`) : `made` (résiste à la magie), `repairs`
+   (1 PV par Gnome), `blessing` (les sorts du Djinn dans `creatures.json` : `blessings`, pour ce round), `no-melee-penalty` ;
+   la Tour garde aussi des passages de la carte (`MonsterFactions`). Chiffres réglés par `Duels_a_prix_egal` (chaque
+   créature au milieu de son niveau ; le Mage un peu en dessous, à revoir quand la Tour sera jouable : les duels en
+   terrain ouvert avantagent le corps à corps) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Gnome | 3 | 3 | 1-3 | 6 | 6 | 16 | 12 |
+   | Gargouille | 9 | 9 | 3-5 | 22 | 8 | 12 | 35 |
+   | Golem de pierre | 8 | 10 | 4-6 | 30 | 3 | 8 | 60 |
+   | Naga | 10 | 10 | 6-8 | 42 | 6 | 6 | 130 |
+   | Djinn | 13 | 11 | 9-12 | 50 | 9 | 4 | 200 |
+   | Mage | 18 | 14 | 18-24 | 75 | 6 | 3 | 330 |
+   | Géant | 26 | 22 | 85-105 | 1600 | 6 | 2 | 4900 et 1 gemme |
+   Mesuré : la simulation gagne comme avant (jours 81, 86, 153) ; les gardiens de la Tour changent les cartes, donc les
+   adversaires (six semaines, Normal, or d'armée) : Château 23 500, morts-vivants 25 800, Barbares 24 900, Forêt 32 000 ;
+   Facile 27 200 et Normal 25 200 (Facile au-dessus de Normal sur ces cartes : à surveiller à l'équilibrage), Difficile
+   34 700. Tests : `TourTests`.
 
 #### La Forêt (en cours)
 Décidé avec l'utilisateur (2026-11-09).

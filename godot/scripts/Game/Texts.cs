@@ -935,6 +935,10 @@ public static class Texts
         Ability.Leaps => "bondit par-dessus troupes et obstacles",
         Ability.HealingAura => "aura de soin (soigne les troupes amies voisines)",
         Ability.Roots => "enracine (la cible ne peut plus bouger à son tour suivant)",
+        Ability.Made => "façonnée : résiste à la magie (moitié des dégâts des sorts, insensible aux sorts néfastes)",
+        Ability.Repairs => "répare les créatures façonnées voisines",
+        Ability.Blessing => "bénit une troupe amie au début de son tour",
+        Ability.NoMeleePenalty => "sans pénalité au corps à corps",
         _ => ability,
     };
 

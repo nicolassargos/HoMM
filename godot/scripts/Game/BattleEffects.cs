@@ -8,14 +8,22 @@ namespace HoMM.Game;
 /// Les effets du combat, dessinés par le jeu (les animations des créatures n'en ont aucun, choix de l'utilisateur) :
 /// les **projectiles** qui volent du tireur à sa cible (flèche, boule de feu…) et les **impacts** joués sur une troupe
 /// touchée (un petit éclat discret à chaque coup). Tout est dessiné en « pixels d'art » de <see cref="Pixel"/> pixels
-/// de l'écran, comme les créatures agrandies ×3, pour que les effets aient la même finesse qu'elles.
+/// de l'écran, comme les créatures agrandies ×2 (et la carte), pour que les effets aient la même finesse qu'elles. Les
+/// tailles et les distances sont comptées dans l'unité <see cref="U"/> (3 pixels de l'écran : l'ancien pixel d'art, du
+/// temps du combat ×3), pour que les effets gardent leur taille à l'écran.
 /// Les sortes d'effets sont décrites par leur nom (« fleche », « boule-feu », « choc », « piqure »…) : le nom vient des
 /// réglages de la créature (<c>art/creatures/battle/animations.json</c> : « projectile », « impact »).
 /// </summary>
 public sealed class BattleEffects
 {
-    /// <summary>Taille d'un pixel d'art à l'écran (les créatures sont agrandies ×3).</summary>
-    public const float Pixel = 3;
+    /// <summary>Taille d'un pixel d'art à l'écran (les créatures sont agrandies ×2, comme la carte).</summary>
+    public const float Pixel = 2;
+
+    /// <summary>
+    /// L'unité des tailles et des distances des effets : 3 pixels de l'écran (l'ancien pixel d'art du combat ×3). Un effet
+    /// garde ainsi sa taille à l'écran, dessiné avec des pixels plus fins.
+    /// </summary>
+    public const float U = 3;
 
     private sealed class Projectile
     {
@@ -238,10 +246,10 @@ public sealed class BattleEffects
         {
             case "fleche":
                 // la hampe (brune), la pointe (gris clair) et l'empennage (blanc), en pixels d'art le long du trajet
-                Line(canvas, here - dir * Pixel * 9, here - dir * Pixel * 1, new Color(0.55f, 0.36f, 0.2f));
-                Line(canvas, here - dir * Pixel * 1, here + dir * Pixel * 1, new Color(0.85f, 0.85f, 0.9f));
-                Dot(canvas, here - dir * Pixel * 9 + new Vector2(-dir.Y, dir.X) * Pixel, new Color(0.95f, 0.95f, 0.95f));
-                Dot(canvas, here - dir * Pixel * 9 - new Vector2(-dir.Y, dir.X) * Pixel, new Color(0.95f, 0.95f, 0.95f));
+                Line(canvas, here - dir * U * 9, here - dir * U * 1, new Color(0.55f, 0.36f, 0.2f));
+                Line(canvas, here - dir * U * 1, here + dir * U * 1, new Color(0.85f, 0.85f, 0.9f));
+                Dot(canvas, here - dir * U * 9 + new Vector2(-dir.Y, dir.X) * U, new Color(0.95f, 0.95f, 0.95f));
+                Dot(canvas, here - dir * U * 9 - new Vector2(-dir.Y, dir.X) * U, new Color(0.95f, 0.95f, 0.95f));
                 break;
             case "boule-feu":
             {
@@ -251,7 +259,7 @@ public sealed class BattleEffects
                 {
                     float back = Math.Max(0, t - k * 0.035f);
                     var c = k < 3 ? new Color(1, 0.6f, 0.15f, 1 - k * 0.14f) : new Color(0.75f, 0.25f, 0.1f, 0.9f - k * 0.13f);
-                    Blob(canvas, At(back) + new Vector2(0, ((k * 37) % 5 - 2) * Pixel * 0.6f), k < 3 ? 1 : 0, c);
+                    Blob(canvas, At(back) + new Vector2(0, ((k * 37) % 5 - 2) * U * 0.6f), k < 3 ? 1 : 0, c);
                 }
                 // environ 30 % plus grande que la première version (rayon 4 au lieu de 3)
                 Blob(canvas, here, 4, new Color(0.9f, 0.35f, 0.08f));
@@ -266,8 +274,8 @@ public sealed class BattleEffects
                 for (int k = 1; k <= 5; k++)
                 {
                     float back = Math.Max(0, t - k * 0.04f);
-                    float fall = k * k * 0.6f * Pixel;
-                    Dot(canvas, At(back) + new Vector2(((k * 53) % 3 - 1) * Pixel, fall),
+                    float fall = k * k * 0.6f * U;
+                    Dot(canvas, At(back) + new Vector2(((k * 53) % 3 - 1) * U, fall),
                         new Color(0.45f, 0.8f, 0.25f, 0.95f - k * 0.16f));
                 }
                 Blob(canvas, here, 4, new Color(0.18f, 0.4f, 0.13f));
@@ -284,13 +292,14 @@ public sealed class BattleEffects
                 var turn = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
                 var across = new Vector2(-turn.Y, turn.X);
                 var dark = new Color(0.18f, 0.12f, 0.08f);
-                Line(canvas, here - turn * Pixel * 6 + across * Pixel, here + turn * Pixel * 3 + across * Pixel, dark);
-                Line(canvas, here - turn * Pixel * 6, here + turn * Pixel * 3, new Color(0.55f, 0.37f, 0.2f));
-                for (int k = -2; k <= 3; k++)
+                Line(canvas, here - turn * U * 6 + across * Pixel * 2, here + turn * U * 3 + across * Pixel * 2, dark);
+                Line(canvas, here - turn * U * 6 + across * Pixel, here + turn * U * 3 + across * Pixel, new Color(0.55f, 0.37f, 0.2f));
+                Line(canvas, here - turn * U * 6, here + turn * U * 3, new Color(0.55f, 0.37f, 0.2f));
+                // le fer : des traits en travers du manche, plus clairs vers le tranchant
+                for (float s = U * 3; s < U * 6; s += Pixel)
                 {
-                    Dot(canvas, here + turn * Pixel * 3 + across * Pixel * k, new Color(0.45f, 0.46f, 0.5f));
-                    Dot(canvas, here + turn * Pixel * 4 + across * Pixel * k, new Color(0.68f, 0.7f, 0.74f));
-                    Dot(canvas, here + turn * Pixel * 5 + across * Pixel * k, new Color(0.92f, 0.93f, 0.96f));
+                    var color = s < U * 4 ? new Color(0.45f, 0.46f, 0.5f) : s < U * 5 ? new Color(0.68f, 0.7f, 0.74f) : new Color(0.92f, 0.93f, 0.96f);
+                    Line(canvas, here + turn * s - across * U * 2, here + turn * s + across * U * 3, color);
                 }
                 break;
             }
@@ -310,13 +319,13 @@ public sealed class BattleEffects
     {
         float fade = 1 - (float)(b.Age / BeamTime);
         int flicker = (int)(b.Age / 0.05);
-        int segments = Math.Max(3, (int)(b.From.DistanceTo(b.To) / (Pixel * 9)));
+        int segments = Math.Max(3, (int)(b.From.DistanceTo(b.To) / (U * 9)));
         var dir = (b.To - b.From).Normalized();
         var side = new Vector2(-dir.Y, dir.X);
         var points = new Vector2[segments + 1];
         for (int k = 0; k <= segments; k++)
         {
-            float jitter = k == 0 || k == segments ? 0 : (Noise(b.Seed + flicker * 31, k) - 0.5f) * 2 * 4 * Pixel;
+            float jitter = k == 0 || k == segments ? 0 : (Noise(b.Seed + flicker * 31, k) - 0.5f) * 2 * 4 * U;
             points[k] = b.From.Lerp(b.To, (float)k / segments) + side * jitter;
         }
         // un halo jaune de part et d'autre, un cœur blanc-jaune de deux pixels d'art
@@ -324,10 +333,9 @@ public sealed class BattleEffects
         var core = new Color(1, 1, 0.8f, fade);
         for (int k = 0; k < segments; k++)
         {
-            Line(canvas, points[k] + side * Pixel * 2, points[k + 1] + side * Pixel * 2, halo);
-            Line(canvas, points[k] - side * Pixel, points[k + 1] - side * Pixel, halo);
-            Line(canvas, points[k], points[k + 1], core);
-            Line(canvas, points[k] + side * Pixel, points[k + 1] + side * Pixel, core);
+            // des traits côte à côte d'un pixel d'art : le cœur (trois), le halo de part et d'autre
+            for (int x = -1; x <= 4; x++)
+                Line(canvas, points[k] + side * Pixel * x, points[k + 1] + side * Pixel * x, x is >= 0 and <= 2 ? core : halo);
         }
     }
 
@@ -361,14 +369,7 @@ public sealed class BattleEffects
         if (t < 0.25f && flash > 0)
         {
             var c = new Color(1, 1, 0.92f, 1 - t * 3);
-            Dot(canvas, i.At, c);
-            for (int k = 1; k <= flash; k++)
-            {
-                Dot(canvas, i.At + new Vector2(k * Pixel, 0), c);
-                Dot(canvas, i.At - new Vector2(k * Pixel, 0), c);
-                Dot(canvas, i.At + new Vector2(0, k * Pixel), c);
-                Dot(canvas, i.At - new Vector2(0, k * Pixel), c);
-            }
+            Cross(canvas, i.At, flash, c);
         }
         // les grains : chacun sa direction (surtout dans le sens du coup), sa vitesse et sa couleur, toujours les mêmes
         // pour un même impact (pas de clignotement d'une image à l'autre)
@@ -377,7 +378,7 @@ public sealed class BattleEffects
             float a = Noise(i.Seed, k) * MathF.PI - MathF.PI / 2; // de -90° à +90° : vers l'avant
             float speed = 0.5f + Noise(i.Seed, k + 50);
             var dir = new Vector2(MathF.Cos(a) * i.Direction, MathF.Sin(a) - 0.4f);
-            var at = i.At + dir * spread * Pixel * speed * t + new Vector2(0, 6 * Pixel * t * t); // ils retombent
+            var at = i.At + dir * spread * U * speed * t + new Vector2(0, 6 * U * t * t); // ils retombent
             var color = colors[k % colors.Length];
             Dot(canvas, at, new Color(color, Math.Clamp(1.3f - t * 1.3f, 0, 1)));
         }
@@ -395,7 +396,7 @@ public sealed class BattleEffects
             float a = Noise(i.Seed, k) * MathF.Tau;
             float r = reach * (0.25f + 0.75f * Noise(i.Seed, k + 40)) * MathF.Sqrt(t);
             // aplati comme les cases (le champ est vu de biais)
-            var at = i.At + new Vector2(MathF.Cos(a) * r, MathF.Sin(a) * r * 0.55f) - new Vector2(0, 4 * Pixel * t);
+            var at = i.At + new Vector2(MathF.Cos(a) * r, MathF.Sin(a) * r * 0.55f) - new Vector2(0, 4 * U * t);
             var color = k % 3 == 0 ? new Color(0.62f, 0.75f, 0.55f) : new Color(0.42f, 0.55f, 0.4f);
             Blob(canvas, at, k % 2 == 0 ? 2 : 1, new Color(color, Math.Clamp(1.2f - t * 1.2f, 0, 0.85f)));
         }
@@ -422,21 +423,13 @@ public sealed class BattleEffects
             float u = Math.Clamp((t - start) / 0.65f, 0, 1);
             if (u <= 0)
                 continue;
-            float x = (Noise(i.Seed, k + 20) - 0.5f) * 14 * Pixel + MathF.Sin(u * 6 + k) * Pixel;
-            var at = i.At + new Vector2(x, (i.Kind == "regeneration" ? 0 : 6 * Pixel) - u * rise * Pixel);
+            float x = (Noise(i.Seed, k + 20) - 0.5f) * 14 * U + MathF.Sin(u * 6 + k) * U;
+            var at = i.At + new Vector2(x, (i.Kind == "regeneration" ? 0 : 6 * U) - u * rise * U);
             var c = new Color(color, Math.Clamp(1.4f - u * 1.4f, 0, 1));
             if (i.Kind is "soin" or "regeneration")
             {
                 // une petite croix (une sur trois plus grande pour la régénération)
-                int arm = i.Kind == "regeneration" && k % 3 == 0 ? 2 : 1;
-                Dot(canvas, at, c);
-                for (int a = 1; a <= arm; a++)
-                {
-                    Dot(canvas, at + new Vector2(a * Pixel, 0), c);
-                    Dot(canvas, at - new Vector2(a * Pixel, 0), c);
-                    Dot(canvas, at + new Vector2(0, a * Pixel), c);
-                    Dot(canvas, at - new Vector2(0, a * Pixel), c);
-                }
+                Cross(canvas, at, i.Kind == "regeneration" && k % 3 == 0 ? 2 : 1, c);
             }
             else if (i.Kind == "bulles")
                 Bubble(canvas, at, k % 3 == 0 ? 2 : 1, c);
@@ -444,8 +437,9 @@ public sealed class BattleEffects
             {
                 // une âme : un point clair avec une petite traîne
                 Dot(canvas, at, c);
-                Dot(canvas, at + new Vector2(0, Pixel), new Color(c, c.A * 0.6f));
-                Dot(canvas, at + new Vector2(0, 2 * Pixel), new Color(c, c.A * 0.3f));
+                Dot(canvas, at + new Vector2(0, Pixel), new Color(c, c.A * 0.75f));
+                Dot(canvas, at + new Vector2(0, 2 * Pixel), new Color(c, c.A * 0.5f));
+                Dot(canvas, at + new Vector2(0, 3 * Pixel), new Color(c, c.A * 0.25f));
             }
         }
     }
@@ -453,16 +447,18 @@ public sealed class BattleEffects
     /// <summary>Une bulle : un disque de pixels d'art (rayon 1 ou 2), avec un reflet clair.</summary>
     private static void Bubble(CanvasItem canvas, Vector2 at, int radius, Color color)
     {
-        // un disque plein, un peu plus sombre au bord, avec un reflet clair en haut à gauche
+        // un disque plein, un peu plus sombre au bord, avec un reflet clair en haut à gauche ; le rayon est donné dans
+        // l'unité U (l'ancien pixel d'art), compté ici en pixels d'art
+        radius = Scaled(radius);
         var edge = new Color(color.R * 0.6f, color.G * 0.75f, color.B * 0.6f, color.A);
         for (int y = -radius; y <= radius; y++)
         for (int x = -radius; x <= radius; x++)
         {
             int d = x * x + y * y;
             if (d <= radius * radius + radius / 2)
-                Dot(canvas, at + new Vector2(x, y) * Pixel, d >= radius * radius - radius + 1 && radius > 1 ? edge : color);
+                Dot(canvas, at + new Vector2(x, y) * Pixel, d >= radius * radius - radius + 1 && radius > 2 ? edge : color);
         }
-        if (radius > 1)
+        if (radius > 2)
             Dot(canvas, at + new Vector2(-1, -1) * Pixel, new Color(0.95f, 1, 0.85f, color.A));
     }
 
@@ -476,8 +472,8 @@ public sealed class BattleEffects
             if (u <= 0 || u >= 1)
                 continue;
             var straight = w.From.Lerp(w.To, u);
-            var at = straight - new Vector2(0, MathF.Sin(u * MathF.PI) * 10 * Pixel)
-                     + new Vector2(0, (Noise(w.Seed, k) - 0.5f) * 4 * Pixel);
+            var at = straight - new Vector2(0, MathF.Sin(u * MathF.PI) * 10 * U)
+                     + new Vector2(0, (Noise(w.Seed, k) - 0.5f) * 4 * U);
             Dot(canvas, at, k % 3 == 0 ? new Color(1, 0.45f, 0.45f) : new Color(0.75f, 0.1f, 0.12f));
         }
     }
@@ -500,8 +496,8 @@ public sealed class BattleEffects
         for (int k = 0; k < count; k++)
         {
             float u = (float)((time * 0.6 + Noise(seed, k)) % 1);
-            float x = (Noise(seed, k + 10) - 0.5f) * 12 * Pixel;
-            var at = center + new Vector2(x, 5 * Pixel - u * 12 * Pixel);
+            float x = (Noise(seed, k + 10) - 0.5f) * 12 * U;
+            var at = center + new Vector2(x, 5 * U - u * 12 * U);
             var c = new Color(color, MathF.Sin(u * MathF.PI) * 0.9f);
             if (kind == "poison")
                 Bubble(canvas, at, k % 2 == 0 ? 2 : 1, c);
@@ -529,7 +525,7 @@ public sealed class BattleEffects
     {
         bool strong = s.Kind == "foudre-forte";
         double t = s.Age;
-        var top = new Vector2(s.At.X + (Noise(s.Seed, 1) - 0.5f) * 30 * Pixel, 0);
+        var top = new Vector2(s.At.X + (Noise(s.Seed, 1) - 0.5f) * 30 * U, 0);
         if (t < LightningHitTime)
         {
             // le traceur : une ligne pâle et brisée qui descend jusqu'au sol
@@ -563,10 +559,12 @@ public sealed class BattleEffects
             {
                 var a = path[k];
                 var b = path[k + 1];
-                for (int x = -outerHalf; x <= outerHalf; x++)
+                // les largeurs sont comptées dans l'unité U, tracées en pixels d'art
+                int c1 = Scaled(coreHalf), c2 = Scaled(haloHalf), c3 = Scaled(outerHalf);
+                for (int x = -c3; x <= c3; x++)
                 {
                     int d = Math.Abs(x);
-                    var color = d <= coreHalf ? core : d <= haloHalf ? halo : outer;
+                    var color = d <= c1 ? core : d <= c2 ? halo : outer;
                     Line(canvas, a + new Vector2(x * Pixel, 0), b + new Vector2(x * Pixel, 0), color);
                 }
             }
@@ -580,8 +578,8 @@ public sealed class BattleEffects
                 int length = (strong ? 5 : 4) + (int)(Noise(s.Seed + flicker, 30 + n) * 5);
                 for (int k = 0; k < length; k++)
                 {
-                    var next = at + new Vector2(side * (4 + Noise(s.Seed + flicker, 40 + n * 9 + k) * 7) * Pixel,
-                        (5 + Noise(s.Seed + flicker, 70 + n * 9 + k) * 7) * Pixel);
+                    var next = at + new Vector2(side * (4 + Noise(s.Seed + flicker, 40 + n * 9 + k) * 7) * U,
+                        (5 + Noise(s.Seed + flicker, 70 + n * 9 + k) * 7) * U);
                     float fade = strength * (1 - (float)k / length);
                     Line(canvas, at + new Vector2(Pixel, 0), next + new Vector2(Pixel, 0), new Color(BoltHalo, 0.8f * fade));
                     Line(canvas, at - new Vector2(Pixel, 0), next - new Vector2(Pixel, 0), new Color(BoltHalo, 0.8f * fade));
@@ -599,7 +597,7 @@ public sealed class BattleEffects
                 float a = Noise(s.Seed, 100 + k) * MathF.Tau;
                 float speed = 0.5f + Noise(s.Seed, 120 + k);
                 var dir = new Vector2(MathF.Cos(a), MathF.Sin(a) * 0.5f - 0.6f);
-                var at = s.At + dir * (strong ? 26 : 20) * Pixel * speed * e + new Vector2(0, 16 * Pixel * e * e);
+                var at = s.At + dir * (strong ? 26 : 20) * U * speed * e + new Vector2(0, 16 * U * e * e);
                 var color = new Color(k % 3 == 0 ? BoltHalo : BoltCore, Math.Clamp(1.2f - e * 1.2f, 0, 1));
                 Dot(canvas, at, color);
                 if (k % 4 == 0)
@@ -617,7 +615,7 @@ public sealed class BattleEffects
         if (u < 0)
             return;
         // presque une case (plus pour la foudre appelée), aplatie comme elle
-        float rx = (s.Kind == "foudre-forte" ? 22 : 18) * Pixel, ry = (s.Kind == "foudre-forte" ? 10 : 8) * Pixel;
+        float rx = (s.Kind == "foudre-forte" ? 22 : 18) * U, ry = (s.Kind == "foudre-forte" ? 10 : 8) * U;
         // la marque brûlée : un disque sombre plus net au milieu, qui s'efface à la fin
         float fade = (float)Math.Clamp((StrikeTime(s.Kind) - s.Age) / 0.5, 0, 1) * 0.55f;
         Ellipse(canvas, s.At, rx * 0.65f, ry * 0.65f, new Color(0.08f, 0.06f, 0.05f, fade * 0.6f), s.Seed);
@@ -639,7 +637,7 @@ public sealed class BattleEffects
     private static Vector2[] BoltPath(Vector2 from, Vector2 to, int seed, int flicker)
     {
         // des pas de hauteur inégale, chacun part franchement d'un côté ou de l'autre (un zigzag, pas une corde)
-        int steps = Math.Max(4, (int)((to.Y - from.Y) / (Pixel * 14)));
+        int steps = Math.Max(4, (int)((to.Y - from.Y) / (U * 14)));
         var points = new Vector2[steps + 1];
         float x = 0, side = Noise(seed, 5) < 0.5f ? -1 : 1;
         for (int k = 0; k <= steps; k++)
@@ -649,7 +647,7 @@ public sealed class BattleEffects
             {
                 if (Noise(seed * 7 + flicker * 31, k + 200) < 0.7f)
                     side = -side;
-                x += side * (3 + Noise(seed * 7 + flicker * 31, k) * 7) * Pixel;
+                x += side * (3 + Noise(seed * 7 + flicker * 31, k) * 7) * U;
                 x *= 1 - f * 0.35f; // plus près du sol, l'éclair se resserre sur la cible
             }
             else
@@ -694,9 +692,24 @@ public sealed class BattleEffects
     /// <summary>Une petite boule de pixels d'art (rayon en pixels d'art).</summary>
     private static void Blob(CanvasItem canvas, Vector2 at, int radius, Color color)
     {
+        // le rayon est donné dans l'unité U (l'ancien pixel d'art) ; un rayon 0 reste un seul pixel
+        radius = Scaled(radius);
         for (int y = -radius; y <= radius; y++)
         for (int x = -radius; x <= radius; x++)
             if (x * x + y * y <= radius * radius + radius)
                 Dot(canvas, at + new Vector2(x, y) * Pixel, color);
     }
+
+    /// <summary>Une petite croix claire : un pixel au milieu et quatre bras de <paramref name="arm"/> unités U.</summary>
+    private static void Cross(CanvasItem canvas, Vector2 at, int arm, Color color)
+    {
+        Dot(canvas, at, color);
+        if (arm <= 0)
+            return;
+        Line(canvas, at - new Vector2(arm * U, 0), at + new Vector2(arm * U, 0), color);
+        Line(canvas, at - new Vector2(0, arm * U), at + new Vector2(0, arm * U), color);
+    }
+
+    /// <summary>Une longueur comptée dans l'unité U, en pixels d'art (arrondie).</summary>
+    private static int Scaled(int units) => (int)MathF.Round(units * U / Pixel);
 }

@@ -104,8 +104,26 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     toward the sky with its beak wide open in a fierce cry », sans les mots foudre ni orage). Le second modèle déploie
     plus les ailes mais ajoute parfois une étincelle : `retoucher --copier=2:3 --detaches`.
 
-- **Échelle commune** : un humain fait environ 46 à 54 px de haut (à peu près une case), le Gobelin environ 28, l'Orc 41,
-  le Zombie 44, l'Ogre 58, le Troll 64 (orc < ogre < troll), le Colosse 70 ; le Cavalier et le Dragon, longs, couvrent 2 cases (environ 90 × 80).
+- **Échelle commune** (combat à ×2 depuis le 2026-11-09 : un pixel d'art = 2 pixels de l'écran, comme sur la carte) :
+  un humain fait environ 70 à 81 px de haut (à peu près une case), le Gobelin environ 42, l'Orc 62, le Zombie 66, l'Ogre
+  87, le Troll 96 (orc < ogre < troll), le Colosse 105, l'Ange 105, le Béhémoth 108 ; le Dragon, long, couvre 2 cases
+  (113 de haut). Les hauteurs sont dans les fiches (`creatures-art.json`). Générer assez grand : la grande image doit
+  dépasser la hauteur voulue (sinon pas de détail en plus).
+- **Contour et bord** (fiche, facultatifs) : « contour » (assombrir, seuil, passes ; 0,6, 45, 2 par défaut) adoucit un
+  contour sombre ; « bord » (0,6 : le Farfadet) rend le bord semi-transparent (traits d'un pixel gardés pleins), pour
+  qu'une créature se fonde dans le décor. Juger en combat, à la vraie taille (une planche agrandie trompe).
+- **Voir les animations candidates** : `tools/art/apercu_anims.py <id>` (page `en-cours/<id>-anims.html`) les joue à la
+  taille du jeu, entières, avec une large marge et la copie retournée bien à l'écart (la page de `creature.py page`
+  coupe les grandes attaques et les grandes ailes). Remarques de l'utilisateur (2026-11-09) : un **volant** doit voler
+  assez lentement pour battre des ailes (`stepTime` dans `animations.json` : 0,4 s par case pour l'Ange, un battement
+  toutes les deux cases) ; un cycle de vol où le corps se plie puis se redresse est bizarre sur un long vol (plusieurs
+  cycles) ; une attaque « gifle » : le geste à hauteur de poitrine, et « no light, no glow, no motion lines, no trail »
+  dans `--sans` ; un battement d'ailes coupé au bord : `--largeur` élargit aussi le cadre d'un déplacement.
+- **Refaire une créature à une autre taille sans dépense** : la grande image refait l'image fixe ; chaque image d'une
+  feuille se retrouve parmi les images brutes de PixelLab gardées dans les archives (la plus ressemblante à l'ancienne
+  taille), puis se refait à la nouvelle (`tools/art/reconstruire.py <archives> <rapport.json> <facteur> id…` ; sans
+  grande image, `tools/art/trouver_grande.py` la retrouve dans les archives). Les retouches à la main reviennent (éclats, étincelles) : les refaire
+  (`retoucher --eclats --detaches`, ou effacer un éclat blanc à la main quand la créature porte du blanc).
 - **Une créature à la fois** : d'abord l'image fixe (qui sert aussi d'icône), puis, une fois acceptée, ses animations
   (attente, déplacement, attaque : feuilles de 8 images, 4 colonnes × 2 rangées, `{id}-idle.png`, `-move` (marche ou
   vol ; anciennement `-walk`), `-attack`). Une feuille peut avoir 16 images (4 × 4 : `moveFrames` dans

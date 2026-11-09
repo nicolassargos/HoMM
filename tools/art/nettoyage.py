@@ -241,8 +241,29 @@ def effacer_nouveau(images, k):
     return n
 
 
-def adoucir_image(p):
-    return adoucir(p, len(p[0]), len(p), 0.6, 45, 2)
+def adoucir_image(p, reglage=None):
+    """Adoucit le contour sombre. <reglage> : (assombrir, seuil, passes), le « contour » de la fiche de la créature ;
+    par défaut (0,6, 45, 2). Plus haut (0,7, 70, 2 : le Farfadet) : un contour brun foncé, pas seulement noir, prend la
+    couleur de ses voisins, et la créature se fond mieux dans le décor."""
+    return adoucir(p, len(p[0]), len(p), *(reglage or (0.6, 45, 2)))
+
+
+def bord_translucide(q, opacite):
+    """Rend le bord de la créature en partie transparent (<opacite> : 0,6 = 60 % opaque), pour qu'elle se fonde dans le
+    décor : chaque pixel plein qui touche le vide. Un trait d'un pixel de large (vide des deux côtés : jambe, bras) reste
+    plein, sinon il disparaîtrait. Le « bord » de la fiche de la créature (le Farfadet)."""
+    if not opacite:
+        return q
+    h, w = len(q), len(q[0])
+    plein = lambda x, y: 0 <= x < w and 0 <= y < h and q[y][x][3] > 128
+    fin = lambda x, y: (not plein(x - 1, y) and not plein(x + 1, y)) or (not plein(x, y - 1) and not plein(x, y + 1))
+    bord = [(x, y) for y in range(h) for x in range(w) if plein(x, y) and not fin(x, y)
+            and any(not plein(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))]
+    q = [list(r) for r in q]
+    for x, y in bord:
+        c = q[y][x]
+        q[y][x] = (c[0], c[1], c[2], int(c[3] * opacite))
+    return q
 
 
 def decouper(feuille, colonnes=4, rangees=2):

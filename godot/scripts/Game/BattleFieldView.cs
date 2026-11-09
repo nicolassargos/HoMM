@@ -8,7 +8,7 @@ namespace HoMM.Game;
 
 /// <summary>
 /// Le champ de bataille dessiné (étape 6) : le sol du terrain où l'on se bat, les cases hexagonales, les obstacles,
-/// les troupes (×3, l'ennemi tourné vers la gauche) avec leur nombre, les cases où la troupe active peut aller, et
+/// les troupes (×2 comme la carte, l'ennemi tourné vers la gauche) avec leur nombre, les cases où la troupe active peut aller, et
 /// de petites animations (marche case par case, éclair du coup, dégâts qui montent). Ce que montre l'écran suit le
 /// journal du combat (<see cref="TacticalBattle.TakeLog"/>), à son rythme : les nombres affichés changent au moment du coup.
 /// </summary>
@@ -29,8 +29,11 @@ public partial class BattleFieldView : Control
     public const float TopMargin = 177; // le champ remplit toute la hauteur entre la ligne du haut et la barre du bas (1920 × 1080)
     private const int SpriteScale = 4;
 
-    /// <summary>Agrandissement des images de combat (art/creatures/battle/).</summary>
-    private const int BattleSpriteScale = 3;
+    /// <summary>
+    /// Agrandissement des images de combat (art/creatures/battle/) : ×2, comme la carte, pour qu'un pixel d'art ait la même
+    /// taille partout (choix de l'utilisateur, 2026-11-09 : ×3 avant ; les créatures ont été refaites 1,5 fois plus hautes).
+    /// </summary>
+    private const int BattleSpriteScale = 2;
 
     /// <summary>
     /// Les animations d'une créature : des feuilles de 8 images (4 colonnes, 2 rangées), à côté de son image de combat
@@ -136,8 +139,8 @@ public partial class BattleFieldView : Control
         }
     }
 
-    /// <summary>Agrandissement du sol (ses images de 24 pixels) et des obstacles.</summary>
-    private const int GroundScale = 3;
+    /// <summary>Agrandissement du sol et des obstacles (les images de la carte) : ×2, comme sur la carte.</summary>
+    private const int GroundScale = 2;
 
     /// <summary>Pendant une attaque animée, le coup porte à ce moment (en secondes), vers la fin du geste.</summary>
     private const double HitDelay = 0.45;
@@ -872,7 +875,7 @@ public partial class BattleFieldView : Control
     {
         if (Battle == null)
             return;
-        // le sol : l'image du terrain, ×3
+        // le sol : l'image du terrain, ×2 (comme la carte)
         var ground = Art.Terrain(DecorLayer.Covers(_terrain) ? TerrainType.Grass : _terrain, 0);
         if (ground != null)
         {
@@ -1053,7 +1056,7 @@ public partial class BattleFieldView : Control
     private void DrawUnit(BattleUnit unit, Shown shown)
     {
         // une troupe touchée recule d'un coup (3 pixels d'art) puis revient à sa place
-        var foot = shown.Position + new Vector2(shown.RecoilDirection * shown.Recoil * BattleEffects.Pixel * 3, HexHeight / 2 - Ui.Px(10));
+        var foot = shown.Position + new Vector2(shown.RecoilDirection * shown.Recoil * BattleEffects.U * 3, HexHeight / 2 - Ui.Px(10));
         var tint = shown.Flash > 0 ? new Color(1, 1 - shown.Flash * 0.6f, 1 - shown.Flash * 0.6f) : Colors.White;
         // une troupe qui se régénère s'éclaire de vert un instant
         if (shown.Glow > 0)
@@ -1064,7 +1067,7 @@ public partial class BattleFieldView : Control
             float pulse = 0.5f + 0.5f * MathF.Sin((float)_time * 3 + unit.Id);
             tint *= new Color(0.72f - 0.08f * pulse, 1, 0.62f - 0.08f * pulse);
         }
-        // L'image de combat (plus détaillée), sinon la petite de la carte ×3 ; une grande créature est centrée sur ses 2 cases
+        // L'image de combat (plus détaillée), sinon la petite de la carte ×4 ; une grande créature est centrée sur ses 2 cases
         var battleImage = Art.Get($"creatures/battle/{unit.Type.Id}");
         var (sheet, frame) = Frame(unit, shown);
         if ((sheet ?? battleImage ?? Art.Get($"creatures/{unit.Type.Id}")) is { } image)

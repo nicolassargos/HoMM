@@ -51,7 +51,7 @@
       "gabarit": "grand",
       "description": "a bone colossus: a huge chaotic giant made of many random bones and skulls, horned skull head with glowing red eyes, holding a huge thigh bone club, old yellowed bone color",
       "sujet": "a huge giant made of many bones and skulls, horned skull head, holding a huge thigh bone club",
-      "hauteur": 70,
+      "hauteur": 105,
       "generation": [
         120,
         136
@@ -78,7 +78,7 @@
       "gabarit": "humain",
       "description": "a medieval knight: full grey steel plate armor, closed great helm with a narrow visor slit, broad armored shoulders, a deep royal blue kite shield with a thin gold rim and a golden fleur-de-lis on his left arm, a spiked flail ball on a chain held in his right hand, sturdy heroic stance",
       "sujet": "a medieval knight in full steel plate armor with a closed great helm, a blue kite shield with a golden fleur-de-lis and a spiked flail",
-      "hauteur": 54,
+      "hauteur": 81,
       "generation": [
         104,
         120
@@ -107,7 +107,7 @@
       "gabarit": "volant",
       "description": "a drowned woman ghost floating above the ground, very pale and ethereal, almost white with soft cyan glow, long wet hair hiding a dark hollow face with two faint glowing eyes, thin arms with long clawed fingers reaching forward, ragged gown fading into misty wisps instead of feet",
       "sujet": "a pale ghost of a drowned woman floating above the ground, long wet hair, clawed hands, ragged gown fading into wisps",
-      "hauteur": 52,
+      "hauteur": 78,
       "generation": [
         104,
         120
@@ -136,7 +136,7 @@
       "gabarit": "humain",
       "description": "a medieval army archer in light armor: steel kettle hat, a royal blue tabard with a small golden fleur-de-lis on the chest over a grey gambison, leather belt with a quiver of arrows, sturdy boots, holding a tall longbow, strong confident stance",
       "sujet": "a medieval archer with a steel kettle hat, blue tabard with a golden fleur-de-lis, holding a longbow",
-      "hauteur": 50,
+      "hauteur": 75,
       "generation": [
         104,
         120
@@ -177,7 +177,7 @@
       "gabarit": "humain",
       "description": "a monk in a brown hooded robe holding a staff topped with a glowing orb",
       "sujet": "a monk in a brown hooded robe holding a staff topped with a glowing orb",
-      "hauteur": 47,
+      "hauteur": 70,
       "comparer": [
         "archer",
         "paysan"
@@ -198,7 +198,7 @@
       "gabarit": "quadrupede",
       "description": "a dark grey wolf, snarling",
       "sujet": "a dark grey wolf, side view facing right, snarling",
-      "hauteur": 34,
+      "hauteur": 51,
       "comparer": [
         "gobelin",
         "archer"
@@ -216,7 +216,7 @@
       "gabarit": "grand",
       "description": "a bloated plague zombie: a fat swollen undead man with grey-purple dead skin, a huge round belly covered with oozing yellow pustules, a small bald head with a gaping toothy mouth and blank white eyes, a few purple crystal spikes growing from his back and shoulders, thick arms dripping with slime, bare feet, shuffling",
       "sujet": "a bloated fat grey zombie with a huge belly covered in yellow pustules and purple spikes on its back",
-      "hauteur": 44,
+      "hauteur": 66,
       "generation": [
         104,
         120
@@ -261,7 +261,7 @@
       "gabarit": "grand",
       "description": "a huge hulking green troll with massive muscular arms and big fists, small head, hunched shoulders",
       "sujet": "a huge hulking green troll with massive arms and big fists",
-      "hauteur": 64,
+      "hauteur": 96,
       "comparer": [
         "ogre",
         "archer"
@@ -288,7 +288,7 @@
       "gabarit": "grand",
       "description": "a huge wild man ogre with long black hair and a thick black beard, a fur loincloth, holding a big plain wooden club without nails",
       "sujet": "a huge wild man ogre with long black hair, a black beard and a big wooden club",
-      "hauteur": 58,
+      "hauteur": 87,
       "comparer": [
         "archer",
         "troll"
@@ -313,7 +313,7 @@
       "gabarit": "quadrupede",
       "description": "a griffon with the body of a lion, the head of an eagle and large brown feathered wings raised",
       "sujet": "a griffon with a lion body, an eagle head and large brown wings, side view facing right",
-      "hauteur": 51,
+      "hauteur": 76,
       "comparer": [
         "archer",
         "loup"
@@ -340,7 +340,7 @@
       "gabarit": "humain",
       "description": "a stocky muscular green orc with big tusks, leather straps and a leather loincloth, holding a throwing axe in each hand",
       "sujet": "a stocky green orc with tusks, leather straps, an axe in each hand",
-      "hauteur": 41,
+      "hauteur": 62,
       "comparer": [
         "archer",
         "gobelin",
@@ -368,7 +368,7 @@
       "gabarit": "humain",
       "description": "a classic old-school vampire count in the style of an early 1990s fantasy strategy game: very pale face, slicked-back black hair with a widow's peak, long sharp white fangs, a long black cape with a high stiff red collar and red lining draped around him, black tailcoat, white shirt front, empty hands, no glass, calm menacing pose, bold simple shapes",
       "sujet": "an elegant pale vampire count with slicked black hair, mustache, long fangs, a black cape with a high red collar",
-      "hauteur": 52,
+      "hauteur": 78,
       "generation": [
         104,
         120
@@ -417,7 +417,7 @@
       "gabarit": "humain",
       "description": "a dark lich king: a hunched skeleton with a LARGE clearly readable skull, bright bone white with deep black eye sockets glowing faintly pale blue, a visible jaw with teeth, a thin tarnished gold crown sitting on top of the skull without hiding the face, layered tattered robes of very dark navy blue and black with faded dull gold embroidery, a long thin gnarled dark staff in one bony hand, the other skeletal hand reaching forward, dark and menacing, the face is the brightest part of the image",
       "sujet": "a hunched skeletal lich king with a thin gold crown, dark tattered robes and a long thin staff",
-      "hauteur": 52,
+      "hauteur": 78,
       "generation": [
         104,
         120
@@ -458,7 +458,7 @@
       "gabarit": "quadrupede",
       "description": "a giant undead spider: a huge eight-legged spider with a black and dark purple hairy body, subtle dark blood-red markings and red nuances on its round abdomen and leg joints, no skull pattern, long thin legs with a few bare pale bones showing through torn rotting skin, a cluster of glowing green eyes, big curved fangs dripping green venom, menacing crouched stance",
       "sujet": "a giant undead black spider with subtle dark red markings, bony legs and glowing green eyes",
-      "hauteur": 36,
+      "hauteur": 54,
       "generation": [
         128,
         104
@@ -500,7 +500,7 @@
       "gabarit": "quadrupede",
       "description": "a steppe nomad horseman at rest: a lean rider in fur and leather with a round fur hat and a long braid, a short recurved bow on his back, his curved sabre held low and pointing down along the horse's flank, a calm watchful passive pose, riding a sturdy shaggy brown steppe horse standing still on its four hooves, a short mane, a simple saddle with colorful tassels",
       "sujet": "a calm steppe nomad rider with a fur hat, sabre held low, on a small shaggy brown horse standing still, side view facing right",
-      "hauteur": 62,
+      "hauteur": 93,
       "generation": [
         128,
         104
@@ -541,7 +541,7 @@
       "gabarit": "volant",
       "description": "a huge mythic thunderbird in the style of native totem carvings, standing on its strong talons with its great wings folded and held closed along its body, not spread: a large eagle-like bird with bold red, black and white feather patterns in geometric shapes on its folded wings and chest, a big curved hooked yellow beak, fierce eyes outlined in black, a proud upright pose",
       "sujet": "a huge totem-style thunderbird standing with its wings folded along its body, red, black and white geometric feathers, side view facing right",
-      "hauteur": 60,
+      "hauteur": 90,
       "generation": [
         128,
         104
@@ -583,12 +583,44 @@
         "transform": "the thunderbird takes off: standing on its talons, it crouches, spreads its great totem-patterned wings, leaps up and tilts its body forward until it is flying horizontally to the right, its talons retracting and tucking under its belly, ending in a level flying pose with the wings raised"
       }
     },
+    "farfadet": {
+      "nom": "Farfadet",
+      "gabarit": "volant",
+      "description": "a tiny mischievous forest sprite hovering in the air: a small slender humanoid with green-brown bark-like skin, big pointed ears, bright yellow-green eyes and a cheeky grin, a tunic made of overlapping autumn leaves, bare feet dangling, and two pairs of wings shaped like dry oak leaves with visible veins, orange and ochre, spread behind its back",
+      "sujet": "a tiny forest sprite with leaf wings hovering in the air, green-brown skin, pointed ears, leaf tunic, side view facing right",
+      "hauteur": 30,
+      "generation": [
+        88,
+        96
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "references": [],
+      "comparer": [
+        "gobelin",
+        "archer"
+      ],
+      "vole": true,
+      "contour": [
+        0.7,
+        70,
+        2
+      ],
+      "bord": 0.6,
+      "notes": "Forêt, niveau 1 : petit et vif, vole, 1 case. Choix de l'utilisateur (2026-11-09) : farfadet aux ailes de feuilles. Il plane toujours (attente, déplacement, attaque), comme le Fantôme. Contour plus doux que les autres (« contour » : 0,7, 70, 2) et bord à 60 % d'opacité (« bord », traits d'un pixel gardés pleins), choix de l'utilisateur vus en combat, pour qu'il se fonde mieux dans le décor.",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul"
+      }
+    },
     "behemoth": {
       "nom": "Béhémoth",
       "gabarit": "grand",
       "description": "a behemoth, a colossal mythical beast (not a bear) standing upright on its two hind legs: a huge hunched ape-like monster with an ape face, a heavy brow, a flat nose and a wide snarling mouth with big curved fangs and two bone-white tusks, a thick wild mane of extra shaggy fur over its shoulders and neck, dark brown fur with a reddish-orange mane and grey streaks, patches of green moss on its back and shoulders, huge long arms with enormous hands ending in long curved claws, a threatening stance leaning forward, bigger than a troll",
       "sujet": "a colossal behemoth standing on two legs, ape-like snarling face, fangs and tusks, reddish shaggy mane, moss on its shoulders, huge clawed hands, side view facing right",
-      "hauteur": 72,
+      "hauteur": 108,
       "generation": [
         104,
         120
@@ -625,6 +657,109 @@
         "idle": "the behemoth looks down at its feet, then pounds the ground in front of it twice with its two huge fists, then straightens up to its starting pose, the feet stay in place",
         "move": "the behemoth walks forward to the right on its two legs with slow heavy steps; its long arms swing alternately, one after the other like a walking ape: the left arm swings forward while the right arm swings back, then the right arm forward while the left arm back, never both arms together",
         "attack": "the behemoth raises one huge clawed hand high and rakes it down hard at the enemy in front of it, its long claws tearing, then straightens up to its starting pose"
+      }
+    },
+    "dragon": {
+      "nom": "dragon",
+      "hauteur": 113,
+      "grande": "art-candidats/references/derives/dragon-grand.png",
+      "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2."
+    },
+    "gobelin": {
+      "nom": "gobelin",
+      "hauteur": 42,
+      "grande": "art-candidats/references/derives/gobelin-grand.png",
+      "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2."
+    },
+    "paysan": {
+      "nom": "paysan",
+      "hauteur": 57,
+      "grande": "art-candidats/references/derives/paysan-grand.png",
+      "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2."
+    },
+    "ange": {
+      "nom": "Ange",
+      "gabarit": "humain",
+      "description": "an androgynous ageless angel standing upright, neither clearly a man nor a woman: a smooth serene face with fine features, calm eyes, wavy shoulder-length chestnut hair, a slender build with a flat chest and straight shoulders, wearing a long plain off-white robe with wide sleeves tied with a golden rope belt, bare feet, two large white feathered wings raised behind its back",
+      "sujet": "an androgynous angel with a serene face and wavy chestnut hair, long white robe with a golden rope belt, large white wings, side view facing right",
+      "hauteur": 105,
+      "generation": [
+        104,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [],
+      "comparer": [
+        "moine",
+        "chevalier"
+      ],
+      "notes": "Château, niveau 7. Refait plus grand (2026-11-09) pour le combat à ×2 : même robe et mêmes ailes, mais androgyne (on ne sait pas si c'est un homme ou une femme, sans poitrine ; choix de l'utilisateur).",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L3-4",
+        "idle": "idle-1",
+        "move": "move-4",
+        "attack": "attack-8-r"
+      },
+      "grande": "art-candidats/references/derives/ange-grand.png",
+      "mouvements": {
+        "idle": "the angel stands calmly with its hands joined, breathes slowly, its large wings rise and fold slightly, its robe sways a little, the feet stay in place",
+        "move": "the angel flies forward to the right a little above the ground, beating its large white wings in one full steady cycle, its body upright, its bare feet off the ground, it stays at the same place",
+        "attack": "the angel spreads its wings wide, steps forward and strikes the enemy in front of it with a powerful open-hand blow, then folds its wings and steps back to its starting pose"
+      },
+      "vole": true,
+      "consignes": {
+        "idle": "the angel stands calmly with its hands joined, breathes slowly, its large wings rise and fold slightly, its robe sways a little, the feet stay in place",
+        "move": "the angel hovers a little above the ground and slowly beats its large white wings in big wide strokes: the wings rise high above its head, then sweep all the way down below its waist, then rise again, one full slow flapping cycle, its body stays upright, its bare feet off the ground, it stays at the same place",
+        "attack": "the angel draws its right arm back, then swings its open hand forward horizontally at the height of its own chest in a wide sweeping slap at the enemy standing in front of it, its body twisting with the blow and its wings flaring, then it steps back to its starting pose"
+      }
+    },
+    "squelette": {
+      "nom": "Squelette",
+      "gabarit": "humain",
+      "description": "a hunched undead skeleton warrior crouching forward, yellowed old bones, a cracked skull with dark empty eye sockets and a rusty old helmet, long bony arms with clawed fingers reaching forward, scraps of rotten brown leather and cloth on its ribs and hips",
+      "sujet": "a hunched skeleton with yellowed bones and a rusty helmet, clawed bony hands reaching forward, side view facing right",
+      "hauteur": 63,
+      "generation": [
+        96,
+        104
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/squelette-actuel.png::the same creature: keep exactly its design, colors, proportions, clothes and pose, redraw it bigger with more detail; do not copy its small size or its blurry pixels"
+      ],
+      "comparer": [
+        "zombie",
+        "archer"
+      ],
+      "notes": "Morts-vivants, niveau 1. Refait plus grand (2026-11-09) pour le combat à ×2, même allure que l'ancien (choix de l'utilisateur).",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul"
+      },
+      "choix": {
+        "fixe": "L1-1",
+        "idle": "idle-3",
+        "move": "move-5",
+        "attack": "attack-6-r"
+      },
+      "grande": "art-candidats/references/derives/squelette-grand.png",
+      "mouvements": {
+        "idle": "the hunched skeleton sways slowly on its bent legs, its head twitches and turns, its clawed bony fingers flex, the feet stay in place",
+        "move": "the hunched skeleton shambles forward to the right with jerky steps, arms dangling in front of it, it stays at the same place",
+        "attack": "the hunched skeleton lunges forward and rakes the enemy in front of it with its clawed bony hands, then steps back to its starting pose"
+      },
+      "consignes": {
+        "idle": "the hunched skeleton sways slowly on its bent legs, its head twitches and turns, its clawed bony fingers flex, the feet stay in place",
+        "move": "the hunched skeleton walks forward to the right in one full clear walking cycle: its left bony foot lifts off the ground and steps forward, then its right bony foot lifts and steps forward, knees bent, hunched forward, arms dangling and swinging a little, it stays at the same place",
+        "attack": "the hunched skeleton raises both its long clawed bony arms high above its skull, then brings them crashing down hard on the enemy in front of it, then straightens back to its starting pose"
       }
     }
   }

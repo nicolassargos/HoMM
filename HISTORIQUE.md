@@ -842,6 +842,36 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   trop « croustillant » : le second demande des formes simples et un ombrage doux, avec la ville du Château comme image
   de style (au lieu de la mine d'or) et le candidat aimé comme modèle. Le contour noir trop épais est adouci
   (`tools/art/adoucir.py`, assombrir 0,7, seuil 60, 2 passes), et la ville des morts-vivants de même.
+- ✅ Combat à ×2 (2026-11-09, branche `combat-x2`). Question de l'utilisateur : un pixel d'art a-t-il la même taille au
+  combat et sur la carte ? Non : 3 pixels de l'écran au combat, 2 sur la carte (zoom ×1 ; 3 au zoom ×1,5). Essai montré
+  (page `echelle.html` : même combat à ×3 et à ×2, créatures 1,5 fois plus hautes) ; choix de l'utilisateur : ×2 partout
+  (« much much better »). Fait :
+  - `BattleSpriteScale` et `GroundScale` à 2 ; sol et obstacles du combat = images de la carte à ×2 (les obstacles,
+    sommets et sapins de 32 px, sont plus petits qu'avant : de vrais obstacles de combat viendront plus tard).
+  - Créatures refaites 1,5 fois plus hautes, sans dépense : image fixe depuis la grande image (fiche « grande ») ;
+    chaque image des feuilles installées retrouvée parmi les images brutes de PixelLab des archives (la plus
+    ressemblante, réduite à l'ancienne taille, droite ou retournée ; anciennes dispositions des dossiers comprises :
+    `<id>/anim/<nom>/`, `<id>-anim/<nom>/`, `pixellab/<id>-<état>/`), puis refaite à la nouvelle taille avec le même
+    nettoyage. 20 créatures : les 17 à fiche, plus le Gobelin, le Paysan (grande image retrouvée, ligne de sol noire
+    effacée) et le Dragon (113 px au lieu de 118 : sa grande image n'est pas plus haute). Les retouches à la main
+    revenues ont été refaites : éclats du Chevalier (dont un éclat blanc, effacé à la main : l'armure porte du blanc),
+    des Nomades et du Béhémoth ; points détachés de l'Oiseau-tonnerre. Points de tir (`launchPoint`) ×1,5.
+  - Regénérés (PixelLab, environ 1,7 $ avec les essais) : le **Squelette** (même allure, l'ancienne image en référence :
+    fixe L1-1, attente idle-3, marche move-5 (consigne : chaque pied se lève et avance à son tour), attaque attack-6-r :
+    les deux bras levés puis abattus sur l'ennemi, éclat effacé) et l'**Ange**, rendu **androgyne** à la demande de
+    l'utilisateur (on ne sait pas si c'est un homme ou une femme, sans poitrine) : fixe L3-4, attente idle-1, vol move-4
+    (grands battements d'ailes ; les 16 images de move-2 plient le corps, bizarre sur un long vol), attaque attack-8-r
+    (une gifle à hauteur de poitrine ; consigne sans lumière ni traînée, puis éclat effacé). L'Ange vole lentement
+    (`stepTime` 0,4 s par case, un battement toutes les deux cases) : à 0,09 s (les volants par défaut), il traversait le
+    champ sans avoir le temps de battre des ailes (remarque de l'utilisateur). L'Épéiste et le Cavalier restent (plus
+    petits au combat), à refaire plus tard (choix de l'utilisateur).
+  - Effets (`BattleEffects`) : points de 2 pixels (`Pixel`), tailles et distances dans l'unité `U` (3 pixels : l'ancien
+    pixel d'art) pour garder leur taille à l'écran ; les formes pleines (bulles, boules, largeur de l'éclair, fer de la
+    hache, croix) comptées en pixels d'art pour ne pas laisser de trous.
+  - Ailleurs, les images de combat ×2 (cases d'armée, fenêtre de recrutement) sont plus grandes et plus fines ; les
+    créatures larges y sont un peu coupées (tête et avant gardés), comme avant les grandes.
+  - Outils : « contour » et « bord » (semi-transparent) dans les fiches (`nettoyage.adoucir_image`,
+    `nettoyage.bord_translucide`), essayés sur le Farfadet (Forêt, en cours).
 - ✅ Foudre de l'Oiseau-tonnerre sur la case de la cible (2026-11-09, branche `foudre-cible`) : un **effet joué sur
   une case** (`BattleEffects.OnHex("foudre", sol)`), dessiné par le jeu en pixels d'art, et non plus dans l'animation de
   l'attaquant (choix de l'utilisateur : dessiné par le jeu plutôt qu'une feuille d'images). Déroulé : un traceur pâle

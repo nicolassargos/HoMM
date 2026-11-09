@@ -19,7 +19,7 @@ quadrupède, grand) qui donne la fin des textes de demande et les mouvements par
         personnage, pas d'effet… » ; vide : rien) ; --enrichir laisse PixelLab détailler le mouvement ; --images=16 : une
         feuille de 16 images (4 × 4), pour un mouvement lent mais fluide ; --sans-retour : l'animation ne revient pas à la
         pose de départ (une transformation) ; --depart : une autre image de départ, à l'échelle de la grande image (la
-        dernière image d'une transformation, pour animer la chauve-souris) ; --largeur : largeur du cadre d'une attaque,
+        dernière image d'une transformation, pour animer la chauve-souris) ; --largeur : largeur du cadre d'une attaque (ou d'un déplacement aux grandes ailes),
         en fois la largeur de la créature (2,2 par défaut ; plus pour une cape ou des ailes déployées). État « transform » : joué avant un déplacement, et à l'envers après.
         Coûte de l'argent.
     python -I tools/art/creature.py retoucher <id> <nom> [--eclats[=partout]] [--copier=7:8,…] [--corde=7,8] [--nouveau=5] [--detaches] [--recentrer[=tete]]
@@ -103,7 +103,7 @@ def preparer_fixe(grande, f):
     p = n.recadrer(grande)
     if f.get("miroir"):
         p = n.miroir(p)
-    q = n.adoucir_image(n.reduire_traits(p, f["hauteur"] / len(p)))
+    q = n.bord_translucide(n.adoucir_image(n.reduire_traits(p, f["hauteur"] / len(p)), f.get("contour")), f.get("bord"))
     if f.get("corde"):
         n.corde_droite(q)
     return q
@@ -173,7 +173,7 @@ def arrondi16(v):
     return int(math.ceil(v / 16) * 16)
 
 
-def departs(f, ident, large=2.2):
+def departs(f, ident, large=2.2, large_vol=None):
     """Les images de départ des animations (la grande image dans un cadre plus large), et le facteur de réduction."""
     p = n.recadrer(lire(f["grande"])[2])
     if f.get("miroir"):
@@ -185,6 +185,9 @@ def departs(f, ident, large=2.2):
     tailles = {"idle": (min(256, arrondi16(w * 1.8)), arrondi16(h * 1.2)),
                "attack": (min(256, arrondi16(w * large)), min(256, arrondi16(h * 1.35)))}
     tailles["move"] = tailles["transform"] = tailles["idle"]
+    if large_vol:
+        # un déplacement aux grandes ailes (l'Ange) : un cadre aussi large que demandé, sinon les ailes sont coupées
+        tailles["move"] = (min(256, arrondi16(w * large_vol)), arrondi16(h * 1.2))
     chemins = {}
     for etat, (W, H) in tailles.items():
         chemins[etat] = os.path.join(d, f"depart-{etat}.png")
@@ -205,12 +208,12 @@ def traiter_feuille(dossier_images, facteur, f, etat):
     grandes = [lire(os.path.join(dossier_images, f"{i}.png"))[2] for i in range(2, nombre_images(dossier_images) + 2)]
     images = []
     for g in grandes:
-        q = n.adoucir_image(n.reduire_traits(n.retirer_cyan(g), facteur))
+        q = n.adoucir_image(n.reduire_traits(n.retirer_cyan(g), facteur), f.get("contour"))
         n.retirer_etincelles(q)
         if f.get("corde") and etat != "attack":
             n.corde_droite(q)
-        images.append(q)
-    depart = n.adoucir_image(n.reduire_traits(lire(os.path.join(dossier_images, "1.png"))[2], facteur))
+        images.append(n.bord_translucide(q, f.get("bord")))
+    depart = n.adoucir_image(n.reduire_traits(lire(os.path.join(dossier_images, "1.png"))[2], facteur), f.get("contour"))
     return images, grandes, depart
 
 
@@ -232,7 +235,8 @@ def cmd_animer(ident, etat, essais=2, graine=0, consigne=None, sans=None, enrich
     f, g = fiche(donnees, ident)
     if not f.get("grande"):
         sys.exit("Choisir d'abord l'image fixe (choisir <id> fixe L…).")
-    chemins, facteur = departs(f, ident, large)
+    # --largeur règle le cadre de l'attaque, et aussi celui du déplacement quand c'est lui qu'on anime
+    chemins, facteur = departs(f, ident, large, large if etat == "move" and large != 2.2 else None)
     if depart:
         # une autre image de départ (même échelle que la grande image : par exemple la dernière d'une transformation)
         chemins[etat] = depart

@@ -522,6 +522,12 @@ croissance, prix, garde.
   ✅ **Foudre sur la case de la cible** (2026-11-09, branche `foudre-cible`) : à chaque coup de l'Oiseau-tonnerre, un
   éclair bleu tombe du ciel sur la troupe touchée (un second, plus fort, quand il appelle la foudre), dessiné par le jeu (`BattleEffects.OnHex` : un effet joué sur une case, à réutiliser pour les sorts) ;
   l'Oiseau-tonnerre attaque ailes déployées, sans éclair dessiné. Détail dans `HISTORIQUE.md`.
+  ✅ **Combat à ×2** (2026-11-09, branche `combat-x2`, choix de l'utilisateur) : un pixel d'art fait 2 pixels de l'écran
+  au combat comme sur la carte (×3 avant). Les créatures sont refaites 1,5 fois plus hautes (plus de détails, même
+  taille à l'écran), sans dépense depuis leurs grandes images et les images brutes gardées dans les archives ; l'Ange
+  (androgyne) et le Squelette regénérés ; les effets gardent leur taille (unité `BattleEffects.U`). Reste : l'Épéiste et
+  le Cavalier (plus petits, à refaire plus tard), de vrais obstacles de combat (aujourd'hui les sommets et sapins de la
+  carte). Détail dans `HISTORIQUE.md`.
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles
   (`buildings.json`) ne gardent plus la place des bâtiments ; chaque faction a sa **scène** (`art/towns/<faction>/` :
   un fond de 640 × 195 affiché ×3, et `scene.json` : pour chaque bâtiment, son pied (bas, milieu), sa profondeur et son

@@ -944,7 +944,7 @@ public static class Texts
     public static string WalkTooltip => "Avancer sur le chemin tracé";
     public static string CenterTooltip => "Centrer la carte sur le héros";
     public static string DigTooltip => "Creuser ici (il faut une journée entière de mouvement)";
-    public static string OptionsTooltip => KeyTooltip("Sauvegarder, charger, plein écran, quitter le jeu", "Échap");
+    public static string OptionsTooltip => "Options : sauvegarder, charger, plein écran, quitter le jeu";
     public static string WalkButton => "Avancer";
     public static string CenterButton => "Centrer";
     public static string DigAction => "Creuser";

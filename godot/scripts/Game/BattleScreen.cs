@@ -318,87 +318,15 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>Le côté d'un bouton du bas (en unités) : l'icône (sa partie visible, ×2) y tient.</summary>
     private const float ButtonSize = 58; // presque la hauteur de la barre (96 pixels) : l'icône ×2 y respire
 
-    /// <summary>Les icônes des boutons du bas, réduites à leur partie visible (null : pas d'image).</summary>
-    private static readonly System.Collections.Generic.Dictionary<string, Texture2D?> Icons = new();
-
-    private static Texture2D? Icon(string name)
-    {
-        if (!Icons.TryGetValue(name, out var icon))
-            Icons[name] = icon = Art.GetImage($"ui/icons/{name}") is { } image
-                ? ImageTexture.CreateFromImage(Engrave(image.GetRegion(image.GetUsedRect()))) : null;
-        return icon;
-    }
-
-    /// <summary>
-    /// L'icône d'argent incrustée dans la pierre du bouton (choix de l'utilisateur, 2026-11-09, parmi l'argent seul, gravé
-    /// et incrusté), pixel par pixel : l'argent posé dans un creux dont le bord du haut et de gauche est dans l'ombre et
-    /// celui du bas et de droite prend la lumière (la lumière vient d'en haut à gauche), en contrastes doux.
-    /// </summary>
-    private static Image Engrave(Image icon)
-    {
-        icon.Convert(Image.Format.Rgba8);
-        int w = icon.GetWidth() + 2, h = icon.GetHeight() + 2;
-        bool Inside(int x, int y) => x >= 1 && y >= 1 && x <= w - 2 && y <= h - 2 && icon.GetPixel(x - 1, y - 1).A > 0.5f;
-        var result = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
-        // des contrastes doux (remarque de l'utilisateur : trop brut au premier essai)
-        var shadow = new Color(0, 0, 0, 0.35f);
-        var light = new Color(1, 0.97f, 0.9f, 0.25f);
-        for (int y = 0; y < h; y++)
-        for (int x = 0; x < w; x++)
-        {
-            if (Inside(x, y))
-            {
-                var color = icon.GetPixel(x - 1, y - 1);
-                // le bord du creux en haut à gauche est dans l'ombre
-                if (!Inside(x - 1, y) || !Inside(x, y - 1))
-                    color = color.Darkened(0.25f);
-                result.SetPixel(x, y, color);
-            }
-            // autour du creux : la pierre prend la lumière en bas à droite, et l'ombre en haut à gauche
-            else if (Inside(x - 1, y) || Inside(x, y - 1) || Inside(x - 1, y - 1))
-                result.SetPixel(x, y, light);
-            else if (Inside(x + 1, y) || Inside(x, y + 1))
-                result.SetPixel(x, y, shadow);
-        }
-        return result;
-    }
-
-    /// <summary>
-    /// Un bouton carré de pierre avec son icône d'argent incrustée (<c>art/ui/icons/{icon}.png</c>, PixelLab, 32 × 32, ×2) ; le nom et la
-    /// touche en info-bulle. Sans image, les deux premières lettres du nom.
-    /// </summary>
+    /// <summary>Un bouton carré de pierre à icône (<see cref="IconButtons"/>) dans la barre du bas.</summary>
     private static Button AddButton(Control parent, string icon, string text, string key, Action pressed)
     {
-        var button = MakeButton("", 14);
-        button.CustomMinimumSize = V(ButtonSize, ButtonSize);
-        button.Pressed += pressed;
-        SetIcon(button, icon, text, key);
+        var button = IconButtons.Make(icon, text, key, Px(ButtonSize), pressed);
         parent.AddChild(button);
         return button;
     }
 
-    /// <summary>Change l'icône et l'info-bulle d'un bouton du bas (« Se défendre » devient « Rester »).</summary>
-    private static void SetIcon(Button button, string icon, string text, string key)
-    {
-        if (button.GetMeta("icon", "").AsString() == icon)
-            return;
-        button.SetMeta("icon", icon);
-        button.TooltipText = Texts.KeyTooltip(text, key);
-        foreach (var child in button.GetChildren())
-        {
-            button.RemoveChild(child);
-            child.QueueFree();
-        }
-        if (Icon(icon) is { } image)
-        {
-            var size = image.GetSize() * 2;
-            var picture = Picture(image, ((V(ButtonSize, ButtonSize) - size) / 2).Floor(), size);
-            button.AddChild(picture);
-            button.Text = "";
-        }
-        else
-            button.Text = text.Length <= 2 ? text : text[..2];
-    }
+    private static void SetIcon(Button button, string icon, string text, string key) => IconButtons.SetIcon(button, icon, text, key);
 
     /// <summary>Ouvre l'écran pour ce combat ; <paramref name="finished"/> est appelé quand il est fini et montré.</summary>
     /// <param name="hero">Le héros de l'attaquant (à gauche).</param>
@@ -678,12 +606,8 @@ public partial class BattleScreen : CanvasLayer
     }
 
     /// <summary>L'icône d'un bouton grisé pâlit avec lui.</summary>
-    private void DimIcons()
-    {
-        foreach (var button in new[] { _startButton, _spellButton, _waitButton, _defendButton, _autoButton, _fleeButton })
-            foreach (var icon in button.GetChildren().OfType<TextureRect>())
-                icon.Modulate = button.Disabled ? new Color(1, 1, 1, 0.35f) : Colors.White;
-    }
+    private void DimIcons() =>
+        IconButtons.Dim(new[] { _startButton, _spellButton, _waitButton, _defendButton, _autoButton, _fleeButton });
 
     /// <summary>La Tactique : la troupe choisie, les cases où elle peut aller, le curseur.</summary>
     private void RefreshPlacement(TacticalBattle battle)

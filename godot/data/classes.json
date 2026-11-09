@@ -8,6 +8,9 @@
       "army": [ { "creature": "squelette", "count": 20 }, { "creature": "zombie", "count": 10 }, { "creature": "fantome", "count": 2 } ] },
     { "id": "barbare", "name": "Barbare", "faction": "barbares",
       "attack": 3, "defense": 2, "power": 0, "knowledge": 1, "charisma": 10, "spells": [], "mainResource": "Sulfur", "secondaryResource": "Crystal",
-      "army": [ { "creature": "gobelin", "count": 30 }, { "creature": "loup", "count": 10 }, { "creature": "orc", "count": 4 } ] }
+      "army": [ { "creature": "gobelin", "count": 30 }, { "creature": "loup", "count": 10 }, { "creature": "orc", "count": 4 } ] },
+    { "id": "rodeur", "name": "Rôdeur", "faction": "foret",
+      "attack": 3, "defense": 1, "power": 1, "knowledge": 2, "charisma": 9, "spells": ["soins"], "mainResource": "Gems", "secondaryResource": "Crystal",
+      "army": [ { "creature": "farfadet", "count": 15 }, { "creature": "sanglier", "count": 5 }, { "creature": "archer-elfe", "count": 2 } ] }
   ]
 }

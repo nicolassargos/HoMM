@@ -88,12 +88,28 @@ public static class Ability
     /// <summary>Griffes : ignore 60 % de la défense de la cible (Béhémoth).</summary>
     public const string Rending = "rending";
 
+    /// <summary>Régénération de la nature (Forêt) : au début de son tour, la créature de tête retrouve un quart de ses points de vie.</summary>
+    public const string NatureRegeneration = "nature-regeneration";
+
+    /// <summary>Tire deux fois (Archer elfe).</summary>
+    public const string DoubleShot = "double-shot";
+
+    /// <summary>Bondit (Cerf) : passe par-dessus troupes et obstacles, comme en volant, mais au sol.</summary>
+    public const string Leaps = "leaps";
+
+    /// <summary>Aura de soin (Druide) : au début de son tour, soigne la créature de tête de chaque troupe amie voisine.</summary>
+    public const string HealingAura = "healing-aura";
+
+    /// <summary>Enracine (Tréant) : la cible de ses coups ne peut pas se déplacer à son prochain tour.</summary>
+    public const string Roots = "roots";
+
     public static readonly string[] Known =
     {
         Shoots, NoRangePenalty, Flies, DoubleRetaliation, NoRetaliation, Breath, RangedResistance,
         Charge, QuickStart, DoubleAttack, ShortRange, Crushing, Regenerates, TwoHex,
         Undead, GhostGrowth, Poison, LifeDrain, DeathCloud, Sweep,
         Rage, HitAndRun, Lightning, Rending,
+        NatureRegeneration, DoubleShot, Leaps, HealingAura, Roots,
     };
 }
 
@@ -181,6 +197,9 @@ public sealed class BattleUnit
 
     /// <summary>Ripostes par round : une, deux pour <see cref="Ability.DoubleRetaliation"/>.</summary>
     public int RetaliationsPerRound => Has(Ability.DoubleRetaliation) ? 2 : 1;
+
+    /// <summary>Enracinée (<see cref="Ability.Roots"/>) : elle ne pourra pas se déplacer à son prochain tour.</summary>
+    public bool IsRooted { get; internal set; }
 
     /// <summary>Remet sa créature de tête à pleine santé (régénération).</summary>
     internal bool Regenerate()

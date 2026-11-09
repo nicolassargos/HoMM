@@ -47,6 +47,9 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - Forêts et montagnes : des arbres et des sommets seuls (`art/decor/`) semés par le jeu (`DecorLayer`) ; écarté : une
   image par case (trous réguliers).
 - Terrains : deux images par terrain (`grass-2.png`…), les bords sont calculés par le shader (pas d'images de bords).
+  Herbe (2026-11-09) : demander « natural mid green… not lime, not too saturated » ; Retro Diffusion ignore les petites
+  fleurs d'une case : les fleurs, cailloux et plages de sable sont dessinés par le shader (`terrain.gdshader`), sans
+  répétition et réglables (`--ground=`).
 - Portraits : 64 × 64, style « retro », des visages marqués plutôt qu'idéalisés, trouvés d'après le nom du héros.
   28 portraits de plus (2026-11-07, 5,58 $ : 3 candidats chacun, 3 refaits) : barbares, chevaliers, sorciers, mages,
   gens des bois, morts-vivants, démons. Ce qui marche : décrire un détail qui se voit (cicatrice, cache-œil,

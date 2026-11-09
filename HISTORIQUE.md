@@ -775,6 +775,13 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   mort et boule de poison de la Liche, hache de l'Orc, flux de sang du Vampire, poison (bulles, troupe qui verdit),
   régénération du Troll, âmes du Fantôme, auras des sorts. Réglage de la vitesse des projectiles : `ProjectileSpeed`
   (le bouton de l'écran de combat est fait par l'autre session).
+- ✅ Herbe et rives (2026-11-09, branche `sol-herbe-rivages`) : nouvelles images d'herbe (Retro Diffusion, 0,48 $ ;
+  `terrain/grass@v3` n° 4 et `grass-fleurs@v3` n° 1), un vert plus profond et naturel au lieu du vert citron. Les fleurs
+  demandées à Retro Diffusion n'apparaissaient pas, et une case fleurie répétait ses fleurs : elles sont semées par le
+  shader (`flower_at` : l'herbe découpée en carrés de 9 pixels, une fleur blanche, jaune ou violette ou un caillou dans
+  un carré sur dix). Plages : une bande de sable côté terre le long de l'eau (`shore_distance` : la même rive ondulée que
+  le mélange des terrains ; sable mouillé plus sombre sur 2 pixels), 8 pixels d'art (choix de l'utilisateur, « wide »).
+  Réglages : `beach_width`, `beach_wave`, `wet`, `wet_width`, `flower_density`, `flower_cell`, `pebble_share`.
 - ✅ Ville barbare sur la carte (2026-11-09, branche `ville-barbare`, PixelLab « Pro » 160 × 128, 0,46 $) : choix de
   l'utilisateur, une **forteresse de pierre brute** (murs de rochers, tours rondes, donjon au toit de chaume, huttes, porte
   au milieu du bas, crânes, bannières rouges) avec une **grande tente de peau** au milieu des huttes. Le premier lot était

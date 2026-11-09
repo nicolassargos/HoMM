@@ -338,9 +338,18 @@ les tas de ressources : `Simulation_force_ou_magie`).
 ### Les compétences des héros et les artefacts (à concevoir)
 Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemble, avec la même méthode que les factions
 (l'idée d'abord, puis le détail).
-- **Les compétences** : ce qu'un héros apprend en montant de niveau, en plus des caractéristiques (comme les
-  compétences secondaires de Heroes 3 : écoles de magie, logistique, tir…), avec les classes de héros et les cavernes
-  de la carte.
+- **Les compétences** (en cours de conception, 2026-11-09, décidé avec l'utilisateur) :
+  - **Trois arbres**, un par famille : **Aventure** (déplacement, vision, économie, diplomatie), **Commandement**
+    (autour du charisme) et **Magie** (écoles de magie). Pas de famille du combat (le combat passe par l'attaque et la
+    défense).
+  - **À chaque niveau** : +1 charisme, +1 à la caractéristique choisie (comme aujourd'hui) **et un point de
+    compétence** : une compétence nouvelle au rang de base, ou un rang de plus (base → avancé → expert).
+  - **Les rangées d'un arbre s'ouvrent selon les points dépensés dans cet arbre** (la deuxième après 3 points, la
+    troisième après 6) : se spécialiser paie.
+  - **Six compétences au plus** par héros, trois rangs chacune : un héros devient un spécialiste.
+  - **La classe** donne une compétence de départ et **son propre talent**, qui grandit avec le niveau (comme la
+    nécromancie du Nécromancien).
+  - Plus tard : les cavernes de la carte, où l'on apprend une compétence.
 - **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le
   héros, leurs effets, où on les trouve (gardiens, coffres, cavernes), peut-être des ensembles.
 

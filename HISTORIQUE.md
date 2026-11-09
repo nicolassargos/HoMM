@@ -796,7 +796,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   nouveau plus faible ; étincelles au point d'impact ; au sol, sous les troupes (`DrawGround`), une lueur blanche puis
   une marque brûlée qui s'efface (1,1 s en tout). Les dégâts s'affichent quand l'éclair touche le sol ; l'ancien éclat
   jaune des cases est retiré. Aperçu : `--effect-preview=foudre` (une troupe après l'autre) ou `foudre:0.2` (figé, pour
-  les captures). Attaque refaite (PixelLab, 4 essais, 0,06 $) : ailes déployées en totem, cri vers le ciel, sans
+  les captures). Revu par l'utilisateur : **la foudre tombe à chaque coup** de l'Oiseau-tonnerre (son impact,
+  `"impact": "foudre"` dans `animations.json` : l'éclair part un peu avant le coup et touche le sol quand il porte), et la
+  foudre appelée (une attaque sur cinq, règles inchangées) est un second éclair plus fort (`foudre-forte` : plus large,
+  plus de branches, tout le champ s'éclaire un instant), ses dégâts en bleu au-dessus de ceux du coup ; éclair **plus
+  grand et bleu** (cœur blanc bleuté de 5 pixels d'art, 7 pour la forte, halo bleu vif, lueur bleu sombre, quatre ou six
+  branches). Attaque refaite (PixelLab, 4 essais, 0,06 $) : ailes déployées en totem, cri vers le ciel, sans
   éclair ; choisie `attack-2-r` (l'image 2 avait une étincelle : remplacée par la 3, morceaux détachés effacés).
 - ✅ Créatures barbares (2026-11-09, branche `creatures-barbares`, PixelLab, environ 3 $) : fiches dans
   `tools/art/creatures-art.json`, faites avec `tools/art/creature.py`. Choix de l'utilisateur : **Nomades**, archers à cheval des

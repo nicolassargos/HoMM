@@ -452,15 +452,20 @@ public partial class BattleFieldView : Control
                     });
                     break;
                 case UnitStruck struck:
-                    double age = 0, wind = 0;
+                    double age = 0, wind = 0, boltAge = -1;
                     bool hit = false, launched = false, landed = false;
                     // un tir avec un projectile (flèche, boule de feu) : il part à l'image du lâcher et le coup porte à son
                     // arrivée ; sinon le coup porte au moment habituel du geste
                     string? shot = struck.Ranged ? TextSetting(struck.Attacker, "projectile") : null;
+                    // un coup joué sur la case de la cible (la foudre de l'Oiseau-tonnerre) : l'effet part un peu avant le
+                    // coup, pour toucher le sol au moment où il porte
+                    bool onHex = shot == null && BattleEffects.PlaysOnHex(TextSetting(struck.Attacker, "impact"));
                     _animations.Enqueue(delta =>
                     {
                         // l'attaquant fait son geste (s'il a une animation d'attaque) ; le coup porte vers la fin
                         var striker = _shown[struck.Attacker];
+                        if (boltAge >= 0)
+                            boltAge += delta;
                         if (wind == 0)
                         {
                             // l'attaquant se tourne vers sa cible, et la cible vers lui
@@ -477,12 +482,19 @@ public partial class BattleFieldView : Control
                         double release = shot != null && Setting(struck.Attacker, "launchFrame") is double frame
                             ? frame / Fps(struck.Attacker, AttackState)
                             : HitDelay * AnimationFps / Fps(struck.Attacker, AttackState);
+                        if (onHex && boltAge < 0 && (striker.State != AttackState || wind + BattleEffects.LightningHitTime >= release))
+                        {
+                            boltAge = 0;
+                            _effects.OnHex(TextSetting(struck.Attacker, "impact")!, Ground(_shown[struck.Target]));
+                        }
                         if (striker.State == AttackState && wind < release)
                         {
                             wind += delta;
                             return false;
                         }
                         wind = Math.Max(wind, 1e-6);
+                        if (onHex && boltAge < BattleEffects.LightningHitTime)
+                            return false;
                         if (shot != null && !launched)
                         {
                             launched = true;
@@ -502,7 +514,8 @@ public partial class BattleFieldView : Control
                             target.Recoil = 1;
                             target.RecoilDirection = direction;
                             string impact = shot != null ? BattleEffects.ImpactOf(shot) : TextSetting(struck.Attacker, "impact") ?? "choc";
-                            _effects.Hit(impact, BodyCenter(struck.Target, target), direction);
+                            if (!onHex)
+                                _effects.Hit(impact, BodyCenter(struck.Target, target), direction);
                             // le nuage de mort s'étale autour de la cible (ses coups sur les voisines suivent)
                             if (shot != null && struck.Attacker.Has(Ability.DeathCloud))
                                 _effects.Hit("nuage", target.Position + new Vector2(0, HexHeight / 2 - Ui.Px(24)), direction);
@@ -648,18 +661,19 @@ public partial class BattleFieldView : Control
                     _animations.Enqueue(delta =>
                     {
                         var target = _shown[bolt.Target];
-                        // la foudre tombe du ciel sur la case de la cible ; les dégâts s'affichent quand elle touche le sol
+                        // la foudre appelée (une attaque sur cinq) : un second éclair, plus fort, sur la case de la cible ;
+                        // ses dégâts s'affichent quand il touche le sol, au-dessus de ceux du coup
                         if (flash == 0)
-                            _effects.OnHex("foudre", target.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10)));
+                            _effects.OnHex("foudre-forte", Ground(target));
                         bool before = flash < BattleEffects.LightningHitTime;
                         flash += Math.Max(delta, 1e-6);
                         if (before && flash >= BattleEffects.LightningHitTime)
                         {
                             target.Count = Math.Max(0, target.Count - bolt.Killed);
                             target.Flash = 1;
-                            _floating.Add(($"-{bolt.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 240, 120)));
+                            _floating.Add(($"-{bolt.Damage}", target.Position + Ui.V(0, -85), 0, MapRenderer.Rgb(150, 200, 255)));
                             if (bolt.Killed > 0)
-                                _floating.Add(($"{bolt.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
+                                _floating.Add(($"{bolt.Killed} †", target.Position + Ui.V(0, -65), 0, Colors.White));
                         }
                         if (flash < 0.6)
                             return false;
@@ -741,6 +755,9 @@ public partial class BattleFieldView : Control
     private double _previewClock = -1;
     private int _previewTurn;
 
+    /// <summary>Le sol sous une troupe (là où tombe un effet joué sur sa case).</summary>
+    private static Vector2 Ground(Shown shown) => shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10));
+
     private void PreviewEffect(double delta)
     {
         if (EffectPreviewArg is not { } arg || Battle == null)
@@ -758,7 +775,7 @@ public partial class BattleFieldView : Control
         if (targets.Count > 0)
             targets = new() { frozen != null ? targets[^1] : targets[_previewTurn++ % targets.Count] };
         foreach (var shown in targets)
-            _effects.OnHex(parts[0], shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10)), frozen);
+            _effects.OnHex(parts[0], Ground(shown), frozen);
     }
 
     public override void _Process(double delta)

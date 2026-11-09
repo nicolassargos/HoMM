@@ -409,8 +409,8 @@ croissance, prix, garde.
   ✅ **Créatures barbares** (2026-11-09, branche `creatures-barbares`) : Nomades (2 cases), Oiseau-tonnerre (1 case, vol
   avec envol et atterrissage), Béhémoth (1 case, debout) : images de combat, animations et images de la carte. Détail
   dans `HISTORIQUE.md`.
-  ✅ **Foudre sur la case de la cible** (2026-11-09, branche `foudre-cible`) : la foudre tombe du ciel sur la troupe
-  touchée, dessinée par le jeu (`BattleEffects.OnHex` : un effet joué sur une case, à réutiliser pour les sorts) ;
+  ✅ **Foudre sur la case de la cible** (2026-11-09, branche `foudre-cible`) : à chaque coup de l'Oiseau-tonnerre, un
+  éclair bleu tombe du ciel sur la troupe touchée (un second, plus fort, quand il appelle la foudre), dessiné par le jeu (`BattleEffects.OnHex` : un effet joué sur une case, à réutiliser pour les sorts) ;
   l'Oiseau-tonnerre attaque ailes déployées, sans éclair dessiné. Détail dans `HISTORIQUE.md`.
 - **La ville vue de face par faction** (conçue avec l'utilisateur, 2026-11-07, rien n'est encore fait) : les règles
   (`buildings.json`) ne gardent plus la place des bâtiments ; chaque faction a sa **scène** (`art/towns/<faction>/` :

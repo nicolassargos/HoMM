@@ -343,6 +343,16 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
   de la carte.
 - **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le
   héros, leurs effets, où on les trouve (gardiens, coffres, cavernes), peut-être des ensembles.
+- **L'écran du héros, refait** (choix de l'utilisateur, 2026-11-09, parmi trois maquettes :
+  `art-candidats/en-cours/disposition-heros.html`) : à gauche, toujours visibles, le portrait, le niveau, l'expérience,
+  le mouvement et les caractéristiques ; à droite, **trois grands onglets** : **Équipement** (le héros **en pied**, une
+  image par héros d'après son portrait, avec **11 emplacements** autour : tête, cou, épaules (cape), torse, main de
+  l'arme, main du bouclier, deux anneaux, ceinture, pieds, divers ; et un **coffre de 16 places de la même taille**),
+  **Compétences** (trois sous-onglets Aventure, Commandement, Magie ; des icônes, le texte à côté ou en info-bulle),
+  **Magie** ; l'armée en bas. **Une image de 32 × 32 par artefact** sert partout (emplacements et coffre ×3, et sur la
+  carte ×2, posé au sol comme un objet à ramasser, une ombre ou une lueur dessinée par le jeu dessous) ; une seconde
+  image pour la carte seulement si celle-ci s'y lit mal. Images à faire (session images) : 41 héros en pied, une icône
+  par compétence.
 
 ### Les ressources rares ✅
 Décidé avec l'utilisateur (2026-11-07), comme Heroes 2 et 3 : **7 ressources**, l'or, le bois et le minerai (communs),

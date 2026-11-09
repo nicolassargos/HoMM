@@ -1,8 +1,10 @@
 """Page d'aperçu des animations candidates d'une créature, à la taille du jeu (×2), sans rien couper : chaque feuille
 (art-candidats/en-cours/candidats/<id>/anim/*.png) jouée en boucle dans un cadre assez grand, sur de l'herbe, avec la
-créature retournée (le défenseur) à côté. Écrit art-candidats/en-cours/<id>-anims.html. Gratuit.
+créature retournée (le défenseur) à côté. Les attaques montrent un adversaire posé sur la case voisine (l'Archer par défaut,
+tourné vers l'attaquant, à la distance du jeu : une case = 110 pixels de l'écran), pour voir où porte le coup.
+Écrit art-candidats/en-cours/<id>-anims.html. Gratuit.
 
-    python -I tools/art/apercu_anims.py <id> [images/s=8]
+    python -I tools/art/apercu_anims.py <id> [images/s=8] [--cible=archer]
 """
 import json
 import os
@@ -12,7 +14,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from reduire import lire
 
 ident = sys.argv[1]
-fps = float(sys.argv[2]) if len(sys.argv) > 2 else 8
+options = [a for a in sys.argv[2:] if a.startswith("--")]
+valeurs = [a for a in sys.argv[2:] if not a.startswith("--")]
+fps = float(valeurs[0]) if valeurs else 8
+cible = next((o.split("=", 1)[1] for o in options if o.startswith("--cible=")), "archer")
 base = f"art-candidats/en-cours/candidats/{ident}/anim"
 feuilles = []
 for nom in sorted(os.listdir(base)):
@@ -36,16 +41,23 @@ canvas{image-rendering:pixelated;display:block;outline:1px dashed rgba(255,255,2
 </style></head><body>
 <h1>Animations candidates : """ + ident + """</h1>
 <p>À la taille du jeu (×2), sans rien couper (le pointillé : une marge large autour du cadre de l'animation) ; à droite, la même retournée (le
-défenseur), écartée pour ne pas la gêner. Vitesse : <span id="v"></span> images/s
+défenseur), écartée pour ne pas la gêner. Devant chaque attaque, un adversaire (""" + cible + """) sur la case voisine.
+Vitesse : <span id="v"></span> images/s
 (touches + et −).</p>
 <div class="liste" id="liste"></div>
 <script>
 const FEUILLES = """ + json.dumps(feuilles, ensure_ascii=False) + """;
+// l'adversaire posé devant les attaques : son image de combat, tournée vers l'attaquant, sur la case voisine
+const CIBLE = new Image();
+const CASE = 110; // largeur d'une case à l'écran
 let fps = """ + str(fps) + """;
 const v = document.getElementById("v"); v.textContent = fps;
 document.addEventListener("keydown", e => { if (e.key === "+") fps = Math.min(30, fps + 1); if (e.key === "-") fps = Math.max(1, fps - 1); v.textContent = fps; });
 const toiles = [];
-for (const f of FEUILLES) {
+// on attend l'image de l'adversaire : la largeur des cadres d'attaque en dépend
+CIBLE.onload = CIBLE.onerror = () => { for (const f of FEUILLES) montrer(f); };
+CIBLE.src = """ + json.dumps(f"../../godot/art/creatures/battle/{cible}.png") + """;
+function montrer(f) {
   const fig = document.createElement("figure");
   fig.innerHTML = `<figcaption>${f.nom.replace(".png", "")}</figcaption>`;
   const paire = document.createElement("div"); paire.className = "paire";
@@ -56,8 +68,12 @@ for (const f of FEUILLES) {
     const rangs = Math.ceil(f.images / 4), cw = img.width / 4, ch = img.height / rangs;
     // une marge vide autour de l'animation (la moitié de son cadre de chaque côté) : rien ne touche le bord
     const mx = Math.round(cw / 2), my = Math.round(ch / 4);
-    for (const c of [a, b]) { c.width = (cw + 2 * mx) * 2; c.height = (ch + 2 * my) * 2; }
-    toiles.push({img, n: f.images, cw, ch, mx, my, a, b});
+    const attaque = f.nom.startsWith("attack");
+    // la place de l'adversaire : son pied à une case du pied de l'attaquant (le milieu du bas du cadre)
+    const pied = (mx + cw / 2) * 2;
+    const large = attaque ? Math.max((cw + 2 * mx) * 2, pied + CASE + CIBLE.width + 24) : (cw + 2 * mx) * 2;
+    for (const c of [a, b]) { c.width = large; c.height = (ch + 2 * my) * 2; }
+    toiles.push({img, n: f.images, cw, ch, mx, my, a, b, attaque, pied});
   };
   img.src = f.chemin;
 }
@@ -70,6 +86,12 @@ function boucle(t) {
       for (const [c, retourne] of [[s.a, false], [s.b, true]]) {
         const x = c.getContext("2d"); x.imageSmoothingEnabled = false; x.clearRect(0, 0, c.width, c.height);
         x.save(); if (retourne) { x.translate(c.width, 0); x.scale(-1, 1); }
+        if (s.attaque && CIBLE.complete && CIBLE.width) {
+          // l'adversaire, retourné vers l'attaquant, les pieds sur la même ligne
+          const tw = CIBLE.width * 2, th = CIBLE.height * 2, bas = (s.my + s.ch) * 2;
+          x.save(); x.translate(s.pied + CASE, 0); x.scale(-1, 1);
+          x.drawImage(CIBLE, -tw / 2, bas - th, tw, th); x.restore();
+        }
         x.drawImage(s.img, sx, sy, s.cw, s.ch, s.mx * 2, s.my * 2, s.cw * 2, s.ch * 2); x.restore();
       }
     }

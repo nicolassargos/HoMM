@@ -176,7 +176,11 @@ Décidé avec l'utilisateur (2026-11-09).
    `ForetTests`. Mesuré (un adversaire, Normal, six semaines, or d'armée) : Château 25 000, morts-vivants 20 900,
    Barbares 23 100, **Forêt 30 600** : la plus forte (sa régénération lui fait perdre moins à chaque combat), à revoir
    à l'équilibrage. La simulation seule gagne toujours (petites cartes jour 79, normales 86, grandes 153).
-3. Les images (session images) : Farfadet, Sanglier, Archer elfe, Cerf, Druide, Tréant (le Troll existe), la ville.
+3. ✅ Les images des créatures (2026-11-09, branche `creatures-foret`, choix de l'utilisateur) : Farfadet aux ailes de
+   feuilles (bord semi-transparent), Sanglier sauvage, Archer elfe encapuchonné, grand Cerf, Druide trapu à la chouette
+   (d'après deux références de l'utilisateur ; il lance un tourbillon de feuilles dessiné par le jeu), Tréant en fleurs
+   (un arbre qui marche, pas un homme de bois) : images de combat, animations, petites images de la carte. Détail dans
+   `HISTORIQUE.md`. Reste : la ville de la Forêt sur la carte (`objects/town-foret.png`).
 
 #### Les Barbares (jouables)
 Décidé avec l'utilisateur (2026-11-08).

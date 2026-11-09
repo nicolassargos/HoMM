@@ -905,6 +905,106 @@
         "move": "the stag walks forward to the right at a calm stately walk in one full walking cycle, each of its four legs lifting and stepping forward in turn, no jumping, no running, all hooves stay close to the ground, its head and antlers held high, it stays at the same place",
         "attack": "the stag lowers its head down close to the ground, then sweeps its huge antlers upward from low to high in one powerful upward thrust, lifting its head high, then lowers it back to its starting pose"
       }
+    },
+    "treant": {
+      "nom": "Tréant",
+      "gabarit": "grand",
+      "description": "a walking blossoming tree that looks like a real old tree, not a man: a thick gnarled oak trunk as its body, a large rounded crown of light green leaves dotted with pink and white blossoms on top, the base of the trunk splits into thick twisted roots used as legs, two crooked side branches used as arms with twig fingers, soft green moss and ivy on the bark, only a subtle face formed by knots in the bark with two small glowing green eyes, no human body, no human face",
+      "sujet": "a walking blossoming oak tree with root legs, branch arms and a big leafy crown with pink flowers, only two small glowing eyes in the bark, side view facing right",
+      "hauteur": 100,
+      "generation": [
+        144,
+        160
+      ],
+      "style": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/treant-L5-1-coupe.png::the same walking tree: keep exactly its design, colours, trunk, roots, arms and blossoms, but draw its whole large rounded crown of leaves fully visible above it (in this reference the top of the crown is cut off), leave empty space around it"
+      ],
+      "comparer": [
+        "troll",
+        "ogre"
+      ],
+      "notes": "Forêt, niveau 6 : le mur lent, résiste aux tirs, ses coups enracinent la cible, 1 case. Choix de l utilisateur (2026-11-09) : tréant en fleurs. Revu : plus arbre, moins humain (remarque de l utilisateur). Refait (2026-11-09) : la couronne de L5-1 était coupée en haut (cadre de génération trop petit) ; regénéré à 144 × 160 avec L5-1 en référence.",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "références"
+      },
+      "choix": {
+        "fixe": "L10-1",
+        "move": "move-6",
+        "attack": "attack-4-r",
+        "idle": "idle-6"
+      },
+      "grande": "art-candidats/references/derives/treant-grand.png",
+      "mouvements": {
+        "idle": "the walking tree stands still and sways gently in the wind, its crown of leaves and blossoms rustles, its branch arms move slowly, its roots stay in place",
+        "move": "the walking tree walks slowly forward to the right on its thick roots in one full heavy lumbering walking cycle, one root leg lifting and stepping forward after the other, its crown swaying, it stays at the same place",
+        "attack": "the walking tree raises one heavy branch arm high and swings it down hard to smash the enemy in front of it, then slowly returns to its starting pose"
+      },
+      "consignes": {
+        "idle": "the walking tree shakes its big leafy crown strongly from left to right and back again several times, like an animal shaking its head, a few leaves and petals fall slowly from its crown to the ground, then it stands still again, its roots stay in place",
+        "move": "the walking tree walks slowly forward to the right on its thick roots: one big root leg lifts off the ground and steps forward, then the other, heavy and lumbering, its crown swaying gently, it stays at the same place",
+        "attack": "the walking tree lashes one long flexible branch arm forward like a whip, the branch stretching far in front of it, then pulls it back to its starting pose"
+      }
+    },
+    "druide": {
+      "nom": "Druide",
+      "gabarit": "humain",
+      "description": "a stout, thickset old druid standing firmly, broad shoulders, a big round belly and thick strong arms under a heavy earthy brown robe with wide sleeves tied with a red belt, a long thick white beard and a wise stern face under a tall pointed brown hood, holding a tall pale gnarled wooden staff with a forked top on which a small grey-brown owl with yellow eyes is perched",
+      "sujet": "a stout thickset old bearded druid with broad shoulders in a heavy brown robe and tall pointed hood with a red belt, holding a pale gnarled staff with an owl perched on top, side view facing right",
+      "hauteur": 72,
+      "generation": [
+        104,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/druid1.png::style and costume reference (classic 1990s strategy game druid: brown pointed hood, brown robe, red belt, white beard): keep this look, but draw it bigger and more detailed, do not copy its exact pose",
+        "art-candidats/references/druid2.png::concept reference only (old hooded druid, a gnarled pale staff with an owl perched on it): keep the owl on the staff, ignore its grey colours, its realistic modern style and its grey checkered background"
+      ],
+      "comparer": [
+        "moine",
+        "archer"
+      ],
+      "notes": "Forêt, niveau 5 : tireur et soigneur (tire sans pénalité de distance, aura de soin), 1 case. D'après deux références de l'utilisateur (2026-11-09) : la robe brune à capuche pointue et ceinture rouge (druid1), le bâton noueux avec une chouette (druid2, converti de l'AVIF). Revu : plus trapu, plus épais (remarque de l'utilisateur). L10-3 regarde déjà à droite : pas de miroir (les feuilles d animation faites avec miroir ont été retournées).",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul"
+      },
+      "mouvements": {
+        "idle": "the stout old druid stands holding his staff, slowly strokes his long white beard with his free hand, the owl on top of the staff turns its head and ruffles its feathers, the feet stay in place",
+        "move": "the stout old druid walks forward to the right slowly in one full walking cycle, leaning on his tall staff with each step, his heavy robe swaying, the owl stays perched on the staff, he stays at the same place",
+        "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff"
+      },
+      "choix": {
+        "fixe": "L10-3",
+        "idle": "idle-2-r",
+        "move": "move-2",
+        "attack": "attack-2-r"
+      },
+      "grande": "art-candidats/references/derives/druide-grand.png",
+      "consignes": {
+        "idle": "the stout old druid stands holding his staff, slowly strokes his long white beard with his free hand, the owl on top of the staff turns its head and ruffles its feathers, the feet stay in place",
+        "move": "the stout old druid walks forward to the right slowly in one full walking cycle, leaning on his tall staff with each step, his heavy robe swaying, the owl stays perched on the staff, he stays at the same place",
+        "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff"
+      }
     }
   }
 }

@@ -21,7 +21,7 @@ public sealed partial class GameState
     /// Version 2 : les routes sont une couche à part (<see cref="MapData.Roads"/>). Une sauvegarde de la version 1
     /// (où la route était un terrain, le numéro 1) est encore lue : ses routes deviennent de l'herbe avec une route.
     /// </summary>
-    public const int SaveVersion = 5; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts
+    public const int SaveVersion = 6; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts ; 6 : temples et cercles des fées
 
     private static readonly JsonSerializerOptions SaveOptions = new()
     {
@@ -53,7 +53,8 @@ public sealed partial class GameState
         string? Name = null, string? Faction = null, List<string>? Buildings = null, bool BuiltToday = false,
         Dictionary<string, int>? Available = null, List<StackData>? Garrison = null, List<string>? GuildSpells = null,
         bool? Small = null, // une mine sur une case, une ville sur 3 × 3 (venues d'une sauvegarde d'avant)
-        HeroStat? Stat = null, string? Spell = null, List<int>? Visitors = null, bool? Stocked = null); // les lieux (version 5)
+        HeroStat? Stat = null, string? Spell = null, List<int>? Visitors = null, bool? Stocked = null, // les lieux (version 5)
+        Blessing? Blessing = null); // temple ou cercle des fées (version 6)
 
     private sealed record StackData(string Creature, int Count);
 
@@ -67,7 +68,7 @@ public sealed partial class GameState
         int Id, string Name, int Owner, Cell Position, int Movement, int MaxMovement, int VisionRadius,
         int Attack, int Defense, int Power, int Knowledge, int Charisma, int Level, int Experience,
         List<StackData> Army, List<Cell>? Path, List<string>? Artifacts = null, int? SpellPoints = null, List<string>? Spells = null,
-        string? Class = null, Dictionary<string, int>? Skills = null, int SkillPoints = 0);
+        string? Class = null, Dictionary<string, int>? Skills = null, int SkillPoints = 0, int SiteMorale = 0, int SiteLuck = 0);
 
     /// <summary>Un niveau gagné dont la caractéristique n'a pas encore été choisie.</summary>
     private sealed record ChoiceData(int Hero, int Level, List<HeroStat> Options);
@@ -95,7 +96,7 @@ public sealed partial class GameState
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
                 Stacks(h.Army), _paths.GetValueOrDefault(h)?.ToList(), h.Artifacts.Count > 0 ? h.Artifacts.Select(a => a.Id).ToList() : null,
                 h.SpellPoints, h.Spells.Count > 0 ? h.Spells.Select(s => s.Id).ToList() : null, h.Class?.Id,
-                h.Skills.Count > 0 ? h.Skills.ToDictionary(p => p.Key.Id, p => p.Value) : null, h.SkillPoints)).ToList(),
+                h.Skills.Count > 0 ? h.Skills.ToDictionary(p => p.Key.Id, p => p.Value) : null, h.SkillPoints, h.SiteMorale, h.SiteLuck)).ToList(),
             _pendingChoices.Select(c => new ChoiceData(c.Hero.Id, c.Level, c.Options.ToList())).ToList(),
             _pendingChests.Count > 0 ? _pendingChests.Select(c => new ChestData(c.Hero.Id, c.Chest.Position, c.Chest.Gold)).ToList() : null);
         return JsonSerializer.Serialize(save, SaveOptions);
@@ -122,6 +123,7 @@ public sealed partial class GameState
         SageHut hut => new ObjectData("sage", obj.Id, obj.Position, Spell: hut.Spell.Id),
         WeeklyProducer producer => new ObjectData("producer", obj.Id, obj.Position, Resource: producer.Resource, Stocked: producer.Stocked),
         ObservationTower tower => new ObjectData("tower", obj.Id, obj.Position, Visitors: tower.Visitors.Order().ToList()),
+        BlessingSite site => new ObjectData("blessing", obj.Id, obj.Position, Blessing: site.Blessing),
         Mine mine => new ObjectData("mine", obj.Id, obj.Position, Resource: mine.Resource, Owner: mine.Owner?.Id, Small: mine.Large ? null : true),
         MonsterGuard guard => new ObjectData("guard", obj.Id, obj.Position, Creature: guard.Type.Id,
             InitialCount: guard.InitialCount, Amount: guard.Count),
@@ -150,7 +152,7 @@ public sealed partial class GameState
         try
         {
             if (JsonSerializer.Deserialize<SaveFile>(json, SaveOptions) is not { Map: not null, Players.Count: > 0 } save
-                || save.Version is not (1 or 2 or 3 or 4 or SaveVersion))
+                || save.Version is not (1 or 2 or 3 or 4 or 5 or SaveVersion))
                 return null;
             var hero = save.Heroes.Where(h => h.Owner == save.Players[0].Id)
                 .OrderByDescending(h => h.Id == save.CurrentHero).ThenByDescending(h => h.Level).FirstOrDefault();
@@ -176,7 +178,7 @@ public sealed partial class GameState
         }
         if (save == null)
             throw new FormatException("sauvegarde vide");
-        if (save.Version is not (1 or 2 or 3 or 4 or SaveVersion))
+        if (save.Version is not (1 or 2 or 3 or 4 or 5 or SaveVersion))
             throw new FormatException($"version de sauvegarde inconnue : {save.Version} (attendue : {SaveVersion})");
         try
         {
@@ -229,6 +231,7 @@ public sealed partial class GameState
                 "sage" => new SageHut(o.Position, data.Spells.Get(o.Spell!)),
                 "producer" => new WeeklyProducer(o.Position, o.Resource!.Value) { Stocked = o.Stocked != false },
                 "tower" => WithVisitors(new ObservationTower(o.Position), t => t.Visitors, o.Visitors),
+                "blessing" => new BlessingSite(o.Position, o.Blessing!.Value),
                 // avant la version 3, une mine n'occupait qu'une case : ses voisines peuvent être prises
                 "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null, Large = save.Version >= 3 && o.Small != true },
                 "guard" => new MonsterGuard(o.Position, data.Creatures.Get(o.Creature!), o.InitialCount!.Value, o.Amount!.Value),
@@ -258,6 +261,8 @@ public sealed partial class GameState
                 Movement = h.Movement,
                 BaseVisionRadius = h.VisionRadius,
                 SkillPoints = h.SkillPoints,
+                SiteMorale = h.SiteMorale,
+                SiteLuck = h.SiteLuck,
                 Attack = h.Attack,
                 Defense = h.Defense,
                 Power = h.Power,

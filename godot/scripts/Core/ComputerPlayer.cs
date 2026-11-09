@@ -306,12 +306,12 @@ public static class ComputerPlayer
 
     /// <summary>
     /// L'ordre des compétences pour l'IA (étape 9) : la compétence de départ de sa classe, puis celles qui servent le plus
-    /// à son jeu (le mouvement, l'or, le commandement…), les écoles de magie après le Mysticisme. Une compétence apprise
+    /// à son jeu (le mouvement, l'or, le commandement, le moral…), les écoles de magie après le Mysticisme. Une compétence apprise
     /// monte d'abord jusqu'à expert, dans cet ordre.
     /// </summary>
     private static readonly string[] SkillOrder =
     {
-        Skills.Logistics, Skills.Estates, Skills.Leadership, Skills.Discipline, Skills.Recruiter, Skills.Inspiration,
+        Skills.Logistics, Skills.Estates, Skills.Leadership, Skills.Morale, Skills.Discipline, Skills.Recruiter, Skills.Inspiration, Skills.Luck,
         Skills.Mysticism, "ecole-terre", "ecole-feu", "ecole-eau", "ecole-air", Skills.Scouting, Skills.Pathfinding,
     };
 
@@ -400,6 +400,8 @@ public static class ComputerPlayer
                 SageHut hut when !hero.Knows(hut.Spell) => 1.2,
                 WeeklyProducer { Stocked: true } => 1,
                 ObservationTower tower when !tower.Visitors.Contains(player.Id) => 1.2,
+                // le moral ou la chance, jusqu'au prochain combat : moins pressé que le reste
+                BlessingSite site when !site.AlreadyGiven(hero) => 1.5,
                 _ => 0,
             };
             if (weight == 0 || obj.Position == hero.Position || !costs.TryGetValue(obj.Position, out int cost))

@@ -604,6 +604,9 @@ public sealed partial class GameState
         // les points de sort dépensés pendant le combat
         hero.SpendSpellPoints(report.AttackerSpellPointsSpent);
         defenderHero?.SpendSpellPoints(report.DefenderSpellPointsSpent);
+        // le moral et la chance des lieux visités ne durent qu'un combat
+        hero.ClearSiteBonuses();
+        defenderHero?.ClearSiteBonuses();
 
         // le héros qui se défendait : vaincu, il disparaît ; vainqueur, il gagne la valeur des troupes tuées
         if (defenderHero != null)

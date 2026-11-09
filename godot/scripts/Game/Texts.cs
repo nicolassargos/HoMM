@@ -97,6 +97,8 @@ public static class Texts
         WeeklyProducer { IsWaterWheel: true } => "Roue à eau",
         WeeklyProducer producer => $"Moulin ({Resource(producer.Resource)})",
         ObservationTower => "Tour d'observation",
+        BlessingSite { Blessing: Blessing.Morale } => "Temple",
+        BlessingSite => "Cercle des fées",
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
         Town town => town.Name,
@@ -143,9 +145,12 @@ public static class Texts
     /// <summary>« 12 Archers tirent sur 30 Paysans : 18 dégâts, 18 tués. », ou null pour ce qui ne se raconte pas.</summary>
     public static string? BattleMessage(BattleAction action) => action switch
     {
-        UnitStruck s => $"{Capitalize(Stack(s.Attacker.Stack))} {Verb(s)} {StackAfter(s)} : {s.Damage} dégâts"
+        UnitStruck s => (s.Luck > 0 ? "Coup de chance ! " : s.Luck < 0 ? "Malchance… " : "")
+                        + $"{Capitalize(Stack(s.Attacker.Stack))} {Verb(s)} {StackAfter(s)} : {s.Damage} dégâts"
                         + (s.Killed > 0 ? $", {s.Killed} {(s.Killed == 1 ? "tué" : "tués")}." : "."),
         UnitWaited w => $"{Capitalize(Stack(w.Unit.Stack))} {(w.Unit.Count == 1 ? "attend" : "attendent")}.",
+        UnitCheered m => $"Bon moral : {Stack(m.Unit.Stack)} {(m.Unit.Count == 1 ? "rejoue" : "rejouent")} !",
+        UnitFroze m => $"Mauvais moral : {Stack(m.Unit.Stack)} {(m.Unit.Count == 1 ? "hésite et passe son tour" : "hésitent et passent leur tour")}.",
         UnitRegenerated r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "se régénère" : "se régénèrent")}.",
         UnitPoisoned p => $"Le poison ronge {Stack(new CreatureStack(p.Unit.Type, p.Unit.Count + p.Killed))} : {p.Damage} dégâts"
                           + (p.Killed > 0 ? $", {p.Killed} {(p.Killed == 1 ? "tué" : "tués")}." : "."),
@@ -246,6 +251,7 @@ public static class Texts
         SageHut hut when hero != null && hero.Knows(hut.Spell) => $" ({hero.Name} connaît ce sort)",
         WeeklyProducer { Stocked: false } => " (vide cette semaine)",
         ObservationTower tower when tower.Visitors.Contains(viewer.Id) => " (déjà visitée)",
+        BlessingSite site when hero != null && site.AlreadyGiven(hero) => $" ({hero.Name} en a déjà la bénédiction)",
         _ => "",
     };
 
@@ -678,6 +684,9 @@ public static class Texts
         ShrineVisited shrine => $"{shrine.Hero.Name} a déjà prié à cet autel.",
         SageVisited { Learned: true } sage => $"Le sage enseigne {sage.Hut.Spell.Name} à {sage.Hero.Name}.",
         SageVisited sage => $"{sage.Hero.Name} connaît déjà le sort du sage ({sage.Hut.Spell.Name}).",
+        BlessingVisited { Gained: true, Site.Blessing: Blessing.Morale } b => $"{b.Hero.Name} se recueille au temple : +1 moral jusqu'au prochain combat.",
+        BlessingVisited { Gained: true } b => $"{b.Hero.Name} danse avec les fées : +1 chance jusqu'au prochain combat.",
+        BlessingVisited b => $"{b.Hero.Name} a déjà cette bénédiction (elle dure jusqu'au prochain combat).",
         ProducerVisited { Amount: > 0 } producer => $"{ObjectName(producer.Producer)} : +{producer.Amount} {Resource(producer.Producer.Resource)}.",
         ProducerVisited producer => $"{ObjectName(producer.Producer)} : rien à prendre avant la semaine prochaine.",
         TowerVisited tower => $"Du haut de la tour, {tower.Hero.Name} découvre les environs.",
@@ -778,8 +787,63 @@ public static class Texts
              + "(nombre × coût de la créature). Au-delà, la troupe risque de se révolter au combat.",
     };
 
+    /// <summary>« +2 », « 0 », « −1 ».</summary>
+    public static string Signed(int value) => value > 0 ? $"+{value}" : value < 0 ? $"−{-value}" : "0";
+
+    public static string MoraleWord => "Moral";
+    public static string LuckWord => "Chance";
+
+    /// <summary>« Moral +1 · chance 0 ».</summary>
+    public static string MoraleAndLuck(int morale, int luck) => $"Moral {Signed(morale)} · chance {Signed(luck)}";
+
+    /// <summary>Ce que fait le moral, et d'où vient celui-ci (les parts qui comptent).</summary>
+    public static string MoraleTooltip(MoraleParts morale)
+    {
+        int total = morale.Total;
+        var lines = new List<string>
+        {
+            $"Moral {Signed(total)}"
+            + (total > 0 ? $" : après avoir agi, la troupe rejoue aussitôt une fois sur {Percent(total * Morale.GoodChancePerPoint)}."
+                : total < 0 ? $" : au début de son tour, la troupe se fige une fois sur {Percent(-total * Morale.BadChancePerPoint)}."
+                : " : ni bon ni mauvais."),
+        };
+        void Part(int value, string what)
+        {
+            if (value != 0)
+                lines.Add($"{what} : {Signed(value)}");
+        }
+        Part(morale.Aura, "Charisme du héros (20, 30, 40)");
+        Part(morale.Factions, morale.Factions > 0 ? "Une seule faction dans l'armée" : morale.Factions == -1 ? "Trois factions dans l'armée" : "Quatre factions ou plus");
+        Part(morale.Overload, "Troupe trop nombreuse pour le charisme");
+        Part(morale.Skill, "Compétence Moral");
+        Part(morale.Site, "Temple (jusqu'au prochain combat)");
+        lines.Add("Une seule faction : +1 ; trois : −1 ; quatre ou plus : −2.");
+        return string.Join("\n", lines);
+    }
+
+    /// <summary>Ce que fait la chance, et d'où vient celle-ci.</summary>
+    public static string LuckTooltip(LuckParts luck)
+    {
+        int total = luck.Total;
+        var lines = new List<string>
+        {
+            $"Chance {Signed(total)}"
+            + (total > 0 ? $" : un coup sur {Percent(total * Morale.LuckChancePerPoint)} fait deux fois plus de dégâts."
+                : total < 0 ? $" : un coup sur {Percent(-total * Morale.LuckChancePerPoint)} fait moitié moins de dégâts."
+                : " : ni bonne ni mauvaise."),
+        };
+        if (luck.Skill != 0)
+            lines.Add($"Compétence Chance : {Signed(luck.Skill)}");
+        if (luck.Site != 0)
+            lines.Add($"Cercle des fées (jusqu'au prochain combat) : {Signed(luck.Site)}");
+        return string.Join("\n", lines);
+    }
+
+    /// <summary>« 5 % » d'une part entre 0 et 1.</summary>
+    private static string Percent(double share) => $"{Math.Round(share * 100)} %";
+
     /// <summary>L'info-bulle d'une troupe : ses caractéristiques, ses capacités et son commandement.</summary>
-    public static string StackTooltip(CreatureStack stack, int? commandLimit)
+    public static string StackTooltip(CreatureStack stack, int? commandLimit, MoraleParts? morale = null, int? luck = null)
     {
         var t = stack.Type;
         var lines = new List<string>
@@ -796,6 +860,8 @@ public static class Texts
             if (Command.Cost(t, stack.Count) > c)
                 lines.Add("Trop nombreuse pour le charisme du héros : elle risque de se révolter au combat.");
         }
+        if (morale is { } m)
+            lines.Add(MoraleAndLuck(m.Total, luck ?? 0) + (m.Overload < 0 ? $" (trop nombreuse : {Signed(m.Overload)} moral)" : ""));
         return string.Join("\n", lines);
     }
 
@@ -947,6 +1013,8 @@ public static class Texts
             HoMM.Core.Skills.Recruiter => $"+{v} % de créatures chaque semaine dans la ville où le héros commence la semaine",
             HoMM.Core.Skills.Inspiration => $"+{v} de vitesse au premier round" + (v2 > 0 ? $", puis +{v2} pour tout le combat" : ""),
             HoMM.Core.Skills.Mysticism => $"+{v} point{(v > 1 ? "s" : "")} de sort par jour",
+            HoMM.Core.Skills.Morale => $"+{v} de moral aux troupes",
+            HoMM.Core.Skills.Luck => $"+{v} de chance aux troupes",
             _ => "",
         };
     }
@@ -1258,7 +1326,8 @@ public static class Texts
     public static string UnitStats(BattleUnit unit) =>
         $"Attaque {unit.Attack} · défense {unit.Defense}\n"
         + $"Dégâts {unit.Type.MinDamage}–{unit.Type.MaxDamage} · vitesse {unit.Type.Speed}\n"
-        + $"PV de tête {unit.TopHitPoints} / {unit.Type.HitPoints}";
+        + $"PV de tête {unit.TopHitPoints} / {unit.Type.HitPoints}\n"
+        + MoraleAndLuck(unit.Morale, unit.Luck);
 
     public static string UnitAbilities(BattleUnit unit) =>
         unit.Type.Abilities.Count == 0 ? "Pas de capacité" : Capitalize(string.Join(", ", unit.Type.Abilities.Select(AbilityName)));

@@ -177,9 +177,17 @@ public sealed class BattleUnit
         Side = Side == BattleSide.Attacker ? BattleSide.Defender : BattleSide.Attacker;
         IsRebel = true;
         AttackBonus = DefenseBonus = 0;
+        Morale = Luck = 0; // plus de héros : ni moral ni chance
         if (IsLarge)
             Position = back;
     }
+
+    /// <summary>Le moral et la chance de la troupe pour ce combat (−3 à +3, voir <see cref="HoMM.Core.Morale"/>).</summary>
+    public int Morale { get; internal set; }
+    public int Luck { get; internal set; }
+
+    /// <summary>La troupe a déjà rejoué grâce à son moral dans ce round.</summary>
+    internal bool HasCheered { get; set; }
 
     /// <summary>Bonus du héros (attaque et défense).</summary>
     public int AttackBonus { get; private set; }

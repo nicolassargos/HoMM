@@ -377,7 +377,7 @@ public partial class Hud : CanvasLayer
             _movementBar.MaxValue = hero.MaxMovement;
             _movementBar.Value = hero.Movement;
             _movementText.Text = $"{hero.Movement} / {hero.MaxMovement}";
-            _army.Show(hero.Army, hero.CommandLimit);
+            _army.Show(hero.Army, hero.CommandLimit, hero);
         }
         else
         {

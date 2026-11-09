@@ -241,5 +241,16 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   ◄ ► autour d'un creux, en boucle (`ArrowSelector`) : pour une liste qui peut grandir (les héros) ou peu de choix.
   Écartés : un creux avec un petit bouton (B), le bois et l'or (C, seul élément doré dans une interface d'argent).
   `--ui-preview` montre les quatre propositions.
+- **Onglets en marque-pages** (2026-11-09, choix de l'utilisateur, à l'essai) : un ruban de soie crème
+  (`art/ui/ribbon.png`, 96 × 24), **teint par le jeu** de la couleur de chaque onglet (`TabStrip`), affiché ×2, qui sort
+  du haut de sa page. Une seule image pour toutes les couleurs. PixelLab « Pro » : d'abord 36 rubans à 64 × 24 sans image
+  de style (0,08 $ ; le n° 6 choisi), puis 4 à 96 × 24 avec le n° 6 comme image de style (0,08 $ ; « large 2 » choisi,
+  bords roulés) : à 64 px, le ruban était plus étroit que « Compétences » et le jeu l'étirait. Prompt : « a single wide
+  horizontal silk ribbon bookmark tab seen from the front, pale cream white fabric, the top edge cut with a small
+  swallowtail notch in the middle, soft vertical folds… transparent background ». Écartés : la pierre des boutons en
+  onglets (ressemblait à une rangée de boutons), les intercalaires, les plaques, le cuir cousu dessiné, les rubans
+  dessinés (sans relief). Une image plus juste sera faite si l'essai est validé. Candidats :
+  `art-candidats/en-cours/onglets/`. Une page HTML qui teint des images par masque CSS ne montre pas les couleurs
+  ouverte en fichier local : passer par un petit serveur, ou montrer une capture du jeu.
 - Écartés : les cadres épais du premier essai, B7 (fil d'or, trop discret), les boutons de pierre de 96 × 32, les cadres
   de Kenney, la police DotGothic16 (la police est VT323).

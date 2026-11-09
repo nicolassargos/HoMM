@@ -525,6 +525,11 @@ public partial class BattleFieldView : Control
                             _floating.Add(($"-{struck.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 210, 120)));
                             if (struck.Killed > 0)
                                 _floating.Add(($"{struck.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
+                            // la chance : dégâts doublés, ou divisés par deux
+                            if (struck.Luck > 0)
+                                _floating.Add(("Chance !", target.Position + Ui.V(0, -75), 0, MapRenderer.Rgb(120, 230, 120)));
+                            else if (struck.Luck < 0)
+                                _floating.Add(("Malchance", target.Position + Ui.V(0, -75), 0, MapRenderer.Rgb(190, 140, 220)));
                         }
                         age += delta;
                         if (age < 0.35 * AnimationFps / Fps(struck.Attacker, AttackState))
@@ -654,6 +659,31 @@ public partial class BattleFieldView : Control
                             _floating.Add(("Enraciné", _shown[rooted.Unit].Position + Ui.V(0, -70), 0, MapRenderer.Rgb(150, 200, 90)));
                         root += Math.Max(delta, 1e-6);
                         return root >= 0.15;
+                    });
+                    break;
+                case UnitCheered cheered:
+                    double cheer = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        // bon moral : la troupe s'illumine et rejoue
+                        if (cheer == 0)
+                        {
+                            _shown[cheered.Unit].Glow = 1;
+                            _floating.Add(("Moral !", _shown[cheered.Unit].Position + Ui.V(0, -70), 0, MapRenderer.Rgb(250, 215, 90)));
+                        }
+                        cheer += Math.Max(delta, 1e-6);
+                        return cheer >= 0.45;
+                    });
+                    break;
+                case UnitFroze froze:
+                    double frozen = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        // mauvais moral : elle hésite et passe son tour
+                        if (frozen == 0)
+                            _floating.Add(("Hésite…", _shown[froze.Unit].Position + Ui.V(0, -70), 0, MapRenderer.Rgb(150, 170, 220)));
+                        frozen += Math.Max(delta, 1e-6);
+                        return frozen >= 0.45;
                     });
                     break;
                 case UnitRevolted revolted:

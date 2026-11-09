@@ -114,6 +114,13 @@ public sealed class Hero
     public int Knowledge { get; internal set; } = 1;
     public int Charisma { get; internal set; } = StartingCharisma;
 
+    /// <summary>Le moral et la chance donnés par un lieu de la carte (temple, cercle des fées), jusqu'au prochain combat.</summary>
+    public int SiteMorale { get; internal set; }
+    public int SiteLuck { get; internal set; }
+
+    /// <summary>Après un combat : les bonus des lieux sont épuisés.</summary>
+    internal void ClearSiteBonuses() => SiteMorale = SiteLuck = 0;
+
     // ------------------------------------------------------------------ magie (étape 9)
 
     /// <summary>Points de sort par point de savoir.</summary>

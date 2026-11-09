@@ -987,6 +987,9 @@ public sealed class MapGenerator
     public int ProducerCount { get; init; } = 2;
     public int TowerCount { get; init; } = 1;
 
+    /// <summary>Temples (+1 moral) et cercles des fées (+1 chance), tour à tour.</summary>
+    public int BlessingCount { get; init; } = 2;
+
     /// <summary>
     /// Les lieux à visiter (après tout le reste : sur une petite carte, on pose ce qui rentre) : tours d'observation,
     /// cabanes du sage, moulins et roues à eau, autels.
@@ -1030,6 +1033,10 @@ public sealed class MapGenerator
         var stats = Enum.GetValues<HeroStat>();
         for (int i = 0; i < Scaled(ShrineCount); i++)
             if (!Place(c => new Shrine(c, stats[i % stats.Length])))
+                return;
+        // en dernier : les cartes d'avant gardent leurs autres lieux
+        for (int i = 0; i < Scaled(BlessingCount); i++)
+            if (!Place(c => new BlessingSite(c, i % 2 == 0 ? Blessing.Morale : Blessing.Luck)))
                 return;
     }
 

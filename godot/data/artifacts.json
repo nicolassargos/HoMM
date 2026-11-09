@@ -1,5 +1,5 @@
 {
   "artifacts": [
-    { "id": "plastron-des-rois", "name": "Plastron des Rois", "attack": 5, "defense": 5, "charisma": 5 }
+    { "id": "plastron-des-rois", "name": "Plastron des Rois", "slot": "Torso", "attack": 5, "defense": 5, "charisma": 5 }
   ]
 }

@@ -52,5 +52,6 @@
   "objects/pile-sulfur": {"pieds": [[[3, 21], [28, 21]]], "verifie": true},
   "objects/pile-wood": {"pieds": [[[4, 20], [27, 18]]], "verifie": true},
   "objects/town": {"pieds": [[[15, 83], [146, 84]], [[137, 108], [24, 107]]], "verifie": true},
+  "objects/town-barbares": {"pieds": [[[51, 118], [68, 117]]], "verifie": false},
   "objects/town-morts-vivants": {"pieds": [[[17, 113], [143, 113]]], "verifie": true}
 }

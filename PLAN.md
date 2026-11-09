@@ -420,8 +420,13 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
     Tactique place ses troupes avant le premier round, dans 2 / 3 / 4 colonnes selon son avance (rangs égaux : personne) ;
     placement seulement. À l'écran : « Placement », cliquer une troupe puis sa case, « Commencer » (« Auto » place pour
     le joueur). L'IA avance ses troupes de corps à corps au plus loin, garde ses tireurs derrière. Tests : `TactiqueTests`.
-  - **Reste** : les sorts spéciaux (plus tard, quand le jeu sera plus avancé : choix de l'utilisateur) (chacun après sa conception) ; les talents des
-    classes (Croisé, Chef de guerre, Chasseur) ; la simulation qui prend des compétences.
+  - ✅ **Les talents des classes** (2026-11-09, branche `talents-classes`) : Croisé (Paladin, +2 % de dégâts par niveau
+    contre les morts-vivants), Chef de guerre (Barbare, la Rage au plus +1 tous les 3 niveaux), Chasseur (Rôdeur, +1 % de
+    dégâts par niveau pour ses tireurs), avec la Nécromancie ; au survol de la classe sur l'écran du héros. Mesuré (un
+    adversaire, Normal, six semaines, or d'armée) : Château 26 100 → 26 800, Forêt 33 700 → 32 800, morts-vivants et
+    Barbares inchangés (des bonus qui grandissent lentement). Tests : `TalentsTests`.
+  - **Reste** : les sorts spéciaux (plus tard, quand le jeu sera plus avancé : choix de l'utilisateur) ; la simulation qui
+    prend des compétences.
   - Plus tard : les cavernes de la carte, où l'on apprend une compétence.
 - **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le
   héros, leurs effets, où on les trouve (gardiens, coffres, cavernes), peut-être des ensembles.

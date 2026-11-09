@@ -1250,14 +1250,24 @@ public static class Texts
         + $"savoir {heroClass.Knowledge}, charisme {heroClass.Charisma}"
         + (heroClass.Spells.Count > 0 ? $" ; sort{(heroClass.Spells.Count > 1 ? "s" : "")} : {List(heroClass.Spells.Select(id => spells.Get(id).Name).ToList())}" : "");
 
+    /// <summary>« Talent : … » : le talent de la classe et ce qu'il fait (il grandit avec le niveau du héros), ou null.</summary>
+    public static string? TalentText(HeroClass heroClass) => heroClass.Talent switch
+    {
+        Talents.Necromancy => $"Talent : nécromancie (après une victoire, {Talents.NecromancyBase:P0} des ennemis tués + {Talents.NecromancyPerLevel:P0} par niveau se relèvent en squelettes)",
+        Talents.Crusader => $"Talent : croisé (+{Talents.CrusaderPerLevel:P0} de dégâts par niveau contre les morts-vivants)",
+        Talents.Warlord => $"Talent : chef de guerre (la Rage des troupes monte de 1 de plus tous les {Talents.WarlordLevels} niveaux)",
+        Talents.Hunter => $"Talent : chasseur (+{Talents.HunterPerLevel:P0} de dégâts par niveau pour les tireurs)",
+        _ => null,
+    };
+
     /// <summary>
     /// Ce que donne une classe, sur quelques lignes : les caractéristiques, le sort, le talent, l'armée de départ.
     /// </summary>
     public static string ClassDetails(HeroClass heroClass, GameData data)
     {
         var lines = new List<string> { ClassSummary(heroClass, data.Spells).Split(" : ", 2)[1] };
-        if (heroClass.Talent == Talents.Necromancy)
-            lines.Add($"Talent : nécromancie (après une victoire, {Talents.NecromancyBase:P0} des ennemis tués + {Talents.NecromancyPerLevel:P0} par niveau se relèvent en squelettes)");
+        if (TalentText(heroClass) is { } talent)
+            lines.Add(talent);
         if (heroClass.Army.Count > 0)
             lines.Add("Armée : " + string.Join(", ", heroClass.Army.Select(s => $"{s.Count} {Creature(data.Creatures.Get(s.Creature), s.Count)}")));
         return string.Join("\n", lines);

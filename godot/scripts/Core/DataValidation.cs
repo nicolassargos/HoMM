@@ -89,7 +89,7 @@ public static class DataValidation
                 errors.Add($"{c.Id} : ses ressources principale et secondaire doivent être rares");
             if (c.MainResource != null && c.MainResource == c.SecondaryResource)
                 errors.Add($"{c.Id} : la ressource principale et la secondaire doivent être différentes");
-            if (c.Talent is { } talent && talent != Talents.Necromancy)
+            if (c.Talent is { } talent && !Talents.All.Contains(talent))
                 errors.Add($"{c.Id} : talent inconnu ({talent})");
         }
     }

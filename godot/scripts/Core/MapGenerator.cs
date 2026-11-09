@@ -62,10 +62,10 @@ public sealed class MapGenerator
     public double MinesPerZone { get; init; } = 1.5;
 
     /// <summary>
-    /// Les factions dont viennent les monstres de la carte : les neutres, les morts-vivants et les Barbares (étape 9 :
-    /// le Gobelin, le Loup, l'Orc et l'Ogre étaient des neutres et gardent la carte).
+    /// Les factions dont viennent les monstres de la carte : les neutres, les morts-vivants, les Barbares et la Forêt
+    /// (étape 9 : le Gobelin, le Loup, l'Orc, l'Ogre et le Troll étaient des neutres et gardent la carte).
     /// </summary>
-    public static readonly string[] MonsterFactions = { "neutre", "morts-vivants", "barbares" };
+    public static readonly string[] MonsterFactions = { "neutre", "morts-vivants", "barbares", "foret" };
 
     /// <summary>
     /// La force (paysans pour en vaincre une, <see cref="CreatureStrength"/>) du gardien pour lequel

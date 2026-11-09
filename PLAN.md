@@ -103,8 +103,8 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 |---|---|---|---|---|---|
 | **Château** (humains) | équilibré, le plus charismatique ; classe Paladin | Ange → Archange | cristal | gemmes | jouable |
 | **Morts-vivants** | magie | Colosse d'os → Colosse funèbre | mercure | gemmes | jouable |
-| **Barbares** | force, peu de magie | Béhémoth → Béhémoth ancien | soufre | cristal | **la prochaine** |
-| **Forêt** | équilibrée, tireurs, magie de la nature | Troll → Troll ancien | gemmes | cristal | à faire |
+| **Barbares** | force, la horde | Béhémoth → Béhémoth ancien | soufre | cristal | jouable |
+| **Forêt** | les meilleurs tireurs, plantes et soins | Troll → Troll ancien | gemmes | cristal | **en cours** |
 | **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | à faire |
 | **Enfer** | agressifs, magie du feu | Démon → Archidémon | mercure | soufre | à faire |
 | **Donjon** | souterrain | Tyran œil → Tyran ancien | soufre | mercure | à faire |
@@ -118,9 +118,8 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 - Le **Colosse d'os** reste au niveau 7 des morts-vivants, rendu aussi fort que l'Ange (il est plus faible : à revoir) ;
   le Colosse funèbre a plus de vie et son balayage effraie (les ennemis touchés ne ripostent plus).
 - Les **Barbares** : voir plus bas.
-- La **Forêt** : le **Troll** (l'image de combat existe) au niveau 7, rendu aussi fort que l'Ange (c'est aujourd'hui un
-  neutre du niveau 5) : un troll géant qui se régénère ; le Troll ancien se régénère plus, et ses coups repoussent
-  l'ennemi (il ne riposte plus).
+- La **Forêt** : voir plus bas ; le Troll ancien se régénérera plus, et ses coups repousseront l'ennemi (il ne riposte
+  plus).
 - L'**Enfer** : le **Démon** au niveau 7 ; l'Archidémon se téléporte n'importe où sur le champ de bataille et met le
   feu aux cases autour de lui. Leurs prix et
   caractéristiques sont à remettre à l'échelle du Château (un Squelette coûte 60 or, un Archer de même force 18).
@@ -132,7 +131,54 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
 
-#### Les Barbares (en cours)
+#### La Forêt (en cours)
+Décidé avec l'utilisateur (2026-11-09).
+- **Philosophie : les esprits du bois.** Magie et créatures en équilibre : les plantes, les bêtes et les elfes de la
+  forêt, qui frappent de loin et se soignent.
+- **Forces** : les meilleurs tireurs (l'Archer elfe tire deux fois, le Druide tire sans pénalité de distance) ; des
+  troupes qui se remettent de leurs blessures.
+- **Faiblesses** : peu nombreux, ils grandissent lentement (moins de croissance, des prix plus hauts, chaque créature
+  plus forte : à prix égal, un combat reste égal) ; faibles au corps à corps quand l'ennemi atteint leurs tireurs.
+- **Leur marque : la régénération de la nature** : au début de son tour, la créature de tête de chaque troupe de la
+  Forêt retrouve un quart de ses points de vie (le Troll, tous).
+- **La classe Rôdeur** (un chasseur des bois, peu tourné vers la magie ; le Druide est une créature) : attaque 3,
+  défense 1, puissance 1, savoir 2, charisme 9, Soins au départ.
+- Ressources : gemmes (principale : l'habitation et la créature du niveau 7), cristal (secondaire : niveaux 5 et 6).
+
+| Niveau | Créature | Rôle | Capacité | Habitation |
+|---|---|---|---|---|
+| 1 | Farfadet | petit et vif | vole | Bosquet des farfadets |
+| 2 | Sanglier | la charge | charge (+5 % de dégâts par case parcourue) | Bauge des sangliers |
+| 3 | Archer elfe | le meilleur tireur | **tire deux fois** | Camp des archers |
+| 4 | Cerf | le rapide | **bondit** : passe par-dessus troupes et obstacles, comme en volant, mais au sol | Clairière des cerfs |
+| 5 | Druide | tireur et soigneur | tire sans pénalité de distance ; **aura de soin** : au début de son tour, soigne la créature de tête de chaque troupe amie voisine | Cercle des druides |
+| 6 | Tréant | le mur lent | résiste aux tirs (écorce) ; ses coups **enracinent** : la cible ne peut pas se déplacer à son prochain tour | Bois des tréants |
+| 7 | Troll (des neutres) | le géant | la régénération de la nature, comme toute la Forêt (sa régénération entière revient au Troll ancien) | Antre du troll |
+
+1. ✅ Les créatures et leurs capacités (2026-11-09) : `nature-regeneration`, `double-shot`, `leaps`, `healing-aura`
+   (5 PV par Druide), `roots` (`BattleUnit.IsRooted`). Le Troll n'est plus neutre (les neutres : le Dragon rouge seul).
+   **La régénération entière ne va pas à une créature de 1000 PV** : rien ne la tue sous 1000 dégâts par tour, tout la
+   tue au-delà (à prix égal : 100 % de victoires contre les Anges, 100 % de défaites contre les Béhémoths) ; le Troll
+   prend donc la régénération de la nature. Chiffres réglés par `Duels_a_prix_egal` (chaque créature au milieu de son
+   niveau ; au niveau 7, les écarts restent grands : les Trolls battent les Anges, perdent contre les Béhémoths) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Farfadet | 4 | 3 | 1-3 | 7 | 7 | 18 | 12 |
+   | Sanglier | 9 | 7 | 4-6 | 26 | 7 | 12 | 44 |
+   | Archer elfe | 9 | 6 | 3-5 | 18 | 6 | 9 | 56 |
+   | Cerf | 12 | 10 | 6-9 | 48 | 9 | 6 | 120 |
+   | Druide | 13 | 10 | 10-14 | 55 | 6 | 4 | 210 |
+   | Tréant | 16 | 20 | 15-20 | 150 | 4 | 3 | 450 |
+   | Troll | 22 | 20 | 65-80 | 1200 | 6 | 2 | 4900 et 1 gemme |
+2. ✅ La ville et le jeu (2026-11-09) : 7 habitations (`bosquet-farfadets`, `bauge-sangliers`, `camp-archers`,
+   `clairiere-cerfs`, `cercle-druides`, `bois-treants`, `antre-troll`), la classe Rôdeur (armée de départ au prix des
+   autres : 15 Farfadets, 5 Sangliers, 2 Archers elfes), les 6 héros de la Forêt jouables ; `--faction=foret`. Tests :
+   `ForetTests`. Mesuré (un adversaire, Normal, six semaines, or d'armée) : Château 25 000, morts-vivants 20 900,
+   Barbares 23 100, **Forêt 30 600** : la plus forte (sa régénération lui fait perdre moins à chaque combat), à revoir
+   à l'équilibrage. La simulation seule gagne toujours (petites cartes jour 79, normales 86, grandes 153).
+3. Les images (session images) : Farfadet, Sanglier, Archer elfe, Cerf, Druide, Tréant (le Troll existe), la ville.
+
+#### Les Barbares (jouables)
 Décidé avec l'utilisateur (2026-11-08).
 - **Philosophie : la horde.** La force brute, le nombre et la vitesse : ils frappent les premiers et fort, et méprisent
   la magie.

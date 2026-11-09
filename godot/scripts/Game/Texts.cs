@@ -154,6 +154,8 @@ public static class Texts
             ? $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.Revived} {(d.Revived == 1 ? "revient" : "reviennent")} à la vie en buvant le sang."
             : $"{Capitalize(Creature(d.Unit.Type, 2))} : {d.HitPoints} PV repris en buvant le sang.",
         UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
+        UnitSoothed h => $"{Capitalize(Stack(h.Healer.Stack))} {(h.Healer.Count == 1 ? "soigne" : "soignent")} {Stack(h.Unit.Stack)} ({h.HitPoints} PV).",
+        UnitRooted r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "est enraciné" : "sont enracinés")} : pas de déplacement au prochain tour.",
         UnitRevolted v => $"{Capitalize(Stack(v.Unit.Stack))} {(v.Unit.Count == 1 ? "se révolte et change" : "se révoltent et changent")} de camp !",
         UnitMayRetreat r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "peut" : "peuvent")} repartir ({r.Steps} {(r.Steps == 1 ? "case" : "cases")}).",
         UnitEnraged e => $"{Capitalize(Stack(e.Unit.Stack))} {(e.Unit.Count == 1 ? "enrage" : "enragent")} : +{e.Rage} en attaque.",
@@ -822,6 +824,11 @@ public static class Texts
         Ability.HitAndRun => "frappe et repart",
         Ability.Lightning => "appelle la foudre",
         Ability.Rending => "griffes (ignorent 60 % de la défense)",
+        Ability.NatureRegeneration => "régénération de la nature (un quart de ses PV à chaque tour)",
+        Ability.DoubleShot => "tire deux fois",
+        Ability.Leaps => "bondit par-dessus troupes et obstacles",
+        Ability.HealingAura => "aura de soin (soigne les troupes amies voisines)",
+        Ability.Roots => "enracine (la cible ne peut plus bouger à son tour suivant)",
         _ => ability,
     };
 
@@ -1016,6 +1023,7 @@ public static class Texts
     {
         "chateau" => "Château",
         "morts-vivants" => "Morts-vivants",
+        "foret" => "Forêt",
         _ => Capitalize(faction),
     };
 

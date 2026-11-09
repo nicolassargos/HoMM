@@ -46,6 +46,12 @@ public sealed record UnitEnraged(BattleUnit Unit, int Rage) : BattleAction;
 /// <summary>La foudre appelée par <paramref name="Attacker"/> (Oiseau-tonnerre) frappe la cible.</summary>
 public sealed record LightningStruck(BattleUnit Attacker, BattleUnit Target, int Damage, int Killed) : BattleAction;
 
+/// <summary>Un Druide soigne une troupe amie voisine : <paramref name="HitPoints"/> points de vie rendus.</summary>
+public sealed record UnitSoothed(BattleUnit Healer, BattleUnit Unit, int HitPoints) : BattleAction;
+
+/// <summary>La troupe est enracinée (Tréant) : elle ne pourra pas se déplacer à son prochain tour.</summary>
+public sealed record UnitRooted(BattleUnit Unit) : BattleAction;
+
 /// <summary>La troupe a trop grossi pour le charisme de son héros : elle se révolte et change de camp.</summary>
 public sealed record UnitRevolted(BattleUnit Unit) : BattleAction;
 
@@ -85,6 +91,12 @@ public sealed partial class TacticalBattle
 
     /// <summary>La foudre de l'Oiseau-tonnerre : une chance sur cinq à chaque attaque, tant de dégâts par oiseau.</summary>
     public const double LightningChance = 0.2;
+
+    /// <summary>La régénération de la nature : la part des points de vie de la créature de tête retrouvée à chaque tour.</summary>
+    public const double NatureRegenerationShare = 0.25;
+
+    /// <summary>L'aura de soin : points de vie rendus par Druide à la créature de tête de chaque troupe amie voisine.</summary>
+    public const int HealingAuraPerCreature = 5;
     public const int LightningPerCreature = 15;
 
     /// <summary>Le poison de l'Araignée : dégâts par créature qui mord, et pendant combien de tours de la cible.</summary>
@@ -173,6 +185,9 @@ public sealed partial class TacticalBattle
     public int? RetreatSteps { get; private set; }
 
     public bool IsRetreating => RetreatSteps != null;
+
+    /// <summary>La troupe active est enracinée pour ce tour : elle ne peut pas se déplacer (elle peut frapper ses voisins).</summary>
+    private bool _activeRooted;
 
     /// <summary>Ce qui s'est passé depuis le dernier appel (pour l'écran de combat).</summary>
     public List<BattleAction> TakeLog()
@@ -321,9 +336,17 @@ public sealed partial class TacticalBattle
             {
                 Active = next;
                 next.IsDefending = false; // la défense dure jusqu'à son prochain tour
+                _activeRooted = next.IsRooted; // enracinée : ce tour-ci, elle ne bouge pas
+                next.IsRooted = false;
                 _log.Add(new UnitTurn(next));
                 if (next.Has(Ability.Regenerates) && next.Regenerate())
                     _log.Add(new UnitRegenerated(next));
+                else if (next.Has(Ability.NatureRegeneration) && next.Heal((int)Math.Ceiling(next.Type.HitPoints * NatureRegenerationShare)) > 0)
+                    _log.Add(new UnitRegenerated(next));
+                if (next.Has(Ability.HealingAura))
+                    foreach (var ally in Neighbours(next).Where(u => u.Side == next.Side && u.IsAlive && !u.IsUndead).ToList())
+                        if (ally.Heal(HealingAuraPerCreature * next.Count) is > 0 and var healed)
+                            _log.Add(new UnitSoothed(next, ally, healed));
                 return;
             }
             if (Round >= MaxRounds)
@@ -376,7 +399,9 @@ public sealed partial class TacticalBattle
     public Dictionary<Hex, List<Hex>> Reachable(BattleUnit unit)
     {
         int speed = unit == Active && RetreatSteps is { } steps ? steps : SpeedOf(unit);
-        if (unit.Has(Ability.Flies))
+        if (unit == Active && _activeRooted)
+            return new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
+        if (unit.Has(Ability.Flies) || unit.Has(Ability.Leaps))
         {
             var flights = new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
             for (int r = 0; r < Battlefield.Rows; r++)
@@ -456,7 +481,7 @@ public sealed partial class TacticalBattle
         var start = unit.Position;
         MoveAlong(unit, path);
         // la charge compte les cases parcourues (à vol d'oiseau pour une troupe qui vole)
-        int moved = unit.Has(Ability.Flies) ? start.DistanceTo(from) : path.Count;
+        int moved = unit.Has(Ability.Flies) || unit.Has(Ability.Leaps) ? start.DistanceTo(from) : path.Count;
         bool blinded = target.IsUnder(SpellEffect.Blind); // le coup la réveille, mais elle ne riposte pas
         Melee(unit, target, moved);
         if (target.IsAlive && unit.IsAlive && !blinded && target.RetaliationsLeft > 0 && !unit.Has(Ability.NoRetaliation))
@@ -519,6 +544,9 @@ public sealed partial class TacticalBattle
             ? Neighbours(target).Where(o => o != unit && !o.IsUndead).ToList()
             : new List<BattleUnit>();
         Strike(unit, target, ranged: true, retaliation: false);
+        // deux flèches (Archer elfe)
+        if (unit.Has(Ability.DoubleShot) && target.IsAlive && unit.IsAlive)
+            Strike(unit, target, ranged: true, retaliation: false);
         // le nuage de mort : les troupes autour de la cible (amies comprises), sauf les morts-vivants
         foreach (var other in around.Where(o => o.IsAlive))
             Strike(unit, other, ranged: true, retaliation: false);
@@ -532,6 +560,8 @@ public sealed partial class TacticalBattle
         if (Active is not { } unit || unit.HasWaited || IsRetreating)
             return false;
         unit.HasWaited = true;
+        if (_activeRooted)
+            unit.IsRooted = true; // toujours enracinée quand elle jouera, à la fin du round
         _waiting.Add(unit);
         _log.Add(new UnitWaited(unit));
         Active = null;
@@ -632,6 +662,11 @@ public sealed partial class TacticalBattle
             var (hitPoints, revived) = from.Revive(lost, _startCounts[from]);
             if (hitPoints > 0)
                 _log.Add(new UnitDrained(from, hitPoints, revived));
+        }
+        if (from.Has(Ability.Roots) && !ranged && to.IsAlive && !to.IsRooted)
+        {
+            to.IsRooted = true;
+            _log.Add(new UnitRooted(to));
         }
         if (from.Has(Ability.Poison) && to.IsAlive)
             to.Poison(PoisonPerCreature * from.Count, PoisonTurns);

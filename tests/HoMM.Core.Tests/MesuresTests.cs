@@ -183,7 +183,7 @@ public class MesuresTests(ITestOutputHelper output)
     public void Duels_a_prix_egal()
     {
         const int gold = 3000;
-        var factions = new[] { "chateau", "morts-vivants", "barbares" };
+        var factions = new[] { "chateau", "morts-vivants", "barbares", "foret" };
         for (int tier = 1; tier <= 7; tier++)
         {
             var creatures = factions.Select(f => TestData.Creatures.All.FirstOrDefault(c => c.Faction == f && c.Tier == tier))

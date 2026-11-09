@@ -617,6 +617,29 @@ public partial class BattleFieldView : Control
                         return grow >= 0.3;
                     });
                     break;
+                case UnitSoothed soothed:
+                    double soothe = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (soothe == 0)
+                        {
+                            _effects.Hit("soin", BodyCenter(soothed.Unit, _shown[soothed.Unit]), 1);
+                            _floating.Add(($"+{soothed.HitPoints}", _shown[soothed.Unit].Position + Ui.V(0, -50), 0, MapRenderer.Rgb(140, 235, 140)));
+                        }
+                        soothe += Math.Max(delta, 1e-6);
+                        return soothe >= 0.25;
+                    });
+                    break;
+                case UnitRooted rooted:
+                    double root = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (root == 0)
+                            _floating.Add(("Enraciné", _shown[rooted.Unit].Position + Ui.V(0, -70), 0, MapRenderer.Rgb(150, 200, 90)));
+                        root += Math.Max(delta, 1e-6);
+                        return root >= 0.15;
+                    });
+                    break;
                 case UnitRevolted revolted:
                     double revolt = 0;
                     _animations.Enqueue(delta =>

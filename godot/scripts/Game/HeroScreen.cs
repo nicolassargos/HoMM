@@ -26,6 +26,8 @@ public partial class HeroScreen : ScreenWindow
     private Label _movementText = null!;
     private ProgressBar _movementBar = null!;
     private readonly List<(HeroStat? Stat, Label Name, Label Value, Label Effect)> _stats = new();
+    private Label _morale = null!;
+    private Label _luck = null!;
     private VBoxContainer _artifacts = null!;
     private Label _skillPoints = null!;
     private VBoxContainer _skills = null!;
@@ -81,7 +83,15 @@ public partial class HeroScreen : ScreenWindow
                 Window.AddChild(label);
             }
             _stats.Add((stat, name, value, effect));
-            y += 46;
+            y += 42;
+        }
+        // le moral et la chance de l'armée (le détail au survol)
+        _morale = At(MakeLabel("", 16, TextColor), 24, y + 4);
+        _luck = At(MakeLabel("", 16, TextColor), 150, y + 4);
+        foreach (var label in new[] { _morale, _luck })
+        {
+            label.MouseFilter = Control.MouseFilterEnum.Stop;
+            Window.AddChild(label);
         }
 
         // les compétences : les points à dépenser, celles du héros, et le bouton des arbres
@@ -209,10 +219,16 @@ public partial class HeroScreen : ScreenWindow
             effect.Text = Texts.StatEffect(stat, hero);
             name.TooltipText = value.TooltipText = effect.TooltipText = Texts.StatTooltip(stat, hero);
         }
+        var morale = Morale.OfArmy(hero);
+        var luck = Morale.LuckOf(hero);
+        _morale.Text = $"{Texts.MoraleWord} {Texts.Signed(morale.Total)}";
+        _morale.TooltipText = Texts.MoraleTooltip(morale);
+        _luck.Text = $"{Texts.LuckWord} {Texts.Signed(luck.Total)}";
+        _luck.TooltipText = Texts.LuckTooltip(luck);
         RefreshSkills(hero);
         RefreshArtifacts(hero);
         RefreshSpells(hero);
-        _army.Show(hero.Army, hero.CommandLimit);
+        _army.Show(hero.Army, hero.CommandLimit, hero);
     }
 
     /// <summary>Les points de sort, et chaque sort du livre : son nom, son niveau, ses points, ce qu'il fait.</summary>

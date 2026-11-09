@@ -86,6 +86,43 @@ public sealed class WeeklyProducer : MapObject
     }
 }
 
+/// <summary>Ce que donne un lieu de bénédiction : du moral (temple) ou de la chance (cercle des fées).</summary>
+public enum Blessing { Morale, Luck }
+
+/// <summary>
+/// Le héros a visité un temple ou un cercle des fées. <paramref name="Gained"/> : faux s'il avait déjà ce bonus.
+/// </summary>
+public sealed record BlessingVisited(Hero Hero, BlessingSite Site, bool Gained) : ObjectVisited(Hero, Site);
+
+/// <summary>
+/// Un temple (+1 moral) ou un cercle des fées (+1 chance) : le bonus dure jusqu'au prochain combat du héros. On peut y
+/// revenir après un combat.
+/// </summary>
+public sealed class BlessingSite : MapObject
+{
+    public const int Bonus = 1;
+
+    public BlessingSite(Cell position, Blessing blessing) : base(position) => Blessing = blessing;
+
+    public Blessing Blessing { get; }
+
+    public override bool RemovedOnVisit => false;
+
+    /// <summary>Le héros a-t-il déjà ce bonus (une nouvelle visite ne donnerait rien) ?</summary>
+    public bool AlreadyGiven(Hero hero) => (Blessing == Blessing.Morale ? hero.SiteMorale : hero.SiteLuck) >= Bonus;
+
+    public override ObjectVisited Visit(Hero hero)
+    {
+        if (AlreadyGiven(hero))
+            return new BlessingVisited(hero, this, false);
+        if (Blessing == Blessing.Morale)
+            hero.SiteMorale = Bonus;
+        else
+            hero.SiteLuck = Bonus;
+        return new BlessingVisited(hero, this, true);
+    }
+}
+
 /// <summary>Le héros est monté dans une tour d'observation : la carte se dévoile tout autour.</summary>
 public sealed record TowerVisited(Hero Hero, ObservationTower Tower) : ObjectVisited(Hero, Tower);
 

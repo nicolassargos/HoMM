@@ -47,16 +47,20 @@ public partial class ArmySlots : HBoxContainer
     public event Action<ArmySlots, int, int, bool>? TroopDropped;
 
     private string? _key;
+    private Hero? _leader;
 
     /// <summary>Montre cette armée ; <paramref name="commandLimit"/> : les points de commandement par troupe du héros
-    /// (<see cref="Hero.CommandLimit"/> ; null pour une garnison, sans limite).</summary>
-    public void Show(Army? army, int? commandLimit)
+    /// (<see cref="Hero.CommandLimit"/> ; null pour une garnison, sans limite). <paramref name="leader"/> : le héros qui
+    /// la mène, pour montrer le moral et la chance de chaque troupe.</summary>
+    public void Show(Army? army, int? commandLimit, Hero? leader = null)
     {
         var stacks = army?.Stacks ?? new System.Collections.Generic.List<CreatureStack>();
-        string key = string.Join(",", stacks.Select(s => $"{s.Type.Id}:{s.Count}")) + $"#{commandLimit}";
+        string key = string.Join(",", stacks.Select(s => $"{s.Type.Id}:{s.Count}")) + $"#{commandLimit}"
+                     + (leader != null ? $"#{Morale.OfArmy(leader)}#{Morale.LuckOf(leader)}" : "");
         if (key == _key)
             return;
         _key = key;
+        _leader = leader;
         AddThemeConstantOverride("separation", (int)Px(2));
         Clear(this);
         for (int i = 0; i < Army.MaxStacks; i++)
@@ -91,7 +95,9 @@ public partial class ArmySlots : HBoxContainer
             return slot;
         if (CanDrag)
             slot.MouseDefaultCursorShape = CursorShape.Drag;
-        slot.TooltipText = Texts.StackTooltip(stack, commandLimit);
+        slot.TooltipText = _leader != null
+            ? Texts.StackTooltip(stack, commandLimit, Morale.Of(_leader, stack), Morale.LuckOf(_leader).Total)
+            : Texts.StackTooltip(stack, commandLimit);
         float countHeight = Px(CountFontSize + 4), pointsHeight = Px(15);
         float textHeight = countHeight + (ShowCommandPoints ? pointsHeight : 0);
         var place = new Rect2(Px(2), Px(2), SlotSize.X - Px(4), SlotSize.Y - textHeight - Px(4));

@@ -378,9 +378,23 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
   - Les classes : Paladin (Commandement ; talent **Croisé** : +2 % de dégâts par niveau contre les morts-vivants),
     Nécromancien (École de la terre ; **Nécromancie**), Barbare (Logistique ; **Chef de guerre** : +1 au plus fort de
     la Rage tous les 3 niveaux), Rôdeur (Éclaireur ; **Chasseur** : +1 % de dégâts par niveau pour ses tireurs).
-  - **À concevoir à part**, chacun dans sa propre PR : le **moral** et la **chance** (deux notions nouvelles : comme
-    Heroes 3, un tour de plus ou un tour perdu, des dégâts doublés ou divisés par deux ?), les règles de la
-    **Diplomatie**, les **quatre sorts spéciaux** des écoles (idées : Prière, Armageddon, Séisme, une invocation).
+  - **À concevoir à part**, chacun dans sa propre PR : les règles de la **Diplomatie**, les **quatre sorts spéciaux**
+    des écoles (idées : Prière, Armageddon, Séisme, une invocation).
+  - ✅ **Le moral et la chance** (décidés avec l'utilisateur, 2026-11-09, branche `moral-chance`, `Core/Morale.cs`) :
+    de −3 à +3 par troupe. **Bon moral** : après avoir agi (pas attendu ni défendu), la troupe rejoue aussitôt, une fois
+    par round, 5 % par point (sans pouvoir attendre) ; **mauvais moral** : elle se fige et passe son tour, 10 % par
+    point. **Chance** : un coup sur 20 par point fait deux fois plus de dégâts ; **malchance** : moitié moins (pas sur
+    les troupes touchées en plus de la cible). Le moral vient du **charisme** (choix de l'utilisateur : +1, +2, +3 à
+    toute l'armée à 20, 30, 40 de charisme, et −1, −2, −3 à une troupe au-delà de 1, 1,5, 2 fois la limite de
+    commandement), du **mélange des factions** (une +1, trois −1, quatre ou plus −2), de la compétence **Moral** et du
+    **temple** ; la chance de la compétence **Chance** et du **cercle des fées** (+1 jusqu'au prochain combat, deux
+    lieux par carte de 40 × 30). Sans héros (monstres, garnisons seules, révoltés) : 0. Les morts-vivants suivent les
+    mêmes règles (pas d'exception, choix de l'utilisateur). Plus tard : les touches des factions (à l'équilibrage),
+    les artefacts, un bâtiment de ville, l'effet de la Chance sur les coffres et les artefacts trouvés.
+    Mesuré (un adversaire, Normal, six semaines, or d'armée ; avant → après) : Château 25 300 → 26 100, morts-vivants
+    25 700 → 27 600, **Barbares 27 700 → 23 000** (charisme 10 et grosses troupes : souvent au-delà de la limite, donc
+    un mauvais moral ; à revoir à l'équilibrage), Forêt 29 200 → 33 700 ; Facile 24 500, Normal 27 000, Difficile
+    34 600. La simulation seule (sans héros au combat) ne change pas. Tests : `MoralChanceTests`.
   - ✅ **Fait (2026-11-09)** : les règles (`data/skills.json`, `SkillCatalog`, `Hero.Skills`, `Hero.SkillPoints`,
     `GameState.LearnSkill`, sauvegarde), la compétence de départ de chaque classe, les écoles des 18 sorts
     (`spells.json`), et les effets de Logistique, Éclaireur, Orientation, Intendance, Commandement, Discipline,
@@ -391,7 +405,7 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
     simulation seule n'en prend pas (ses chiffres restent comparables). Mesuré (un adversaire, Normal, six semaines,
     or d'armée) : Château 25 300, morts-vivants 25 700, Barbares 27 700, Forêt 29 200 (sans compétences : 25 000,
     20 900, 23 100, 30 600 : les factions se rapprochent). Tests : `CompetencesTests`.
-  - **Reste** : Chance, Moral, Diplomatie, Tactique et les sorts spéciaux (chacun après sa conception) ; les talents des
+  - **Reste** : Diplomatie, Tactique et les sorts spéciaux (chacun après sa conception) ; les talents des
     classes (Croisé, Chef de guerre, Chasseur) ; la simulation qui prend des compétences.
   - Plus tard : les cavernes de la carte, où l'on apprend une compétence.
 - **Les artefacts** : les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs places sur le

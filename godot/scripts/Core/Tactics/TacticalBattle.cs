@@ -23,7 +23,8 @@ public sealed record UnitMoved(BattleUnit Unit, IReadOnlyList<Hex> Path) : Battl
 /// Un coup : <paramref name="Damage"/> points de dégâts, <paramref name="Killed"/> créatures tuées.
 /// <paramref name="Ranged"/> : un tir ; <paramref name="Retaliation"/> : une riposte.
 /// </summary>
-public sealed record UnitStruck(BattleUnit Attacker, BattleUnit Target, int Damage, int Killed, bool Ranged, bool Retaliation) : BattleAction;
+public sealed record UnitStruck(BattleUnit Attacker, BattleUnit Target, int Damage, int Killed, bool Ranged, bool Retaliation,
+    int Luck = 0) : BattleAction;
 
 public sealed record UnitWaited(BattleUnit Unit) : BattleAction;
 
@@ -165,6 +166,8 @@ public sealed partial class TacticalBattle
         foreach (var unit in _units)
             _startCounts[unit] = unit.Count;
         SetUpMagic(hero, defenderHero);
+        SetUpMorale(BattleSide.Attacker, hero);
+        SetUpMorale(BattleSide.Defender, defenderHero);
         PlaceObstacles();
         StartRound();
     }
@@ -188,6 +191,9 @@ public sealed partial class TacticalBattle
 
     /// <summary>La troupe active est enracinée pour ce tour : elle ne peut pas se déplacer (elle peut frapper ses voisins).</summary>
     private bool _activeRooted;
+
+    /// <summary>La troupe active rejoue grâce à son moral : elle ne peut pas attendre.</summary>
+    private bool _cheerTurn;
 
     /// <summary>Ce qui s'est passé depuis le dernier appel (pour l'écran de combat).</summary>
     public List<BattleAction> TakeLog()
@@ -288,6 +294,7 @@ public sealed partial class TacticalBattle
         {
             unit.RetaliationsLeft = unit.RetaliationsPerRound;
             unit.HasWaited = false;
+            unit.HasCheered = false;
         }
         _queue.Clear();
         _waiting.Clear();
@@ -332,21 +339,14 @@ public sealed partial class TacticalBattle
                     continue; // le poison l'a tuée : la suivante joue
                 }
             }
+            if (next != null && next.Morale < 0 && _rng.NextDouble() < -next.Morale * Morale.BadChancePerPoint)
+            {
+                _log.Add(new UnitFroze(next)); // mauvais moral : elle se fige et passe son tour
+                continue;
+            }
             if (next != null)
             {
-                Active = next;
-                next.IsDefending = false; // la défense dure jusqu'à son prochain tour
-                _activeRooted = next.IsRooted; // enracinée : ce tour-ci, elle ne bouge pas
-                next.IsRooted = false;
-                _log.Add(new UnitTurn(next));
-                if (next.Has(Ability.Regenerates) && next.Regenerate())
-                    _log.Add(new UnitRegenerated(next));
-                else if (next.Has(Ability.NatureRegeneration) && next.Heal((int)Math.Ceiling(next.Type.HitPoints * NatureRegenerationShare)) > 0)
-                    _log.Add(new UnitRegenerated(next));
-                if (next.Has(Ability.HealingAura))
-                    foreach (var ally in Neighbours(next).Where(u => u.Side == next.Side && u.IsAlive && !u.IsUndead).ToList())
-                        if (ally.Heal(HealingAuraPerCreature * next.Count) is > 0 and var healed)
-                            _log.Add(new UnitSoothed(next, ally, healed));
+                BeginTurn(next, fresh: true);
                 return;
             }
             if (Round >= MaxRounds)
@@ -356,6 +356,45 @@ public sealed partial class TacticalBattle
             }
             StartRound();
             return;
+        }
+    }
+
+    /// <summary>
+    /// La troupe commence son tour : la défense et l'enracinement s'achèvent. Un tour ordinaire (<paramref name="fresh"/>,
+    /// pas celui que donne le moral) la régénère et soigne autour d'elle.
+    /// </summary>
+    private void BeginTurn(BattleUnit unit, bool fresh)
+    {
+        Active = unit;
+        _cheerTurn = !fresh;
+        unit.IsDefending = false; // la défense dure jusqu'à son prochain tour
+        _activeRooted = unit.IsRooted; // enracinée : ce tour-ci, elle ne bouge pas
+        unit.IsRooted = false;
+        _log.Add(new UnitTurn(unit));
+        if (!fresh)
+            return;
+        if (unit.Has(Ability.Regenerates) && unit.Regenerate())
+            _log.Add(new UnitRegenerated(unit));
+        else if (unit.Has(Ability.NatureRegeneration) && unit.Heal((int)Math.Ceiling(unit.Type.HitPoints * NatureRegenerationShare)) > 0)
+            _log.Add(new UnitRegenerated(unit));
+        if (unit.Has(Ability.HealingAura))
+            foreach (var ally in Neighbours(unit).Where(u => u.Side == unit.Side && u.IsAlive && !u.IsUndead).ToList())
+                if (ally.Heal(HealingAuraPerCreature * unit.Count) is > 0 and var healed)
+                    _log.Add(new UnitSoothed(unit, ally, healed));
+    }
+
+    /// <summary>Le moral et la chance des troupes du héros de ce camp (sans héros : 0).</summary>
+    private void SetUpMorale(BattleSide side, Hero? hero)
+    {
+        if (hero == null)
+            return;
+        var own = _units.Where(u => u.Side == side && !u.IsRebel).ToList();
+        var army = own.Select(u => u.Type).ToList();
+        int luck = Morale.LuckOf(hero).Total;
+        foreach (var unit in own)
+        {
+            unit.Morale = Morale.Of(hero, unit.Type, unit.Count, army).Total;
+            unit.Luck = luck;
         }
     }
 
@@ -475,7 +514,7 @@ public sealed partial class TacticalBattle
         if (Active is not { } unit || destination == unit.Position || !Reachable(unit).TryGetValue(destination, out var path))
             return false;
         MoveAlong(unit, path);
-        EndTurn();
+        EndTurn(acted: true);
         return true;
     }
 
@@ -511,7 +550,7 @@ public sealed partial class TacticalBattle
             _log.Add(new UnitMayRetreat(unit, left));
             return true;
         }
-        EndTurn();
+        EndTurn(acted: true);
         return true;
     }
 
@@ -525,11 +564,11 @@ public sealed partial class TacticalBattle
         var behind = Behind(from, hit);
         Strike(unit, target, ranged: false, retaliation: false, moved);
         if (unit.Has(Ability.Breath) && behind is { } hex && UnitAt(hex) is { } second && second != unit && second != target)
-            Strike(unit, second, ranged: false, retaliation: false, moved);
+            Strike(unit, second, ranged: false, retaliation: false, moved, splash: true);
         // le balayage : tous les autres ennemis voisins (seule la cible riposte)
         if (unit.Has(Ability.Sweep))
             foreach (var other in Neighbours(unit).Where(o => o != target && AreEnemies(unit, o)).ToList())
-                Strike(unit, other, ranged: false, retaliation: false, moved);
+                Strike(unit, other, ranged: false, retaliation: false, moved, splash: true);
     }
 
     /// <summary>Les troupes vivantes à côté de celle-ci (sur une case voisine d'une de ses cases).</summary>
@@ -560,15 +599,18 @@ public sealed partial class TacticalBattle
             Strike(unit, target, ranged: true, retaliation: false);
         // le nuage de mort : les troupes autour de la cible (amies comprises), sauf les morts-vivants
         foreach (var other in around.Where(o => o.IsAlive))
-            Strike(unit, other, ranged: true, retaliation: false);
-        EndTurn();
+            Strike(unit, other, ranged: true, retaliation: false, splash: true);
+        EndTurn(acted: true);
         return true;
     }
+
+    /// <summary>La troupe active peut-elle attendre (une fois par round, pas pendant le tour que donne le moral) ?</summary>
+    public bool CanWait => Active is { HasWaited: false } && !IsRetreating && !_cheerTurn;
 
     /// <summary>La troupe active attend : elle jouera à la fin du round (une seule fois par round).</summary>
     public bool Wait()
     {
-        if (Active is not { } unit || unit.HasWaited || IsRetreating)
+        if (!CanWait || Active is not { } unit)
             return false;
         unit.HasWaited = true;
         if (_activeRooted)
@@ -590,7 +632,7 @@ public sealed partial class TacticalBattle
             return false;
         if (IsRetreating)
         {
-            EndTurn();
+            EndTurn(acted: true); // elle a frappé
             return true;
         }
         _log.Add(new UnitDefended(unit));
@@ -627,10 +669,23 @@ public sealed partial class TacticalBattle
         _log.Add(new UnitMoved(unit, path));
     }
 
-    private void EndTurn()
+    /// <summary>
+    /// Le tour de la troupe active est fini. Si elle a agi (<paramref name="acted"/> : déplacée, attaqué, tiré ; pas
+    /// attendu ni défendu), un bon moral peut la faire rejouer aussitôt, une fois par round.
+    /// </summary>
+    private void EndTurn(bool acted = false)
     {
+        var unit = Active;
         Active = null;
         RetreatSteps = null;
+        if (acted && unit is { IsAlive: true, Morale: > 0, HasCheered: false } && !CheckEnd()
+            && _rng.NextDouble() < unit.Morale * Morale.GoodChancePerPoint)
+        {
+            unit.HasCheered = true;
+            _log.Add(new UnitCheered(unit));
+            BeginTurn(unit, fresh: false);
+            return;
+        }
         NextUnit();
     }
 
@@ -644,14 +699,23 @@ public sealed partial class TacticalBattle
 
     // ------------------------------------------------------------------ dégâts
 
-    /// <summary>Les dégâts d'un coup, tirés au sort, et les créatures tuées. <paramref name="moved"/> : cases parcourues (charge).</summary>
-    private void Strike(BattleUnit from, BattleUnit to, bool ranged, bool retaliation, int moved = 0)
+    /// <summary>
+    /// Les dégâts d'un coup, tirés au sort, et les créatures tuées. <paramref name="moved"/> : cases parcourues (charge).
+    /// La chance de la troupe peut doubler ses dégâts (ou les diviser par deux), sauf sur les troupes touchées en plus de
+    /// la cible (<paramref name="splash"/> : souffle, balayage, nuage de mort).
+    /// </summary>
+    private void Strike(BattleUnit from, BattleUnit to, bool ranged, bool retaliation, int moved = 0, bool splash = false)
     {
         int damage = RollDamage(from, to, ranged, retaliation ? 0 : moved);
+        int luck = splash ? 0 : RollLuck(from);
+        if (luck > 0)
+            damage *= 2;
+        else if (luck < 0)
+            damage = Math.Max(1, damage / 2);
         int lost = Math.Min(damage, to.TotalHitPoints); // les points de vie vraiment ôtés
         int killed = to.TakeDamage(damage);
         to.Wake();
-        _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation));
+        _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation, luck));
         if (to.Has(Ability.Rage) && to.Enrage(RagePerHit, RageMax))
             _log.Add(new UnitEnraged(to, to.Rage));
         if (!from.IsAlive)
@@ -729,6 +793,14 @@ public sealed partial class TacticalBattle
         _turned[unit] = (unit.Side, unit.Count);
         unit.Turn();
         _log.Add(new UnitRevolted(unit));
+    }
+
+    /// <summary>La chance d'un coup : +1 (dégâts doublés), −1 (divisés par deux) ou 0 (rien).</summary>
+    private int RollLuck(BattleUnit unit)
+    {
+        if (unit.Luck == 0)
+            return 0;
+        return _rng.NextDouble() < Math.Abs(unit.Luck) * Morale.LuckChancePerPoint ? Math.Sign(unit.Luck) : 0;
     }
 
     /// <summary>Un nombre entier entre 0 (compris) et <paramref name="max"/> (exclu).</summary>

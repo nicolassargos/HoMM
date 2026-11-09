@@ -768,6 +768,22 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
 - **Habitations sur la carte** (demandé par l'utilisateur) : des lieux semés au hasard où un héros peut acheter des
   troupes (comme les habitations extérieures de Heroes). À concevoir plus tard : quelles créatures, réserve et
   croissance, prix, garde éventuelle.
+- ✅ **Le moral et la chance** (2026-11-09, branche `moral-chance`). Choix de l'utilisateur : 5 % par point (un peu
+  plus que Heroes 3 : 1/24), mauvais moral 10 % par point, la malchance existe (−3 à +3) ; le moral vient du charisme
+  (« aura » de l'armée à 20 / 30 / 40, et −1 / −2 / −3 pour une troupe au-delà de 1 / 1,5 / 2 fois la limite, la révolte
+  restant possible), du mélange des factions, du temple ; pas de règle à part pour les morts-vivants ; les touches des
+  factions plus tard. Code : `Core/Morale.cs` (`MoraleParts`, `LuckParts`, `UnitCheered`, `UnitFroze`),
+  `TacticalBattle` (`SetUpMorale` au début du combat d'après les troupes restées fidèles ; mauvais moral tiré dans
+  `NextUnit` après le poison ; `EndTurn(acted)` pour le bon moral après un déplacement, une attaque, un tir, ou après
+  « Rester » des Nomades ; `BeginTurn(fresh)` : le tour donné par le moral ne régénère ni ne soigne, et ne permet pas
+  d'attendre, `CanWait` ; `Strike(splash)` et `RollLuck` : la chance n'est pas tirée pour le souffle, le balayage et le
+  nuage de mort), `BattleUnit.Morale/Luck/HasCheered` (remis à 0 par la révolte), `UnitStruck.Luck`,
+  `Hero.SiteMorale/SiteLuck` (effacés par `FinishBattle`), `BlessingSite` (`MapSites.cs`, posés en dernier par
+  `PlaceSites` pour ne pas changer le reste des cartes), sauvegarde version 6. Le dé du hasard n'est tiré que pour une
+  troupe qui a du moral ou de la chance : les combats sans héros (duels, courbe, simulation d'origine) ne changent pas.
+  L'IA prend Moral après Commandement et Chance après Inspiration, et visite les lieux (poids 1,5). Affichage : la
+  ligne « Moral · Chance » de l'écran du héros (le détail au survol), le moral de chaque troupe dans son info-bulle et
+  sur la fiche au combat, « Moral ! », « Hésite… », « Chance ! », « Malchance » en texte flottant, le journal.
 
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui

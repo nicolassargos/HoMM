@@ -200,6 +200,8 @@ public static class MapRenderer
         WeeklyProducer { IsWaterWheel: true } => Art.Get("objects/water-wheel"),
         WeeklyProducer => Art.Get("objects/windmill"),
         ObservationTower => Art.Get("objects/tower"),
+        BlessingSite { Blessing: Blessing.Morale } => Art.Get("objects/temple"),
+        BlessingSite => Art.Get("objects/fairy-ring"),
         Mine mine => Art.Get($"objects/mine-{Art.Name(mine.Resource)}"),
         MonsterGuard guard => Art.Get($"creatures/{guard.Type.Id}"),
         Town town => Art.Town(town.Faction),
@@ -240,7 +242,7 @@ public static class MapRenderer
                     ci.DrawCircle(c + V(10, -13), 2, Rgb(255, 255, 200));
                 break;
 
-            case Shrine or SageHut or WeeklyProducer or ObservationTower:
+            case Shrine or SageHut or WeeklyProducer or ObservationTower or BlessingSite:
                 DrawSite(ci, obj, c, time);
                 break;
 
@@ -338,6 +340,30 @@ public static class MapRenderer
         var wood = Rgb(120, 80, 40);
         switch (obj)
         {
+            case BlessingSite { Blessing: Blessing.Morale }:
+                // un petit temple blanc à colonnes, un fronton doré
+                ci.DrawRect(R(-16, 12, 32, 5), darkStone);
+                ci.DrawRect(R(-14, 8, 28, 5), Rgb(225, 220, 205));
+                foreach (float x in new[] { -12f, -4f, 4f })
+                    ci.DrawRect(R(x, -8, 5, 17), Rgb(235, 230, 215));
+                ci.DrawRect(R(-15, -11, 30, 4), Rgb(225, 220, 205));
+                Triangle(ci, P(-16, -11), P(0, -22), P(16, -11), Rgb(220, 180, 70));
+                break;
+            case BlessingSite:
+                // un cercle de champignons dans l'herbe, et des lucioles qui dansent
+                for (int i = 0; i < 8; i++)
+                {
+                    float a = i * Mathf.Pi / 4;
+                    var foot = P(15 * Mathf.Cos(a), 6 + 7 * Mathf.Sin(a));
+                    ci.DrawRect(new Rect2(foot + k * V(-1, -3), k * 2, k * 4), Rgb(235, 230, 210));
+                    Ellipse(ci, new Rect2(foot + k * V(-3, -6), k * 6, k * 4), Rgb(200, 60, 60));
+                }
+                for (int i = 0; i < 3; i++)
+                {
+                    float a = (float)time * 1.5f + i * 2.1f;
+                    ci.DrawCircle(P(10 * Mathf.Cos(a), -6 + 5 * Mathf.Sin(a * 1.3f)), 1.5f * k, Rgb(250, 250, 150));
+                }
+                break;
             case Shrine shrine:
                 // un autel de pierre et sa flamme : rouge (attaque), bleue (défense), violette (puissance), verte (savoir)
                 var flame = shrine.Stat switch

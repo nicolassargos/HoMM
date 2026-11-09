@@ -823,6 +823,13 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   donc combat rapide et « Auto ») ; `GameState.StartFight` place aussitôt pour un héros de l'ordinateur. `BattleScreen` :
   le mode placement (`PlayerPlaces`, `_placing`, `RefreshPlacement`, le bouton « Commencer »). `--skill=id:rang`.
 
+- ✅ **Les boutons du combat en icônes** (2026-11-09, branche `boutons-combat`). Recherche : Heroes 1 n'avait que AUTO et SKIP ;
+  Heroes 3 met à gauche les boutons du combat (options, se rendre, fuir, auto), au milieu les messages, à droite ceux de
+  la troupe (sorts, attendre, défendre). Choix de l'utilisateur : la barre partagée comme Heroes 3, des boutons carrés de
+  pierre, des icônes d'argent gravé de PixelLab. `BattleScreen` : `AddButton(icône, nom, touche)`, `SetIcon` (une
+  icône à la place du texte, deux lettres sans image ; « Se défendre » devient « Rester »), `DimIcons` (l'icône d'un
+  bouton grisé pâlit), `ButtonSize` 44 unités.
+
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui
   volent jusqu'à leur cible (le coup porte à l'arrivée), un impact à chaque coup, recul de la troupe touchée, nuage de
@@ -863,7 +870,9 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
     (grands battements d'ailes ; les 16 images de move-2 plient le corps, bizarre sur un long vol), attaque attack-8-r
     (une gifle à hauteur de poitrine ; consigne sans lumière ni traînée, puis éclat effacé). L'Ange vole lentement
     (`stepTime` 0,4 s par case, un battement toutes les deux cases) : à 0,09 s (les volants par défaut), il traversait le
-    champ sans avoir le temps de battre des ailes (remarque de l'utilisateur). L'Épéiste et le Cavalier restent (plus
+    champ sans avoir le temps de battre des ailes (remarque de l'utilisateur). Les icônes d'argent **incrustées** dans la pierre (`Engrave` : l'argent posé dans un creux, l'ombre en haut
+  à gauche et la lumière en bas à droite, contrastes doux), choisies par l'utilisateur parmi l'argent seul, gravé (un
+  creux de pierre plus sombre) et incrusté ; un premier essai trop brut a été adouci. L'Épéiste et le Cavalier restent (plus
     petits au combat), à refaire plus tard (choix de l'utilisateur).
   - Effets (`BattleEffects`) : points de 2 pixels (`Pixel`), tailles et distances dans l'unité `U` (3 pixels : l'ancien
     pixel d'art) pour garder leur taille à l'écran ; les formes pleines (bulles, boules, largeur de l'éclair, fer de la

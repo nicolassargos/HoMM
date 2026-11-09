@@ -588,7 +588,7 @@
       "gabarit": "volant",
       "description": "a tiny mischievous forest sprite hovering in the air: a small slender humanoid with green-brown bark-like skin, big pointed ears, bright yellow-green eyes and a cheeky grin, a tunic made of overlapping autumn leaves, bare feet dangling, and two pairs of wings shaped like dry oak leaves with visible veins, orange and ochre, spread behind its back",
       "sujet": "a tiny forest sprite with leaf wings hovering in the air, green-brown skin, pointed ears, leaf tunic, side view facing right",
-      "hauteur": 30,
+      "hauteur": 45,
       "generation": [
         88,
         96
@@ -613,6 +613,23 @@
         "L2": "angle seul",
         "L3": "angle seul",
         "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L1-1",
+        "idle": "idle-2",
+        "move": "move-2",
+        "attack": "attack-4-r"
+      },
+      "grande": "art-candidats/references/derives/farfadet-grand.png",
+      "mouvements": {
+        "idle": "the little forest sprite hovers in the air, its leaf wings flutter quickly, its body bobs gently up and down, it grins and looks around, it stays at the same place",
+        "move": "the little forest sprite flies forward to the right, its body leaning forward, its leaf wings fluttering fast in a full flapping cycle, its feet trailing behind, it stays at the same place",
+        "attack": "the little forest sprite darts forward and scratches the enemy in front of it with its small clawed hands, then flies back to its starting place, its leaf wings fluttering"
+      },
+      "consignes": {
+        "idle": "the little forest sprite hovers in the air, its leaf wings flutter quickly, its body bobs gently up and down, it grins and looks around, it stays at the same place",
+        "move": "the little forest sprite flies forward to the right, its body leaning forward, its leaf wings fluttering fast in a full flapping cycle, its feet trailing behind, it stays at the same place",
+        "attack": "the little forest sprite lunges forward through the air and swipes its small clawed hands quickly twice in front of it, then flies back to its starting place, its leaf wings fluttering, it is alone"
       }
     },
     "behemoth": {
@@ -760,6 +777,233 @@
         "idle": "the hunched skeleton sways slowly on its bent legs, its head twitches and turns, its clawed bony fingers flex, the feet stay in place",
         "move": "the hunched skeleton walks forward to the right in one full clear walking cycle: its left bony foot lifts off the ground and steps forward, then its right bony foot lifts and steps forward, knees bent, hunched forward, arms dangling and swinging a little, it stays at the same place",
         "attack": "the hunched skeleton raises both its long clawed bony arms high above its skull, then brings them crashing down hard on the enemy in front of it, then straightens back to its starting pose"
+      }
+    },
+    "sanglier": {
+      "nom": "Sanglier",
+      "gabarit": "quadrupede",
+      "description": "a big heavy wild forest boar standing on its four legs, dark brown coarse fur, a thick bristly black mane along its spine, a long snout with two long curved ivory tusks, small fierce red-brown eyes, a few dry leaves stuck in its fur, head low and ready to charge",
+      "sujet": "a big wild boar with dark brown bristly fur, a black mane on its back and long curved tusks, head low, side view facing right",
+      "hauteur": 46,
+      "generation": [
+        128,
+        104
+      ],
+      "style": "godot/art/creatures/battle/loup.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "references": [],
+      "comparer": [
+        "loup",
+        "archer"
+      ],
+      "notes": "Forêt, niveau 2 : la charge, 1 case. Choix de l'utilisateur (2026-11-09) : sanglier sauvage de la forêt.",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L2-1",
+        "idle": "idle-2-r",
+        "move": "move-2",
+        "attack": "attack-2-r"
+      },
+      "grande": "art-candidats/references/derives/sanglier-grand.png",
+      "mouvements": {
+        "idle": "the wild boar stands on its four legs, snorts, lowers and raises its head, paws the ground with one front hoof, its bristly mane rises a little, the legs stay in place",
+        "move": "the wild boar trots forward to the right with heavy steps in one full trotting cycle, head low, its legs moving in turn, it stays at the same place",
+        "attack": "the wild boar lowers its head and lunges forward, thrusting its long tusks upward at the enemy in front of it, then steps back to its starting pose"
+      },
+      "consignes": {
+        "idle": "the wild boar stands on its four legs, snorts, lowers and raises its head, paws the ground with one front hoof, its bristly mane rises a little, the legs stay in place",
+        "move": "the wild boar trots forward to the right with heavy steps in one full trotting cycle, head low, its legs moving in turn, it stays at the same place",
+        "attack": "the wild boar lowers its head and lunges forward, thrusting its long tusks upward at the enemy in front of it, then steps back to its starting pose"
+      }
+    },
+    "archer-elfe": {
+      "nom": "Archer elfe",
+      "gabarit": "humain",
+      "description": "a slender wood elf archer standing, wearing a green and brown hooded cloak with the hood up, the face visible under the hood with fine features and pointed ears, light brown leather armour, a tall wooden longbow held in the left hand, a quiver of green-feathered arrows on the back, soft leather boots",
+      "sujet": "a slender hooded wood elf archer in a green cloak with a tall longbow, side view facing right",
+      "hauteur": 74,
+      "generation": [
+        104,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [],
+      "comparer": [
+        "archer",
+        "moine"
+      ],
+      "corde": false,
+      "notes": "Forêt, niveau 3 : le meilleur tireur (tire deux fois), 1 case. Choix de l'utilisateur (2026-11-09) : elfe des bois encapuchonné. Corde de larc non tracée : il tient larc en travers du corps, la corde tracée lui barrait le visage (remarque de lutilisateur).",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L2-4",
+        "move": "move-3-sc",
+        "attack": "attack-2-r",
+        "idle": "idle-5-sc"
+      },
+      "grande": "art-candidats/references/derives/archer-elfe-grand.png",
+      "mouvements": {
+        "idle": "the hooded elf archer stands calmly holding its longbow, breathes slowly, turns its head to look around, its cloak moves slightly, the feet stay in place",
+        "move": "the hooded elf archer walks forward to the right in one full light walking cycle, holding its longbow in one hand, its cloak swaying, it stays at the same place",
+        "attack": "the hooded elf archer takes an arrow from its quiver, nocks it, raises the longbow, draws the bowstring fully back to its cheek and releases it, then lowers the bow back to its starting pose"
+      },
+      "consignes": {
+        "idle": "the hooded elf archer reaches over its shoulder, takes one arrow from its quiver, looks at it closely, then puts it back in the quiver and stands calmly again, holding its longbow, the feet stay in place",
+        "move": "the hooded elf archer walks forward to the right in one full clear walking cycle: its left foot lifts off the ground and steps forward, then its right foot lifts and steps forward, it holds its longbow in one hand, its cloak sways, it stays at the same place",
+        "attack": "the hooded elf archer takes an arrow from its quiver, nocks it, raises the longbow, draws the bowstring fully back to its cheek and releases it, then lowers the bow back to its starting pose"
+      }
+    },
+    "cerf": {
+      "nom": "Cerf",
+      "gabarit": "quadrupede",
+      "description": "a large majestic red-brown forest stag standing proudly on its four slender legs, huge wide many-pointed antlers, a thick darker mane of fur on its neck, a pale belly and white rump, alert head held high",
+      "sujet": "a large red-brown stag with huge many-pointed antlers and a thick neck mane, standing proudly, side view facing right",
+      "hauteur": 84,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/loup.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "references": [],
+      "comparer": [
+        "griffon",
+        "loup"
+      ],
+      "notes": "Forêt, niveau 4 : le rapide, bondit par-dessus troupes et obstacles, 1 case. Choix de l'utilisateur (2026-11-09) : grand cerf de la forêt.",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L4-1",
+        "idle": "idle-2",
+        "move": "move-4",
+        "attack": "attack-4-r"
+      },
+      "grande": "art-candidats/references/derives/cerf-grand.png",
+      "mouvements": {
+        "idle": "the stag stands proudly on its four legs, its ears twitch, it lowers its head to graze for a moment, then raises its head high again and looks around, the legs stay in place",
+        "move": "the stag runs forward to the right in one full bounding gallop cycle, leaping with its front legs reaching forward and its hind legs pushing off, its antlers held high, it stays at the same place",
+        "attack": "the stag lowers its head and its huge antlers and rams forward hard, then raises its head and steps back to its starting pose"
+      },
+      "consignes": {
+        "idle": "the stag stands proudly on its four legs, its ears twitch, it lowers its head to graze for a moment, then raises its head high again and looks around, the legs stay in place",
+        "move": "the stag walks forward to the right at a calm stately walk in one full walking cycle, each of its four legs lifting and stepping forward in turn, no jumping, no running, all hooves stay close to the ground, its head and antlers held high, it stays at the same place",
+        "attack": "the stag lowers its head down close to the ground, then sweeps its huge antlers upward from low to high in one powerful upward thrust, lifting its head high, then lowers it back to its starting pose"
+      }
+    },
+    "treant": {
+      "nom": "Tréant",
+      "gabarit": "grand",
+      "description": "a walking blossoming tree that looks like a real old tree, not a man: a thick gnarled oak trunk as its body, a large rounded crown of light green leaves dotted with pink and white blossoms on top, the base of the trunk splits into thick twisted roots used as legs, two crooked side branches used as arms with twig fingers, soft green moss and ivy on the bark, only a subtle face formed by knots in the bark with two small glowing green eyes, no human body, no human face",
+      "sujet": "a walking blossoming oak tree with root legs, branch arms and a big leafy crown with pink flowers, only two small glowing eyes in the bark, side view facing right",
+      "hauteur": 100,
+      "generation": [
+        144,
+        160
+      ],
+      "style": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/treant-L5-1-coupe.png::the same walking tree: keep exactly its design, colours, trunk, roots, arms and blossoms, but draw its whole large rounded crown of leaves fully visible above it (in this reference the top of the crown is cut off), leave empty space around it"
+      ],
+      "comparer": [
+        "troll",
+        "ogre"
+      ],
+      "notes": "Forêt, niveau 6 : le mur lent, résiste aux tirs, ses coups enracinent la cible, 1 case. Choix de l utilisateur (2026-11-09) : tréant en fleurs. Revu : plus arbre, moins humain (remarque de l utilisateur). Refait (2026-11-09) : la couronne de L5-1 était coupée en haut (cadre de génération trop petit) ; regénéré à 144 × 160 avec L5-1 en référence.",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "références"
+      },
+      "choix": {
+        "fixe": "L10-1",
+        "move": "move-6",
+        "attack": "attack-4-r",
+        "idle": "idle-6"
+      },
+      "grande": "art-candidats/references/derives/treant-grand.png",
+      "mouvements": {
+        "idle": "the walking tree stands still and sways gently in the wind, its crown of leaves and blossoms rustles, its branch arms move slowly, its roots stay in place",
+        "move": "the walking tree walks slowly forward to the right on its thick roots in one full heavy lumbering walking cycle, one root leg lifting and stepping forward after the other, its crown swaying, it stays at the same place",
+        "attack": "the walking tree raises one heavy branch arm high and swings it down hard to smash the enemy in front of it, then slowly returns to its starting pose"
+      },
+      "consignes": {
+        "idle": "the walking tree shakes its big leafy crown strongly from left to right and back again several times, like an animal shaking its head, a few leaves and petals fall slowly from its crown to the ground, then it stands still again, its roots stay in place",
+        "move": "the walking tree walks slowly forward to the right on its thick roots: one big root leg lifts off the ground and steps forward, then the other, heavy and lumbering, its crown swaying gently, it stays at the same place",
+        "attack": "the walking tree lashes one long flexible branch arm forward like a whip, the branch stretching far in front of it, then pulls it back to its starting pose"
+      }
+    },
+    "druide": {
+      "nom": "Druide",
+      "gabarit": "humain",
+      "description": "a stout, thickset old druid standing firmly, broad shoulders, a big round belly and thick strong arms under a heavy earthy brown robe with wide sleeves tied with a red belt, a long thick white beard and a wise stern face under a tall pointed brown hood, holding a tall pale gnarled wooden staff with a forked top on which a small grey-brown owl with yellow eyes is perched",
+      "sujet": "a stout thickset old bearded druid with broad shoulders in a heavy brown robe and tall pointed hood with a red belt, holding a pale gnarled staff with an owl perched on top, side view facing right",
+      "hauteur": 72,
+      "generation": [
+        104,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/druid1.png::style and costume reference (classic 1990s strategy game druid: brown pointed hood, brown robe, red belt, white beard): keep this look, but draw it bigger and more detailed, do not copy its exact pose",
+        "art-candidats/references/druid2.png::concept reference only (old hooded druid, a gnarled pale staff with an owl perched on it): keep the owl on the staff, ignore its grey colours, its realistic modern style and its grey checkered background"
+      ],
+      "comparer": [
+        "moine",
+        "archer"
+      ],
+      "notes": "Forêt, niveau 5 : tireur et soigneur (tire sans pénalité de distance, aura de soin), 1 case. D'après deux références de l'utilisateur (2026-11-09) : la robe brune à capuche pointue et ceinture rouge (druid1), le bâton noueux avec une chouette (druid2, converti de l'AVIF). Revu : plus trapu, plus épais (remarque de l'utilisateur). L10-3 regarde déjà à droite : pas de miroir (les feuilles d animation faites avec miroir ont été retournées).",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul"
+      },
+      "mouvements": {
+        "idle": "the stout old druid stands holding his staff, slowly strokes his long white beard with his free hand, the owl on top of the staff turns its head and ruffles its feathers, the feet stay in place",
+        "move": "the stout old druid walks forward to the right slowly in one full walking cycle, leaning on his tall staff with each step, his heavy robe swaying, the owl stays perched on the staff, he stays at the same place",
+        "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff"
+      },
+      "choix": {
+        "fixe": "L10-3",
+        "idle": "idle-2-r",
+        "move": "move-2",
+        "attack": "attack-2-r"
+      },
+      "grande": "art-candidats/references/derives/druide-grand.png",
+      "consignes": {
+        "idle": "the stout old druid stands holding his staff, slowly strokes his long white beard with his free hand, the owl on top of the staff turns its head and ruffles its feathers, the feet stay in place",
+        "move": "the stout old druid walks forward to the right slowly in one full walking cycle, leaning on his tall staff with each step, his heavy robe swaying, the owl stays perched on the staff, he stays at the same place",
+        "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff"
       }
     }
   }

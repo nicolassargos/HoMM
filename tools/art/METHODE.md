@@ -112,6 +112,20 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Contour et bord** (fiche, facultatifs) : « contour » (assombrir, seuil, passes ; 0,6, 45, 2 par défaut) adoucit un
   contour sombre ; « bord » (0,6 : le Farfadet) rend le bord semi-transparent (traits d'un pixel gardés pleins), pour
   qu'une créature se fonde dans le décor. Juger en combat, à la vraie taille (une planche agrandie trompe).
+- **Leçons de la Forêt (2026-11-09)** :
+  - Choisir l'image fixe **en combat** : poser des candidats dans le jeu (`art/creatures/battle/essai-<k>.png`, effacés
+    ensuite) et les voir avec `--creature-preview=essai-1,…` ; régler la taille là (le Sanglier ×0,85).
+  - Une créature large (le Tréant) : agrandir le cadre de génération (« generation » : 144 × 160), sinon PixelLab la
+    coupe ; vérifier que la grande image ne touche pas son bord.
+  - « enemy » dans une consigne d'attaque fait dessiner une autre créature (le Farfadet) : décrire seulement le geste.
+  - Une référence d'image doit exister dans le dossier de travail (sinon le lot échoue sans bruit) ; une image de 740 px
+    est réduite à 256 ; une AVIF se convertit avec Windows (`System.Windows.Media.Imaging.BitmapDecoder`).
+  - Vérifier le sens de l'image choisie avant de poser « miroir » (le Druide L10-3 regardait déjà à droite) ; une feuille
+    faite dans le mauvais sens se retourne image par image, sans dépense.
+  - Trous laissés par un éclat effacé : `tools/art/combler.py feuille.png 8 3,4` ; un éclat blanc sur une créature qui
+    porte du blanc (yeux, barbe, ventre) s'efface à la main dans la zone de l'éclat seulement.
+  - **Jamais deux commandes qui écrivent `creatures-art.json` en même temps** (animer, choisir) : la dernière efface les
+    choix de l'autre.
 - **Voir les animations candidates** : `tools/art/apercu_anims.py <id>` (page `en-cours/<id>-anims.html`) les joue à la
   taille du jeu, entières, avec une large marge et la copie retournée bien à l'écart (la page de `creature.py page`
   coupe les grandes attaques et les grandes ailes). Remarques de l'utilisateur (2026-11-09) : un **volant** doit voler

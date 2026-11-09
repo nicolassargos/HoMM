@@ -68,6 +68,8 @@ public sealed partial class TacticalBattle
             return false;
         if (unit.IsUndead && !spell.AffectsUndead)
             return false; // un mort-vivant n'y est pas sensible
+        if (unit.IsMade && spell.Harmful)
+            return false; // une créature façonnée résiste aux sorts néfastes
         if (spell.Target == SpellTarget.Any)
             return true;
         if (spell.Target is SpellTarget.Enemy or SpellTarget.Chain)
@@ -171,9 +173,11 @@ public sealed partial class TacticalBattle
             case SpellEffect.Damage:
                 if (!unit.IsAlive)
                     break;
-                int killed = unit.TakeDamage(strength);
+                // une créature façonnée résiste à la magie : moitié moins de dégâts
+                int damage = unit.IsMade ? Math.Max(1, strength / 2) : strength;
+                int killed = unit.TakeDamage(damage);
                 unit.Wake();
-                _log.Add(new SpellDamaged(unit, spell, strength, killed));
+                _log.Add(new SpellDamaged(unit, spell, damage, killed));
                 break;
             case SpellEffect.Teleport:
                 var from = unit.Position;
@@ -195,6 +199,8 @@ public sealed partial class TacticalBattle
                 _log.Add(new UnitHealed(unit, spell, hitPoints, revived));
                 break;
             default:
+                if (unit.IsMade && spell.Harmful)
+                    break;
                 unit.Enchant(spell, Round + SpellDuration(side) - 1);
                 _log.Add(new SpellApplied(unit, spell));
                 break;

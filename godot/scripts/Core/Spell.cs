@@ -99,6 +99,9 @@ public sealed class SpellCatalog
     /// <summary>Toutes les entrées du fichier, dans l'ordre (y compris les doublons, vérifiés par <see cref="DataValidation"/>).</summary>
     public IReadOnlyList<SpellType> All => _all;
 
+    /// <summary>Le sort de cet identifiant, ou null.</summary>
+    public SpellType? Find(string id) => All.FirstOrDefault(s => s.Id == id);
+
     public SpellType Get(string id) =>
         _byId.TryGetValue(id, out var spell) ? spell : throw new KeyNotFoundException($"sort inconnu : {id}");
 

@@ -18,6 +18,10 @@ public sealed class GameData
             (spells ?? SpellCatalog.Empty).All, errors);
         DataValidation.CheckSkills((skills ?? SkillCatalog.Empty).All, (classes ?? ClassCatalog.Empty).All,
             (spells ?? SpellCatalog.Empty).All, errors);
+        // les bénédictions d'une créature (le Djinn) : des sorts qui existent
+        foreach (var creature in creatures.All)
+            foreach (var id in creature.Blessings.Where(id => (spells ?? SpellCatalog.Empty).Find(id) == null))
+                errors.Add($"{creature.Id} : bénédiction inconnue ({id})");
         if (errors.Count > 0)
             throw new FormatException("Données du jeu invalides :" + System.Environment.NewLine + "- " + string.Join(System.Environment.NewLine + "- ", errors));
         Creatures = creatures;
@@ -27,6 +31,8 @@ public sealed class GameData
         Heroes = heroes ?? HeroCatalog.Empty;
         Classes = classes ?? ClassCatalog.Empty;
         Skills = skills ?? SkillCatalog.Empty;
+        foreach (var creature in creatures.All.Where(c => c.Blessings.Count > 0))
+            creature.BlessingSpells = creature.Blessings.Select(Spells.Get).ToList();
     }
 
     public CreatureCatalog Creatures { get; }

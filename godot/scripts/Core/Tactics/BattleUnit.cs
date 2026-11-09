@@ -103,6 +103,21 @@ public static class Ability
     /// <summary>Enracine (Tréant) : la cible de ses coups ne peut pas se déplacer à son prochain tour.</summary>
     public const string Roots = "roots";
 
+    /// <summary>
+    /// Une créature façonnée (Tour de magie : gargouilles, golems) : elle résiste à la magie (les sorts de dégâts font
+    /// moitié moins, les sorts néfastes ne la touchent pas).
+    /// </summary>
+    public const string Made = "made";
+
+    /// <summary>Répare (le Gnome) : au début de son tour, soigne la créature de tête de chaque troupe façonnée amie voisine.</summary>
+    public const string Repairs = "repairs";
+
+    /// <summary>Bénédiction (le Djinn) : au début de son tour, lance un de ses sorts amis au hasard sur une troupe amie.</summary>
+    public const string Blessing = "blessing";
+
+    /// <summary>Un tireur qui frappe au corps à corps sans perdre la moitié de ses dégâts (le Mage).</summary>
+    public const string NoMeleePenalty = "no-melee-penalty";
+
     public static readonly string[] Known =
     {
         Shoots, NoRangePenalty, Flies, DoubleRetaliation, NoRetaliation, Breath, RangedResistance,
@@ -110,6 +125,7 @@ public static class Ability
         Undead, GhostGrowth, Poison, LifeDrain, DeathCloud, Sweep,
         Rage, HitAndRun, Lightning, Rending,
         NatureRegeneration, DoubleShot, Leaps, HealingAura, Roots,
+        Made, Repairs, Blessing, NoMeleePenalty,
     };
 }
 
@@ -348,6 +364,9 @@ public sealed class BattleUnit
 
     /// <summary>Un mort-vivant (voir <see cref="Ability.Undead"/>).</summary>
     public bool IsUndead => Has(Ability.Undead);
+
+    /// <summary>Une créature façonnée : elle résiste à la magie.</summary>
+    public bool IsMade => Has(Ability.Made);
 
     /// <summary>Le poison : les dégâts au début de chacun de ses tours, et pendant combien de tours encore.</summary>
     public int PoisonDamage { get; private set; }

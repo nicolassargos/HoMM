@@ -265,3 +265,6 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   commencer 62 ; fuir refait (« de profil, vers la gauche, tête basse de honte » : n° 4 ; le premier lot, vu de dos,
   ressemblait à des cosmonautes). Le jeu les **incruste** dans la pierre du bouton (`BattleScreen.Engrave` : un creux
   autour de l'argent, l'ombre en haut à gauche, la lumière en bas à droite, contrastes doux).
+- **Icônes du panneau de la carte** (2026-11-09, même méthode, l'engrenage choisi comme image de style) : suivant 56
+  (heaume et flèche), avancer 3 (botte), centrer 15 (cible), royaume 8 (couronne), creuser 48 (pelle), trésor 60 (carte
+  roulée) ; Sorts et Options reprennent le livre et l'engrenage du combat. Le code commun : `IconButtons.cs`.

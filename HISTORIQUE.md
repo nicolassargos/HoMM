@@ -830,6 +830,10 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   icône à la place du texte, deux lettres sans image ; « Se défendre » devient « Rester »), `DimIcons` (l'icône d'un
   bouton grisé pâlit), `ButtonSize` 44 unités.
 
+- ✅ **Le panneau de la carte en icônes** (2026-11-09, branche `icones-carte`) : les boutons carrés à icône incrustée sortis
+  de `BattleScreen` dans `IconButtons` (`Icon`, `Inlay`, `Make`, `SetIcon`, `Dim`), utilisés par la barre du combat et
+  le panneau (`Hud` : deux rangées de quatre, côté calculé sur la largeur du panneau). « Fin du tour » garde son texte.
+  L'info-bulle d'Options donne sa vraie touche (Échap).
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui
   volent jusqu'à leur cible (le coup porte à l'arrivée), un impact à chaque coup, recul de la troupe touchée, nuage de

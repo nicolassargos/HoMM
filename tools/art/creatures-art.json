@@ -559,7 +559,7 @@
         "move": "the thunderbird spreads its huge wings and flies forward to the right with powerful wing beats"
       },
       "vole": true,
-      "notes": "Barbares, niveau 6 : vole, 1 case (choix de l'utilisateur, 2026-11-08), appelle la foudre (l'effet vient du jeu, pas de l'image). Choix de l'utilisateur (2026-11-08) : oiseau-totem mythique. Revu : ailes repliées le long du corps. Animations (revu) : au repos il se gratte l'aile avec le bec ; il se déplace trop vite pour battre des ailes ; l'attaque montre la foudre, sans éclat.",
+      "notes": "Barbares, niveau 6 : vole, 1 case (choix de l'utilisateur, 2026-11-08), appelle la foudre (l'effet vient du jeu, pas de l'image). Choix de l'utilisateur (2026-11-08) : oiseau-totem mythique. Revu : ailes repliées le long du corps. Animations (revu) : au repos il se gratte l'aile avec le bec ; il se déplace trop vite pour battre des ailes ; l'attaque montre la foudre, sans éclat ; refaite (2026-11-09) : ailes déployées, cri vers le ciel, sans éclair (la foudre est jouée par le jeu sur la case de la cible).",
       "lots": {
         "L1": "angle seul",
         "L2": "angle seul",
@@ -571,7 +571,7 @@
       "choix": {
         "fixe": "L6-3",
         "idle": "idle-3",
-        "attack": "attack-4",
+        "attack": "attack-2-r",
         "move": "move-7",
         "transform": "transform-2, images 1 à 5 (sans la pose tenue), 12 images/s"
       },
@@ -579,7 +579,7 @@
       "consignes": {
         "idle": "the thunderbird stands on its talons, turns its head and slowly scratches and preens the feathers of its folded wing with its hooked beak, then looks back forward, the talons stay in place",
         "move": "the thunderbird flies to the right with its body kept horizontal, beating its great wings down and up in one full steady flying cycle, its talons stay tucked under its belly, its head forward, it stays at the same place",
-        "attack": "the thunderbird raises its wings and its head toward the sky, a jagged blue-white lightning bolt crackles down from above and strikes the ground in front of it, then the bird folds its wings back to its starting pose",
+        "attack": "the thunderbird stands on its talons, slowly raises its great totem-patterned wings high above its body and lifts its head toward the sky with its hooked beak wide open in a fierce cry, holds the pose for a moment, then folds its wings back along its body to its starting pose, the talons stay in place",
         "transform": "the thunderbird takes off: standing on its talons, it crouches, spreads its great totem-patterned wings, leaps up and tilts its body forward until it is flying horizontally to the right, its talons retracting and tucking under its belly, ending in a level flying pose with the wings raised"
       }
     },

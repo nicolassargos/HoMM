@@ -619,6 +619,9 @@ public sealed partial class GameState
         var defenderRebels = defenderHero != null ? RollRevolts(defenderHero) : null;
         _battle = new BattleContext(hero, defender, army.Clone().Stacks);
         CurrentBattle = new TacticalBattle(hero.Army, army, _rng, hero, rebels, defenderHero, defenderRebels);
+        // la Tactique d'un héros de l'ordinateur : il place ses troupes tout de suite
+        if (CurrentBattle.PlacementSide is { } placing && CurrentBattle.HeroOf(placing) is { Owner.IsComputer: true })
+            BattleAI.PlaceTroops(CurrentBattle);
         Emit(new BattleStarted(hero, defender, CurrentBattle));
         if (QuickBattles && !(HumansDefend && DefendedByHuman(defender)))
         {

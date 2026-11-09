@@ -324,7 +324,7 @@ public static class ComputerPlayer
     private static readonly string[] SkillOrder =
     {
         Skills.Logistics, Skills.Estates, Skills.Leadership, Skills.Morale, Skills.Discipline, Skills.Recruiter, Skills.Inspiration, Skills.Luck,
-        Skills.Diplomacy,
+        Skills.Diplomacy, Skills.Tactics,
         Skills.Mysticism, "ecole-terre", "ecole-feu", "ecole-eau", "ecole-air", Skills.Scouting, Skills.Pathfinding,
     };
 

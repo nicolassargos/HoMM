@@ -131,9 +131,35 @@ public static class BattleAI
             .First();
     }
 
+    /// <summary>
+    /// La Tactique : les tireurs restent derrière (à l'abri), les autres s'avancent au plus loin de la zone, sur leur
+    /// rangée si possible ; puis le combat commence.
+    /// </summary>
+    public static void PlaceTroops(TacticalBattle battle)
+    {
+        if (battle.PlacementSide is not { } side)
+            return;
+        // vers l'ennemi : à droite pour l'attaquant, à gauche pour le défenseur
+        int Forward(Hex h) => side == BattleSide.Attacker ? h.Col : -h.Col;
+        foreach (var unit in battle.Units.Where(u => u.IsAlive && u.Side == side && !u.IsRebel && !u.CanShoot).OrderBy(u => u.Slot).ToList())
+        {
+            var best = battle.PlacementHexes(unit)
+                .OrderByDescending(Forward).ThenBy(h => Math.Abs(h.Row - unit.Position.Row)).ThenBy(h => h.Row)
+                .Cast<Hex?>().FirstOrDefault();
+            if (best is { } head && Forward(head) > Forward(unit.Position))
+                battle.Place(unit, head);
+        }
+        battle.EndPlacement();
+    }
+
     /// <summary>Fait jouer la troupe active (son héros lance d'abord un sort, s'il en vaut la peine).</summary>
     public static void PlayTurn(TacticalBattle battle)
     {
+        if (battle.IsPlacing)
+        {
+            PlaceTroops(battle);
+            return;
+        }
         if (ChooseSpell(battle) is { } cast)
             battle.Cast(cast.Spell, cast.Target, cast.Destination);
         if (battle.Active is not { } unit)

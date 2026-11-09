@@ -1080,6 +1080,7 @@ public static class Texts
             HoMM.Core.Skills.Mysticism => $"+{v} point{(v > 1 ? "s" : "")} de sort par jour",
             HoMM.Core.Skills.Morale => $"+{v} de moral aux troupes",
             HoMM.Core.Skills.Luck => $"+{v} de chance aux troupes",
+            HoMM.Core.Skills.Tactics => $"placer ses troupes avant le combat, dans les {v} premières colonnes (moins si l'ennemi a aussi la Tactique)",
             HoMM.Core.Skills.Diplomacy => rank switch
             {
                 1 => "un gardien que votre armée vaut 3 fois propose de vous rejoindre, à son prix",
@@ -1387,6 +1388,12 @@ public static class Texts
         $"{HeroBonus(hero)}\n{SpellPointsLine(spellPoints, hero.MaxSpellPoints)}"
         + (hero.Spells.Count > 0 ? $"\nSorts : {List(hero.Spells.Select(s => s.Name).ToList())}" : "");
     public static string BattleLogButton => "Journal";
+    public static string BattleStart => "Commencer";
+    public static string BattlePlacementTitle => "Placement";
+
+    /// <summary>La Tactique : ce que le joueur peut faire avant le premier round.</summary>
+    public static string BattlePlacementPrompt(int columns) =>
+        $"Tactique : placez vos troupes dans vos {columns} premières colonnes (cliquez une troupe, puis sa case), puis « Commencer ».";
     public static string BattleLogTitle => "Journal du combat";
 
     /// <summary>La fiche d'une troupe au combat, sur quelques lignes (ses caractéristiques, bonus du héros compris).</summary>

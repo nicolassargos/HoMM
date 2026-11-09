@@ -72,13 +72,27 @@ public partial class BattleScreen : CanvasLayer
         root.AddThemeStyleboxOverride("panel", Frame(DarkPanelColor));
         AddChild(root);
 
-        // En bas, sur une ligne (comme dans Heroes V) : le round, l'ordre de jeu complet (une bande de portraits),
-        // et les boutons à droite
+        // En bas, sur une ligne (comme Heroes 3) : à gauche les boutons du combat (options, fuite, auto), puis le round et
+        // l'ordre de jeu complet (une bande de portraits), à droite ce que fait la troupe (sorts, attendre, se défendre).
+        // Des boutons carrés de pierre, une icône d'argent, le nom et la touche en info-bulle.
         float barY = screenSize.Y - Px(10) - OrderHeight;
-        // les boutons, en une rangée à droite qui prend la largeur de leurs textes
-        var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.End };
-        buttons.AddThemeConstantOverride("separation", (int)Px(6));
-        _startButton = AddButton(buttons, Texts.BattleStart, "Entrée", () =>
+        HBoxContainer Group()
+        {
+            var group = new HBoxContainer();
+            group.AddThemeConstantOverride("separation", (int)Px(6));
+            return group;
+        }
+        var left = Group();
+        AddButton(left, "options", Texts.BattleOptionsButton, "O", OpenOptions);
+        _fleeButton = AddButton(left, "fuir", Texts.BattleFlee, "F", () => Player(b => b.Flee()));
+        _autoButton = AddButton(left, "auto", Texts.BattleAuto, "A", () => _auto = true);
+        left.Position = new Vector2(Px(16), barY + (OrderHeight - Px(ButtonSize)) / 2f);
+        left.Size = new Vector2(left.GetCombinedMinimumSize().X, Px(ButtonSize));
+        root.AddChild(left);
+
+        var buttons = Group();
+        buttons.Alignment = BoxContainer.AlignmentMode.End;
+        _startButton = AddButton(buttons, "commencer", Texts.BattleStart, "Entrée", () =>
         {
             if (PlayerPlaces)
             {
@@ -87,27 +101,24 @@ public partial class BattleScreen : CanvasLayer
                 Show(_battle.TakeLog());
             }
         });
-        _spellButton = AddButton(buttons, Texts.SpellBookButton, "S", OpenSpellBook);
-        _waitButton = AddButton(buttons, Texts.BattleWait, "W", () => Player(b => b.Wait()));
-        _defendButton = AddButton(buttons, Texts.BattleDefend, "D", () => Player(b => b.Defend()));
-        _autoButton = AddButton(buttons, Texts.BattleAuto, "A", () => _auto = true);
-        _fleeButton = AddButton(buttons, Texts.BattleFlee, "F", () => Player(b => b.Flee()));
-        AddButton(buttons, Texts.BattleOptionsButton, "O", OpenOptions);
+        _spellButton = AddButton(buttons, "livre", Texts.SpellBookButton, "S", OpenSpellBook);
+        _waitButton = AddButton(buttons, "sablier", Texts.BattleWait, "W", () => Player(b => b.Wait()));
+        _defendButton = AddButton(buttons, "bouclier", Texts.BattleDefend, "D", () => Player(b => b.Defend()));
         float buttonsWidth = buttons.GetCombinedMinimumSize().X;
-        buttons.Position = new Vector2(screenSize.X - Px(16) - buttonsWidth, barY + (OrderHeight - Px(40)) / 2f);
-        buttons.Size = new Vector2(buttonsWidth, Px(40));
+        buttons.Position = new Vector2(screenSize.X - Px(16) - buttonsWidth, barY + (OrderHeight - Px(ButtonSize)) / 2f);
+        buttons.Size = new Vector2(buttonsWidth, Px(ButtonSize));
         root.AddChild(buttons);
 
         _title = MakeLabel("", 16, TextColor);
-        _title.Position = new Vector2(Px(16), barY);
+        _title.Position = new Vector2(left.Position.X + left.Size.X + Px(14), barY);
         _title.Size = new Vector2(RoundWidth, OrderHeight);
         _title.VerticalAlignment = VerticalAlignment.Center;
         _title.MouseFilter = Control.MouseFilterEnum.Pass; // pour son info-bulle (l'adversaire)
         root.AddChild(_title);
         _order = new HBoxContainer
         {
-            Position = new Vector2(Px(16 + 8) + RoundWidth, barY),
-            Size = new Vector2(buttons.Position.X - RoundWidth - Px(16 + 8 + 16), OrderHeight),
+            Position = new Vector2(_title.Position.X + RoundWidth + Px(8), barY),
+            Size = new Vector2(buttons.Position.X - _title.Position.X - RoundWidth - Px(8 + 16), OrderHeight),
             ClipContents = true,
         };
         _order.AddThemeConstantOverride("separation", (int)Px(4));
@@ -304,14 +315,55 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>Largeur de « Round 2 », au début de la ligne du bas.</summary>
     private const float RoundWidth = 144; // en pixels
 
-    private static Button AddButton(Control parent, string text, string key, Action pressed)
+    /// <summary>Le côté d'un bouton du bas (en unités) : l'icône (sa partie visible, ×2) y tient.</summary>
+    private const float ButtonSize = 44;
+
+    /// <summary>Les icônes des boutons du bas, réduites à leur partie visible (null : pas d'image).</summary>
+    private static readonly System.Collections.Generic.Dictionary<string, Texture2D?> Icons = new();
+
+    private static Texture2D? Icon(string name)
     {
-        var button = MakeButton(text, 14);
-        button.TooltipText = Texts.KeyTooltip(text, key);
-        button.CustomMinimumSize = V(96, 40);
+        if (!Icons.TryGetValue(name, out var icon))
+            Icons[name] = icon = Art.GetImage($"ui/icons/{name}") is { } image
+                ? ImageTexture.CreateFromImage(image.GetRegion(image.GetUsedRect())) : null;
+        return icon;
+    }
+
+    /// <summary>
+    /// Un bouton carré de pierre avec son icône d'argent (<c>art/ui/icons/{icon}.png</c>, PixelLab, 32 × 32, ×2) ; le nom et la
+    /// touche en info-bulle. Sans image, les deux premières lettres du nom.
+    /// </summary>
+    private static Button AddButton(Control parent, string icon, string text, string key, Action pressed)
+    {
+        var button = MakeButton("", 14);
+        button.CustomMinimumSize = V(ButtonSize, ButtonSize);
         button.Pressed += pressed;
+        SetIcon(button, icon, text, key);
         parent.AddChild(button);
         return button;
+    }
+
+    /// <summary>Change l'icône et l'info-bulle d'un bouton du bas (« Se défendre » devient « Rester »).</summary>
+    private static void SetIcon(Button button, string icon, string text, string key)
+    {
+        if (button.GetMeta("icon", "").AsString() == icon)
+            return;
+        button.SetMeta("icon", icon);
+        button.TooltipText = Texts.KeyTooltip(text, key);
+        foreach (var child in button.GetChildren())
+        {
+            button.RemoveChild(child);
+            child.QueueFree();
+        }
+        if (Icon(icon) is { } image)
+        {
+            var size = image.GetSize() * 2;
+            var picture = Picture(image, ((V(ButtonSize, ButtonSize) - size) / 2).Floor(), size);
+            button.AddChild(picture);
+            button.Text = "";
+        }
+        else
+            button.Text = text.Length <= 2 ? text : text[..2];
     }
 
     /// <summary>Ouvre l'écran pour ce combat ; <paramref name="finished"/> est appelé quand il est fini et montré.</summary>
@@ -521,7 +573,11 @@ public partial class BattleScreen : CanvasLayer
         _fleeButton.Disabled = !mine || _playerSide != BattleSide.Attacker;
         _waitButton.Disabled = !mine || !battle.CanWait;
         // après avoir frappé, une troupe qui peut repartir (Nomades) choisit sa case, ou reste
-        _defendButton.Text = mine && battle.IsRetreating ? Texts.BattleStay : Texts.BattleDefend;
+        if (mine && battle.IsRetreating)
+            SetIcon(_defendButton, "rester", Texts.BattleStay, "D");
+        else
+            SetIcon(_defendButton, "bouclier", Texts.BattleDefend, "D");
+        DimIcons();
         _autoButton.Disabled = _auto;
         _startButton.Visible = battle.IsPlacing && battle.PlacementSide == _playerSide;
         if (PlayerPlaces)
@@ -587,11 +643,20 @@ public partial class BattleScreen : CanvasLayer
         RefreshOrder(battle);
     }
 
+    /// <summary>L'icône d'un bouton grisé pâlit avec lui.</summary>
+    private void DimIcons()
+    {
+        foreach (var button in new[] { _startButton, _spellButton, _waitButton, _defendButton, _autoButton, _fleeButton })
+            foreach (var icon in button.GetChildren().OfType<TextureRect>())
+                icon.Modulate = button.Disabled ? new Color(1, 1, 1, 0.35f) : Colors.White;
+    }
+
     /// <summary>La Tactique : la troupe choisie, les cases où elle peut aller, le curseur.</summary>
     private void RefreshPlacement(TacticalBattle battle)
     {
         _title.Text = Texts.BattlePlacementTitle;
         _spellButton.Disabled = true;
+        DimIcons();
         _placing ??= battle.Units.Where(u => u.IsAlive && u.Side == _playerSide && !u.IsRebel).OrderBy(u => u.Slot).FirstOrDefault();
         _field.ActiveUnit = _placing;
         _field.Reachable = _placing is { } unit

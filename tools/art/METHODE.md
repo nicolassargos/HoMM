@@ -254,3 +254,13 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   ouverte en fichier local : passer par un petit serveur, ou montrer une capture du jeu.
 - Écartés : les cadres épais du premier essai, B7 (fil d'or, trop discret), les boutons de pierre de 96 × 32, les cadres
   de Kenney, la police DotGothic16 (la police est VT323).
+- **Le solde PixelLab est partagé entre les sessions** (2026-11-09) : pour connaître le prix d'un lot, lire le `solde`
+  juste avant et juste après (une autre session peut générer en même temps). `pixellab.py pro` à 32 × 32 (64 icônes) :
+  0,08 $ le lot, vérifié.
+- **Icônes des boutons du combat** (2026-11-09, `art/ui/icons/*.png`) : argent gravé sur la pierre des boutons, PixelLab
+  « Pro » 32 × 32, 64 candidats par icône sans image de style (« single icon, light silver engraved metal, monochrome
+  pale silver and grey shades with a dark outline, simple bold silhouette… »), montrées ×2 réduites à leur partie
+  visible (réduites à 16 × 16, elles perdaient leurs détails). Choisies par l'utilisateur sur une page
+  (`art-candidats/en-cours/icones-combat.html`) : livre 33, sablier 34, bouclier 26, rester 1, auto 5, options 2,
+  commencer 62 ; fuir refait (« de profil, vers la gauche, tête basse de honte » : n° 4 ; le premier lot, vu de dos,
+  ressemblait à des cosmonautes).

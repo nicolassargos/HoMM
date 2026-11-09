@@ -823,6 +823,13 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   donc combat rapide et « Auto ») ; `GameState.StartFight` place aussitôt pour un héros de l'ordinateur. `BattleScreen` :
   le mode placement (`PlayerPlaces`, `_placing`, `RefreshPlacement`, le bouton « Commencer »). `--skill=id:rang`.
 
+- ✅ **Les boutons du combat en icônes** (2026-11-09, branche `boutons-combat`). Recherche : Heroes 1 n'avait que AUTO et SKIP ;
+  Heroes 3 met à gauche les boutons du combat (options, se rendre, fuir, auto), au milieu les messages, à droite ceux de
+  la troupe (sorts, attendre, défendre). Choix de l'utilisateur : la barre partagée comme Heroes 3, des boutons carrés de
+  pierre, des icônes d'argent gravé de PixelLab. `BattleScreen` : `AddButton(icône, nom, touche)`, `SetIcon` (une
+  icône à la place du texte, deux lettres sans image ; « Se défendre » devient « Rester »), `DimIcons` (l'icône d'un
+  bouton grisé pâlit), `ButtonSize` 44 unités.
+
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui
   volent jusqu'à leur cible (le coup porte à l'arrivée), un impact à chaque coup, recul de la troupe touchée, nuage de

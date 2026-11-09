@@ -173,38 +173,30 @@ public partial class Hud : CanvasLayer
         panel.AddChild(_army);
         y += Px(52) + Px(8);
 
-        // les boutons d'action : un nom court, le nom complet et la touche au survol ; Options sur toute la largeur
-        var actions = new (string Text, string Key, string Tooltip, Action Pressed)[]
+        // les boutons d'action : des boutons carrés de pierre à icône (comme au combat), deux rangées de quatre ; le nom
+        // et la touche au survol
+        var actions = new (string Icon, string Key, string Tooltip, Action Pressed)[]
         {
-            (Texts.NextHeroShort, "H", Texts.NextHeroButton, () => NextHeroPressed?.Invoke()),
-            (Texts.WalkButton, "Espace", Texts.WalkTooltip, () => WalkPressed?.Invoke()),
-            (Texts.CenterButton, "C", Texts.CenterTooltip, () => CenterPressed?.Invoke()),
-            (Texts.KingdomButton, "K", Texts.KingdomTitle, () => KingdomPressed?.Invoke()),
-            (Texts.DigAction, "F", Texts.DigTooltip, () => DigPressed?.Invoke()),
-            (Texts.TreasureShort, "M", Texts.TreasureMapAction, () => TreasureMapPressed?.Invoke()),
-            (Texts.SpellBookShort, "S", Texts.SpellBookTooltip, () => SpellBookPressed?.Invoke()),
+            ("suivant", "H", Texts.NextHeroButton, () => NextHeroPressed?.Invoke()),
+            ("avancer", "Espace", Texts.WalkTooltip, () => WalkPressed?.Invoke()),
+            ("centrer", "C", Texts.CenterTooltip, () => CenterPressed?.Invoke()),
+            ("royaume", "K", Texts.KingdomTitle, () => KingdomPressed?.Invoke()),
+            ("creuser", "F", Texts.DigTooltip, () => DigPressed?.Invoke()),
+            ("tresor", "M", Texts.TreasureMapAction, () => TreasureMapPressed?.Invoke()),
+            ("livre", "S", Texts.SpellBookTooltip, () => SpellBookPressed?.Invoke()),
+            ("options", "Échap", Texts.OptionsTooltip, ShowOptions),
         };
-        const int columns = 3;
-        float buttonWidth = (inner - 2 * Px(4)) / columns;
+        const int columns = 4;
+        float buttonGap = Px(4);
+        float side = MathF.Floor((inner - (columns - 1) * buttonGap) / columns);
         for (int i = 0; i < actions.Length; i++)
         {
-            var (text, key, tooltip, pressed) = actions[i];
-            var button = FixedButton(text, 12, new Vector2(buttonWidth, Px(37)));
-            button.Position = new Vector2(margin + i % columns * (buttonWidth + Px(4)), y + i / columns * Px(41));
-            button.TooltipText = Texts.KeyTooltip(tooltip, key);
-            button.Pressed += pressed;
+            var (icon, key, tooltip, pressed) = actions[i];
+            var button = IconButtons.Make(icon, tooltip, key, side, pressed);
+            button.Position = new Vector2(margin + i % columns * (side + buttonGap), y + i / columns * (side + buttonGap));
             panel.AddChild(button);
         }
-        // Options : la place qui reste sur la dernière rangée, sinon toute une rangée
-        int left = actions.Length % columns;
-        float optionsX = left == 0 ? 0 : left * (buttonWidth + Px(4));
-        float optionsY = y + actions.Length / columns * Px(41);
-        var options = FixedButton(Texts.OptionsButton, 12, new Vector2(inner - optionsX, Px(37)));
-        options.Position = new Vector2(margin + optionsX, optionsY);
-        y = optionsY + Px(41);
-        options.TooltipText = Texts.OptionsTooltip;
-        options.Pressed += ShowOptions;
-        panel.AddChild(options);
+        y += (actions.Length + columns - 1) / columns * (side + buttonGap);
 
         // la fin du tour : grande, toujours au même endroit
         var endTurn = MakeButton(Texts.EndTurnButton, 18);

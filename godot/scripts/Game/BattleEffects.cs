@@ -554,7 +554,8 @@ public sealed class BattleEffects
             int flicker = u < 0.12 ? (int)(u / 0.06) : 2; // le premier éclat crépite (la ligne change une fois)
             var path = BoltPath(top, s.At, s.Seed, flicker);
             // largeurs en pixels d'art, de part et d'autre du milieu : le cœur, le halo, la lueur
-            int coreHalf = strong ? 3 : 2, haloHalf = coreHalf + 2, outerHalf = haloHalf + (strong ? 3 : 2);
+            // (affinée à la demande de l'utilisateur : 7 pixels d'art en tout, 13 pour la foudre appelée)
+            int coreHalf = strong ? 2 : 1, haloHalf = coreHalf + (strong ? 2 : 1), outerHalf = haloHalf + (strong ? 2 : 1);
             var outer = new Color(BoltOuter, 0.35f * strength);
             var halo = new Color(BoltHalo, 0.85f * strength);
             var core = new Color(BoltCore, strength);

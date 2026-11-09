@@ -800,8 +800,8 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   `"impact": "foudre"` dans `animations.json` : l'éclair part un peu avant le coup et touche le sol quand il porte), et la
   foudre appelée (une attaque sur cinq, règles inchangées) est un second éclair plus fort (`foudre-forte` : plus large,
   plus de branches, tout le champ s'éclaire un instant), ses dégâts en bleu au-dessus de ceux du coup ; éclair **plus
-  grand et bleu** (cœur blanc bleuté de 5 pixels d'art, 7 pour la forte, halo bleu vif, lueur bleu sombre, quatre ou six
-  branches). Attaque refaite (PixelLab, 4 essais, 0,06 $) : ailes déployées en totem, cri vers le ciel, sans
+  grand et bleu**, puis affiné (cœur blanc bleuté de 3 pixels d'art, halo bleu vif et lueur bleu sombre d'un pixel de
+  chaque côté : 7 en tout ; la forte 5 + 2 + 2 : 13 en tout ; quatre ou six branches). Attaque refaite (PixelLab, 4 essais, 0,06 $) : ailes déployées en totem, cri vers le ciel, sans
   éclair ; choisie `attack-2-r` (l'image 2 avait une étincelle : remplacée par la 3, morceaux détachés effacés).
 - ✅ Créatures barbares (2026-11-09, branche `creatures-barbares`, PixelLab, environ 3 $) : fiches dans
   `tools/art/creatures-art.json`, faites avec `tools/art/creature.py`. Choix de l'utilisateur : **Nomades**, archers à cheval des

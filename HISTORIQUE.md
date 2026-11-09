@@ -870,6 +870,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   chêne aux maisons et ponts de corde dans ses branches, au milieu d'une palissade ronde, la porte en bas au milieu.
   Contour adouci (`adoucir.py` 0,7, 60, 2 passes) ; pieds proposés (trois, à vérifier). Le cercle et la citadelle
   remplissaient tout le rectangle (arbres coupés aux bords) : une scène, pas un objet détouré.
+  Revue (2026-11-10) : vues côte à côte sur l'herbe, la ville barbare et l'arbre paraissaient bien plus cernés de noir
+  que le Château. Adoucir les traits après coup (moyenne des voisins : « mousseux », moins de contraste ; amincir les
+  traits épais : trop discret) ne suffit pas : le poids vient aussi des couleurs sombres du dessin. Regénérés avec le
+  Château comme style (« thin light outlines, no thick black outlines, bright warm soft colours ») et la ville actuelle
+  comme modèle (0,23 $) : l'utilisateur garde la ville barbare actuelle et prend la nouvelle Forêt (candidat 1, plus
+  claire, traits plus fins).
 - ✅ Créatures de la Forêt (2026-11-09, branche `creatures-foret`, PixelLab, environ 6 $ avec les essais), une à la fois,
   choisies en combat (`essai-<k>.png` posés dans le jeu avec `--creature-preview`) et sur la page d'aperçu des
   animations (à la taille du jeu, un adversaire devant les attaques) :

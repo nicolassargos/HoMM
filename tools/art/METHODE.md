@@ -218,6 +218,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Ville de la Forêt (2026-11-09)** : une ville faite d'arbres tend à remplir tout le rectangle (une scène, arbres
   coupés aux bords) ; une idée centrée sur un seul grand arbre dans une palissade ronde reste un objet détouré. Montrer
   plusieurs idées d'un coup (un lot de quatre chacune, 0,115 $) pour que l'utilisateur compare.
+- **Contour trop marqué d'une image déjà faite (2026-11-10)** : les retouches ne suffisent pas (moyenne des voisins :
+  image « mousseuse » ; amincir les traits épais : trop discret), car le poids vient aussi des couleurs sombres. Regénérer
+  avec la ville du Château comme style et l'image actuelle comme modèle : « drawn in the same style as the reference
+  castle: thin light outlines, no thick black outlines, bright warm soft colours ». Comparer les villes côte à côte sur
+  l'herbe de la carte, à la taille du jeu.
 - **Ville barbare (2026-11-09)** : une image trop détaillée (« croustillante ») s'adoucit en ajoutant « simple clean
   shapes, smooth soft shading, few small details, not noisy, not grainy » et en prenant `objects/town.png` comme style ;
   le contour noir épais des villes de PixelLab s'adoucit avec `adoucir.py` (0,7, 60, 2 passes : le bord prend une teinte

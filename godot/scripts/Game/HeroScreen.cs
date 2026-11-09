@@ -20,7 +20,6 @@ public partial class HeroScreen : ScreenWindow
 {
     private const int PortraitScale = 2;
 
-    private enum Tab { Equipment, Skills, Magic }
 
     private Hero? _hero;
     private GameState? _state;
@@ -36,9 +35,9 @@ public partial class HeroScreen : ScreenWindow
     private Label _luck = null!;
     private ArmySlots _army = null!;
 
-    // les onglets
-    private Tab _tab = StartTab();
-    private readonly Dictionary<Tab, (Button Button, Panel Frame, Control Page)> _tabs = new();
+    // les onglets (des marque-pages : TabStrip) : Équipement, Compétences, Magie
+    private TabStrip _tabs = null!;
+    private const int SkillsTabIndex = 1;
 
     // Équipement
     private HeroFigure _figure = null!;
@@ -50,7 +49,6 @@ public partial class HeroScreen : ScreenWindow
     private SkillTree _tree = SkillTree.Aventure;
     private Label _skillPoints = null!;
     private Control _treeContent = null!;
-    private readonly Dictionary<SkillTree, (Button Button, Panel Frame)> _trees = new();
     private string? _skillsKey;
 
     // Magie
@@ -68,22 +66,20 @@ public partial class HeroScreen : ScreenWindow
         BuildFrame(screenSize, new Rect2((screenSize - size) / 2 + new Vector2(0, Hud.TopBarHeight / 2f), size));
         BuildLeftColumn();
 
-        // les trois onglets, sur la ligne du titre
-        float x = 330;
-        foreach (var (tab, title) in new[] { (Tab.Equipment, Texts.EquipmentTab), (Tab.Skills, Texts.SkillsTab), (Tab.Magic, Texts.MagicTab) })
+        // les trois onglets : des marque-pages qui sortent du haut de la page (ajoutés avant les pages, qui en cachent le bas)
+        _tabs = new TabStrip(14);
+        _tabs.Position = V(PagePosition.X + 10, PagePosition.Y - _tabs.PageTop);
+        Window.AddChild(_tabs);
+        foreach (var (title, build) in new (string, Action<Control>)[]
+                 { (Texts.EquipmentTab, BuildEquipment), (Texts.SkillsTab, BuildSkills), (Texts.MagicTab, BuildMagic) })
         {
             var page = new Panel { Position = V(PagePosition.X, PagePosition.Y), Size = V(PageSize.X, PageSize.Y) };
             page.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
             Window.AddChild(page);
-            var (button, frame) = TabButton(title, V(x, 18), V(150, 32), () => ShowTab(tab));
-            Window.AddChild(button);
-            _tabs[tab] = (button, frame, page);
-            x += 160;
+            build(page);
+            _tabs.AddTab(title, page);
         }
-        BuildEquipment(_tabs[Tab.Equipment].Page);
-        BuildSkills(_tabs[Tab.Skills].Page);
-        BuildMagic(_tabs[Tab.Magic].Page);
-        ShowTab(_tab);
+        _tabs.Select(StartTab(), notify: false);
 
         // l'armée, en bas
         var army = new Panel { Position = V(20, 480), Size = V(960, 146) };
@@ -108,46 +104,10 @@ public partial class HeroScreen : ScreenWindow
     }
 
     /// <summary>L'onglet du lancement (« --hero-tab=skills » ou « magic », pour les captures), sinon l'équipement.</summary>
-    private static Tab StartTab()
+    private static int StartTab()
     {
         var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--hero-tab="))?["--hero-tab=".Length..];
-        return arg switch { "skills" => Tab.Skills, "magic" => Tab.Magic, _ => Tab.Equipment };
-    }
-
-    /// <summary>Un bouton d'onglet ; le choisi est encadré d'argent (comme les ressources du marché).</summary>
-    private static (Button Button, Panel Frame) TabButton(string title, Vector2 position, Vector2 size, Action pressed)
-    {
-        var button = MakeButton(title, 14);
-        button.Position = position;
-        button.Size = size;
-        button.Pressed += pressed;
-        var frame = new Panel { Size = size, MouseFilter = Control.MouseFilterEnum.Ignore };
-        frame.AddThemeStyleboxOverride("panel", Box(new Color(0, 0, 0, 0), SilverColor, 3, 3, 3, 3));
-        button.AddChild(frame);
-        return (button, frame);
-    }
-
-    private void ShowTab(Tab tab)
-    {
-        _tab = tab;
-        foreach (var (key, (button, frame, page)) in _tabs)
-        {
-            Choose(button, frame, key == tab);
-            page.Visible = key == tab;
-        }
-    }
-
-    private static readonly Color ChosenColor = MapRenderer.Rgb(214, 168, 74);
-
-    /// <summary>Un onglet choisi : encadré d'argent, son nom en or.</summary>
-    private static void Choose(Button button, Panel frame, bool chosen)
-    {
-        frame.Visible = chosen;
-        foreach (var state in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_focus_color" })
-            if (chosen)
-                button.AddThemeColorOverride(state, ChosenColor);
-            else
-                button.RemoveThemeColorOverride(state);
+        return arg switch { "skills" => SkillsTabIndex, "magic" => 2, _ => 0 };
     }
 
     // ------------------------------------------------------------------ à gauche
@@ -319,22 +279,24 @@ public partial class HeroScreen : ScreenWindow
     {
         _skillPoints = At(MakeLabel("", 15, TextColor), 14, 8);
         page.AddChild(_skillPoints);
-        float x = 14;
+        // un marque-page par arbre (vert, pourpre, bleu), qui sort du haut de son cadre ; un seul contenu, refait au choix
+        var trees = new TabStrip(13) { Position = V(14, 40) };
+        page.AddChild(trees);
+        var colors = new[] { TabStrip.Colors[3], TabStrip.Colors[1], TabStrip.Colors[2] };
         foreach (var tree in Enum.GetValues<SkillTree>())
+            trees.AddTab(Texts.SkillTreeName(tree), color: colors[(int)tree]);
+        trees.Changed += index =>
         {
-            var (button, frame) = TabButton(Texts.SkillTreeName(tree), V(x, 36), V(160, 30), () =>
-            {
-                _tree = tree;
-                _skillsKey = null;
-                if (_hero != null)
-                    RefreshSkills(_hero);
-            });
-            page.AddChild(button);
-            _trees[tree] = (button, frame);
-            x += 168;
-        }
-        _treeContent = new Control { Position = V(14, 78), Size = V(PageSize.X - 28, PageSize.Y - 86) };
-        page.AddChild(_treeContent);
+            _tree = (SkillTree)index;
+            if (_hero != null)
+                RefreshSkills(_hero);
+        };
+        float top = 40 + trees.PageTop;
+        var frame = new Panel { Position = V(14, top), Size = V(PageSize.X - 28, PageSize.Y - top - 12) };
+        frame.AddThemeStyleboxOverride("panel", Inset(PanelColor));
+        page.AddChild(frame);
+        _treeContent = new Control { Position = V(12, 10), Size = V(PageSize.X - 52, PageSize.Y - top - 32) };
+        frame.AddChild(_treeContent);
     }
 
     /// <summary>Le joueur peut-il dépenser les points de ce héros (le sien, à son tour) ?</summary>
@@ -343,8 +305,6 @@ public partial class HeroScreen : ScreenWindow
     private void RefreshSkills(Hero hero)
     {
         _skillPoints.Text = Texts.SkillPointsLine(hero.SkillPoints, hero.Skills.Count);
-        foreach (var (tree, (button, frame)) in _trees)
-            Choose(button, frame, tree == _tree);
         string key = $"{hero.Id}:{_tree}:{hero.SkillPoints}:{CanSpend(hero)}:{string.Join(",", hero.Skills.Select(p => $"{p.Key.Id}{p.Value}"))}";
         if (key == _skillsKey || _state == null)
             return;
@@ -410,7 +370,7 @@ public partial class HeroScreen : ScreenWindow
     }
 
     /// <summary>Ouvre l'onglet des compétences (les arbres : un clic y dépense un point).</summary>
-    public void OpenSkillTrees() => ShowTab(Tab.Skills);
+    public void OpenSkillTrees() => _tabs.Select(SkillsTabIndex);
 
     // ------------------------------------------------------------------ Magie
 

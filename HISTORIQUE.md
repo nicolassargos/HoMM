@@ -796,6 +796,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   ne revenait pas à la ligne). Magie : les sorts sur deux colonnes, et le bouton du livre. `SkillsWindow` retirée ;
   `OpenSkillTrees` ouvre l'onglet (`--open=skills` inchangé) ; `--hero-tab=skills|magic` pour les captures.
   Core : `ArtifactType.Slot`, `ArtifactSlot`, `Equipment` (`Slots`, `ChestSize`, `Arrange`).
+  Les onglets ensuite, en marque-pages (`TabStrip`) : essayés à l'écran (`--ui-preview`) la pierre des boutons, des
+  intercalaires, des plaques, la pierre ouverte en bas (seule ou avec la page bordée du même métal, idée tirée de
+  PixelLab), du cuir cousu et des rubans dessinés ; choisi : un ruban de soie en image, teint (voir
+  `tools/art/METHODE.md`). Le ruban sort de `PageTop` au-dessus de sa page, descend de `Overlap` sur son bord ; la page
+  est ajoutée après la rangée (elle cache le bas des rubans de derrière) et le choisi a `ZIndex` 1. Les arbres : une
+  seule rangée de rubans au-dessus d'un cadre creusé, le contenu refait au choix (`Changed`).
 
 ### 10. Finitions : apparence et détails
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui

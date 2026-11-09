@@ -427,6 +427,11 @@ Rappelé par l'utilisateur (2026-11-09) : deux grands sujets à concevoir ensemb
   apprend) ; la fenêtre des arbres à part est retirée. Chaque artefact a sa place (`slot` dans `artifacts.json`) et va
   à la première libre de son genre, sinon au coffre (`Equipment.Arrange`) ; **on ne les déplace pas encore à la main**
   (avec la conception des artefacts). Tests : `EquipementTests`.
+  **Les onglets en marque-pages** (choix de l'utilisateur, à l'essai) : un ruban de soie généré (PixelLab), teint par
+  le jeu de la couleur de chaque onglet, qui sort du haut de sa page (`TabStrip`, réutilisable) ; une image plus juste
+  si l'essai est validé. À revoir avec **la taille de toute l'interface** (la carte est passée de 24 à 32 px, le combat
+  à ×2) : une maquette HTML vivante de l'écran du héros, faite des vraies images, essaie les tailles sans recompiler
+  (`art-candidats/en-cours/maquettes/heros.html`, par un petit serveur ; captures de trois variantes à côté).
 
 ### Les ressources rares ✅
 Décidé avec l'utilisateur (2026-11-07), comme Heroes 2 et 3 : **7 ressources**, l'or, le bois et le minerai (communs),

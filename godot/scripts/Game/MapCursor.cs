@@ -83,7 +83,8 @@ public static class MapCursor
 
     private static (Texture2D, Vector2)? Make(CursorKind kind, int days)
     {
-        if (Art.GetImage($"cursors/{kind.ToString().ToLowerInvariant()}") is not { } source)
+        // une épée d'attaque sans son image prend les épées croisées
+        if ((Art.GetImage($"cursors/{FileName(kind)}") ?? (kind >= CursorKind.AttackRight ? Art.GetImage("cursors/attack") : null)) is not { } source)
             return null;
         var image = (Image)source.Duplicate();
         image.Convert(Image.Format.Rgba8);

@@ -12,6 +12,7 @@
   "creatures/epeiste": {"pieds": [[[11, 27], [22, 27]]], "verifie": true},
   "creatures/fantome": {"pieds": [[[11, 28], [21, 28]]], "verifie": true},
   "creatures/farfadet": {"pieds": [[[11, 22], [24, 21]]], "verifie": false},
+  "creatures/gnome": {"pieds": [[[8, 29], [25, 28]]], "verifie": false},
   "creatures/gobelin": {"pieds": [[[10, 30], [27, 28]]], "verifie": true},
   "creatures/griffon": {"pieds": [[[4, 27], [24, 28]]], "verifie": true},
   "creatures/liche": {"pieds": [[[5, 30], [24, 30]]], "verifie": true},

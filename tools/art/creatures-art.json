@@ -1005,6 +1005,58 @@
         "move": "the stout old druid walks forward to the right slowly in one full walking cycle, leaning on his tall staff with each step, his heavy robe swaying, the owl stays perched on the staff, he stays at the same place",
         "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff"
       }
+    },
+    "gnome": {
+      "nom": "Gnome",
+      "gabarit": "humain",
+      "hauteur": 40,
+      "generation": [
+        88,
+        96
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "gobelin",
+        "archer"
+      ],
+      "notes": "Tour, niveau 1 : un petit gnome qui répare les golems, 1 case. Deux styles comparés (2026-11-10, choix de l'utilisateur) : petit mage (lots L1 à L4, d'après ses références gnome1 et gnome2) et bricoleur (L5 à L8). Revu (2026-11-10) : le mage chauve, sans chapeau (lots L9 à L12).",
+      "description": "a small old gnome wizard standing, short and stocky, completely bald with a shiny bald head and no hat, a long bushy white beard and moustache, big nose, big pointed ears, a long dark blue robe with wide sleeves tied with a leather belt, sandals, holding a gnarled wooden staff",
+      "sujet": "a small bald old gnome wizard with no hat, a long white beard, big pointed ears, a blue robe and a wooden staff, side view facing right",
+      "references": [
+        "art-candidats/references/gnome1.png::character reference (classic 1990s strategy game gnome mage: a small bald old man with a white beard in a long robe): keep the bald head and the beard, its simple bold retro look and small size, do not copy its colours or its raised-arms pose"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul",
+        "L11": "références",
+        "L12": "angle seul"
+      },
+      "choix": {
+        "fixe": "L12-1",
+        "idle": "idle-1",
+        "move": "move-2",
+        "attack": "attack-2-r"
+      },
+      "grande": "art-candidats/references/derives/gnome-grand.png",
+      "mouvements": {
+        "idle": "the small bald gnome wizard stands leaning on his wooden staff, slowly strokes his long white beard with his free hand, blinks and looks around, the feet stay in place",
+        "move": "the small bald gnome wizard walks forward to the right with small quick steps in one full walking cycle, his staff tapping the ground with each step, his robe swaying, he stays at the same place",
+        "attack": "the small bald gnome wizard grips his wooden staff with both hands, raises it and whacks it down hard in front of him, then steps back to his starting pose"
+      },
+      "consignes": {
+        "idle": "the small bald gnome wizard stands leaning on his wooden staff, slowly strokes his long white beard with his free hand, blinks and looks around, the feet stay in place",
+        "move": "the small bald gnome wizard walks forward to the right with small quick steps in one full walking cycle, his staff tapping the ground with each step, his robe swaying, he stays at the same place",
+        "attack": "the small bald gnome wizard grips his wooden staff with both hands, raises it and whacks it down hard in front of him, then steps back to his starting pose"
+      }
     }
   }
 }

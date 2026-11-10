@@ -11,14 +11,17 @@ public enum CursorKind { Pointer, Move, Attack, Visit, Blocked, Hero }
 /// <summary>
 /// Le curseur de la souris, comme dans le premier Heroes : une flèche (un gantelet) sur l'interface, et sur la carte
 /// une botte avec le nombre de jours de marche, des épées sur un monstre, une main sur un objet à visiter, une croix
-/// là où on ne peut pas aller, un casque sur un de ses héros. Images : art/cursors/{pointer, move…}.png, agrandies
-/// ×1,6 (le gantelet de l'interface ×2).
+/// là où on ne peut pas aller, un casque sur un de ses héros. Images : art/cursors/{pointer, move…}.png, 32 × 32,
+/// agrandies ×2.
 /// Sans image, le curseur normal reste.
 /// </summary>
 public static class MapCursor
 {
-    /// <summary>Agrandissement des images : ×2 pour le gantelet de l'interface, 20 % plus petit (×1,6) pour les autres.</summary>
-    private static float ScaleOf(CursorKind kind) => (kind == CursorKind.Pointer ? 2f : 1.6f) * Ui.Scale;
+    /// <summary>
+    /// Agrandissement des images : ×2, comme tout le pixel art du jeu (la règle, choix de l'utilisateur, 2026-11-10 : un pixel
+    /// d'image = 2 × 2 pixels d'écran) ; une image de 32 pixels fait un curseur de 64.
+    /// </summary>
+    private const int CursorScale = 2;
 
     private static readonly Dictionary<(CursorKind, int), (Texture2D Texture, Vector2 Hotspot)?> Cache = new();
     private static (CursorKind, int)? _current;
@@ -79,8 +82,7 @@ public static class MapCursor
             return null;
         var image = (Image)source.Duplicate();
         image.Convert(Image.Format.Rgba8);
-        float scale = ScaleOf(kind);
-        image.Resize((int)(image.GetWidth() * scale), (int)(image.GetHeight() * scale), Image.Interpolation.Nearest);
+        image.Resize(image.GetWidth() * CursorScale, image.GetHeight() * CursorScale, Image.Interpolation.Nearest);
         if (days > 0)
             DrawNumber(image, days);
         // La flèche montre avec le bout de ses doigts (le pixel le plus haut) ; les autres, avec leur centre

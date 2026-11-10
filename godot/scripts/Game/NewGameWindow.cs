@@ -20,7 +20,7 @@ public partial class NewGameWindow : ScreenWindow
 {
     public event Action<GameSetup>? Started;
 
-    private const int PortraitScale = 4, VisibleHeroes = 5;
+    private const int PortraitScale = 2, VisibleHeroes = 5; // le portrait ×2, comme tout le pixel art
     private const float Thumb = 62, ThumbGap = 6;
 
     private MapSize _size = MapSize.Normal;

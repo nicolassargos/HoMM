@@ -241,6 +241,9 @@ public partial class BattleFieldView : Control
     public Hex? Target { get; set; }
     public BattleUnit? ActiveUnit { get; set; }
 
+    /// <summary>Les cases d'où la troupe active frappera la cible visée (le côté choisi à la souris).</summary>
+    public IReadOnlyCollection<Hex> AttackFrom { get; set; } = Array.Empty<Hex>();
+
     /// <summary>Pendant le choix de la cible d'un sort : les cases visables, et celles que toucherait le sort sous la souris.</summary>
     public IReadOnlyCollection<Hex> SpellTargets { get; set; } = Array.Empty<Hex>();
     public IReadOnlyCollection<Hex> SpellArea { get; set; } = Array.Empty<Hex>();
@@ -916,6 +919,11 @@ public partial class BattleFieldView : Control
         if (Target is { } target)
             foreach (var hex in Battle.UnitAt(target)?.Hexes ?? new[] { target })
                 DrawHexOutline(Center(hex), MapRenderer.Rgb(220, 60, 40), Ui.Px(3));
+        foreach (var hex in AttackFrom)
+        {
+            DrawColoredPolygon(Corners(Center(hex)), new Color(1, 0.85f, 0.4f, 0.3f));
+            DrawHexOutline(Center(hex), MapRenderer.Rgb(250, 215, 110), Ui.Px(3));
+        }
         foreach (var hex in SpellArea)
             DrawHexOutline(Center(hex), MapRenderer.Rgb(150, 200, 255), Ui.Px(3));
         // l'éclat d'un sort : les cases s'allument puis s'éteignent

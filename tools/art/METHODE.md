@@ -24,6 +24,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   Ce qui plaît : **vu de trois quarts** (pas de dessus) ; le gantelet montre de l'index (sa pointe = le pixel le plus
   haut, c'est là que le clic tombe) ; la botte **en marche** ; « visiter » : un gantelet qui tient une lueur. La botte
   choisie regardait à droite : retournée, pour aller dans le même sens que le gantelet.
+- **Épées d'attaque au combat** (2026-11-10) : six directions faites d'une seule épée (C15 du lot des curseurs) : les quatre
+  diagonales par simple retournement (pixels intacts) ; la droite et la gauche tournées de 45° (agrandir ×8, tourner, reprendre
+  le pixel le plus présent de chaque bloc), puis **la lame redessinée à la main** : tournée, son contour du haut était en
+  pointillés et sa pointe sortait de l'image (une épée en diagonale est plus longue qu'à plat sur 32 pixels).
 - `tools/art/reduire.py` réduit une image sans la flouter (palette d'origine) et peut la retourner (`--miroir`) ;
   `tools/art/palette.py entree sortie 16` ramène à 16 couleurs ; `tools/art/adoucir.py` adoucit un contour noir ;
   `tools/art/detourer.py` rend transparent un fond uni ; `tools/art/cadre.py` rend transparent le centre uni d'un cadre.

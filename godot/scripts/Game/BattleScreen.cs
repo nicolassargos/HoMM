@@ -412,8 +412,8 @@ public partial class BattleScreen : CanvasLayer
         {
             if (battle.CanShoot(unit, other))
                 Player(b => b.Shoot(other));
-            else if (battle.AttackPositions(unit, other).OrderBy(h => BattleFieldView.UnitCenter(unit, h).DistanceSquaredTo(point)).Cast<Hex?>().FirstOrDefault() is { } from)
-                Player(b => b.Attack(other, from));
+            else if (AttackChoice(battle, unit, other, hex, point) is { } choice)
+                Player(b => b.Attack(other, choice.Head));
             return;
         }
         if (Destination(battle, unit, hex) is { } head)
@@ -552,6 +552,7 @@ public partial class BattleScreen : CanvasLayer
         // pour une grande créature, ses deux cases à chaque arrivée possible
         _field.Reachable = mine ? battle.Reachable(unit!).Keys.SelectMany(h => unit!.HexesAt(h)).Distinct().ToList() : Array.Empty<Hex>();
         _field.Target = null;
+        _field.AttackFrom = Array.Empty<Hex>();
         _field.SpellTargets = Array.Empty<Hex>();
         _field.SpellArea = Array.Empty<Hex>();
         var cursor = CursorKind.Pointer;
@@ -587,14 +588,26 @@ public partial class BattleScreen : CanvasLayer
                 }
             }
         }
-        else if (mine && _field.Hovered is { } hovered)
+        if (DevPoint is { } pretend) // développement : « --battle-aim », comme si la souris était là
+            _field.Hovered = BattleFieldView.HexAt(pretend);
+        if (_spell == null && mine && _field.Hovered is { } hovered)
         {
             if (battle.UnitAt(hovered) is { } other && TacticalBattle.AreEnemies(unit!, other))
             {
-                bool canHit = battle.CanShoot(unit!, other) || battle.AttackPositions(unit!, other).Any();
-                cursor = canHit ? CursorKind.Attack : CursorKind.Blocked;
-                if (canHit)
+                if (battle.CanShoot(unit!, other))
+                {
+                    cursor = CursorKind.Attack; // un tir : les épées croisées
                     _field.Target = hovered;
+                }
+                else if (AttackChoice(battle, unit!, other, hovered, DevPoint ?? _field.GetLocalMousePosition()) is { } choice)
+                {
+                    // au corps à corps : l'épée pointe vers la cible depuis le côté choisi, la case d'arrivée en valeur
+                    cursor = MapCursor.AttackToward(choice.Direction);
+                    _field.Target = hovered;
+                    _field.AttackFrom = unit!.HexesAt(choice.Head).ToList();
+                }
+                else
+                    cursor = CursorKind.Blocked;
             }
             else if (Destination(battle, unit!, hovered) != null)
                 cursor = CursorKind.Move;
@@ -602,7 +615,50 @@ public partial class BattleScreen : CanvasLayer
                 cursor = CursorKind.Blocked;
         }
         MapCursor.Show(cursor);
+        if (DevPoint != null && cursor != _devShown)
+            GD.Print($"curseur : {_devShown = cursor}");
         RefreshOrder(battle);
+    }
+
+    /// <summary>
+    /// Développement (« --battle-aim=colonne,rangée,angle ») : la souris prise sur cette case, à 30 unités de son centre
+    /// dans cette direction (en degrés, 0 à droite, 90 en haut), pour essayer le côté d'attaque dans une capture.
+    /// </summary>
+    private static readonly Vector2? DevPoint = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--battle-aim=")) is { } p
+        && p["--battle-aim=".Length..].Split(',') is [var c, var r, var a] && int.TryParse(c, out int col) && int.TryParse(r, out int row)
+        && float.TryParse(a, out float degrees)
+        ? BattleFieldView.Center(new Hex(col, row)) + 30 * new Vector2(Mathf.Cos(Mathf.DegToRad(degrees)), -Mathf.Sin(Mathf.DegToRad(degrees)))
+        : null;
+
+    private CursorKind? _devShown;
+
+    /// <summary>
+    /// D'où frapper une cible au corps à corps, comme dans Heroes 3 : la partie de la case visée sous la souris donne le
+    /// côté. Parmi les cases d'où la troupe peut frapper, celle dont le côté est le plus proche de la direction de la
+    /// souris (un côté impossible, bloqué ou trop loin, passe au plus proche qui marche). Head : la case de tête de la
+    /// troupe ; Direction : où pointe l'épée, de la troupe vers la cible (dans l'ordre de Hex.Neighbours).
+    /// </summary>
+    private static (Hex Head, int Direction)? AttackChoice(TacticalBattle battle, BattleUnit unit, BattleUnit target, Hex aimed, Vector2 point)
+    {
+        var toMouse = point - BattleFieldView.Center(aimed);
+        // les cases de la cible, la case visée d'abord (une grande cible en a deux)
+        var targetHexes = target.Hexes.OrderBy(h => h == aimed ? 0 : 1).ToList();
+        (Hex Head, int Direction, float Gap, float Distance)? best = null;
+        foreach (var head in battle.AttackPositions(unit, target))
+        foreach (var from in unit.HexesAt(head))
+        {
+            if (!targetHexes.Any(h => h.Neighbours().Contains(from)))
+                continue;
+            var touched = targetHexes.First(h => h.Neighbours().Contains(from));
+            float gap = toMouse.LengthSquared() < 1 ? 0 : Mathf.Abs((BattleFieldView.Center(from) - BattleFieldView.Center(aimed)).AngleTo(toMouse));
+            float distance = BattleFieldView.UnitCenter(unit, head).DistanceSquaredTo(point);
+            if (best is { } b && (gap > b.Gap + 0.01f || gap > b.Gap - 0.01f && distance >= b.Distance))
+                continue;
+            // la troupe est sur le côté « side » de la cible ; l'épée pointe à l'opposé, vers la cible
+            int side = touched.Neighbours().ToList().IndexOf(from);
+            best = (head, (side + 3) % 6, gap, distance);
+        }
+        return best is { } choice ? (choice.Head, choice.Direction) : null;
     }
 
     /// <summary>L'icône d'un bouton grisé pâlit avec lui.</summary>
@@ -621,6 +677,7 @@ public partial class BattleScreen : CanvasLayer
             ? battle.PlacementHexes(unit).SelectMany(h => unit.HexesAt(h)).Distinct().ToList()
             : Array.Empty<Hex>();
         _field.Target = null;
+        _field.AttackFrom = Array.Empty<Hex>();
         _field.SpellTargets = Array.Empty<Hex>();
         _field.SpellArea = Array.Empty<Hex>();
         var cursor = CursorKind.Pointer;

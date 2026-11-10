@@ -27,7 +27,8 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Épées d'attaque au combat** (2026-11-10) : six directions faites d'une seule épée (C15 du lot des curseurs) : les quatre
   diagonales par simple retournement (pixels intacts) ; la droite et la gauche tournées de 45° (agrandir ×8, tourner, reprendre
   le pixel le plus présent de chaque bloc), puis **la lame redessinée à la main** : tournée, son contour du haut était en
-  pointillés et sa pointe sortait de l'image (une épée en diagonale est plus longue qu'à plat sur 32 pixels). À plat, elle paraissait courte : allongée de 25 % (lame +6, poignée +2) dans une image de 40 × 32 (un curseur n'a pas à être carré).
+  pointillés et sa pointe sortait de l'image (une épée en diagonale est plus longue qu'à plat sur 32 pixels). À plat, elle paraissait courte : allongée de 25 % (lame +6, poignée +2) dans une image de 40 × 32 (un curseur n'a pas à être carré). Le pommeau rond, perdu en tournant, redessiné à la main (44 × 32).
+- **Flèche de tir** (2026-11-10) : PixelLab « pro » 32 × 32, l'épée C15 comme style (64 candidats, 0,08 $), la 15 choisie ; la flèche brisée (tir trop lointain) en est faite sans dépense : la moitié avec la pointe décalée de 3 pixels à droite et 1 en haut, deux rangées de hampe retirées.
 - `tools/art/reduire.py` réduit une image sans la flouter (palette d'origine) et peut la retourner (`--miroir`) ;
   `tools/art/palette.py entree sortie 16` ramène à 16 couleurs ; `tools/art/adoucir.py` adoucit un contour noir ;
   `tools/art/detourer.py` rend transparent un fond uni ; `tools/art/cadre.py` rend transparent le centre uni d'un cadre.

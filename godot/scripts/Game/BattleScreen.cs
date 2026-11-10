@@ -597,7 +597,8 @@ public partial class BattleScreen : CanvasLayer
             {
                 if (battle.CanShoot(unit!, aim.Enemy))
                 {
-                    cursor = CursorKind.Shoot; // un tir : la flèche
+                    // un tir : la flèche, brisée s'il est trop lointain (moitié des dégâts)
+                    cursor = battle.IsLongShot(unit!, aim.Enemy) ? CursorKind.ShootWeak : CursorKind.Shoot;
                     _field.Target = aim.Hex;
                 }
                 else if (AttackChoice(battle, unit!, aim) is { } choice)

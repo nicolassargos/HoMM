@@ -11,8 +11,8 @@ public enum CursorKind
     Pointer, Move, Attack, Visit, Blocked, Hero,
     // au combat, l'épée qui pointe vers la cible, du côté d'où frappera la troupe (dans l'ordre de Hex.Neighbours)
     AttackRight, AttackUpRight, AttackUpLeft, AttackLeft, AttackDownLeft, AttackDownRight,
-    // au combat, une flèche : la troupe active tire sur la cible
-    Shoot,
+    // au combat, une flèche : la troupe active tire sur la cible ; brisée : le tir est trop lointain (moitié des dégâts)
+    Shoot, ShootWeak,
 }
 
 /// <summary>

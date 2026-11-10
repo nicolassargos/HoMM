@@ -597,7 +597,7 @@ public partial class BattleScreen : CanvasLayer
             {
                 if (battle.CanShoot(unit!, aim.Enemy))
                 {
-                    cursor = CursorKind.Attack; // un tir : les épées croisées
+                    cursor = CursorKind.Shoot; // un tir : la flèche
                     _field.Target = aim.Hex;
                 }
                 else if (AttackChoice(battle, unit!, aim) is { } choice)

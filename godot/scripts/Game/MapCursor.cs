@@ -11,6 +11,8 @@ public enum CursorKind
     Pointer, Move, Attack, Visit, Blocked, Hero,
     // au combat, l'épée qui pointe vers la cible, du côté d'où frappera la troupe (dans l'ordre de Hex.Neighbours)
     AttackRight, AttackUpRight, AttackUpLeft, AttackLeft, AttackDownLeft, AttackDownRight,
+    // au combat, une flèche : la troupe active tire sur la cible
+    Shoot,
 }
 
 /// <summary>
@@ -83,7 +85,7 @@ public static class MapCursor
 
     private static (Texture2D, Vector2)? Make(CursorKind kind, int days)
     {
-        // une épée d'attaque sans son image prend les épées croisées
+        // une épée d'attaque ou la flèche sans son image prend les épées croisées
         if ((Art.GetImage($"cursors/{FileName(kind)}") ?? (kind >= CursorKind.AttackRight ? Art.GetImage("cursors/attack") : null)) is not { } source)
             return null;
         var image = (Image)source.Duplicate();

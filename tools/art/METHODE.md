@@ -9,9 +9,21 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   **Retro Diffusion** pour les cartes (terrains, décors, objets) et les portraits des héros.
 - Les images sont trouvées par convention d'après les identifiants (`res://art/creatures/paysan.png`) : jamais de chemin
   d'image dans les règles. Une image absente garde le dessin par formes (ou la petite image de la carte).
-- Pixel art toujours agrandi d'un nombre entier de fois, pixels nets (écran de 1920 × 1080) : carte ×3 et ×4,
-  créatures au combat ×3 (cases de 110 × 126), sol et obstacles ×3, héros au combat ×4, cadres et boutons ×3,
-  portraits ×1 à ×3, créatures de l'interface ×2 à ×4.
+- **LA RÈGLE (choix de l'utilisateur, 2026-11-10) : tout le pixel art est montré à ×2** (un pixel d'image = 2 × 2 pixels
+  d'écran en 1920 × 1080) : la carte, le combat, les créatures, les cadres et boutons, les icônes, les artefacts, les
+  portraits, les curseurs. **La taille d'une chose à l'écran vient du nombre de pixels de son image**, jamais d'un autre
+  agrandissement : une image qui doit paraître plus grande est dessinée plus grande. Mélanger ×1, ×2, ×3 et ×4 cassait
+  le style et obligeait à refaire des images. Exceptions qui restent à corriger : le héros sur le champ de bataille (×4,
+  en attendant son image de combat), les petites images des créatures dans les emplacements étroits (×1), le texte
+  (la police VT323 n'est pas encore calée sur la grille de 2 pixels).
+- (Avant la règle, pour mémoire : carte ×3 et ×4, combat ×3, héros au combat ×4, cadres et boutons ×3, portraits ×1 à ×3,
+  créatures de l'interface ×2 à ×4, artefacts ×3, curseurs ×2,4 et ×3. Toujours un nombre entier de fois, pixels
+  nets : c'est le mélange des facteurs qui gênait.)
+- **Curseurs** (2026-11-10, choisis par l'utilisateur) : 32 × 32, montrés ×2 (`MapCursor.CursorScale`), PixelLab « pro »
+  avec `objects/town.png` comme style (sinon un contour noir trop fort pour notre style) ; 64 candidats par curseur.
+  Ce qui plaît : **vu de trois quarts** (pas de dessus) ; le gantelet montre de l'index (sa pointe = le pixel le plus
+  haut, c'est là que le clic tombe) ; la botte **en marche** ; « visiter » : un gantelet qui tient une lueur. La botte
+  choisie regardait à droite : retournée, pour aller dans le même sens que le gantelet.
 - `tools/art/reduire.py` réduit une image sans la flouter (palette d'origine) et peut la retourner (`--miroir`) ;
   `tools/art/palette.py entree sortie 16` ramène à 16 couleurs ; `tools/art/adoucir.py` adoucit un contour noir ;
   `tools/art/detourer.py` rend transparent un fond uni ; `tools/art/cadre.py` rend transparent le centre uni d'un cadre.

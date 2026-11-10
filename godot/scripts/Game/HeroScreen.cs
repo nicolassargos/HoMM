@@ -193,7 +193,7 @@ public partial class HeroScreen : ScreenWindow
             _slots.Add(slot);
         }
         // le coffre : 4 × 4 places de la même taille
-        const float chestX = 412, chestY = 34, step = HeroFigure.SlotSize + 4;
+        const float chestX = 412, chestY = 34, step = HeroFigure.SlotSize + 6;
         var header = At(MakeLabel(Texts.ChestHeader, 15, SoftTextColor), chestX, 8);
         header.TooltipText = Texts.ChestTooltip;
         header.MouseFilter = Control.MouseFilterEnum.Stop;
@@ -214,9 +214,10 @@ public partial class HeroScreen : ScreenWindow
         slot.AddThemeStyleboxOverride("panel", Inset(PanelColor, SilverColor));
         if (name != null)
         {
-            var label = MakeLabel(name, 11, DimColor);
+            var label = MakeLabel(name, 7, DimColor); // petit : la place d'un artefact de 32 pixels ×2 (« Bouclier » doit tenir)
             label.HorizontalAlignment = HorizontalAlignment.Center;
             label.VerticalAlignment = VerticalAlignment.Center;
+            label.ClipText = true; // garde la largeur de la place, pour rester centré
             label.Size = slot.Size;
             label.Name = "Name";
             slot.AddChild(label);
@@ -237,12 +238,10 @@ public partial class HeroScreen : ScreenWindow
         if (artifact == null)
             return;
         if (Art.Get($"artifacts/{artifact.Id}") is { } image)
-            slot.AddChild(new TextureRect
-            {
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-                TextureFilter = CanvasItem.TextureFilterEnum.Nearest, MouseFilter = Control.MouseFilterEnum.Ignore,
-                Texture = image, Size = slot.Size, // l'artefact de 32 pixels, ×3
-            });
+        {
+            var size = image.GetSize() * 2; // l'artefact de 32 pixels, ×2 (la règle du pixel art)
+            slot.AddChild(Picture(image, ((slot.Size - size) / 2).Floor(), size));
+        }
         else if (slot.GetNodeOrNull<Label>("Name") is { } label)
         {
             label.Text = artifact.Name; // sans image : son nom

@@ -6,7 +6,14 @@ using HoMM.Core;
 namespace HoMM.Game;
 
 /// <summary>Ce que montre le curseur de la souris, selon ce qu'il y a dessous.</summary>
-public enum CursorKind { Pointer, Move, Attack, Visit, Blocked, Hero }
+public enum CursorKind
+{
+    Pointer, Move, Attack, Visit, Blocked, Hero,
+    // au combat, l'épée qui pointe vers la cible, du côté d'où frappera la troupe (dans l'ordre de Hex.Neighbours)
+    AttackRight, AttackUpRight, AttackUpLeft, AttackLeft, AttackDownLeft, AttackDownRight,
+    // au combat, une flèche : la troupe active tire sur la cible ; brisée : le tir est trop lointain (moitié des dégâts)
+    Shoot, ShootWeak,
+}
 
 /// <summary>
 /// Le curseur de la souris, comme dans le premier Heroes : une flèche (un gantelet) sur l'interface, et sur la carte
@@ -73,12 +80,13 @@ public static class MapCursor
         foreach (var kind in System.Enum.GetValues<CursorKind>())
             foreach (int days in kind == CursorKind.Move ? new[] { 1, 2, 3 } : new[] { 0 })
                 if (Make(kind, days) is { } cursor)
-                    cursor.Item1.GetImage().SavePng($"{folder}/curseur-{kind.ToString().ToLowerInvariant()}{(days > 0 ? $"-{days}" : "")}.png");
+                    cursor.Item1.GetImage().SavePng($"{folder}/curseur-{FileName(kind)}{(days > 0 ? $"-{days}" : "")}.png");
     }
 
     private static (Texture2D, Vector2)? Make(CursorKind kind, int days)
     {
-        if (Art.GetImage($"cursors/{kind.ToString().ToLowerInvariant()}") is not { } source)
+        // une épée d'attaque ou la flèche sans son image prend les épées croisées
+        if ((Art.GetImage($"cursors/{FileName(kind)}") ?? (kind >= CursorKind.AttackRight ? Art.GetImage("cursors/attack") : null)) is not { } source)
             return null;
         var image = (Image)source.Duplicate();
         image.Convert(Image.Format.Rgba8);
@@ -89,6 +97,13 @@ public static class MapCursor
         var hotspot = kind == CursorKind.Pointer ? TopPixel(image) : new Vector2(image.GetWidth(), image.GetHeight()) / 2;
         return (ImageTexture.CreateFromImage(image), hotspot);
     }
+
+    /// <summary>Le nom de l'image : « attack-up-right » pour AttackUpRight.</summary>
+    private static string FileName(CursorKind kind) =>
+        string.Concat(kind.ToString().Select((ch, i) => char.IsUpper(ch) && i > 0 ? $"-{char.ToLowerInvariant(ch)}" : char.ToLowerInvariant(ch).ToString()));
+
+    /// <summary>L'épée qui pointe dans cette direction (0 : à droite, puis dans l'ordre de Hex.Neighbours).</summary>
+    public static CursorKind AttackToward(int direction) => CursorKind.AttackRight + direction;
 
     private static Vector2 TopPixel(Image image)
     {

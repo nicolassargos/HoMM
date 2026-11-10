@@ -234,6 +234,29 @@ public class CombatTactiqueTests
     }
 
     [Fact]
+    public void Un_tir_lointain_se_reconnait_avant_de_tirer()
+    {
+        // l'écran montre une flèche brisée pour ces tirs : la règle doit dire la même chose que les dégâts
+        bool LongShot(CreatureType shooter, int column)
+        {
+            var attacker = new Army();
+            attacker.Add(shooter, 10);
+            var battle = Battle(attacker, ArmyOf(("epeiste", 50)));
+            var unit = UnitOf(battle, BattleSide.Attacker);
+            var target = UnitOf(battle, BattleSide.Defender);
+            target.Position = new Hex(column, 4);
+            unit.Position = new Hex(0, 4);
+            return battle.IsLongShot(unit, target);
+        }
+        var archer = Creature("archer");
+        var druid = archer with { Id = "druide-essai", Abilities = new List<string> { Ability.Shoots, Ability.NoRangePenalty } };
+
+        Assert.False(LongShot(archer, TacticalBattle.LongRange));
+        Assert.True(LongShot(archer, TacticalBattle.LongRange + 1));
+        Assert.False(LongShot(druid, Battlefield.Columns - 1));
+    }
+
+    [Fact]
     public void Un_tireur_sans_penalite_tire_aussi_fort_de_loin()
     {
         var elf = Creature("archer") with { Id = "elfe", Abilities = new List<string> { Ability.Shoots, Ability.NoRangePenalty } };

@@ -12,8 +12,11 @@ namespace HoMM.Game;
 /// </summary>
 public partial class HeroFigure : Control
 {
-    /// <summary>La taille d'un emplacement (et d'une place du coffre) : un artefact de 32 pixels, ×3.</summary>
-    public const float SlotSize = 64;
+    /// <summary>
+    /// La taille d'un emplacement (et d'une place du coffre), en unités : un artefact de 32 pixels ×2 (64 pixels, la règle du
+    /// pixel art ×2) et son cadre.
+    /// </summary>
+    public const float SlotSize = 48;
 
     /// <summary>La taille de la figure entière, emplacements compris (en unités de l'interface).</summary>
     public static readonly Vector2 FigureSize = new(386, 404);
@@ -25,8 +28,8 @@ public partial class HeroFigure : Control
 
     /// <summary>La place de l'emplacement <paramref name="index"/> (dans l'ordre de <see cref="Equipment.Slots"/>), en unités.</summary>
     public static Vector2 SlotPosition(int index) => index < LeftCount
-        ? new Vector2(0, index * 68)
-        : new Vector2(FigureSize.X - SlotSize, (index - LeftCount) * 85);
+        ? new Vector2(0, index * (FigureSize.Y - SlotSize) / (LeftCount - 1))
+        : new Vector2(FigureSize.X - SlotSize, (index - LeftCount) * (FigureSize.Y - SlotSize) / (Equipment.Slots.Length - LeftCount - 1));
 
     // La silhouette, dessinée dans un repère de 300 × 262 (celui de la maquette), puis agrandie autour du milieu.
     private const float BodyScale = 1.55f, MockCenter = 150, MockTop = 6;

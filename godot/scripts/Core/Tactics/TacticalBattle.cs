@@ -842,6 +842,13 @@ public sealed partial class TacticalBattle
     }
 
     /// <summary>
+    /// Un tir trop lointain, qui fait moitié moins de dégâts : au-delà de 6 cases (3 pour un tir court), sauf pour un
+    /// tireur sans pénalité de distance (le Druide). L'écran le montre par une flèche brisée.
+    /// </summary>
+    public bool IsLongShot(BattleUnit from, BattleUnit to) =>
+        from.HasRangePenalty && Distance(from, to) > (from.Has(Ability.ShortRange) ? ShortRange : LongRange);
+
+    /// <summary>
     /// Dégâts d'une troupe sur une autre : chaque créature tire ses dégâts entre min et max (au-delà de 10 créatures,
     /// on tire pour 10 et on multiplie), puis la règle attaque / défense de Heroes 3. Un tir lointain (avec pénalité)
     /// ou un tireur qui se bat au corps à corps fait moitié moins de dégâts.
@@ -857,8 +864,7 @@ public sealed partial class TacticalBattle
         double ignored = ranged ? 0 : from.Has(Ability.Rending) ? RendingShare : from.Has(Ability.Crushing) ? CrushingShare : 0;
         int defense = (int)Math.Round(to.Defense * (1 - ignored));
         damage *= Battle.DamageModifier(from.Attack, defense);
-        int range = from.Has(Ability.ShortRange) ? ShortRange : LongRange;
-        if (ranged && from.HasRangePenalty && Distance(from, to) > range)
+        if (ranged && IsLongShot(from, to))
             damage *= 0.5;
         if (ranged && to.Has(Ability.RangedResistance))
             damage *= 0.5;

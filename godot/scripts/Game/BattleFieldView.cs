@@ -241,6 +241,9 @@ public partial class BattleFieldView : Control
     public Hex? Target { get; set; }
     public BattleUnit? ActiveUnit { get; set; }
 
+    /// <summary>Les cases d'où la troupe active frappera la cible visée (le côté choisi à la souris).</summary>
+    public IReadOnlyCollection<Hex> AttackFrom { get; set; } = Array.Empty<Hex>();
+
     /// <summary>Pendant le choix de la cible d'un sort : les cases visables, et celles que toucherait le sort sous la souris.</summary>
     public IReadOnlyCollection<Hex> SpellTargets { get; set; } = Array.Empty<Hex>();
     public IReadOnlyCollection<Hex> SpellArea { get; set; } = Array.Empty<Hex>();
@@ -316,22 +319,39 @@ public partial class BattleFieldView : Control
         return bestDistance <= HexWidth * HexWidth * 0.36f ? best : null;
     }
 
+    /// <summary>Le point du champ sous la souris, null quand elle n'est pas sur le champ.</summary>
+    public Vector2? MousePoint { get; private set; }
+
+    public override void _Notification(int what)
+    {
+        if (what == NotificationMouseExit)
+        {
+            MousePoint = null;
+            Hovered = null;
+        }
+    }
+
     public override void _GuiInput(InputEvent e)
     {
         if (e is InputEventMouseMotion motion)
+        {
+            MousePoint = motion.Position;
             Hovered = HexAt(motion.Position);
+        }
         else if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)
         {
             if (AttackerHero != null && HeroRect.HasPoint(click.Position))
                 HeroClicked?.Invoke(AttackerHero);
             else if (DefenderHero != null && DefenderHeroRect.HasPoint(click.Position))
                 HeroClicked?.Invoke(DefenderHero);
-            else if (HexAt(click.Position) is { } hex)
+            // une case, ou le corps d'une troupe qui dépasse de la grille (un Ange de la première rangée)
+            else if ((HexAt(click.Position) ?? UnitUnder(click.Position)?.Position) is { } hex)
                 Clicked?.Invoke(hex, click.Position);
         }
         else if (e is InputEventMouseButton { ButtonIndex: MouseButton.Right } right)
         {
-            if (right.Pressed && HexAt(right.Position) is { } hex && Battle.UnitAt(hex) is { } unit && ShownCount(unit) > 0)
+            if (right.Pressed && (UnitUnder(right.Position) ?? (HexAt(right.Position) is { } hex ? Battle.UnitAt(hex) : null)) is { } unit
+                && ShownCount(unit) > 0)
                 UnitInfoPressed?.Invoke(unit, right.Position);
             else if (!right.Pressed)
                 UnitInfoReleased?.Invoke();
@@ -916,6 +936,11 @@ public partial class BattleFieldView : Control
         if (Target is { } target)
             foreach (var hex in Battle.UnitAt(target)?.Hexes ?? new[] { target })
                 DrawHexOutline(Center(hex), MapRenderer.Rgb(220, 60, 40), Ui.Px(3));
+        foreach (var hex in AttackFrom)
+        {
+            DrawColoredPolygon(Corners(Center(hex)), new Color(1, 0.85f, 0.4f, 0.3f));
+            DrawHexOutline(Center(hex), MapRenderer.Rgb(250, 215, 110), Ui.Px(3));
+        }
         foreach (var hex in SpellArea)
             DrawHexOutline(Center(hex), MapRenderer.Rgb(150, 200, 255), Ui.Px(3));
         // l'éclat d'un sort : les cases s'allument puis s'éteignent
@@ -1026,6 +1051,45 @@ public partial class BattleFieldView : Control
         int rows = (frames + AnimationColumns - 1) / AnimationColumns;
         var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / rows);
         return (sheet, new Rect2(new Vector2(index % AnimationColumns * cell.X, index / AnimationColumns * cell.Y), cell));
+    }
+
+    /// <summary>
+    /// Le rectangle où est dessinée l'image de combat d'une troupe (ses pieds sur sa case, le corps au-dessus), ou null sans
+    /// image de combat.
+    /// </summary>
+    public Rect2? UnitRect(BattleUnit unit)
+    {
+        if (!_shown.TryGetValue(unit, out var shown) || Art.Get($"creatures/battle/{unit.Type.Id}") is not { } image)
+            return null;
+        var foot = shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10));
+        var size = image.GetSize() * BattleSpriteScale;
+        return new Rect2(foot + new Vector2(-size.X / 2, -size.Y), size);
+    }
+
+    private readonly Dictionary<string, Image?> _hitImages = new();
+
+    /// <summary>
+    /// La troupe dont un pixel de l'image est sous ce point (celle de devant d'abord : la rangée la plus basse), pour viser
+    /// une créature par son corps, qui dépasse de sa case vers le haut.
+    /// </summary>
+    public BattleUnit? UnitUnder(Vector2 point)
+    {
+        foreach (var unit in Battle.Units.Where(u => u.IsAlive && ShownCount(u) > 0).OrderByDescending(u => u.Position.Row))
+        {
+            if (UnitRect(unit) is not { } rect || !rect.HasPoint(point))
+                continue;
+            if (!_hitImages.TryGetValue(unit.Type.Id, out var image))
+                _hitImages[unit.Type.Id] = image = Art.Get($"creatures/battle/{unit.Type.Id}")?.GetImage();
+            if (image == null)
+                continue;
+            var at = (point - rect.Position) / BattleSpriteScale;
+            int x = (int)at.X, y = (int)at.Y;
+            if (_shown[unit].FacesLeft ?? unit.Side == BattleSide.Defender)
+                x = image.GetWidth() - 1 - x; // dessinée en miroir
+            if (x >= 0 && y >= 0 && x < image.GetWidth() && y < image.GetHeight() && image.GetPixel(x, y).A > 0.5f)
+                return unit;
+        }
+        return null;
     }
 
     /// <summary>Le milieu du corps d'une troupe (là où un projectile la touche) : la moitié de la hauteur de son image.</summary>

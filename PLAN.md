@@ -609,7 +609,7 @@ croissance, prix, garde.
 - ✅ **Choisir le côté de l'attaque**, comme Heroes 3 (demandé par l'utilisateur, 2026-11-10, branche `attaque-direction`) :
   la partie de la case ennemie sous la souris donne le côté d'où la troupe frappe (un côté impossible passe au plus
   proche) ; l'épée du curseur pointe vers la cible depuis ce côté (six images, l'épée C15 choisie par l'utilisateur,
-  retournée, redessinée à plat pour la droite et la gauche) ; la case d'arrivée est mise en valeur. Les épées croisées
+  retournée, redessinée à plat pour la droite et la gauche) ; la case d'arrivée est mise en valeur. On vise une créature aussi par son corps, qui dépasse de sa case (sa tête : le haut, ses pieds : le bas). Les épées croisées
   restent pour les tirs.
 - **Les barres de défilement** : la poignée comme taillée dans la pierre (demandé par l'utilisateur, 2026-11-08).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la

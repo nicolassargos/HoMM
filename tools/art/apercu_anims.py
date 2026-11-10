@@ -24,7 +24,11 @@ for nom in sorted(os.listdir(base)):
     if not nom.endswith(".png") or nom.startswith("depart"):
         continue
     w, h, _ = lire(os.path.join(base, nom))
-    dossier = os.path.join(base, nom[:-4].split("-r")[0])
+    # le dossier des images brutes : le nom sans les suffixes des retouches (-r, -sc sans corde, -gris sans bleu)
+    racine = nom[:-4]
+    for suffixe in ("-r", "-sc", "-gris"):
+        racine = racine.split(suffixe)[0]
+    dossier = os.path.join(base, racine)
     brutes = len([x for x in os.listdir(dossier) if x[:-4].isdigit()]) - 1 if os.path.isdir(dossier) else 8
     images = brutes if brutes in (8, 16) else 8
     feuilles.append({"nom": nom, "images": images, "chemin": f"candidats/{ident}/anim/{nom}"})

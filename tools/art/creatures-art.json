@@ -1057,6 +1057,54 @@
         "move": "the small bald gnome wizard walks forward to the right with small quick steps in one full walking cycle, his staff tapping the ground with each step, his robe swaying, he stays at the same place",
         "attack": "the small bald gnome wizard grips his wooden staff with both hands, raises it and whacks it down hard in front of him, then steps back to his starting pose"
       }
+    },
+    "gargouille": {
+      "nom": "Gargouille",
+      "gabarit": "volant",
+      "hauteur": 50,
+      "generation": [
+        104,
+        104
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "comparer": [
+        "gnome",
+        "archer"
+      ],
+      "vole": true,
+      "notes": "Tour, niveau 2 : gargouille de pierre, vole, 1 case. Deux styles comparés (2026-11-10) : d'après les deux photos de l'utilisateur (L1 à L4), et une idée plus originale, la pierre fendue d'une lueur arcane bleue (L5 à L8). Pas d attente (statue immobile, choix de l utilisateur) ; vol depuis une pose en vol (move-4, bleu rendu gris) avec envol transform-1, 0,35 s par case ; attaque provisoire attack-13-gris (bond, coup des deux pieds, 16 images), À RETRAVAILLER (choix de l utilisateur).",
+      "description": "a stone gargoyle crouching on its clawed feet like on a cathedral ledge, a muscular hunched body of pale grey weathered limestone with cracks and chips, two small curved horns, pointed ears, a grinning demon face with deep eyes and fangs, long arms with clawed stone hands, two large carved stone wings folded on its back, awakened by magic: thin glowing pale blue arcane runes and cracks run across its stone body, its eyes glow faint blue, as if a spell inside animates the stone",
+      "sujet": "a crouching stone gargoyle with horns and folded stone wings, thin glowing blue arcane cracks and runes on its stone body, side view facing right",
+      "references": [],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L8-1",
+        "move": "move-4-gris",
+        "transform": "transform-1",
+        "attack": "attack-13-gris"
+      },
+      "grande": "art-candidats/references/derives/gargouille-grand.png",
+      "mouvements": {
+        "idle": "the stone gargoyle stays crouched on its clawed feet, slowly turns its horned head from side to side, its folded stone wings shift a little, it flexes its claws, the feet stay in place",
+        "move": "the stone gargoyle spreads its large stone wings wide and flies forward to the right, beating them heavily up and down in one full slow flapping cycle, its legs tucked under its body, it stays at the same place",
+        "attack": "the stone gargoyle springs forward from its crouch, half opens its wings and rakes hard with both clawed hands in front of it, then crouches back to its starting pose"
+      },
+      "consignes": {
+        "idle": "the stone gargoyle stays crouched on its clawed feet, slowly turns its horned head from side to side, its folded stone wings shift a little, it flexes its claws, the feet stay in place",
+        "move": "the stone gargoyle flies in the air, its body leaning forward, beating its large stone wings heavily down and up in one full steady flapping cycle, its legs tucked under its belly, it stays at the same place in the air",
+        "attack": "the stone gargoyle, crouching, spreads its large stone wings wide and leaps forward into the air, then in mid-air kicks hard forward with both clawed feet together, then flies back and lands crouched exactly in its starting place, its wings folding",
+        "transform": "the stone gargoyle takes off: crouching on its clawed feet, it bends lower, spreads its large stone wings, leaps up and tilts its body forward until it is flying horizontally, its legs tucking under its belly, ending in a flying pose with the wings raised"
+      }
     }
   }
 }

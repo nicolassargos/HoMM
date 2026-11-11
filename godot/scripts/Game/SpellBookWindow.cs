@@ -39,8 +39,7 @@ public partial class SpellBookWindow : GameDialog
             var row = new HBoxContainer();
             row.AddThemeConstantOverride("separation", (int)Px(10));
             bool castable = canCast?.Invoke(spell) == true;
-            var button = FixedButton(spell.Name, 14, V(190, 34));
-            button.CustomMinimumSize = V(190, 34); // dans une rangée, sa taille vient de là
+            var button = FixedButton(spell.Name, 14, new Vector2(Px(190), ButtonHeight)); // aussi sa taille dans une rangée
             button.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
             button.Disabled = !castable;
             button.Pressed += () =>

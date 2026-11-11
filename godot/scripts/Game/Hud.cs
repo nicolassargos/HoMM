@@ -186,25 +186,24 @@ public partial class Hud : CanvasLayer
             ("livre", "S", Texts.SpellBookTooltip, () => SpellBookPressed?.Invoke()),
             ("options", "Échap", Texts.OptionsTooltip, ShowOptions),
         };
+        // les boutons à icône ont la taille commune, centrés dans la colonne
         const int columns = 4;
-        float buttonGap = Px(4);
-        float side = MathF.Floor((inner - (columns - 1) * buttonGap) / columns);
+        float side = IconButtonSide;
+        float buttonsX = margin + SnapDown((inner - columns * side - (columns - 1) * ButtonGap) / 2);
         for (int i = 0; i < actions.Length; i++)
         {
             var (icon, key, tooltip, pressed) = actions[i];
-            var button = IconButtons.Make(icon, tooltip, key, side, pressed);
-            button.Position = new Vector2(margin + i % columns * (side + buttonGap), y + i / columns * (side + buttonGap));
+            var button = IconButtons.Make(icon, tooltip, key, pressed);
+            button.Position = new Vector2(buttonsX + i % columns * (side + ButtonGap), y + i / columns * (side + ButtonGap));
             panel.AddChild(button);
         }
-        y += (actions.Length + columns - 1) / columns * (side + buttonGap);
+        y += (actions.Length + columns - 1) / columns * (side + ButtonGap);
 
-        // la fin du tour : grande, toujours au même endroit
+        // la fin du tour : un grand bouton, toujours au même endroit, en bas de la colonne
         var endTurn = MakeButton(Texts.EndTurnButton, 18);
         endTurn.TooltipText = Texts.KeyTooltip(Texts.EndTurnButton, "Entrée");
-        // une hauteur ordinaire, en bas de la colonne
-        float endTurnHeight = Px(62);
-        endTurn.Position = new Vector2(margin, Math.Max(y, screenSize.Y - Px(10) - endTurnHeight));
-        endTurn.Size = new Vector2(inner, endTurnHeight);
+        Sized(endTurn, inner, LargeButtonHeight);
+        endTurn.Position = new Vector2(margin, Math.Max(y, Snap(screenSize.Y - Px(10) - LargeButtonHeight)));
         endTurn.Pressed += () => EndTurnPressed?.Invoke();
         panel.AddChild(endTurn);
 
@@ -222,15 +221,14 @@ public partial class Hud : CanvasLayer
         box.AddChild(At(MakeLabel(title, 12, SoftTextColor), 4, 1));
         Button Arrow(string text, float ax, int step)
         {
-            var arrow = MakeButton(text, 10);
+            var arrow = Sized(MakeButton(text, 10), SmallButtonHeight, SmallButtonHeight);
             arrow.Position = new Vector2(ax, Px(2));
-            arrow.Size = V(18, 15);
             arrow.Pressed += () => scroll(step);
             box.AddChild(arrow);
             return arrow;
         }
-        var up = Arrow("▲", width - Px(40), -1);
-        var down = Arrow("▼", width - Px(20), +1);
+        var down = Arrow("▼", width - Px(2) - SmallButtonHeight, +1);
+        var up = Arrow("▲", down.Position.X - Px(2) - SmallButtonHeight, -1);
         var rows = new VBoxContainer { Position = V(4, 20), Size = new Vector2(width - Px(8), height - Px(24)) };
         rows.AddThemeConstantOverride("separation", (int)Px(2));
         box.AddChild(rows);
@@ -340,9 +338,8 @@ public partial class Hud : CanvasLayer
         _lastMessage.VerticalAlignment = VerticalAlignment.Center;
         _lastMessage.ClipText = true;
         bar.AddChild(_lastMessage);
-        var log = MakeButton(Texts.LogButton, 13);
-        log.Position = new Vector2(width - Px(14 + 84), (BottomBarHeight - Px(32)) / 2f);
-        log.Size = V(84, 32);
+        var log = Sized(MakeButton(Texts.LogButton, 13), Px(84), ButtonHeight);
+        log.Position = new Vector2(width - Px(14) - log.Size.X, SnapDown((BottomBarHeight - ButtonHeight) / 2f));
         log.Pressed += ShowLog;
         bar.AddChild(log);
     }
@@ -784,7 +781,7 @@ public partial class Hud : CanvasLayer
                  })
         {
             var button = MakeButton(text, 16);
-            button.CustomMinimumSize = V(320, 42);
+            Sized(button, Px(320), ButtonHeight);
             button.TooltipText = tooltip;
             button.Pressed += () => Close(action);
             content.AddChild(button);
@@ -1121,7 +1118,7 @@ public partial class Hud : CanvasLayer
         foreach (var (gold, text) in new[] { (true, Texts.ChestGold(chest.Chest)), (false, Texts.ChestExperience(chest.Chest)) })
         {
             var button = MakeButton(text, 16);
-            button.CustomMinimumSize = V(230, 70);
+            Sized(button, Px(230), LargeButtonHeight);
             bool picked = gold;
             button.Pressed += () => Choose(picked);
             buttons.AddChild(button);
@@ -1174,7 +1171,7 @@ public partial class Hud : CanvasLayer
         void Add(string text, EncounterChoice choice, bool enabled = true)
         {
             var button = MakeButton(text, 15);
-            button.CustomMinimumSize = V(170, 50);
+            Sized(button, Px(170), LargeButtonHeight);
             button.Disabled = !enabled;
             button.Pressed += () => Choose(choice);
             buttons.AddChild(button);

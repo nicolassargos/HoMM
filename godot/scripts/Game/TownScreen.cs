@@ -87,7 +87,7 @@ public partial class TownScreen : CanvasLayer
         var back = MakeButton(Texts.QuitTown, 15);
         back.TooltipText = Texts.KeyTooltip(Texts.QuitTownTooltip, "Échap");
         back.Position = new Vector2(screenSize.X - Hud.PanelWidth + Px(12), Px(4));
-        back.Size = new Vector2(Hud.PanelWidth - Px(24), Px(36));
+        Sized(back, Hud.PanelWidth - Px(24), ButtonHeight);
         back.Pressed += Close;
         _root.AddChild(back);
 
@@ -112,7 +112,7 @@ public partial class TownScreen : CanvasLayer
         {
             var button = MakeButton(text, 14);
             button.Position = new Vector2(bx, Hud.TopBarHeight + Px(3));
-            button.Size = V(118, 32);
+            Sized(button, Px(118), ButtonHeight);
             button.Pressed += open;
             _root.AddChild(button);
             if (text == Texts.TavernButton)
@@ -150,12 +150,12 @@ public partial class TownScreen : CanvasLayer
         _visitor = MakeArmy(V(ArmyX, y + 22));
         _giveAll = MakeButton(Texts.GiveAllToHero, 13);
         _giveAll.Position = V(exchangeX + 14, y + 52);
-        _giveAll.Size = V(250, 36);
+        Sized(_giveAll, Px(250), ButtonHeight);
         _giveAll.Pressed += GiveAll;
         _root.AddChild(_giveAll);
         _leaveAll = MakeButton(Texts.LeaveAllInGarrison, 13);
         _leaveAll.Position = V(exchangeX + 276, y + 52);
-        _leaveAll.Size = V(250, 36);
+        Sized(_leaveAll, Px(250), ButtonHeight);
         _leaveAll.Pressed += LeaveAll;
         _root.AddChild(_leaveAll);
 
@@ -413,11 +413,13 @@ public partial class TownScreen : CanvasLayer
         var window = new Panel { Position = (veil.Size - size) / 2, Size = size };
         window.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         veil.AddChild(window);
-        window.AddChild(At(MakeLabel(title, 20, TextColor), 24, 18));
-        var close = MakeButton(Texts.CloseButton, 14);
+        // le titre et « Fermer » comme dans les grandes fenêtres (ScreenWindow)
+        var heading = MakeLabel(title, 20, TextColor);
+        heading.Position = new Vector2(WindowMargin, WindowMargin + (ButtonHeight - TitleText) / 2);
+        window.AddChild(heading);
+        var close = Sized(MakeButton(Texts.CloseButton, 14), CloseButtonWidth, ButtonHeight);
         close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
-        close.Position = new Vector2(size.X - Px(22 + 110), Px(18));
-        close.Size = V(110, 30);
+        close.Position = new Vector2(size.X - WindowMargin - CloseButtonWidth, WindowMargin);
         close.Pressed += CloseWindow;
         window.AddChild(close);
         _window = veil;
@@ -518,7 +520,7 @@ public partial class TownScreen : CanvasLayer
             card.AddChild(why);
             return card;
         }
-        var action = FixedButton(status, 13, V(298, 30));
+        var action = FixedButton(status, 13, new Vector2(Px(298), ButtonHeight));
         action.Position = V(8, 82);
         action.Pressed += () =>
         {
@@ -583,28 +585,28 @@ public partial class TownScreen : CanvasLayer
         {
             var button = MakeButton(text, 13);
             button.Position = V(8, y);
-            button.Size = new Vector2(w - Px(16), Px(30));
+            Sized(button, w - Px(16), ButtonHeight);
             card.AddChild(button);
             return button;
         }
         if (!built)
         {
             Centered(Texts.ToBuildFirst(dwelling), 13, TextColor, 150);
-            Action(Texts.GoBuild, 278).Pressed += OpenBuild;
+            Action(Texts.GoBuild, 286).Pressed += OpenBuild;
             return card;
         }
         int available = town.Available.GetValueOrDefault(creature);
         // le niveau et les capacités peuvent prendre deux lignes : la suite commence plus bas
         Centered(Texts.AvailableLine(creature, available), 12, TextColor, 140);
         Centered(Texts.PriceLine(creature), 12, TextColor, 178);
-        Centered(Texts.CreatureStats(creature), 11, SoftTextColor, 200);
+        Centered(Texts.CreatureStats(creature), 11, SoftTextColor, 196); // jusqu'à trois lignes
         var hero = _state.VisitingHero(town);
         bool hasRoom = town.Garrison.CanReceive(creature) || (hero != null && hero.Army.CanReceive(creature));
         int max = hasRoom ? town.MaxRecruitable(creature, _state.CurrentPlayer) : 0;
-        var more = Action(Texts.RecruitMore, 242);
+        var more = Action(Texts.RecruitMore, 254);
         more.Disabled = available == 0;
         more.Pressed += () => OpenRecruit(town, creature);
-        var all = Action(Texts.RecruitAllButton(max), 278);
+        var all = Action(Texts.RecruitAllButton(max), 286);
         all.Disabled = max == 0;
         all.Pressed += () =>
         {
@@ -639,7 +641,7 @@ public partial class TownScreen : CanvasLayer
             button.ToggleMode = true;
             button.ButtonPressed = chosen;
             button.Alignment = HorizontalAlignment.Right;
-            button.CustomMinimumSize = V(110, 40);
+            Sized(button, Px(110), ButtonHeight);
             button.TooltipText = Texts.Capitalize(Texts.Resource(resource));
             button.AddChild(new ResourceIcon { Resource = resource, Position = V(6, 10), Size = V(20, 20), MouseFilter = Control.MouseFilterEnum.Ignore });
             button.Pressed += pressed;
@@ -674,14 +676,14 @@ public partial class TownScreen : CanvasLayer
         window.AddChild(slider);
         var max_ = MakeButton(Texts.MaxButton, 13);
         max_.Position = V(600, 238);
-        max_.Size = V(80, 32);
+        Sized(max_, Px(80), ButtonHeight);
         max_.Disabled = max == 0;
         window.AddChild(max_);
         var deal = At(MakeLabel("", 15, TextColor), 24, 284);
         window.AddChild(deal);
         var trade = MakeButton(Texts.TradeButton, 15);
         trade.Position = V(620, 316);
-        trade.Size = V(170, 36);
+        Sized(trade, Px(170), ButtonHeight);
         window.AddChild(trade);
         void Show()
         {
@@ -710,7 +712,7 @@ public partial class TownScreen : CanvasLayer
             return;
         var status = _state.CanHireHero(town);
         // si l'on ne peut pas recruter, pourquoi : une fois, sous le texte (pas sur des boutons grisés)
-        float cardsY = status == HireResult.Ok ? 100 : 122;
+        float cardsY = status == HireResult.Ok ? 100 : 132;
         float cardsHeight = status == HireResult.Ok ? 224 : 182;
         var window = OpenWindow(V(620, cardsY + cardsHeight + 28), Texts.TavernTitle, overView: true);
         window.AddChild(SunkenArea(V(12, cardsY - 6), V(596, cardsHeight + 12)));
@@ -719,7 +721,7 @@ public partial class TownScreen : CanvasLayer
         text.CustomMinimumSize = V(584, 0);
         window.AddChild(text);
         if (status != HireResult.Ok)
-            window.AddChild(At(MakeLabel(Texts.HireStatus(status), 14, TextColor), 18, 90));
+            window.AddChild(At(MakeLabel(Texts.HireStatus(status), 14, TextColor), 18, 96));
         float x = 18;
         foreach (var name in _state.TavernOffers(town))
         {
@@ -745,7 +747,7 @@ public partial class TownScreen : CanvasLayer
                 x += 300;
                 continue;
             }
-            var hire = FixedButton($"{Texts.HireButton} ({GameState.HeroCost} or)", 13, V(264, 32));
+            var hire = FixedButton($"{Texts.HireButton} ({GameState.HeroCost} or)", 13, new Vector2(Px(264), ButtonHeight));
             hire.Position = V(10, 180);
             hire.Pressed += () =>
             {
@@ -802,6 +804,9 @@ public partial class TownScreen : CanvasLayer
                 var effect = At(MakeLabel(Texts.SpellEffectText(spell, hero), 12, SoftTextColor), 10, 26);
                 effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
                 effect.CustomMinimumSize = V(298, 0);
+                // deux lignes au plus dans la carte (le texte entier au survol)
+                effect.MaxLinesVisible = 2;
+                effect.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
                 card.AddChild(effect);
                 x += 326;
             }
@@ -845,21 +850,21 @@ public partial class TownScreen : CanvasLayer
         _recruitTotal.CustomMinimumSize = new Vector2(size.X - Px(40), 0);
         window.AddChild(_recruitTotal);
 
-        _recruitMax = MakeButton("Max", 15);
+        _recruitMax = MakeButton(Texts.MaxButton, 15);
         _recruitMax.Position = new Vector2(Px(20), size.Y - Px(60));
-        _recruitMax.Size = V(100, 40);
+        Sized(_recruitMax, Px(100), ButtonHeight);
         _recruitMax.Pressed += () => _recruitSlider.Value = _recruitSlider.MaxValue;
         window.AddChild(_recruitMax);
 
         _recruitButton = MakeButton(Texts.RecruitButton, 15);
         _recruitButton.Position = new Vector2(size.X - Px(300), size.Y - Px(60));
-        _recruitButton.Size = V(140, 40);
+        Sized(_recruitButton, Px(140), ButtonHeight);
         _recruitButton.Pressed += ConfirmRecruit;
         window.AddChild(_recruitButton);
 
         var cancel = MakeButton(Texts.CancelButton, 15);
         cancel.Position = new Vector2(size.X - Px(150), size.Y - Px(60));
-        cancel.Size = V(130, 40);
+        Sized(cancel, Px(130), ButtonHeight);
         cancel.Pressed += () => _recruitOverlay.Visible = false;
         window.AddChild(cancel);
     }

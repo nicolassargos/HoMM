@@ -1086,6 +1086,29 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   plus grands) ; fiche du héros sans débordement (artefacts à côté du charisme) ; lignes des listes à l'intérieur du
   biseau ; cases à cocher espacées de leur texte ; un bouton choisi est plus sombre (enfoncé), plus clair avant.
   Gardé tel quel pour l'instant : les sections vides (artefacts, magie, villes), qui se rempliront.
+- **Harmoniser l'interface : les tailles communes** (2026-11-11, branche `interface-harmonie`). Constaté après le passage
+  à ×2 : deux échelles mêlées (les écrans écrits dans les unités de l'ancien écran 1280 × 720, ×1,5, les images ×2),
+  donc des cadres, écarts et boutons hors de la grille des pixels d'art ; 14 tailles de texte (7 à 44) et 6 pour les
+  boutons, toujours lissées (la police nette n'était jamais choisie) ; des boutons de 30 à 70 de haut.
+  - La police VT323 est dessinée sur une grille de 80 unités pour 1000 (mesuré dans le fichier) : 12,5 pixels par
+    taille ; elle n'est nette qu'à 25 (un pixel de police = 2 pixels de l'écran, comme les images), 50 et 75.
+    `Ui.TextSize` ramène les anciennes tailles à trois : moins de 18 → 25, 18 à 39 → 50, 40 et plus → 75.
+  - `Ui.Px` arrondit à la grille (2 pixels) ; `Ui.Snap`, `SnapDown`, `ArtPx` (pixels d'art) ; les bords des boîtes en
+    pixels d'art entiers. Tailles communes : `SmallButtonHeight` 32, `ButtonHeight` 44, `LargeButtonHeight` 60,
+    `IconButtonSide` 80 (l'icône de 32 ×2 et 4 pixels d'art de pierre), `CloseButtonWidth` 128, `WindowMargin` 24,
+    `ButtonGap` 8 ; `Ui.Sized` les donne. `MakeButton` a au moins la hauteur commune ; les boutons des petites
+    fenêtres la prennent par le thème (`buttons_min_width`, `buttons_min_height` : Godot écrase sinon leur taille).
+  - Les icônes des boutons centrées sur la grille ; le groupe de droite du combat sortait de l'écran (sa largeur se
+    calcule maintenant d'après les tailles communes, `BattleScreen.GroupWidth`).
+  - « Fermer » : même taille, en haut à droite, avec le titre sur la même ligne (grandes fenêtres et fenêtres de la
+    ville) ; les petites fenêtres gardent leurs boutons en bas.
+  - Les petites fenêtres (`GameDialog`) assombrissent l'écran derrière elles, comme les grandes.
+  - Ajustés au passage : les noms des places d'équipement en info-bulle (écrits dedans, ils ne tenaient qu'en taille 7),
+    les nombres des caractéristiques au bout de la ligne de leur nom, les cartes de recrutement (trois lignes de
+    caractéristiques), la description d'un sort de la guilde sur deux lignes au plus (le reste au survol), la taverne
+    et le champ du nom d'une sauvegarde, « Max » dans `Texts`.
+  - Gardé : les petites images de l'armée dans la colonne de la carte restent ×1 (choix de l'utilisateur du
+    2026-11-08, entières plutôt que ×2 coupées), à revoir avec la colonne.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

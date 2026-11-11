@@ -25,23 +25,33 @@ public static class Ui
     public const string FontPath = "res://fonts/VT323-Regular.ttf";
 
     /// <summary>
-    /// VT323 est plus petite et plus étroite que la police de Godot : les tailles demandées par l'interface
-    /// (pensées pour la police de Godot) sont multipliées d'autant.
-    /// </summary>
-    public const float FontScale = 1.3f;
-
-    /// <summary>
     /// L'échelle de l'interface (1920 × 1080) : les écrans sont décrits dans les unités de l'ancien écran (1280 × 720) et
-    /// <see cref="Px"/>, <see cref="V"/>, <see cref="At{T}"/>, <see cref="TextSize"/> et <see cref="Box"/> les mettent à
-    /// l'échelle. Les images en pixel art, elles, sont toujours agrandies d'un nombre entier de fois (pixels réguliers).
+    /// <see cref="Px"/>, <see cref="V"/>, <see cref="At{T}"/> et <see cref="Box"/> les mettent à l'échelle, arrondies à
+    /// la grille des pixels d'art (<see cref="Grid"/>). Les images en pixel art sont toujours agrandies ×2.
     /// </summary>
     public const float Scale = 1.5f;
 
     /// <summary>Agrandissement des cadres et des boutons (leurs images) : un nombre entier, pour des pixels réguliers.</summary>
     public const int ArtScale = 2;
 
-    /// <summary>Une longueur de l'interface, mise à l'échelle (arrondie au pixel).</summary>
-    public static float Px(float value) => MathF.Round(value * Scale);
+    /// <summary>
+    /// La grille de l'interface : un pixel d'art fait <see cref="Grid"/> pixels de l'écran. Toutes les longueurs (places,
+    /// tailles, marges, bords) en sont des multiples, pour que les cadres, les boutons et les images tombent sur les mêmes
+    /// pixels (comme Heroes 1 et 2, dessinés sur une seule grille).
+    /// </summary>
+    public const int Grid = ArtScale;
+
+    /// <summary>Une longueur de l'écran arrondie à la grille des pixels d'art.</summary>
+    public static float Snap(float pixels) => MathF.Round(pixels / Grid) * Grid;
+
+    /// <summary>Une longueur de l'écran arrondie à la grille, vers le bas (pour centrer sans déborder).</summary>
+    public static float SnapDown(float pixels) => MathF.Floor(pixels / Grid) * Grid;
+
+    /// <summary>Une longueur comptée en pixels d'art, en pixels de l'écran.</summary>
+    public static float ArtPx(float artPixels) => artPixels * Grid;
+
+    /// <summary>Une longueur de l'interface, mise à l'échelle et arrondie à la grille.</summary>
+    public static float Px(float value) => Snap(value * Scale);
 
     /// <summary>Une position ou une taille de l'interface, mise à l'échelle.</summary>
     public static Vector2 V(float x, float y) => new(Px(x), Px(y));
@@ -49,50 +59,69 @@ public static class Ui
     /// <summary>La taille de l'écran dans les unités de l'interface (1280 × 720 pour un écran de 1920 × 1080).</summary>
     public static Vector2 Units(Vector2 screen) => screen / Scale;
 
-    /// <summary>Taille à partir de laquelle la police reste nette sans lissage (en dessous, elle est lissée).</summary>
-    public const int SharpFontSize = 25;
+    // ------------------------------------------------------------ les tailles communes (en pixels de l'écran)
+    // Chaque bouton, cadre et texte prend l'une de ces tailles : les écrans ne s'en inventent pas d'autres.
 
-    private static Font? _sharpFont;
-    private static Font? _smoothFont;
+    /// <summary>Hauteur d'un petit bouton (flèches d'une liste, « Max »).</summary>
+    public static readonly float SmallButtonHeight = ArtPx(16);
 
-    /// <summary>La taille réelle d'un texte prévu à la taille <paramref name="size"/>.</summary>
-    public static int TextSize(int size) => (int)MathF.Round(size * Scale * (_smoothFont == null ? 1 : FontScale));
+    /// <summary>Hauteur d'un bouton ordinaire (Fermer, Recruter, onglets de la ville…).</summary>
+    public static readonly float ButtonHeight = ArtPx(22);
+
+    /// <summary>Hauteur d'un grand bouton (Fin du tour, Commencer, le menu principal, les choix d'une fenêtre).</summary>
+    public static readonly float LargeButtonHeight = ArtPx(30);
+
+    /// <summary>Côté d'un bouton carré à icône (l'icône de 32 pixels d'art ×2, et 4 pixels d'art de pierre autour).</summary>
+    public static readonly float IconButtonSide = ArtPx(40);
+
+    /// <summary>Largeur du bouton « Fermer » des grandes fenêtres, toujours en haut à droite.</summary>
+    public static readonly float CloseButtonWidth = ArtPx(64);
+
+    /// <summary>Marge entre le bord d'une fenêtre et son contenu, et écart entre deux boutons voisins.</summary>
+    public static readonly float WindowMargin = ArtPx(12), ButtonGap = ArtPx(4);
 
     /// <summary>
-    /// La police pixel (VT323, licence OFL) devient la police de toute l'interface et des textes de la carte.
+    /// Les tailles du texte : la police VT323 est dessinée sur une grille de 12,5 pixels par taille, elle n'est donc nette
+    /// qu'à 25 (un pixel de la police = un pixel d'art, comme Heroes 1 et 2), 50 (les titres) et 75 (le nom du jeu).
+    /// </summary>
+    public const int NormalText = 25, TitleText = 50, BigText = 75;
+
+    private static Font? _sharpFont;
+
+    /// <summary>
+    /// La taille réelle d'un texte prévu à la taille <paramref name="size"/> (les tailles de l'ancienne police) : le texte
+    /// ordinaire (moins de 18), les titres et les grands boutons (18 à 39), le nom du jeu (40 et plus). Sans la police
+    /// pixel, l'ancienne taille.
+    /// </summary>
+    public static int TextSize(int size) => _sharpFont == null ? (int)MathF.Round(size * Scale)
+        : size >= 40 ? BigText : size >= 18 ? TitleText : NormalText;
+
+    /// <summary>
+    /// La police pixel (VT323, licence OFL) devient la police de toute l'interface et des textes de la carte, nette (sans
+    /// lissage) aux tailles <see cref="NormalText"/>, <see cref="TitleText"/> et <see cref="BigText"/>.
     /// Lue directement depuis le fichier, sans import par l'éditeur. Sans le fichier, la police de Godot reste.
     /// </summary>
     public static void UsePixelFont()
     {
         if (!Godot.FileAccess.FileExists(FontPath))
             return;
-        var data = Godot.FileAccess.GetFileAsBytes(FontPath);
-        _sharpFont = MakeFont(data, TextServer.FontAntialiasing.None);
-        _smoothFont = MakeFont(data, TextServer.FontAntialiasing.Gray);
+        _sharpFont = new FontFile
+        {
+            Data = Godot.FileAccess.GetFileAsBytes(FontPath),
+            Antialiasing = TextServer.FontAntialiasing.None,
+            Hinting = TextServer.Hinting.Normal, // calé sur la grille de pixels
+            SubpixelPositioning = TextServer.SubpixelPositioning.Disabled,
+        };
         // le thème par défaut sert à tous les contrôles, même ceux des CanvasLayer (qui n'héritent pas du thème de la fenêtre)
         var theme = ThemeDB.GetDefaultTheme();
-        theme.DefaultFont = SharpFontSize <= 16 ? _sharpFont : _smoothFont;
-        theme.DefaultFontSize = TextSize(16);
+        theme.DefaultFont = _sharpFont;
+        theme.DefaultFontSize = NormalText;
         ThemeDB.FallbackFont = theme.DefaultFont; // pour les textes dessinés sur la carte
     }
 
-    private static FontFile MakeFont(byte[] data, TextServer.FontAntialiasing antialiasing) => new()
-    {
-        Data = data,
-        Antialiasing = antialiasing,
-        // net : calé sur la grille de pixels ; lissé : sans calage, sinon les traits deviennent inégaux
-        Hinting = antialiasing == TextServer.FontAntialiasing.None ? TextServer.Hinting.Normal : TextServer.Hinting.None,
-        SubpixelPositioning = TextServer.SubpixelPositioning.Disabled,
-    };
-
-    /// <summary>Donne à un contrôle la taille réelle de son texte, et la police nette si cette taille le permet.</summary>
-    public static void SetFontSize(Control control, int fontSize)
-    {
-        int size = TextSize(fontSize);
-        control.AddThemeFontSizeOverride("font_size", size);
-        if (_sharpFont != null && _smoothFont != null)
-            control.AddThemeFontOverride("font", size >= SharpFontSize ? _sharpFont : _smoothFont);
-    }
+    /// <summary>Donne à un contrôle la taille réelle de son texte.</summary>
+    public static void SetFontSize(Control control, int fontSize) =>
+        control.AddThemeFontSizeOverride("font_size", TextSize(fontSize));
 
     /// <summary>Place un contrôle à (x, y), en unités de l'interface (mises à l'échelle).</summary>
     public static T At<T>(T control, float x, float y) where T : Control
@@ -113,8 +142,8 @@ public static class Ui
         int left = 0, int top = 0, int right = 0, int bottom = 0, int radius = 0)
     {
         var box = new StyleBoxFlat { BgColor = background };
-        // les bords à l'échelle de l'interface (un bord d'un pixel en fait deux)
-        static int Width(int w) => w == 0 ? 0 : Math.Max(1, (int)MathF.Round(w * Scale));
+        // les bords à l'échelle de l'interface, en pixels d'art entiers (un bord d'un pixel en fait deux)
+        static int Width(int w) => w == 0 ? 0 : Math.Max(Grid, (int)Px(w));
         if (border is { } b)
         {
             box.BorderColor = b;
@@ -548,6 +577,9 @@ public static class Ui
         inside.SetContentMarginAll(Px(24));
         theme.SetStylebox("panel", "AcceptDialog", inside);
         theme.SetConstant("buttons_separation", "AcceptDialog", (int)Px(12));
+        // les boutons du bas des petites fenêtres : la hauteur commune, et assez larges (un « OK » seul était minuscule)
+        theme.SetConstant("buttons_min_width", "AcceptDialog", (int)ArtPx(64));
+        theme.SetConstant("buttons_min_height", "AcceptDialog", (int)ButtonHeight);
         theme.SetColor("font_color", "Label", TextColor);
 
         theme.SetStylebox("normal", "Button", ButtonBox(Colors.White, MapRenderer.Rgb(90, 66, 30), BorderColor));
@@ -793,7 +825,8 @@ public static class Ui
     /// <summary>Un bouton aux couleurs du jeu. Il ne prend pas le focus, sinon Espace/Entrée le « cliqueraient ».</summary>
     public static Button MakeButton(string text, int fontSize = 16)
     {
-        var button = new Button { Text = text, FocusMode = Control.FocusModeEnum.None };
+        // au moins la hauteur commune : un bouton posé dans une rangée ne se règle pas sur son texte
+        var button = new Button { Text = text, FocusMode = Control.FocusModeEnum.None, CustomMinimumSize = new Vector2(0, ButtonHeight) };
         SetFontSize(button, fontSize);
         button.AddThemeColorOverride("font_color", TextColor);
         button.AddThemeColorOverride("font_hover_color", Colors.White);
@@ -806,13 +839,24 @@ public static class Ui
     }
 
     /// <summary>
+    /// Donne à un contrôle (souvent un bouton) sa taille : la largeur arrondie à la grille, et une hauteur commune
+    /// (<see cref="ButtonHeight"/>, <see cref="SmallButtonHeight"/>, <see cref="LargeButtonHeight"/>…).
+    /// </summary>
+    public static T Sized<T>(T control, float width, float height) where T : Control
+    {
+        control.CustomMinimumSize = control.Size = new Vector2(Snap(width), height);
+        return control;
+    }
+
+    /// <summary>
     /// Un bouton de taille fixe dont le texte (sur une ou plusieurs lignes) est dans une étiquette posée dessus : un
     /// bouton s'élargit pour contenir son propre texte, une étiquette de taille fixe non.
     /// </summary>
     public static Button FixedButton(string text, int fontSize, Vector2 size, bool disabled = false)
     {
         var button = MakeButton("", fontSize);
-        button.Size = size;
+        size = new Vector2(Snap(size.X), Snap(size.Y));
+        button.CustomMinimumSize = button.Size = size;
         button.Disabled = disabled;
         var label = MakeLabel(text, fontSize, disabled ? DimColor : TextColor);
         label.HorizontalAlignment = HorizontalAlignment.Center;

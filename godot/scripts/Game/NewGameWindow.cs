@@ -53,7 +53,7 @@ public partial class NewGameWindow : ScreenWindow
 
         _start = MakeButton(Texts.StartButton, 18);
         _start.Position = new Vector2(size.X - Px(20 + 220), size.Y - Px(58));
-        _start.Size = V(220, 44);
+        Sized(_start, Px(220), LargeButtonHeight);
         _start.Pressed += Start;
         Window.AddChild(_start);
         SelectOpponents(_opponents);
@@ -80,7 +80,7 @@ public partial class NewGameWindow : ScreenWindow
         var game = Section(20, 60, 470, 490, Texts.GameLabel);
         game.AddChild(Small(Texts.MapSizeLabel, 14, 34));
         var sizes = MakeDropdown(MapSizes.All.Select(s => Texts.MapSizeChoice(s, MapSizes.Dimensions(s))), MapSizes.All.ToList().IndexOf(_size),
-            V(300, 34), i => SelectSize(MapSizes.All.ElementAt(i)));
+            new Vector2(Px(300), ButtonHeight), i => SelectSize(MapSizes.All.ElementAt(i)));
         sizes.Position = V(14, 54);
         game.AddChild(sizes);
         // développement (« --dropdown-open ») : la liste des tailles ouverte, pour une capture
@@ -88,18 +88,18 @@ public partial class NewGameWindow : ScreenWindow
             Callable.From(sizes.ShowPopup).CallDeferred();
 
         game.AddChild(Small(Texts.OpponentsLabel, 14, 100));
-        _opponentList = MakeDropdown(Enumerable.Range(0, 4).Select(Texts.OpponentsChoice), _opponents, V(140, 34), SelectOpponents);
+        _opponentList = MakeDropdown(Enumerable.Range(0, 4).Select(Texts.OpponentsChoice), _opponents, new Vector2(Px(140), ButtonHeight), SelectOpponents);
         _opponentList.Position = V(14, 120);
         game.AddChild(_opponentList);
 
         game.AddChild(Small(Texts.DifficultyLabel, 170, 100));
-        _difficultyList = MakeDropdown(Enum.GetValues<Difficulty>().Select(Texts.DifficultyName), (int)_difficulty, V(160, 34),
+        _difficultyList = MakeDropdown(Enum.GetValues<Difficulty>().Select(Texts.DifficultyName), (int)_difficulty, new Vector2(Px(160), ButtonHeight),
             i => _difficulty = (Difficulty)i);
         _difficultyList.Position = V(170, 120);
         game.AddChild(_difficultyList);
 
         game.AddChild(Small(Texts.SeedLabel, 14, 166));
-        _seed = new LineEdit { Position = V(14, 186), Size = V(170, 34), PlaceholderText = Texts.SeedPlaceholder, MaxLength = 9 };
+        _seed = new LineEdit { Position = V(14, 186), Size = new Vector2(Px(170), ButtonHeight), PlaceholderText = Texts.SeedPlaceholder, MaxLength = 9 };
         SetFontSize(_seed, 15);
         _seed.TextChanged += text =>
         {
@@ -113,7 +113,7 @@ public partial class NewGameWindow : ScreenWindow
         };
         _seed.TooltipText = Texts.SeedHelp;
         game.AddChild(_seed);
-        var random = FixedButton(Texts.RandomSeed, 13, V(120, 34));
+        var random = FixedButton(Texts.RandomSeed, 13, new Vector2(Px(120), ButtonHeight));
         random.Position = V(194, 186);
         random.Pressed += () => _seed.Text = Random.Shared.Next(1, 1_000_000).ToString();
         game.AddChild(random);
@@ -171,7 +171,7 @@ public partial class NewGameWindow : ScreenWindow
         hero.AddChild(Small(Texts.FactionLabel, 14, 34));
         // les factions qu'on peut jouer (celles qui ont une classe)
         var factions = _data.Classes.PlayableFactions.Count > 0 ? _data.Classes.PlayableFactions : new[] { GameState.StartingFaction };
-        var faction = MakeDropdown(factions.Select(Texts.FactionName), 0, V(220, 34), i => SelectFaction(factions[i]));
+        var faction = MakeDropdown(factions.Select(Texts.FactionName), 0, new Vector2(Px(220), ButtonHeight), i => SelectFaction(factions[i]));
         faction.Position = V(14, 54);
         hero.AddChild(faction);
         _faction = factions[0];

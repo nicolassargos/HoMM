@@ -26,8 +26,43 @@ public partial class GameDialog : AcceptDialog
         return dialog;
     }
 
+    /// <summary>Le voile qui assombrit l'écran derrière la fenêtre, tant qu'elle est ouverte (comme les grandes fenêtres).</summary>
+    private CanvasLayer? _veil;
+
+    private void ShowVeil(bool shown)
+    {
+        if (shown && _veil == null)
+        {
+            // une fenêtre intégrée se dessine par-dessus toutes les couches : le voile reste dessous
+            _veil = new CanvasLayer { Layer = 90 };
+            _veil.AddChild(new ColorRect
+            {
+                Size = GetTree().Root.GetVisibleRect().Size, Color = new Color(0, 0, 0, 0.45f),
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            });
+            // plus tard : la racine peut être occupée à ajouter des nœuds
+            var veil = _veil;
+            var root = GetTree().Root;
+            Callable.From(() =>
+            {
+                if (IsInstanceValid(veil) && !veil.IsQueuedForDeletion())
+                    root.AddChild(veil);
+            }).CallDeferred();
+        }
+        else if (!shown && _veil != null)
+        {
+            _veil.QueueFree();
+            _veil = null;
+        }
+    }
+
     public override void _Ready()
     {
+        VisibilityChanged += () => ShowVeil(Visible);
+        TreeExiting += () => ShowVeil(false);
+        if (Visible)
+            ShowVeil(true);
+
         // le titre, puis le texte ou le contenu déjà ajouté, dans une même colonne
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", (int)Px(12));
@@ -49,9 +84,6 @@ public partial class GameDialog : AcceptDialog
             DialogText = "";
         }
         AddChild(column);
-        // les boutons du bas : une largeur minimale (un « OK » seul était minuscule)
-        foreach (var child in GetOkButton().GetParent().GetChildren())
-            if (child is Button button)
-                button.CustomMinimumSize = V(140, 40);
+        // la taille des boutons du bas vient du thème (« buttons_min_width », Ui.ApplyTheme)
     }
 }

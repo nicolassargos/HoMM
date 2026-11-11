@@ -88,7 +88,7 @@ public partial class HeroScreen : ScreenWindow
         Window.AddChild(army);
         _army = new ArmySlots
         {
-            Position = V(12, 26), SlotSize = V(132, 114), CountFontSize = 18,
+            Position = V(12, 26), SlotSize = V(132, 114), CountFontSize = 16,
             ShowCommandPoints = true, DragGroup = this,
         };
         // glisser pour réordonner ou fusionner ; Maj en lâchant, ou clic droit, pour partager
@@ -144,7 +144,8 @@ public partial class HeroScreen : ScreenWindow
         foreach (HeroStat? stat in new HeroStat?[] { HeroStat.Attack, HeroStat.Defense, HeroStat.Power, HeroStat.Knowledge, null })
         {
             var name = At(MakeLabel("", 16, TextColor), 24, y);
-            var value = At(MakeLabel("", 20, TextColor), 210, y - 2);
+            // le nombre au bout de la ligne du nom (l'explication passe dessous)
+            var value = At(MakeLabel("", 16, TextColor), 210, y);
             value.Size = V(50, 24);
             value.HorizontalAlignment = HorizontalAlignment.Right;
             var effect = At(MakeLabel("", 12, SoftTextColor), 24, y + 20);
@@ -214,13 +215,8 @@ public partial class HeroScreen : ScreenWindow
         slot.AddThemeStyleboxOverride("panel", Inset(PanelColor, SilverColor));
         if (name != null)
         {
-            var label = MakeLabel(name, 7, DimColor); // petit : la place d'un artefact de 32 pixels ×2 (« Bouclier » doit tenir)
-            label.HorizontalAlignment = HorizontalAlignment.Center;
-            label.VerticalAlignment = VerticalAlignment.Center;
-            label.ClipText = true; // garde la largeur de la place, pour rester centré
-            label.Size = slot.Size;
-            label.Name = "Name";
-            slot.AddChild(label);
+            // le nom de la place au survol seulement (comme Heroes 3) : écrit dedans, il n'y tenait qu'en tout petit
+            slot.TooltipText = name;
         }
         return slot;
     }
@@ -260,8 +256,6 @@ public partial class HeroScreen : ScreenWindow
         var (worn, chest) = Equipment.Arrange(hero.Artifacts);
         for (int i = 0; i < _slots.Count; i++)
         {
-            if (_slots[i].GetNodeOrNull<Label>("Name") is { } label)
-                label.Text = Texts.SlotName(Equipment.Slots[i]);
             Fill(_slots[i], worn[i]);
             _slots[i].TooltipText = Texts.SlotTooltip(Equipment.Slots[i], worn[i]);
         }
@@ -342,7 +336,7 @@ public partial class HeroScreen : ScreenWindow
         var entry = new Control { Position = V(position.X, position.Y), Size = V(212, 80) };
         var icon = MakeButton(Texts.SkillInitials(skill), 16);
         icon.Position = Vector2.Zero;
-        icon.Size = V(52, 52);
+        Sized(icon, IconButtonSide, IconButtonSide);
         var gold = MapRenderer.Rgb(214, 168, 74);
         var ring = Box(MapRenderer.Rgb(59, 49, 40), rank > 0 ? gold : SilverColor, 2, 2, 2, 2, radius: 26);
         foreach (var state in new[] { "normal", "hover", "pressed", "disabled", "focus" })
@@ -380,7 +374,7 @@ public partial class HeroScreen : ScreenWindow
         _spellPoints.MouseFilter = Control.MouseFilterEnum.Stop;
         _spellPoints.TooltipText = Texts.SpellPointsDaily;
         page.AddChild(_spellPoints);
-        var book = FixedButton(Texts.SpellBookButton, 14, V(170, 32));
+        var book = FixedButton(Texts.SpellBookButton, 14, new Vector2(Px(170), ButtonHeight));
         book.Position = V(PageSize.X - 184, 6);
         book.Pressed += () =>
         {

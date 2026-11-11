@@ -151,8 +151,12 @@ public sealed class Hero
         return true;
     }
 
-    /// <summary>Retire les points de sort dépensés au combat.</summary>
-    internal void SpendSpellPoints(int points) => SpellPoints = System.Math.Max(0, SpellPoints - points);
+    /// <summary>
+    /// Retire les points de sort dépensés au combat (moins ceux gagnés : le prix du sang, les vols du Diablotin), sans
+    /// dépasser le maximum.
+    /// </summary>
+    internal void SpendSpellPoints(int points) =>
+        SpellPoints = System.Math.Max(0, System.Math.Min(System.Math.Max(MaxSpellPoints, SpellPoints), SpellPoints - points));
 
     /// <summary>La classe du héros (étape 9) : d'où viennent ses caractéristiques et ses sorts de départ (null : aucune).</summary>
     public HeroClass? Class { get; internal set; }

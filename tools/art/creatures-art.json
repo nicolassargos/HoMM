@@ -1416,7 +1416,8 @@
         "fixe": "L4-3",
         "move": "move-1",
         "idle": "idle-5",
-        "attack": "attack-5"
+        "attack": "attack-5",
+        "carte": "p1-1"
       },
       "grande": "art-candidats/references/derives/homme-grenouille-grand.png",
       "consignes": {

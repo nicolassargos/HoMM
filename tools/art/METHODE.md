@@ -278,6 +278,7 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   outline of the same width everywhere ») avec le candidat aimé comme modèle et le Château comme style. Le toit du donjon
   changé en dôme d'or par `pixellab.py retoucher` (le reste ne bouge pas). **Coûts réels** : un lot « Pro » avec des
   modèles a coûté 0,46 $ (annoncé 0,115 $) et la retouche 0,54 $ (annoncée 0,08 $) : regarder le solde avant et après.
+- **Ne pas lancer `godot --headless --import`** pour prendre en compte une nouvelle image : il écrit plus de 400 fichiers `.import` et `.uid` non suivis à côté des images et des scripts. Une capture ordinaire (`-- --capture=…`) voit déjà la nouvelle image.
 - **Luminosité des villes (2026-11-11)** : mesurée par `luminosite.py mesure` (Château 125, Forêt 77, Barbares 74,
   morts-vivants 45) ; la Tour (156, trop claire) ramenée à 125 par une courbe. Éclaircir la Forêt et les Barbares (même
   en gardant les sombres) a été refusé par l'utilisateur.

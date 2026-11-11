@@ -685,8 +685,9 @@ croissance, prix, garde.
 - **Les barres de défilement** : la poignée comme taillée dans la pierre (demandé par l'utilisateur, 2026-11-08).
 - **Harmoniser l'interface**, comme Heroes 1 et 2 dessinés sur une seule grille (demandé par l'utilisateur, 2026-11-11,
   après le passage à ×2 ; branche `interface-harmonie`). ✅ 1. Les tailles communes (`Ui.cs`) : toutes les longueurs
-  sur la grille des pixels d'art (2 pixels de l'écran) ; le texte net à deux tailles seulement (25 : un pixel de la
-  police = un pixel d'art ; 50 : titres et grands boutons ; 75 : le nom du jeu) ; trois hauteurs de bouton (petit 32,
+  sur la grille des pixels d'art (2 pixels de l'écran) ; une nouvelle police, **Pixel Operator HB 8** (choix de
+  l'utilisateur parmi six essais : VT323 nette était trop petite), nette à 16 (un pixel de police = un pixel d'art),
+  les titres en Pixel Operator HB à 32 ; trois hauteurs de bouton (petit 32,
   ordinaire 44, grand 60), boutons à icône de 80, « Fermer » de la même taille en haut à droite des grandes fenêtres ;
   l'écran s'assombrit aussi derrière les petites fenêtres. Reste : 2. revoir écran par écran (la colonne de la carte,
   les barres du combat) ; 3. des icônes pour les récompenses (coffre, niveau), le livre de sorts en image, la ville.

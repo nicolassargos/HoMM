@@ -115,8 +115,15 @@ public partial class SavesWindow : ScreenWindow
                 Position = V(12, 4), Size = new Vector2(_size.X - Px(84), Px(48)), MouseFilter = Control.MouseFilterEnum.Ignore,
             };
             lines.AddThemeConstantOverride("separation", 0);
-            lines.AddChild(MakeLabel(Texts.SaveDisplayName(entry), 16, entry.Summary == null ? DimColor : TextColor));
-            lines.AddChild(MakeLabel(Texts.SaveDetails(entry), 13, SoftTextColor));
+            // chaque ligne coupée au bord du bouton (« … ») ; le détail entier au survol
+            foreach (var line in new[] { MakeLabel(Texts.SaveDisplayName(entry), 16, entry.Summary == null ? DimColor : TextColor),
+                         MakeLabel(Texts.SaveDetails(entry), 13, SoftTextColor) })
+            {
+                line.ClipText = true;
+                line.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+                lines.AddChild(line);
+            }
+            button.TooltipText = Texts.SaveDetails(entry);
             button.AddChild(lines);
             var chosen = entry;
             button.Pressed += () => Select(chosen);

@@ -149,6 +149,10 @@ public partial class HeroScreen : ScreenWindow
             value.Size = V(50, 24);
             value.HorizontalAlignment = HorizontalAlignment.Right;
             var effect = At(MakeLabel("", 12, SoftTextColor), 24, y + 20);
+            // une ligne, coupée avant la page de droite (le texte entier au survol)
+            effect.ClipText = true;
+            effect.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+            effect.Size = V(258, 20);
             foreach (var label in new[] { name, value, effect })
             {
                 label.MouseFilter = Control.MouseFilterEnum.Stop; // pour l'info-bulle

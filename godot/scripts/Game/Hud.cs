@@ -340,6 +340,8 @@ public partial class Hud : CanvasLayer
         bar.AddChild(_lastMessage);
         var log = Sized(MakeButton(Texts.LogButton, 13), Px(84), ButtonHeight);
         log.Position = new Vector2(width - Px(14) - log.Size.X, SnapDown((BottomBarHeight - ButtonHeight) / 2f));
+        // le message s'arrête avant le bouton
+        _lastMessage.Size = _lastMessage.CustomMinimumSize = new Vector2(log.Position.X - Px(12) - _lastMessage.Position.X, _lastMessage.Size.Y);
         log.Pressed += ShowLog;
         bar.AddChild(log);
     }
@@ -479,8 +481,11 @@ public partial class Hud : CanvasLayer
     private static Label RowName(string text, float rowWidth)
     {
         var name = MakeLabel(text, 11, TextColor);
-        name.AutowrapMode = TextServer.AutowrapMode.WordSmart; // avant la taille (sinon elle se règle sur le texte entier)
+        // avant la taille (sinon elle se règle sur le texte entier) ; jamais au milieu d'un mot, « … » s'il ne tient pas
+        name.AutowrapMode = TextServer.AutowrapMode.Word;
         name.MaxLinesVisible = 2;
+        name.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+        name.ClipText = true; // un mot plus long que la ligne ne dépasse pas de la ligne
         name.Position = new Vector2(68, 2);
         name.Size = new Vector2(rowWidth - 70, Px(30));
         return name;

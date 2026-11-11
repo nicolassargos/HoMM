@@ -1090,9 +1090,18 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   à ×2 : deux échelles mêlées (les écrans écrits dans les unités de l'ancien écran 1280 × 720, ×1,5, les images ×2),
   donc des cadres, écarts et boutons hors de la grille des pixels d'art ; 14 tailles de texte (7 à 44) et 6 pour les
   boutons, toujours lissées (la police nette n'était jamais choisie) ; des boutons de 30 à 70 de haut.
-  - La police VT323 est dessinée sur une grille de 80 unités pour 1000 (mesuré dans le fichier) : 12,5 pixels par
-    taille ; elle n'est nette qu'à 25 (un pixel de police = 2 pixels de l'écran, comme les images), 50 et 75.
-    `Ui.TextSize` ramène les anciennes tailles à trois : moins de 18 → 25, 18 à 39 → 50, 40 et plus → 75.
+  - **La police.** VT323 est dessinée sur une grille de 80 unités pour 1000 (mesuré dans le fichier) : 12,5 pixels par
+    taille, nette seulement à 25 (trop petite, a jugé l'utilisateur) ou 50 (trop grande). Six essais comparés sur les
+    mêmes écrans (page archivée dans `art-candidats/archives/2026-11-11-polices/`) : VT323 à 25 ; Pixel Operator fin à
+    32 ; en trait épais (HB) à 32 (aimé, mais trop grand) ; fin et épais mêlés ; fin avec des titres en Jersey 10 ;
+    **Pixel Operator HB 8 à 16, choisi** (licence CC0 ; 8 pixels par taille : un pixel de police = un pixel d'art ;
+    capitales de 14 pixels, en gras). Les titres en Pixel Operator HB à 32, le nom du jeu à 48. `Ui.TextSize` ramène
+    les anciennes tailles à trois : moins de 18 → 16, 18 à 39 → 32, 40 et plus → 48. La police laissait deux pixels
+    entre les lettres et presque rien entre les lignes : `FontVariation` retire un pixel d'art entre les lettres (un
+    huitième moins large) et en ajoute un au-dessus et au-dessous de chaque ligne.
+  - Les textes qui ne tiennent plus finissent par « … » dans leur case, le texte entier au survol (carte de
+    construction, case des mines du royaume, sauvegardes, nom d'une ville dans la colonne), ou passent à la ligne sans
+    couper un mot ; le dernier message s'arrête avant « Journal ».
   - `Ui.Px` arrondit à la grille (2 pixels) ; `Ui.Snap`, `SnapDown`, `ArtPx` (pixels d'art) ; les bords des boîtes en
     pixels d'art entiers. Tailles communes : `SmallButtonHeight` 32, `ButtonHeight` 44, `LargeButtonHeight` 60,
     `IconButtonSide` 80 (l'icône de 32 ×2 et 4 pixels d'art de pierre), `CloseButtonWidth` 128, `WindowMargin` 24,

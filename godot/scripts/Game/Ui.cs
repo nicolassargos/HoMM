@@ -22,7 +22,11 @@ public static class Ui
     /// <summary>Le vert du mouvement, sourd (un vert vif criait plus fort que tout le reste).</summary>
     public static readonly Color MovementColor = MapRenderer.Rgb(72, 136, 60);
 
-    public const string FontPath = "res://fonts/VT323-Regular.ttf";
+    /// <summary>
+    /// La police de l'interface (choix de l'utilisateur, 2026-11-11, parmi six essais) : Pixel Operator HB 8 (licence
+    /// CC0), un trait épais, dessinée sur 8 pixels par taille ; les titres en Pixel Operator HB (16 pixels par taille).
+    /// </summary>
+    public const string FontPath = "res://fonts/PixelOperatorHB8.ttf", TitleFontPath = "res://fonts/PixelOperatorHB.ttf";
 
     /// <summary>
     /// L'échelle de l'interface (1920 × 1080) : les écrans sont décrits dans les unités de l'ancien écran (1280 × 720) et
@@ -81,12 +85,13 @@ public static class Ui
     public static readonly float WindowMargin = ArtPx(12), ButtonGap = ArtPx(4);
 
     /// <summary>
-    /// Les tailles du texte : la police VT323 est dessinée sur une grille de 12,5 pixels par taille, elle n'est donc nette
-    /// qu'à 25 (un pixel de la police = un pixel d'art, comme Heroes 1 et 2), 50 (les titres) et 75 (le nom du jeu).
+    /// Les tailles du texte, les seules où la police reste nette : un pixel de la police y fait un pixel d'art (2 pixels
+    /// de l'écran, comme Heroes 1 et 2). Le texte : 16 (8 pixels par taille, ×2) ; les titres : 32 (16 pixels par
+    /// taille, ×2) ; le nom du jeu : 48 (×3).
     /// </summary>
-    public const int NormalText = 25, TitleText = 50, BigText = 75;
+    public const int NormalText = 16, TitleText = 32, BigText = 48;
 
-    private static Font? _sharpFont;
+    private static Font? _sharpFont, _titleFont;
 
     /// <summary>
     /// La taille réelle d'un texte prévu à la taille <paramref name="size"/> (les tailles de l'ancienne police) : le texte
@@ -97,21 +102,16 @@ public static class Ui
         : size >= 40 ? BigText : size >= 18 ? TitleText : NormalText;
 
     /// <summary>
-    /// La police pixel (VT323, licence OFL) devient la police de toute l'interface et des textes de la carte, nette (sans
-    /// lissage) aux tailles <see cref="NormalText"/>, <see cref="TitleText"/> et <see cref="BigText"/>.
-    /// Lue directement depuis le fichier, sans import par l'éditeur. Sans le fichier, la police de Godot reste.
+    /// La police pixel devient la police de toute l'interface et des textes de la carte, nette (sans lissage) aux tailles
+    /// <see cref="NormalText"/>, <see cref="TitleText"/> et <see cref="BigText"/>. Lue directement depuis le fichier,
+    /// sans import par l'éditeur. Sans le fichier, la police de Godot reste.
     /// </summary>
     public static void UsePixelFont()
     {
-        if (!Godot.FileAccess.FileExists(FontPath))
+        _sharpFont = LoadFont(FontPath);
+        if (_sharpFont == null)
             return;
-        _sharpFont = new FontFile
-        {
-            Data = Godot.FileAccess.GetFileAsBytes(FontPath),
-            Antialiasing = TextServer.FontAntialiasing.None,
-            Hinting = TextServer.Hinting.Normal, // calé sur la grille de pixels
-            SubpixelPositioning = TextServer.SubpixelPositioning.Disabled,
-        };
+        _titleFont = LoadFont(TitleFontPath);
         // le thème par défaut sert à tous les contrôles, même ceux des CanvasLayer (qui n'héritent pas du thème de la fenêtre)
         var theme = ThemeDB.GetDefaultTheme();
         theme.DefaultFont = _sharpFont;
@@ -119,9 +119,34 @@ public static class Ui
         ThemeDB.FallbackFont = theme.DefaultFont; // pour les textes dessinés sur la carte
     }
 
-    /// <summary>Donne à un contrôle la taille réelle de son texte.</summary>
-    public static void SetFontSize(Control control, int fontSize) =>
-        control.AddThemeFontSizeOverride("font_size", TextSize(fontSize));
+    /// <summary>Une police lue directement depuis son fichier, nette (sans lissage) ; null sans le fichier.</summary>
+    /// <remarks>
+    /// Pixel Operator laisse deux pixels entre deux lettres et presque rien entre deux lignes : un pixel d'art de moins
+    /// entre les lettres (le texte est un huitième moins large, comme Heroes 2), un de plus au-dessus et au-dessous de
+    /// chaque ligne. Les écarts restent des pixels d'art entiers.
+    /// </remarks>
+    private static Font? LoadFont(string path) => Godot.FileAccess.FileExists(path)
+        ? new FontVariation
+        {
+            BaseFont = new FontFile
+            {
+                Data = Godot.FileAccess.GetFileAsBytes(path),
+                Antialiasing = TextServer.FontAntialiasing.None,
+                Hinting = TextServer.Hinting.Normal, // calé sur la grille de pixels
+                SubpixelPositioning = TextServer.SubpixelPositioning.Disabled,
+            },
+            SpacingGlyph = -Grid, SpacingSpace = -Grid, SpacingTop = Grid, SpacingBottom = Grid,
+        }
+        : null;
+
+    /// <summary>Donne à un contrôle la taille réelle de son texte (et la police des titres pour un titre).</summary>
+    public static void SetFontSize(Control control, int fontSize)
+    {
+        int size = TextSize(fontSize);
+        control.AddThemeFontSizeOverride("font_size", size);
+        if (_titleFont != null && size != NormalText)
+            control.AddThemeFontOverride("font", _titleFont);
+    }
 
     /// <summary>Place un contrôle à (x, y), en unités de l'interface (mises à l'échelle).</summary>
     public static T At<T>(T control, float x, float y) where T : Control

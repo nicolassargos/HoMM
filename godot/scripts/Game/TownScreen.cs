@@ -501,8 +501,18 @@ public partial class TownScreen : CanvasLayer
         effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         effect.CustomMinimumSize = V(306 - x, 0);
         effect.Position = V(x, 26);
+        // deux lignes au plus, et le prix sur une ligne coupée au bord de la carte (le texte entier au survol)
+        effect.MaxLinesVisible = 2;
+        effect.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
         card.AddChild(effect);
-        card.AddChild(At(MakeLabel(Texts.Cost(building.Cost), 12, TextColor), x, 62));
+        // le texte après la taille : sinon l'étiquette garde la largeur du texte entier
+        var cost = At(MakeLabel("", 12, TextColor), x, 62);
+        cost.ClipText = true;
+        cost.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+        cost.Size = V(306 - x, 20);
+        cost.Text = Texts.Cost(building.Cost);
+        card.AddChild(cost);
+        card.TooltipText = $"{Texts.BuildingEffect(town, building)}\n{Texts.Cost(building.Cost)}";
         if (built)
         {
             card.AddThemeStyleboxOverride("panel", Plate(DarkPanelColor)); // construit : en retrait

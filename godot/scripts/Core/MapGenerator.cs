@@ -74,6 +74,18 @@ public sealed class MapGenerator
     /// </summary>
     private static readonly int[] GuardReferenceStrength = { 0, 3, 9, 13, 31, 50, 50, 242 };
 
+    /// <summary>
+    /// Pour passer de ces forces en paysans à la mesure contre une vraie armée (<see cref="CreatureStrength.GoldToBeat"/>) :
+    /// la créature de chaque niveau dont la force en paysans n'a pas changé depuis (le Vampire pour le Troll d'alors).
+    /// </summary>
+    private static readonly string[] GuardReferenceCreature = { "", "gobelin", "loup", "orc", "ogre", "vampire", "vampire", "dragon" };
+
+    /// <summary>
+    /// Un gardien qui n'aurait pas une seule créature de son niveau (moins de 0,75 : une seule serait bien trop forte, comme
+    /// un Démon là où le gardien attendu vaut trois Dragons rouges) prend la créature du niveau en dessous de sa faction.
+    /// </summary>
+    private const double SmallestGuard = 0.75;
+
     /// <summary>Coffres et tas de ressources, pour une carte de 40 × 30 (plus sur une grande carte).</summary>
     public int ChestCount { get; init; } = 6;
     public int PileCount { get; init; } = 42; // 28 avant (la carte paraissait vide)
@@ -109,6 +121,8 @@ public sealed class MapGenerator
 
     public AdventureMap Generate(int width = 54, int height = 40)
     {
+        if (_data != null)
+            CreatureStrength.Prepare(_data.Creatures);
         _map = new AdventureMap(width, height);
         _map.Starts.AddRange(StartCells(width, height, Math.Clamp(Players, 1, 4)));
         PaintTerrain();
@@ -751,7 +765,7 @@ public sealed class MapGenerator
             if (type == null || reference == null)
                 continue;
             double factor = type == reference ? 1
-                : (double)CreatureStrength.PeasantsToBeat(reference, data.Creatures) / CreatureStrength.PeasantsToBeat(type, data.Creatures);
+                : CreatureStrength.GoldToBeat(reference, data.Creatures) / CreatureStrength.GoldToBeat(type, data.Creatures);
             town.Garrison.Add(type, Math.Max(1, (int)Math.Round(count * factor)));
         }
         _map.AddObject(town);
@@ -1079,7 +1093,7 @@ public sealed class MapGenerator
     }
 
     /// <summary>Nombre moyen de créatures dans une troupe de monstres, selon leur niveau (1 à 7).</summary>
-    private static readonly int[] GuardBaseCount = { 0, 14, 10, 7, 5, 4, 2, 1 };
+    internal static readonly int[] GuardBaseCount = { 0, 14, 10, 7, 5, 4, 2, 1 };
 
     /// <summary>Les gardiens des passages sont plus nombreux que les autres monstres de leur zone.</summary>
     public double PassageGuardFactor { get; init; } = 1.5;
@@ -1253,8 +1267,7 @@ public sealed class MapGenerator
         int count = _rng.Next(baseCount, 2 * baseCount + 1);
         // Les troupes lointaines sont aussi plus nombreuses
         count = (int)Math.Round(count * (1 + GuardSizeGrowth * danger) * sizeFactor);
-        // une créature d'une faction (les morts-vivants) : autant de force qu'un gardien neutre de ce niveau
-        count = Math.Max(1, (int)Math.Round(count * StrengthFactor(creatures, type, tier)));
+        (type, count) = SizeGuard(creatures, type, tier, count);
         var guard = new MonsterGuard(cell, type, count);
         _map.AddObject(guard);
         return guard;
@@ -1266,11 +1279,41 @@ public sealed class MapGenerator
     /// (combien de paysans il faut pour en vaincre une, capacités comprises) : la troupe a autant de force que le
     /// gardien de référence. Le Troll et le Dragon rouge, encore neutres, gardent leurs tailles.
     /// </summary>
-    private static double StrengthFactor(CreatureCatalog creatures, CreatureType type, int tier)
+    /// <summary>
+    /// La créature et la taille d'un gardien de ce niveau, à partir de sa taille comptée en gardiens neutres : une créature
+    /// d'une faction a autant de force qu'un gardien neutre de ce niveau ; si une seule de ses créatures est déjà bien
+    /// trop forte pour la place (<see cref="SmallestGuard"/>), le gardien prend celle du niveau en dessous de sa faction,
+    /// à la même force.
+    /// </summary>
+    internal static (CreatureType Type, int Count) SizeGuard(CreatureCatalog creatures, CreatureType type, int tier, int count)
+    {
+        double sized = count * StrengthFactor(creatures, type, tier);
+        if (sized < SmallestGuard && type.Faction != "neutre"
+            && creatures.All.FirstOrDefault(c => c.Faction == type.Faction && c.Tier == type.Tier - 1) is { } lower)
+        {
+            sized = count * ReferenceStrength(creatures, tier) / CreatureStrength.GoldToBeat(lower, creatures);
+            type = lower;
+        }
+        return (type, Math.Max(1, (int)Math.Round(sized)));
+    }
+
+    internal static double StrengthFactor(CreatureCatalog creatures, CreatureType type, int tier)
     {
         if (type.Faction == "neutre")
             return 1;
-        return (double)GuardReferenceStrength[tier] / CreatureStrength.PeasantsToBeat(type, creatures);
+        return ReferenceStrength(creatures, tier) / CreatureStrength.GoldToBeat(type, creatures);
+    }
+
+    /// <summary>
+    /// La force du gardien de référence d'un niveau, contre une vraie armée (<see cref="CreatureStrength.GoldToBeat"/>) :
+    /// sa force en paysans (<see cref="GuardReferenceStrength"/>), convertie par la créature de référence du niveau.
+    /// </summary>
+    internal static double ReferenceStrength(CreatureCatalog creatures, int tier)
+    {
+        if (creatures.All.FirstOrDefault(c => c.Id == GuardReferenceCreature[tier]) is not { } reference)
+            return GuardReferenceStrength[tier];
+        return GuardReferenceStrength[tier] * CreatureStrength.GoldToBeat(reference, creatures)
+               / CreatureStrength.PeasantsToBeat(reference, creatures);
     }
 
     private void Shuffle<T>(IList<T> list)

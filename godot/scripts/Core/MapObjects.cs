@@ -21,10 +21,10 @@ public static class ResourceInfo
 
     public static bool IsRare(ResourceType resource) => Array.IndexOf(Rare, resource) >= 0;
 
-    /// <summary>Ce qu'une mine produit chaque jour : 250 or, 2 bois ou minerai, 1 d'une ressource rare.</summary>
+    /// <summary>Ce qu'une mine produit chaque jour : 500 or (250 avant le 2026-11-11), 2 bois ou minerai, 1 d'une ressource rare.</summary>
     public static int MineProduction(ResourceType resource) => resource switch
     {
-        ResourceType.Gold => 250,
+        ResourceType.Gold => 500,
         _ when IsRare(resource) => 1,
         _ => 2,
     };

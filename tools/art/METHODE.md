@@ -201,6 +201,22 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).
 
+## Champ de bataille (décor, 2026-11-11)
+- Regarder les vrais : captures de Heroes 1 à 3 dans `art-candidats/references/screenshots/`. Un fond **doux** (brume vers
+  une couleur, contours sombres adoucis) : sinon il rivalise avec les créatures. Pas de grand horizon peint vu de côté (raté :
+  arbres à la taille des créatures, style lisse) ; la lisière (troncs coupés par le haut du cadre) ou de **petites**
+  collines lointaines.
+- La profondeur d'un paysage ouvert : des arbres de trois tailles (16 × 24 au pied des collines, 32 × 48 entre elles et
+  le champ, 64 × 96 sur le champ), une brume claire vers l'horizon, des couleurs proches du sol au raccord (trop pâles,
+  le raccord se voit). Les petits arbres de la carte, vus de dessus, juraient : il faut des arbres vus de côté.
+- Retro Diffusion `rd_tile__tile_object` refuse 48 × 112 ; 64 × 96 et 48 × 96 passent. Ses arbres et buissons ont une
+  tache d'herbe ou une ombre ovale sous eux : `tools/art/sans_socle.py` (`--buisson` pour un buisson), puis les pieds
+  (`pieds.py proposer`, revus par l'utilisateur) pour l'ombre de contact du jeu. Garder le trait des racines (sinon
+  elles paraissent coupées) et couper les rangées vides du bas (sinon l'arbre flotte au-dessus de son ombre).
+- Pas de tramage en points pour une ombre ou une brume (granuleux) : des bandes d'opacité aux bords ondulés.
+- Des troncs : demander « the lower part of a very tall tree » donne de jeunes arbres à petite couronne ; posés au fond,
+  leur couronne sort du cadre et l'on ne voit que les troncs.
+
 ## Effets du combat (dessinés par le jeu)
 - **Pas d'effet dans les animations des créatures** : projectiles, impacts, auras sont dessinés par `Game/BattleEffects.cs`,
   en **pixels d'art de 3 pixels de l'écran** (la finesse des créatures ×3), sans image : flèche (en arc, tournée selon sa

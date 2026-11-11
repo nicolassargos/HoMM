@@ -93,6 +93,15 @@ cet ordre :
    grisé ; sur la carte, le livre se lit. **D'abord une maquette dans le jeu sans rien générer** (parchemin et onglets
    dessinés par le code, icônes d'attente), pour régler les tailles sur des captures ; **ensuite seulement** l'image du
    livre ouvert, à la taille trouvée. La page qui tourne : dessinée par le code.
+   Puis (2026-11-11, choix de l'utilisateur) : **en perspective et magique**. La perspective vient des images, jamais
+   d'une déformation par le jeu (les pixels resteraient réguliers et les sorts lisibles) : dans l'onglet Magie de
+   l'écran du héros, **le livre fermé posé sur un lutrin**, en perspective, qui luit ; un clic l'**ouvre** (la
+   couverture tourne, une gerbe de lumière et d'étincelles) ; le livre ouvert **vu un peu d'en haut**, comme posé sur une
+   table, les sorts dessinés à plat sur les pages. Effets dessinés par le jeu : la gerbe à l'ouverture, des étincelles
+   derrière la page qui tourne, une lueur de la couleur de l'école autour du sort survolé (des sons plus tard). **La
+   guilde des mages montre son propre grimoire** : le même livre, ses sorts par niveau, ceux que le héros connaît déjà
+   marqués, les niveaux pas encore construits dits. Images à faire ensuite : le livre fermé sur son lutrin, le livre
+   ouvert, une icône par sort.
 3. **Une image par sort** (le livre, la guilde) : **de petites peintures en couleur**, comme Heroes 2 et 3 (choix de
    l'utilisateur), à la taille trouvée avec la maquette.
 4. **Une animation par sort** sur le champ (projectile, éclair, explosion…) et un **effet visible sur les troupes**

@@ -53,8 +53,7 @@ public partial class HeroScreen : ScreenWindow
 
     // Magie
     private Label _spellPoints = null!;
-    private GridContainer _spells = null!;
-    private string? _spellsKey;
+    private Label _spellCount = null!;
 
     /// <summary>La place à droite, sous les onglets (en unités de l'interface).</summary>
     private static readonly Vector2 PagePosition = new(290, 56), PageSize = new(690, 414);
@@ -372,15 +371,16 @@ public partial class HeroScreen : ScreenWindow
 
     // ------------------------------------------------------------------ Magie
 
+    /// <summary>
+    /// L'onglet Magie (choix de l'utilisateur, 2026-11-11) : le livre du héros fermé sur son lutrin, qui luit ; un clic
+    /// l'ouvre. Dessous, ses points de sort et le nombre de sorts qu'il connaît.
+    /// </summary>
     private void BuildMagic(Control page)
     {
-        _spellPoints = At(MakeLabel("", 15, TextColor), 14, 8);
-        _spellPoints.MouseFilter = Control.MouseFilterEnum.Stop;
-        _spellPoints.TooltipText = Texts.SpellPointsDaily;
-        page.AddChild(_spellPoints);
-        var book = FixedButton(Texts.SpellBookButton, 14, new Vector2(Px(170), ButtonHeight));
-        book.Position = V(PageSize.X - 184, 6);
-        book.Pressed += () =>
+        var lectern = new LecternView();
+        lectern.Position = new Vector2(SnapDown((Px(PageSize.X) - lectern.Size.X) / 2), Px(30));
+        lectern.TooltipText = Texts.OpenSpellBookHint;
+        lectern.Opened += () =>
         {
             if (_hero is not { } hero)
                 return;
@@ -388,46 +388,27 @@ public partial class HeroScreen : ScreenWindow
             AddChild(window);
             window.Open();
         };
-        page.AddChild(book);
-        var scroll = new ScrollContainer { Position = V(14, 46), Size = V(PageSize.X - 28, PageSize.Y - 56), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
-        page.AddChild(scroll);
-        _spells = new GridContainer { Columns = 2 };
-        _spells.AddThemeConstantOverride("h_separation", (int)Px(20));
-        _spells.AddThemeConstantOverride("v_separation", (int)Px(8));
-        scroll.AddChild(_spells);
+        page.AddChild(lectern);
+        float below = lectern.Position.Y + lectern.Size.Y + Px(10);
+        _spellPoints = MakeLabel("", 15, TextColor);
+        _spellPoints.HorizontalAlignment = HorizontalAlignment.Center;
+        _spellPoints.Position = new Vector2(0, below);
+        _spellPoints.Size = new Vector2(Px(PageSize.X), NormalText);
+        _spellPoints.MouseFilter = Control.MouseFilterEnum.Stop;
+        _spellPoints.TooltipText = Texts.SpellPointsDaily;
+        page.AddChild(_spellPoints);
+        _spellCount = MakeLabel("", 13, SoftTextColor);
+        _spellCount.HorizontalAlignment = HorizontalAlignment.Center;
+        _spellCount.Position = new Vector2(0, below + Px(18));
+        _spellCount.Size = new Vector2(Px(PageSize.X), NormalText);
+        page.AddChild(_spellCount);
     }
 
-    /// <summary>Les points de sort, et chaque sort du livre : son nom, son niveau, ses points, ce qu'il fait.</summary>
+    /// <summary>Sous le lutrin : les points de sort du héros et le nombre de sorts de son livre.</summary>
     private void RefreshSpells(Hero hero)
     {
         _spellPoints.Text = Texts.SpellPointsLine(hero.SpellPoints, hero.MaxSpellPoints);
-        string key = $"{hero.Id}:{hero.Power}:{string.Join(",", hero.Spells.Select(s => s.Id))}";
-        if (key == _spellsKey)
-            return;
-        _spellsKey = key;
-        foreach (var child in _spells.GetChildren())
-        {
-            _spells.RemoveChild(child);
-            child.QueueFree();
-        }
-        if (hero.Spells.Count == 0)
-        {
-            var none = MakeLabel(Texts.NoSpellsKnown, 13, SoftTextColor);
-            none.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            none.CustomMinimumSize = V(310, 0);
-            _spells.AddChild(none);
-        }
-        foreach (var spell in hero.Spells)
-        {
-            var box = new VBoxContainer();
-            box.AddThemeConstantOverride("separation", 0);
-            box.AddChild(MakeLabel(Texts.SpellLine(spell, hero), 14, TextColor));
-            var effect = MakeLabel(Texts.SpellEffectText(spell, hero), 12, SoftTextColor);
-            effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            effect.CustomMinimumSize = V(310, 0);
-            box.AddChild(effect);
-            _spells.AddChild(box);
-        }
+        _spellCount.Text = Texts.SpellsKnownCount(hero.Spells.Count);
     }
 
     // ------------------------------------------------------------------ ouverture et mise à jour

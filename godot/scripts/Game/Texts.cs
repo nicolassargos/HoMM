@@ -1320,6 +1320,9 @@ public static class Texts
         "Un héros qui entre dans la ville apprend tous les sorts de la guilde et retrouve tous ses points de sort.";
     public static string GuildLevel(int level) => $"Niveau {level}";
     public static string GuildLevelMissing => "pas encore construit";
+
+    /// <summary>La ligne sous le grimoire de la guilde.</summary>
+    public static string GuildNotice(Town town) => $"{GuildTitle(town)} · {(town.MageGuildLevel > 0 ? GuildText : NoGuild)}";
     public static string SpellKnown => "connu";
     public static string NoGuild => "Cette ville n'a pas encore de guilde des mages.";
     /// <summary>« 5 points » : ce que coûte le sort, à ce héros s'il est donné (son école de magie le rend moins cher).</summary>
@@ -1420,6 +1423,13 @@ public static class Texts
     public static string NotEnoughSpellPoints => "pas assez de points";
     public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";
     public static string NoSpellOfSchool => "Aucun sort de cette école.";
+    public static string OpenSpellBookHint => "Ouvrir le livre de sorts";
+    public static string SpellsKnownCount(int count) => count switch
+    {
+        0 => "Aucun sort dans le livre",
+        1 => "1 sort dans le livre",
+        _ => $"{count} sorts dans le livre",
+    };
     public static string PreviousPage => "Page précédente";
     public static string NextPage => "Page suivante";
 

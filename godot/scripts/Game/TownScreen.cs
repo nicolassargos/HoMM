@@ -775,52 +775,18 @@ public partial class TownScreen : CanvasLayer
     }
 
     /// <summary>
-    /// La guilde des mages : ses sorts niveau par niveau (nom, points, effet), « connu » pour ceux que le héros présent
-    /// connaît ; un niveau pas encore construit est grisé.
+    /// La guilde des mages : son grimoire (le livre de sorts, <see cref="SpellBookWindow.ForGuild"/>), ses sorts niveau par
+    /// niveau, ceux que le héros présent connaît déjà marqués, un niveau pas encore construit dit.
     /// </summary>
     private void OpenGuild()
     {
         if (_town is not { } town)
             return;
-        const float rowHeight = 70, top = 82;
-        var window = OpenWindow(V(1124, top + 4 * rowHeight + 20), Texts.GuildTitle(town), overView: true);
-        window.AddChild(At(MakeLabel(town.MageGuildLevel > 0 ? Texts.GuildText : Texts.NoGuild, 13, SoftTextColor), 24, 52));
-        window.AddChild(SunkenArea(V(12, top - 6), V(1100, 4 * rowHeight + 10)));
+        CloseWindow();
         var hero = _state.VisitingHero(town) is { } h && h.Owner == town.Owner ? h : null;
-        for (int level = 1; level <= Town.GuildSpellsPerLevel.Length; level++)
-        {
-            float y = top + (level - 1) * rowHeight;
-            bool built = level <= town.MageGuildLevel;
-            var color = built ? TextColor : SoftTextColor;
-            window.AddChild(At(MakeLabel(Texts.GuildLevel(level), 15, color), 24, y + 8));
-            if (!built)
-            {
-                window.AddChild(At(MakeLabel(Texts.GuildLevelMissing, 12, SoftTextColor), 24, y + 30));
-                continue;
-            }
-            float x = 130;
-            foreach (var spell in town.GuildSpells.Where(s => s.Level == level))
-            {
-                var card = new Panel { Position = V(x, y), Size = V(318, rowHeight - 8) };
-                card.AddThemeStyleboxOverride("panel", Plate(PanelColor));
-                card.TooltipText = Texts.SpellEffectText(spell, hero);
-                window.AddChild(card);
-                card.AddChild(At(MakeLabel(spell.Name, 14, TextColor), 10, 4));
-                var cost = MakeLabel(hero != null && hero.Knows(spell) ? $"{Texts.SpellCost(spell, hero)} · {Texts.SpellKnown}" : Texts.SpellCost(spell, hero), 12, SoftTextColor);
-                cost.Position = V(10, 6);
-                cost.Size = V(298, 18);
-                cost.HorizontalAlignment = HorizontalAlignment.Right;
-                card.AddChild(cost);
-                var effect = At(MakeLabel(Texts.SpellEffectText(spell, hero), 12, SoftTextColor), 10, 26);
-                effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-                effect.CustomMinimumSize = V(298, 0);
-                // deux lignes au plus dans la carte (le texte entier au survol)
-                effect.MaxLinesVisible = 2;
-                effect.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-                card.AddChild(effect);
-                x += 326;
-            }
-        }
+        var book = SpellBookWindow.ForGuild(town, hero);
+        _root.AddChild(book); // comme les autres fenêtres de la ville
+        book.Open();
     }
 
     // ----------------------------------------------------------- nombre à recruter

@@ -1378,6 +1378,52 @@
         "move": "walks forward quickly, low and crouched like a lizard, his long tail swinging from side to side, the spear held ready, a smooth looping walk cycle that ends exactly in the starting pose",
         "attack": "draws back the spear, then lunges and thrusts it straight forward, then pulls it back to his stance"
       }
+    },
+    "homme-grenouille": {
+      "nom": "Homme-grenouille",
+      "gabarit": "humain",
+      "hauteur": 48,
+      "generation": [
+        104,
+        104
+      ],
+      "marge_bas": 0.06,
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "homme-lezard",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 2 : le frondeur (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : crapaud des marais (L1 à L3), grenouille des cavernes (L4 à L6) ; puis plus méchants, en colère (L7 à L10, remarque de l'utilisateur). Choix (2026-11-11) : L4-3 (grenouille des cavernes) à 48 px ; idle-5 (le sac vocal orange se gonfle), move-1, attack-5 (la fronde reste dans la main) ; tir : la pierre de fronde (« pierre »).",
+      "references": [
+        "art-candidats/references/donjon/homme-grenouille.png::concept reference (a squat frogman warrior with huge round eyes, a wide open mouth, a chainmail shirt, a round shield and a sling): keep this design; ignore the black and white ink style, the cave and the water"
+      ],
+      "description": "a squat frogman warrior standing on bent legs: smooth dark green skin with bright orange spots like a poison frog, an orange belly, huge round bulging black eyes, a wide mouth, a dark chainmail shirt, a small round wooden shield on one arm and a leather sling in the other hand",
+      "sujet": "a squat dark green frogman with orange spots and belly, bulging black eyes, a dark chainmail shirt, a round shield and a sling, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références",
+        "L7": "références",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul"
+      },
+      "choix": {
+        "fixe": "L4-3",
+        "move": "move-1",
+        "idle": "idle-5",
+        "attack": "attack-5"
+      },
+      "grande": "art-candidats/references/derives/homme-grenouille-grand.png",
+      "consignes": {
+        "idle": "stands on bent legs; the orange vocal sac under his throat slowly inflates into a big round orange bubble, then deflates back, like a croaking frog; he blinks",
+        "move": "moves forward with short squat waddling hops on his bent frog legs, staying in place, shield and sling held",
+        "attack": "holding the two cords of the leather sling firmly in one hand the whole time, he whirls the sling so its leather pouch circles above his head, then snaps his arm forward toward the enemy; the sling always stays in his hand; then returns to his stance"
+      }
     }
   }
 }

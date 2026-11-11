@@ -101,11 +101,12 @@ public sealed class BattleEffects
         "boule-poison" => 1500,
         "hache" => 1200,
         "feuilles" => 1000,
+        "pierre" => 1300,
         _ => 1500,
     };
 
     /// <summary>Hauteur de la courbe (en part de la distance) : une flèche monte puis redescend, une boule de feu va droit.</summary>
-    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, "feuilles" => 0.02f, _ => 0 };
+    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, "feuilles" => 0.02f, "pierre" => 0.1f, _ => 0 };
 
     /// <summary>L'impact joué à l'arrivée d'un projectile.</summary>
     public static string ImpactOf(string projectile) => projectile switch
@@ -116,6 +117,7 @@ public sealed class BattleEffects
         "boule-poison" => "poison",
         "hache" => "entaille",
         "feuilles" => "feuilles",
+        "pierre" => "choc",
         _ => "choc",
     };
 
@@ -292,6 +294,16 @@ public sealed class BattleEffects
                     Leaf(canvas, at, a + MathF.PI / 2, LeafColor(k), 1);
                 }
                 Blob(canvas, here, 1, new Color(0.7f, 0.95f, 0.45f));
+                break;
+            }
+            case "pierre":
+            {
+                // la pierre de fronde de l'Homme-grenouille : un petit caillou gris qui tourne (son reflet clair change de
+                // côté), bordé de sombre pour se voir sur l'herbe
+                float spin = (float)p.Age * 25;
+                Blob(canvas, here, 2, new Color(0.22f, 0.2f, 0.18f));
+                Blob(canvas, here, 1, new Color(0.55f, 0.53f, 0.5f));
+                Dot(canvas, here + new Vector2(MathF.Cos(spin), MathF.Sin(spin)) * Pixel, new Color(0.82f, 0.8f, 0.76f));
                 break;
             }
             case "boule-poison":

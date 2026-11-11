@@ -61,6 +61,7 @@
   "creatures/liche": {"pieds": [[[5, 30], [24, 30]]], "verifie": true},
   "creatures/loup": {"pieds": [[[7, 28], [28, 27]]], "verifie": true},
   "creatures/moine": {"pieds": [[[10, 28], [22, 28]]], "verifie": true},
+  "creatures/naga": {"pieds": [[[7, 29], [22, 29]], [[14, 17], [22, 18]]], "verifie": false},
   "creatures/nomades": {"pieds": [[[11, 30], [26, 28]]], "verifie": true},
   "creatures/ogre": {"pieds": [[[8, 28], [23, 28]]], "verifie": true},
   "creatures/oiseau-tonnerre": {"pieds": [[[9, 28], [24, 30]]], "verifie": true},

@@ -850,6 +850,22 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   `GuildSpellsAt` (aussi dans le texte de la guilde) ; `Talents.Scholar` ajouté au bonus de sort du héros (avec les
   écoles). `Texts.FactionName` : « Tour de magie ».
 ### 10. Finitions : apparence et détails
+- ✅ Champ de bataille de l'herbe (2026-11-11, branche `champ-de-bataille`). Écarté d'abord : un horizon peint vu de côté
+  (Retro Diffusion `rd_plus__environment` 384 × 96, prolongé par symétrie) : la perspective et le style juraient (arbres à
+  la taille des créatures, collines lisses). Les captures de Heroes 1 à 3 (`art-candidats/references/screenshots/`) ont
+  montré deux familles : la lisière d'une forêt (troncs, feuillage coupé par le cadre) et le paysage ouvert (une bande de
+  petites collines lointaines et de ciel) ; un fond doux et peu contrasté pour que les créatures ressortent ; des bords
+  de décor à gauche et à droite. Fait, dans `BattleFieldView` : `SmoothGround.CreateBattle` (le shader de la carte, taches
+  de terre battue : le terrain libre 1 avec l'image de la route ; `shade` 0,13, plus de fleurs et de cailloux),
+  `BuildEdge` (trois rangées tirées au hasard par combat, de plus en plus brumeuses vers le fond : `Hazy` ; grands troncs
+  `trunk-grass` dont le haut sort du champ, buissons `bush-grass` devant, bords `side-grass`), `BuildLandscape` (ciel en
+  bandes tramées, deux chaînes de collines de sinus irréguliers, ombrées sous la crête et mouchetées, petits arbres vus de
+  côté `far-grass`, pré tramé vers le sol), arbres moyens `mid-grass`, `Bands` (ombre de la forêt, brume vers l'horizon :
+  bandes aux bords ondulés ; le tramage en points rendait l'image granuleuse), détails `detail-grass` (44 par champ),
+  obstacles `obstacle-grass` (variante choisie par la case). `--battle-scene=open|forest`. Images : Retro Diffusion
+  `rd_tile__tile_object` (4,92 $ en tout), socle retiré par `tools/art/sans_socle.py` ; ombres de contact de `ShadowLayer`
+  (pieds dans `pieds.json`, revus par l'utilisateur ; opacité et couleur par image ajoutées à `pieds.py` et à
+  `ShadowLayer`, opacité 0,8 au combat).
 - ✅ Effets du combat (2026-11-07), dessinés par le jeu (`BattleEffects`, sans image, en pixels d'art) : projectiles qui
   volent jusqu'à leur cible (le coup porte à l'arrivée), un impact à chaque coup, recul de la troupe touchée, nuage de
   mort et boule de poison de la Liche, hache de l'Orc, flux de sang du Vampire, poison (bulles, troupe qui verdit),

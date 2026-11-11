@@ -279,6 +279,311 @@ public partial class BattleFieldView : Control
         Size = FieldSize;
         TextureFilter = TextureFilterEnum.Nearest;
         MouseFilter = MouseFilterEnum.Stop;
+        ClipContents = true; // la lisière ne déborde pas sur la barre du haut
+        BuildBackdrop(terrain);
+    }
+
+    /// <summary>
+    /// La lisière en haut du champ, les arbres moyens d'un paysage ouvert et les bords : chaque image telle qu'elle est
+    /// dessinée (peut-être brumeuse), l'image d'origine (pour son ombre de contact, d'après ses pieds) et ses pieds.
+    /// </summary>
+    private List<(Texture2D Shown, Texture2D Original, Vector2 Foot)> _edge = new();
+
+    /// <summary>
+    /// La lisière du champ (choix de l'utilisateur, 2026-11-10 : vue du même angle que le champ et du style de la carte,
+    /// comme Heroes 3) : trois rangées le long du haut, tirées et posées au hasard selon <paramref name="seed"/> (rien ne se
+    /// répète d'un combat à l'autre), un peu brumeuses vers le fond. Au fond, de grands troncs (art/battle/trunk-grass.png…)
+    /// dont le haut sort du champ : on n'en voit que le tronc ; devant, des buissons (bush-grass) parmi les arbres
+    /// (edge-grass). Un paysage ouvert n'a pas de lisière, mais quelques arbres moyens (mid-grass) entre les collines et le
+    /// champ. Les bords gauche et droit, comme Heroes 2 : des buissons et des arbres (side-grass), loin des héros.
+    /// </summary>
+    private static List<(Texture2D, Texture2D, Vector2)> BuildEdge(TerrainType terrain, int seed, bool open = false)
+    {
+        string name = Art.Name(DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain);
+        var trees = Art.VariantsOf($"battle/edge-{name}");
+        var trunks = Art.VariantsOf($"battle/trunk-{name}");
+        var bushes = Art.VariantsOf($"battle/bush-{name}");
+        var edge = new List<(Texture2D, Texture2D, Vector2)>();
+        var random = new Random(seed);
+        void Add(Texture2D image, float haze, Vector2 foot) => edge.Add((Hazy(image, haze), image, Snap(foot)));
+        Texture2D Pick(Texture2D[] main, Texture2D[] other, int percent) =>
+            other.Length > 0 && random.Next(100) < percent ? other[random.Next(other.Length)] : main[random.Next(main.Length)];
+        if (open)
+        {
+            var middle = Art.VariantsOf($"battle/mid-{name}");
+            for (float x = random.Next(120); middle.Length > 0 && x < FieldSize.X; x += 90 + random.Next(220))
+            {
+                if (random.Next(3) == 0)
+                    x += 150 + random.Next(200); // des trouées
+                Add(middle[random.Next(middle.Length)], 0.12f, new Vector2(x, 168 + random.Next(30)));
+            }
+        }
+        else if (trees.Length > 0)
+        {
+            // du fond vers l'avant : la hauteur des pieds, la brume (0 : l'image telle quelle), l'écart moyen entre deux
+            // arbres (pixels de l'écran), la part de grands troncs et celle de buissons
+            var rows = new[]
+            {
+                (Foot: 70f, Haze: 0.26f, Step: 70f, Trunks: 45, Bushes: 0),
+                (Foot: 105f, Haze: 0.14f, Step: 110f, Trunks: 25, Bushes: 10),
+                (Foot: 145f, Haze: 0.05f, Step: 150f, Trunks: 0, Bushes: 40),
+            };
+            foreach (var row in rows)
+                for (float x = -random.Next((int)row.Step); x < FieldSize.X + row.Step; x += row.Step * (0.7f + 0.6f * (float)random.NextDouble()))
+                {
+                    var image = Pick(trees, bushes, row.Bushes);
+                    if (!bushes.Contains(image))
+                        image = Pick(trees, trunks, row.Trunks);
+                    // un buisson est bas : il se pose un peu plus bas que la rangée, devant les troncs
+                    float y = row.Foot + random.Next(-8, 9) + (bushes.Contains(image) ? 12 : 0);
+                    Add(image, row.Haze + 0.04f * (float)random.NextDouble(), new Vector2(x, y));
+                }
+        }
+        var sides = Art.VariantsOf($"battle/side-{name}");
+        if (sides.Length == 0)
+            sides = trees;
+        if (sides.Length > 0)
+            foreach (bool left in new[] { true, false })
+                for (float y = 230 + random.Next(60); y < FieldSize.Y + 60; y += 150 + random.Next(90))
+                    Add(sides[random.Next(sides.Length)], 0.04f * (float)random.NextDouble(),
+                        new Vector2(left ? random.Next(-40, 30) : FieldSize.X - random.Next(-40, 30), y));
+        // de l'arrière vers l'avant
+        edge.Sort((a, b) => a.Item3.Y.CompareTo(b.Item3.Y));
+        return edge;
+    }
+
+    /// <summary>Les petits détails semés sur le sol (cailloux, fleurs, touffes, racines) : l'image et sa place.</summary>
+    private List<(Texture2D Image, Vector2 Position)> _details = new();
+
+    /// <summary>
+    /// Les détails du sol (demandés par l'utilisateur, 2026-11-10 : un sol plus travaillé) : art/battle/detail-grass.png,
+    /// -2…, semés au hasard selon <paramref name="seed"/> sous la lisière, une quarantaine par champ.
+    /// </summary>
+    private static List<(Texture2D, Vector2)> BuildDetails(TerrainType terrain, int seed)
+    {
+        var ground = DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
+        var images = Art.VariantsOf($"battle/detail-{Art.Name(ground)}");
+        var details = new List<(Texture2D, Vector2)>();
+        if (images.Length == 0)
+            return details;
+        var random = new Random(seed * 7 + 3);
+        for (int i = 0; i < 44; i++)
+        {
+            var image = images[random.Next(images.Length)];
+            var at = new Vector2(20 + random.Next((int)FieldSize.X - 40), 170 + random.Next((int)FieldSize.Y - 190));
+            details.Add((image, Snap(at)));
+        }
+        return details;
+    }
+
+    /// <summary>Développement (« --battle-scene=open » ou « forest ») : le décor du champ, au lieu du tirage.</summary>
+    private static readonly string? DevScene = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--battle-scene="))?["--battle-scene=".Length..];
+
+    /// <summary>Le paysage ouvert en haut du champ (ciel, collines, petits arbres lointains), ×2, ou null.</summary>
+    private Texture2D? _landscape;
+
+    /// <summary>
+    /// Un paysage ouvert (comme l'herbe de Heroes 3 ou les déserts de Heroes 2 : au loin, de petites collines et une bande
+    /// de ciel) : dessiné par le jeu, différent à chaque combat (selon <paramref name="seed"/>). Le ciel en bandes tramées,
+    /// deux chaînes de collines de plus en plus brumeuses vers le fond, les petits arbres de la carte (decor/oak, pine)
+    /// au pied des collines, brumeux eux aussi. Sous la dernière colline, rien : le sol du champ continue jusqu'à elle.
+    /// </summary>
+    private static Texture2D BuildLandscape(TerrainType terrain, int seed)
+    {
+        int[,] bayer = { { 0, 8, 2, 10 }, { 12, 4, 14, 6 }, { 3, 11, 1, 9 }, { 15, 7, 13, 5 } };
+        int w = (int)Math.Ceiling(FieldSize.X / GroundScale), h = 84;
+        var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        var random = new Random(seed * 13 + 5);
+        // une ligne de crête : des sinus aux phases tirées au sort
+        Func<int, float> Ridge(float baseLine, float amplitude, float scale)
+        {
+            // de grandes ondulations et de petites irrégularités, aux longueurs pas multiples les unes des autres
+            var waves = Enumerable.Range(0, 6).Select(i => (Freq: MathF.Pow(i + 1, 1.6f) * (1.1f + 0.5f * (float)random.NextDouble()) / scale,
+                Phase: (float)random.NextDouble() * 6.28f, Amp: amplitude * MathF.Pow(0.55f, i) * (0.6f + 0.8f * (float)random.NextDouble()))).ToArray();
+            float total = waves.Sum(v => v.Amp);
+            return x => baseLine - amplitude * waves.Sum(v => v.Amp * (0.5f + 0.5f * MathF.Sin(x * v.Freq + v.Phase))) / total;
+        }
+        var far = Ridge(44, 26, 90);
+        var near = Ridge(62, 14, 55);
+        var meadow = Ridge(74, 5, 30);
+        // le ciel : du bleu en haut au pâle à l'horizon, en 4 bandes tramées entre elles
+        Color[] sky = { new(0.47f, 0.62f, 0.78f), new(0.58f, 0.71f, 0.82f), new(0.70f, 0.80f, 0.86f), new(0.80f, 0.86f, 0.87f) };
+        // chaque chaîne : éclairée sous la crête, puis sa couleur, puis son ombre vers le pied (tramées entre elles)
+        Color[] farTones = { new(0.62f, 0.70f, 0.76f), new(0.52f, 0.61f, 0.69f), new(0.44f, 0.53f, 0.62f) };
+        Color[] nearTones = { new(0.45f, 0.62f, 0.38f), new(0.36f, 0.53f, 0.34f), new(0.29f, 0.45f, 0.31f) };
+        // le pré au pied des collines : la couleur du sol du champ (mesurée en jeu), un peu brumeuse
+        Color[] meadowTones = { new(0.47f, 0.64f, 0.27f), new(0.44f, 0.62f, 0.25f) };
+        // un bruit fixe par pixel (des bois lointains sur les pentes)
+        bool Speck(int x, int y, int rate) => ((x * 73856093) ^ (y * 19349663) ^ seed) % rate == 0;
+        Color Tone(Color[] tones, float t, int x, int y)
+        {
+            float u = Math.Clamp(t, 0, 0.999f) * (tones.Length - 1);
+            int i = (int)u;
+            var c = i + 1 < tones.Length && bayer[y % 4, x % 4] < (u - i) * 16 ? tones[i + 1] : tones[i];
+            return Speck(x, y, 9) ? c.Darkened(0.12f) : c;
+        }
+        for (int x = 0; x < w; x++)
+        {
+            int f = (int)far(x), n = (int)near(x), m = (int)meadow(x);
+            for (int y = 0; y < h; y++)
+            {
+                Color c;
+                if (y >= m + 2 || (y >= m && bayer[y % 4, x % 4] < (y - m + 1) * 6))
+                    continue; // le sol du champ (le bord du pré tramé)
+                if (y >= n)
+                    c = Tone(nearTones, (y - n) / 12f, x, y); // les collines proches
+                else if (y >= f)
+                    c = Tone(farTones, (y - f) / 18f, x, y);
+                else
+                {
+                    float t = (float)y / Math.Max(1, f) * (sky.Length - 1);
+                    int band = Math.Min(sky.Length - 2, (int)t);
+                    c = bayer[y % 4, x % 4] < (t - band) * 16 ? sky[band + 1] : sky[band];
+                }
+                // le pré au pied des collines proches, entre elles et le sol du champ
+                if (y >= n && y >= m - 4)
+                    c = Tone(meadowTones, (y - m + 4) / 6f, x, y);
+                image.SetPixel(x, y, c);
+            }
+        }
+        // les petits arbres lointains, au pied des collines proches, brumeux
+        // de petits arbres vus de côté (art/battle/far-grass.png… ; ceux de la carte, vus de dessus, juraient)
+        var trees = Art.VariantsOf($"battle/far-{Art.Name(DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain)}");
+        for (float x = random.Next(30); trees.Length > 0 && x < w; x += 6 + random.Next(26))
+        {
+            if (random.Next(3) == 0)
+                x += 30 + random.Next(60); // des trouées
+            var tree = Hazy(trees[random.Next(trees.Length)], 0.25f + 0.1f * (float)random.NextDouble()).GetImage();
+            int foot = (int)meadow((int)x) - 1 - random.Next(3);
+            image.BlendRect(tree, new Rect2I(0, 0, tree.GetWidth(), tree.GetHeight()), new Vector2I((int)x - tree.GetWidth() / 2, foot - tree.GetHeight()));
+        }
+        return ImageTexture.CreateFromImage(image);
+    }
+
+    /// <summary>La couleur de la brume du décor (herbe : un vert bleuté de sous-bois).</summary>
+    private static readonly Color HazeColor = new(0.30f, 0.42f, 0.36f);
+
+    private static readonly Dictionary<(Texture2D, int), Texture2D> HazyCache = new();
+
+    /// <summary>
+    /// Une image du décor fondue dans la brume (comme Heroes 1 à 3 : le fond est doux, sans contour noir, pour que les
+    /// créatures ressortent) : chaque pixel va vers la couleur de la brume selon <paramref name="amount"/> (0 à 1), et
+    /// les contours très sombres s'éclaircissent davantage. Calculée une fois par image et par degré de brume.
+    /// </summary>
+    private static Texture2D Hazy(Texture2D texture, float amount)
+    {
+        int step = (int)MathF.Round(amount * 20);
+        if (step <= 0)
+            return texture;
+        if (HazyCache.TryGetValue((texture, step), out var done))
+            return done;
+        float k = step / 20f;
+        var image = texture.GetImage();
+        image.Convert(Image.Format.Rgba8);
+        for (int y = 0; y < image.GetHeight(); y++)
+        for (int x = 0; x < image.GetWidth(); x++)
+        {
+            var c = image.GetPixel(x, y);
+            if (c.A <= 0)
+                continue;
+            // un contour (pixel très sombre) se fond davantage
+            float kk = c.Luminance < 0.12f ? Math.Min(1, k * 1.25f + 0.05f) : k;
+            image.SetPixel(x, y, new Color(c.R + (HazeColor.R - c.R) * kk, c.G + (HazeColor.G - c.G) * kk, c.B + (HazeColor.B - c.B) * kk, c.A));
+        }
+        var result = ImageTexture.CreateFromImage(image);
+        HazyCache[(texture, step)] = result;
+        return result;
+    }
+
+    /// <summary>L'opacité des ombres de contact du décor du combat (plus forte que sur la carte : de grands arbres sur une herbe claire).</summary>
+    private const float BattleContact = 0.8f;
+
+    /// <summary>Un point posé sur la grille des pixels d'art (×2), pour que les images restent nettes.</summary>
+    private static Vector2 Snap(Vector2 point) => (point / GroundScale).Round() * GroundScale;
+
+    /// <summary>L'ombre de la forêt sur le haut du champ (tramée, ×2), ou null.</summary>
+    private Texture2D? _shade;
+
+    /// <summary>La hauteur de l'ombre de la forêt, en pixels de l'écran.</summary>
+    private const float ShadeHeight = 300;
+
+    /// <summary>
+    /// L'ombre de la forêt (comme Heroes 3 : le sol s'assombrit sous les arbres) : trois bandes de moins en moins sombres
+    /// vers le bas, aux bords ondulés (le tramage en points rendait l'image « granuleuse », remarque de l'utilisateur).
+    /// </summary>
+    private static Texture2D BuildShade(int seed) =>
+        Bands(new Color(0.02f, 0.06f, 0.02f), new[] { 0.22f, 0.14f, 0.07f }, 0, 46, seed);
+
+    /// <summary>
+    /// La brume sur le sol à l'approche de l'horizon d'un paysage ouvert (la perspective aérienne de Heroes 3 : le loin est
+    /// plus clair et plus bleuté), du pied des collines vers le bas.
+    /// </summary>
+    private static Texture2D BuildMist(int seed) =>
+        Bands(new Color(0.72f, 0.82f, 0.80f), new[] { 0.14f, 0.08f, 0.04f }, 146, 20, seed);
+
+    /// <summary>
+    /// Des bandes horizontales d'une couleur, de plus en plus transparentes vers le bas (une opacité par bande), qui commencent
+    /// à <paramref name="top"/> (pixels de l'écran) ; chaque bord ondule (pixels d'art entiers), pour ne pas faire de lignes.
+    /// </summary>
+    private static Texture2D Bands(Color color, float[] alphas, float top, float height, int seed)
+    {
+        int w = (int)Math.Ceiling(FieldSize.X / GroundScale), t = (int)(top / GroundScale), bh = (int)(height / GroundScale);
+        int h = t + bh * alphas.Length + 4;
+        var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        var random = new Random(seed * 3 + 1);
+        var phases = alphas.Select(_ => (A: (float)random.NextDouble() * 6.28f, B: (float)random.NextDouble() * 6.28f)).ToArray();
+        for (int x = 0; x < w; x++)
+        {
+            // le bas de chaque bande, ondulé
+            var bottoms = alphas.Select((_, i) => t + bh * (i + 1)
+                + (int)MathF.Round(2.5f * MathF.Sin(x / 23f + phases[i].A) + 1.5f * MathF.Sin(x / 9f + phases[i].B))).ToArray();
+            for (int y = 0; y < h; y++)
+            {
+                if (y < t)
+                {
+                    if (top <= 0)
+                        image.SetPixel(x, y, new Color(color, alphas[0]));
+                    continue;
+                }
+                int band = Array.FindIndex(bottoms, b => y < b);
+                if (band >= 0)
+                    image.SetPixel(x, y, new Color(color, alphas[band]));
+            }
+        }
+        return ImageTexture.CreateFromImage(image);
+    }
+
+    /// <summary>Le sol du champ, dessiné par le shader de la carte (null : l'image du terrain répétée, dans _Draw).</summary>
+    private Control? _backdrop;
+    private TerrainType? _backdropTerrain;
+
+    /// <summary>
+    /// Le décor du champ de bataille (choix de l'utilisateur, 2026-11-10 : une scène avec un horizon, comme Heroes 3) :
+    /// le sol de la carte (fleurs, cailloux, sans répétition), sous la grille et les créatures.
+    /// </summary>
+    private void BuildBackdrop(TerrainType terrain)
+    {
+        if (_backdropTerrain == terrain && _backdrop != null)
+            return;
+        _backdrop?.QueueFree();
+        _backdrop = null;
+        _backdropTerrain = terrain;
+
+        int seed = Battle.Field.Obstacles.Aggregate(17, (h, o) => h * 31 + o.Col * 11 + o.Row);
+        // deux décors, tirés selon le combat : la lisière d'une forêt, ou un paysage ouvert (collines lointaines et ciel)
+        bool open = DevScene switch { "open" => true, "forest" => false, _ => (seed & 1) == 1 };
+        _edge = BuildEdge(terrain, seed, open);
+        _landscape = open ? BuildLandscape(terrain, seed) : null;
+        _shade = open ? BuildMist(seed) : BuildShade(seed);
+        _details = BuildDetails(terrain, seed);
+        if (SmoothGround.CreateBattle(terrain, FieldSize, seed) is not { } ground)
+            return;
+        // le sol couvre des cases entières de la carte : le surplus est coupé au bord du champ
+        var clip = new Control { Size = FieldSize, ClipContents = true, MouseFilter = MouseFilterEnum.Ignore, ShowBehindParent = true };
+        ground.TextureFilter = TextureFilterEnum.Nearest;
+        clip.AddChild(ground);
+        AddChild(clip);
+        _backdrop = clip;
     }
 
     // ------------------------------------------------------------------ géométrie
@@ -895,9 +1200,31 @@ public partial class BattleFieldView : Control
     {
         if (Battle == null)
             return;
-        // le sol : l'image du terrain, ×2 (comme la carte)
+        // le sol : celui du shader de la carte (_backdrop, dessiné dessous), sinon l'image du terrain, ×2 (comme la carte)
         var ground = Art.Terrain(DecorLayer.Covers(_terrain) ? TerrainType.Grass : _terrain, 0);
-        if (ground != null)
+        if (_backdrop != null)
+        {
+            if (_landscape != null)
+                DrawTextureRect(_landscape, new Rect2(Vector2.Zero, _landscape.GetSize() * GroundScale), false);
+            // l'ombre de la forêt sur le haut du sol, puis la lisière : des rangées d'arbres, plus sombres vers le fond
+            if (_shade != null)
+                DrawTextureRect(_shade, new Rect2(Vector2.Zero, _shade.GetSize() * GroundScale), false);
+            foreach (var (detail, at) in _details)
+            {
+                var rect = new Rect2(at, detail.GetSize() * GroundScale);
+                ShadowLayer.DrawContactShadow(this, detail, rect, BattleContact);
+                DrawTextureRect(detail, rect, false);
+            }
+            foreach (var (shown, original, foot) in _edge)
+            {
+                var size = shown.GetSize() * GroundScale;
+                var rect = new Rect2(foot - new Vector2(size.X / 2, size.Y), size);
+                // l'ombre de contact de la carte (ShadowLayer), d'après les pieds de l'image d'origine
+                ShadowLayer.DrawContactShadow(this, original, rect, BattleContact);
+                DrawTextureRect(shown, rect, false);
+            }
+        }
+        else if (ground != null)
         {
             var tile = ground.GetSize() * GroundScale;
             // des cases entières, la dernière de chaque rangée coupée au bord du champ (les créatures, elles, peuvent dépasser)
@@ -971,7 +1298,7 @@ public partial class BattleFieldView : Control
         foreach (var obstacle in Battle.Field.Obstacles)
         {
             var center = Center(obstacle);
-            things.Add((center.Y, () => DrawObstacle(center)));
+            things.Add((center.Y, () => DrawObstacle(center, obstacle)));
         }
         foreach (var (unit, shown) in _shown)
             if (!shown.Gone)
@@ -1008,13 +1335,19 @@ public partial class BattleFieldView : Control
         DrawPolyline(corners.Append(corners[0]).ToArray(), color, width);
     }
 
-    private void DrawObstacle(Vector2 center)
+    private void DrawObstacle(Vector2 center, Hex hex)
     {
-        var image = _terrain == TerrainType.Forest ? Art.Variant("decor/pine", (int)center.X) : Art.Variant("decor/peak-small", (int)center.X);
+        // les obstacles du terrain (art/battle/obstacle-grass.png, -2, -3… : arbres, rochers), sinon le décor de la carte
+        var ground = DecorLayer.Covers(_terrain) ? TerrainType.Grass : _terrain;
+        int pick = hex.Col * 5 + hex.Row * 3 + hex.Col * hex.Row;
+        var image = Art.Variant($"battle/obstacle-{Art.Name(ground)}", pick)
+            ?? (_terrain == TerrainType.Forest ? Art.Variant("decor/pine", (int)center.X) : Art.Variant("decor/peak-small", (int)center.X));
         if (image != null)
         {
             var size = image.GetSize() * GroundScale;
-            DrawTextureRect(image, new Rect2(center + new Vector2(-size.X / 2, HexHeight / 2 - Ui.Px(8) - size.Y), size), false);
+            var rect = new Rect2(center + new Vector2(-size.X / 2, HexHeight / 2 - Ui.Px(8) - size.Y), size);
+            ShadowLayer.DrawContactShadow(this, image, rect, BattleContact);
+            DrawTextureRect(image, rect, false);
             return;
         }
         DrawColoredPolygon(new[] { center + Ui.V(-22, 18), center + Ui.V(-8, -16), center + Ui.V(10, -10), center + Ui.V(24, 18) },

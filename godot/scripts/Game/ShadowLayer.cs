@@ -75,7 +75,9 @@ public partial class ShadowLayer : Node2D
     public void Apply()
     {
         _cast.SelfModulate = new Color(0, 0, 0, Strength);
-        _contact.SelfModulate = new Color(0, 0, 0, Contact);
+        // les ombres de contact sont blanches, teintes image par image (couleur et opacité de pieds.json) : le groupe
+        // ne règle que la force d'ensemble
+        _contact.SelfModulate = new Color(1, 1, 1, Contact);
         CastImages.Clear(); // la forme des ombres a peut-être changé
         ContactImages.Clear();
         foreach (var painter in _painters)
@@ -128,19 +130,34 @@ public partial class ShadowLayer : Node2D
     private static void DrawCast(CanvasItem ci, Texture2D image, Rect2 rect) =>
         DrawMask(ci, image, rect, CastImages, CastImage);
 
+    /// <summary>
+    /// L'ombre de contact d'une image dessinée ailleurs que sur la carte (le décor du champ de bataille) : la même tache que
+    /// sur la carte, d'après les pieds de l'image (godot/art/pieds.json), teinte en noir à l'opacité <paramref name="opacity"/> (sinon <see cref="Contact"/>).
+    /// Dessinée directement (sans groupe) : deux ombres qui se chevauchent foncent un peu.
+    /// </summary>
+    public static void DrawContactShadow(CanvasItem ci, Texture2D image, Rect2 rect, float? opacity = null)
+    {
+        if (!ContactImages.TryGetValue(image, out var shadow))
+            ContactImages[image] = shadow = ContactImage(image);
+        float scale = rect.Size.Y / image.GetHeight();
+        var at = rect.Position - new Vector2(shadow.PadLeft, shadow.PadTop) * scale;
+        var tint = ContactTint(image);
+        ci.DrawTextureRect(shadow.Texture, new Rect2(at, shadow.Texture.GetSize() * scale), false, new Color(tint, tint.A * (opacity ?? Contact)));
+    }
+
     /// <summary>L'ombre de contact d'une image dessinée en <paramref name="rect"/> : une tache sombre et floue autour de son pied.</summary>
     private static void DrawContact(CanvasItem ci, Texture2D image, Rect2 rect) =>
-        DrawMask(ci, image, rect, ContactImages, ContactImage);
+        DrawMask(ci, image, rect, ContactImages, ContactImage, ContactTint(image));
 
     /// <summary>Dessine une image d'ombre (calculée une fois par image et par réglage) à la place de l'image <paramref name="image"/>.</summary>
     private static void DrawMask(CanvasItem ci, Texture2D image, Rect2 rect, Dictionary<Texture2D, ShadowImage> cache,
-        Func<Texture2D, ShadowImage> make)
+        Func<Texture2D, ShadowImage> make, Color? tint = null)
     {
         if (!cache.TryGetValue(image, out var shadow))
             cache[image] = shadow = make(image);
         float scale = rect.Size.Y / image.GetHeight();
         var at = rect.Position - new Vector2(shadow.PadLeft, shadow.PadTop) * scale;
-        ci.DrawTextureRect(shadow.Texture, new Rect2(at, shadow.Texture.GetSize() * scale), false);
+        ci.DrawTextureRect(shadow.Texture, new Rect2(at, shadow.Texture.GetSize() * scale), false, tint ?? Colors.White);
     }
 
     /// <summary>Une image d'ombre, et la marge ajoutée à gauche et en haut de l'image de l'objet.</summary>
@@ -198,7 +215,7 @@ public partial class ShadowLayer : Node2D
         int w = texture.GetWidth(), h = texture.GetHeight(), rings = shades.Length;
         var canvas = new Canvas(w, h, rings + 1, rings + 1, rings + 1, 0);
         if (feet.Count == 0 || texture.GetImage() is not { } image || image.IsEmpty())
-            return canvas.ToImage(0);
+            return canvas.ToImage(0, white: true);
         if (image.IsCompressed())
             image.Decompress();
         var opaque = WithoutPath(image);
@@ -240,7 +257,7 @@ public partial class ShadowLayer : Node2D
                     canvas.Fill(x - m, x - m + 1, y - m, y - m + 1, shade);
             current = GrowCross(current);
         }
-        return canvas.ToImage(0);
+        return canvas.ToImage(0, white: true);
     }
 
     private static bool[,] GrowCross(bool[,] mask)
@@ -288,6 +305,17 @@ public partial class ShadowLayer : Node2D
     }
 
     private static Dictionary<string, (List<((int X, int Y) Left, (int X, int Y) Right)> Feet, int Spread)>? _feet;
+    private static readonly Dictionary<string, Color> Tints = new();
+
+    /// <summary>
+    /// La teinte de l'ombre de contact d'une image : sa couleur, et dans l'alpha un facteur de son opacité (pieds.json :
+    /// « couleur », « opacite » ; noire, × 1 sinon). Le facteur peut dépasser 1.
+    /// </summary>
+    public static Color ContactTint(Texture2D texture)
+    {
+        FeetOf(texture); // lit pieds.json la première fois
+        return Art.NameOf(texture) is { } name && Tints.TryGetValue(name, out var tint) ? tint : new Color(0, 0, 0, 1);
+    }
 
     /// <summary>Les pieds d'une image et son étalement, d'après godot/art/pieds.json (aucun pied si l'image n'y est pas).</summary>
     private static (List<((int X, int Y) Left, (int X, int Y) Right)> Feet, int Spread) FeetOf(Texture2D texture)
@@ -309,6 +337,10 @@ public partial class ShadowLayer : Node2D
                         }
                         int spread = entry.Value.TryGetProperty("etalement", out var e) ? Math.Clamp(e.GetInt32(), 1, 6) : DefaultSpread;
                         _feet[entry.Name] = (list, spread);
+                        // la couleur et l'opacité de l'ombre de contact (revues sur la page des pieds), sinon noire, × 1
+                        float opacity = entry.Value.TryGetProperty("opacite", out var o) ? o.GetSingle() : 1;
+                        var color = entry.Value.TryGetProperty("couleur", out var c) && c.GetString() is { } hex ? Color.FromHtml(hex) : Colors.Black;
+                        Tints[entry.Name] = new Color(color, opacity);
                     }
         }
         return Art.NameOf(texture) is { } name && _feet.TryGetValue(name, out var feet) ? feet : (new(), DefaultSpread);
@@ -343,8 +375,11 @@ public partial class ShadowLayer : Node2D
             }
         }
 
-        /// <summary>L'image finie, floutée de <paramref name="blur"/> pixels (un flou gaussien ; 0 : bord net).</summary>
-        public ShadowImage ToImage(float blur)
+        /// <summary>
+        /// L'image finie, floutée de <paramref name="blur"/> pixels (un flou gaussien ; 0 : bord net) : noire, ou blanche
+        /// (<paramref name="white"/> : une ombre de contact, teinte au dessin).
+        /// </summary>
+        public ShadowImage ToImage(float blur, bool white = false)
         {
             var alpha = blur > 0 ? GaussianBlur(_alpha, blur) : _alpha;
             int w = alpha.GetLength(0), h = alpha.GetLength(1);
@@ -352,7 +387,7 @@ public partial class ShadowLayer : Node2D
             for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
                 if (alpha[x, y] > 0.004f)
-                    image.SetPixel(x, y, new Color(0, 0, 0, Math.Min(1, alpha[x, y])));
+                    image.SetPixel(x, y, new Color(white ? 1 : 0, white ? 1 : 0, white ? 1 : 0, Math.Min(1, alpha[x, y])));
             return new ShadowImage(ImageTexture.CreateFromImage(image), _left, _top);
         }
     }

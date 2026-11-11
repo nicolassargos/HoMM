@@ -118,6 +118,25 @@ public static class Ability
     /// <summary>Un tireur qui frappe au corps à corps sans perdre la moitié de ses dégâts (le Mage).</summary>
     public const string NoMeleePenalty = "no-melee-penalty";
 
+    /// <summary>
+    /// La marque du Donjon, la Terreur : chaque coup fait perdre 1 de moral à la cible jusqu'à la fin du combat
+    /// (cumulable, jusqu'au plus bas). Insensibles : les morts-vivants, les créatures façonnées, celles du niveau 7 et les
+    /// braves.
+    /// </summary>
+    public const string Terror = "terror";
+    /// <summary>L'horreur (l'Aberration) : sa Terreur fait perdre 2 de moral au lieu de 1.</summary>
+    public const string Horror = "horror";
+    /// <summary>Le brave (le Minotaure) : son moral ne descend jamais sous +1, et la Terreur ne le touche pas.</summary>
+    public const string Brave = "brave";
+    /// <summary>Riposte à chaque attaque, pas une fois par round (l'Aberration et ses six bras).</summary>
+    public const string EndlessRetaliation = "endless-retaliation";
+    /// <summary>Se déplace sous terre (le Ver des profondeurs) : passe sous les troupes et les obstacles.</summary>
+    public const string Burrows = "burrows";
+    /// <summary>Avale (le Ver des profondeurs) : chaque morsure peut avaler une créature entière de la cible, en plus des dégâts.</summary>
+    public const string Swallow = "swallow";
+    /// <summary>Les rayons (le Tyran œil) : chaque tir lance aussi un sort néfaste au hasard (ceux de « rays » dans les données).</summary>
+    public const string Rays = "rays";
+
     public static readonly string[] Known =
     {
         Shoots, NoRangePenalty, Flies, DoubleRetaliation, NoRetaliation, Breath, RangedResistance,
@@ -126,6 +145,7 @@ public static class Ability
         Rage, HitAndRun, Lightning, Rending,
         NatureRegeneration, DoubleShot, Leaps, HealingAura, Roots,
         Made, Repairs, Blessing, NoMeleePenalty,
+        Terror, Horror, Brave, EndlessRetaliation, Burrows, Swallow, Rays,
     };
 }
 
@@ -219,8 +239,8 @@ public sealed class BattleUnit
     public bool Has(string ability) => Type.Abilities.Contains(ability);
     public bool HasRangePenalty => !Has(Ability.NoRangePenalty);
 
-    /// <summary>Ripostes par round : une, deux pour <see cref="Ability.DoubleRetaliation"/>.</summary>
-    public int RetaliationsPerRound => Has(Ability.DoubleRetaliation) ? 2 : 1;
+    /// <summary>Ripostes par round : une, deux pour <see cref="Ability.DoubleRetaliation"/>, sans limite pour <see cref="Ability.EndlessRetaliation"/>.</summary>
+    public int RetaliationsPerRound => Has(Ability.EndlessRetaliation) ? 1000 : Has(Ability.DoubleRetaliation) ? 2 : 1;
 
     /// <summary>Enracinée (<see cref="Ability.Roots"/>) : elle ne pourra pas se déplacer à son prochain tour.</summary>
     public bool IsRooted { get; internal set; }
@@ -367,6 +387,9 @@ public sealed class BattleUnit
 
     /// <summary>Une créature façonnée : elle résiste à la magie.</summary>
     public bool IsMade => Has(Ability.Made);
+
+    /// <summary>La Terreur ne la touche pas : un mort-vivant, une créature façonnée, une du niveau 7, un brave.</summary>
+    public bool FearsNothing => IsUndead || IsMade || Type.Tier >= 7 || Has(Ability.Brave);
 
     /// <summary>Le poison : les dégâts au début de chacun de ses tours, et pendant combien de tours encore.</summary>
     public int PoisonDamage { get; private set; }

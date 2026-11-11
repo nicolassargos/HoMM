@@ -39,6 +39,15 @@ public sealed record CreatureType
     [System.Text.Json.Serialization.JsonIgnore]
     public IReadOnlyList<SpellType> BlessingSpells { get; internal set; } = System.Array.Empty<SpellType>();
 
+    /// <summary>
+    /// Les sorts néfastes que lancent les rayons d'une créature (le Tyran œil), un au hasard à chaque tir (leurs
+    /// identifiants dans data/spells.json ; reliés à <see cref="RaySpells"/> au chargement des données).
+    /// </summary>
+    public List<string> Rays { get; init; } = new();
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public IReadOnlyList<SpellType> RaySpells { get; internal set; } = System.Array.Empty<SpellType>();
+
     public double AverageDamage => (MinDamage + MaxDamage) / 2.0;
 }
 

@@ -21,5 +21,6 @@
   "cerf": {"idle": 4},
   "gargouille": {"move": 12, "transform": 12, "stepTime": 0.35, "attackFrames": 16, "attack": 12},
   "golem-pierre": {"moveFrames": 16, "idleFrames": 16, "attackFrames": 16, "attack": 10},
-  "naga": {"idleFrames": 16, "moveFrames": 16}
+  "naga": {"idleFrames": 16, "moveFrames": 16},
+  "djinn": {"idleFrames": 16, "move": 12, "moveFrames": 16, "stepTime": 0.3, "attack": 10}
 }

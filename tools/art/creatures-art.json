@@ -1197,6 +1197,50 @@
         "move": "slithers forward like a snake, her long snake body making big exaggerated S-shaped waves that travel from her waist to the tip of her tail, the coils clearly rising and sliding on the ground, her upper body upright and swaying a little, the six arms holding the swords ready",
         "attack": "leans forward on her snake tail and slashes at the enemy in front of her with her curved swords, her six arms striking one after another, then rises back to her stance"
       }
+    },
+    "djinn": {
+      "nom": "Djinn",
+      "gabarit": "volant",
+      "hauteur": 72,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "comparer": [
+        "naga",
+        "archer"
+      ],
+      "notes": "Tour, niveau 5 : le soutien volant (références de l'utilisateur, 2026-11-11). Trois styles : la fumée d'or (L1 à L3), le féroce (L4 à L6), le djinn du ciel (idée de Claude, L7 à L9). Choix (2026-11-11) : L2-1 (fumée d'or) à 72 px ; idle-2, move-2 (penché en avant, la queue étirée), attack-2-r (fond en avant, coup de poing).",
+      "description": "a djinn floating in the air: a purple-blue skinned muscular man from the waist up, a big green turban with a golden ornament, a long red beard, golden bracelets and armbands, pointed ears; from the waist down his body turns into a swirling tail of golden yellow smoke, no legs",
+      "sujet": "a floating purple-blue djinn with a green turban, a red beard, gold bracelets and a golden smoke tail instead of legs, facing right",
+      "references": [
+        "art-candidats/references/djinn1.png::concept and colour reference (a purple djinn with a green turban, a red beard and a golden smoke tail): keep these colours and this design, ignore the frame, the city and the ink engraving style"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références",
+        "L7": "angle seul",
+        "L8": "angle seul",
+        "L9": "angle seul"
+      },
+      "choix": {
+        "fixe": "L2-1",
+        "idle": "idle-2",
+        "move": "move-2",
+        "attack": "attack-2-r"
+      },
+      "grande": "art-candidats/references/derives/djinn-grand.png",
+      "consignes": {
+        "idle": "floats in place, bobbing slowly up and down, arms crossed, his golden smoke tail swirling and curling gently",
+        "move": "glides forward through the air, leaning forward, his golden smoke tail streaming and waving behind him",
+        "attack": "swoops forward and strikes the enemy in front of him with both big fists, then floats back to his place"
+      }
     }
   }
 }

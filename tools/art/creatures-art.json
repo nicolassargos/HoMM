@@ -1325,7 +1325,8 @@
         "idle": "idle-1-r",
         "transform": "transform-1",
         "move": "move-5",
-        "attack": "attack-5-r"
+        "attack": "attack-5-r",
+        "carte": "p1-12"
       },
       "grande": "art-candidats/references/derives/geant-grand.png",
       "consignes": {

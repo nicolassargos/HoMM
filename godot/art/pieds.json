@@ -82,6 +82,7 @@
   "creatures/fantome": {"pieds": [[[11, 28], [21, 28]]], "verifie": true},
   "creatures/farfadet": {"pieds": [[[11, 22], [24, 21]]], "verifie": true},
   "creatures/gargouille": {"pieds": [[[14, 31], [23, 30]]], "verifie": false},
+  "creatures/geant": {"pieds": [[[10, 31], [21, 31]]], "verifie": false},
   "creatures/gnome": {"pieds": [[[8, 29], [25, 28]]], "verifie": false},
   "creatures/gobelin": {"pieds": [[[10, 30], [27, 28]]], "verifie": true},
   "creatures/golem-pierre": {"pieds": [[[4, 26], [22, 29]]], "verifie": false},

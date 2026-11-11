@@ -161,6 +161,8 @@ public static class Texts
         UnitDefended d => $"{Capitalize(Stack(d.Unit.Stack))} {(d.Unit.Count == 1 ? "se défend" : "se défendent")}.",
         UnitSoothed h => $"{Capitalize(Stack(h.Healer.Stack))} {(h.Healer.Count == 1 ? "soigne" : "soignent")} {Stack(h.Unit.Stack)} ({h.HitPoints} PV).",
         UnitRooted r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "est enraciné" : "sont enracinés")} : pas de déplacement au prochain tour.",
+        UnitTerrified t => $"Terreur : le moral {(t.Unit.Count == 1 ? "du" : "des")} {Stack(t.Unit.Stack)} tombe à {t.Morale:+0;-0;0}.",
+        UnitSwallowed w => $"{Capitalize(Stack(w.Worm.Stack))} {(w.Worm.Count == 1 ? "avale" : "avalent")} un {w.Unit.Type.Name.ToLowerInvariant()} tout entier !",
         UnitRevolted v => $"{Capitalize(Stack(v.Unit.Stack))} {(v.Unit.Count == 1 ? "se révolte et change" : "se révoltent et changent")} de camp !",
         UnitMayRetreat r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "peut" : "peuvent")} repartir ({r.Steps} {(r.Steps == 1 ? "case" : "cases")}).",
         UnitEnraged e => $"{Capitalize(Stack(e.Unit.Stack))} {(e.Unit.Count == 1 ? "enrage" : "enragent")} : +{e.Rage} en attaque.",
@@ -939,6 +941,13 @@ public static class Texts
         Ability.Repairs => "répare les créatures façonnées voisines",
         Ability.Blessing => "bénit une troupe amie au début de son tour",
         Ability.NoMeleePenalty => "sans pénalité au corps à corps",
+        Ability.Terror => "terreur (chaque coup fait perdre 1 de moral à la cible)",
+        Ability.Horror => "horreur (sa terreur fait perdre 2 de moral)",
+        Ability.Brave => "brave (moral jamais sous +1, insensible à la terreur)",
+        Ability.EndlessRetaliation => "riposte à chaque attaque",
+        Ability.Burrows => "se déplace sous terre",
+        Ability.Swallow => "peut avaler une créature entière",
+        Ability.Rays => "rayons (chaque tir lance un sort néfaste au hasard)",
         _ => ability,
     };
 
@@ -1263,6 +1272,7 @@ public static class Texts
         Talents.Warlord => $"Talent : chef de guerre (la Rage des troupes monte de 1 de plus tous les {Talents.WarlordLevels} niveaux)",
         Talents.Hunter => $"Talent : chasseur (+{Talents.HunterPerLevel:P0} de dégâts par niveau pour les tireurs)",
         Talents.Scholar => $"Talent : érudit (+{Talents.ScholarPercentPerLevel} % de force des sorts par niveau)",
+        Talents.Dread => $"Talent : effroi (l'armée ennemie commence le combat à −1 de moral, −1 de plus tous les {Talents.DreadLevels} niveaux)",
         _ => null,
     };
 

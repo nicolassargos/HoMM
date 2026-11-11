@@ -107,7 +107,7 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Forêt** | les meilleurs tireurs, plantes et soins | Troll → Troll ancien | gemmes | cristal | **en cours** |
 | **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | **en cours** |
 | **Enfer** | agressifs, magie du feu | Démon → Archidémon | mercure | soufre | à faire |
-| **Donjon** | souterrain | Tyran œil → Tyran ancien | soufre | mercure | à faire |
+| **Donjon** | les seigneurs des abîmes, la Terreur | Hydre → (à choisir) | soufre | mercure | jouable |
 | **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
 
 - **L'Ange ressuscite** (idée de l'utilisateur, 2026-11-08, **plus tard**, sur une branche à part) : à la place de son
@@ -123,6 +123,8 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 - L'**Enfer** : le **Démon** au niveau 7 ; l'Archidémon se téléporte n'importe où sur le champ de bataille et met le
   feu aux cases autour de lui. Leurs prix et
   caractéristiques sont à remettre à l'échelle du Château (un Squelette coûte 60 or, un Archer de même force 18).
+- L'**Enfer** : une idée de l'utilisateur pour sa marque, le **pacte sombre** (lancer un sort au-delà de ses points de sort
+  en sacrifiant des créatures). Les **Nains** : échanger des ressources contre de l'or, ou miner davantage (à voir).
 - Le **Tyran œil** : un œil géant qui tire des rayons, chacun un sort néfaste au hasard. La **Machine de guerre** :
   une machine à vapeur avec un canon (un tireur dont le coup touche une zone).
 - La **faction neutre** garde les monstres de la carte seulement : le **Dragon rouge** (et d'autres au fil du temps).
@@ -130,6 +132,70 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
   l'Enfer et le Donjon ; les Nains n'en ont pas encore.
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
+
+#### Le Donjon (en cours)
+Décidé avec l'utilisateur (2026-11-11), d'après ses images (`art-candidats/references/donjon/`).
+- **Philosophie : les seigneurs des abîmes.** Des sorciers qui règnent sur les monstres des profondeurs par la peur :
+  la ruse, la cruauté, la domination.
+- **Forces** : des créatures d'élite puissantes (niveaux 5 à 7), une magie de destruction forte, forte en fin de partie.
+- **Faiblesses** : une base faible (les premiers niveaux médiocres), des troupes chères ; faible au début.
+- **Sa marque : la Terreur** : chaque coup d'une troupe du Donjon fait perdre 1 de moral à sa cible jusqu'à la fin du
+  combat (cumulable) : l'armée ennemie se brise peu à peu. Insensibles : les morts-vivants, les créatures façonnées et
+  celles du niveau 7.
+- **La classe Seigneur des abîmes** : attaque 1, défense 1, puissance 3, savoir 2, charisme 9 ; Flèche magique et
+  Malédiction ; École de l'air au départ (le feu ira à l'Enfer, choix de l'utilisateur) ; talent **Effroi** (l'armée ennemie commence le combat à −1 de moral, −1 de plus
+  tous les 8 niveaux).
+- Ressources : soufre (principale : l'habitation et la créature du niveau 7), mercure (secondaire : niveaux 5 et 6).
+- **Les héros** : à choisir parmi ceux de la « faction sombre » (proposé : Corvin le Maudit, Ysolde la Noire, Malachar,
+  Dame Sombreval, Dame Morgane ; les quatre autres, plus démoniaques, pour l'Enfer).
+
+| Niveau | Créature | Rôle | Capacité |
+|---|---|---|---|
+| 1 | Homme-lézard | la masse bon marché | (la Terreur seulement) |
+| 2 | Homme-grenouille | le frondeur | tire, à courte portée |
+| 3 | Minotaure (le mineur des profondeurs) | le brave | son moral ne descend jamais sous +1 ; insensible à la Terreur |
+| 4 | Aberration (six bras, des gueules dans les mains) | l'horreur | riposte à chaque attaque (pas une fois par round) ; ses coups font perdre 2 de moral |
+| 5 | Ver des profondeurs | le fouisseur | se déplace sous terre (passe sous les troupes et les obstacles) ; sa morsure peut **avaler** une créature entière de la cible, en plus des dégâts |
+| 6 | Tyran œil | le tireur d'élite | tire ; chaque tir lance aussi un sort néfaste au hasard (Malédiction, Lenteur, Faiblesse, Aveuglement) |
+| 7 | Hydre | le géant | mord toutes les troupes ennemies voisines, et aucune ne riposte |
+
+Écartés de la faction, pour les monstres neutres de la carte ou les améliorations : la Méduse (trop proche de la Naga de
+la Tour), le Gnoll, l'Augure vautour, la Manticore, la Chimère, la Wyverne, le Centaure orc (trop proche des Nomades).
+Le Dragon rouge reste neutre (peut-être le niveau 7 des Nains, à moins du Phénix).
+Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images.
+1. ✅ Les créatures et leurs capacités (2026-11-11, branche `donjon`) : `terror` (−1 de moral par coup, jusqu'à −3 ;
+   événement `UnitTerrified`), `horror` (−2), `brave` (moral au moins +1, insensible), `endless-retaliation`, `burrows`
+   (se déplace comme en volant, sous terre), `swallow` (une chance sur cinq par morsure, pas en riposte, une cible d'un
+   niveau au plus égal ; événement `UnitSwallowed`), `rays` (les sorts dans `creatures.json` : `rays`, pour 2 rounds, pas
+   sur une cible qui y résiste) ; le Donjon garde aussi des passages de la carte (`MonsterFactions`). Chiffres réglés par
+   `Duels_a_prix_egal` (chaque créature au milieu de son niveau ; la riposte sans fin de l'Aberration compte peu en duel) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Homme-lézard | 3 | 2 | 1-3 | 6 | 5 | 16 | 12 |
+   | Homme-grenouille | 8 | 6 | 3-5 | 17 | 5 | 12 | 28 |
+   | Minotaure | 9 | 7 | 4-7 | 30 | 5 | 8 | 64 |
+   | Aberration | 13 | 10 | 6-9 | 55 | 5 | 6 | 130 |
+   | Ver des profondeurs | 14 | 11 | 10-14 | 60 | 7 | 4 | 215 |
+   | Tyran œil | 17 | 13 | 16-22 | 80 | 5 | 3 | 340 |
+   | Hydre | 23 | 21 | 60-75 | 1400 | 5 | 2 | 4900 et 1 soufre |
+   La Terreur fait boule de neige (le camp qui prend l'avantage fige l'autre) : un petit changement de chiffres fait
+   passer une créature de toutes ses défaites à toutes ses victoires. Mesuré : la simulation gagne toujours, les cartes
+   normales (jour 87) et grandes (153) comme avant ; les petites en moyenne au jour 98, dont une au jour 158 (des gardiens
+   du Donjon : leur Terreur fige l'armée, **à surveiller**). Adversaires (six semaines, Normal, or d'armée) : Château
+   26 500, morts-vivants 26 100, Barbares 27 000, Forêt 33 800, Tour 23 900. Courbe des paysans : le Tyran œil en
+   demande 448 (les autres niveaux 6 : 106 à 174), la Terreur brise les grosses troupes de paysans.
+   Tests : `DonjonTests`.
+2. ✅ La ville et le jeu (2026-11-11, branche `donjon-ville`) : 7 habitations (`bourbier-lezards` Bourbier des
+   hommes-lézards, `mare-grenouilles` Mare des hommes-grenouilles, `labyrinthe` Labyrinthe des minotaures,
+   `fosse-aberrations` Fosse des aberrations, `galeries-vers` Galeries des vers, `chambre-tyrans` Chambre des tyrans,
+   `gouffre-hydre` Gouffre de l'hydre : prix et places de celles de la Forêt ; mercure aux niveaux 5 et 6, soufre au
+   niveau 7 ; le grand hôtel de ville accepte aussi la Fosse des aberrations ; noms à revoir si l'utilisateur le
+   souhaite), la classe Seigneur des abîmes (armée de départ au prix des autres : 15 Hommes-lézards, 7 Hommes-grenouilles,
+   2 Minotaures) et son talent Effroi (`Talents.DreadMorale`), les 5 héros du Donjon jouables (les 4 autres de la
+   faction sombre attendent l'Enfer) ; `--faction=donjon`. Mesuré (un adversaire, Normal, six semaines, or d'armée) :
+   **Donjon 29 100**, Château 27 300, morts-vivants 24 700, Barbares 29 200, Forêt 34 000, Tour 25 900 ; la simulation
+   seule comme avant (jours 95, 88, 153). Tests : `VilleDonjonTests`.
+3. Les images (session images) : les 7 créatures, la ville sur la carte.
 
 #### La Tour de magie (en cours)
 Décidée avec l'utilisateur (2026-11-09).

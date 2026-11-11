@@ -59,7 +59,7 @@ public static class DataValidation
     }
 
     /// <summary>Les factions prévues, sans créatures pour l'instant : leurs héros attendent (data/heroes.json).</summary>
-    public static readonly IReadOnlySet<string> PlannedFactions = new HashSet<string> { "tour", "sombre" };
+    public static readonly IReadOnlySet<string> PlannedFactions = new HashSet<string> { "sombre" };
 
     /// <summary>Les héros (noms uniques, faction connue ou prévue) et les classes (une faction connue, des sorts connus, des caractéristiques positives).</summary>
     public static void CheckHeroes(IReadOnlyCollection<HeroType> heroes, IReadOnlyCollection<HeroClass> classes,

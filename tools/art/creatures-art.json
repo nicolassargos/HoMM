@@ -1425,6 +1425,48 @@
         "move": "moves forward with short squat waddling hops on his bent frog legs, staying in place, shield and sling held",
         "attack": "holding the two cords of the leather sling firmly in one hand the whole time, he whirls the sling so its leather pouch circles above his head, then snaps his arm forward toward the enemy; the sling always stays in his hand; then returns to his stance"
       }
+    },
+    "minotaure": {
+      "nom": "Minotaure",
+      "gabarit": "humain",
+      "hauteur": 84,
+      "generation": [
+        112,
+        128
+      ],
+      "marge_bas": 0.06,
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "homme-grenouille",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 3 : le brave, le mineur des profondeurs (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : mineur brun (L1 à L3), mineur noir (L4 à L6). Choix (2026-11-11) : L5-4 (mineur noir) à 84 px (un peu plus grand qu'un humain) ; idle-2, move-1 (12 images/s), attack-2-r (marteau levé puis abattu ; traînée, explosion et cailloux effacés).",
+      "references": [
+        "art-candidats/references/donjon/minotaure.png::concept reference (a minotaur miner with long horns, a nose ring, a leather apron, a lantern at the belt, a big sledgehammer and a tufted tail): keep this design; ignore the black and white sketch style"
+      ],
+      "description": "a burly minotaur miner standing: a bull head with long dark curved horns and an iron nose ring, black fur with grey streaks, a bare muscular chest, a rusty red leather apron over a fur loincloth, an iron mining lantern hanging from his belt, holding a heavy sledgehammer with a wooden haft, a tufted bull tail, hooves",
+      "sujet": "a burly black minotaur miner with dark horns, an iron nose ring, a rusty red apron, an iron lantern at the belt and a sledgehammer, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L5-4",
+        "idle": "idle-2",
+        "move": "move-1",
+        "attack": "attack-2-r"
+      },
+      "grande": "art-candidats/references/derives/minotaure-grand.png",
+      "consignes": {
+        "idle": "stands breathing heavily, snorting through his nose ring, his head tossing a little, his tufted tail flicking, the sledgehammer held",
+        "move": "walks forward with heavy steps on his hooves, staying in place, the sledgehammer held, his tail swaying",
+        "attack": "lifts the heavy sledgehammer high over his horns with both hands, then brings it down in a big arc onto the enemy in front of him, then raises it back to his stance"
+      }
     }
   }
 }

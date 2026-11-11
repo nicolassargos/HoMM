@@ -67,6 +67,7 @@
   "battle/side-sand-8": {"pieds": [[[6, 19], [25, 19]]], "verifie": true, "opacite": 0.7},
   "battle/trunk-grass": {"pieds": [[[5, 87], [40, 87]]], "verifie": true, "etalement": 5},
   "battle/trunk-grass-2": {"pieds": [[[13, 87], [32, 87]]], "verifie": true, "etalement": 5},
+  "creatures/aberration": {"pieds": [[[7, 31], [24, 29]]], "verifie": false},
   "creatures/ange": {"pieds": [[[11, 27], [20, 28]]], "verifie": true},
   "creatures/araignee": {"pieds": [[[4, 24], [11, 28]], [[20, 28], [27, 23]]], "verifie": true},
   "creatures/archer": {"pieds": [[[9, 27], [23, 27]]], "verifie": true},

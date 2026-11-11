@@ -1502,7 +1502,8 @@
         "fixe": "L3-2",
         "idle": "idle-5",
         "move": "move-5",
-        "attack": "attack-5-c"
+        "attack": "attack-5-c",
+        "carte": "p1-6"
       },
       "grande": "art-candidats/references/derives/aberration-grand.png",
       "consignes": {

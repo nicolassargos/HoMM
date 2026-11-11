@@ -18,5 +18,11 @@
   "farfadet": {"move": 16, "stepTime": 0.25},
   "archer-elfe": {"projectile": "fleche", "launchFrame": 5, "launchPoint": [80, 51]},
   "druide": {"projectile": "feuilles", "launchFrame": 4, "launchPoint": [108, 46]},
-  "cerf": {"idle": 4}
+  "cerf": {"idle": 4},
+  "gargouille": {"move": 12, "transform": 12, "stepTime": 0.35, "attackFrames": 16, "attack": 12},
+  "golem-pierre": {"moveFrames": 16, "idleFrames": 16, "attackFrames": 16, "attack": 10},
+  "naga": {"idleFrames": 16, "moveFrames": 16},
+  "djinn": {"idleFrames": 16, "move": 12, "moveFrames": 16, "stepTime": 0.3, "attack": 10},
+  "mage": {"idleFrames": 16, "move": 14, "moveFrames": 16, "projectile": "eclair", "launchFrame": 4, "launchPoint": [110, 56], "launchPoint2": [94, 63]},
+  "geant": {"idleFrames": 16, "transform": 10, "moveFrames": 16}
 }

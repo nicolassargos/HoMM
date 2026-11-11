@@ -1005,6 +1005,336 @@
         "move": "the stout old druid walks forward to the right slowly in one full walking cycle, leaning on his tall staff with each step, his heavy robe swaying, the owl stays perched on the staff, he stays at the same place",
         "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff"
       }
+    },
+    "gnome": {
+      "nom": "Gnome",
+      "gabarit": "humain",
+      "hauteur": 40,
+      "generation": [
+        88,
+        96
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "gobelin",
+        "archer"
+      ],
+      "notes": "Tour, niveau 1 : un petit gnome qui répare les golems, 1 case. Deux styles comparés (2026-11-10, choix de l'utilisateur) : petit mage (lots L1 à L4, d'après ses références gnome1 et gnome2) et bricoleur (L5 à L8). Revu (2026-11-10) : le mage chauve, sans chapeau (lots L9 à L12).",
+      "description": "a small old gnome wizard standing, short and stocky, completely bald with a shiny bald head and no hat, a long bushy white beard and moustache, big nose, big pointed ears, a long dark blue robe with wide sleeves tied with a leather belt, sandals, holding a gnarled wooden staff",
+      "sujet": "a small bald old gnome wizard with no hat, a long white beard, big pointed ears, a blue robe and a wooden staff, side view facing right",
+      "references": [
+        "art-candidats/references/gnome1.png::character reference (classic 1990s strategy game gnome mage: a small bald old man with a white beard in a long robe): keep the bald head and the beard, its simple bold retro look and small size, do not copy its colours or its raised-arms pose"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul",
+        "L11": "références",
+        "L12": "angle seul"
+      },
+      "choix": {
+        "fixe": "L12-1",
+        "idle": "idle-1",
+        "move": "move-2",
+        "attack": "attack-2-r"
+      },
+      "grande": "art-candidats/references/derives/gnome-grand.png",
+      "mouvements": {
+        "idle": "the small bald gnome wizard stands leaning on his wooden staff, slowly strokes his long white beard with his free hand, blinks and looks around, the feet stay in place",
+        "move": "the small bald gnome wizard walks forward to the right with small quick steps in one full walking cycle, his staff tapping the ground with each step, his robe swaying, he stays at the same place",
+        "attack": "the small bald gnome wizard grips his wooden staff with both hands, raises it and whacks it down hard in front of him, then steps back to his starting pose"
+      },
+      "consignes": {
+        "idle": "the small bald gnome wizard stands leaning on his wooden staff, slowly strokes his long white beard with his free hand, blinks and looks around, the feet stay in place",
+        "move": "the small bald gnome wizard walks forward to the right with small quick steps in one full walking cycle, his staff tapping the ground with each step, his robe swaying, he stays at the same place",
+        "attack": "the small bald gnome wizard grips his wooden staff with both hands, raises it and whacks it down hard in front of him, then steps back to his starting pose"
+      }
+    },
+    "gargouille": {
+      "nom": "Gargouille",
+      "gabarit": "volant",
+      "hauteur": 50,
+      "generation": [
+        104,
+        104
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "comparer": [
+        "gnome",
+        "archer"
+      ],
+      "vole": true,
+      "notes": "Tour, niveau 2 : gargouille de pierre, vole, 1 case. Deux styles comparés (2026-11-10) : d'après les deux photos de l'utilisateur (L1 à L4), et une idée plus originale, la pierre fendue d'une lueur arcane bleue (L5 à L8). Pas d attente (statue immobile, choix de l utilisateur) ; vol depuis une pose en vol (move-4, bleu rendu gris) avec envol transform-1, 0,35 s par case ; attaque provisoire attack-13-gris (bond, coup des deux pieds, 16 images), À RETRAVAILLER (choix de l utilisateur).",
+      "description": "a stone gargoyle crouching on its clawed feet like on a cathedral ledge, a muscular hunched body of pale grey weathered limestone with cracks and chips, two small curved horns, pointed ears, a grinning demon face with deep eyes and fangs, long arms with clawed stone hands, two large carved stone wings folded on its back, awakened by magic: thin glowing pale blue arcane runes and cracks run across its stone body, its eyes glow faint blue, as if a spell inside animates the stone",
+      "sujet": "a crouching stone gargoyle with horns and folded stone wings, thin glowing blue arcane cracks and runes on its stone body, side view facing right",
+      "references": [],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L8-1",
+        "move": "move-4-gris",
+        "transform": "transform-1",
+        "attack": "attack-13-gris"
+      },
+      "grande": "art-candidats/references/derives/gargouille-grand.png",
+      "mouvements": {
+        "idle": "the stone gargoyle stays crouched on its clawed feet, slowly turns its horned head from side to side, its folded stone wings shift a little, it flexes its claws, the feet stay in place",
+        "move": "the stone gargoyle spreads its large stone wings wide and flies forward to the right, beating them heavily up and down in one full slow flapping cycle, its legs tucked under its body, it stays at the same place",
+        "attack": "the stone gargoyle springs forward from its crouch, half opens its wings and rakes hard with both clawed hands in front of it, then crouches back to its starting pose"
+      },
+      "consignes": {
+        "idle": "the stone gargoyle stays crouched on its clawed feet, slowly turns its horned head from side to side, its folded stone wings shift a little, it flexes its claws, the feet stay in place",
+        "move": "the stone gargoyle flies in the air, its body leaning forward, beating its large stone wings heavily down and up in one full steady flapping cycle, its legs tucked under its belly, it stays at the same place in the air",
+        "attack": "the stone gargoyle, crouching, spreads its large stone wings wide and leaps forward into the air, then in mid-air kicks hard forward with both clawed feet together, then flies back and lands crouched exactly in its starting place, its wings folding",
+        "transform": "the stone gargoyle takes off: crouching on its clawed feet, it bends lower, spreads its large stone wings, leaps up and tilts its body forward until it is flying horizontally, its legs tucking under its belly, ending in a flying pose with the wings raised"
+      }
+    },
+    "golem-pierre": {
+      "nom": "Golem de pierre",
+      "gabarit": "grand",
+      "hauteur": 56,
+      "generation": [
+        112,
+        128
+      ],
+      "style": "godot/art/creatures/battle/troll.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "troll",
+        "archer"
+      ],
+      "notes": "Tour, niveau 3 : golem de pierre lent, 1 case. Trois styles essayés (2026-11-10, références de l'utilisateur) : le masque (L1 à L3), le grès (L4 à L6), sans tête, le visage dans la poitrine (L7 à L9). Choix (2026-11-11) : L8-1 (sans tête, visage dans la poitrine) à 56 px ; move-9, idle-9 (mange un caillou), attack-8-gris (coup de poing en avant). Gardé pour plus tard : attack-23-gris (charge du torse en avant, finit un peu en avant de sa place).",
+      "description": "a headless stone golem standing: a massive body of stacked grey stone blocks with no head at all, a huge grim face carved directly into the front of its chest, with deep eyes, a broad nose and a heavy frowning mouth, very thick stone arms with big fists, short stocky stone legs",
+      "sujet": "a headless stone golem with a huge grim face carved into its chest, thick stone arms and fists, side view facing right",
+      "references": [
+        "art-candidats/references/golem3.png::concept reference (a huge grim face carved into a block of stone): put this kind of face on the chest of a headless golem body, ignore the ink drawing style and the frame"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références",
+        "L7": "angle seul",
+        "L8": "références"
+      },
+      "choix": {
+        "fixe": "L8-1",
+        "move": "move-9",
+        "idle": "idle-9",
+        "attack": "attack-8-gris",
+        "carte": "p1-11"
+      },
+      "grande": "art-candidats/references/derives/golem-pierre-grand.png",
+      "consignes": {
+        "idle": "crouches all the way down and touches the ground with one hand, picks up a small grey pebble, stands up, puts the pebble into the open mouth carved in its chest, chews, then stands still",
+        "move": "walking slowly and heavily forward, a slow stomping stone gait",
+        "attack": "leans its heavy body back, then charges two big steps forward and throws its whole torso far forward, chest first, like a battering ram, then walks back two steps to its starting place and stance"
+      },
+      "marge_bas": 0.08
+    },
+    "naga": {
+      "nom": "Naga",
+      "gabarit": "humain",
+      "hauteur": 66,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "golem-pierre",
+        "archer"
+      ],
+      "notes": "Tour, niveau 4 : la lame rapide, mi-femme mi-serpent, six bras armés (références de l'utilisateur, 2026-11-11). Deux styles : bleue (bijoux d'or, couronne), verte (casque en tête de cobra, queue verte au ventre jaune). Choix (2026-11-11) : L2-2 (bleue) à 66 px ; idle-2, move-5 (queue ondulante), attack-7-sb (arc de lame bleu vif effacé).",
+      "description": "a naga warrior woman: a blue-skinned woman from the waist up with six arms, each hand holding a curved scimitar, golden bracelets, armlets and a golden breastplate, a tall red and gold pointed crown, long black hair; from the waist down a long thick dark blue-green snake tail with a pale belly, coiled on the ground, no legs",
+      "sujet": "a blue-skinned six-armed naga woman with six curved swords, gold jewelry and crown, a coiled snake tail instead of legs, facing right",
+      "references": [
+        "art-candidats/references/naga1.png::concept reference (a blue six-armed warrior goddess with curved swords): keep the six arms, the curved swords and the crown; she has no legs (a snake tail instead), ignore the dancing pose and the drawing style",
+        "art-candidats/references/naga2.png::colour and costume reference: keep the blue skin and the gold jewelry; she has no legs (a snake tail instead), ignore the painting style",
+        "art-candidats/references/naga4.png::body reference: from the waist down she is a long thick snake body coiled on the ground, no legs at all; ignore the cobra hoods behind her, the ink drawing style and the black and white"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L2-2",
+        "idle": "idle-2",
+        "attack": "attack-7-sb",
+        "move": "move-5",
+        "carte": "p2-5"
+      },
+      "grande": "art-candidats/references/derives/naga-grand.png",
+      "marge_bas": 0.06,
+      "consignes": {
+        "idle": "sways gently on her coiled snake tail, slowly rubs two of her curved swords against each other to sharpen them, the tip of her tail flicks and shakes",
+        "move": "slithers forward like a snake, her long snake body making big exaggerated S-shaped waves that travel from her waist to the tip of her tail, the coils clearly rising and sliding on the ground, her upper body upright and swaying a little, the six arms holding the swords ready",
+        "attack": "leans forward on her snake tail and slashes at the enemy in front of her with her curved swords, her six arms striking one after another, then rises back to her stance"
+      }
+    },
+    "djinn": {
+      "nom": "Djinn",
+      "gabarit": "volant",
+      "hauteur": 72,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "comparer": [
+        "naga",
+        "archer"
+      ],
+      "notes": "Tour, niveau 5 : le soutien volant (références de l'utilisateur, 2026-11-11). Trois styles : la fumée d'or (L1 à L3), le féroce (L4 à L6), le djinn du ciel (idée de Claude, L7 à L9). Choix (2026-11-11) : L2-1 (fumée d'or) à 72 px ; idle-2, move-2 (penché en avant, la queue étirée), attack-2-r (fond en avant, coup de poing).",
+      "description": "a djinn floating in the air: a purple-blue skinned muscular man from the waist up, a big green turban with a golden ornament, a long red beard, golden bracelets and armbands, pointed ears; from the waist down his body turns into a swirling tail of golden yellow smoke, no legs",
+      "sujet": "a floating purple-blue djinn with a green turban, a red beard, gold bracelets and a golden smoke tail instead of legs, facing right",
+      "references": [
+        "art-candidats/references/djinn1.png::concept and colour reference (a purple djinn with a green turban, a red beard and a golden smoke tail): keep these colours and this design, ignore the frame, the city and the ink engraving style"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références",
+        "L7": "angle seul",
+        "L8": "angle seul",
+        "L9": "angle seul"
+      },
+      "choix": {
+        "fixe": "L2-1",
+        "idle": "idle-2",
+        "move": "move-2",
+        "attack": "attack-2-r",
+        "carte": "p1-4"
+      },
+      "grande": "art-candidats/references/derives/djinn-grand.png",
+      "consignes": {
+        "idle": "floats in place, bobbing slowly up and down, arms crossed, his golden smoke tail swirling and curling gently",
+        "move": "glides forward through the air, leaning forward, his golden smoke tail streaming and waving behind him",
+        "attack": "swoops forward and strikes the enemy in front of him with both big fists, then floats back to his place"
+      }
+    },
+    "mage": {
+      "nom": "Mage",
+      "gabarit": "humain",
+      "hauteur": 76,
+      "generation": [
+        112,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "djinn",
+        "archer"
+      ],
+      "notes": "Tour, niveau 6 : le grand tireur (références de l'utilisateur, 2026-11-11 : pas de chapeau, grandes manches, vêtements amples, pas de bâton). Deux styles : brun (L1 à L3), vieux à barbe grise (L4 à L6). Choix (2026-11-11) : L3-1 (brun) à 76 px ; idle-2, move-5 (14 images/s), attack-5-r (les deux mains au ciel puis en avant) ; tir : un éclair bleu (« eclair »).",
+      "description": "a battle mage standing: a man with long black hair swept back and a short black beard, no hat, a very loose dark purple robe with huge wide sleeves, a long blue inner robe with a red sash and a golden collar, one bare hand raised forward ready to cast a spell, no staff, no weapon",
+      "sujet": "a bareheaded black-haired mage in a loose purple robe with huge sleeves over a blue inner robe, one hand raised, no staff, facing right",
+      "references": [
+        "art-candidats/references/mage1.png::costume reference (a mage in a loose purple robe with very wide sleeves over a blue and red inner robe, casting from his bare hand): keep the loose robe, the wide sleeves, the colours and the bare head; ignore the lightning effect, draw no magic effect"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L3-1",
+        "idle": "idle-2",
+        "move": "move-5",
+        "attack": "attack-5-r",
+        "carte": "p1-6"
+      },
+      "grande": "art-candidats/references/derives/mage-grand.png",
+      "consignes": {
+        "idle": "stands calmly, breathing slowly, his raised hand slowly turning and his fingers moving as if weaving a spell, the wide sleeves and the loose robe swaying gently",
+        "move": "walking forward with steady steps, his feet stepping out from under the long robe one after the other, both arms swinging naturally back and forth with each step, the huge sleeves swaying",
+        "attack": "raises both hands high above his head, palms open toward the sky, gathering power, then swings both hands forward toward the enemy to cast a spell, then lowers his arms back to his stance"
+      }
+    },
+    "geant": {
+      "nom": "Géant",
+      "gabarit": "grand",
+      "hauteur": 105,
+      "generation": [
+        120,
+        136
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "mage",
+        "behemoth"
+      ],
+      "references": [
+        "art-candidats/references/geant-l9-2.png::design reference (our own earlier giant): keep his blue skin, black beard, golden circlet, white and gold greek tunic, stone bracers and greek column; but give him a lean natural body, NOT muscular, not bulky"
+      ],
+      "notes": "Tour, niveau 7 : le gardien (le Titan, plus tard, lancera la foudre). Trois styles proposés par Claude (2026-11-11) : gardien de bronze (L1 à L3), géant des montagnes (L4 à L6), géant arcane (L7 à L9). L9 choisi pour le style (peau bleue, barbe, tunique grecque, colonne), mais trop musclé, stéréotypé : refait mince et digne (L10 à L13). Choix (2026-11-11) : L11-4 (mince, à la colonne) à 105 px ; attente move-1 (il ne bouge pas les pieds), transform-1 (la colonne sur l'épaule), marche move-5 (depuis l'épaule), attaque attack-5-r (frappe le sol).",
+      "description": "a huge arcane giant standing calmly: a tall dignified giant with natural proportions, a lean slender build, narrow waist, long arms and legs, NOT muscular, not a bodybuilder, like a noble greek statue or an old philosopher; blue skin, a full black beard and long black hair, a golden circlet on his brow, a long sleeveless white and gold greek tunic with a wide belt, carved stone bracers on his forearms, sandals, holding a carved greek stone column as a weapon",
+      "sujet": "a tall lean dignified blue-skinned giant with a black beard, a golden circlet, a white and gold greek tunic, holding a greek stone column, natural proportions, not muscular, facing right",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul",
+        "L9": "angle seul",
+        "L10": "références",
+        "L11": "angle seul",
+        "L12": "références",
+        "L13": "angle seul"
+      },
+      "choix": {
+        "fixe": "L11-4",
+        "idle": "idle-1-r",
+        "transform": "transform-1",
+        "move": "move-5",
+        "attack": "attack-5-r",
+        "carte": "p1-12"
+      },
+      "grande": "art-candidats/references/derives/geant-grand.png",
+      "consignes": {
+        "idle": "stands calmly and breathes slowly, his free hand slowly strokes his black beard, the stone column held still",
+        "move": "walks forward with slow, long, dignified steps, the stone column resting across his shoulder, held with one hand, the long tunic swinging",
+        "attack": "grabs the stone column with both hands, raises it high above his head, then slams it straight down onto the ground in front of him, then lifts it back to his stance",
+        "transform": "grabs the stone column with both hands, lifts it and lays it across his right shoulder, then holds it there with one hand, standing upright"
+      }
     }
   }
 }

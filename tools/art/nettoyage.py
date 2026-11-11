@@ -52,12 +52,12 @@ def axe(p, part=0.2):
     return (min(xs) + max(xs)) / 2
 
 
-def poser(p, largeur, hauteur, centre=None):
-    """L'image en bas d'un cadre, son axe (centre) au milieu ; ce qui dépasse est coupé."""
+def poser(p, largeur, hauteur, centre=None, marge_bas=0):
+    """L'image en bas d'un cadre (à <marge_bas> pixels du bord), son axe (centre) au milieu ; ce qui dépasse est coupé."""
     centre = axe(p) if centre is None else centre
     h, w = len(p), len(p[0])
     bas = max(y for y, r in enumerate(p) if any(c[3] for c in r))
-    ox, oy = round(largeur / 2 - centre), hauteur - 1 - bas
+    ox, oy = round(largeur / 2 - centre), hauteur - 1 - marge_bas - bas
     q = [[VIDE] * largeur for _ in range(hauteur)]
     for y in range(h):
         for x in range(w):
@@ -270,6 +270,18 @@ def decouper(feuille, colonnes=4, rangees=2):
     h, w = len(feuille) // rangees, len(feuille[0]) // colonnes
     return [[r[(k % colonnes) * w:(k % colonnes + 1) * w] for r in feuille[(k // colonnes) * h:(k // colonnes + 1) * h]]
             for k in range(colonnes * rangees)]
+
+
+def rogner_bas(images, au_plus):
+    """Retire en bas de toutes les images les rangées vides communes, <au_plus> au plus : la marge laissée sous les pieds
+    à la génération (pour qu'un pied qui descend ne soit pas coupé) disparaît, les pieds reviennent au bas du cadre."""
+    if au_plus <= 0:
+        return images
+    vides = 0
+    h = len(images[0])
+    while vides < au_plus and vides < h - 1 and not any(c[3] for q in images for c in q[h - 1 - vides]):
+        vides += 1
+    return [q[:h - vides] for q in images] if vides else images
 
 
 def assembler(images, colonnes=4):

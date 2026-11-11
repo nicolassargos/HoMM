@@ -951,6 +951,32 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
     avec L5-1 en référence. idle-6, marche move-6, attaque attack-4-r (bras-branche levé puis abattu). Carte p1-6.
   - Leçons : ne jamais lancer deux commandes qui écrivent `creatures-art.json` en même temps (l'une efface les choix de
     l'autre) ; vérifier que la grande image ne touche pas son cadre ; pour la carte, 16 candidats suffisent.
+- ✅ Créatures de la Tour (2026-11-10 et 11, branche `creatures-tour`, PixelLab, environ 10 $ avec les essais), une à la
+  fois, d'après les références de l'utilisateur (sauf le Géant), deux ou trois styles essayés par créature :
+  - **Gnome** (40 px, L12-1) : mage chauve sans bonnet, robe bleue ; idle-1, move-2, attack-2-r (le bâton manquant d'une
+    image recopié de la voisine). Carte p1-5.
+  - **Gargouille** (50 px, L8-1, volante) : pierre éveillée ; pas d'attente (elle reste immobile au sol) ; envol
+    transform-1 d'après une pose en vol retouchée par PixelLab, vol move-4-gris (lueurs bleues rendues grises), attaque
+    attack-13-gris (le bond et le coup des deux pieds : **à retravailler**). Carte p1-14.
+  - **Golem de pierre** (56 px, L8-1 ; 84 px le faisait trop fort pour un niveau 3) : sans tête, le visage taillé dans la
+    poitrine ; attente idle-9 (ramasse un caillou et le mange), marche move-9, attaque attack-8-gris (coup de poing en
+    avant). La charge du torse (attack-23-gris) est gardée pour plus tard : « ram » fait toujours dessiner une explosion.
+    Carte p1-11.
+  - **Naga** (66 px, L2-2) : bleue, six bras armés de cimeterres, queue de serpent ; idle-2, move-5 (la queue ondule ; avec
+    `--enrichir`), attaque attack-7-sb (8 images : à cette largeur, un des modèles refuse 16 images ; l'arc de lame bleu
+    vif effacé par sa couleur). Carte p2-5 : la première série avait des lames blanches qui faisaient un fond blanc à
+    32 px, refaite avec « dark grey steel blades ».
+  - **Djinn** (72 px, L2-1, volant) : peau bleu-violet, turban vert, barbe rousse, queue de fumée d'or ; idle-2, vol
+    move-2 (0,3 s par case), attaque attack-2-r (fond en avant, coup de poing). Carte p1-4.
+  - **Mage** (76 px, L3-1) : brun, sans chapeau ni bâton, grandes manches ; idle-2, marche move-5 (14 images/s ; ses bras
+    ne bougent pas : sa main levée sur l'image fixe reste figée dans tous les essais), sort attack-5-r (les deux mains au
+    ciel puis en avant). Son tir : l'**éclair** du jeu (`eclair`, inutilisé jusque-là), bleu, brisé, avec de petites
+    branches, et un éclair plus fin de chaque main (`launchPoint2`) qui rejoint le grand devant lui. Carte p1-6.
+  - **Géant** (105 px, L11-4) : le style grec (peau bleue, barbe, tunique, colonne) choisi, mais d'abord trop musclé
+    (« stéréotypé ») : refait mince et digne avec le candidat L9-2 en référence. Attente move-1 (une marche ratée où il ne
+    bouge pas les pieds), transform-1 (pose la colonne sur l'épaule ; jouée à l'envers à l'arrivée), marche move-5 (depuis
+    la colonne sur l'épaule), attaque attack-5-r (frappe le sol). Carte p1-12.
+  - Outils : « marge_bas » dans la fiche (un pied qui descend en marchant n'est plus coupé), `--effect-preview=eclair`.
 - ✅ Combat à ×2 (2026-11-09, branche `combat-x2`). Question de l'utilisateur : un pixel d'art a-t-il la même taille au
   combat et sur la carte ? Non : 3 pixels de l'écran au combat, 2 sur la carte (zoom ×1 ; 3 au zoom ×1,5). Essai montré
   (page `echelle.html` : même combat à ×3 et à ×2, créatures 1,5 fois plus hautes) ; choix de l'utilisateur : ×2 partout

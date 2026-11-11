@@ -617,8 +617,12 @@ croissance, prix, garde.
   arbres) ou un **paysage ouvert** (ciel, collines lointaines, petits arbres vus de côté, arbres moyens, brume vers
   l'horizon), des bords de buissons et d'arbres, des détails semés (cailloux, fleurs, touffes, racines), de nouveaux
   obstacles (chênes, rochers, souches, troncs couchés), les ombres de contact de la carte (pieds revus par
-  l'utilisateur, opacité et couleur par image). Reste : le sable et le marais (même recette), peut-être des rochers
-  dans les collines et quelques nuages. Détail dans `HISTORIQUE.md`.
+  l'utilisateur, opacité et couleur par image). ✅ **Le désert** (2026-11-11, branche `champ-sable`, un Sahara, pas un
+  désert américain : choix de l'utilisateur) : toujours le paysage ouvert (ciel pâle, mesas, dunes une à une dont la face
+  à l'ombre a un bord en biais), des dunes en relief sur le champ, un sol de marques légères d'après des références de
+  l'utilisateur (rides de vent, traînées de points, fissures, touffes, cailloux de couleurs mêlées, en taches irrégulières
+  aux couleurs nuancées), grès, grosses souches et troncs blanchis, arbustes, buissons épineux, palmiers. Reste : le
+  marais (même recette), peut-être des rochers dans les collines et quelques nuages. Détail dans `HISTORIQUE.md`.
 - Le héros sur la carte et au combat ; cadres des portraits, bandeau de la date. (Icônes des ressources : faites,
   2026-11-07.)
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et

@@ -850,6 +850,18 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   `GuildSpellsAt` (aussi dans le texte de la guilde) ; `Talents.Scholar` ajouté au bonus de sort du héros (avec les
   écoles). `Texts.FactionName` : « Tour de magie ».
 ### 10. Finitions : apparence et détails
+- ✅ Champ de bataille du désert (2026-11-11, branche `champ-sable`). Une palette par terrain pour le paysage
+  (`ScenePalette` : ciel, chaînes, pré, brumes, ombre ; `FlatTops` pour des mesas, `Dunes` pour des dunes une à une, face
+  raide à l'ombre au bord en biais et incurvé), `--battle-terrain=sand`. Écartés : les cactus (un désert américain), les
+  petits cactus verts, une tuile de sol caillouteux (Retro Diffusion : du bruit), un pavage de dalles même en relief, un
+  gravier serré. Retenu (`BuildStones`, d'après `art-candidats/references/sol-desert/`, dont le « Desert Ground Pack »
+  d'Alexet) : des marques légères sur le sable, en 8 à 13 taches irrégulières (2 à 4 ronds qui se chevauchent, bord
+  déformé par un bruit doux), deux teintes par tache mêlées par taches douces, rides de vent, traînées de points, fissures
+  d'un pixel, touffes d'herbe sèche, cailloux de couleurs mêlées, en paliers de transparence. Dunes en relief sur le champ
+  (`BuildDunes`). Sans terre battue ; ombres du sol à 0,05. Images (Retro Diffusion, 4,08 $) : grès, grosses souches et
+  troncs (64 px, blanchis à moitié par `tools/art/blanchir.py`, réduits à 80 %), arbustes et buissons épineux, palmiers,
+  acacias, petits palmiers lointains, herbe sèche, cailloux, un crâne ; socles retirés par `sans_socle.py --sable` ou
+  `--buisson` ; pieds revus par l'utilisateur.
 - ✅ Champ de bataille de l'herbe (2026-11-11, branche `champ-de-bataille`). Écarté d'abord : un horizon peint vu de côté
   (Retro Diffusion `rd_plus__environment` 384 × 96, prolongé par symétrie) : la perspective et le style juraient (arbres à
   la taille des créatures, collines lisses). Les captures de Heroes 1 à 3 (`art-candidats/references/screenshots/`) ont

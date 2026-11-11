@@ -1284,6 +1284,56 @@
         "move": "walking forward with steady steps, his feet stepping out from under the long robe one after the other, both arms swinging naturally back and forth with each step, the huge sleeves swaying",
         "attack": "raises both hands high above his head, palms open toward the sky, gathering power, then swings both hands forward toward the enemy to cast a spell, then lowers his arms back to his stance"
       }
+    },
+    "geant": {
+      "nom": "Géant",
+      "gabarit": "grand",
+      "hauteur": 105,
+      "generation": [
+        120,
+        136
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "mage",
+        "behemoth"
+      ],
+      "references": [
+        "art-candidats/references/geant-l9-2.png::design reference (our own earlier giant): keep his blue skin, black beard, golden circlet, white and gold greek tunic, stone bracers and greek column; but give him a lean natural body, NOT muscular, not bulky"
+      ],
+      "notes": "Tour, niveau 7 : le gardien (le Titan, plus tard, lancera la foudre). Trois styles proposés par Claude (2026-11-11) : gardien de bronze (L1 à L3), géant des montagnes (L4 à L6), géant arcane (L7 à L9). L9 choisi pour le style (peau bleue, barbe, tunique grecque, colonne), mais trop musclé, stéréotypé : refait mince et digne (L10 à L13). Choix (2026-11-11) : L11-4 (mince, à la colonne) à 105 px ; attente move-1 (il ne bouge pas les pieds), transform-1 (la colonne sur l'épaule), marche move-5 (depuis l'épaule), attaque attack-5-r (frappe le sol).",
+      "description": "a huge arcane giant standing calmly: a tall dignified giant with natural proportions, a lean slender build, narrow waist, long arms and legs, NOT muscular, not a bodybuilder, like a noble greek statue or an old philosopher; blue skin, a full black beard and long black hair, a golden circlet on his brow, a long sleeveless white and gold greek tunic with a wide belt, carved stone bracers on his forearms, sandals, holding a carved greek stone column as a weapon",
+      "sujet": "a tall lean dignified blue-skinned giant with a black beard, a golden circlet, a white and gold greek tunic, holding a greek stone column, natural proportions, not muscular, facing right",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul",
+        "L9": "angle seul",
+        "L10": "références",
+        "L11": "angle seul",
+        "L12": "références",
+        "L13": "angle seul"
+      },
+      "choix": {
+        "fixe": "L11-4",
+        "idle": "idle-1-r",
+        "transform": "transform-1",
+        "move": "move-5",
+        "attack": "attack-5-r"
+      },
+      "grande": "art-candidats/references/derives/geant-grand.png",
+      "consignes": {
+        "idle": "stands calmly and breathes slowly, his free hand slowly strokes his black beard, the stone column held still",
+        "move": "walks forward with slow, long, dignified steps, the stone column resting across his shoulder, held with one hand, the long tunic swinging",
+        "attack": "grabs the stone column with both hands, raises it high above his head, then slams it straight down onto the ground in front of him, then lifts it back to his stance",
+        "transform": "grabs the stone column with both hands, lifts it and lays it across his right shoulder, then holds it there with one hand, standing upright"
+      }
     }
   }
 }

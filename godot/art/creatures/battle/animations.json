@@ -23,5 +23,6 @@
   "golem-pierre": {"moveFrames": 16, "idleFrames": 16, "attackFrames": 16, "attack": 10},
   "naga": {"idleFrames": 16, "moveFrames": 16},
   "djinn": {"idleFrames": 16, "move": 12, "moveFrames": 16, "stepTime": 0.3, "attack": 10},
-  "mage": {"idleFrames": 16, "move": 14, "moveFrames": 16, "projectile": "eclair", "launchFrame": 4, "launchPoint": [110, 56], "launchPoint2": [94, 63]}
+  "mage": {"idleFrames": 16, "move": 14, "moveFrames": 16, "projectile": "eclair", "launchFrame": 4, "launchPoint": [110, 56], "launchPoint2": [94, 63]},
+  "geant": {"idleFrames": 16, "transform": 10, "moveFrames": 16}
 }

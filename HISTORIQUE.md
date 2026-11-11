@@ -879,6 +879,18 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   (`PlayableFactions`). `Talents.Dread` et `DreadMorale` (1 + niveau / 8), appliqué par `TacticalBattle.Dread` juste
   après le moral de chaque camp et avant le brave (ceux que rien n'effraie gardent leur moral) ; `Texts.TalentText`.
   Cinq héros de la faction « sombre » passent au Donjon ; « tour » retiré des factions prévues (`DataValidation`).
+- ✅ **Les gardiens justes et les revenus doublés** (2026-11-11, branche `gardiens`). Diagnostic : les deux petites cartes
+  lentes (graines 3 et 77, jours 164 et 136) avaient 16 et 11 gardiens d'une seule créature du niveau 7 (Hydres, Démons,
+  Colosses) ; la plus rapide (60), deux Trolls. La taille d'un gardien est arrondie à une créature au moins, et une
+  seule créature du niveau 7 vaut plusieurs fois la force voulue. Mesure `Gardiens_par_creature` (l'armée du Château la
+  plus petite qui bat un gardien moyen en perdant au plus 30 %) : avant, Hydre ×1,45, Loups ×1,30, et les tireurs
+  bien trop faciles (Hommes-grenouilles ×0,37, Druides ×0,39, Tyran œil ×0,29) ; après, 0,76 à 1,12. Code :
+  `CreatureStrength.GoldToBeat` (armée de mesure : paysans, archers, griffons, épéistes, nombreux, par petits pas ;
+  troupe mesurée d'environ 3000 or), `CreatureStrength.Prepare` (toutes les créatures en parallèle avant une carte :
+  2 s en série), `MapGenerator.SizeGuard`, `ReferenceStrength`, `GuardReferenceCreature`, `SmallestGuard` (0,75). Puis
+  l'économie : la simulation finissait chaque semaine avec 450 à 600 or (tout dépensé) ; comparée à Heroes 3 (archer
+  100 or, hôtel de ville 1000 par jour), elle était trois fois plus serrée. Villes 300 / 600 / 1200, mines d'or 500.
+  Les cartes normales ne vont pas plus vite (la simulation y livre un combat tous les deux jours, c'est sa limite).
 ### 10. Finitions : apparence et détails
 - ✅ Ville de l'Enfer sur la carte (2026-11-11, branche `ville-enfer`, PixelLab, 1,31 $) : trois idées (a : citadelle noire,
   b : cité du portail, c : temple de Moloch) ; choisie a-2, trop sombre (luminosité 32, contours durs) : les deux

@@ -19,8 +19,8 @@ public class RessourcesTests
         Assert.Equal(7, ResourceInfo.All.Length);
         Assert.Equal(new[] { ResourceType.Mercury, ResourceType.Crystal, ResourceType.Sulfur, ResourceType.Gems }, ResourceInfo.Rare);
         Assert.False(ResourceInfo.IsRare(ResourceType.Wood));
-        // une mine : 250 or, 2 bois ou minerai, 1 d'une ressource rare
-        Assert.Equal(250, new Mine(new Cell(0, 0), ResourceType.Gold).DailyProduction);
+        // une mine : 500 or, 2 bois ou minerai, 1 d'une ressource rare
+        Assert.Equal(500, new Mine(new Cell(0, 0), ResourceType.Gold).DailyProduction);
         Assert.Equal(2, new Mine(new Cell(0, 0), ResourceType.Ore).DailyProduction);
         Assert.All(ResourceInfo.Rare, r => Assert.Equal(1, new Mine(new Cell(0, 0), r).DailyProduction));
         // un tas de ressource rare : 3 à 6

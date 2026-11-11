@@ -864,6 +864,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   après le moral de chaque camp et avant le brave (ceux que rien n'effraie gardent leur moral) ; `Texts.TalentText`.
   Cinq héros de la faction « sombre » passent au Donjon ; « tour » retiré des factions prévues (`DataValidation`).
 ### 10. Finitions : apparence et détails
+- ✅ Ville de la Tour sur la carte (2026-11-11, branche `ville-tour`, PixelLab « Pro » 160 × 128 et une retouche, 2,38 $) :
+  trois idées en lots de quatre (a : tour de mages, b : cité de flèches, c : citadelle de géants), puis c-2 aux murs
+  ronds (d, e), puis la série a plus lisible (f, g : ombrage et trait du Château demandés) ; choix **g-2**, son toit bleu
+  changé en dôme d'or en bulbe (`retoucher`, h-1 ; l'utilisateur aime l'air oriental, accordé aux Naga et Djinn).
+  Luminosité ramenée de 156 à 125, celle du Château (`tools/art/luminosite.py`, nouvel outil) ; pieds revus par
+  l'utilisateur (trois segments, opacité 0,9).
 - ✅ Champ de bataille du désert (2026-11-11, branche `champ-sable`). Une palette par terrain pour le paysage
   (`ScenePalette` : ciel, chaînes, pré, brumes, ombre ; `FlatTops` pour des mesas, `Dunes` pour des dunes une à une, face
   raide à l'ombre au bord en biais et incurvé), `--battle-terrain=sand`. Écartés : les cactus (un désert américain), les

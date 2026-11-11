@@ -253,7 +253,9 @@ Découpage comme la Forêt : 1. les créatures et leurs capacités ; 2. la ville
    le héros du joueur). Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Tour 27 000**, Château 25 600,
    morts-vivants 24 000, Barbares 25 600, Forêt 29 200 (les cartes changent un peu : des villes neutres de la Tour).
    Tests : `VilleTourTests`.
-3. Les images (session images) : les 7 créatures, la ville sur la carte.
+3. Les images (session images) : les 7 créatures. ✅ La ville sur la carte (2026-11-11, branche `ville-tour`, choix de
+   l'utilisateur) : une tour de mages au dôme d'or en bulbe (un air oriental, comme les créatures : Naga, Djinn), petits
+   dômes bleus, enceinte ronde de pierre claire (`objects/town-tour.png`), ramenée à la luminosité du Château.
 
 #### La Forêt (en cours)
 Décidé avec l'utilisateur (2026-11-09).

@@ -272,6 +272,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   avec la ville du Château comme style et l'image actuelle comme modèle : « drawn in the same style as the reference
   castle: thin light outlines, no thick black outlines, bright warm soft colours ». Comparer les villes côte à côte sur
   l'herbe de la carte, à la taille du jeu.
+- **Ville de la Tour (2026-11-11)** : trois idées (une tour de mages, une cité de flèches, une citadelle de géants) ;
+  choisie : la série « tour de mages », refaite **plus lisible** en demandant l'ombrage du Château (« stone walls and
+  towers shaded with several light and dark tones like the reference castle, lit from the upper left… a thin consistent
+  outline of the same width everywhere ») avec le candidat aimé comme modèle et le Château comme style. Le toit du donjon
+  changé en dôme d'or par `pixellab.py retoucher` (le reste ne bouge pas). **Coûts réels** : un lot « Pro » avec des
+  modèles a coûté 0,46 $ (annoncé 0,115 $) et la retouche 0,54 $ (annoncée 0,08 $) : regarder le solde avant et après.
+- **Luminosité des villes (2026-11-11)** : mesurée par `luminosite.py mesure` (Château 125, Forêt 77, Barbares 74,
+  morts-vivants 45) ; la Tour (156, trop claire) ramenée à 125 par une courbe. Éclaircir la Forêt et les Barbares (même
+  en gardant les sombres) a été refusé par l'utilisateur.
 - **Ville barbare (2026-11-09)** : une image trop détaillée (« croustillante ») s'adoucit en ajoutant « simple clean
   shapes, smooth soft shading, few small details, not noisy, not grainy » et en prenant `objects/town.png` comme style ;
   le contour noir épais des villes de PixelLab s'adoucit avec `adoucir.py` (0,7, 60, 2 passes : le bord prend une teinte

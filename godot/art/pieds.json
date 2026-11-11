@@ -135,6 +135,7 @@
   "objects/town": {"pieds": [[[15, 83], [146, 84]], [[137, 108], [24, 107]]], "verifie": true},
   "objects/town-barbares": {"pieds": [[[16, 60], [22, 98]], [[145, 60], [141, 86]], [[16, 107], [145, 105]], [[143, 88], [144, 103]]], "verifie": true},
   "objects/town-donjon": {"pieds": [[[12, 101], [76, 108]], [[129, 106], [146, 93]], [[81, 109], [126, 107]]], "verifie": true, "opacite": 0.8},
+  "objects/town-enfer": {"pieds": [[[20, 84], [30, 103]], [[33, 107], [130, 106]], [[131, 103], [140, 82]]], "verifie": true, "opacite": 0.9},
   "objects/town-foret": {"pieds": [[[15, 102], [80, 113]], [[84, 113], [142, 95]]], "verifie": true},
   "objects/town-morts-vivants": {"pieds": [[[17, 113], [143, 113]]], "verifie": true},
   "objects/town-tour": {"pieds": [[[16, 90], [67, 111]], [[68, 111], [92, 111]], [[94, 113], [143, 85]]], "verifie": true, "opacite": 0.9}

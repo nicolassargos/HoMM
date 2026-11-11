@@ -880,6 +880,10 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   après le moral de chaque camp et avant le brave (ceux que rien n'effraie gardent leur moral) ; `Texts.TalentText`.
   Cinq héros de la faction « sombre » passent au Donjon ; « tour » retiré des factions prévues (`DataValidation`).
 ### 10. Finitions : apparence et détails
+- ✅ Ville de l'Enfer sur la carte (2026-11-11, branche `ville-enfer`, PixelLab, 1,31 $) : trois idées (a : citadelle noire,
+  b : cité du portail, c : temple de Moloch) ; choisie a-2, trop sombre (luminosité 32, contours durs) : les deux
+  retouches de la méthode (ombrage doux, puis détails) l'ont rendue lisible (f-1, luminosité 51, gardée telle quelle).
+  Pieds revus par l'utilisateur.
 - ✅ Villes du Donjon, de la Tour et des Barbares (2026-11-11, branche `villes-carte`, PixelLab, 1,93 $) : le Donjon en trois
   idées (a : porte de l'abîme, b : citadelle du gouffre, c : tour de l'œil) ; choisie a-2 (forteresse creusée dans la
   falaise), retouchée pour la lumière rose et violette du gouffre (d-1), puis pour l'ombrage doux du Château (h-1 : a-4,

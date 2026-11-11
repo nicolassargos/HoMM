@@ -143,7 +143,7 @@ Décidé avec l'utilisateur (2026-11-11), d'après ses images (`art-candidats/re
   combat (cumulable) : l'armée ennemie se brise peu à peu. Insensibles : les morts-vivants, les créatures façonnées et
   celles du niveau 7.
 - **La classe Seigneur des abîmes** : attaque 1, défense 1, puissance 3, savoir 2, charisme 9 ; Flèche magique et
-  Malédiction ; École du feu au départ ; talent **Effroi** (l'armée ennemie commence le combat à −1 de moral, −1 de plus
+  Malédiction ; École de l'air au départ (le feu ira à l'Enfer, choix de l'utilisateur) ; talent **Effroi** (l'armée ennemie commence le combat à −1 de moral, −1 de plus
   tous les 8 niveaux).
 - Ressources : soufre (principale : l'habitation et la créature du niveau 7), mercure (secondaire : niveaux 5 et 6).
 - **Les héros** : à choisir parmi ceux de la « faction sombre » (proposé : Corvin le Maudit, Ysolde la Noire, Malachar,

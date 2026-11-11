@@ -35,7 +35,7 @@ public class VilleDonjonTests
         Assert.Equal("seigneur-abimes", hero.Class?.Id);
         Assert.Equal((1, 1, 3, 2, 9), (hero.Attack, hero.Defense, hero.Power, hero.Knowledge, hero.Charisma));
         Assert.Equal(new[] { "fleche-magique", "malediction" }, hero.Spells.Select(s => s.Id));
-        Assert.Equal(1, hero.SkillRank("ecole-feu"));
+        Assert.Equal(1, hero.SkillRank("ecole-air"));
         Assert.Equal(new[] { ("homme-lezard", 15), ("homme-grenouille", 7), ("minotaure", 2) }, hero.Army.Stacks.Select(s => (s.Type.Id, s.Count)));
         Assert.Equal(Dungeon, TestData.Data.Heroes.All.Single(h => h.Name == hero.Name).Faction);
     }

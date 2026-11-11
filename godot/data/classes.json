@@ -16,7 +16,7 @@
       "attack": 0, "defense": 1, "power": 3, "knowledge": 3, "charisma": 8, "spells": ["fleche-magique", "benediction"], "skill": "mysticisme", "talent": "scholar", "mainResource": "Gems", "secondaryResource": "Mercury",
       "army": [ { "creature": "gnome", "count": 15 }, { "creature": "gargouille", "count": 6 }, { "creature": "golem-pierre", "count": 2 } ] },
     { "id": "seigneur-abimes", "name": "Seigneur des abîmes", "faction": "donjon",
-      "attack": 1, "defense": 1, "power": 3, "knowledge": 2, "charisma": 9, "spells": ["fleche-magique", "malediction"], "skill": "ecole-feu", "talent": "dread", "mainResource": "Sulfur", "secondaryResource": "Mercury",
+      "attack": 1, "defense": 1, "power": 3, "knowledge": 2, "charisma": 9, "spells": ["fleche-magique", "malediction"], "skill": "ecole-air", "talent": "dread", "mainResource": "Sulfur", "secondaryResource": "Mercury",
       "army": [ { "creature": "homme-lezard", "count": 15 }, { "creature": "homme-grenouille", "count": 7 }, { "creature": "minotaure", "count": 2 } ] }
   ]
 }

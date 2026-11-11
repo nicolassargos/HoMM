@@ -93,7 +93,8 @@ public partial class SmoothGround : ColorRect
         // la terre battue : quelques taches de 2 à 4 cases voisines, loin des bords
         var worn = new System.Collections.Generic.HashSet<Cell>();
         var random = new Random(seed);
-        int patches = 3 + random.Next(3);
+        // le désert n'a pas de terre battue : son sol de pierres est dessiné à part (BattleFieldView.BuildStones)
+        int patches = ground == TerrainType.Sand ? 0 : 3 + random.Next(3);
         for (int i = 0; i < patches; i++)
         {
             var cell = new Cell(2 + random.Next(Math.Max(1, width - 4)), 3 + random.Next(Math.Max(1, height - 4)));
@@ -103,10 +104,12 @@ public partial class SmoothGround : ColorRect
                 cell = cell.Offset(random.Next(3) - 1, random.Next(3) - 1);
             }
         }
-        var result = Create(width, height, cell => (worn.Contains(cell) ? DirtId : ground, false), Art.GetImage("terrain/road"));
+        var dirt = Art.GetImage("terrain/road");
+        var result = Create(width, height, cell => (worn.Contains(cell) ? DirtId : ground, false), dirt);
         if (result?.Material is ShaderMaterial material)
         {
-            material.SetShaderParameter("shade", 0.13f);
+            // des ombres plus discrètes sur le sable clair (remarque de l'utilisateur)
+            material.SetShaderParameter("shade", ground == TerrainType.Sand ? 0.05f : 0.13f);
             material.SetShaderParameter("shade_scale", 45f * (float)material.GetShaderParameter("ART") / 24f);
             material.SetShaderParameter("flower_density", 0.22f);
             material.SetShaderParameter("pebble_share", 0.35f);

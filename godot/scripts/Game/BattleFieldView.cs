@@ -269,6 +269,7 @@ public partial class BattleFieldView : Control
     public void Start(TacticalBattle battle, TerrainType terrain)
     {
         Battle = battle;
+        terrain = DevTerrain ?? terrain;
         _terrain = terrain;
         _shown.Clear();
         _floating.Clear();
@@ -305,7 +306,8 @@ public partial class BattleFieldView : Control
         var bushes = Art.VariantsOf($"battle/bush-{name}");
         var edge = new List<(Texture2D, Texture2D, Vector2)>();
         var random = new Random(seed);
-        void Add(Texture2D image, float haze, Vector2 foot) => edge.Add((Hazy(image, haze), image, Snap(foot)));
+        var hazeColor = PaletteOf(terrain).Haze;
+        void Add(Texture2D image, float haze, Vector2 foot) => edge.Add((Hazy(image, haze, hazeColor), image, Snap(foot)));
         Texture2D Pick(Texture2D[] main, Texture2D[] other, int percent) =>
             other.Length > 0 && random.Next(100) < percent ? other[random.Next(other.Length)] : main[random.Next(main.Length)];
         if (open)
@@ -367,7 +369,9 @@ public partial class BattleFieldView : Control
         if (images.Length == 0)
             return details;
         var random = new Random(seed * 7 + 3);
-        for (int i = 0; i < 44; i++)
+        // moins dans le désert (remarque de l'utilisateur : moins de crânes et de touffes) : ses taches de sol ont déjà leurs marques
+        int count = ground == TerrainType.Sand ? 30 : 44;
+        for (int i = 0; i < count; i++)
         {
             var image = images[random.Next(images.Length)];
             var at = new Vector2(20 + random.Next((int)FieldSize.X - 40), 170 + random.Next((int)FieldSize.Y - 190));
@@ -391,6 +395,7 @@ public partial class BattleFieldView : Control
     private static Texture2D BuildLandscape(TerrainType terrain, int seed)
     {
         int[,] bayer = { { 0, 8, 2, 10 }, { 12, 4, 14, 6 }, { 3, 11, 1, 9 }, { 15, 7, 13, 5 } };
+        var palette = PaletteOf(terrain);
         int w = (int)Math.Ceiling(FieldSize.X / GroundScale), h = 84;
         var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
         var random = new Random(seed * 13 + 5);
@@ -403,16 +408,42 @@ public partial class BattleFieldView : Control
             float total = waves.Sum(v => v.Amp);
             return x => baseLine - amplitude * waves.Sum(v => v.Amp * (0.5f + 0.5f * MathF.Sin(x * v.Freq + v.Phase))) / total;
         }
-        var far = Ridge(44, 26, 90);
-        var near = Ridge(62, 14, 55);
+        var ridge = Ridge(44, 26, 90);
+        // des mesas (le désert) : le haut de la chaîne lointaine coupé à plat
+        Func<int, float> far = palette.FlatTops ? x => Math.Max(ridge(x), 44 - 26 * 0.8f) : ridge;
+        // des dunes (le désert), une à une, chacune de taille et de forme tirées au sort : une face courte et raide à gauche
+        // (à l'ombre), une longue pente douce à droite (au soleil, qui vient d'en haut à droite)
+        var dunes = new List<(float Crest, float Left, float Right, float Height)>();
+        for (float x = -60; palette.Dunes && x < w + 60; )
+        {
+            float left = 12 + random.Next(16), right = 40 + random.Next(80), height = 10 + random.Next(18);
+            dunes.Add((x + left, left, right, height));
+            x += left + right - random.Next(30); // elles se chevauchent un peu
+        }
+        // la dune visible en x (la plus haute) et sa hauteur
+        (int Index, float Top) DuneAt(float x)
+        {
+            int best = -1;
+            float top = 0;
+            for (int i = 0; i < dunes.Count; i++)
+            {
+                var d = dunes[i];
+                float u = x < d.Crest ? (x - (d.Crest - d.Left)) / d.Left : 1 - (x - d.Crest) / d.Right;
+                if (u <= 0)
+                    continue;
+                float hgt = d.Height * (x < d.Crest ? MathF.Pow(u, 0.7f) : u * u * (3 - 2 * u)); // face raide, pente douce
+                if (hgt > top) { top = hgt; best = i; }
+            }
+            return (best, top);
+        }
+        var near = palette.Dunes ? (Func<int, float>)(x => 66 - DuneAt(x).Top) : Ridge(62, 14, 55);
         var meadow = Ridge(74, 5, 30);
         // le ciel : du bleu en haut au pâle à l'horizon, en 4 bandes tramées entre elles
-        Color[] sky = { new(0.47f, 0.62f, 0.78f), new(0.58f, 0.71f, 0.82f), new(0.70f, 0.80f, 0.86f), new(0.80f, 0.86f, 0.87f) };
+        Color[] sky = palette.Sky;
         // chaque chaîne : éclairée sous la crête, puis sa couleur, puis son ombre vers le pied (tramées entre elles)
-        Color[] farTones = { new(0.62f, 0.70f, 0.76f), new(0.52f, 0.61f, 0.69f), new(0.44f, 0.53f, 0.62f) };
-        Color[] nearTones = { new(0.45f, 0.62f, 0.38f), new(0.36f, 0.53f, 0.34f), new(0.29f, 0.45f, 0.31f) };
+        Color[] farTones = palette.Far, nearTones = palette.Near;
         // le pré au pied des collines : la couleur du sol du champ (mesurée en jeu), un peu brumeuse
-        Color[] meadowTones = { new(0.47f, 0.64f, 0.27f), new(0.44f, 0.62f, 0.25f) };
+        Color[] meadowTones = palette.Meadow;
         // un bruit fixe par pixel (des bois lointains sur les pentes)
         bool Speck(int x, int y, int rate) => ((x * 73856093) ^ (y * 19349663) ^ seed) % rate == 0;
         Color Tone(Color[] tones, float t, int x, int y)
@@ -428,10 +459,21 @@ public partial class BattleFieldView : Control
             for (int y = 0; y < h; y++)
             {
                 Color c;
-                if (y >= m + 2 || (y >= m && bayer[y % 4, x % 4] < (y - m + 1) * 6))
-                    continue; // le sol du champ (le bord du pré tramé)
+                if (y >= m + 3)
+                    continue; // le sol du champ
                 if (y >= n)
-                    c = Tone(nearTones, (y - n) / 12f, x, y); // les collines proches
+                    // les collines proches ; une dune : sa face raide dans l'ombre, dont le bord part de la crête et descend en
+                    // biais, en s'incurvant (pas une ligne droite) ; la pente douce au soleil, plus sombre en descendant
+                    if (palette.Dunes && DuneAt(x) is { Index: >= 0 } at)
+                    {
+                        var d = dunes[at.Index];
+                        float below = y - (66 - d.Height); // sous la crête
+                        float boundary = d.Crest + 6 + below * 0.35f - below * below * 0.04f + 1.5f * MathF.Sin(y * 0.7f + at.Index);
+                        bool shade = x < boundary;
+                        c = Tone(nearTones, (shade ? 0.92f : 0.02f) + below / 60f, x, y);
+                    }
+                    else
+                        c = Tone(nearTones, (y - n) / 12f, x, y);
                 else if (y >= f)
                     c = Tone(farTones, (y - f) / 18f, x, y);
                 else
@@ -443,17 +485,21 @@ public partial class BattleFieldView : Control
                 // le pré au pied des collines proches, entre elles et le sol du champ
                 if (y >= n && y >= m - 4)
                     c = Tone(meadowTones, (y - m + 4) / 6f, x, y);
+                // le bord du pré se fond dans le sol par paliers de transparence (75, 50, 25 %)
+                if (y >= m)
+                    c = new Color(c, 0.75f - 0.25f * (y - m));
                 image.SetPixel(x, y, c);
             }
         }
         // les petits arbres lointains, au pied des collines proches, brumeux
         // de petits arbres vus de côté (art/battle/far-grass.png… ; ceux de la carte, vus de dessus, juraient)
         var trees = Art.VariantsOf($"battle/far-{Art.Name(DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain)}");
-        for (float x = random.Next(30); trees.Length > 0 && x < w; x += 6 + random.Next(26))
+        int spacing = palette.Dunes ? 40 : 6; // le désert : quelques arbres seulement
+        for (float x = random.Next(30); trees.Length > 0 && x < w; x += spacing + random.Next(26 + spacing))
         {
             if (random.Next(3) == 0)
                 x += 30 + random.Next(60); // des trouées
-            var tree = Hazy(trees[random.Next(trees.Length)], 0.25f + 0.1f * (float)random.NextDouble()).GetImage();
+            var tree = Hazy(trees[random.Next(trees.Length)], 0.25f + 0.1f * (float)random.NextDouble(), palette.Haze).GetImage();
             int foot = (int)meadow((int)x) - 1 - random.Next(3);
             image.BlendRect(tree, new Rect2I(0, 0, tree.GetWidth(), tree.GetHeight()), new Vector2I((int)x - tree.GetWidth() / 2, foot - tree.GetHeight()));
         }
@@ -463,6 +509,317 @@ public partial class BattleFieldView : Control
     /// <summary>La couleur de la brume du décor (herbe : un vert bleuté de sous-bois).</summary>
     private static readonly Color HazeColor = new(0.30f, 0.42f, 0.36f);
 
+    /// <summary>
+    /// Les couleurs du décor d'un terrain : le ciel (du haut vers l'horizon), la chaîne lointaine et la proche (éclairée,
+    /// couleur, ombre), le pré qui rejoint le sol, la brume des images, la brume claire vers l'horizon, l'ombre de la lisière ;
+    /// <c>FlatTops</c> : la chaîne lointaine en mesas.
+    /// </summary>
+    private sealed record ScenePalette(Color[] Sky, Color[] Far, Color[] Near, Color[] Meadow, Color Haze, Color Mist, Color Shade,
+        bool FlatTops = false, bool Dunes = false);
+
+    private static readonly ScenePalette GrassPalette = new(
+        new Color[] { new(0.47f, 0.62f, 0.78f), new(0.58f, 0.71f, 0.82f), new(0.70f, 0.80f, 0.86f), new(0.80f, 0.86f, 0.87f) },
+        new Color[] { new(0.62f, 0.70f, 0.76f), new(0.52f, 0.61f, 0.69f), new(0.44f, 0.53f, 0.62f) },
+        new Color[] { new(0.45f, 0.62f, 0.38f), new(0.36f, 0.53f, 0.34f), new(0.29f, 0.45f, 0.31f) },
+        new Color[] { new(0.47f, 0.64f, 0.27f), new(0.44f, 0.62f, 0.25f) },
+        HazeColor, new Color(0.72f, 0.82f, 0.80f), new Color(0.02f, 0.06f, 0.02f));
+
+    /// <summary>Le désert (comme Heroes 2) : un ciel pâle et chaud, des mesas rose-ocre au loin, des dunes ocre devant.</summary>
+    private static readonly ScenePalette SandPalette = new(
+        new Color[] { new(0.55f, 0.70f, 0.85f), new(0.66f, 0.78f, 0.88f), new(0.80f, 0.85f, 0.86f), new(0.90f, 0.88f, 0.80f) },
+        new Color[] { new(0.80f, 0.66f, 0.54f), new(0.72f, 0.57f, 0.47f), new(0.63f, 0.49f, 0.42f) },
+        new Color[] { new(0.88f, 0.73f, 0.48f), new(0.80f, 0.64f, 0.40f), new(0.70f, 0.55f, 0.34f) },
+        new Color[] { new(0.86f, 0.74f, 0.50f), new(0.82f, 0.70f, 0.46f) },
+        new Color(0.80f, 0.70f, 0.55f), new Color(0.95f, 0.88f, 0.75f), new Color(0.25f, 0.15f, 0.05f), FlatTops: true, Dunes: true);
+
+    private static ScenePalette PaletteOf(TerrainType terrain) => terrain switch
+    {
+        TerrainType.Sand => SandPalette,
+        _ => GrassPalette,
+    };
+
+    /// <summary>Le sol de pierres sous le sable (le désert), ×2, ou null.</summary>
+    private Texture2D? _stones;
+
+    /// <summary>
+    /// Les marques du sol du désert (demandé par l'utilisateur, 2026-11-11, d'après ses références :
+    /// art-candidats/references/sol-desert/, dont le « Desert Ground Pack » d'Alexet) : pas une texture pleine, mais des
+    /// marques légères posées sur le sable, en quelques taches qui s'estompent vers leur bord :
+    /// - des **rides de vent** : de courts traits courbes qui suivent un même vent (une direction par combat), un pixel
+    ///   sombre et un clair au-dessus ;
+    /// - des **traînées de points**, dans le sens du vent ;
+    /// - de la **terre craquelée** dans certaines taches : des fissures ouvertes (des traits qui bifurquent), sans plaques ;
+    /// - **quelques cailloux** pâles, surtout petits, un trait sombre dessous et une petite ombre.
+    /// Tout en paliers de transparence : le sable reste la couleur du sol.
+    /// </summary>
+    private static Texture2D BuildStones(int seed)
+    {
+        int w = (int)Math.Ceiling(FieldSize.X / GroundScale), h = (int)Math.Ceiling(FieldSize.Y / GroundScale);
+        var random = new Random(seed * 9 + 2);
+        var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        // le vent : une direction presque horizontale qui ondule doucement d'un endroit à l'autre
+        float wind = ((float)random.NextDouble() - 0.5f) * 0.6f, p1 = (float)random.NextDouble() * 6.28f, p2 = (float)random.NextDouble() * 6.28f;
+        float Flow(float x, float y) => wind + 0.25f * MathF.Sin(x / 57f + p1) + 0.18f * MathF.Sin(y / 31f + p2);
+        // les taches : de tailles très différentes, chacune avec ses marques (une sur trois craquelée)
+        // la teinte de chaque tache : une terre rougeâtre, ocre, gris-brun ou un sable pâle
+        Color[] tints = { new(0.64f, 0.34f, 0.20f), new(0.76f, 0.52f, 0.24f), new(0.50f, 0.45f, 0.40f), new(0.96f, 0.91f, 0.78f), new(0.58f, 0.40f, 0.28f) };
+        // un peu rapprochées du sable (remarque de l'utilisateur : un peu moins de contraste)
+        tints = tints.Select(t => t.Lerp(new Color(0.86f, 0.74f, 0.52f), 0.22f)).ToArray();
+        // des taches plus grandes et irrégulières (remarque de l'utilisateur : elles paraissaient toutes rondes) : chacune
+        // est faite de 2 à 4 ronds de tailles différentes qui se chevauchent, et son bord est déformé par un bruit doux
+        var spots = Enumerable.Range(0, 8 + random.Next(6)).Select(_ =>
+        {
+            float r = 18f + 80f * MathF.Pow((float)random.NextDouble(), 1.55f); // entre les petites taches rondes et les très grandes
+            var blobs = new List<(float Dx, float Dy, float R)> { (0, 0, r) };
+            for (int b = 1 + random.Next(3); b > 0; b--)
+            {
+                float angle = (float)random.NextDouble() * 6.28f, dist = r * (0.4f + 0.55f * (float)random.NextDouble());
+                blobs.Add((MathF.Cos(angle) * dist, MathF.Sin(angle) * dist / 1.6f, r * (0.35f + 0.45f * (float)random.NextDouble())));
+            }
+            var tint = tints[random.Next(tints.Length)];
+            var second = tints[random.Next(tints.Length)];
+            if (second == tint)
+                second = tints[(Array.IndexOf(tints, tint) + 2) % tints.Length];
+            return (X: 30f + random.Next(w - 60), Y: 115f + random.Next(h - 140), R: r, Cracked: random.Next(3) == 0, Tint: tint,
+                Second: second, Blobs: blobs.ToArray());
+        }).ToArray();
+        // un bruit doux (des taches rondes, sans grille) : des valeurs tirées aux nœuds d'une grille, mêlées entre eux
+        float Smooth(float x, float y, float cell, int k)
+        {
+            float gx = x / cell, gy = y / cell;
+            int ix = (int)MathF.Floor(gx), iy = (int)MathF.Floor(gy);
+            float fx = gx - ix, fy = gy - iy;
+            fx = fx * fx * (3 - 2 * fx);
+            fy = fy * fy * (3 - 2 * fy);
+            float At(int cx, int cy) => (((cx * 73856093) ^ (cy * 19349663) ^ (k * 83492791) ^ seed) & 1023) / 1023f;
+            float top = At(ix, iy) + (At(ix + 1, iy) - At(ix, iy)) * fx, bottom = At(ix, iy + 1) + (At(ix + 1, iy + 1) - At(ix, iy + 1)) * fx;
+            return top + (bottom - top) * fy;
+        }
+        // de 1 au milieu d'une tache à 0 à son bord : le plus haut de ses ronds, le bord déformé par un bruit doux (des lobes,
+        // des baies) qui suit la taille de la tache
+        float Shape((float X, float Y, float R, bool Cracked, Color Tint, Color Second, (float Dx, float Dy, float R)[] Blobs) s, float x, float y)
+        {
+            float best = -1;
+            foreach (var (bdx, bdy, br) in s.Blobs)
+            {
+                float dx = (x - s.X - bdx) / br, dy = (y - s.Y - bdy) * 1.6f / br;
+                best = MathF.Max(best, 1 - MathF.Sqrt(dx * dx + dy * dy));
+            }
+            return best + 0.45f * (Smooth(x, y, MathF.Max(6, s.R * 0.32f), 11) - 0.5f);
+        }
+        float Density(float x, float y) => MathF.Max(0, spots.Max(s => Shape(s, x, y)));
+        (float X, float Y) PointIn((float X, float Y, float R, bool Cracked, Color Tint, Color Second, (float Dx, float Dy, float R)[] Blobs) s)
+        {
+            // un point d'un des ronds, gardé s'il est bien dans la forme déformée (quelques essais)
+            for (int attempt = 0; ; attempt++)
+            {
+                var (bdx, bdy, br) = s.Blobs[random.Next(s.Blobs.Length)];
+                float angle = (float)random.NextDouble() * 6.28f, dist = br * MathF.Sqrt((float)random.NextDouble());
+                float px = s.X + bdx + MathF.Cos(angle) * dist, py = s.Y + bdy + MathF.Sin(angle) * dist / 1.6f;
+                if (Shape(s, px, py) > 0 || attempt >= 6)
+                    return (px, py);
+            }
+        }
+        // un point marqué : une couleur, une opacité en paliers (selon la densité de la tache) ; garde la plus forte
+        void Mark(float fx, float fy, Color color, float alpha)
+        {
+            int x = (int)MathF.Round(fx), y = (int)MathF.Round(fy);
+            if (x < 0 || y < 0 || x >= w || y >= h)
+                return;
+            float a = MathF.Ceiling(MathF.Min(1, alpha * (0.35f + 0.65f * Density(x, y))) * 4) / 4;
+            if (a > 0 && a >= image.GetPixel(x, y).A)
+                image.SetPixel(x, y, new Color(color, a));
+        }
+        var light = new Color(1f, 0.95f, 0.80f);
+        // la terre de chaque tache, en un voile très léger de sa teinte (plus marqué au milieu, par paliers)
+        foreach (var spot in spots)
+        {
+            int x0 = (int)MathF.Max(0, spot.X - spot.R * 1.9f), x1 = (int)MathF.Min(w - 1, spot.X + spot.R * 1.9f);
+            int y0 = (int)MathF.Max(0, spot.Y - spot.R * 1.9f / 1.6f), y1 = (int)MathF.Min(h - 1, spot.Y + spot.R * 1.9f / 1.6f);
+            for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+            {
+                float inside = Shape(spot, x, y);
+                // le bord du voile s'effrange un peu (un bruit par 3 pixels)
+                inside -= 0.12f * ((((x / 3 * 73856093) ^ (y / 3 * 19349663) ^ seed) & 255) / 255f);
+                if (inside <= 0)
+                    continue;
+                // des couleurs mêlées, comme sur un vrai sol : la teinte de la tache passe à une seconde par taches douces
+                // (deux tailles de bruit), avec des zones un peu plus claires ou plus sombres, et un voile plus ou moins épais
+                float blend = Smooth(x, y, 14, 7) * 0.65f + Smooth(x, y, 5, 8) * 0.35f;
+                float shade = Smooth(x, y, 9, 9);
+                var color = spot.Tint.Lerp(spot.Second, MathF.Round(blend * 4) / 4);
+                color = shade > 0.6f ? color.Lightened(0.12f) : shade < 0.4f ? color.Darkened(0.16f) : color;
+                float thickness = 0.55f + 0.45f * Smooth(x, y, 11, 10);
+                float a = MathF.Ceiling(MathF.Min(1, inside * 1.6f) * thickness * 4) / 4 * 0.4f;
+                if (a > image.GetPixel(x, y).A)
+                    image.SetPixel(x, y, new Color(color, a));
+            }
+        }
+        foreach (var spot in spots)
+        {
+            float area = spot.R * spot.R;
+            // les traits : un brun chaud et sombre, mêlé de la teinte de la tache
+            var dark = spot.Tint.Lerp(new Color(0.34f, 0.22f, 0.12f), 0.6f);
+            // les rides de vent
+            for (int i = 0; i < area / 70; i++)
+            {
+                var (x, y) = PointIn(spot);
+                int length = 5 + random.Next(12);
+                for (int k = 0; k < length; k++)
+                {
+                    float a = Flow(x, y) + 0.5f * MathF.Sin(k / (float)length * MathF.PI - MathF.PI / 2) * 0.4f;
+                    x += MathF.Cos(a);
+                    y += MathF.Sin(a) * 0.6f;
+                    Mark(x, y, dark, 0.45f);
+                    Mark(x, y - 1, light, 0.3f);
+                }
+            }
+            // les traînées de points
+            for (int i = 0; i < area / 120; i++)
+            {
+                var (x, y) = PointIn(spot);
+                int dots = 3 + random.Next(8);
+                for (int k = 0; k < dots; k++)
+                {
+                    float a = Flow(x, y);
+                    float step = 2 + (float)random.NextDouble() * 2;
+                    x += MathF.Cos(a) * step;
+                    y += MathF.Sin(a) * step * 0.6f + ((float)random.NextDouble() - 0.5f);
+                    // des grains de couleurs mêlées
+                    Mark(x, y, random.Next(4) == 0 ? spot.Tint.Darkened(0.2f) : dark, 0.5f);
+                }
+            }
+            // les fissures : des traits qui changent de direction et bifurquent
+            if (spot.Cracked)
+                for (int i = 0; i < area / 200 + 2; i++)
+                {
+                    var stack = new Stack<(float X, float Y, float A, int Left)>();
+                    var start = PointIn(spot);
+                    stack.Push((start.X, start.Y, (float)random.NextDouble() * 6.28f, 8 + random.Next(14)));
+                    while (stack.Count > 0)
+                    {
+                        var (x, y, a, left) = stack.Pop();
+                        for (; left > 0; left--)
+                        {
+                            if (random.Next(5) == 0)
+                                a += (random.Next(2) == 0 ? 1 : -1) * (0.6f + (float)random.NextDouble() * 0.6f);
+                            if (random.Next(9) == 0 && stack.Count < 6)
+                                stack.Push((x, y, a + (random.Next(2) == 0 ? 1.2f : -1.2f), left / 2));
+                            // un pas d'un pixel entier, en suivant la direction : un trait d'un pixel, sans pâté
+                            float dx = MathF.Cos(a), dy = MathF.Sin(a) * 0.6f, step = MathF.Max(MathF.Abs(dx), MathF.Abs(dy));
+                            x += dx / step;
+                            y += dy / step;
+                            Mark(x, y, spot.Tint.Lerp(new Color(0.28f, 0.17f, 0.09f), 0.75f), 0.6f);
+                        }
+                    }
+                }
+        }
+        // de petites touffes d'herbe sèche (comme le « Desert Ground Pack ») : 3 à 6 brins fins depuis un pied, un peu penchés,
+        // couleur paille, la pointe plus claire
+        var straw = new Color(0.58f, 0.46f, 0.24f);
+        foreach (var spot in spots)
+            for (int i = 0; i < spot.R * spot.R / 500 + 1; i++)
+            {
+                var (bx, by) = PointIn(spot);
+                int blades = 3 + random.Next(4);
+                for (int b = 0; b < blades; b++)
+                {
+                    float lean = (b - (blades - 1) / 2f) * 0.5f + ((float)random.NextDouble() - 0.5f) * 0.4f;
+                    int length = 2 + random.Next(3);
+                    for (int k = 0; k <= length; k++)
+                    {
+                        int px = (int)MathF.Round(bx + lean * k), py = (int)by - k;
+                        if (px < 0 || py < 0 || px >= w || py >= h)
+                            continue;
+                        image.SetPixel(px, py, k == length ? straw.Lightened(0.3f) : k == 0 ? straw.Darkened(0.25f) : straw);
+                    }
+                }
+            }
+        // des cailloux de couleurs mêlées (rosés, ocre, gris, blanchâtres, rouille), surtout petits ; les marques sont plus
+        // espacées depuis que les taches sont grandes (remarque de l'utilisateur : trop chargé)
+        Color[] pebbles =
+        {
+            new(0.93f, 0.89f, 0.80f), new(0.84f, 0.66f, 0.58f), new(0.80f, 0.62f, 0.40f), new(0.66f, 0.62f, 0.58f),
+            new(0.72f, 0.46f, 0.34f), new(0.88f, 0.80f, 0.66f),
+        };
+        foreach (var spot in spots)
+            for (int i = 0; i < spot.R * spot.R / 170 + 3; i++)
+            {
+                var (fx, fy) = PointIn(spot);
+                int cx = (int)fx, cy = (int)fy;
+                float u = (float)random.NextDouble();
+                int r = u < 0.4f ? 0 : u < 0.8f ? 1 : u < 0.96f ? 2 : 3;
+                var tone = pebbles[random.Next(pebbles.Length)].Darkened((float)random.NextDouble() * 0.08f);
+                float rx = r + 0.6f, ry = MathF.Max(0.5f, rx * 0.7f);
+                for (int dy = -r - 1; dy <= r + 1; dy++)
+                for (int dx = -r - 1; dx <= r + 1; dx++)
+                {
+                    int px = cx + dx, py = cy + dy;
+                    if (px < 0 || py < 0 || px >= w || py >= h)
+                        continue;
+                    float ex = dx / rx, ey = dy / ry;
+                    if (ex * ex + ey * ey <= 1)
+                        // trois tons : éclairé en haut à droite, dans l'ombre en bas à gauche
+                        image.SetPixel(px, py, r == 0 ? tone : ex - ey > 0.4f ? tone.Lightened(0.3f) : ex - ey < -0.5f ? tone.Darkened(0.22f) : tone);
+                    else if (ex * ex + (ey - 0.9f) * (ey - 0.9f) <= 1 && dy > 0)
+                        image.SetPixel(px, py, new Color(0.35f, 0.25f, 0.15f, dx < 0 ? 0.75f : 0.5f)); // le trait et l'ombre dessous
+                }
+            }
+        return ImageTexture.CreateFromImage(image);
+    }
+
+    /// <summary>Le relief du sol (les dunes du désert), ×2, ou null.</summary>
+    private Texture2D? _relief;
+
+    /// <summary>
+    /// Des dunes sur le champ du désert (idée de l'utilisateur, 2026-11-11 ; comme Heroes 2) : trois ou quatre longues crêtes
+    /// de plusieurs cases, tirées selon <paramref name="seed"/>, chacune une bande claire au-dessus de la crête (le versant au
+    /// soleil) et une bande d'ombre au-dessous, qui s'amincissent aux deux bouts. Du relief seulement : on y marche.
+    /// </summary>
+    private static Texture2D BuildDunes(int seed)
+    {
+        int w = (int)Math.Ceiling(FieldSize.X / GroundScale), h = (int)Math.Ceiling(FieldSize.Y / GroundScale);
+        var alpha = new float[w, h];
+        var tone = new bool[w, h]; // vrai : la bande claire
+        var random = new Random(seed * 5 + 11);
+        int count = 3 + random.Next(2);
+        for (int i = 0; i < count; i++)
+        {
+            int x0 = 30 + random.Next(Math.Max(1, w - 300)), length = 150 + random.Next(150);
+            float y0 = 105 + random.Next(Math.Max(1, h - 140)), wave = 30 + random.Next(25), phase = (float)random.NextDouble() * 6.28f;
+            float tilt = ((float)random.NextDouble() - 0.5f) * 0.3f;
+            for (int x = x0; x < Math.Min(w, x0 + length); x++)
+            {
+                float e = MathF.Sin(MathF.PI * (x - x0) / length);
+                int crest = (int)MathF.Round(y0 + 5 * MathF.Sin((x - x0) / wave + phase) + tilt * (x - x0));
+                int lit = (int)MathF.Round(30 * e), dark = (int)MathF.Round(16 * e);
+                for (int dy = 1; dy <= lit; dy++)
+                    Mark(x, crest - dy, dy <= lit / 3 ? 0.22f : dy <= 2 * lit / 3 ? 0.13f : 0.06f, true);
+                for (int dy = 0; dy <= dark; dy++)
+                    Mark(x, crest + dy, dy <= dark / 3 ? 0.30f : dy <= 2 * dark / 3 ? 0.18f : 0.08f, false);
+            }
+        }
+        void Mark(int x, int y, float a, bool light)
+        {
+            if (y < 0 || y >= h || a <= alpha[x, y])
+                return;
+            alpha[x, y] = a;
+            tone[x, y] = light;
+        }
+        var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+            if (alpha[x, y] > 0)
+                image.SetPixel(x, y, tone[x, y] ? new Color(1f, 0.95f, 0.8f, alpha[x, y]) : new Color(0.35f, 0.22f, 0.08f, alpha[x, y]));
+        return ImageTexture.CreateFromImage(image);
+    }
+
+    /// <summary>Développement (« --battle-terrain=sand ») : le terrain du champ, au lieu de celui du combat.</summary>
+    private static readonly TerrainType? DevTerrain =
+        OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--battle-terrain="))?["--battle-terrain=".Length..] is { } t
+        && Enum.TryParse<TerrainType>(t, true, out var parsed) ? parsed : null;
+
     private static readonly Dictionary<(Texture2D, int), Texture2D> HazyCache = new();
 
     /// <summary>
@@ -470,7 +827,7 @@ public partial class BattleFieldView : Control
     /// créatures ressortent) : chaque pixel va vers la couleur de la brume selon <paramref name="amount"/> (0 à 1), et
     /// les contours très sombres s'éclaircissent davantage. Calculée une fois par image et par degré de brume.
     /// </summary>
-    private static Texture2D Hazy(Texture2D texture, float amount)
+    private static Texture2D Hazy(Texture2D texture, float amount, Color? haze = null)
     {
         int step = (int)MathF.Round(amount * 20);
         if (step <= 0)
@@ -478,6 +835,7 @@ public partial class BattleFieldView : Control
         if (HazyCache.TryGetValue((texture, step), out var done))
             return done;
         float k = step / 20f;
+        var color = haze ?? HazeColor;
         var image = texture.GetImage();
         image.Convert(Image.Format.Rgba8);
         for (int y = 0; y < image.GetHeight(); y++)
@@ -488,7 +846,7 @@ public partial class BattleFieldView : Control
                 continue;
             // un contour (pixel très sombre) se fond davantage
             float kk = c.Luminance < 0.12f ? Math.Min(1, k * 1.25f + 0.05f) : k;
-            image.SetPixel(x, y, new Color(c.R + (HazeColor.R - c.R) * kk, c.G + (HazeColor.G - c.G) * kk, c.B + (HazeColor.B - c.B) * kk, c.A));
+            image.SetPixel(x, y, new Color(c.R + (color.R - c.R) * kk, c.G + (color.G - c.G) * kk, c.B + (color.B - c.B) * kk, c.A));
         }
         var result = ImageTexture.CreateFromImage(image);
         HazyCache[(texture, step)] = result;
@@ -511,15 +869,15 @@ public partial class BattleFieldView : Control
     /// L'ombre de la forêt (comme Heroes 3 : le sol s'assombrit sous les arbres) : trois bandes de moins en moins sombres
     /// vers le bas, aux bords ondulés (le tramage en points rendait l'image « granuleuse », remarque de l'utilisateur).
     /// </summary>
-    private static Texture2D BuildShade(int seed) =>
-        Bands(new Color(0.02f, 0.06f, 0.02f), new[] { 0.22f, 0.14f, 0.07f }, 0, 46, seed);
+    private static Texture2D BuildShade(TerrainType terrain, int seed) =>
+        Bands(PaletteOf(terrain).Shade, new[] { 0.22f, 0.14f, 0.07f }, 0, 46, seed);
 
     /// <summary>
     /// La brume sur le sol à l'approche de l'horizon d'un paysage ouvert (la perspective aérienne de Heroes 3 : le loin est
     /// plus clair et plus bleuté), du pied des collines vers le bas.
     /// </summary>
-    private static Texture2D BuildMist(int seed) =>
-        Bands(new Color(0.72f, 0.82f, 0.80f), new[] { 0.14f, 0.08f, 0.04f }, 146, 20, seed);
+    private static Texture2D BuildMist(TerrainType terrain, int seed) =>
+        Bands(PaletteOf(terrain).Mist, new[] { 0.14f, 0.08f, 0.04f }, 146, 20, seed);
 
     /// <summary>
     /// Des bandes horizontales d'une couleur, de plus en plus transparentes vers le bas (une opacité par bande), qui commencent
@@ -571,11 +929,15 @@ public partial class BattleFieldView : Control
 
         int seed = Battle.Field.Obstacles.Aggregate(17, (h, o) => h * 31 + o.Col * 11 + o.Row);
         // deux décors, tirés selon le combat : la lisière d'une forêt, ou un paysage ouvert (collines lointaines et ciel)
-        bool open = DevScene switch { "open" => true, "forest" => false, _ => (seed & 1) == 1 };
+        // sans arbres de lisière pour ce terrain (le désert), toujours le paysage ouvert
+        bool open = DevScene switch { "open" => true, "forest" => false, _ => (seed & 1) == 1 }
+            || Art.VariantsOf($"battle/edge-{Art.Name(DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain)}").Length == 0;
         _edge = BuildEdge(terrain, seed, open);
         _landscape = open ? BuildLandscape(terrain, seed) : null;
-        _shade = open ? BuildMist(seed) : BuildShade(seed);
+        _shade = open ? BuildMist(terrain, seed) : BuildShade(terrain, seed);
         _details = BuildDetails(terrain, seed);
+        _relief = PaletteOf(terrain).Dunes ? BuildDunes(seed) : null;
+        _stones = PaletteOf(terrain).Dunes ? BuildStones(seed) : null;
         if (SmoothGround.CreateBattle(terrain, FieldSize, seed) is not { } ground)
             return;
         // le sol couvre des cases entières de la carte : le surplus est coupé au bord du champ
@@ -1209,6 +1571,10 @@ public partial class BattleFieldView : Control
             // l'ombre de la forêt sur le haut du sol, puis la lisière : des rangées d'arbres, plus sombres vers le fond
             if (_shade != null)
                 DrawTextureRect(_shade, new Rect2(Vector2.Zero, _shade.GetSize() * GroundScale), false);
+            if (_stones != null)
+                DrawTextureRect(_stones, new Rect2(Vector2.Zero, _stones.GetSize() * GroundScale), false);
+            if (_relief != null)
+                DrawTextureRect(_relief, new Rect2(Vector2.Zero, _relief.GetSize() * GroundScale), false);
             foreach (var (detail, at) in _details)
             {
                 var rect = new Rect2(at, detail.GetSize() * GroundScale);

@@ -353,8 +353,8 @@ public sealed class BattleEffects
             // deux mains : un éclair fin part de chacune et ils se rejoignent un peu devant le lanceur, d'où part le grand
             var dir = (b.To - b.From).Normalized();
             start = b.From + dir * U * 18 + new Vector2(0, (from2.Y - b.From.Y) * 0.5f);
-            Bolt(canvas, b.From, start, seed + 7, fade, 1, 3 * U);
-            Bolt(canvas, from2, start, seed + 13, fade, 1, 3 * U);
+            Bolt(canvas, b.From, start, seed + 7, fade, 2, 3 * U);
+            Bolt(canvas, from2, start, seed + 13, fade, 2, 3 * U);
         }
         var points = Bolt(canvas, start, b.To, seed, fade, 3, 6 * U);
         // de petites branches le long du grand éclair : quelques traits fins qui partent de côté et s'arrêtent
@@ -388,9 +388,9 @@ public sealed class BattleEffects
         var glow = new Color(0.3f, 0.5f, 1, 0.35f * fade);
         var halo = new Color(0.3f, 0.6f, 1, 0.95f * fade);
         var heart = new Color(0.92f, 0.97f, 1, fade);
-        // des traits côte à côte d'un pixel d'art : le cœur, le halo (deux de chaque côté pour le grand éclair, un pour
-        // un petit), la lueur (deux, le grand seulement)
-        int haloWidth = core >= 3 ? 2 : 1, glowWidth = core >= 3 ? 2 : 0;
+        // des traits côte à côte d'un pixel d'art : le cœur, le halo (deux de chaque côté pour le grand éclair et ceux
+        // des mains, un pour une branche), la lueur (deux, le grand seulement)
+        int haloWidth = core >= 2 ? 2 : 1, glowWidth = core >= 3 ? 2 : 0;
         for (int k = 0; k < segments; k++)
             for (int x = -haloWidth - glowWidth; x < core + haloWidth + glowWidth; x++)
             {

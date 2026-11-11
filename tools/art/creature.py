@@ -189,11 +189,13 @@ def departs(f, ident, large=2.2, large_vol=None):
         # un déplacement aux grandes ailes (l'Ange) : un cadre aussi large que demandé, sinon les ailes sont coupées
         tailles["move"] = (min(256, arrondi16(w * large_vol)), arrondi16(h * 1.2))
     chemins = {}
+    # « marge_bas » (part de la hauteur) : de la place sous les pieds, sinon un pied qui descend en marchant est coupé
+    marge = round(h * f.get("marge_bas", 0))
     for etat, (W, H) in tailles.items():
         chemins[etat] = os.path.join(d, f"depart-{etat}.png")
         # écrit à côté puis remplace d'un coup : une autre commande lancée en même temps ne lit jamais un fichier à moitié écrit
         provisoire = f"{chemins[etat]}.{os.getpid()}.tmp"
-        ecrire(provisoire, n.poser(p, W, H))
+        ecrire(provisoire, n.poser(p, W, H, marge_bas=marge))
         os.replace(provisoire, chemins[etat])
     return chemins, f["hauteur"] / h
 
@@ -213,7 +215,10 @@ def traiter_feuille(dossier_images, facteur, f, etat):
         if f.get("corde") and etat != "attack":
             n.corde_droite(q)
         images.append(n.bord_translucide(q, f.get("bord")))
-    depart = n.adoucir_image(n.reduire_traits(lire(os.path.join(dossier_images, "1.png"))[2], facteur), f.get("contour"))
+    if f.get("marge_bas"):
+        # la marge laissée sous les pieds (réduite, un pixel de plus pour l'arrondi) : retirée si aucun pied n'y descend
+        images = n.rogner_bas(images, math.ceil(len(n.recadrer(lire(f["grande"])[2])) * f["marge_bas"] * facteur) + 1)
+    depart =n.adoucir_image(n.reduire_traits(lire(os.path.join(dossier_images, "1.png"))[2], facteur), f.get("contour"))
     return images, grandes, depart
 
 

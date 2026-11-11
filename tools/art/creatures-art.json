@@ -1105,6 +1105,50 @@
         "attack": "the stone gargoyle, crouching, spreads its large stone wings wide and leaps forward into the air, then in mid-air kicks hard forward with both clawed feet together, then flies back and lands crouched exactly in its starting place, its wings folding",
         "transform": "the stone gargoyle takes off: crouching on its clawed feet, it bends lower, spreads its large stone wings, leaps up and tilts its body forward until it is flying horizontally, its legs tucking under its belly, ending in a flying pose with the wings raised"
       }
+    },
+    "golem-pierre": {
+      "nom": "Golem de pierre",
+      "gabarit": "grand",
+      "hauteur": 56,
+      "generation": [
+        112,
+        128
+      ],
+      "style": "godot/art/creatures/battle/troll.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "troll",
+        "archer"
+      ],
+      "notes": "Tour, niveau 3 : golem de pierre lent, 1 case. Trois styles essayés (2026-11-10, références de l'utilisateur) : le masque (L1 à L3), le grès (L4 à L6), sans tête, le visage dans la poitrine (L7 à L9). Choix (2026-11-11) : L8-1 (sans tête, visage dans la poitrine) à 56 px ; move-9, idle-9 (mange un caillou), attack-8-gris (coup de poing en avant). Gardé pour plus tard : attack-23-gris (charge du torse en avant, finit un peu en avant de sa place).",
+      "description": "a headless stone golem standing: a massive body of stacked grey stone blocks with no head at all, a huge grim face carved directly into the front of its chest, with deep eyes, a broad nose and a heavy frowning mouth, very thick stone arms with big fists, short stocky stone legs",
+      "sujet": "a headless stone golem with a huge grim face carved into its chest, thick stone arms and fists, side view facing right",
+      "references": [
+        "art-candidats/references/golem3.png::concept reference (a huge grim face carved into a block of stone): put this kind of face on the chest of a headless golem body, ignore the ink drawing style and the frame"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références",
+        "L7": "angle seul",
+        "L8": "références"
+      },
+      "choix": {
+        "fixe": "L8-1",
+        "move": "move-9",
+        "idle": "idle-9",
+        "attack": "attack-8-gris"
+      },
+      "grande": "art-candidats/references/derives/golem-pierre-grand.png",
+      "consignes": {
+        "idle": "crouches all the way down and touches the ground with one hand, picks up a small grey pebble, stands up, puts the pebble into the open mouth carved in its chest, chews, then stands still",
+        "move": "walking slowly and heavily forward, a slow stomping stone gait",
+        "attack": "leans its heavy body back, then charges two big steps forward and throws its whole torso far forward, chest first, like a battering ram, then walks back two steps to its starting place and stance"
+      },
+      "marge_bas": 0.08
     }
   }
 }

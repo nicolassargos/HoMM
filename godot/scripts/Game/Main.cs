@@ -105,6 +105,8 @@ public partial class Main : Node2D
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
+        // Développement : « --rich » : le joueur a de quoi tout bâtir et tout recruter, remis au plein chaque jour (Enrich)
+        Enrich();
         // Option de développement : « -- --reveal » retire le brouillard
         if (OS.GetCmdlineUserArgs().Contains("--reveal"))
             _state.CurrentPlayer.Fog.Reveal(new Cell(_state.Map.Width / 2, _state.Map.Height / 2), _state.Map.Width + _state.Map.Height);
@@ -579,9 +581,27 @@ public partial class Main : Node2D
         }
         if (_state.CurrentPlayer.IsComputer)
             return;
+        Enrich();
         // la sauvegarde automatique, au début de chaque tour (une seule, remplacée à chaque fois)
         if (_state.Outcome == GameOutcome.Playing && _state.CurrentBattle == null && _capturePath == null)
             SaveFiles.Write(SaveFiles.AutoName, _state);
+    }
+
+    /// <summary>Développement (« --rich ») : ce qu'a le joueur au début de chacun de ses tours, au moins.</summary>
+    private const int RichGold = 999_999, RichResource = 999;
+
+    /// <summary>
+    /// Développement : avec « --rich », le joueur humain retrouve au début de chacun de ses tours de l'or et des ressources
+    /// sans fin (pour essayer les bâtiments, les recrues, le marché…).
+    /// </summary>
+    private void Enrich()
+    {
+        if (!OS.GetCmdlineUserArgs().Contains("--rich"))
+            return;
+        foreach (var player in _state.Players.Where(p => !p.IsComputer))
+            foreach (var resource in Enum.GetValues<ResourceType>())
+                player.Resources[resource] = Math.Max(player.Resources.GetValueOrDefault(resource),
+                    resource == ResourceType.Gold ? RichGold : RichResource);
     }
 
     /// <summary>F5 : la sauvegarde rapide (sur la carte, hors marche).</summary>

@@ -1459,7 +1459,8 @@
         "fixe": "L5-4",
         "idle": "idle-2",
         "move": "move-1",
-        "attack": "attack-2-r"
+        "attack": "attack-2-r",
+        "carte": "p1-4"
       },
       "grande": "art-candidats/references/derives/minotaure-grand.png",
       "consignes": {
@@ -1467,6 +1468,40 @@
         "move": "walks forward with heavy steps on his hooves, staying in place, the sledgehammer held, his tail swaying",
         "attack": "lifts the heavy sledgehammer high over his horns with both hands, then brings it down in a big arc onto the enemy in front of him, then raises it back to his stance"
       }
+    },
+    "aberration": {
+      "nom": "Aberration",
+      "gabarit": "grand",
+      "hauteur": 80,
+      "generation": [
+        128,
+        128
+      ],
+      "marge_bas": 0.06,
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "minotaure",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 4 : l'horreur (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : chair pâle (L1 à L3), maladive (L4 à L6).",
+      "references": [
+        "art-candidats/references/donjon/aberration.png::concept reference (a crouched monster with six long clawed arms, a toothy mouth in the palm of each hand and a huge fanged mouth across its belly, no head): keep this design and this crouched pose; ignore the black and white ink style and the signature"
+      ],
+      "description": "a horrible aberration crouching on two thick clawed legs: a headless body of pale pinkish-grey flesh with purple veins, six long muscular arms spread around it, each hand opening into a toothy red mouth with claws, a huge wide mouth full of sharp fangs across its belly",
+      "sujet": "a headless pale pinkish-grey aberration with six clawed arms with mouths in the hands and a huge fanged mouth on its belly, crouching, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L3-2"
+      },
+      "grande": "art-candidats/references/derives/aberration-grand.png"
     }
   }
 }

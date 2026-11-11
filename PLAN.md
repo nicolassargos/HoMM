@@ -757,8 +757,11 @@ croissance, prix, garde.
   l'utilisateur parmi six essais : VT323 nette était trop petite), nette à 16 (un pixel de police = un pixel d'art),
   les titres en Pixel Operator HB à 32 ; trois hauteurs de bouton (petit 32,
   ordinaire 44, grand 60), boutons à icône de 80, « Fermer » de la même taille en haut à droite des grandes fenêtres ;
-  l'écran s'assombrit aussi derrière les petites fenêtres. Reste : 2. revoir écran par écran (la colonne de la carte,
-  les barres du combat) ; 3. des icônes pour les récompenses (coffre, niveau), le livre de sorts en image, la ville.
+  l'écran s'assombrit aussi derrière les petites fenêtres. ✅ 2. Écran par écran pour la nouvelle police (branche
+  `interface-ecrans`) : les listes de la colonne de la carte en portraits comme Heroes 2 (deux par rangée, barres de
+  mouvement et de points de sort, le détail au survol), la fiche du héros, les cartes de recrutement (l'écran de
+  recrutement sera encore revu pour gagner de la place, choix de l'utilisateur). Reste : 3. des icônes pour les
+  récompenses (coffre, niveau), le livre de sorts en image, la ville.
 - ✅ **Le champ de bataille de l'herbe** (2026-11-11, branche `champ-de-bataille`, d'après des captures de Heroes 1 à 3
   données par l'utilisateur) : le sol du shader de la carte (taches de terre battue, ombres et éclaircies), deux décors tirés
   à chaque combat, la **lisière d'une forêt** (rangées d'arbres, grands troncs au fond, buissons devant, ombre sous les

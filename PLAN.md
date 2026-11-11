@@ -724,6 +724,17 @@ choix de l'utilisateur) :
 - Mesuré (`Mesures`) : la simulation gagne toujours (petites cartes jour 88, normales 86, grandes 154) ; un adversaire
   après six semaines : Facile 17 200, Normal 16 800, Difficile 22 900 en or d'armée.
 - **Plus tard** : des **cavernes** où l'on apprend un talent (avec les classes) ou trouve un artefact.
+- ✅ **Les gardiens justes** (2026-11-11, branche `gardiens`, demandé par l'utilisateur : les petites cartes ralentissaient
+  à chaque faction) : la force d'une créature se mesure contre une vraie armée du Château, à la taille d'un gardien
+  (`CreatureStrength.GoldToBeat`), et non plus par les paysans qu'il faut pour en vaincre une seule (un tireur seul
+  paraissait bien trop fort : ses gardiens étaient minuscules) ; la force de référence de chaque niveau reste celle
+  d'avant. Une seule créature du niveau 7 d'une faction était déjà bien plus forte que le gardien voulu (une Hydre,
+  2,5 fois trois Dragons rouges) : le gardien prend alors la créature du niveau 6 de sa faction, à la même force. Mesure
+  `Gardiens_par_creature` : dans chaque niveau, les gardiens demandent de 0,76 à 1,12 fois la même armée (0,3 à 2,5
+  avant). Puis **les revenus doublés** (voir Repères). Mesuré (six cartes) : petites cartes jour 101 → 84 (gardiens)
+  → **68** (revenus), la plus lente 164 → 90 ; normales 86 ; grandes 153 → 147 ; un adversaire après six semaines
+  (Normal, or d'armée) : Château 57 100, morts-vivants 47 700, Barbares 54 700, Forêt 61 700, Tour 56 200, Donjon
+  60 000, Enfer 65 200 (environ 25 000 avant : les adversaires sont deux fois plus riches).
 
 ### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et
@@ -826,7 +837,9 @@ croissance, prix, garde.
 - **Château** : départ 30 paysans, 15 archers, 4 griffons ; prix 3 or par « paysan équivalent » (Archer 18, Griffon 40,
   Épéiste 80, Moine 150, Cavalier 300, Ange 4900 et 1 gemme) ; croissance 30 (28 avant le 2026-11-08), 18, 14, 8, 6, 4, 2 ; paysans pour vaincre
   une unité : Archer 8, Griffon 13, Épéiste 26, Moine 58, Cavalier 112, Ange 1560 (`UnitCurveTests`).
-- **Économie** : villes 150 / 300 / 600 or par jour, mines d'or 250 ; héros de taverne 2500 or (8 au plus).
+- **Économie** : villes 300 / 600 / 1200 or par jour, mines d'or 500 (doublés le 2026-11-11, choix de l'utilisateur : la
+  simulation dépensait tout son or chaque jour ; Heroes 3 paie bien plus, par rapport au prix des créatures) ; héros de
+  taverne 2500 or (8 au plus).
 - **Combat** : dégâts tirés au sort puis règle attaque / défense de Heroes 3 ; tir à moitié au-delà de 6 cases ou
   au corps à corps ; défense +20 % ; fuite : 50 à 90 % de pertes ; un combat se rejoue pareil avec la même graine.
 - **Carte** : zones séparées par des passages gardés ; le niveau d'une zone (passages depuis le départ) donne la force

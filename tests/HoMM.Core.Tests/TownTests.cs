@@ -192,7 +192,7 @@ public class TownTests
 
         state.EndTurn();
 
-        Assert.Equal(gold + 150, player.Resources[ResourceType.Gold]);
+        Assert.Equal(gold + 300, player.Resources[ResourceType.Gold]);
     }
 
     [Fact]
@@ -235,10 +235,10 @@ public class TownTests
     public void L_hotel_de_ville_remplace_la_salle_du_village()
     {
         var (_, town) = GameWithTownNearby();
-        Assert.Equal(150, town.DailyGold);
+        Assert.Equal(300, town.DailyGold);
         town.AddBuilding(B("taverne"));
         town.AddBuilding(B("hotel-ville"));
-        Assert.Equal(300, town.DailyGold);
+        Assert.Equal(600, town.DailyGold);
     }
 
     [Fact]

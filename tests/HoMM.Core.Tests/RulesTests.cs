@@ -226,7 +226,7 @@ public class GameStateTests
 
         state.EndTurn();
 
-        Assert.Equal(gold + 250, Human(state).Resources[ResourceType.Gold]);
+        Assert.Equal(gold + 500, Human(state).Resources[ResourceType.Gold]);
     }
 
     [Fact]

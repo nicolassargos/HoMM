@@ -1335,6 +1335,48 @@
         "attack": "grabs the stone column with both hands, raises it high above his head, then slams it straight down onto the ground in front of him, then lifts it back to his stance",
         "transform": "grabs the stone column with both hands, lifts it and lays it across his right shoulder, then holds it there with one hand, standing upright"
       }
+    },
+    "homme-lezard": {
+      "nom": "Homme-lézard",
+      "gabarit": "humain",
+      "hauteur": 46,
+      "generation": [
+        104,
+        104
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "gnome",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 1 : la masse bon marché (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : lézard des marais (L1 à L3), lézard des cavernes (L4 à L6). Choix (2026-11-11) : L6-1 (lézard des cavernes, lance) à 46 px ; idle-3, move-5-r (la tête fixée sur toutes les images : le corps glissait), attack-2-r (éclat blanc de la pointe effacé).",
+      "references": [
+        "art-candidats/references/donjon/homme-lezard.png::concept reference (a lean lizardman warrior with a spiky crest, a leather harness and a long tail): keep this design and this crouched fighting stance; ignore the black and white ink style"
+      ],
+      "description": "a lean cave lizardman warrior standing in a crouched fighting stance: dark grey-blue scales, a pale grey belly, a crest of bone-white spikes on the head, small pale eyes, a long tail, a leather harness across the chest, holding a spear with a bone tip",
+      "sujet": "a lean grey-blue cave lizardman with a pale belly, a crest of bone spikes, a leather harness and a bone-tipped spear, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L6-1",
+        "idle": "idle-3",
+        "attack": "attack-2-r",
+        "move": "move-5-r"
+      },
+      "grande": "art-candidats/references/derives/homme-lezard-grand.png",
+      "marge_bas": 0.06,
+      "consignes": {
+        "idle": "stays crouched and alert, breathing, his long tail slowly swaying from side to side, his head turning a little, the spear held ready",
+        "move": "walks forward quickly, low and crouched like a lizard, his long tail swinging from side to side, the spear held ready, a smooth looping walk cycle that ends exactly in the starting pose",
+        "attack": "draws back the spear, then lunges and thrusts it straight forward, then pulls it back to his stance"
+      }
     }
   }
 }

@@ -661,6 +661,15 @@ choix de l'utilisateur) :
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et
 croissance, prix, garde.
 
+### Les donjons à explorer (idée, plus tard)
+Idée de l'utilisateur (2026-11-11) : un **donjon** marqué sur la carte, comme un vrai donjon de D&D ; le héros y entre,
+le parcourt et en ressort avec une **grande récompense**. Façon préférée par l'utilisateur : **une petite carte à part**,
+comme le souterrain de Heroes 3, que le héros parcourt case par case (couloirs, salles, gardiens, coffres, pièges, une
+sortie). Écartées pour l'instant : une suite de salles dans une fenêtre (plus simple), un plan de donjon où l'on clique
+la salle suivante. À concevoir avec la session règles : sa génération (`MapGenerator`), sa sauvegarde et son
+brouillard, sortir et revenir ou non, les pertes d'une salle à l'autre, les récompenses (artefact, or, expérience,
+créature rare), le nombre par carte et la difficulté selon la zone ; les créatures du Donjon en gardiens.
+
 ## Étape 10 : finitions
 - Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,
   impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). Reste : les animations des sorts sur le champ

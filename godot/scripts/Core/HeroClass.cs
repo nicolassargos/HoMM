@@ -114,8 +114,19 @@ public static class Talents
     public const string Scholar = "scholar";
     public const int ScholarPercentPerLevel = 2;
 
+    /// <summary>
+    /// Effroi (le Seigneur des abîmes) : l'armée ennemie commence le combat à −1 de moral, −1 de plus tous les 8 niveaux
+    /// du héros (sauf ceux que rien n'effraie : morts-vivants, façonnés, niveau 7, braves).
+    /// </summary>
+    public const string Dread = "dread";
+    public const int DreadLevels = 8;
+
     /// <summary>Tous les talents connus (pour vérifier les données).</summary>
-    public static readonly string[] All = { Necromancy, Crusader, Warlord, Hunter, Scholar };
+    public static readonly string[] All = { Necromancy, Crusader, Warlord, Hunter, Scholar, Dread };
+
+    /// <summary>Le moral que l'Effroi de ce héros retire à l'armée ennemie au début du combat (0 : aucun).</summary>
+    public static int DreadMorale(Hero? hero) =>
+        hero?.Class?.Talent == Dread ? 1 + hero.Level / DreadLevels : 0;
 
     /// <summary>La Rage au plus pour les troupes de ce héros (la Rage de base, plus le Chef de guerre).</summary>
     public static int RageMax(Hero? hero, int baseMax) =>

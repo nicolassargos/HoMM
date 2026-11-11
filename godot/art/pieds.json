@@ -75,6 +75,7 @@
   "creatures/cavalier": {"pieds": [[[9, 28], [24, 27]]], "verifie": true},
   "creatures/cerf": {"pieds": [[[12, 30], [27, 29]]], "verifie": true},
   "creatures/colosse-os": {"pieds": [[[8, 30], [23, 28]]], "verifie": true},
+  "creatures/djinn": {"pieds": [[[9, 29], [22, 28]]], "verifie": false},
   "creatures/dragon": {"pieds": [[[7, 27], [28, 24]]], "verifie": true},
   "creatures/druide": {"pieds": [[[10, 28], [24, 29]]], "verifie": true},
   "creatures/epeiste": {"pieds": [[[11, 27], [22, 27]]], "verifie": true},

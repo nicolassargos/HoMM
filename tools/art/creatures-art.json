@@ -1233,7 +1233,8 @@
         "fixe": "L2-1",
         "idle": "idle-2",
         "move": "move-2",
-        "attack": "attack-2-r"
+        "attack": "attack-2-r",
+        "carte": "p1-4"
       },
       "grande": "art-candidats/references/derives/djinn-grand.png",
       "consignes": {

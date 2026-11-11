@@ -108,7 +108,7 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | **en cours** |
 | **Enfer** | le chaos et le feu, le prix du sang | Démon → Archidémon | mercure | soufre | jouable |
 | **Donjon** | les seigneurs des abîmes, la Terreur | Hydre → (à choisir) | soufre | mercure | jouable |
-| **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
+| **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | **en cours** |
 
 - **L'Ange ressuscite** (idée de l'utilisateur, 2026-11-08, **plus tard**, sur une branche à part) : à la place de son
   action, il ramène des créatures amies tuées dans ce combat (pas les morts-vivants), **à chacun de ses tours** s'il le
@@ -120,13 +120,43 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 - Les **Barbares** : voir plus bas.
 - La **Forêt** : voir plus bas ; le Troll ancien se régénérera plus, et ses coups repousseront l'ennemi (il ne riposte
   plus).
-- L'**Enfer** : voir plus bas. Les **Nains** : échanger des ressources contre de l'or, ou miner davantage (à voir).
+- L'**Enfer** et les **Nains** : voir plus bas.
 - Le **Tyran œil** : un œil géant qui tire des rayons, chacun un sort néfaste au hasard. La **Machine de guerre** :
   une machine à vapeur avec un canon (un tireur dont le coup touche une zone).
 - La **faction neutre** garde les monstres de la carte seulement : le **Dragon rouge** (et d'autres au fil du temps).
 - Les **héros** : les Nains n'en ont pas encore.
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
+
+#### Les Nains (en cours de conception)
+Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Heroes 3 ni Heroes 5 (choix de l'utilisateur).
+- **Philosophie : les halls de la montagne.** Des artisans têtus qui gravent des runes et bâtissent des machines.
+- **Forces** (proposées) : les troupes les plus solides (défense, points de vie), les machines de guerre, une économie
+  forte (leurs mines produisent davantage, à voir).
+- **Faiblesses** (proposées) : lents (vitesse 3 à 5), aucune créature vivante qui vole, peu de magie, chers au début.
+- **Leur marque : l'obstination** (choix de l'utilisateur) : une troupe naine qui ne s'est pas déplacée de tout le round
+  prend 20 % de dégâts en moins (chiffre à régler en mesurant).
+- Ressources : cristal (principale : l'habitation et la créature du niveau 7), soufre (secondaire : niveaux 5 et 6).
+- **Les machines** (Gyrocoptère, Machine de guerre) sont **façonnées**, comme les golems de la Tour : elles résistent
+  à la magie (choix de l'utilisateur).
+- **La classe** (nom à choisir) : attaque 1, défense 3, puissance 1, savoir 2 ; École de la terre au départ ; talent
+  **Obstination** : l'obstination grandit avec le niveau (proposé : 1 % de dégâts en moins de plus par niveau).
+- **À décider** : le nom de la classe, ses sorts de départ et son charisme, les héros (aucun pour l'instant).
+
+| Niveau | Créature | Rôle | Capacité (proposée, chiffres à régler) |
+|---|---|---|---|
+| 1 | Porte-bouclier | le mur | les tireurs amis voisins ne prennent que moitié des dégâts des tirs |
+| 2 | Arbalétrier | le tireur | ses carreaux percent 30 % de la défense de la cible |
+| 3 | Chevaucheur de chèvre | la cavalerie de montagne, la seule troupe rapide | pied sûr : frappe le premier quand on le charge, rien ne le repousse |
+| 4 | Porte-étendard des ancêtres | la bannière | aura : +2 défense aux troupes amies voisines |
+| 5 | Lance-flammes | le feu de près | sa flamme touche la cible et la case derrière elle |
+| 6 | Gyrocoptère | la machine volante | vole ; lâche une bombe sur la cible et les cases voisines |
+| 7 | Machine de guerre (→ Forteresse ambulante) | le canon à vapeur | tire ; son obus touche une zone |
+
+Écartés pour l'instant (idées à garder pour des monstres neutres ou des améliorations) : le Mineur, le Porteur de
+lanterne, le Lanceur de poudre, le Brasseur, le Brise-fer, le Forgeron de guerre, le Tueur de géants, le Prêtre des
+ancêtres, le Forgeron des runes, le Gardien de pierre, l'Ours des cavernes, le Dragon rouge et le Phénix.
+Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images.
 
 #### L'Enfer (en cours)
 Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).
@@ -226,7 +256,7 @@ Décidé avec l'utilisateur (2026-11-11), d'après ses images (`art-candidats/re
 
 Écartés de la faction, pour les monstres neutres de la carte ou les améliorations : la Méduse (trop proche de la Naga de
 la Tour), le Gnoll, l'Augure vautour, la Manticore, la Chimère, la Wyverne, le Centaure orc (trop proche des Nomades).
-Le Dragon rouge reste neutre (peut-être le niveau 7 des Nains, à moins du Phénix).
+Le Dragon rouge reste neutre (les Nains gardent la Machine de guerre au niveau 7 : choix de l'utilisateur, 2026-11-11).
 Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images
 (les créatures : session images ; ✅ la ville sur la carte, 2026-11-11, branche `villes-carte` : une forteresse sombre
 creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objects/town-donjon.png`, luminosité 60).

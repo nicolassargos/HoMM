@@ -157,6 +157,26 @@ Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Hero
 lanterne, le Lanceur de poudre, le Brasseur, le Brise-fer, le Forgeron de guerre, le Tueur de géants, le Prêtre des
 ancêtres, le Forgeron des runes, le Gardien de pierre, l'Ours des cavernes, le Dragon rouge et le Phénix.
 Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images.
+1. ✅ Les créatures et leurs capacités (2026-11-11, branche `nains`) : `stubborn` (20 % de dégâts en moins tant que la
+   troupe ne s'est pas déplacée d'elle-même dans le round, `BattleUnit.HasMoved`), `shield-wall`, `piercing` (30 %),
+   `sure-footed` (la riposte avant le coup ; le crochet ne le tire pas), `banner` (+2 défense, `TacticalBattle.BannerBonus`),
+   `blast` (les ennemis autour de la cible, au corps à corps comme au tir) ; le Lance-flammes prend le souffle du Dragon ;
+   les Nains gardent aussi des passages de la carte (`MonsterFactions`). Chiffres réglés par `Duels_a_prix_egal` (chaque
+   créature au milieu de son niveau ; les auras du Porte-bouclier et du Porte-étendard ne comptent pas en duel, une seule
+   troupe par camp) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Porte-bouclier | 3 | 5 | 1-3 | 8 | 4 | 14 | 15 |
+   | Arbalétrier | 8 | 6 | 3-6 | 16 | 4 | 10 | 35 |
+   | Chevaucheur de chèvre | 9 | 7 | 4-6 | 25 | 7 | 8 | 65 |
+   | Porte-étendard des ancêtres | 11 | 13 | 6-9 | 58 | 4 | 5 | 140 |
+   | Lance-flammes | 14 | 12 | 10-14 | 70 | 4 | 4 | 230 |
+   | Gyrocoptère | 18 | 13 | 18-24 | 95 | 9 | 3 | 370 |
+   | Machine de guerre | 27 | 24 | 100-120 | 1900 | 3 | 2 | 4900 et 1 cristal |
+   Victoires en duel dans leur niveau : 54, 53, 55, 60, 55, 52, 57 %. Mesuré : la simulation gagne comme avant (jours 69,
+   86, 148) ; les gardiens nains demandent de 0,92 à 1,17 fois la même armée ; adversaires (six semaines, Normal, or
+   d'armée, les cartes changent un peu) : Château 54 400, morts-vivants 52 600, Barbares 51 400, Forêt 62 800, Tour
+   46 400, Donjon 56 800, Enfer 60 200. Tests : `NainsTests`.
 
 #### L'Enfer (en cours)
 Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).

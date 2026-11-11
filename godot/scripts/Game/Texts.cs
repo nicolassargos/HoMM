@@ -968,6 +968,12 @@ public static class Texts
         Ability.HeatAura => "aura de chaleur (brûle les ennemis voisins)",
         Ability.Feeds => "se nourrit des morts de l'Enfer (+1 attaque)",
         Ability.Summons => "invoque des diablotins (une fois par combat)",
+        Ability.Stubborn => "obstiné (20 % de dégâts en moins tant qu'il n'a pas bougé dans le round)",
+        Ability.ShieldWall => "mur de boucliers (les tireurs amis voisins prennent moitié des dégâts des tirs)",
+        Ability.Piercing => "carreaux perçants (ignorent 30 % de la défense)",
+        Ability.SureFooted => "pied sûr (riposte avant le coup, rien ne le déplace)",
+        Ability.Banner => "bannière (+2 défense aux troupes amies voisines)",
+        Ability.Blast => "explosion (touche aussi les ennemis autour de la cible)",
         _ => ability,
     };
 

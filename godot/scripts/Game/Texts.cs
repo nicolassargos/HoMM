@@ -815,6 +815,7 @@ public static class Texts
     /// <summary>L'info-bulle d'un héros de la liste.</summary>
     public static string HeroTooltip(Hero hero) =>
         $"{hero.Name} · niveau {hero.Level}\nMouvement {hero.Movement} / {hero.MaxMovement}\n"
+        + $"Points de sort {hero.SpellPoints} / {hero.MaxSpellPoints}\n"
         + string.Join(", ", hero.Army.Stacks.Select(Stack));
 
     /// <summary>Abréviation d'une caractéristique, pour la fiche du héros (« Att »).</summary>

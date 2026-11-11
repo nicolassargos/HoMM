@@ -579,44 +579,50 @@ public partial class TownScreen : CanvasLayer
             card.Modulate = new Color(1, 1, 1, 0.55f);
         if (CreaturePicture(creature, new Rect2(Px(4), Px(4), w - Px(8), Px(84))) is { } image)
             card.AddChild(image);
-        Label Centered(string text, int size, Color color, float y)
+        // les textes les uns sous les autres (une ligne de plus pousse la suite, sans chevauchement), les boutons en bas
+        var texts = new VBoxContainer { Position = new Vector2(Px(4), Px(84)), Size = new Vector2(w - Px(8), 0) };
+        texts.AddThemeConstantOverride("separation", 0);
+        card.AddChild(texts);
+        void Centered(string text, int size, Color color)
         {
             var label = MakeLabel(text, size, color);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
             label.CustomMinimumSize = new Vector2(w - Px(8), 0);
-            label.Position = V(4, y);
-            card.AddChild(label);
-            return label;
+            texts.AddChild(label);
         }
-        Centered(creature.Name, 15, TextColor, 84);
-        Centered(Texts.CreatureLevel(creature), 11, SoftTextColor, 104);
-        Button Action(string text, float y)
+        void Gap() => texts.AddChild(new Control { CustomMinimumSize = new Vector2(0, ArtPx(4)) });
+        Centered(creature.Name, 15, TextColor);
+        Centered(Texts.CreatureLevel(creature), 11, SoftTextColor);
+        Gap();
+        // les boutons comptés depuis le bas de la carte : le dernier à 4 pixels d'art du bord
+        float bottom = card.CustomMinimumSize.Y - ArtPx(4);
+        Button Action(string text, int fromBottom)
         {
             var button = MakeButton(text, 13);
-            button.Position = V(8, y);
             Sized(button, w - Px(16), ButtonHeight);
+            button.Position = new Vector2(Px(8), bottom - (fromBottom + 1) * ButtonHeight - fromBottom * ButtonGap);
             card.AddChild(button);
             return button;
         }
         if (!built)
         {
-            Centered(Texts.ToBuildFirst(dwelling), 13, TextColor, 150);
-            Action(Texts.GoBuild, 286).Pressed += OpenBuild;
+            Centered(Texts.ToBuildFirst(dwelling), 13, TextColor);
+            Action(Texts.GoBuild, 0).Pressed += OpenBuild;
             return card;
         }
         int available = town.Available.GetValueOrDefault(creature);
-        // le niveau et les capacités peuvent prendre deux lignes : la suite commence plus bas
-        Centered(Texts.AvailableLine(creature, available), 12, TextColor, 140);
-        Centered(Texts.PriceLine(creature), 12, TextColor, 178);
-        Centered(Texts.CreatureStats(creature), 11, SoftTextColor, 196); // jusqu'à trois lignes
+        Centered(Texts.AvailableLine(creature, available), 12, TextColor);
+        Centered(Texts.PriceLine(creature), 12, TextColor);
+        Gap();
+        Centered(Texts.CreatureStats(creature), 11, SoftTextColor);
         var hero = _state.VisitingHero(town);
         bool hasRoom = town.Garrison.CanReceive(creature) || (hero != null && hero.Army.CanReceive(creature));
         int max = hasRoom ? town.MaxRecruitable(creature, _state.CurrentPlayer) : 0;
-        var more = Action(Texts.RecruitMore, 254);
+        var more = Action(Texts.RecruitMore, 1);
         more.Disabled = available == 0;
         more.Pressed += () => OpenRecruit(town, creature);
-        var all = Action(Texts.RecruitAllButton(max), 286);
+        var all = Action(Texts.RecruitAllButton(max), 0);
         all.Disabled = max == 0;
         all.Pressed += () =>
         {

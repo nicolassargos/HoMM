@@ -56,15 +56,22 @@ public partial class Hud : CanvasLayer
     private ArmySlots _army = null!;
 
     // les listes
-    private VBoxContainer _heroRows = null!;
-    private VBoxContainer _townRows = null!;
+    private GridContainer _heroRows = null!;
+    private GridContainer _townRows = null!;
     private Button _heroesUp = null!, _heroesDown = null!, _townsUp = null!, _townsDown = null!;
     private int _heroesOffset, _townsOffset;
     private string? _heroesKey, _townsKey;
 
-    /// <summary>Lignes visibles dans chaque liste (les autres avec les flèches) ; leur hauteur en pixels (un portrait de 64).</summary>
-    private const int ListRows = 3;
-    private const int RowHeight = 68;
+    /// <summary>
+    /// Les listes, comme Heroes 2 : des portraits sans nom (le détail au survol), deux par rangée, trois rangées visibles
+    /// (les autres avec les flèches). Une case : le portrait de 64 pixels et, à côté, deux barres (mouvement, points de
+    /// sort) ou la marque « on peut construire aujourd'hui ».
+    /// </summary>
+    private const int ListRows = 3, ListColumns = 2;
+    private const int RowHeight = 68, CellWidth = 80;
+
+    /// <summary>Le nombre de héros ou de villes visibles à la fois dans une liste.</summary>
+    private const int ListCells = ListRows * ListColumns;
 
     // la bande du bas
     private Label _hover = null!;
@@ -144,7 +151,7 @@ public partial class Hud : CanvasLayer
 
         // les listes des héros et des villes, côte à côte (comme Heroes 2)
         float listWidth = (inner - Px(6)) / 2;
-        float listHeight = Px(20) + ListRows * (RowHeight + Px(2));
+        float listHeight = ListHeader + ListRows * (RowHeight + Grid) + Px(4);
         (_heroRows, _heroesUp, _heroesDown) = BuildList(panel, Texts.HeroesHeader, margin, y, listWidth, listHeight, step =>
         {
             _heroesOffset += step;
@@ -211,14 +218,19 @@ public partial class Hud : CanvasLayer
             AddMessage(Texts.Welcome(hero));
     }
 
-    /// <summary>Une liste (héros ou villes) : un titre, des flèches si elle est trop longue, et ses lignes (en pixels).</summary>
-    private static (VBoxContainer Rows, Button Up, Button Down) BuildList(Control parent, string title, float x, float y,
+    /// <summary>Hauteur du haut d'une liste : le titre et les flèches.</summary>
+    private static float ListHeader => SmallButtonHeight + Px(4);
+
+    /// <summary>Une liste (héros ou villes) : un titre, des flèches si elle est trop longue, et ses cases (en pixels).</summary>
+    private static (GridContainer Rows, Button Up, Button Down) BuildList(Control parent, string title, float x, float y,
         float width, float height, Action<int> scroll)
     {
         var box = new Panel { Position = new Vector2(x, y), Size = new Vector2(width, height) };
         box.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         parent.AddChild(box);
-        box.AddChild(At(MakeLabel(title, 12, SoftTextColor), 4, 1));
+        var heading = MakeLabel(title, 12, SoftTextColor);
+        heading.Position = new Vector2(Px(4), Px(2) + SnapDown((SmallButtonHeight - NormalText) / 2));
+        box.AddChild(heading);
         Button Arrow(string text, float ax, int step)
         {
             var arrow = Sized(MakeButton(text, 10), SmallButtonHeight, SmallButtonHeight);
@@ -229,8 +241,15 @@ public partial class Hud : CanvasLayer
         }
         var down = Arrow("▼", width - Px(2) - SmallButtonHeight, +1);
         var up = Arrow("▲", down.Position.X - Px(2) - SmallButtonHeight, -1);
-        var rows = new VBoxContainer { Position = V(4, 20), Size = new Vector2(width - Px(8), height - Px(24)) };
-        rows.AddThemeConstantOverride("separation", (int)Px(2));
+        // les cases centrées dans la largeur de la liste
+        float cellsWidth = ListColumns * CellWidth + (ListColumns - 1) * Grid;
+        var rows = new GridContainer
+        {
+            Columns = ListColumns, Position = new Vector2(SnapDown((width - cellsWidth) / 2), ListHeader),
+            Size = new Vector2(cellsWidth, height - ListHeader),
+        };
+        rows.AddThemeConstantOverride("h_separation", Grid);
+        rows.AddThemeConstantOverride("v_separation", Grid);
         box.AddChild(rows);
         return (rows, up, down);
     }
@@ -271,7 +290,7 @@ public partial class Hud : CanvasLayer
         _heroName.Size = new Vector2(textWidth, Px(22));
         card.AddChild(_heroName);
         _heroLevel = MakeLabel("", 12, SoftTextColor);
-        _heroLevel.Position = new Vector2(textX, Px(22));
+        _heroLevel.Position = new Vector2(textX, Px(20));
         card.AddChild(_heroLevel);
 
         // les caractéristiques, chacune expliquée au survol : Att, Déf sur une ligne ; Pui, Sav ; puis Cha
@@ -283,7 +302,7 @@ public partial class Hud : CanvasLayer
         foreach (var (stat, col, row) in stats)
         {
             var label = MakeLabel("", 12, TextColor);
-            label.Position = new Vector2(textX + col * column, Px(36 + row * 13));
+            label.Position = new Vector2(textX + col * column, Px(34 + row * 14));
             label.MouseFilter = Control.MouseFilterEnum.Stop;
             card.AddChild(label);
             if (stat is { } s)
@@ -294,18 +313,17 @@ public partial class Hud : CanvasLayer
 
         _movementBar = new ProgressBar
         {
-            Position = new Vector2(textX, Px(80)), Size = new Vector2(textWidth, Px(13)),
+            Position = new Vector2(textX, Px(80)), Size = new Vector2(textWidth, Px(14)),
             ShowPercentage = false, MinValue = 0, MaxValue = Hero.DefaultMovement,
         };
         StyleBar(_movementBar, MovementColor);
         card.AddChild(_movementBar);
-        _movementBar.Size = new Vector2(textWidth, Px(13)); // une fois stylée et posée : avant, elle gardait la hauteur minimale du thème
+        _movementBar.Size = new Vector2(textWidth, Px(14)); // une fois stylée et posée : avant, elle gardait la hauteur minimale du thème
         _movementText = MakeLabel("1500 / 1500", 10, TextColor);
         _movementText.HorizontalAlignment = HorizontalAlignment.Center;
         // centré sur la barre : la ligne de texte est un peu plus haute qu'elle
         float textHeight = _movementText.GetCombinedMinimumSize().Y;
-        // (la police laisse de la place sous les lettres : on descend un peu le texte)
-        _movementText.Position = _movementBar.Position + new Vector2(0, (_movementBar.Size.Y - textHeight) / 2 + Px(2));
+        _movementText.Position = _movementBar.Position + new Vector2(0, SnapDown((_movementBar.Size.Y - textHeight) / 2));
         _movementText.Size = new Vector2(_movementBar.Size.X, textHeight);
         card.AddChild(_movementText);
 
@@ -399,42 +417,61 @@ public partial class Hud : CanvasLayer
         _ => hero.Knowledge,
     };
 
-    /// <summary>La liste des héros : portrait, nom, mouvement restant ; le héros choisi est bordé de clair.</summary>
+    /// <summary>
+    /// La liste des héros : portrait, et à sa droite deux barres qui se vident vers le bas (comme Heroes 2) : le mouvement
+    /// (vert) et les points de sort (bleu). Le héros choisi est bordé de clair ; le détail au survol.
+    /// </summary>
     private void RefreshHeroes(Player player)
     {
-        _heroesOffset = Math.Clamp(_heroesOffset, 0, Math.Max(0, player.Heroes.Count - ListRows));
-        var shown = player.Heroes.Skip(_heroesOffset).Take(ListRows).ToList();
-        string key = string.Join("|", shown.Select(h => $"{h.Id}:{h.Movement}")) + $"#{ShownHero?.Id}#{player.Heroes.Count}";
+        _heroesOffset = ClampOffset(_heroesOffset, player.Heroes.Count);
+        var shown = player.Heroes.Skip(_heroesOffset * ListColumns).Take(ListCells).ToList();
+        string key = string.Join("|", shown.Select(h => $"{h.Id}:{h.Movement}:{h.SpellPoints}")) + $"#{ShownHero?.Id}#{player.Heroes.Count}";
         if (key == _heroesKey)
             return;
         _heroesKey = key;
         Clear(_heroRows);
         foreach (var hero in shown)
         {
-            var row = Row(hero == ShownHero, Texts.HeroTooltip(hero), () => HeroClicked?.Invoke(hero),
+            var cell = Cell(hero == ShownHero, Texts.HeroTooltip(hero), () => HeroClicked?.Invoke(hero),
                 () => HeroDetailsPressed?.Invoke(hero));
             if (Art.Portrait(hero.Name) is { } portrait)
-                row.AddChild(Picture(portrait, new Vector2(2, 2), new Vector2(64, 64)));
-            row.AddChild(RowName(hero.Name, row.CustomMinimumSize.X));
-            float barWidth = row.CustomMinimumSize.X - 76;
-            float barY = RowHeight - Px(10);
-            row.AddChild(new ColorRect { Position = new Vector2(70, barY), Size = new Vector2(barWidth, Px(5)), Color = MapRenderer.Rgb(20, 16, 12), MouseFilter = Control.MouseFilterEnum.Ignore });
-            row.AddChild(new ColorRect
-            {
-                Position = new Vector2(70, barY), Size = new Vector2(barWidth * hero.Movement / Math.Max(1, hero.MaxMovement), Px(5)),
-                Color = MovementColor, MouseFilter = Control.MouseFilterEnum.Ignore,
-            });
-            _heroRows.AddChild(row);
+                cell.AddChild(Picture(portrait, new Vector2(Grid, Grid), new Vector2(64, 64)));
+            AddBar(cell, 0, hero.Movement, hero.MaxMovement, MovementColor);
+            AddBar(cell, 1, hero.SpellPoints, hero.MaxSpellPoints, SpellPointsColor);
+            _heroRows.AddChild(cell);
         }
-        _heroesUp.Visible = _heroesDown.Visible = player.Heroes.Count > ListRows;
+        _heroesUp.Visible = _heroesDown.Visible = player.Heroes.Count > ListCells;
     }
 
-    /// <summary>La liste des villes : image, nom et revenu ; un clic ouvre la ville.</summary>
+    /// <summary>Le bleu des points de sort (la barre à côté du mouvement).</summary>
+    private static readonly Color SpellPointsColor = MapRenderer.Rgb(70, 110, 190);
+
+    /// <summary>Une barre verticale à droite du portrait (<paramref name="index"/> : la première ou la seconde), qui se vide vers le bas.</summary>
+    private static void AddBar(Control cell, int index, int value, int max, Color color)
+    {
+        float x = Grid + 64 + Grid + index * (Grid * 3), height = 64;
+        cell.AddChild(new ColorRect
+        {
+            Position = new Vector2(x, Grid), Size = new Vector2(Grid * 2, height), Color = MapRenderer.Rgb(20, 16, 12),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        });
+        float filled = Snap(height * Math.Clamp(value, 0, Math.Max(1, max)) / Math.Max(1, max));
+        cell.AddChild(new ColorRect
+        {
+            Position = new Vector2(x, Grid + height - filled), Size = new Vector2(Grid * 2, filled), Color = color,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        });
+    }
+
+    /// <summary>
+    /// La liste des villes : l'image de la ville et, à côté, une marque verte si l'on peut encore y construire aujourd'hui ;
+    /// un clic ouvre la ville, le détail au survol.
+    /// </summary>
     private void RefreshTowns(Player player)
     {
-        _townsOffset = Math.Clamp(_townsOffset, 0, Math.Max(0, player.Towns.Count - ListRows));
-        var shown = player.Towns.Skip(_townsOffset).Take(ListRows).ToList();
-        string key = string.Join("|", shown.Select(t => $"{t.Id}:{t.DailyGold}")) + $"#{player.Towns.Count}";
+        _townsOffset = ClampOffset(_townsOffset, player.Towns.Count);
+        var shown = player.Towns.Skip(_townsOffset * ListColumns).Take(ListCells).ToList();
+        string key = string.Join("|", shown.Select(t => $"{t.Id}:{t.DailyGold}:{t.BuiltToday}")) + $"#{player.Towns.Count}";
         if (key == _townsKey)
             return;
         _townsKey = key;
@@ -443,16 +480,25 @@ public partial class Hud : CanvasLayer
             _townRows.AddChild(MakeLabel(Texts.NoTown, 12, SoftTextColor));
         foreach (var town in shown)
         {
-            var row = Row(false, $"{town.Name} · {Texts.TownIncome(town)} par jour", () => TownClicked?.Invoke(town));
+            var cell = Cell(false, Texts.TownDetails(town), () => TownClicked?.Invoke(town));
             if (Art.Town(town.Faction) is { } image)
-                row.AddChild(Picture(TownThumbnail(image), new Vector2(2, 2), new Vector2(64, 64)));
-            row.AddChild(RowName(town.Name, row.CustomMinimumSize.X));
-            var income = MakeLabel(Texts.TownIncome(town), 10, SoftTextColor);
-            income.Position = new Vector2(70, RowHeight - Px(18));
-            row.AddChild(income);
-            _townRows.AddChild(row);
+                cell.AddChild(Picture(TownThumbnail(image), new Vector2(Grid, Grid), new Vector2(64, 64)));
+            if (!town.BuiltToday)
+                cell.AddChild(new ColorRect
+                {
+                    Position = new Vector2(Grid + 64 + Grid * 2, Grid * 2), Size = new Vector2(Grid * 3, Grid * 3), Color = GoodColor,
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                });
+            _townRows.AddChild(cell);
         }
-        _townsUp.Visible = _townsDown.Visible = player.Towns.Count > ListRows;
+        _townsUp.Visible = _townsDown.Visible = player.Towns.Count > ListCells;
+    }
+
+    /// <summary>La première rangée montrée (une rangée de deux à chaque flèche), sans dépasser la dernière.</summary>
+    private static int ClampOffset(int offset, int count)
+    {
+        int rows = (count + ListColumns - 1) / ListColumns;
+        return Math.Clamp(offset, 0, Math.Max(0, rows - ListRows));
     }
 
     private static readonly Dictionary<Texture2D, Texture2D> TownThumbnails = new();
@@ -477,24 +523,10 @@ public partial class Hud : CanvasLayer
         return thumbnail;
     }
 
-    /// <summary>Le nom d'un héros ou d'une ville dans une ligne de liste : sur deux lignes au plus, à côté de l'image.</summary>
-    private static Label RowName(string text, float rowWidth)
+    /// <summary>Une case cliquable d'une liste, avec son info-bulle ; <paramref name="selected"/> : bordée de clair.</summary>
+    private static Panel Cell(bool selected, string tooltip, Action clicked, Action? doubleClicked = null)
     {
-        var name = MakeLabel(text, 11, TextColor);
-        // avant la taille (sinon elle se règle sur le texte entier) ; jamais au milieu d'un mot, « … » s'il ne tient pas
-        name.AutowrapMode = TextServer.AutowrapMode.Word;
-        name.MaxLinesVisible = 2;
-        name.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-        name.ClipText = true; // un mot plus long que la ligne ne dépasse pas de la ligne
-        name.Position = new Vector2(68, 2);
-        name.Size = new Vector2(rowWidth - 70, Px(30));
-        return name;
-    }
-
-    /// <summary>Une ligne cliquable d'une liste, avec son info-bulle ; <paramref name="selected"/> : bordée de clair.</summary>
-    private Panel Row(bool selected, string tooltip, Action clicked, Action? doubleClicked = null)
-    {
-        var row = new Panel { CustomMinimumSize = new Vector2(_heroRows.Size.X, RowHeight), TooltipText = tooltip, MouseFilter = Control.MouseFilterEnum.Stop };
+        var row = new Panel { CustomMinimumSize = new Vector2(CellWidth, RowHeight), TooltipText = tooltip, MouseFilter = Control.MouseFilterEnum.Stop };
         row.AddThemeStyleboxOverride("panel", Plate(PanelColor, selected ? Colors.White : null));
         row.GuiInput += e =>
         {

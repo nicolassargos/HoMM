@@ -41,12 +41,13 @@ STEP, BRIDGE = 3, 10      # remontée qui arrête le pied ; creux enjambé
 NECK, SEED = 3, 20        # amincissement qui sépare deux objets ; taille d'un bout qui compte
 PATH_WIDTH = 8            # largeur d'un chemin vers l'entrée
 ETALEMENT = 3             # nombre de bagues autour de la forme, par défaut
+OPACITE, COULEUR = 1.0, "#000000"  # l'ombre d'une image : un facteur de son opacité, et sa couleur (noire par défaut)
 
 
 def images():
     """Les images posées sur la carte (nom sans .png, relatif à godot/art)."""
     noms = []
-    for dossier in ("objects", "decor", "creatures", "heroes"):
+    for dossier in ("objects", "decor", "creatures", "heroes", "battle"):
         for f in sorted(glob.glob(os.path.join(ART, dossier, "*.png"))):
             noms.append(f"{dossier}/{os.path.basename(f)[:-4]}")
     return noms
@@ -201,7 +202,9 @@ def proposer(tout, noms=()):
                 continue
         elif nom in donnees and (donnees[nom].get("verifie") or not tout):
             continue
-        donnees[nom] = {"pieds": proposer_pieds(os.path.join(ART, nom + ".png")), "verifie": False}
+        # de nouveaux pieds ; l'étalement, l'opacité et la couleur choisis restent
+        reglages = {k: v for k, v in donnees.get(nom, {}).items() if k in ("etalement", "opacite", "couleur")}
+        donnees[nom] = {"pieds": proposer_pieds(os.path.join(ART, nom + ".png")), "verifie": False, **reglages}
         print(f"{nom} : {len(donnees[nom]['pieds'])} pied(s)", flush=True)
     ecrire(donnees)
     print(f"Écrit {os.path.relpath(FICHIER, RACINE)}")
@@ -217,7 +220,8 @@ def page():
         d = donnees.get(nom, {"pieds": [], "verifie": False})
         items.append({"nom": nom, "src": src, "pieds": d["pieds"], "verifie": d.get("verifie", False),
                       "empreinte": zlib.crc32(octets),
-                      "etalement": d.get("etalement", ETALEMENT)})
+                      "etalement": d.get("etalement", ETALEMENT),
+                      "opacite": d.get("opacite", OPACITE), "couleur": d.get("couleur", COULEUR)})
     html = PAGE_HTML.replace("%ITEMS%", json.dumps(items)).replace("%PAGE%", PAGE).replace("%PORT%", str(PORT))
     os.makedirs(EN_COURS, exist_ok=True)
     sortie = os.path.join(EN_COURS, PAGE + ".html")
@@ -242,6 +246,10 @@ def appliquer(fichier):
         donnees[nom] = {"pieds": it["pieds"], "verifie": bool(it.get("verifie"))}
         if int(it.get("etalement", ETALEMENT)) != ETALEMENT:
             donnees[nom]["etalement"] = int(it["etalement"])
+        if abs(float(it.get("opacite", OPACITE)) - OPACITE) > 0.001:
+            donnees[nom]["opacite"] = round(float(it["opacite"]), 2)
+        if str(it.get("couleur", COULEUR)).lower() != COULEUR:
+            donnees[nom]["couleur"] = str(it["couleur"]).lower()
         n += 1
         if it.get("commentaire"): print(f"{nom} : {it['commentaire']}")
     ecrire(donnees)
@@ -267,7 +275,7 @@ button.on{background:var(--or);color:#000}main{padding:16px;display:flex;flex-wr
 <p class="aide">Chaque image est posée sur l'herbe avec l'aperçu de son ombre de contact (à pleine force ; le jeu l'adoucit avec le réglage « contact »).
 Un <b>pied</b> va du point <b style="color:#f4f">rose</b> (le pixel le plus à gauche de la base) au point <b style="color:#4ef">bleu</b> (le plus à droite).
 <b>Glisser</b> un point pour le corriger. <b>« + pied »</b> puis deux clics (gauche, puis droite) pour en ajouter un ; <b>clic droit</b> sur un point pour retirer son pied.
-<b>− / +</b> règle l'étalement (le nombre de bagues autour de la forme : 1 serrée, 6 large). <b>« Bonne »</b> quand l'image est juste. Les réponses sont gardées dans le navigateur, et écrites sur le disque si <code>python -I tools/art/revue.py serveur</code> tourne (sinon : Télécharger).</p>
+<b>− / +</b> règle l'étalement (le nombre de bagues autour de la forme : 1 serrée, 6 large), puis l'<b>opacité</b> (× 0,2 à × 2) et la <b>couleur</b> de l'ombre (noire par défaut ; brune sur le sable, bleutée sur la neige…). <b>« Bonne »</b> quand l'image est juste. Les réponses sont gardées dans le navigateur, et écrites sur le disque si <code>python -I tools/art/revue.py serveur</code> tourne (sinon : Télécharger).</p>
 <main></main>
 <script>
 const ITEMS=%ITEMS%;const CLE='%PAGE%';const ETALEMENT=3;
@@ -278,7 +286,7 @@ function it(n){const d=ITEMS.find(i=>i.nom===n);
  // une image changée depuis la dernière visite (une nouvelle scierie) repart de sa proposition
  if(etat[n]&&etat[n].empreinte!==d.empreinte)delete etat[n];
  const s=etat[n]||(etat[n]={pieds:JSON.parse(JSON.stringify(d.pieds)),verifie:d.verifie,commentaire:'',empreinte:d.empreinte});
- if(s.etalement==null)s.etalement=d.etalement||ETALEMENT;return s}
+ if(s.etalement==null)s.etalement=d.etalement||ETALEMENT;if(s.opacite==null)s.opacite=d.opacite||1;if(!s.couleur)s.couleur=d.couleur||'#000000';return s}
 function sauver(){try{localStorage.setItem(CLE,JSON.stringify(etat))}catch(e){}clearTimeout(sauver.t);sauver.t=setTimeout(envoyer,400);compter()}
 function reponses(){const items={};for(const i of ITEMS)items[i.nom]=it(i.nom);return{page:CLE,items}}
 async function envoyer(){const d=document.getElementById('disque');try{const r=await fetch('http://127.0.0.1:%PORT%/reponses',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(reponses())});
@@ -302,15 +310,16 @@ function ombre(m,w,h,pieds,mg,etalement){const W=w+2*mg,H=h+2*mg;let fill=Array.
  cur=grow(cur);for(const s of shades(etalement)){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(cur[y][x]&&!al[y][x])al[y][x]=s;cur=grow(cur)}return al}
 const main=document.querySelector('main');
 for(const d of ITEMS){const div=document.createElement('div');div.className='item';div.dataset.nom=d.nom;
- div.innerHTML=`<h2>${d.nom}<span class="etat"></span></h2><canvas></canvas><div class="outils"><button data-ajout>+ pied</button><button data-reset>Proposition</button><button data-ok>Bonne</button><span class="lib">étalement</span><button data-moins>−</button><b data-etal></b><button data-plus>+</button></div><textarea rows="1" placeholder="commentaire"></textarea>`;
+ div.innerHTML=`<h2>${d.nom}<span class="etat"></span></h2><canvas></canvas><div class="outils"><button data-ajout>+ pied</button><button data-reset>Proposition</button><button data-ok>Bonne</button><span class="lib">étalement</span><button data-moins>−</button><b data-etal></b><button data-plus>+</button><span class="lib">opacité</span><button data-omoins>−</button><b data-opac></b><button data-oplus>+</button><input type="color" data-coul title="couleur de l'ombre"></div><textarea rows="1" placeholder="commentaire"></textarea>`;
  main.appendChild(div);const img=new Image();img.src=d.src;img.onload=()=>monter(div,d,img)}
 function monter(div,d,img){const w=img.width,h=img.height,mg=8,Z=Math.max(3,Math.min(10,Math.floor(420/(w+2*mg))));
  const c=document.createElement('canvas');c.width=w;c.height=h;const cx=c.getContext('2d');cx.drawImage(img,0,0);const px=cx.getImageData(0,0,w,h).data;
  const alpha=Array.from({length:h},(_,y)=>Array.from({length:w},(_,x)=>px[(y*w+x)*4+3]>127));const m=opaqueSansChemin(alpha,w,h);
  const cv=div.querySelector('canvas');cv.width=(w+2*mg)*Z;cv.height=(h+2*mg)*Z;const g=cv.getContext('2d');g.imageSmoothingEnabled=false;
  let ajout=null,prise=null;
- function dessiner(){const s=it(d.nom),al=ombre(m,w,h,s.pieds,mg,s.etalement);div.querySelector('[data-etal]').textContent=' '+s.etalement+' ';g.fillStyle='#6eaa3c';g.fillRect(0,0,cv.width,cv.height);
-  for(let y=0;y<h+2*mg;y++)for(let x=0;x<w+2*mg;x++)if(al[y][x]){g.fillStyle=`rgba(0,0,0,${al[y][x]})`;g.fillRect(x*Z,y*Z,Z,Z)}
+ function dessiner(){const s=it(d.nom),al=ombre(m,w,h,s.pieds,mg,s.etalement);div.querySelector('[data-etal]').textContent=' '+s.etalement+' ';div.querySelector('[data-opac]').textContent=' ×'+s.opacite.toFixed(1)+' ';g.fillStyle='#6eaa3c';g.fillRect(0,0,cv.width,cv.height);
+  const cr=parseInt(s.couleur.slice(1,3),16),cg=parseInt(s.couleur.slice(3,5),16),cb=parseInt(s.couleur.slice(5,7),16);
+  for(let y=0;y<h+2*mg;y++)for(let x=0;x<w+2*mg;x++)if(al[y][x]){g.fillStyle=`rgba(${cr},${cg},${cb},${Math.min(1,al[y][x]*s.opacite)})`;g.fillRect(x*Z,y*Z,Z,Z)}
   g.globalAlpha=0.8;g.drawImage(img,mg*Z,mg*Z,w*Z,h*Z);g.globalAlpha=1;
   s.pieds.forEach(([l,r])=>{g.strokeStyle='#fff';g.lineWidth=1;g.beginPath();g.moveTo((l[0]+mg+.5)*Z,(l[1]+mg+.5)*Z);g.lineTo((r[0]+mg+.5)*Z,(r[1]+mg+.5)*Z);g.stroke();
    for(const [p,col] of [[l,'#f4f'],[r,'#4ef']]){g.fillStyle=col;g.fillRect((p[0]+mg)*Z,(p[1]+mg)*Z,Z,Z);g.strokeStyle='#000';g.strokeRect((p[0]+mg)*Z+.5,(p[1]+mg)*Z+.5,Z-1,Z-1)}});
@@ -326,6 +335,9 @@ function monter(div,d,img){const w=img.width,h=img.height,mg=8,Z=Math.max(3,Math
  div.querySelector('[data-reset]').onclick=()=>{it(d.nom).pieds=JSON.parse(JSON.stringify(d.pieds));sauver();dessiner()};
  div.querySelector('[data-moins]').onclick=()=>{const s=it(d.nom);s.etalement=Math.max(1,s.etalement-1);sauver();dessiner()};
  div.querySelector('[data-plus]').onclick=()=>{const s=it(d.nom);s.etalement=Math.min(6,s.etalement+1);sauver();dessiner()};
+ div.querySelector('[data-omoins]').onclick=()=>{const s=it(d.nom);s.opacite=Math.max(0.2,Math.round((s.opacite-0.1)*10)/10);sauver();dessiner()};
+ div.querySelector('[data-oplus]').onclick=()=>{const s=it(d.nom);s.opacite=Math.min(2,Math.round((s.opacite+0.1)*10)/10);sauver();dessiner()};
+ const coul=div.querySelector('[data-coul]');coul.value=it(d.nom).couleur;coul.oninput=()=>{it(d.nom).couleur=coul.value;sauver();dessiner()};
  div.querySelector('[data-ok]').onclick=()=>{const s=it(d.nom);s.verifie=!s.verifie;sauver()};
  const t=div.querySelector('textarea');t.value=it(d.nom).commentaire||'';t.oninput=()=>{it(d.nom).commentaire=t.value;sauver()};
  dessiner();compter()}

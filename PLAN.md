@@ -611,8 +611,16 @@ croissance, prix, garde.
   proche) ; l'épée du curseur pointe vers la cible depuis ce côté (six images, l'épée C15 choisie par l'utilisateur,
   retournée, redessinée à plat pour la droite et la gauche) ; la case d'arrivée est mise en valeur. On vise une créature aussi par son corps, qui dépasse de sa case (sa tête : le haut, ses pieds : le bas). Un tir montre une flèche (la 15, choisie par l'utilisateur ; PixelLab), brisée quand il est trop lointain et ne fait que moitié des dégâts (`TacticalBattle.IsLongShot`), comme Heroes 3.
 - **Les barres de défilement** : la poignée comme taillée dans la pierre (demandé par l'utilisateur, 2026-11-08).
-- Fonds de champ de bataille et obstacles ; le héros sur la carte et au combat ; cadres des portraits, bandeau de la
-  date. (Icônes des ressources : faites, 2026-11-07.)
+- ✅ **Le champ de bataille de l'herbe** (2026-11-11, branche `champ-de-bataille`, d'après des captures de Heroes 1 à 3
+  données par l'utilisateur) : le sol du shader de la carte (taches de terre battue, ombres et éclaircies), deux décors tirés
+  à chaque combat, la **lisière d'une forêt** (rangées d'arbres, grands troncs au fond, buissons devant, ombre sous les
+  arbres) ou un **paysage ouvert** (ciel, collines lointaines, petits arbres vus de côté, arbres moyens, brume vers
+  l'horizon), des bords de buissons et d'arbres, des détails semés (cailloux, fleurs, touffes, racines), de nouveaux
+  obstacles (chênes, rochers, souches, troncs couchés), les ombres de contact de la carte (pieds revus par
+  l'utilisateur, opacité et couleur par image). Reste : le sable et le marais (même recette), peut-être des rochers
+  dans les collines et quelques nuages. Détail dans `HISTORIQUE.md`.
+- Le héros sur la carte et au combat ; cadres des portraits, bandeau de la date. (Icônes des ressources : faites,
+  2026-11-07.)
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix
   `art-candidats/en-cours/revue-<lot>.html`, faites par `tools/art/revue.py`, 2026-11-08) ; le code (taille des cases,

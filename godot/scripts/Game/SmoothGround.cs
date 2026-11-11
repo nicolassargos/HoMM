@@ -72,7 +72,60 @@ public partial class SmoothGround : ColorRect
     /// Le sol de la carte, ou null s'il manque le shader ou les images des terrains
     /// (le sol est alors dessiné case par case, sans bords).
     /// </summary>
-    public static SmoothGround? Create(AdventureMap map)
+    public static SmoothGround? Create(AdventureMap map) =>
+        Create(map.Width, map.Height, cell =>
+        {
+            // les forêts et les montagnes ont un sol d'herbe (leur décor est dessiné à part)
+            var terrain = map.GetTerrain(cell);
+            return (DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain, map.HasRoad(cell));
+        });
+
+    /// <summary>
+    /// Le sol du champ de bataille : un seul terrain, qui couvre au moins la taille donnée en pixels de l'écran (des cases
+    /// entières de la carte, à couper par le parent). Plus travaillé que la carte, vu de plus près (demandé par
+    /// l'utilisateur, 2026-11-10) : des taches de terre battue (des cases de chemin groupées, placées selon
+    /// <paramref name="seed"/>), des ombres et des éclaircies plus marquées, plus de fleurs et de cailloux.
+    /// </summary>
+    public static SmoothGround? CreateBattle(TerrainType terrain, Vector2 size, int seed)
+    {
+        int width = (int)Math.Ceiling(size.X / MapRenderer.TileSize), height = (int)Math.Ceiling(size.Y / MapRenderer.TileSize);
+        var ground = DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
+        // la terre battue : quelques taches de 2 à 4 cases voisines, loin des bords
+        var worn = new System.Collections.Generic.HashSet<Cell>();
+        var random = new Random(seed);
+        int patches = 3 + random.Next(3);
+        for (int i = 0; i < patches; i++)
+        {
+            var cell = new Cell(2 + random.Next(Math.Max(1, width - 4)), 3 + random.Next(Math.Max(1, height - 4)));
+            for (int n = 2 + random.Next(3); n > 0; n--)
+            {
+                worn.Add(cell);
+                cell = cell.Offset(random.Next(3) - 1, random.Next(3) - 1);
+            }
+        }
+        var result = Create(width, height, cell => (worn.Contains(cell) ? DirtId : ground, false), Art.GetImage("terrain/road"));
+        if (result?.Material is ShaderMaterial material)
+        {
+            material.SetShaderParameter("shade", 0.13f);
+            material.SetShaderParameter("shade_scale", 45f * (float)material.GetShaderParameter("ART") / 24f);
+            material.SetShaderParameter("flower_density", 0.22f);
+            material.SetShaderParameter("pebble_share", 0.35f);
+            ApplyDevelopmentSettings(material);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Le numéro de la terre battue du champ de bataille : la place libre du shader (le 1, l'ancienne route), avec l'image
+    /// de la route, sous l'herbe (ses bords ondulés sont ceux de l'herbe, comme le sable sur la carte).
+    /// </summary>
+    private const TerrainType DirtId = (TerrainType)1;
+
+    /// <summary>
+    /// Le sol de <paramref name="width"/> × <paramref name="height"/> cases, chaque case : son terrain et sa route ;
+    /// <paramref name="dirt"/> : l'image de la terre battue (DirtId), s'il y en a.
+    /// </summary>
+    private static SmoothGround? Create(int width, int height, Func<Cell, (TerrainType Terrain, bool Road)> cellAt, Image? dirt = null)
     {
         if (!Godot.FileAccess.FileExists(ShaderPath))
             return null;
@@ -88,6 +141,13 @@ public partial class SmoothGround : ColorRect
         int maxId = terrains.Max(t => (int)t);
         for (int id = 0; id <= maxId; id++)
         {
+            if (id == (int)DirtId && dirt != null && dirt.GetSize() == size)
+            {
+                dirt.Convert(Image.Format.Rgba8);
+                tiles.Add(dirt);
+                tiles.Add(dirt);
+                continue;
+            }
             if (!Enum.IsDefined(typeof(TerrainType), id))
             {
                 var empty = Image.CreateEmpty(size.X, size.Y, false, Image.Format.Rgba8);
@@ -113,14 +173,13 @@ public partial class SmoothGround : ColorRect
         var tileArray = new Texture2DArray();
         tileArray.CreateFromImages(tiles);
 
-        // Le terrain de chaque case ; les forêts et les montagnes ont un sol d'herbe (leur décor est dessiné à part)
-        var cells = Image.CreateEmpty(map.Width, map.Height, false, Image.Format.Rg8);
-        for (int y = 0; y < map.Height; y++)
-        for (int x = 0; x < map.Width; x++)
+        // Le terrain de chaque case, et sa route
+        var cells = Image.CreateEmpty(width, height, false, Image.Format.Rg8);
+        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
         {
-            var terrain = map.GetTerrain(new Cell(x, y));
-            var ground = DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
-            cells.SetPixel(x, y, new Color((int)ground / 255f, map.HasRoad(new Cell(x, y)) ? 1 : 0, 0));
+            var (ground, road) = cellAt(new Cell(x, y));
+            cells.SetPixel(x, y, new Color((int)ground / 255f, road ? 1 : 0, 0));
         }
 
         var material = new ShaderMaterial { Shader = new Shader { Code = Godot.FileAccess.GetFileAsString(ShaderPath) } };
@@ -128,10 +187,11 @@ public partial class SmoothGround : ColorRect
         material.SetShaderParameter("tiles", tileArray);
         material.SetShaderParameter("road_tile", RoadTile(size));
         material.SetShaderParameter("variants", Variants);
-        material.SetShaderParameter("map_cells", new Vector2I(map.Width, map.Height));
+        material.SetShaderParameter("map_cells", new Vector2I(width, height));
         var ranks = new int[8];
         foreach (var terrain in terrains)
             ranks[(int)terrain] = Rank(terrain);
+        ranks[(int)DirtId] = 1;
         material.SetShaderParameter("priority", ranks);
         material.SetShaderParameter("water", (int)TerrainType.Water);
         material.SetShaderParameter("sand", (int)TerrainType.Sand);
@@ -147,7 +207,7 @@ public partial class SmoothGround : ColorRect
         return new SmoothGround
         {
             Material = material,
-            Size = new Vector2(map.Width, map.Height) * MapRenderer.TileSize,
+            Size = new Vector2(width, height) * MapRenderer.TileSize,
             MouseFilter = MouseFilterEnum.Ignore,
         };
     }

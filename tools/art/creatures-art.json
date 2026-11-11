@@ -1368,7 +1368,8 @@
         "fixe": "L6-1",
         "idle": "idle-3",
         "attack": "attack-2-r",
-        "move": "move-5-r"
+        "move": "move-5-r",
+        "carte": "p1-7"
       },
       "grande": "art-candidats/references/derives/homme-lezard-grand.png",
       "marge_bas": 0.06,

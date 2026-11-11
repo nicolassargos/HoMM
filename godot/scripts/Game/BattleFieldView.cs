@@ -1189,7 +1189,7 @@ public partial class BattleFieldView : Control
                         {
                             launched = true;
                             _effects.Launch(shot, LaunchPoint(struck.Attacker, striker), BodyCenter(struck.Target, _shown[struck.Target]),
-                                () => landed = true);
+                                () => landed = true, LaunchPoint(struck.Attacker, striker, "launchPoint2"));
                         }
                         if (shot != null && !landed)
                             return false;
@@ -1518,7 +1518,8 @@ public partial class BattleFieldView : Control
             var from = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Attacker);
             var to = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Defender);
             if (from.Key != null && to.Key != null)
-                _effects.Launch(parts[0], LaunchPoint(from.Key, from.Value), BodyCenter(to.Key, to.Value), () => { });
+                _effects.Launch(parts[0], LaunchPoint(from.Key, from.Value), BodyCenter(to.Key, to.Value), () => { },
+                    LaunchPoint(from.Key, from.Value, "launchPoint2"));
             return;
         }
         double? frozen = parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var at) ? at : null;
@@ -1818,10 +1819,17 @@ public partial class BattleFieldView : Control
     /// D'où part le tir : le « launchPoint » de la créature dans son image d'attaque (pixels d'art depuis le coin en haut à
     /// gauche), à l'écran et retourné si elle regarde à gauche ; sinon le milieu de son corps.
     /// </summary>
-    private static Vector2 LaunchPoint(BattleUnit unit, Shown shown)
+    private static Vector2 LaunchPoint(BattleUnit unit, Shown shown) =>
+        LaunchPoint(unit, shown, "launchPoint") ?? BodyCenter(unit, shown);
+
+    /// <summary>
+    /// Le point <paramref name="setting"/> (« launchPoint », ou « launchPoint2 » : la seconde main du Mage, d'où part un
+    /// second éclair) de l'image d'attaque, à l'écran ; null si la créature ne l'a pas.
+    /// </summary>
+    private static Vector2? LaunchPoint(BattleUnit unit, Shown shown, string setting)
     {
-        if (PointSetting(unit, "launchPoint") is not { } point || Sheet(unit, AttackState) is not { } sheet)
-            return BodyCenter(unit, shown);
+        if (PointSetting(unit, setting) is not { } point || Sheet(unit, AttackState) is not { } sheet)
+            return null;
         var foot = shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10));
         int rows = (Frames(unit, AttackState) + AnimationColumns - 1) / AnimationColumns;
         var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / rows);

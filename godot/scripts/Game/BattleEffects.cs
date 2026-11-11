@@ -66,6 +66,8 @@ public sealed class BattleEffects
     private sealed class Beam
     {
         public Vector2 From, To;
+        /// <summary>La seconde main du lanceur (le Mage) : un second rayon qui rejoint le premier, ou rien.</summary>
+        public Vector2? From2;
         public double Age;
         public int Seed;
     }
@@ -125,13 +127,16 @@ public sealed class BattleEffects
     /// </summary>
     public static double ProjectileSpeed { get; set; } = 1;
 
-    /// <summary>Lance un projectile ; <paramref name="arrived"/> est appelé quand il touche (le coup porte à ce moment).</summary>
-    public void Launch(string kind, Vector2 from, Vector2 to, Action arrived)
+    /// <summary>
+    /// Lance un projectile ; <paramref name="arrived"/> est appelé quand il touche (le coup porte à ce moment).
+    /// <paramref name="from2"/> : la seconde main d'où part aussi un éclair (il rejoint le premier).
+    /// </summary>
+    public void Launch(string kind, Vector2 from, Vector2 to, Action arrived, Vector2? from2 = null)
     {
         if (kind == "eclair")
         {
             // un éclair n'a pas de trajet : il frappe presque aussitôt (un projectile invisible porte le moment du coup)
-            _beams.Add(new Beam { From = from, To = to, Seed = ++_seed });
+            _beams.Add(new Beam { From = from, From2 = from2, To = to, Seed = ++_seed });
             _projectiles.Add(new Projectile { Kind = "", From = to, To = to, Duration = 0.06, Arrived = arrived });
             return;
         }
@@ -341,26 +346,58 @@ public sealed class BattleEffects
     {
         float fade = 1 - (float)(b.Age / BeamTime);
         int flicker = (int)(b.Age / 0.05);
-        int segments = Math.Max(3, (int)(b.From.DistanceTo(b.To) / (U * 9)));
-        var dir = (b.To - b.From).Normalized();
+        int seed = b.Seed + flicker * 31;
+        var start = b.From;
+        if (b.From2 is { } from2)
+        {
+            // deux mains : un éclair fin part de chacune et ils se rejoignent un peu devant le lanceur, d'où part le grand
+            var dir = (b.To - b.From).Normalized();
+            start = b.From + dir * U * 18 + new Vector2(0, (from2.Y - b.From.Y) * 0.5f);
+            Bolt(canvas, b.From, start, seed + 7, fade, 1, 3 * U);
+            Bolt(canvas, from2, start, seed + 13, fade, 1, 3 * U);
+        }
+        var points = Bolt(canvas, start, b.To, seed, fade, 3, 6 * U);
+        // de petites branches le long du grand éclair : quelques traits fins qui partent de côté et s'arrêtent
+        for (int k = 1; k < points.Length - 1; k++)
+        {
+            if (Noise(seed + 101, k) > 0.45f)
+                continue;
+            var along = (points[k + 1] - points[k]).Normalized();
+            float turn = (Noise(seed + 103, k) > 0.5f ? 1 : -1) * (0.5f + 0.6f * Noise(seed + 107, k));
+            var branch = along.Rotated(turn) * U * (6 + 6 * Noise(seed + 109, k));
+            Bolt(canvas, points[k], points[k] + branch, seed + 211 * k, fade * 0.85f, 1, 2 * U);
+        }
+    }
+
+    /// <summary>
+    /// Un éclair brisé de <paramref name="from"/> à <paramref name="to"/>, redessiné à chaque scintillement : un cœur blanc
+    /// bleuté de <paramref name="core"/> pixels d'art, un halo bleu vif et une lueur pâle autour ; <paramref name="jag"/> :
+    /// l'écart des zigzags. Rend les points du tracé (pour y accrocher des branches).
+    /// </summary>
+    private static Vector2[] Bolt(CanvasItem canvas, Vector2 from, Vector2 to, int seed, float fade, int core, float jag)
+    {
+        int segments = Math.Max(2, (int)(from.DistanceTo(to) / (U * 6)));
+        var dir = (to - from).Normalized();
         var side = new Vector2(-dir.Y, dir.X);
         var points = new Vector2[segments + 1];
         for (int k = 0; k <= segments; k++)
         {
-            float jitter = k == 0 || k == segments ? 0 : (Noise(b.Seed + flicker * 31, k) - 0.5f) * 2 * 4 * U;
-            points[k] = b.From.Lerp(b.To, (float)k / segments) + side * jitter;
+            float jitter = k == 0 || k == segments ? 0 : (Noise(seed, k) - 0.5f) * 2 * jag;
+            points[k] = from.Lerp(to, (float)k / segments) + side * jitter;
         }
-        // un cœur blanc bleuté de trois pixels d'art, un halo bleu vif de part et d'autre, et une lueur bleue plus pâle
         var glow = new Color(0.3f, 0.5f, 1, 0.35f * fade);
         var halo = new Color(0.3f, 0.6f, 1, 0.95f * fade);
-        var core = new Color(0.92f, 0.97f, 1, fade);
+        var heart = new Color(0.92f, 0.97f, 1, fade);
+        // des traits côte à côte d'un pixel d'art : le cœur, le halo (deux de chaque côté pour le grand éclair, un pour
+        // un petit), la lueur (deux, le grand seulement)
+        int haloWidth = core >= 3 ? 2 : 1, glowWidth = core >= 3 ? 2 : 0;
         for (int k = 0; k < segments; k++)
-        {
-            // des traits côte à côte d'un pixel d'art : le cœur (trois), le halo (deux de chaque côté), la lueur (deux)
-            for (int x = -4; x <= 6; x++)
-                Line(canvas, points[k] + side * Pixel * x, points[k + 1] + side * Pixel * x,
-                    x is >= 0 and <= 2 ? core : x is >= -2 and <= 4 ? halo : glow);
-        }
+            for (int x = -haloWidth - glowWidth; x < core + haloWidth + glowWidth; x++)
+            {
+                var color = x >= 0 && x < core ? heart : x >= -haloWidth && x < core + haloWidth ? halo : glow;
+                Line(canvas, points[k] + side * Pixel * x, points[k + 1] + side * Pixel * x, color);
+            }
+        return points;
     }
 
     // ------------------------------------------------------------------ impacts

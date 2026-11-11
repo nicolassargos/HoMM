@@ -14,8 +14,8 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   portraits, les curseurs. **La taille d'une chose à l'écran vient du nombre de pixels de son image**, jamais d'un autre
   agrandissement : une image qui doit paraître plus grande est dessinée plus grande. Mélanger ×1, ×2, ×3 et ×4 cassait
   le style et obligeait à refaire des images. Exceptions qui restent à corriger : le héros sur le champ de bataille (×4,
-  en attendant son image de combat), les petites images des créatures dans les emplacements étroits (×1), le texte
-  (la police VT323 n'est pas encore calée sur la grille de 2 pixels).
+  en attendant son image de combat), les petites images des créatures dans les emplacements étroits (×1). Le texte est
+  calé sur la grille depuis 2026-11-11 (Pixel Operator HB 8 à 16 : un pixel de police = un pixel d'art, `Ui.NormalText`).
 - (Avant la règle, pour mémoire : carte ×3 et ×4, combat ×3, héros au combat ×4, cadres et boutons ×3, portraits ×1 à ×3,
   créatures de l'interface ×2 à ×4, artefacts ×3, curseurs ×2,4 et ×3. Toujours un nombre entier de fois, pixels
   nets : c'est le mélange des facteurs qui gênait.)
@@ -363,7 +363,8 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   `art-candidats/en-cours/onglets/`. Une page HTML qui teint des images par masque CSS ne montre pas les couleurs
   ouverte en fichier local : passer par un petit serveur, ou montrer une capture du jeu.
 - Écartés : les cadres épais du premier essai, B7 (fil d'or, trop discret), les boutons de pierre de 96 × 32, les cadres
-  de Kenney, la police DotGothic16 (la police est VT323).
+  de Kenney, la police DotGothic16. La police VT323 (2026-11-11 : nette seulement à 25, trop petite, ou à 50, trop
+  grande) ; Pixel Operator fin, en gras ou mêlé, et Jersey 10 pour les titres, essayés à côté de Pixel Operator HB 8.
 - **Le solde PixelLab est partagé entre les sessions** (2026-11-09) : pour connaître le prix d'un lot, lire le `solde`
   juste avant et juste après (une autre session peut générer en même temps). `pixellab.py pro` à 32 × 32 (64 icônes) :
   0,08 $ le lot, vérifié.

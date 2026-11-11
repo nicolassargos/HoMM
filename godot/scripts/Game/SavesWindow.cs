@@ -39,7 +39,9 @@ public partial class SavesWindow : ScreenWindow
 
         _nameLabel = At(MakeLabel(Texts.SaveNameLabel, 15, SoftTextColor), 20, 62);
         Window.AddChild(_nameLabel);
-        _name = new LineEdit { Position = V(150, 56), Size = V(590, 34), MaxLength = 40 };
+        _name = new LineEdit { Position = V(150, 56), Size = new Vector2(Px(590), ButtonHeight), MaxLength = 40 };
+        // le mot « Nom » centré sur la hauteur du champ
+        _nameLabel.Position = new Vector2(_nameLabel.Position.X, _name.Position.Y + SnapDown((ButtonHeight - NormalText) / 2));
         SetFontSize(_name, 15);
         _name.TextChanged += _ => UpdateButtons();
         _name.TextSubmitted += _ => Act();
@@ -57,12 +59,12 @@ public partial class SavesWindow : ScreenWindow
 
         _action = MakeButton("", 16);
         _action.Position = new Vector2(_size.X - Px(20 + 200), _size.Y - Px(56));
-        _action.Size = V(200, 40);
+        Sized(_action, Px(200), ButtonHeight);
         _action.Pressed += Act;
         Window.AddChild(_action);
         _delete = MakeButton(Texts.DeleteSave, 14);
         _delete.Position = new Vector2(Px(20), _size.Y - Px(56));
-        _delete.Size = V(160, 40);
+        Sized(_delete, Px(160), ButtonHeight);
         _delete.Pressed += AskDelete;
         Window.AddChild(_delete);
     }
@@ -113,8 +115,15 @@ public partial class SavesWindow : ScreenWindow
                 Position = V(12, 4), Size = new Vector2(_size.X - Px(84), Px(48)), MouseFilter = Control.MouseFilterEnum.Ignore,
             };
             lines.AddThemeConstantOverride("separation", 0);
-            lines.AddChild(MakeLabel(Texts.SaveDisplayName(entry), 16, entry.Summary == null ? DimColor : TextColor));
-            lines.AddChild(MakeLabel(Texts.SaveDetails(entry), 13, SoftTextColor));
+            // chaque ligne coupée au bord du bouton (« … ») ; le détail entier au survol
+            foreach (var line in new[] { MakeLabel(Texts.SaveDisplayName(entry), 16, entry.Summary == null ? DimColor : TextColor),
+                         MakeLabel(Texts.SaveDetails(entry), 13, SoftTextColor) })
+            {
+                line.ClipText = true;
+                line.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+                lines.AddChild(line);
+            }
+            button.TooltipText = Texts.SaveDetails(entry);
             button.AddChild(lines);
             var chosen = entry;
             button.Pressed += () => Select(chosen);

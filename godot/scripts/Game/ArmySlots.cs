@@ -98,7 +98,8 @@ public partial class ArmySlots : HBoxContainer
         slot.TooltipText = _leader != null
             ? Texts.StackTooltip(stack, commandLimit, Morale.Of(_leader, stack), Morale.LuckOf(_leader).Total)
             : Texts.StackTooltip(stack, commandLimit);
-        float countHeight = Px(CountFontSize + 4), pointsHeight = Px(15);
+        // la hauteur des lignes : celle du texte (une taille commune, voir Ui.TextSize)
+        float countHeight = TextSize(CountFontSize), pointsHeight = TextSize(11);
         float textHeight = countHeight + (ShowCommandPoints ? pointsHeight : 0);
         var place = new Rect2(Px(2), Px(2), SlotSize.X - Px(4), SlotSize.Y - textHeight - Px(4));
         if (!Compact && CreaturePicture(stack.Type, place) is { } image)

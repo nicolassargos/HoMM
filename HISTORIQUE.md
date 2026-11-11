@@ -864,6 +864,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   après le moral de chaque camp et avant le brave (ceux que rien n'effraie gardent leur moral) ; `Texts.TalentText`.
   Cinq héros de la faction « sombre » passent au Donjon ; « tour » retiré des factions prévues (`DataValidation`).
 ### 10. Finitions : apparence et détails
+- ✅ Villes du Donjon, de la Tour et des Barbares (2026-11-11, branche `villes-carte`, PixelLab, 1,93 $) : le Donjon en trois
+  idées (a : porte de l'abîme, b : citadelle du gouffre, c : tour de l'œil) ; choisie a-2 (forteresse creusée dans la
+  falaise), retouchée pour la lumière rose et violette du gouffre (d-1), puis pour l'ombrage doux du Château (h-1 : a-4,
+  qui recopiait le Château, montrait ce dessin), puis pour des détails sur les murs (j-1), assombrie de 71 à 60. Les
+  mêmes deux retouches (ombrage, détails) sur la Tour (puis luminosité 125) et les Barbares (70). Redessiner d-1 avec a-4
+  comme image de style (série i) n'a rien donné. Pieds du Donjon revus par l'utilisateur.
 - ✅ Ville de la Tour sur la carte (2026-11-11, branche `ville-tour`, PixelLab « Pro » 160 × 128 et une retouche, 2,38 $) :
   trois idées en lots de quatre (a : tour de mages, b : cité de flèches, c : citadelle de géants), puis c-2 aux murs
   ronds (d, e), puis la série a plus lisible (f, g : ombrage et trait du Château demandés) ; choix **g-2**, son toit bleu

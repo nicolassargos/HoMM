@@ -162,7 +162,9 @@ Décidé avec l'utilisateur (2026-11-11), d'après ses images (`art-candidats/re
 Écartés de la faction, pour les monstres neutres de la carte ou les améliorations : la Méduse (trop proche de la Naga de
 la Tour), le Gnoll, l'Augure vautour, la Manticore, la Chimère, la Wyverne, le Centaure orc (trop proche des Nomades).
 Le Dragon rouge reste neutre (peut-être le niveau 7 des Nains, à moins du Phénix).
-Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images.
+Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images
+(les créatures : session images ; ✅ la ville sur la carte, 2026-11-11, branche `villes-carte` : une forteresse sombre
+creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objects/town-donjon.png`, luminosité 60).
 1. ✅ Les créatures et leurs capacités (2026-11-11, branche `donjon`) : `terror` (−1 de moral par coup, jusqu'à −3 ;
    événement `UnitTerrified`), `horror` (−2), `brave` (moral au moins +1, insensible), `endless-retaliation`, `burrows`
    (se déplace comme en volant, sous terre), `swallow` (une chance sur cinq par morsure, pas en riposte, une cible d'un
@@ -255,7 +257,8 @@ Découpage comme la Forêt : 1. les créatures et leurs capacités ; 2. la ville
    Tests : `VilleTourTests`.
 3. Les images (session images) : les 7 créatures. ✅ La ville sur la carte (2026-11-11, branche `ville-tour`, choix de
    l'utilisateur) : une tour de mages au dôme d'or en bulbe (un air oriental, comme les créatures : Naga, Djinn), petits
-   dômes bleus, enceinte ronde de pierre claire (`objects/town-tour.png`), ramenée à la luminosité du Château.
+   dômes bleus, enceinte ronde de pierre claire (`objects/town-tour.png`), ramenée à la luminosité du Château. Puis
+   (branche `villes-carte`) la Tour et les Barbares redessinés avec l'ombrage doux du Château et des détails sur les murs.
 
 #### La Forêt (en cours)
 Décidé avec l'utilisateur (2026-11-09).

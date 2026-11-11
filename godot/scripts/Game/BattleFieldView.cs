@@ -1338,6 +1338,36 @@ public partial class BattleFieldView : Control
                         return soothe >= 0.25;
                     });
                     break;
+                case UnitTerrified terrified:
+                    double fear = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (fear == 0)
+                            _floating.Add(("Terreur", _shown[terrified.Unit].Position + Ui.V(0, -70), 0, MapRenderer.Rgb(190, 120, 230)));
+                        fear += Math.Max(delta, 1e-6);
+                        return fear >= 0.12;
+                    });
+                    break;
+                case UnitSwallowed swallowed:
+                    double gulp = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (gulp == 0)
+                        {
+                            // une créature entière de moins (le Ver des profondeurs)
+                            var target = _shown[swallowed.Unit];
+                            target.Count = Math.Max(0, target.Count - 1);
+                            target.Flash = 1;
+                            _floating.Add(("Avalé !", target.Position + Ui.V(0, -70), 0, MapRenderer.Rgb(230, 110, 90)));
+                        }
+                        gulp += delta;
+                        if (gulp < 0.3)
+                            return false;
+                        if (_shown[swallowed.Unit].Count == 0)
+                            _shown[swallowed.Unit].Gone = true;
+                        return true;
+                    });
+                    break;
                 case UnitRooted rooted:
                     double root = 0;
                     _animations.Enqueue(delta =>

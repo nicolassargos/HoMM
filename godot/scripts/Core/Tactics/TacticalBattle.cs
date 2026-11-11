@@ -53,6 +53,12 @@ public sealed record UnitSoothed(BattleUnit Healer, BattleUnit Unit, int HitPoin
 /// <summary>La troupe est enracinée (Tréant) : elle ne pourra pas se déplacer à son prochain tour.</summary>
 public sealed record UnitRooted(BattleUnit Unit) : BattleAction;
 
+/// <summary>La Terreur du Donjon : la troupe touchée perd du moral ; il vaut maintenant <paramref name="Morale"/>.</summary>
+public sealed record UnitTerrified(BattleUnit Unit, int Morale) : BattleAction;
+
+/// <summary>Le Ver des profondeurs avale une créature entière de la cible.</summary>
+public sealed record UnitSwallowed(BattleUnit Worm, BattleUnit Unit) : BattleAction;
+
 /// <summary>La troupe a trop grossi pour le charisme de son héros : elle se révolte et change de camp.</summary>
 public sealed record UnitRevolted(BattleUnit Unit) : BattleAction;
 
@@ -92,6 +98,15 @@ public sealed partial class TacticalBattle
 
     /// <summary>La foudre de l'Oiseau-tonnerre : une chance sur cinq à chaque attaque, tant de dégâts par oiseau.</summary>
     public const double LightningChance = 0.2;
+
+    /// <summary>
+    /// Le Ver des profondeurs : une chance d'avaler une créature entière de la cible à chaque morsure (pas à la riposte),
+    /// si elle n'est pas d'un niveau plus haut que lui.
+    /// </summary>
+    public const double SwallowChance = 0.2;
+
+    /// <summary>Combien de rounds dure le sort lancé par un rayon du Tyran œil (le round en cours compris).</summary>
+    public const int RayRounds = 2;
 
     /// <summary>La régénération de la nature : la part des points de vie de la créature de tête retrouvée à chaque tour.</summary>
     public const double NatureRegenerationShare = 0.25;
@@ -171,6 +186,9 @@ public sealed partial class TacticalBattle
         SetUpMagic(hero, defenderHero);
         SetUpMorale(BattleSide.Attacker, hero);
         SetUpMorale(BattleSide.Defender, defenderHero);
+        // le brave (Minotaure) : jamais sous +1 de moral, avec ou sans héros
+        foreach (var unit in _units.Where(u => u.Has(Ability.Brave)))
+            unit.Morale = Math.Max(unit.Morale, 1);
         PlaceObstacles();
         SetUpTactics(hero, defenderHero);
         if (!IsPlacing)
@@ -545,7 +563,7 @@ public sealed partial class TacticalBattle
         int speed = unit == Active && RetreatSteps is { } steps ? steps : SpeedOf(unit);
         if (unit == Active && _activeRooted)
             return new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
-        if (unit.Has(Ability.Flies) || unit.Has(Ability.Leaps))
+        if (unit.Has(Ability.Flies) || unit.Has(Ability.Leaps) || unit.Has(Ability.Burrows))
         {
             var flights = new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
             for (int r = 0; r < Battlefield.Rows; r++)
@@ -625,7 +643,7 @@ public sealed partial class TacticalBattle
         var start = unit.Position;
         MoveAlong(unit, path);
         // la charge compte les cases parcourues (à vol d'oiseau pour une troupe qui vole)
-        int moved = unit.Has(Ability.Flies) || unit.Has(Ability.Leaps) ? start.DistanceTo(from) : path.Count;
+        int moved = unit.Has(Ability.Flies) || unit.Has(Ability.Leaps) || unit.Has(Ability.Burrows) ? start.DistanceTo(from) : path.Count;
         bool blinded = target.IsUnder(SpellEffect.Blind); // le coup la réveille, mais elle ne riposte pas
         Melee(unit, target, moved);
         if (target.IsAlive && unit.IsAlive && !blinded && target.RetaliationsLeft > 0 && !unit.Has(Ability.NoRetaliation))
@@ -688,6 +706,7 @@ public sealed partial class TacticalBattle
             ? Neighbours(target).Where(o => o != unit && !o.IsUndead).ToList()
             : new List<BattleUnit>();
         Strike(unit, target, ranged: true, retaliation: false);
+        Ray(unit, target);
         // deux flèches (Archer elfe)
         if (unit.Has(Ability.DoubleShot) && target.IsAlive && unit.IsAlive)
             Strike(unit, target, ranged: true, retaliation: false);
@@ -839,6 +858,36 @@ public sealed partial class TacticalBattle
         }
         if (from.Has(Ability.Poison) && to.IsAlive)
             to.Poison(PoisonPerCreature * from.Count, PoisonTurns);
+        // le Ver des profondeurs avale une créature entière (une créature d'un niveau plus haut est trop grosse)
+        if (from.Has(Ability.Swallow) && !ranged && !retaliation && to.IsAlive && to.Type.Tier <= from.Type.Tier
+            && _rng.NextDouble() < SwallowChance)
+        {
+            to.TakeDamage(to.TopHitPoints);
+            _log.Add(new UnitSwallowed(from, to));
+        }
+        // la Terreur du Donjon : la cible perd du moral (2 pour l'horreur de l'Aberration)
+        if (from.Has(Ability.Terror) && to.IsAlive && !to.FearsNothing && to.Morale > Morale.Min)
+        {
+            to.Morale = Math.Max(Morale.Min, to.Morale - (from.Has(Ability.Horror) ? 2 : 1));
+            _log.Add(new UnitTerrified(to, to.Morale));
+        }
+    }
+
+    /// <summary>
+    /// Les rayons du Tyran œil : après son tir, un sort néfaste tiré au hasard parmi les siens, que la cible n'a pas déjà
+    /// et auquel elle n'est pas insensible (un mort-vivant aux sorts de l'esprit, une créature façonnée aux sorts
+    /// néfastes), pour <see cref="RayRounds"/> rounds.
+    /// </summary>
+    private void Ray(BattleUnit from, BattleUnit to)
+    {
+        if (!from.Has(Ability.Rays) || !to.IsAlive)
+            return;
+        var choices = from.Type.RaySpells.Where(s => !to.IsUnder(s.Effect) && !(to.IsUndead && !s.AffectsUndead) && !(to.IsMade && s.Harmful)).ToList();
+        if (choices.Count == 0)
+            return;
+        var spell = choices[Next(choices.Count)];
+        to.Enchant(spell, Round + RayRounds - 1);
+        _log.Add(new SpellApplied(to, spell));
     }
 
     /// <summary>

@@ -65,7 +65,7 @@ public sealed class MapGenerator
     /// Les factions dont viennent les monstres de la carte : les neutres, les morts-vivants, les Barbares et la Forêt
     /// (étape 9 : le Gobelin, le Loup, l'Orc, l'Ogre et le Troll étaient des neutres et gardent la carte).
     /// </summary>
-    public static readonly string[] MonsterFactions = { "neutre", "morts-vivants", "barbares", "foret", "tour" };
+    public static readonly string[] MonsterFactions = { "neutre", "morts-vivants", "barbares", "foret", "tour", "donjon" };
 
     /// <summary>
     /// La force (paysans pour en vaincre une, <see cref="CreatureStrength"/>) du gardien pour lequel

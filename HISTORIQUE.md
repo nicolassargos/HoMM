@@ -849,6 +849,16 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   partout (`PlayableFactions` : nouvelle partie, adversaires, villes neutres). `Town.ArcaneLibraryFaction`,
   `GuildSpellsAt` (aussi dans le texte de la guilde) ; `Talents.Scholar` ajouté au bonus de sort du héros (avec les
   écoles). `Texts.FactionName` : « Tour de magie ».
+- ✅ **Le Donjon, ses créatures** (2026-11-11, branche `donjon`). Conception avec l'utilisateur, d'après ses images
+  (`art-candidats/references/donjon/`, renommées par créature) : les seigneurs des abîmes, la Terreur comme marque (le
+  Pacte sombre gardé pour l'Enfer, l'échange de ressources pour les Nains), des élites fortes sur une base faible. Écartés :
+  la Méduse (trop proche de la Naga), le Gnoll, l'Augure vautour, la Manticore, la Chimère, la Wyverne, le Centaure orc.
+  Code : `Ability.Terror`, `Horror`, `Brave`, `EndlessRetaliation`, `Burrows`, `Swallow`, `Rays` ; `BattleUnit.FearsNothing`
+  (morts-vivants, façonnés, niveau 7, braves), `RetaliationsPerRound` ; dans `Strike`, l'avalement (`SwallowChance`) puis
+  la Terreur ; `Ray` après le premier tir (`RayRounds`) ; `CreatureType.Rays` reliés par `GameData` (`RaySpells`) ;
+  événements `UnitTerrified` et `UnitSwallowed` (textes « Terreur » et « Avalé ! » au-dessus des troupes, journal).
+  Réglage en cinq passes de `Duels_a_prix_egal` (le Donjon ajouté) : la Terreur fait basculer un duel d'un coup
+  (Aberration à 54 PV : presque toutes ses défaites ; à 56 : presque toutes ses victoires ; 55 retenu).
 ### 10. Finitions : apparence et détails
 - ✅ Champ de bataille du désert (2026-11-11, branche `champ-sable`). Une palette par terrain pour le paysage
   (`ScenePalette` : ciel, chaînes, pré, brumes, ombre ; `FlatTops` pour des mesas, `Dunes` pour des dunes une à une, face

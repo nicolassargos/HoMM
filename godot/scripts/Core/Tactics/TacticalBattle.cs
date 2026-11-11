@@ -62,6 +62,33 @@ public sealed record UnitSwallowed(BattleUnit Worm, BattleUnit Unit) : BattleAct
 /// <summary>La troupe a trop grossi pour le charisme de son héros : elle se révolte et change de camp.</summary>
 public sealed record UnitRevolted(BattleUnit Unit) : BattleAction;
 
+/// <summary>Le prix du sang : des créatures de l'Enfer sont mortes, leur héros gagne des points de sort.</summary>
+public sealed record BloodPaid(BattleUnit Unit, int Points) : BattleAction;
+
+/// <summary>Le Diablotin a volé des points de sort au héros du camp <paramref name="From"/>.</summary>
+public sealed record SpellPointsStolen(BattleUnit Thief, BattleSide From, int Points) : BattleAction;
+
+/// <summary>Les Cultistes sacrifient des leurs avant d'attaquer.</summary>
+public sealed record UnitSacrificed(BattleUnit Unit, int Count) : BattleAction;
+
+/// <summary>Le Limon de magma se divise : <paramref name="Count"/> créatures forment une nouvelle troupe.</summary>
+public sealed record UnitSplit(BattleUnit From, BattleUnit Part, int Count) : BattleAction;
+
+/// <summary>La Succube a séduit la troupe : elle passera son prochain tour.</summary>
+public sealed record UnitSeduced(BattleUnit Unit) : BattleAction;
+
+/// <summary>La troupe séduite passe son tour.</summary>
+public sealed record UnitEntranced(BattleUnit Unit) : BattleAction;
+
+/// <summary>Le Tourmenteur tire la cible contre lui avec son crochet.</summary>
+public sealed record UnitHooked(BattleUnit Hooker, BattleUnit Target, Hex From, Hex To) : BattleAction;
+
+/// <summary>L'aura de chaleur du Moloch brûle une troupe voisine.</summary>
+public sealed record UnitBurned(BattleUnit Source, BattleUnit Unit, int Damage, int Killed) : BattleAction;
+
+/// <summary>Le Démon invoque une troupe (<paramref name="Count"/> diablotins).</summary>
+public sealed record UnitSummoned(BattleUnit Summoner, BattleUnit Summoned, int Count) : BattleAction;
+
 /// <summary>La troupe a frappé et peut repartir (Nomades) : <paramref name="Steps"/> cases de mouvement lui restent.</summary>
 public sealed record UnitMayRetreat(BattleUnit Unit, int Steps) : BattleAction;
 
@@ -108,6 +135,27 @@ public sealed partial class TacticalBattle
     /// <summary>Combien de rounds dure le sort lancé par un rayon du Tyran œil (le round en cours compris).</summary>
     public const int RayRounds = 2;
 
+    /// <summary>Le Diablotin : un point de sort volé par coup pour tant de diablotins (au moins un).</summary>
+    public const int ThievesPerSpellPoint = 5;
+
+    /// <summary>Les Cultistes : la part sacrifiée avant chaque attaque, et les dégâts en plus.</summary>
+    public const double SacrificeShare = 0.1, SacrificeBonus = 0.5;
+
+    /// <summary>Le Limon de magma : la part qui se détache (un tiers), et le nombre qu'il faut au moins pour se diviser.</summary>
+    public const int SplitDivisor = 3, SplitMin = 3;
+
+    /// <summary>La Succube : la chance de séduire à chaque tir.</summary>
+    public const double SeduceChance = 0.25;
+
+    /// <summary>Le Tourmenteur : la portée de son crochet (en cases).</summary>
+    public const int HookRange = 3;
+
+    /// <summary>Le Moloch : dégâts de son aura par Moloch, et l'attaque qu'il peut gagner en se nourrissant.</summary>
+    public const int HeatPerCreature = 15, FeedMax = 6;
+
+    /// <summary>Le Démon : créatures invoquées par Démon.</summary>
+    public const int SummonPerCreature = 10;
+
     /// <summary>La régénération de la nature : la part des points de vie de la créature de tête retrouvée à chaque tour.</summary>
     public const double NatureRegenerationShare = 0.25;
 
@@ -146,6 +194,12 @@ public sealed partial class TacticalBattle
     /// <summary>Les troupes révoltées pendant le combat : leur camp d'avant, et leur nombre au moment de la révolte.</summary>
     private readonly Dictionary<BattleUnit, (BattleSide Side, int Count)> _turned = new();
     private readonly List<CreatureStack> _fleeLosses = new();
+
+    /// <summary>Les troupes détachées d'un Limon de magma, et la troupe de l'armée qu'elles rejoignent après le combat.</summary>
+    private readonly Dictionary<BattleUnit, BattleUnit> _splitFrom = new();
+
+    /// <summary>Les Cultistes qui viennent de se sacrifier : leur coup est plus fort.</summary>
+    private BattleUnit? _sacrificing;
     private readonly List<CreatureStack> _rebelsBefore;
     private readonly List<CreatureStack> _defenderRebelsBefore;
     private readonly Army? _defenderRebels;
@@ -392,6 +446,7 @@ public sealed partial class TacticalBattle
             unit.RetaliationsLeft = unit.RetaliationsPerRound;
             unit.HasWaited = false;
             unit.HasCheered = false;
+            unit.HasSplit = false;
         }
         _queue.Clear();
         _waiting.Clear();
@@ -414,6 +469,11 @@ public sealed partial class TacticalBattle
                 var unit = _queue.Dequeue();
                 if (unit.IsAlive && unit.IsUnder(SpellEffect.Blind))
                     _log.Add(new UnitSkipped(unit)); // aveuglée : elle ne joue pas
+                else if (unit.IsAlive && unit.IsSeduced)
+                {
+                    unit.IsSeduced = false; // séduite : elle passe ce tour
+                    _log.Add(new UnitEntranced(unit));
+                }
                 else if (unit.IsAlive)
                     next = unit;
             }
@@ -429,6 +489,7 @@ public sealed partial class TacticalBattle
             {
                 var (damage, killed) = next.TakePoison();
                 _log.Add(new UnitPoisoned(next, damage, killed));
+                BloodPrice(next, killed);
                 if (!next.IsAlive)
                 {
                     if (CheckEnd())
@@ -470,6 +531,19 @@ public sealed partial class TacticalBattle
         _log.Add(new UnitTurn(unit));
         if (!fresh)
             return;
+        // l'aura de chaleur du Moloch brûle les ennemis voisins (pas les créatures de l'Enfer, insensibles au feu)
+        if (unit.Has(Ability.HeatAura))
+        {
+            foreach (var enemy in Neighbours(unit).Where(e => AreEnemies(unit, e) && !e.IsInfernal).ToList())
+            {
+                int heat = HeatPerCreature * unit.Count;
+                int burned = enemy.TakeDamage(heat);
+                enemy.Wake();
+                _log.Add(new UnitBurned(unit, enemy, heat, burned));
+            }
+            if (CheckEnd())
+                return;
+        }
         if (unit.Has(Ability.Regenerates) && unit.Regenerate())
             _log.Add(new UnitRegenerated(unit));
         else if (unit.Has(Ability.NatureRegeneration) && unit.Heal((int)Math.Ceiling(unit.Type.HitPoints * NatureRegenerationShare)) > 0)
@@ -656,13 +730,7 @@ public sealed partial class TacticalBattle
         MoveAlong(unit, path);
         // la charge compte les cases parcourues (à vol d'oiseau pour une troupe qui vole)
         int moved = unit.Has(Ability.Flies) || unit.Has(Ability.Leaps) || unit.Has(Ability.Burrows) ? start.DistanceTo(from) : path.Count;
-        bool blinded = target.IsUnder(SpellEffect.Blind); // le coup la réveille, mais elle ne riposte pas
-        Melee(unit, target, moved);
-        if (target.IsAlive && unit.IsAlive && !blinded && target.RetaliationsLeft > 0 && !unit.Has(Ability.NoRetaliation))
-        {
-            target.RetaliationsLeft--;
-            Strike(target, unit, ranged: false, retaliation: true);
-        }
+        MeleeAndRetaliation(unit, target, moved);
         // deux attaques : la seconde après la riposte
         if (unit.Has(Ability.DoubleAttack) && target.IsAlive && unit.IsAlive)
             Melee(unit, target, moved);
@@ -676,6 +744,30 @@ public sealed partial class TacticalBattle
         }
         EndTurn(acted: true);
         return true;
+    }
+
+    /// <summary>
+    /// Une attaque au corps à corps, puis la riposte de la cible si elle le peut encore dans ce round (pas aveuglée ni
+    /// séduite). Les Cultistes sacrifient d'abord des leurs pour frapper plus fort.
+    /// </summary>
+    private void MeleeAndRetaliation(BattleUnit unit, BattleUnit target, int moved)
+    {
+        bool blinded = target.IsUnder(SpellEffect.Blind); // le coup la réveille, mais elle ne riposte pas
+        if (unit.Has(Ability.Sacrifice) && unit.Count >= 2)
+        {
+            int sacrificed = Math.Max(1, (int)(unit.Count * SacrificeShare));
+            unit.Lose(sacrificed);
+            _log.Add(new UnitSacrificed(unit, sacrificed));
+            BloodPrice(unit, sacrificed);
+            _sacrificing = unit;
+        }
+        Melee(unit, target, moved);
+        _sacrificing = null;
+        if (target.IsAlive && unit.IsAlive && !blinded && !target.IsSeduced && target.RetaliationsLeft > 0 && !unit.Has(Ability.NoRetaliation))
+        {
+            target.RetaliationsLeft--;
+            Strike(target, unit, ranged: false, retaliation: true);
+        }
     }
 
     /// <summary>
@@ -719,6 +811,12 @@ public sealed partial class TacticalBattle
             : new List<BattleUnit>();
         Strike(unit, target, ranged: true, retaliation: false);
         Ray(unit, target);
+        // la Succube séduit parfois sa cible
+        if (unit.Has(Ability.Seduce) && target.IsAlive && target.CanBeSeduced && !target.IsSeduced && _rng.NextDouble() < SeduceChance)
+        {
+            target.IsSeduced = true;
+            _log.Add(new UnitSeduced(target));
+        }
         // deux flèches (Archer elfe)
         if (unit.Has(Ability.DoubleShot) && target.IsAlive && unit.IsAlive)
             Strike(unit, target, ranged: true, retaliation: false);
@@ -841,6 +939,8 @@ public sealed partial class TacticalBattle
         int killed = to.TakeDamage(damage);
         to.Wake();
         _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation, luck));
+        BloodPrice(to, killed);
+        Split(to);
         if (to.Has(Ability.Rage) && to.Enrage(RagePerHit, Talents.RageMax(to.IsRebel ? null : HeroOf(to.Side), RageMax)))
             _log.Add(new UnitEnraged(to, to.Rage));
         if (!from.IsAlive)
@@ -849,7 +949,9 @@ public sealed partial class TacticalBattle
         if (from.Has(Ability.Lightning) && !retaliation && to.IsAlive && _rng.NextDouble() < LightningChance)
         {
             int bolt = LightningPerCreature * from.Count;
-            _log.Add(new LightningStruck(from, to, bolt, to.TakeDamage(bolt)));
+            int fried = to.TakeDamage(bolt);
+            _log.Add(new LightningStruck(from, to, bolt, fried));
+            BloodPrice(to, fried);
         }
         if (from.Has(Ability.GhostGrowth) && killed > 0)
         {
@@ -876,6 +978,23 @@ public sealed partial class TacticalBattle
         {
             to.TakeDamage(to.TopHitPoints);
             _log.Add(new UnitSwallowed(from, to));
+            BloodPrice(to, 1);
+        }
+        // le Diablotin vole des points de sort au héros de la cible et les donne au sien
+        if (from.Has(Ability.ManaThief) && !retaliation && !splash && !to.IsRebel && HeroOf(to.Side) != null)
+        {
+            int stolen = Math.Min(Math.Max(1, from.Count / ThievesPerSpellPoint), _spellPoints[(int)to.Side]);
+            if (stolen > 0)
+            {
+                _spellPoints[(int)to.Side] -= stolen;
+                _spellPointsGained[(int)to.Side] -= stolen;
+                if (!from.IsRebel && HeroOf(from.Side) != null)
+                {
+                    _spellPoints[(int)from.Side] += stolen;
+                    _spellPointsGained[(int)from.Side] += stolen;
+                }
+                _log.Add(new SpellPointsStolen(from, to.Side, stolen));
+            }
         }
         // la Terreur du Donjon : la cible perd du moral (2 pour l'horreur de l'Aberration)
         if (from.Has(Ability.Terror) && to.IsAlive && !to.FearsNothing && to.Morale > Morale.Min)
@@ -939,7 +1058,120 @@ public sealed partial class TacticalBattle
             damage *= 0.5;
         if (!ranged && from.Has(Ability.Charge))
             damage *= 1 + ChargeBonus * moved;
+        if (from == _sacrificing)
+            damage *= 1 + SacrificeBonus;
         return Math.Max(1, (int)Math.Round(damage));
+    }
+
+    // ------------------------------------------------------------------ l'Enfer
+
+    /// <summary>
+    /// Le prix du sang : des créatures de l'Enfer sont mortes (pas d'une troupe révoltée). Leur héros gagne des points de
+    /// sort (le niveau de la créature pour chacune, sans dépasser <see cref="Talents.BloodPriceCap"/> dans le combat),
+    /// et chaque Moloch de leur camp se nourrit (+1 attaque).
+    /// </summary>
+    private void BloodPrice(BattleUnit unit, int killed)
+    {
+        if (killed <= 0 || !unit.IsInfernal || unit.IsRebel)
+            return;
+        foreach (var moloch in _units.Where(u => u.IsAlive && u.Side == unit.Side && u.Has(Ability.Feeds)).ToList())
+            if (moloch.Enrage(1, FeedMax))
+                _log.Add(new UnitEnraged(moloch, moloch.Rage));
+        int s = (int)unit.Side;
+        if (HeroOf(unit.Side) is not { } hero)
+            return;
+        int points = Math.Min(killed * unit.Type.Tier, Talents.BloodPriceCap(hero) - _bloodPaid[s]);
+        if (points <= 0)
+            return;
+        _bloodPaid[s] += points;
+        _spellPoints[s] += points;
+        _spellPointsGained[s] += points;
+        _log.Add(new BloodPaid(unit, points));
+    }
+
+    /// <summary>
+    /// Le Limon de magma frappé sans mourir se divise (une fois par round) : un tiers de la troupe se détache sur une
+    /// case libre voisine. Les deux troupes se rejoignent dans l'armée après le combat.
+    /// </summary>
+    private void Split(BattleUnit unit)
+    {
+        if (!unit.Has(Ability.Splits) || !unit.IsAlive || unit.HasSplit || unit.Count < SplitMin || FreeHexNextTo(unit) is not { } hex)
+            return;
+        int count = unit.Count / SplitDivisor;
+        unit.Lose(count);
+        _startCounts[unit] -= count;
+        var part = AddUnit(new CreatureStack(unit.Type, count), unit, hex);
+        unit.HasSplit = part.HasSplit = true;
+        _splitFrom[part] = _splitFrom.GetValueOrDefault(unit, unit);
+        _log.Add(new UnitSplit(unit, part, count));
+    }
+
+    /// <summary>Une case libre à côté de la troupe (la plus proche de <paramref name="toward"/> s'il y en a une), ou null.</summary>
+    private Hex? FreeHexNextTo(BattleUnit unit, Hex? toward = null) =>
+        unit.Hexes.SelectMany(h => h.Neighbours()).Distinct()
+            .Where(h => Field.IsOpen(h) && UnitAt(h) == null)
+            .OrderBy(h => toward is { } t ? h.DistanceTo(t) : 0).ThenBy(h => h.Col).ThenBy(h => h.Row)
+            .Cast<Hex?>().FirstOrDefault();
+
+    /// <summary>Une nouvelle troupe au combat, dans le camp de <paramref name="like"/> (avec son héros, son moral, sa chance).</summary>
+    private BattleUnit AddUnit(CreatureStack stack, BattleUnit like, Hex hex, bool summoned = false)
+    {
+        var unit = new BattleUnit(_units.Count + 1, stack, like.Side, _units.Max(u => u.Slot) + 1, hex,
+            like.AttackBonus, like.DefenseBonus, like.IsRebel)
+        {
+            Morale = like.Morale,
+            Luck = like.Luck,
+            IsSummoned = summoned,
+        };
+        _units.Add(unit);
+        _startCounts[unit] = stack.Count;
+        return unit;
+    }
+
+    /// <summary>
+    /// Le Tourmenteur peut-il lancer son crochet sur cette cible : un ennemi à 2 ou 3 cases, d'une seule case et pas du
+    /// niveau 7, avec une case libre à côté du Tourmenteur où le tirer ?
+    /// </summary>
+    public bool CanHook(BattleUnit unit, BattleUnit target) =>
+        unit == Active && unit.Has(Ability.Hook) && !IsRetreating && AreEnemies(unit, target) && !target.IsLarge
+        && target.Type.Tier < 7 && Distance(unit, target) is > 1 and <= HookRange && FreeHexNextTo(unit, target.Position) != null;
+
+    /// <summary>
+    /// La troupe active (le Tourmenteur) tire la cible contre elle avec son crochet, puis la frappe (la cible riposte
+    /// comme d'habitude). Renvoie false si elle ne peut pas.
+    /// </summary>
+    public bool Hook(BattleUnit target)
+    {
+        if (Active is not { } unit || !CanHook(unit, target))
+            return false;
+        var from = target.Position;
+        target.Position = FreeHexNextTo(unit, from)!.Value;
+        _log.Add(new UnitHooked(unit, target, from, target.Position));
+        MeleeAndRetaliation(unit, target, 0);
+        EndTurn(acted: true);
+        return true;
+    }
+
+    /// <summary>La troupe active peut-elle invoquer (le Démon, une fois par combat, s'il y a une case libre à côté) ?</summary>
+    public bool CanSummon => Active is { } unit && unit.Has(Ability.Summons) && !unit.HasSummoned && !IsRetreating
+                             && unit.Type.SummonType != null && FreeHexNextTo(unit) != null;
+
+    /// <summary>
+    /// La troupe active (le Démon) ouvre un portail à la place de son action : une troupe de diablotins apparaît à côté
+    /// d'elle (<see cref="SummonPerCreature"/> par Démon), devant elle si possible. Ils disparaissent après le combat.
+    /// </summary>
+    public bool Summon()
+    {
+        if (!CanSummon || Active is not { } unit)
+            return false;
+        var ahead = new Hex(unit.Position.Col + (unit.Side == BattleSide.Attacker ? 1 : -1), unit.Position.Row);
+        var hex = FreeHexNextTo(unit, ahead)!.Value;
+        int count = SummonPerCreature * unit.Count;
+        var summoned = AddUnit(new CreatureStack(unit.Type.SummonType!, count), unit, hex, summoned: true);
+        unit.HasSummoned = true;
+        _log.Add(new UnitSummoned(unit, summoned, count));
+        EndTurn(acted: true);
+        return true;
     }
 
     /// <summary>
@@ -978,7 +1210,7 @@ public sealed partial class TacticalBattle
     public BattleReport Report()
     {
         // une troupe révoltée pendant le combat compte pour son ancien camp ce qu'elle a perdu avant de se révolter
-        int Lost(BattleUnit u, BattleSide side) => _turned.TryGetValue(u, out var before)
+        int Lost(BattleUnit u, BattleSide side) => u.IsSummoned ? 0 : _turned.TryGetValue(u, out var before)
             ? (before.Side == side ? Math.Max(0, _startCounts[u] - before.Count) : 0)
             : (u.Side == side && !u.IsRebel ? Math.Max(0, _startCounts[u] - u.Count) : 0);
         List<CreatureStack> Losses(BattleSide side) => _units
@@ -997,7 +1229,13 @@ public sealed partial class TacticalBattle
             DefenderRebels = _defenderRebelsBefore.ToList(),
             AttackerSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Attacker],
             DefenderSpellPointsSpent = _spellPointsSpent[(int)BattleSide.Defender],
+            AttackerSpellPointsGained = _spellPointsGained[(int)BattleSide.Attacker],
+            DefenderSpellPointsGained = _spellPointsGained[(int)BattleSide.Defender],
         };
+        // les Limons de magma détachés rejoignent leur troupe dans l'armée
+        foreach (var (part, whole) in _splitFrom)
+            if (part.Count > 0 && !_turned.ContainsKey(whole))
+                whole.Stack.Count += part.Count;
         // les révoltés pendant le combat quittent l'armée de leur héros
         foreach (var (unit, before) in _turned)
         {

@@ -661,8 +661,8 @@ public sealed partial class GameState
         Emit(new BattleFought(hero, context.Defender, context.DefenderArmy, report, defenderOwner));
 
         // les points de sort dépensés pendant le combat
-        hero.SpendSpellPoints(report.AttackerSpellPointsSpent);
-        defenderHero?.SpendSpellPoints(report.DefenderSpellPointsSpent);
+        hero.SpendSpellPoints(report.AttackerSpellPointsSpent - report.AttackerSpellPointsGained);
+        defenderHero?.SpendSpellPoints(report.DefenderSpellPointsSpent - report.DefenderSpellPointsGained);
         // le moral et la chance des lieux visités ne durent qu'un combat
         hero.ClearSiteBonuses();
         defenderHero?.ClearSiteBonuses();

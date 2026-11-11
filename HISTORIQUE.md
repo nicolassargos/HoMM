@@ -859,11 +859,37 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   événements `UnitTerrified` et `UnitSwallowed` (textes « Terreur » et « Avalé ! » au-dessus des troupes, journal).
   Réglage en cinq passes de `Duels_a_prix_egal` (le Donjon ajouté) : la Terreur fait basculer un duel d'un coup
   (Aberration à 54 PV : presque toutes ses défaites ; à 56 : presque toutes ses victoires ; 55 retenu).
+- ✅ **L'Enfer, ses créatures** (2026-11-11, branche `enfer`). Conception avec l'utilisateur : le chaos et le feu, la
+  magie du feu la plus forte, le prix du sang (préféré au pacte qui sacrifie des créatures pour lancer un sort). Créatures
+  voulues **moins attendues que celles de Heroes 3** (l'utilisateur a écarté une première liste trop proche : Cerbère,
+  Gog, Efrit, Seigneur des abîmes, Cauchemar) ; le Cerbère gardé un temps au niveau 3, remplacé par le Limon de magma
+  qui se divise (idée de l'utilisateur). Code : les capacités dans `TacticalBattle` (partie « l'Enfer » : `BloodPrice`,
+  `Split`, `FreeHexNextTo`, `AddUnit`, `CanHook`/`Hook`, `CanSummon`/`Summon`), `MeleeAndRetaliation` (le sacrifice, la
+  riposte refusée à une troupe séduite), le prix du sang appelé partout où des créatures meurent (coups, foudre,
+  avalement, poison, sorts, sacrifice) ; l'insensibilité au feu dans `SpellHits` (`Burns`, aussi pour la valeur des
+  sorts de l'IA) ; `Talents.BloodPriceCap` et le talent `Pact` (prêt pour la classe). À l'écran, une troupe qui apparaît
+  en cours de combat est ajoutée cachée quand l'événement arrive, puis montrée par son animation
+  (`BattleFieldView.AddShown`, `Appear`, `Announce`). Réglage en trois passes de `Duels_a_prix_egal`.
+- ✅ **L'Enfer jouable** (2026-11-11, branche `enfer`, faite pendant une coupure de GitHub, à la suite de l'étape 1) :
+  comme le Donjon, une classe de faction `enfer` suffit (`PlayableFactions`). `Texts.TalentText` pour le Pacte ; les
+  quatre héros « sombres » qui restaient passent à l'Enfer, `DataValidation.PlannedFactions` est vide.
+  `HerosContreHerosTests.FaceToFace` fixe l'adversaire au Château (avec une faction de plus, le tirage donnait un
+  Magicien, dont les Flèches magiques battaient 80 paysans avec 3).
 - ✅ **Le Donjon jouable** (2026-11-11, branche `donjon-ville`) : comme la Tour, une classe de faction `donjon` suffit
   (`PlayableFactions`). `Talents.Dread` et `DreadMorale` (1 + niveau / 8), appliqué par `TacticalBattle.Dread` juste
   après le moral de chaque camp et avant le brave (ceux que rien n'effraie gardent leur moral) ; `Texts.TalentText`.
   Cinq héros de la faction « sombre » passent au Donjon ; « tour » retiré des factions prévues (`DataValidation`).
 ### 10. Finitions : apparence et détails
+- ✅ Ville de l'Enfer sur la carte (2026-11-11, branche `ville-enfer`, PixelLab, 1,31 $) : trois idées (a : citadelle noire,
+  b : cité du portail, c : temple de Moloch) ; choisie a-2, trop sombre (luminosité 32, contours durs) : les deux
+  retouches de la méthode (ombrage doux, puis détails) l'ont rendue lisible (f-1, luminosité 51, gardée telle quelle).
+  Pieds revus par l'utilisateur.
+- ✅ Villes du Donjon, de la Tour et des Barbares (2026-11-11, branche `villes-carte`, PixelLab, 1,93 $) : le Donjon en trois
+  idées (a : porte de l'abîme, b : citadelle du gouffre, c : tour de l'œil) ; choisie a-2 (forteresse creusée dans la
+  falaise), retouchée pour la lumière rose et violette du gouffre (d-1), puis pour l'ombrage doux du Château (h-1 : a-4,
+  qui recopiait le Château, montrait ce dessin), puis pour des détails sur les murs (j-1), assombrie de 71 à 60. Les
+  mêmes deux retouches (ombrage, détails) sur la Tour (puis luminosité 125) et les Barbares (70). Redessiner d-1 avec a-4
+  comme image de style (série i) n'a rien donné. Pieds du Donjon revus par l'utilisateur.
 - ✅ Ville de la Tour sur la carte (2026-11-11, branche `ville-tour`, PixelLab « Pro » 160 × 128 et une retouche, 2,38 $) :
   trois idées en lots de quatre (a : tour de mages, b : cité de flèches, c : citadelle de géants), puis c-2 aux murs
   ronds (d, e), puis la série a plus lisible (f, g : ombrage et trait du Château demandés) ; choix **g-2**, son toit bleu

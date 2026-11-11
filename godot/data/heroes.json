@@ -42,9 +42,9 @@
     { "id": "malachar",              "name": "Malachar",                "faction": "donjon" },
     { "id": "dame-sombreval",        "name": "Dame Sombreval",          "faction": "donjon" },
     { "id": "dame-morgane",          "name": "Dame Morgane",            "faction": "donjon" },
-    { "id": "mephis-le-cornu",       "name": "Méphis le Cornu",         "faction": "sombre" },
-    { "id": "dame-cendre",           "name": "Dame Cendre",             "faction": "sombre" },
-    { "id": "zarkhan",               "name": "Zarkhan",                 "faction": "sombre" },
-    { "id": "sorcha-la-damnee",      "name": "Sorcha la Damnée",        "faction": "sombre" }
+    { "id": "mephis-le-cornu",       "name": "Méphis le Cornu",         "faction": "enfer"  },
+    { "id": "dame-cendre",           "name": "Dame Cendre",             "faction": "enfer"  },
+    { "id": "zarkhan",               "name": "Zarkhan",                 "faction": "enfer"  },
+    { "id": "sorcha-la-damnee",      "name": "Sorcha la Damnée",        "faction": "enfer"  }
   ]
 }

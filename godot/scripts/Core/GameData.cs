@@ -25,6 +25,10 @@ public sealed class GameData
         foreach (var creature in creatures.All)
             foreach (var id in creature.Rays.Where(id => (spells ?? SpellCatalog.Empty).Find(id) == null))
                 errors.Add($"{creature.Id} : rayon inconnu ({id})");
+        foreach (var creature in creatures.All)
+            if (creature.Abilities.Contains(Ability.Summons) != (creature.Summon != null)
+                || creature.Summon is { } summoned && creatures.All.All(c => c.Id != summoned))
+                errors.Add($"{creature.Id} : invocation invalide ({creature.Summon})");
         if (errors.Count > 0)
             throw new FormatException("Données du jeu invalides :" + System.Environment.NewLine + "- " + string.Join(System.Environment.NewLine + "- ", errors));
         Creatures = creatures;
@@ -38,6 +42,8 @@ public sealed class GameData
             creature.BlessingSpells = creature.Blessings.Select(Spells.Get).ToList();
         foreach (var creature in creatures.All.Where(c => c.Rays.Count > 0))
             creature.RaySpells = creature.Rays.Select(Spells.Get).ToList();
+        foreach (var creature in creatures.All.Where(c => c.Summon != null))
+            creature.SummonType = creatures.All.First(c => c.Id == creature.Summon);
     }
 
     public CreatureCatalog Creatures { get; }

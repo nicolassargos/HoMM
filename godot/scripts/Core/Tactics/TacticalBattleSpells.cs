@@ -14,6 +14,10 @@ public sealed partial class TacticalBattle
     private readonly Hero?[] _heroes = new Hero?[2];
     private readonly int[] _spellPoints = new int[2];
     private readonly int[] _spellPointsSpent = new int[2];
+
+    /// <summary>Les points de sort gagnés (prix du sang, vols du Diablotin) moins ceux volés, et ce qu'a rendu le prix du sang.</summary>
+    private readonly int[] _spellPointsGained = new int[2];
+    private readonly int[] _bloodPaid = new int[2];
     private readonly bool[] _castThisRound = new bool[2];
 
     private void SetUpMagic(Hero? attacker, Hero? defender)
@@ -105,8 +109,10 @@ public sealed partial class TacticalBattle
         int strength = SpellStrength(spell, side);
         if (spell.Target == SpellTarget.Area)
             return new[] { target }.Concat(target.Neighbours())
-                .Select(UnitAt).OfType<BattleUnit>().Distinct().Select(u => (u, strength)).ToList();
+                .Select(UnitAt).OfType<BattleUnit>().Distinct().Where(u => !Burns(spell, u)).Select(u => (u, strength)).ToList();
         if (UnitAt(target) is not { } first)
+            return Array.Empty<(BattleUnit, int)>();
+        if (Burns(spell, first))
             return Array.Empty<(BattleUnit, int)>();
         var hits = new List<(BattleUnit, int)> { (first, strength) };
         if (spell.Target != SpellTarget.Chain)
@@ -124,6 +130,13 @@ public sealed partial class TacticalBattle
         }
         return hits;
     }
+
+    /// <summary>Un sort de dégâts de l'école du feu sur une créature de l'Enfer : elle y est insensible.</summary>
+    private static bool Burns(SpellType spell, BattleUnit unit) =>
+        spell.Effect == SpellEffect.Damage && spell.School == FireSchool && unit.IsInfernal;
+
+    /// <summary>L'école du feu (data/spells.json).</summary>
+    public const string FireSchool = "feu";
 
     /// <summary>Les cases où une téléportation peut envoyer cette troupe : toute case où elle tient, sauf la sienne.</summary>
     public IEnumerable<Hex> TeleportDestinations(BattleUnit unit)
@@ -178,6 +191,7 @@ public sealed partial class TacticalBattle
                 int killed = unit.TakeDamage(damage);
                 unit.Wake();
                 _log.Add(new SpellDamaged(unit, spell, damage, killed));
+                BloodPrice(unit, killed);
                 break;
             case SpellEffect.Teleport:
                 var from = unit.Position;

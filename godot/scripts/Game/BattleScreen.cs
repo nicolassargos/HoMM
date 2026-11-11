@@ -40,6 +40,7 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>Hauteur de la bande de l'ordre de jeu, en bas de l'écran.</summary>
     private const int OrderHeight = 96; // en pixels
     private BattleFieldView _field = null!;
+    private Button _summonButton = null!;
     private Button _waitButton = null!, _defendButton = null!, _autoButton = null!, _fleeButton = null!, _spellButton = null!, _startButton = null!;
 
     /// <summary>La Tactique : la troupe que le joueur est en train de placer (avant le premier round).</summary>
@@ -101,6 +102,8 @@ public partial class BattleScreen : CanvasLayer
                 Show(_battle.TakeLog());
             }
         });
+        // le Démon : invoquer ses diablotins (le bouton n'apparaît que quand il le peut)
+        _summonButton = AddButton(buttons, "invoquer", Texts.BattleSummon, "I", () => Player(b => b.Summon()));
         _spellButton = AddButton(buttons, "livre", Texts.SpellBookButton, "S", OpenSpellBook);
         _waitButton = AddButton(buttons, "sablier", Texts.BattleWait, "W", () => Player(b => b.Wait()));
         _defendButton = AddButton(buttons, "bouclier", Texts.BattleDefend, "D", () => Player(b => b.Defend()));
@@ -242,6 +245,7 @@ public partial class BattleScreen : CanvasLayer
             case Key.Escape when _spell != null: CancelSpell(); break;
             case Key.S: OpenSpellBook(); break;
             case Key.W: Player(b => b.Wait()); break;
+            case Key.I: Player(b => b.Summon()); break;
             case Key.D: Player(b => b.Defend()); break;
             case Key.A: _auto = true; break;
             case Key.F: Player(b => b.Flee()); break;
@@ -415,7 +419,9 @@ public partial class BattleScreen : CanvasLayer
         }
         if (EnemyAim(battle, unit, point, hex) is { } aim)
         {
-            if (battle.CanShoot(unit, aim.Enemy))
+            if (battle.CanHook(unit, aim.Enemy))
+                Player(b => b.Hook(aim.Enemy)); // le crochet du Tourmenteur
+            else if (battle.CanShoot(unit, aim.Enemy))
                 Player(b => b.Shoot(aim.Enemy));
             else if (AttackChoice(battle, unit, aim) is { } choice)
                 Player(b => b.Attack(aim.Enemy, choice.Head));
@@ -539,6 +545,7 @@ public partial class BattleScreen : CanvasLayer
         // on ne fuit qu'en attaquant (celui qui se défend n'a nulle part où aller)
         _fleeButton.Disabled = !mine || _playerSide != BattleSide.Attacker;
         _waitButton.Disabled = !mine || !battle.CanWait;
+        _summonButton.Visible = mine && battle.CanSummon;
         // après avoir frappé, une troupe qui peut repartir (Nomades) choisit sa case, ou reste
         if (mine && battle.IsRetreating)
             SetIcon(_defendButton, "rester", Texts.BattleStay, "D");
@@ -600,7 +607,13 @@ public partial class BattleScreen : CanvasLayer
         {
             if (EnemyAim(battle, unit!, point, _field.Hovered) is { } aim)
             {
-                if (battle.CanShoot(unit!, aim.Enemy))
+                if (battle.CanHook(unit!, aim.Enemy))
+                {
+                    // le crochet du Tourmenteur : comme un tir
+                    cursor = CursorKind.Shoot;
+                    _field.Target = aim.Hex;
+                }
+                else if (battle.CanShoot(unit!, aim.Enemy))
                 {
                     // un tir : la flèche, brisée s'il est trop lointain (moitié des dégâts)
                     cursor = battle.IsLongShot(unit!, aim.Enemy) ? CursorKind.ShootWeak : CursorKind.Shoot;
@@ -697,7 +710,7 @@ public partial class BattleScreen : CanvasLayer
 
     /// <summary>L'icône d'un bouton grisé pâlit avec lui.</summary>
     private void DimIcons() =>
-        IconButtons.Dim(new[] { _startButton, _spellButton, _waitButton, _defendButton, _autoButton, _fleeButton });
+        IconButtons.Dim(new[] { _startButton, _summonButton, _spellButton, _waitButton, _defendButton, _autoButton, _fleeButton });
 
     /// <summary>La Tactique : la troupe choisie, les cases où elle peut aller, le curseur.</summary>
     private void RefreshPlacement(TacticalBattle battle)

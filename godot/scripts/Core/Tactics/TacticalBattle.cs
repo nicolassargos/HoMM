@@ -186,6 +186,8 @@ public sealed partial class TacticalBattle
         SetUpMagic(hero, defenderHero);
         SetUpMorale(BattleSide.Attacker, hero);
         SetUpMorale(BattleSide.Defender, defenderHero);
+        Dread(BattleSide.Defender, hero);
+        Dread(BattleSide.Attacker, defenderHero);
         // le brave (Minotaure) : jamais sous +1 de moral, avec ou sans héros
         foreach (var unit in _units.Where(u => u.Has(Ability.Brave)))
             unit.Morale = Math.Max(unit.Morale, 1);
@@ -508,6 +510,16 @@ public sealed partial class TacticalBattle
             unit.Morale = Morale.Of(hero, unit.Type, unit.Count, army).Total;
             unit.Luck = luck;
         }
+    }
+
+    /// <summary>L'Effroi du héros adverse : l'armée de ce camp commence le combat avec moins de moral.</summary>
+    private void Dread(BattleSide side, Hero? enemyHero)
+    {
+        int loss = Talents.DreadMorale(enemyHero);
+        if (loss == 0)
+            return;
+        foreach (var unit in _units.Where(u => u.Side == side && !u.FearsNothing))
+            unit.Morale = Math.Max(Morale.Min, unit.Morale - loss);
     }
 
     private bool CheckEnd()

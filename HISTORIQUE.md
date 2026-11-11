@@ -859,6 +859,10 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   événements `UnitTerrified` et `UnitSwallowed` (textes « Terreur » et « Avalé ! » au-dessus des troupes, journal).
   Réglage en cinq passes de `Duels_a_prix_egal` (le Donjon ajouté) : la Terreur fait basculer un duel d'un coup
   (Aberration à 54 PV : presque toutes ses défaites ; à 56 : presque toutes ses victoires ; 55 retenu).
+- ✅ **Le Donjon jouable** (2026-11-11, branche `donjon-ville`) : comme la Tour, une classe de faction `donjon` suffit
+  (`PlayableFactions`). `Talents.Dread` et `DreadMorale` (1 + niveau / 8), appliqué par `TacticalBattle.Dread` juste
+  après le moral de chaque camp et avant le brave (ceux que rien n'effraie gardent leur moral) ; `Texts.TalentText`.
+  Cinq héros de la faction « sombre » passent au Donjon ; « tour » retiré des factions prévues (`DataValidation`).
 ### 10. Finitions : apparence et détails
 - ✅ Champ de bataille du désert (2026-11-11, branche `champ-sable`). Une palette par terrain pour le paysage
   (`ScenePalette` : ciel, chaînes, pré, brumes, ombre ; `FlatTops` pour des mesas, `Dunes` pour des dunes une à une, face

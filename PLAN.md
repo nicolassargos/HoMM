@@ -107,7 +107,7 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Forêt** | les meilleurs tireurs, plantes et soins | Troll → Troll ancien | gemmes | cristal | **en cours** |
 | **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | **en cours** |
 | **Enfer** | agressifs, magie du feu | Démon → Archidémon | mercure | soufre | à faire |
-| **Donjon** | les seigneurs des abîmes, la Terreur | Hydre → (à choisir) | soufre | mercure | **en cours** |
+| **Donjon** | les seigneurs des abîmes, la Terreur | Hydre → (à choisir) | soufre | mercure | jouable |
 | **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
 
 - **L'Ange ressuscite** (idée de l'utilisateur, 2026-11-08, **plus tard**, sur une branche à part) : à la place de son
@@ -185,6 +185,17 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
    26 500, morts-vivants 26 100, Barbares 27 000, Forêt 33 800, Tour 23 900. Courbe des paysans : le Tyran œil en
    demande 448 (les autres niveaux 6 : 106 à 174), la Terreur brise les grosses troupes de paysans.
    Tests : `DonjonTests`.
+2. ✅ La ville et le jeu (2026-11-11, branche `donjon-ville`) : 7 habitations (`bourbier-lezards` Bourbier des
+   hommes-lézards, `mare-grenouilles` Mare des hommes-grenouilles, `labyrinthe` Labyrinthe des minotaures,
+   `fosse-aberrations` Fosse des aberrations, `galeries-vers` Galeries des vers, `chambre-tyrans` Chambre des tyrans,
+   `gouffre-hydre` Gouffre de l'hydre : prix et places de celles de la Forêt ; mercure aux niveaux 5 et 6, soufre au
+   niveau 7 ; le grand hôtel de ville accepte aussi la Fosse des aberrations ; noms à revoir si l'utilisateur le
+   souhaite), la classe Seigneur des abîmes (armée de départ au prix des autres : 15 Hommes-lézards, 7 Hommes-grenouilles,
+   2 Minotaures) et son talent Effroi (`Talents.DreadMorale`), les 5 héros du Donjon jouables (les 4 autres de la
+   faction sombre attendent l'Enfer) ; `--faction=donjon`. Mesuré (un adversaire, Normal, six semaines, or d'armée) :
+   **Donjon 29 100**, Château 27 300, morts-vivants 24 700, Barbares 29 200, Forêt 34 000, Tour 25 900 ; la simulation
+   seule comme avant (jours 95, 88, 153). Tests : `VilleDonjonTests`.
+3. Les images (session images) : les 7 créatures, la ville sur la carte.
 
 #### La Tour de magie (en cours)
 Décidée avec l'utilisateur (2026-11-09).

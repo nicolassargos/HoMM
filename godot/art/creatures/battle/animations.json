@@ -20,5 +20,6 @@
   "druide": {"projectile": "feuilles", "launchFrame": 4, "launchPoint": [108, 46]},
   "cerf": {"idle": 4},
   "gargouille": {"move": 12, "transform": 12, "stepTime": 0.35, "attackFrames": 16, "attack": 12},
-  "golem-pierre": {"moveFrames": 16, "idleFrames": 16, "attackFrames": 16, "attack": 10}
+  "golem-pierre": {"moveFrames": 16, "idleFrames": 16, "attackFrames": 16, "attack": 10},
+  "naga": {"idleFrames": 16, "moveFrames": 16}
 }

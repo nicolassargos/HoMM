@@ -1150,6 +1150,52 @@
         "attack": "leans its heavy body back, then charges two big steps forward and throws its whole torso far forward, chest first, like a battering ram, then walks back two steps to its starting place and stance"
       },
       "marge_bas": 0.08
+    },
+    "naga": {
+      "nom": "Naga",
+      "gabarit": "humain",
+      "hauteur": 66,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "golem-pierre",
+        "archer"
+      ],
+      "notes": "Tour, niveau 4 : la lame rapide, mi-femme mi-serpent, six bras armés (références de l'utilisateur, 2026-11-11). Deux styles : bleue (bijoux d'or, couronne), verte (casque en tête de cobra, queue verte au ventre jaune). Choix (2026-11-11) : L2-2 (bleue) à 66 px ; idle-2, move-5 (queue ondulante), attack-7-sb (arc de lame bleu vif effacé).",
+      "description": "a naga warrior woman: a blue-skinned woman from the waist up with six arms, each hand holding a curved scimitar, golden bracelets, armlets and a golden breastplate, a tall red and gold pointed crown, long black hair; from the waist down a long thick dark blue-green snake tail with a pale belly, coiled on the ground, no legs",
+      "sujet": "a blue-skinned six-armed naga woman with six curved swords, gold jewelry and crown, a coiled snake tail instead of legs, facing right",
+      "references": [
+        "art-candidats/references/naga1.png::concept reference (a blue six-armed warrior goddess with curved swords): keep the six arms, the curved swords and the crown; she has no legs (a snake tail instead), ignore the dancing pose and the drawing style",
+        "art-candidats/references/naga2.png::colour and costume reference: keep the blue skin and the gold jewelry; she has no legs (a snake tail instead), ignore the painting style",
+        "art-candidats/references/naga4.png::body reference: from the waist down she is a long thick snake body coiled on the ground, no legs at all; ignore the cobra hoods behind her, the ink drawing style and the black and white"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L2-2",
+        "idle": "idle-2",
+        "attack": "attack-7-sb",
+        "move": "move-5"
+      },
+      "grande": "art-candidats/references/derives/naga-grand.png",
+      "marge_bas": 0.06,
+      "consignes": {
+        "idle": "sways gently on her coiled snake tail, slowly rubs two of her curved swords against each other to sharpen them, the tip of her tail flicks and shakes",
+        "move": "slithers forward like a snake, her long snake body making big exaggerated S-shaped waves that travel from her waist to the tip of her tail, the coils clearly rising and sliding on the ground, her upper body upright and swaying a little, the six arms holding the swords ready",
+        "attack": "leans forward on her snake tail and slashes at the enemy in front of her with her curved swords, her six arms striking one after another, then rises back to her stance"
+      }
     }
   }
 }

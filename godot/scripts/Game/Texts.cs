@@ -1424,6 +1424,7 @@ public static class Texts
     public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";
     public static string NoSpellOfSchool => "Aucun sort de cette école.";
     public static string OpenSpellBookHint => "Ouvrir le livre de sorts";
+    public static string OpenGuildBookHint => "Ouvrir le grimoire de la guilde";
     public static string SpellsKnownCount(int count) => count switch
     {
         0 => "Aucun sort dans le livre",

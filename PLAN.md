@@ -100,8 +100,14 @@ cet ordre :
    table, les sorts dessinés à plat sur les pages. Effets dessinés par le jeu : la gerbe à l'ouverture, des étincelles
    derrière la page qui tourne, une lueur de la couleur de l'école autour du sort survolé (des sons plus tard). **La
    guilde des mages montre son propre grimoire** : le même livre, ses sorts par niveau, ceux que le héros connaît déjà
-   marqués, les niveaux pas encore construits dits. Images à faire ensuite : le livre fermé sur son lutrin, le livre
-   ouvert, une icône par sort.
+   marqués, les niveaux pas encore construits dits. **Des scènes** (choix de l'utilisateur) : l'onglet Magie montre le
+   lutrin dans **une étude** (la même pour tous les héros : une bougie, une étagère, une fenêtre) ; la guilde ouvre
+   d'abord **l'académie de la faction**, une scène par faction (le Château d'abord, les autres avec les images de leur
+   ville), le grimoire sur son lutrin au milieu ; un clic ouvre le livre. Chaque scène remplit son onglet ou sa fenêtre ;
+   le fond est une image sans le lutrin (`art/ui/scenes/etude.png`, `academie-<faction>.png`), le lutrin et son livre une
+   image à part posée dessus (`art/ui/lutrin.png` : il luit, on clique dessus). Sans image, le jeu dessine une scène
+   d'attente. Images à faire ensuite : le lutrin et son livre, le livre ouvert, l'étude, l'académie du Château, une
+   icône par sort ; plus tard les autres académies.
 3. **Une image par sort** (le livre, la guilde) : **de petites peintures en couleur**, comme Heroes 2 et 3 (choix de
    l'utilisateur), à la taille trouvée avec la maquette.
 4. **Une animation par sort** sur le champ (projectile, éclair, explosion…) et un **effet visible sur les troupes**

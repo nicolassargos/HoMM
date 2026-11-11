@@ -775,18 +775,41 @@ public partial class TownScreen : CanvasLayer
     }
 
     /// <summary>
-    /// La guilde des mages : son grimoire (le livre de sorts, <see cref="SpellBookWindow.ForGuild"/>), ses sorts niveau par
-    /// niveau, ceux que le héros présent connaît déjà marqués, un niveau pas encore construit dit.
+    /// La guilde des mages (choix de l'utilisateur, 2026-11-11) : l'académie de la faction de la ville, une scène, et au
+    /// milieu le grimoire de la guilde sur son lutrin ; un clic l'ouvre (le livre de sorts,
+    /// <see cref="SpellBookWindow.ForGuild"/> : ses sorts niveau par niveau, ceux que le héros présent connaît déjà marqués,
+    /// un niveau pas encore construit dit).
     /// </summary>
     private void OpenGuild()
     {
         if (_town is not { } town)
             return;
-        CloseWindow();
-        var hero = _state.VisitingHero(town) is { } h && h.Owner == town.Owner ? h : null;
-        var book = SpellBookWindow.ForGuild(town, hero);
-        _root.AddChild(book); // comme les autres fenêtres de la ville
-        book.Open();
+        var sceneSize = SceneBackdrop.AcademySize * Grid;
+        float top = WindowMargin + ButtonHeight + ArtPx(4);
+        var window = OpenWindow(new Vector2(sceneSize.X + 2 * WindowMargin, top + sceneSize.Y + WindowMargin), Texts.GuildTitle(town), overView: true);
+        var scene = new SceneBackdrop { SceneName = $"academie-{town.Faction}", Faction = town.Faction, Size = sceneSize, Position = new Vector2(WindowMargin, top) };
+        window.AddChild(scene);
+        var lectern = new LecternView { TooltipText = Texts.OpenGuildBookHint };
+        lectern.Position = scene.Position + new Vector2(SnapDown((sceneSize.X - lectern.Size.X) / 2), sceneSize.Y - lectern.Size.Y - ArtPx(4));
+        lectern.Opened += () =>
+        {
+            var hero = _state.VisitingHero(town) is { } h && h.Owner == town.Owner ? h : null;
+            var book = SpellBookWindow.ForGuild(town, hero);
+            _root.AddChild(book); // comme les autres fenêtres de la ville
+            book.Open();
+        };
+        window.AddChild(lectern);
+        // ce que fait la guilde, sur une plaque en haut de la scène
+        var plate = new PanelContainer { Position = scene.Position + new Vector2(ArtPx(8), ArtPx(6)) };
+        plate.AddThemeStyleboxOverride("panel", Plate(DarkPanelColor));
+        var text = MakeLabel(town.MageGuildLevel > 0 ? Texts.GuildText : Texts.NoGuild, 13, TextColor);
+        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        text.CustomMinimumSize = new Vector2(ArtPx(200), 0);
+        plate.AddChild(text);
+        window.AddChild(plate);
+        // développement : « --guild-book » ouvre aussitôt le grimoire (capture)
+        if (OS.GetCmdlineUserArgs().Contains("--guild-book"))
+            Callable.From(lectern.Open).CallDeferred();
     }
 
     // ----------------------------------------------------------- nombre à recruter

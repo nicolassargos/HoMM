@@ -37,8 +37,11 @@ public partial class LecternView : Control
     public override void _GuiInput(InputEvent e)
     {
         if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
-            Opened?.Invoke();
+            Open();
     }
+
+    /// <summary>Ouvre le livre (comme un clic).</summary>
+    public void Open() => Opened?.Invoke();
 
     public override void _Process(double delta)
     {
@@ -60,12 +63,22 @@ public partial class LecternView : Control
 
     private static Vector2 A(float x, float y) => new(ArtPx(x), ArtPx(y));
 
+    /// <summary>L'image du lutrin et de son livre (<c>art/ui/lutrin.png</c>), dessinée à la place de la maquette.</summary>
+    private readonly Texture2D? _image = Art.Get("ui/lutrin");
+
     public override void _Draw()
     {
         // la lueur derrière le livre : des rectangles de lumière, qui battent ; plus forte au survol
         float pulse = (_hover ? 0.32f : 0.18f) * (0.8f + 0.2f * MathF.Sin((float)_time * 2.5f));
         for (int ring = 0; ring < 4; ring++)
             DrawRect(new Rect2(A(40 - ring * 8, 30 - ring * 6), A(80 + ring * 16, 40 + ring * 12)), new Color(Glow, pulse * (1 - ring / 4f)));
+        if (_image != null)
+        {
+            var size = _image.GetSize() * ArtScale;
+            DrawTextureRect(_image, new Rect2(new Vector2(SnapDown((Size.X - size.X) / 2), Size.Y - size.Y), size), false);
+            DrawSparks();
+            return;
+        }
         // le pied du lutrin : un poteau et un socle
         DrawRect(new Rect2(A(72, 84), A(16, 72)), Wood);
         DrawRect(new Rect2(A(72, 84), A(4, 72)), WoodLight);
@@ -86,7 +99,12 @@ public partial class LecternView : Control
         var mark = new[] { A(70, 52), A(90, 52), A(94, 70), A(66, 70) };
         DrawColoredPolygon(mark, Gold.Darkened(0.25f));
         DrawPolyline(new[] { mark[0], mark[1], mark[2], mark[3], mark[0] }, Gold, Grid);
-        // les étincelles qui montent et pâlissent
+        DrawSparks();
+    }
+
+    /// <summary>Les étincelles qui montent du livre et pâlissent.</summary>
+    private void DrawSparks()
+    {
         foreach (var s in _sparks)
         {
             var at = s.At - new Vector2(0, ArtPx(36) * s.Age / s.Life);

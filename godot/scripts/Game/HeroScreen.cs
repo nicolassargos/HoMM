@@ -372,13 +372,17 @@ public partial class HeroScreen : ScreenWindow
     // ------------------------------------------------------------------ Magie
 
     /// <summary>
-    /// L'onglet Magie (choix de l'utilisateur, 2026-11-11) : le livre du héros fermé sur son lutrin, qui luit ; un clic
-    /// l'ouvre. Dessous, ses points de sort et le nombre de sorts qu'il connaît.
+    /// L'onglet Magie (choix de l'utilisateur, 2026-11-11) : une étude (la même pour tous les héros), le livre du héros
+    /// fermé sur son lutrin au milieu, qui luit ; un clic l'ouvre. En haut, ses points de sort et le nombre de sorts qu'il
+    /// connaît.
     /// </summary>
     private void BuildMagic(Control page)
     {
+        var scene = new SceneBackdrop { SceneName = "etude", Size = SceneBackdrop.StudySize * Grid };
+        scene.Position = new Vector2(SnapDown((Px(PageSize.X) - scene.Size.X) / 2), SnapDown((Px(PageSize.Y) - scene.Size.Y) / 2));
+        page.AddChild(scene);
         var lectern = new LecternView();
-        lectern.Position = new Vector2(SnapDown((Px(PageSize.X) - lectern.Size.X) / 2), Px(30));
+        lectern.Position = scene.Position + new Vector2(SnapDown((scene.Size.X - lectern.Size.X) / 2), scene.Size.Y - lectern.Size.Y - ArtPx(6));
         lectern.TooltipText = Texts.OpenSpellBookHint;
         lectern.Opened += () =>
         {
@@ -389,7 +393,12 @@ public partial class HeroScreen : ScreenWindow
             window.Open();
         };
         page.AddChild(lectern);
-        float below = lectern.Position.Y + lectern.Size.Y + Px(10);
+        // les points et le nombre de sorts, sur une plaque sombre en haut de la scène
+        var plate = new Panel { Position = scene.Position + new Vector2(SnapDown((scene.Size.X - ArtPx(200)) / 2), ArtPx(6)), Size = new Vector2(ArtPx(200), ArtPx(30)) };
+        plate.AddThemeStyleboxOverride("panel", Plate(DarkPanelColor));
+        plate.MouseFilter = Control.MouseFilterEnum.Ignore;
+        page.AddChild(plate);
+        float below = plate.Position.Y + ArtPx(3);
         _spellPoints = MakeLabel("", 15, TextColor);
         _spellPoints.HorizontalAlignment = HorizontalAlignment.Center;
         _spellPoints.Position = new Vector2(0, below);
@@ -399,7 +408,7 @@ public partial class HeroScreen : ScreenWindow
         page.AddChild(_spellPoints);
         _spellCount = MakeLabel("", 13, SoftTextColor);
         _spellCount.HorizontalAlignment = HorizontalAlignment.Center;
-        _spellCount.Position = new Vector2(0, below + Px(18));
+        _spellCount.Position = new Vector2(0, below + ArtPx(12));
         _spellCount.Size = new Vector2(Px(PageSize.X), NormalText);
         page.AddChild(_spellCount);
     }

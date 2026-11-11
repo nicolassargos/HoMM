@@ -1,6 +1,6 @@
 """Retire le socle d'herbe (et son ombre) sous un arbre généré, pour qu'il se pose sur le sol du jeu.
 
-    python -I tools/art/sans_socle.py entree.png sortie.png [part] [--buisson]
+    python -I tools/art/sans_socle.py entree.png sortie.png [part] [--buisson | --sable]
 
 Retro Diffusion dessine souvent un arbre sur une petite tache d'herbe ou une ombre ovale : sur le champ de bataille,
 cette tache ne se fond pas dans le sol (le jeu dessine sa propre ombre de contact, d'après les pieds de l'image :
@@ -11,7 +11,9 @@ tools/art/pieds.py). Dans la <part> du bas de l'image (0,22 par défaut, là où
 - les rangées vides du bas sont coupées : le pied de l'image est le bas des racines (sinon l'arbre flottait au-dessus
   de son ombre).
 Un buisson (--buisson) : son feuillage, vert, descend jusqu'en bas ; on ne retire alors que ce qui n'est pas vert (l'ombre
-grise ou bleutée sous lui) et le contour sombre qui ne touche plus rien. Seule la bibliothèque standard est utilisée.
+grise ou bleutée sous lui) et le contour sombre qui ne touche plus rien. Un arbre du désert (--sable) : la tache de sable
+sous lui, mais pas dans les colonnes de son tronc (un tronc brun clair ressemble au sable). Seule la bibliothèque
+standard est utilisée.
 """
 
 import os
@@ -43,15 +45,38 @@ def pas_vert(p):
     return a > 0 and g <= max(r, b) + 6
 
 
-def nettoyer(px, part, buisson=False):
+def sableux(p):
+    r, g, b, a = p
+    return a > 0 and r >= g >= b - 5 and r > 120 and r - b > 25
+
+
+def sable_clair(p):
+    """Le sable d'une tache (plus clair que l'écorce : un tronc brun clair reste)."""
+    r, g, b, a = p
+    return sableux(p) and r > 165
+
+
+def nettoyer(px, part, buisson=False, sable=False):
     h, w = len(px), len(px[0])
     debut = int(h * (1 - part))
     retires = 0
-    # 1. l'herbe et l'ombre grise du socle
+    # le tronc : les colonnes opaques juste au-dessus de la zone (seul le sable clair y est retiré)
+    tronc = set()
+    if sable and debut > 0:
+        for x in range(w):
+            if px[debut - 1][x][3] > 0:
+                tronc.add(x)
+    # 1. l'herbe et l'ombre grise du socle (ou la tache de sable)
     for y in range(debut, h):
         for x in range(w):
             p = px[y][x]
-            if (pas_vert(p) and not sombre(p)) if buisson else (vert(p) or (ombre_grise(p) and not sombre(p))):
+            if sable:
+                retirer = (sable_clair(p) if x in tronc else sableux(p)) or (ombre_grise(p) and not sombre(p) and x not in tronc)
+            elif buisson:
+                retirer = pas_vert(p) and not sombre(p)
+            else:
+                retirer = vert(p) or (ombre_grise(p) and not sombre(p))
+            if retirer:
                 px[y][x] = VIDE
                 retires += 1
     # 2. le contour sombre qui ne touche plus aucun pixel clair (le bord de la tache, pas celui des racines)
@@ -99,10 +124,10 @@ def main():
     if len([a for a in sys.argv[1:] if not a.startswith("--")]) < 2:
         sys.exit(__doc__)
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    buisson = "--buisson" in sys.argv
+    buisson, sable = "--buisson" in sys.argv, "--sable" in sys.argv
     part = float(args[2]) if len(args) > 2 else 0.22
     w, h, px = lire(args[0])
-    px, retires = nettoyer([list(r) for r in px], part, buisson)
+    px, retires = nettoyer([list(r) for r in px], part, buisson, sable)
     ecrire(args[1], px)
     print(f"{args[1]} : {retires} pixels de socle retirés, {h - len(px)} rangées vides coupées")
 

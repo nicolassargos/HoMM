@@ -214,6 +214,22 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (`pieds.py proposer`, revus par l'utilisateur) pour l'ombre de contact du jeu. Garder le trait des racines (sinon
   elles paraissent coupées) et couper les rangées vides du bas (sinon l'arbre flotte au-dessus de son ombre).
 - Pas de tramage en points pour une ombre ou une brume (granuleux) : des bandes d'opacité aux bords ondulés.
+- **Des paliers de transparence** (25, 50, 75 %), en pixels entiers, plutôt que tout ou rien (remarque de l'utilisateur,
+  2026-11-11) : le bord d'une tache de pierres ou du pré au pied du paysage se fond mieux qu'avec un tramage ou des grains.
+  Garder peu de paliers (3 ou 4) pour rester du pixel art.
+- Sol du désert (`BuildStones`) : essayé et écarté, un pavage de dalles (même en relief) puis un gravier serré (trop de
+  cailloux). Retenu, d'après les références de l'utilisateur (`art-candidats/references/sol-desert/`, dont le « Desert
+  Ground Pack » d'Alexet) : **des marques légères sur le sable**, pas une texture pleine : des rides de vent (un trait
+  sombre, un clair au-dessus, qui suivent un même vent par combat), des traînées de points, des fissures ouvertes d'un
+  pixel dans quelques taches, quelques cailloux pâles ; en paliers de transparence, de plus en plus rares vers le bord des
+  taches. Le sable reste la couleur du sol.
+- Dunes du fond : une à une (largeur, hauteur, biais tirés au sort), face raide à l'ombre dont le bord part de la
+  crête en biais et s'incurve ; des trains de dunes réguliers faisaient des pyramides, et une limite verticale entre
+  ombre et soleil paraissait fausse.
+- Désert : Retro Diffusion dessinait des troncs morts trop fins ; demander « huge very wide ... stump, much wider than
+  tall » (64 × 48) donne de grosses souches, à réduire ensuite (`reduire.py`, 80 %) pour tenir dans une case. Le bois
+  d'une souche moussue réutilisé dans le désert : `blanchir.py`. Les arbres du désert reposent sur une tache de sable :
+  `sans_socle.py --sable` (le sable clair seul est retiré dans les colonnes du tronc, sinon un tronc brun clair disparaît).
 - Des troncs : demander « the lower part of a very tall tree » donne de jeunes arbres à petite couronne ; posés au fond,
   leur couronne sort du cadre et l'on ne voit que les troncs.
 

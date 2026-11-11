@@ -1499,9 +1499,17 @@
         "L6": "références"
       },
       "choix": {
-        "fixe": "L3-2"
+        "fixe": "L3-2",
+        "idle": "idle-5",
+        "move": "move-5",
+        "attack": "attack-5-c"
       },
-      "grande": "art-candidats/references/derives/aberration-grand.png"
+      "grande": "art-candidats/references/derives/aberration-grand.png",
+      "consignes": {
+        "idle": "stays crouched in place, all the toothy mouths in its six hands and its big belly mouth open and close in turn, as if they were talking to each other, its arms turning a little toward one another",
+        "move": "walks forward, staying in place: it lifts its left clawed leg high and steps, then its right clawed leg high and steps, its body bobbing up and down with each heavy step, its six arms swaying",
+        "attack": "lunges forward and swipes all six long clawed arms at the enemy in front of it, the toothy mouths in its hands biting, its belly mouth gaping wide, then crouches back to its stance"
+      }
     }
   }
 }

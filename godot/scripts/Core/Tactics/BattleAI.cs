@@ -178,12 +178,21 @@ public static class BattleAI
             return;
         }
 
+        // Le Démon invoque ses diablotins dès qu'il le peut
+        if (battle.CanSummon && battle.Summon())
+            return;
+
         // Tirer, si possible
         if (unit.CanShoot && !battle.IsEngaged(unit))
         {
             battle.Shoot(enemies[0]);
             return;
         }
+
+        // Le Tourmenteur arrache d'abord un tireur à son abri avec son crochet
+        var hookable = enemies.Where(e => battle.CanHook(unit, e)).ToList();
+        if (hookable.FirstOrDefault(e => e.CanShoot) is { } shooter && battle.Hook(shooter))
+            return;
 
         // Attaquer ce tour-ci : l'ennemi le plus dangereux qu'on peut atteindre, en bougeant le moins possible
         // (une troupe qui charge, au contraire, vient de le plus loin possible)
@@ -197,6 +206,10 @@ public static class BattleAI
             if (from is { } hex && battle.Attack(enemy, hex))
                 return;
         }
+
+        // Sinon, le crochet sur l'ennemi le plus dangereux à sa portée
+        if (hookable.Count > 0 && battle.Hook(hookable[0]))
+            return;
 
         // Sinon, s'approcher de l'ennemi le plus proche (le plus dangereux s'il y en a plusieurs)
         var target = enemies.OrderBy(e => TacticalBattle.Distance(unit, e)).ThenByDescending(Threat).ThenBy(e => e.Id).First();

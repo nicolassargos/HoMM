@@ -121,8 +121,22 @@ public static class Talents
     public const string Dread = "dread";
     public const int DreadLevels = 8;
 
+    /// <summary>
+    /// Pacte (le Démoniste) : le prix du sang (les créatures de l'Enfer tuées rendent des points de sort au héros) peut
+    /// rendre davantage dans un combat, 1 point de plus par niveau du héros.
+    /// </summary>
+    public const string Pact = "pact";
+    public const int PactPerLevel = 1;
+
+    /// <summary>Le prix du sang : au plus tant de points de sort par combat, par point de savoir du héros.</summary>
+    public const int BloodPricePerKnowledge = 2;
+
     /// <summary>Tous les talents connus (pour vérifier les données).</summary>
-    public static readonly string[] All = { Necromancy, Crusader, Warlord, Hunter, Scholar, Dread };
+    public static readonly string[] All = { Necromancy, Crusader, Warlord, Hunter, Scholar, Dread, Pact };
+
+    /// <summary>Les points de sort que le prix du sang peut rendre à ce héros dans un combat (le Pacte en ajoute).</summary>
+    public static int BloodPriceCap(Hero hero) =>
+        BloodPricePerKnowledge * hero.Knowledge + (hero.Class?.Talent == Pact ? PactPerLevel * hero.Level : 0);
 
     /// <summary>Le moral que l'Effroi de ce héros retire à l'armée ennemie au début du combat (0 : aucun).</summary>
     public static int DreadMorale(Hero? hero) =>

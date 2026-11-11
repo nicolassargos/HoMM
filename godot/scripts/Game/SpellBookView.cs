@@ -249,9 +249,9 @@ public partial class SpellBookView : Control
             MouseFilter = MouseFilterEnum.Stop, Modulate = dim ? new Color(1, 1, 1, 0.45f) : Colors.White,
             MouseDefaultCursorShape = castable ? CursorShape.PointingHand : CursorShape.Arrow,
         };
-        var icon = new SpellIconPlaceholder
+        var icon = new SpellIcon
         {
-            Color = SchoolColor(spell.School), Initials = Initials(spell.Name),
+            Picture = Art.Get($"spells/{spell.Id}"), Color = SchoolColor(spell.School), Initials = Initials(spell.Name),
             Position = A((CellWidth - IconSize) / 2f, 0), Size = A(IconSize, IconSize),
         };
         cell.AddChild(icon);

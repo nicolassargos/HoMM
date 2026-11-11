@@ -4,11 +4,15 @@ using static HoMM.Game.Ui;
 namespace HoMM.Game;
 
 /// <summary>
-/// L'icône d'un sort en attendant son image (maquette du livre de sorts) : un carré de la couleur de son école, un cadre,
-/// les initiales du sort ; au survol, il luit de sa couleur (des cadres de plus en plus pâles autour, qui battent).
+/// L'icône d'un sort dans le livre : son image (<c>art/spells/{id}.png</c>, 32 × 32, ×2, une petite peinture comme Heroes 2
+/// et 3), sinon en attendant un carré de la couleur de son école et les initiales du sort ; au survol, elle luit de la
+/// couleur de l'école (un halo qui bat).
 /// </summary>
-public partial class SpellIconPlaceholder : Control
+public partial class SpellIcon : Control
 {
+    /// <summary>L'image du sort ; null : le carré d'attente.</summary>
+    public Texture2D? Picture { get; init; }
+
     public Color Color { get; set; } = Colors.Gray;
     public string Initials { get; set; } = "";
 
@@ -27,7 +31,7 @@ public partial class SpellIconPlaceholder : Control
 
     private Label? _label;
 
-    public SpellIconPlaceholder() => MouseFilter = MouseFilterEnum.Ignore;
+    public SpellIcon() => MouseFilter = MouseFilterEnum.Ignore;
 
     private double _time;
 
@@ -41,6 +45,8 @@ public partial class SpellIconPlaceholder : Control
 
     public override void _Ready()
     {
+        if (Picture != null)
+            return;
         _label = MakeLabel(Initials, 16, Colors.White);
         _label.HorizontalAlignment = HorizontalAlignment.Center;
         _label.VerticalAlignment = VerticalAlignment.Center;
@@ -60,8 +66,14 @@ public partial class SpellIconPlaceholder : Control
             for (int ring = 6; ring >= 1; ring--)
                 DrawRect(all.Grow(ring * Grid), new Color(glow, pulse * 0.16f));
         }
-        DrawRect(all, Color.Darkened(0.15f));
-        DrawRect(new Rect2(Vector2.Zero, new Vector2(Size.X, Size.Y / 2)), Color);
-        DrawRect(all, _highlight ? MapRenderer.Rgb(230, 190, 80) : Color.Darkened(0.55f), false, Grid);
+        if (Picture != null)
+            DrawTextureRect(Picture, all, false);
+        else
+        {
+            DrawRect(all, Color.Darkened(0.15f));
+            DrawRect(new Rect2(Vector2.Zero, new Vector2(Size.X, Size.Y / 2)), Color);
+        }
+        // un cadre fin d'encre, doré au survol
+        DrawRect(all, _highlight ? MapRenderer.Rgb(230, 190, 80) : MapRenderer.Rgb(58, 38, 22), false, Grid);
     }
 }

@@ -23,7 +23,7 @@ La clé d'API est lue dans la variable d'environnement PIXELLAB_API_KEY (jamais 
         plusieurs images (modèle « Pro ») d'un coup : 25 pour 42 à 50 px, 16 pour 51 à 64 px, 4 pour 86 à 170 px…
         écrites dans dossier/1.png, 2.png… et dossier/planche.png ; <style.png> donne le trait, l'ombrage et le détail
         (pas les couleurs ; « - » pour aucun) ; les <modele> (4 au plus, PNG ou JPEG) montrent le sujet, pas le style ;
-        coûte de l'argent
+        coûte de l'argent ; option --fond (après les autres) : garder le fond (une petite peinture qui remplit l'image)
     python -I tools/art/pixellab.py retoucher image.png dossier "changement" [graine]
         modifie une image d'après un texte (« Edit images », Pro), en gardant sa forme et sa pose ; coûte de l'argent
     python -I tools/art/pixellab.py repeindre image.png sortie.png x y largeur hauteur "description" [graine]
@@ -241,8 +241,9 @@ def creer(sortie, largeur, hauteur, description, graine=None, style=None, force=
     print(f"{sortie} : {largeur}×{hauteur} (coût : {cout.get('usd')} $)")
 
 
-def pro(dossier, largeur, hauteur, description, graine=None, style=None, modeles=()):
-    corps = {"description": description, "image_size": {"width": largeur, "height": hauteur}, "no_background": True}
+def pro(dossier, largeur, hauteur, description, graine=None, style=None, modeles=(), fond=False):
+    # fond : garder le fond de l'image (une icône de sort peinte jusqu'aux bords) ; sinon, fond transparent
+    corps = {"description": description, "image_size": {"width": largeur, "height": hauteur}, "no_background": not fond}
     if graine is not None:
         corps["seed"] = graine
     if modeles:
@@ -346,10 +347,11 @@ def main():
         creer(a[2], int(a[3]), int(a[4]), a[5], int(a[6]) if len(a) > 6 else None,
               a[7] if len(a) > 7 else None, int(a[8]) if len(a) > 8 else 50)
     elif sys.argv[1] == "pro":
-        a = sys.argv
+        fond = "--fond" in sys.argv
+        a = [x for x in sys.argv if x != "--fond"]
         if len(a) < 6:
             sys.exit(__doc__)
-        pro(a[2], int(a[3]), int(a[4]), a[5], int(a[6]) if len(a) > 6 else None, a[7] if len(a) > 7 else None, a[8:])
+        pro(a[2], int(a[3]), int(a[4]), a[5], int(a[6]) if len(a) > 6 else None, a[7] if len(a) > 7 else None, a[8:], fond)
     elif sys.argv[1] in ("ui", "panneau"):
         if len(sys.argv) < 6:
             sys.exit(__doc__)

@@ -376,6 +376,17 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   commencer 62 ; fuir refait (« de profil, vers la gauche, tête basse de honte » : n° 4 ; le premier lot, vu de dos,
   ressemblait à des cosmonautes). Le jeu les **incruste** dans la pierre du bouton (`BattleScreen.Engrave` : un creux
   autour de l'argent, l'ombre en haut à gauche, la lumière en bas à droite, contrastes doux).
+- **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
+  guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
+  pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,
+  le sujet flotte sur du transparent), sans image de style, 64 candidats par sort, 0,08 $ le lot (vérifié au solde :
+  0,27 $ pour trois). Début de la description, le même pour tous les sorts : « tiny square spell icon for a 1990s
+  fantasy strategy game, a small painted scene filling the whole square edge to edge, rich saturated colours, soft
+  painterly shading, crisp clean pixel art, readable at small size, no text, no border, no frame: » puis le sujet et le
+  fond (« a blazing orange and yellow fireball bursting with flames and sparks, against a deep red and black
+  background »). Page de choix : chaque candidat ×2 sur le parchemin du livre, avec le nom et le coût du sort.
+  Choisis : Boule de feu 50 (une comète de feu), Bénédiction 45 (une épée dans des rayons d'or, ciel bleu), Éclair 8
+  (un éclair fourchu sous les nuages, nuit bleue).
 - **Icônes du panneau de la carte** (2026-11-09, même méthode, l'engrenage choisi comme image de style) : suivant 56
   (heaume et flèche), avancer 3 (botte), centrer 15 (cible), royaume 8 (couronne), creuser 48 (pelle), trésor 60 (carte
   roulée) ; Sorts et Options reprennent le livre et l'engrenage du combat. Le code commun : `IconButtons.cs`.

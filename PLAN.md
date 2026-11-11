@@ -87,7 +87,14 @@ cet ordre :
    **L'équilibre force / magie est reporté aux classes de héros** (choix de l'utilisateur) : d'abord apprendre à la
    simulation à ramasser les tas, puis comparer les classes (`Simulation_force_ou_magie`).
 2. **Le livre de sorts en image** : un vrai livre ouvert, une page par niveau, une animation de page qui tourne.
-3. **Une image par sort** (le livre, la guilde).
+   Décidé avec l'utilisateur (2026-11-11, « ne pas dépenser à l'aveugle ») : **une page par niveau** (niveaux 1-2, puis
+   3-4) et des **onglets par école** sur le bord (Eau, Feu, Terre, Air, Tous) pour n'en montrer qu'une ; chaque sort :
+   **son icône, son nom, son coût** (l'effet au survol), six par page ; au combat, un clic lance, un sort impossible est
+   grisé ; sur la carte, le livre se lit. **D'abord une maquette dans le jeu sans rien générer** (parchemin et onglets
+   dessinés par le code, icônes d'attente), pour régler les tailles sur des captures ; **ensuite seulement** l'image du
+   livre ouvert, à la taille trouvée. La page qui tourne : dessinée par le code.
+3. **Une image par sort** (le livre, la guilde) : **de petites peintures en couleur**, comme Heroes 2 et 3 (choix de
+   l'utilisateur), à la taille trouvée avec la maquette.
 4. **Une animation par sort** sur le champ (projectile, éclair, explosion…) et un **effet visible sur les troupes**
    (lueur, aura tant qu'un sort dure…). Puis le reste au fil des idées (sons…).
 

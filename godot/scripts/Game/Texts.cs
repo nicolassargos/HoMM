@@ -1419,6 +1419,30 @@ public static class Texts
     public static string SpellBookTooltip => "Livre de sorts du héros";
     public static string NotEnoughSpellPoints => "pas assez de points";
     public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";
+    public static string NoSpellOfSchool => "Aucun sort de cette école.";
+    public static string PreviousPage => "Page précédente";
+    public static string NextPage => "Page suivante";
+
+    /// <summary>L'info-bulle d'un onglet du livre de sorts.</summary>
+    public static string SchoolTabTooltip(string? school) =>
+        school == null ? "Tous les sorts" : $"Les sorts {SchoolName(school)}";
+
+    /// <summary>Le nom d'un onglet du livre de sorts : une école, ou tous les sorts (null).</summary>
+    public static string SchoolTab(string? school) => school switch
+    {
+        null => "Tous",
+        "eau" => "Eau",
+        "feu" => "Feu",
+        "terre" => "Terre",
+        "air" => "Air",
+        _ => school,
+    };
+
+    /// <summary>Le détail d'un sort au survol, dans le livre : son nom, son niveau et son école, son coût, ce qu'il fait.</summary>
+    public static string SpellTooltip(SpellType spell, Hero hero, int points) =>
+        $"{spell.Name} · niveau {spell.Level}{(spell.School is { } school ? $" · école {SchoolName(school)}" : "")}\n"
+        + $"{SpellCost(spell, hero)}{(hero.SpellCost(spell) > points ? $" · {NotEnoughSpellPoints}" : "")}\n"
+        + SpellEffectText(spell, hero);
     public static string SpellTargetPrompt(SpellType spell) => spell.Target switch
     {
         SpellTarget.Any => $"{spell.Name} : choisissez une troupe (clic droit ou Échap : annuler).",

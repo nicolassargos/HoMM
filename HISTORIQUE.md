@@ -859,6 +859,17 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   événements `UnitTerrified` et `UnitSwallowed` (textes « Terreur » et « Avalé ! » au-dessus des troupes, journal).
   Réglage en cinq passes de `Duels_a_prix_egal` (le Donjon ajouté) : la Terreur fait basculer un duel d'un coup
   (Aberration à 54 PV : presque toutes ses défaites ; à 56 : presque toutes ses victoires ; 55 retenu).
+- ✅ **L'Enfer, ses créatures** (2026-11-11, branche `enfer`). Conception avec l'utilisateur : le chaos et le feu, la
+  magie du feu la plus forte, le prix du sang (préféré au pacte qui sacrifie des créatures pour lancer un sort). Créatures
+  voulues **moins attendues que celles de Heroes 3** (l'utilisateur a écarté une première liste trop proche : Cerbère,
+  Gog, Efrit, Seigneur des abîmes, Cauchemar) ; le Cerbère gardé un temps au niveau 3, remplacé par le Limon de magma
+  qui se divise (idée de l'utilisateur). Code : les capacités dans `TacticalBattle` (partie « l'Enfer » : `BloodPrice`,
+  `Split`, `FreeHexNextTo`, `AddUnit`, `CanHook`/`Hook`, `CanSummon`/`Summon`), `MeleeAndRetaliation` (le sacrifice, la
+  riposte refusée à une troupe séduite), le prix du sang appelé partout où des créatures meurent (coups, foudre,
+  avalement, poison, sorts, sacrifice) ; l'insensibilité au feu dans `SpellHits` (`Burns`, aussi pour la valeur des
+  sorts de l'IA) ; `Talents.BloodPriceCap` et le talent `Pact` (prêt pour la classe). À l'écran, une troupe qui apparaît
+  en cours de combat est ajoutée cachée quand l'événement arrive, puis montrée par son animation
+  (`BattleFieldView.AddShown`, `Appear`, `Announce`). Réglage en trois passes de `Duels_a_prix_egal`.
 - ✅ **Le Donjon jouable** (2026-11-11, branche `donjon-ville`) : comme la Tour, une classe de faction `donjon` suffit
   (`PlayableFactions`). `Talents.Dread` et `DreadMorale` (1 + niveau / 8), appliqué par `TacticalBattle.Dread` juste
   après le moral de chaque camp et avant le brave (ceux que rien n'effraie gardent leur moral) ; `Texts.TalentText`.

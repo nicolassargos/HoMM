@@ -45,6 +45,12 @@ public sealed record CreatureType
     /// </summary>
     public List<string> Rays { get; init; } = new();
 
+    /// <summary>La créature qu'invoque celle-ci (<see cref="Ability.Summons"/> : le Démon et ses diablotins).</summary>
+    public string? Summon { get; init; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public CreatureType? SummonType { get; internal set; }
+
     [System.Text.Json.Serialization.JsonIgnore]
     public IReadOnlyList<SpellType> RaySpells { get; internal set; } = System.Array.Empty<SpellType>();
 

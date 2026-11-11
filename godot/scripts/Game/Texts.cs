@@ -133,6 +133,7 @@ public static class Texts
     public static string QuickButton => "Combat rapide";
 
     public static string BattleWait => "Attendre";
+    public static string BattleSummon => "Invoquer des diablotins";
     public static string BattleDefend => "Se défendre";
     public static string BattleStay => "Rester";
     public static string BattleAuto => "Auto";
@@ -163,6 +164,16 @@ public static class Texts
         UnitRooted r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "est enraciné" : "sont enracinés")} : pas de déplacement au prochain tour.",
         UnitTerrified t => $"Terreur : le moral {(t.Unit.Count == 1 ? "du" : "des")} {Stack(t.Unit.Stack)} tombe à {t.Morale:+0;-0;0}.",
         UnitSwallowed w => $"{Capitalize(Stack(w.Worm.Stack))} {(w.Worm.Count == 1 ? "avale" : "avalent")} un {w.Unit.Type.Name.ToLowerInvariant()} tout entier !",
+        BloodPaid b => $"Le prix du sang : {b.Points} {(b.Points == 1 ? "point" : "points")} de sort pour le héros.",
+        SpellPointsStolen s => $"{Capitalize(Creature(s.Thief.Type, 2))} : {s.Points} {(s.Points == 1 ? "point" : "points")} de sort {(s.Points == 1 ? "volé" : "volés")} au héros ennemi.",
+        UnitSacrificed s => $"{s.Count} {Creature(s.Unit.Type, s.Count)} {(s.Count == 1 ? "se sacrifie" : "se sacrifient")} : la troupe frappe plus fort.",
+        UnitSplit s => $"{Capitalize(Creature(s.From.Type, 2))} : {s.Count} {(s.Count == 1 ? "se détache" : "se détachent")} en une nouvelle troupe.",
+        UnitSeduced s => $"{Capitalize(Stack(s.Unit.Stack))} {(s.Unit.Count == 1 ? "est séduit" : "sont séduits")} : {(s.Unit.Count == 1 ? "il passera son" : "ils passeront leur")} prochain tour.",
+        UnitEntranced e => $"{Capitalize(Stack(e.Unit.Stack))}, sous le charme, {(e.Unit.Count == 1 ? "passe son" : "passent leur")} tour.",
+        UnitHooked h => $"{Capitalize(Stack(h.Hooker.Stack))} {(h.Hooker.Count == 1 ? "tire" : "tirent")} {Stack(h.Target.Stack)} au bout de {(h.Hooker.Count == 1 ? "son" : "leurs")} crochet{(h.Hooker.Count == 1 ? "" : "s")} !",
+        UnitBurned b => $"La chaleur brûle {Stack(new CreatureStack(b.Unit.Type, b.Unit.Count + b.Killed))} : {b.Damage} dégâts"
+                        + (b.Killed > 0 ? $", {b.Killed} {(b.Killed == 1 ? "tué" : "tués")}." : "."),
+        UnitSummoned s => $"{Capitalize(Stack(s.Summoner.Stack))} {(s.Summoner.Count == 1 ? "ouvre" : "ouvrent")} un portail : {s.Count} {Creature(s.Summoned.Type, s.Count)} {(s.Count == 1 ? "apparaît" : "apparaissent")} !",
         UnitRevolted v => $"{Capitalize(Stack(v.Unit.Stack))} {(v.Unit.Count == 1 ? "se révolte et change" : "se révoltent et changent")} de camp !",
         UnitMayRetreat r => $"{Capitalize(Stack(r.Unit.Stack))} {(r.Unit.Count == 1 ? "peut" : "peuvent")} repartir ({r.Steps} {(r.Steps == 1 ? "case" : "cases")}).",
         UnitEnraged e => $"{Capitalize(Stack(e.Unit.Stack))} {(e.Unit.Count == 1 ? "enrage" : "enragent")} : +{e.Rage} en attaque.",
@@ -948,6 +959,15 @@ public static class Texts
         Ability.Burrows => "se déplace sous terre",
         Ability.Swallow => "peut avaler une créature entière",
         Ability.Rays => "rayons (chaque tir lance un sort néfaste au hasard)",
+        Ability.Infernal => "infernal (insensible au feu ; sa mort rend des points de sort à son héros)",
+        Ability.ManaThief => "vole des points de sort au héros ennemi",
+        Ability.Sacrifice => "sacrifice (un sur dix meurt avant d'attaquer, +50 % de dégâts)",
+        Ability.Splits => "se divise quand il est frappé",
+        Ability.Seduce => "séduit (un tir sur quatre fait passer son tour à la cible)",
+        Ability.Hook => "crochet (tire un ennemi à 3 cases contre lui)",
+        Ability.HeatAura => "aura de chaleur (brûle les ennemis voisins)",
+        Ability.Feeds => "se nourrit des morts de l'Enfer (+1 attaque)",
+        Ability.Summons => "invoque des diablotins (une fois par combat)",
         _ => ability,
     };
 

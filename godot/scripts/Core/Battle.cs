@@ -31,6 +31,10 @@ public sealed class BattleReport
     public int AttackerSpellPointsSpent { get; init; }
     public int DefenderSpellPointsSpent { get; init; }
 
+    /// <summary>Les points de sort gagnés au combat (prix du sang, vols du Diablotin), moins ceux volés par l'ennemi.</summary>
+    public int AttackerSpellPointsGained { get; init; }
+    public int DefenderSpellPointsGained { get; init; }
+
     /// <summary>Expérience gagnée : la valeur en or des créatures ennemies tuées.</summary>
     public int Experience => Fled ? 0 : Battle.ExperienceFor(DefenderLosses);
 }

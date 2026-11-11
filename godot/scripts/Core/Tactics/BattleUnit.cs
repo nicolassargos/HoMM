@@ -137,6 +137,28 @@ public static class Ability
     /// <summary>Les rayons (le Tyran œil) : chaque tir lance aussi un sort néfaste au hasard (ceux de « rays » dans les données).</summary>
     public const string Rays = "rays";
 
+    /// <summary>
+    /// Infernale (toutes les créatures de l'Enfer) : insensible au feu (les sorts de dégâts de l'école du feu, l'aura du
+    /// Moloch), et sa mort nourrit le prix du sang (des points de sort pour son héros).
+    /// </summary>
+    public const string Infernal = "infernal";
+    /// <summary>Voleur de points de sort (le Diablotin) : chacun de ses coups en prend au héros ennemi et les donne au sien.</summary>
+    public const string ManaThief = "mana-thief";
+    /// <summary>Sacrifice (les Cultistes) : avant chaque attaque, un sur dix meurt, et la troupe frappe plus fort.</summary>
+    public const string Sacrifice = "sacrifice";
+    /// <summary>Se divise (le Limon de magma) : frappée sans mourir, un tiers de la troupe se détache en une nouvelle troupe.</summary>
+    public const string Splits = "splits";
+    /// <summary>Séduit (la Succube) : son tir peut figer la cible, qui passe son prochain tour et ne riposte plus.</summary>
+    public const string Seduce = "seduce";
+    /// <summary>Crochet (le Tourmenteur) : au lieu d'attaquer, tire contre lui un ennemi à quelques cases et le frappe.</summary>
+    public const string Hook = "hook";
+    /// <summary>Aura de chaleur (le Moloch) : au début de son tour, brûle chaque ennemi voisin.</summary>
+    public const string HeatAura = "heat-aura";
+    /// <summary>Se nourrit (le Moloch) : de l'attaque en plus chaque fois que des créatures de l'Enfer de son camp meurent.</summary>
+    public const string Feeds = "feeds";
+    /// <summary>Invoque (le Démon) : une fois par combat, à la place de son action, fait venir une troupe (« summon »).</summary>
+    public const string Summons = "summons";
+
     public static readonly string[] Known =
     {
         Shoots, NoRangePenalty, Flies, DoubleRetaliation, NoRetaliation, Breath, RangedResistance,
@@ -146,6 +168,7 @@ public static class Ability
         NatureRegeneration, DoubleShot, Leaps, HealingAura, Roots,
         Made, Repairs, Blessing, NoMeleePenalty,
         Terror, Horror, Brave, EndlessRetaliation, Burrows, Swallow, Rays,
+        Infernal, ManaThief, Sacrifice, Splits, Seduce, Hook, HeatAura, Feeds, Summons,
     };
 }
 
@@ -387,6 +410,24 @@ public sealed class BattleUnit
 
     /// <summary>Une créature façonnée : elle résiste à la magie.</summary>
     public bool IsMade => Has(Ability.Made);
+
+    /// <summary>Une créature de l'Enfer : insensible au feu, sa mort nourrit le prix du sang.</summary>
+    public bool IsInfernal => Has(Ability.Infernal);
+
+    /// <summary>La Succube peut la séduire (pas un mort-vivant, une créature façonnée ni une du niveau 7).</summary>
+    public bool CanBeSeduced => !IsUndead && !IsMade && Type.Tier < 7;
+
+    /// <summary>Séduite (la Succube) : elle passera son prochain tour et ne riposte pas d'ici là.</summary>
+    public bool IsSeduced { get; internal set; }
+
+    /// <summary>Le Démon a déjà invoqué dans ce combat.</summary>
+    public bool HasSummoned { get; internal set; }
+
+    /// <summary>Le Limon de magma s'est déjà divisé dans ce round.</summary>
+    internal bool HasSplit { get; set; }
+
+    /// <summary>Une troupe invoquée (les diablotins du Démon) : elle disparaît après le combat, sans compter dans le bilan.</summary>
+    public bool IsSummoned { get; internal set; }
 
     /// <summary>La Terreur ne la touche pas : un mort-vivant, une créature façonnée, une du niveau 7, un brave.</summary>
     public bool FearsNothing => IsUndead || IsMade || Type.Tier >= 7 || Has(Ability.Brave);

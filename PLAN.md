@@ -106,7 +106,7 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Barbares** | force, la horde | Béhémoth → Béhémoth ancien | soufre | cristal | jouable |
 | **Forêt** | les meilleurs tireurs, plantes et soins | Troll → Troll ancien | gemmes | cristal | **en cours** |
 | **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | **en cours** |
-| **Enfer** | agressifs, magie du feu | Démon → Archidémon | mercure | soufre | à faire |
+| **Enfer** | le chaos et le feu, le prix du sang | Démon → Archidémon | mercure | soufre | **en cours** |
 | **Donjon** | les seigneurs des abîmes, la Terreur | Hydre → (à choisir) | soufre | mercure | jouable |
 | **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
 
@@ -120,18 +120,69 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 - Les **Barbares** : voir plus bas.
 - La **Forêt** : voir plus bas ; le Troll ancien se régénérera plus, et ses coups repousseront l'ennemi (il ne riposte
   plus).
-- L'**Enfer** : le **Démon** au niveau 7 ; l'Archidémon se téléporte n'importe où sur le champ de bataille et met le
-  feu aux cases autour de lui. Leurs prix et
-  caractéristiques sont à remettre à l'échelle du Château (un Squelette coûte 60 or, un Archer de même force 18).
-- L'**Enfer** : une idée de l'utilisateur pour sa marque, le **pacte sombre** (lancer un sort au-delà de ses points de sort
-  en sacrifiant des créatures). Les **Nains** : échanger des ressources contre de l'or, ou miner davantage (à voir).
+- L'**Enfer** : voir plus bas. Les **Nains** : échanger des ressources contre de l'or, ou miner davantage (à voir).
 - Le **Tyran œil** : un œil géant qui tire des rayons, chacun un sort néfaste au hasard. La **Machine de guerre** :
   une machine à vapeur avec un canon (un tireur dont le coup touche une zone).
 - La **faction neutre** garde les monstres de la carte seulement : le **Dragon rouge** (et d'autres au fil du temps).
-- Les **héros** : ceux de la « faction sombre » (`data/heroes.json` : sorciers et démons) sont à répartir entre
-  l'Enfer et le Donjon ; les Nains n'en ont pas encore.
+- Les **héros** : les Nains n'en ont pas encore.
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
+
+#### L'Enfer (en cours)
+Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).
+- **Philosophie : le chaos et le feu.** Des démons venus d'un monde qui brûle : imprévisibles, destructeurs, ils brûlent
+  tout, leurs propres pertes comprises.
+- **Forces** : la magie du feu la plus forte ; **toutes les créatures de l'Enfer sont insensibles au feu** (Boule de feu,
+  l'aura du Moloch, plus tard le feu de l'Archidémon) : le héros lance le feu dans la mêlée sans blesser ses troupes.
+- **Faiblesses** : plus faibles au corps à corps pur (peu de défense et de PV) ; elles comptent sur la magie de leur héros
+  (plus faibles sans héros, ou quand ses points de sort sont épuisés).
+- **Sa marque : le prix du sang** (choix de l'utilisateur, plutôt que sacrifier des créatures pour lancer un sort) :
+  chaque créature de l'Enfer tuée au combat rend au héros des points de sort (proposé : son niveau, au plus deux fois
+  le savoir du héros par combat ; à régler en mesurant).
+- **La classe Démoniste** : attaque 1, défense 1, puissance 3, savoir 2, charisme 9 ; École du feu au départ ; deux sorts
+  du feu de niveau 1 (Soif de sang, Malédiction) ; talent **Pacte** : le prix du sang rend plus avec le niveau du héros
+  (proposé : le plafond monte de 1 par niveau).
+- Ressources : mercure (principale : l'habitation et la créature du niveau 7), soufre (secondaire : niveaux 5 et 6).
+- **Les héros** : les quatre de la « faction sombre » qui restent (Méphis le Cornu, Dame Cendre, Zarkhan, Sorcha la
+  Damnée).
+
+| Niveau | Créature | Rôle | Capacité (chiffres proposés, à régler) |
+|---|---|---|---|
+| 1 | Diablotin | le voleur | vole ; **vole des points de sort** : chacun de ses coups retire au héros ennemi des points de sort (1 par 5 diablotins) et les donne au sien |
+| 2 | Cultistes (des humains qui ont vendu leur âme) | le sang pour la force | **sacrifice** : avant chaque attaque, un cultiste sur dix meurt, et la troupe frappe 50 % plus fort (ces morts nourrissent le prix du sang) |
+| 3 | Limon de magma | l'essaim qui se divise | **se divise** : frappée sans mourir, un tiers de la troupe se détache en une nouvelle troupe sur une case libre voisine (3 créatures au moins) ; elles se rejoignent après le combat |
+| 4 | Succube | la tireuse qui séduit | tire (un baiser de feu) ; **séduit** : un tir sur quatre fige la cible, qui passe son prochain tour et ne riposte plus (sauf ceux que rien n'effraie : morts-vivants, façonnés, niveau 7) |
+| 5 | Tourmenteur | le crochet | **chaîne** : au lieu d'attaquer, lance son crochet sur un ennemi à 3 cases au plus, le tire contre lui et le frappe (pas les créatures de 2 cases ni du niveau 7) : il arrache les tireurs à leur abri |
+| 6 | Moloch (une idole de bronze, une fournaise dedans) | la fournaise | lent ; **aura de chaleur** : au début de son tour, brûle chaque ennemi voisin ; **grandit** : +1 attaque chaque fois que des créatures de l'Enfer meurent (+6 au plus) |
+| 7 | Démon | le géant | **invoque des diablotins** : une fois par combat, à la place de son action, ouvre un portail : une troupe de diablotins (10 par démon) apparaît sur une case libre voisine, et disparaît après le combat |
+
+Écartés : les créatures de Heroes 3 (Cerbère, Gog, Efrit, Seigneur des abîmes…), les Furies, les Scarabées de soufre, les
+Feux follets, l'Oni, le Rejeton du chaos, la Forge vivante (idées à garder pour des monstres neutres ou des améliorations).
+Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images.
+1. ✅ Les créatures et leurs capacités (2026-11-11, branche `enfer`) : `infernal` (insensible aux sorts de dégâts du feu
+   et à l'aura du Moloch ; le prix du sang, événement `BloodPaid`), `mana-thief` (`SpellPointsStolen`), `sacrifice`
+   (`UnitSacrificed`), `splits` (une nouvelle troupe en cours de combat, `UnitSplit`, une fois par round ; elle rejoint
+   l'armée après), `seduce` (`UnitSeduced`, puis `UnitEntranced` au tour passé), `hook` (`TacticalBattle.Hook`,
+   `UnitHooked`), `heat-aura` (`UnitBurned`), `feeds`, `summons` (« summon » dans `creatures.json` ;
+   `TacticalBattle.Summon`, `UnitSummoned` ; les invoqués ne comptent ni dans les pertes ni dans l'expérience). Les
+   points de sort gagnés ou volés reviennent au héros après le combat (`BattleReport.AttackerSpellPointsGained`, sans
+   dépasser son maximum). À l'écran : le crochet au clic (curseur de tir), le bouton « Invoquer » (touche I, icône à
+   faire), les troupes qui apparaissent, des textes. L'IA invoque aussitôt, et lance d'abord son crochet sur un tireur.
+   Chiffres réglés par `Duels_a_prix_egal` (sans héros : l'Enfer y perd sa magie ; la Succube un peu en dessous, comme
+   le Mage : les duels en terrain ouvert avantagent le corps à corps) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Diablotin | 4 | 3 | 1-3 | 6 | 7 | 16 | 11 |
+   | Cultiste | 6 | 4 | 3-5 | 16 | 5 | 12 | 28 |
+   | Limon de magma | 9 | 7 | 4-6 | 34 | 4 | 9 | 50 |
+   | Succube | 14 | 9 | 7-10 | 45 | 6 | 6 | 130 |
+   | Tourmenteur | 15 | 12 | 10-14 | 60 | 6 | 4 | 210 |
+   | Moloch | 16 | 16 | 18-24 | 120 | 4 | 3 | 360 |
+   | Démon | 26 | 22 | 80-100 | 1500 | 7 | 2 | 4900 et 1 mercure |
+   Mesuré : la simulation gagne toujours, normales jour 89, grandes 153, petites 101 en moyenne dont une au jour 164 (les
+   gardiens du Donjon et de l'Enfer, à surveiller) ; adversaires (six semaines, Normal, or d'armée) : Château 25 200,
+   morts-vivants 25 800, Barbares 31 500, Forêt 33 000, Tour 23 700, Donjon 31 400. Courbe des paysans : Diablotin 4,
+   Cultiste 14, Limon 22, Succube 75, Tourmenteur 52, Moloch 121, Démon 1170. Tests : `EnferTests`.
 
 #### Le Donjon (en cours)
 Décidé avec l'utilisateur (2026-11-11), d'après ses images (`art-candidats/references/donjon/`).

@@ -1368,6 +1368,65 @@ public partial class BattleFieldView : Control
                         return true;
                     });
                     break;
+                // l'Enfer : des troupes qui apparaissent (Limon de magma divisé, diablotins du Démon), et des textes
+                case UnitSplit split:
+                    AddShown(split.Part);
+                    Announce(split.Part, "Division", MapRenderer.Rgb(255, 150, 60), () =>
+                    {
+                        _shown[split.From].Count = Math.Max(0, _shown[split.From].Count - split.Count);
+                        Appear(split.Part, split.Count);
+                    });
+                    break;
+                case UnitSummoned summoned:
+                    AddShown(summoned.Summoned);
+                    Announce(summoned.Summoned, "Portail", MapRenderer.Rgb(255, 90, 60), () => Appear(summoned.Summoned, summoned.Count), 0.4);
+                    break;
+                case UnitSacrificed sacrificed:
+                    Announce(sacrificed.Unit, $"Sacrifice : -{sacrificed.Count}", MapRenderer.Rgb(220, 60, 60), () =>
+                    {
+                        var shown = _shown[sacrificed.Unit];
+                        shown.Count = Math.Max(0, shown.Count - sacrificed.Count);
+                        shown.Flash = 1;
+                    });
+                    break;
+                case UnitBurned burned:
+                    Announce(burned.Unit, $"-{burned.Damage}", MapRenderer.Rgb(255, 130, 50), () =>
+                    {
+                        var shown = _shown[burned.Unit];
+                        shown.Count = Math.Max(0, shown.Count - burned.Killed);
+                        shown.Flash = 1;
+                    }, 0.35);
+                    break;
+                case UnitHooked hooked:
+                    double pull = 0;
+                    Vector2 from = default;
+                    var to = UnitCenter(hooked.Target, hooked.To);
+                    _animations.Enqueue(delta =>
+                    {
+                        // la cible glisse jusqu'au Tourmenteur, au bout de la chaîne
+                        if (pull == 0)
+                        {
+                            from = _shown[hooked.Target].Position;
+                            _floating.Add(("Crochet !", _shown[hooked.Hooker].Position + Ui.V(0, -70), 0, MapRenderer.Rgb(200, 200, 210)));
+                        }
+                        pull += Math.Max(delta, 1e-6);
+                        float k = (float)Math.Min(1, pull / 0.3);
+                        _shown[hooked.Target].Position = from.Lerp(to, k);
+                        return k >= 1;
+                    });
+                    break;
+                case UnitSeduced seduced:
+                    Announce(seduced.Unit, "Séduit", MapRenderer.Rgb(255, 120, 200));
+                    break;
+                case UnitEntranced entranced:
+                    Announce(entranced.Unit, "Sous le charme", MapRenderer.Rgb(255, 120, 200));
+                    break;
+                case BloodPaid blood:
+                    Announce(blood.Unit, $"Sang : +{blood.Points} sort", MapRenderer.Rgb(200, 90, 230));
+                    break;
+                case SpellPointsStolen stolen:
+                    Announce(stolen.Thief, $"Vol : {stolen.Points} sort", MapRenderer.Rgb(130, 170, 255));
+                    break;
                 case UnitRooted rooted:
                     double root = 0;
                     _animations.Enqueue(delta =>
@@ -1565,6 +1624,41 @@ public partial class BattleFieldView : Control
             targets = new() { frozen != null ? targets[^1] : targets[_previewTurn++ % targets.Count] };
         foreach (var shown in targets)
             _effects.OnHex(parts[0], Ground(shown), frozen);
+    }
+
+    /// <summary>Une troupe qui apparaît en cours de combat : cachée jusqu'à son animation (<see cref="Appear"/>).</summary>
+    private void AddShown(BattleUnit unit) =>
+        _shown[unit] = new Shown { Position = UnitCenter(unit, unit.Position), Count = 0, Gone = true, Phase = unit.Id * 0.37 };
+
+    private void Appear(BattleUnit unit, int count)
+    {
+        var shown = _shown[unit];
+        shown.Gone = false;
+        shown.Count = count;
+        shown.Flash = 1;
+    }
+
+    /// <summary>
+    /// Un texte qui monte au-dessus de la troupe, après <paramref name="first"/> (ce qui change à l'écran) ; la troupe
+    /// disparaît si elle n'a plus de créatures.
+    /// </summary>
+    private void Announce(BattleUnit unit, string text, Color color, Action? first = null, double time = 0.2)
+    {
+        double elapsed = 0;
+        _animations.Enqueue(delta =>
+        {
+            if (elapsed == 0)
+            {
+                first?.Invoke();
+                _floating.Add((text, _shown[unit].Position + Ui.V(0, -70), 0, color));
+            }
+            elapsed += Math.Max(delta, 1e-6);
+            if (elapsed < time)
+                return false;
+            if (_shown[unit].Count == 0)
+                _shown[unit].Gone = true;
+            return true;
+        });
     }
 
     public override void _Process(double delta)

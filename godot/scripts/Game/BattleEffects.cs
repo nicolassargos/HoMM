@@ -335,7 +335,7 @@ public sealed class BattleEffects
 
     /// <summary>
     /// Un éclair : une ligne brisée de pixels d'art, redessinée plusieurs fois par seconde (elle crépite), un cœur
-    /// blanc-jaune et un halo jaune, qui s'éteint. Pas encore utilisé (gardé pour un sort ou une créature à venir).
+    /// blanc bleuté et un halo bleu (comme la foudre de l'Oiseau-tonnerre), qui s'éteint. Le tir du Mage de la Tour.
     /// </summary>
     private static void DrawBeam(CanvasItem canvas, Beam b)
     {
@@ -350,14 +350,16 @@ public sealed class BattleEffects
             float jitter = k == 0 || k == segments ? 0 : (Noise(b.Seed + flicker * 31, k) - 0.5f) * 2 * 4 * U;
             points[k] = b.From.Lerp(b.To, (float)k / segments) + side * jitter;
         }
-        // un halo jaune de part et d'autre, un cœur blanc-jaune de deux pixels d'art
-        var halo = new Color(1, 0.85f, 0.25f, 0.75f * fade);
-        var core = new Color(1, 1, 0.8f, fade);
+        // un cœur blanc bleuté de trois pixels d'art, un halo bleu vif de part et d'autre, et une lueur bleue plus pâle
+        var glow = new Color(0.3f, 0.5f, 1, 0.35f * fade);
+        var halo = new Color(0.3f, 0.6f, 1, 0.95f * fade);
+        var core = new Color(0.92f, 0.97f, 1, fade);
         for (int k = 0; k < segments; k++)
         {
-            // des traits côte à côte d'un pixel d'art : le cœur (trois), le halo de part et d'autre
-            for (int x = -1; x <= 4; x++)
-                Line(canvas, points[k] + side * Pixel * x, points[k + 1] + side * Pixel * x, x is >= 0 and <= 2 ? core : halo);
+            // des traits côte à côte d'un pixel d'art : le cœur (trois), le halo (deux de chaque côté), la lueur (deux)
+            for (int x = -4; x <= 6; x++)
+                Line(canvas, points[k] + side * Pixel * x, points[k + 1] + side * Pixel * x,
+                    x is >= 0 and <= 2 ? core : x is >= -2 and <= 4 ? halo : glow);
         }
     }
 
@@ -384,7 +386,7 @@ public sealed class BattleEffects
             "morsure" => (6, new[] { new Color(0.85f, 0.15f, 0.15f), new Color(1, 0.9f, 0.85f) }, 6f, 1),
             "poison" => (9, new[] { new Color(0.6f, 0.95f, 0.35f), new Color(0.3f, 0.6f, 0.2f) }, 8f, 1),
             "feuilles" => (12, new[] { new Color(0.55f, 0.85f, 0.3f), new Color(0.3f, 0.6f, 0.2f), new Color(0.8f, 0.9f, 0.35f) }, 10f, 1),
-            "eclair" => (6, new[] { new Color(1, 1, 0.8f), new Color(1, 0.85f, 0.25f) }, 7f, 2),
+            "eclair" => (6, new[] { new Color(0.88f, 0.95f, 1), new Color(0.35f, 0.6f, 1) }, 7f, 2),
             "entaille" => (6, new[] { new Color(1, 1, 0.9f), new Color(0.7f, 0.15f, 0.1f) }, 7f, 1),
             _ => (7, new[] { new Color(1, 1, 0.85f), new Color(0.75f, 0.72f, 0.65f) }, 8f, 1), // « choc »
         };

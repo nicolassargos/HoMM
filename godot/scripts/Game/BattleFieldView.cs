@@ -1490,7 +1490,8 @@ public partial class BattleFieldView : Control
     /// <summary>
     /// Développement : « --effect-preview=foudre » joue cet effet sur la case d'une troupe après l'autre, toutes les deux
     /// secondes ; « --effect-preview=foudre:0.2 » le fige à cet instant (0,2 seconde après son départ) sur la dernière troupe
-    /// du camp de droite (la plus basse : l'éclair le plus long), pour les captures.
+    /// du camp de droite (la plus basse : l'éclair le plus long), pour les captures. Un tir (« --effect-preview=eclair ») part
+    /// sans cesse de la première troupe de gauche vers la première de droite.
     /// </summary>
     private static readonly string? EffectPreviewArg = OS.GetCmdlineUserArgs()
         .FirstOrDefault(a => a.StartsWith("--effect-preview="))?["--effect-preview=".Length..];
@@ -1506,6 +1507,20 @@ public partial class BattleFieldView : Control
         if (EffectPreviewArg is not { } arg || Battle == null)
             return;
         var parts = arg.Split(':');
+        if (!BattleEffects.PlaysOnHex(parts[0]))
+        {
+            // un tir (« eclair ») : de la première troupe de gauche vers la première de droite, relancé sans cesse pour
+            // rester visible sur une capture
+            _previewClock = _previewClock < 0 ? 0 : _previewClock + delta;
+            if (_previewClock > 0 && _previewClock < 0.2)
+                return;
+            _previewClock = 1e-6;
+            var from = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Attacker);
+            var to = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Defender);
+            if (from.Key != null && to.Key != null)
+                _effects.Launch(parts[0], LaunchPoint(from.Key, from.Value), BodyCenter(to.Key, to.Value), () => { });
+            return;
+        }
         double? frozen = parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var at) ? at : null;
         if (_previewClock >= 0 && (frozen != null || _previewClock < 2))
         {

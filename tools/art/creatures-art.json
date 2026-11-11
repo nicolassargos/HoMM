@@ -1242,6 +1242,47 @@
         "move": "glides forward through the air, leaning forward, his golden smoke tail streaming and waving behind him",
         "attack": "swoops forward and strikes the enemy in front of him with both big fists, then floats back to his place"
       }
+    },
+    "mage": {
+      "nom": "Mage",
+      "gabarit": "humain",
+      "hauteur": 76,
+      "generation": [
+        112,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "djinn",
+        "archer"
+      ],
+      "notes": "Tour, niveau 6 : le grand tireur (références de l'utilisateur, 2026-11-11 : pas de chapeau, grandes manches, vêtements amples, pas de bâton). Deux styles : brun (L1 à L3), vieux à barbe grise (L4 à L6). Choix (2026-11-11) : L3-1 (brun) à 76 px ; idle-2, move-5 (14 images/s), attack-5-r (les deux mains au ciel puis en avant) ; tir : un éclair bleu (« eclair »).",
+      "description": "a battle mage standing: a man with long black hair swept back and a short black beard, no hat, a very loose dark purple robe with huge wide sleeves, a long blue inner robe with a red sash and a golden collar, one bare hand raised forward ready to cast a spell, no staff, no weapon",
+      "sujet": "a bareheaded black-haired mage in a loose purple robe with huge sleeves over a blue inner robe, one hand raised, no staff, facing right",
+      "references": [
+        "art-candidats/references/mage1.png::costume reference (a mage in a loose purple robe with very wide sleeves over a blue and red inner robe, casting from his bare hand): keep the loose robe, the wide sleeves, the colours and the bare head; ignore the lightning effect, draw no magic effect"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L3-1",
+        "idle": "idle-2",
+        "move": "move-5",
+        "attack": "attack-5-r"
+      },
+      "grande": "art-candidats/references/derives/mage-grand.png",
+      "consignes": {
+        "idle": "stands calmly, breathing slowly, his raised hand slowly turning and his fingers moving as if weaving a spell, the wide sleeves and the loose robe swaying gently",
+        "move": "walking forward with steady steps, his feet stepping out from under the long robe one after the other, both arms swinging naturally back and forth with each step, the huge sleeves swaying",
+        "attack": "raises both hands high above his head, palms open toward the sky, gathering power, then swings both hands forward toward the enemy to cast a spell, then lowers his arms back to his stance"
+      }
     }
   }
 }

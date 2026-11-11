@@ -197,6 +197,24 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   entre deux attentes, `stepTime` : temps pour traverser une case ; par défaut, une créature qui marche fait **un cycle de déplacement
   par case** (8 images à 10 par seconde : 0,8 s), un volant 0,09 s ; le Zombie 0,45). Au combat,
   une troupe regarde où elle va (miroir) et se tourne vers sa cible. L'utilisateur trouve les animations un peu chargées : préférer des mouvements discrets.
+- **Leçons de la Tour** (2026-11-11) :
+  - un pied coupé en marchant (les pieds au bas du cadre de génération) : `"marge_bas": 0.08` dans la fiche laisse de la
+    place sous les pieds, retirée ensuite des feuilles (la créature ne flotte pas) ;
+  - un éclat qui couvre le corps ne s'efface pas (il laisse un trou) : remplacer l'image par sa voisine (`--copier`), ou
+    remplacer chaque pixel d'effet par la moyenne de ses voisins de pierre (une créature grise) ; **ne pas redessiner
+    les images couvertes avec `pixellab.py retoucher`** : la créature change (le Golem sans tête y gagnait une tête) ;
+  - « ram », « slam », « strike » font dessiner une explosion presque à coup sûr : décrire le corps (« throws its torso
+    forward, chest first ») ; une créature qui avance vraiment : « charges two steps forward », `--largeur=3.2` ;
+  - au-delà de 224 px de large, un des deux modèles refuse 16 images : 8 images pour une attaque large ;
+  - une partie de l'image fixe (une main levée) reste figée dans toutes les animations : choisir l'image fixe en pensant
+    aux animations ;
+  - une marche ratée où la créature ne bouge pas les pieds fait une bonne attente (le Géant) ; une marche en deux temps :
+    la transformation pose l'objet (la colonne sur l'épaule), la marche part de sa dernière image ;
+  - un muscle trop gros, « stéréotypé » : « natural proportions, lean, NOT muscular », l'ancien candidat en référence ;
+  - petite image de la carte : des armes blanches font des taches blanches à 32 px (« un fond blanc ») : demander
+    « dark grey steel blades » ;
+  - plusieurs points de départ d'un tir : `launchPoint2` (la seconde main) dans `animations.json`, mesurés sur l'image
+    où le tir part ; `--effect-preview=eclair` montre l'éclair sans cesse pour une capture.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).

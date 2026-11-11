@@ -870,6 +870,11 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sorts de l'IA) ; `Talents.BloodPriceCap` et le talent `Pact` (prêt pour la classe). À l'écran, une troupe qui apparaît
   en cours de combat est ajoutée cachée quand l'événement arrive, puis montrée par son animation
   (`BattleFieldView.AddShown`, `Appear`, `Announce`). Réglage en trois passes de `Duels_a_prix_egal`.
+- ✅ **L'Enfer jouable** (2026-11-11, branche `enfer`, faite pendant une coupure de GitHub, à la suite de l'étape 1) :
+  comme le Donjon, une classe de faction `enfer` suffit (`PlayableFactions`). `Texts.TalentText` pour le Pacte ; les
+  quatre héros « sombres » qui restaient passent à l'Enfer, `DataValidation.PlannedFactions` est vide.
+  `HerosContreHerosTests.FaceToFace` fixe l'adversaire au Château (avec une faction de plus, le tirage donnait un
+  Magicien, dont les Flèches magiques battaient 80 paysans avec 3).
 - ✅ **Le Donjon jouable** (2026-11-11, branche `donjon-ville`) : comme la Tour, une classe de faction `donjon` suffit
   (`PlayableFactions`). `Talents.Dread` et `DreadMorale` (1 + niveau / 8), appliqué par `TacticalBattle.Dread` juste
   après le moral de chaque camp et avant le brave (ceux que rien n'effraie gardent leur moral) ; `Texts.TalentText`.

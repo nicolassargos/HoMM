@@ -106,7 +106,7 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Barbares** | force, la horde | Béhémoth → Béhémoth ancien | soufre | cristal | jouable |
 | **Forêt** | les meilleurs tireurs, plantes et soins | Troll → Troll ancien | gemmes | cristal | **en cours** |
 | **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | **en cours** |
-| **Enfer** | le chaos et le feu, le prix du sang | Démon → Archidémon | mercure | soufre | **en cours** |
+| **Enfer** | le chaos et le feu, le prix du sang | Démon → Archidémon | mercure | soufre | jouable |
 | **Donjon** | les seigneurs des abîmes, la Terreur | Hydre → (à choisir) | soufre | mercure | jouable |
 | **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
 
@@ -183,6 +183,18 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
    gardiens du Donjon et de l'Enfer, à surveiller) ; adversaires (six semaines, Normal, or d'armée) : Château 25 200,
    morts-vivants 25 800, Barbares 31 500, Forêt 33 000, Tour 23 700, Donjon 31 400. Courbe des paysans : Diablotin 4,
    Cultiste 14, Limon 22, Succube 75, Tourmenteur 52, Moloch 121, Démon 1170. Tests : `EnferTests`.
+2. ✅ La ville et le jeu (2026-11-11, branche `enfer`) : 7 habitations (`puits-diablotins` Puits des diablotins,
+   `temple-culte` Temple du culte, `coulee-magma` Coulée de magma, `palais-succubes` Palais des succubes,
+   `salle-tourments` Salle des tourments, `fournaise-moloch` Fournaise du Moloch, `portail-demons` Portail des démons :
+   prix et places de celles de la Forêt ; soufre aux niveaux 5 et 6, mercure au niveau 7 ; le grand hôtel de ville
+   accepte aussi le Palais des succubes ; noms à revoir si l'utilisateur le souhaite), la classe Démoniste (armée de
+   départ au prix des autres : 15 Diablotins, 7 Cultistes, 3 Limons de magma) et son talent Pacte (le plafond du prix
+   du sang monte de 1 par niveau), les 4 héros de l'Enfer jouables (plus aucun héros de la « faction sombre ») ;
+   `--faction=enfer`. Un test des héros face à face fixe la faction de l'adversaire (un Magicien, tiré au sort avec la
+   nouvelle faction, gagnait par ses sorts). Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Enfer 30 800**, Château
+   24 700, morts-vivants 25 900, Barbares 30 200, Forêt 32 500, Tour 24 800, Donjon 30 800 ; la simulation seule comme
+   avant (jours 101, 86, 153). Tests : `VilleEnferTests`.
+3. Les images (session images) : les 7 créatures, la ville sur la carte, l'icône du bouton « Invoquer ».
 
 #### Le Donjon (en cours)
 Décidé avec l'utilisateur (2026-11-11), d'après ses images (`art-candidats/references/donjon/`).

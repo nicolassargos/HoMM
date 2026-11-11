@@ -17,6 +17,9 @@
       "army": [ { "creature": "gnome", "count": 15 }, { "creature": "gargouille", "count": 6 }, { "creature": "golem-pierre", "count": 2 } ] },
     { "id": "seigneur-abimes", "name": "Seigneur des abîmes", "faction": "donjon",
       "attack": 1, "defense": 1, "power": 3, "knowledge": 2, "charisma": 9, "spells": ["fleche-magique", "malediction"], "skill": "ecole-air", "talent": "dread", "mainResource": "Sulfur", "secondaryResource": "Mercury",
-      "army": [ { "creature": "homme-lezard", "count": 15 }, { "creature": "homme-grenouille", "count": 7 }, { "creature": "minotaure", "count": 2 } ] }
+      "army": [ { "creature": "homme-lezard", "count": 15 }, { "creature": "homme-grenouille", "count": 7 }, { "creature": "minotaure", "count": 2 } ] },
+    { "id": "demoniste", "name": "Démoniste", "faction": "enfer",
+      "attack": 1, "defense": 1, "power": 3, "knowledge": 2, "charisma": 9, "spells": ["soif-de-sang", "malediction"], "skill": "ecole-feu", "talent": "pact", "mainResource": "Mercury", "secondaryResource": "Sulfur",
+      "army": [ { "creature": "diablotin", "count": 15 }, { "creature": "cultiste", "count": 7 }, { "creature": "limon-magma", "count": 3 } ] }
   ]
 }

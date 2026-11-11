@@ -135,5 +135,6 @@
   "objects/town": {"pieds": [[[15, 83], [146, 84]], [[137, 108], [24, 107]]], "verifie": true},
   "objects/town-barbares": {"pieds": [[[16, 60], [22, 98]], [[145, 60], [141, 86]], [[16, 107], [145, 105]], [[143, 88], [144, 103]]], "verifie": true},
   "objects/town-foret": {"pieds": [[[15, 102], [80, 113]], [[84, 113], [142, 95]]], "verifie": true},
-  "objects/town-morts-vivants": {"pieds": [[[17, 113], [143, 113]]], "verifie": true}
+  "objects/town-morts-vivants": {"pieds": [[[17, 113], [143, 113]]], "verifie": true},
+  "objects/town-tour": {"pieds": [[[16, 90], [67, 111]], [[68, 111], [92, 111]], [[94, 113], [143, 85]]], "verifie": true, "opacite": 0.9}
 }

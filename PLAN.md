@@ -257,7 +257,9 @@ Découpage comme la Forêt : 1. les créatures et leurs capacités ; 2. la ville
    Gnome mage chauve, Gargouille de pierre, Golem sans tête au visage dans la poitrine, Naga bleue à six bras armés,
    Djinn à la queue de fumée d'or, Mage brun sans chapeau qui lance un **éclair bleu des deux mains**, Géant bleu mince en
    tunique grecque qui pose sa colonne sur l'épaule pour marcher : images de combat, animations, petites images de la
-   carte. Détail dans `HISTORIQUE.md`. La ville de la Tour sur la carte : session règles (branche `ville-tour`).
+   carte. Détail dans `HISTORIQUE.md`. ✅ La ville sur la carte (2026-11-11, branche `ville-tour`, choix de
+   l'utilisateur) : une tour de mages au dôme d'or en bulbe (un air oriental, comme les créatures : Naga, Djinn), petits
+   dômes bleus, enceinte ronde de pierre claire (`objects/town-tour.png`), ramenée à la luminosité du Château.
 
 #### La Forêt (en cours)
 Décidé avec l'utilisateur (2026-11-09).

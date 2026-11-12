@@ -339,8 +339,9 @@ public sealed class BattleEffects
 
     // ------------------------------------------------------------------ le fouisseur
 
-    private static readonly Color EarthDark = new(0.22f, 0.15f, 0.1f), EarthMid = new(0.42f, 0.3f, 0.19f),
-        EarthLight = new(0.58f, 0.45f, 0.3f), Pebble = new(0.56f, 0.54f, 0.5f);
+    // les couleurs de la butte du Ver des profondeurs (terre sombre et cailloux) : la galerie est la même terre
+    private static readonly Color EarthDark = new(0.14f, 0.1f, 0.07f), EarthMid = new(0.25f, 0.2f, 0.16f),
+        EarthLight = new(0.4f, 0.35f, 0.28f), Pebble = new(0.5f, 0.48f, 0.44f);
 
     /// <summary>
     /// Un morceau de la galerie, comme celle d'une taupe : une petite bosse de terre soulevée (le haut éclairé, l'ombre au

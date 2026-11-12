@@ -9,19 +9,24 @@ namespace HoMM.Core.Tests;
 /// <summary>Les objets et lieux de la carte : forêts, coffres au choix, et les lieux à visiter.</summary>
 public class CarteObjetsTests
 {
-    /// <summary>Une partie où le héros est juste à côté d'un objet (posé à sa droite), sans monstre autour.</summary>
+    /// <summary>
+    /// Une partie où le héros est juste à côté d'un objet (posé à sa droite ; un lieu haut couvre aussi la case
+    /// au-dessus), sans monstre autour.
+    /// </summary>
     internal static (GameState State, T Object) GameNextTo<T>(Func<Cell, T> make) where T : MapObject
     {
         var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
         state.TakeEvents();
         var hero = state.CurrentHero!;
         var cell = hero.Position.Offset(1, 0);
-        foreach (var obj in state.Map.Objects.Where(o => o.Footprint.Contains(cell) || o is MonsterGuard g
+        var placed = make(cell);
+        var footprint = placed.Footprint.ToList();
+        foreach (var obj in state.Map.Objects.Where(o => o.Footprint.Any(footprint.Contains) || o is MonsterGuard g
                      && Math.Max(Math.Abs(g.Position.X - cell.X), Math.Abs(g.Position.Y - cell.Y)) <= 2).ToList())
             state.Map.RemoveObject(obj);
-        state.Map.SetTerrain(cell, TerrainType.Grass);
+        foreach (var c in footprint)
+            state.Map.SetTerrain(c, TerrainType.Grass);
         state.Map.SetTerrain(hero.Position.Offset(-1, 0), TerrainType.Grass);
-        var placed = make(cell);
         state.Map.AddObject(placed);
         return (state, placed);
     }
@@ -178,5 +183,66 @@ public class CarteObjetsTests
         Assert.Equal(shrine.Stat, again.Stat);
         Assert.Contains(state.CurrentHero!.Id, again.Visitors);
         Assert.Equal(map.Objects.OfType<SageHut>().Select(h => h.Spell.Id), loaded.Map.Objects.OfType<SageHut>().Select(h => h.Spell.Id));
+    }
+
+    [Fact]
+    public void Un_lieu_haut_bloque_la_case_au_dessus_de_sa_porte()
+    {
+        var (state, mill) = GameNextTo(c => new WeeklyProducer(c, ResourceType.Gold));
+        var above = mill.Position.Offset(0, -1);
+
+        Assert.Equal(new[] { mill.Position, above }, mill.Footprint);
+        Assert.False(state.Map.IsPassable(above));
+        Assert.True(state.Map.IsPassable(mill.Position));
+        Assert.Same(mill, state.Map.OccupantAt(above)); // un clic sur le toit mène à la porte
+        // le cercle des fées, plat, reste sur sa case ; le temple est haut
+        Assert.Single(new BlessingSite(new Cell(5, 5), Blessing.Luck).Footprint);
+        Assert.Equal(2, new BlessingSite(new Cell(5, 5), Blessing.Morale).Footprint.Count());
+        Assert.Equal(2, new SageHut(new Cell(5, 5), TestData.Spells.All[0]).Footprint.Count());
+        Assert.Equal(2, new ObservationTower(new Cell(5, 5)).Footprint.Count());
+        Assert.Single(new Shrine(new Cell(5, 5), HeroStat.Attack).Footprint);
+    }
+
+    [Theory]
+    [InlineData(1, MapSize.Normal)]
+    [InlineData(42, MapSize.Normal)]
+    [InlineData(7, MapSize.Small)]
+    [InlineData(3, MapSize.Large)]
+    public void Le_generateur_laisse_la_place_aux_lieux_hauts(int seed, MapSize size)
+    {
+        var map = new GameState(seed, TestData.Data, size).Map;
+        var tall = map.Objects.Where(o => o.Footprint.Count() == 2).ToList();
+        Assert.NotEmpty(tall);
+        foreach (var site in tall)
+        {
+            var above = site.Position.Offset(0, -1);
+            Assert.True(TerrainInfo.IsPassable(map.GetTerrain(above)), $"{site} : terrain sous le toit");
+            Assert.False(map.HasRoad(above));
+            Assert.False(map.IsPassable(above));
+            // rien sous l'image, qui déborde d'une demi-case de chaque côté
+            foreach (var side in new[] { site.Position, above }.SelectMany(c => new[] { c.Offset(-1, 0), c.Offset(1, 0) }))
+                Assert.True(!map.InBounds(side) || map.OccupantAt(side) == null, $"{site} : {map.OccupantAt(side)} sous l'image en {side}");
+        }
+    }
+
+    [Fact]
+    public void Les_lieux_hauts_sont_sauvegardes_et_ceux_d_avant_gardent_une_case()
+    {
+        var state = new GameState(1, TestData.Data, MapSize.Normal);
+        var tower = state.Map.Objects.OfType<ObservationTower>().First();
+
+        var loaded = GameState.Load(state.Save(), TestData.Data);
+        Assert.True(loaded.Map.Objects.OfType<ObservationTower>().Single(t => t.Id == tower.Id).Large);
+        Assert.False(loaded.Map.IsPassable(tower.Position.Offset(0, -1)));
+
+        var json = state.Save().Replace($"\"version\":{GameState.SaveVersion}", "\"version\":6");
+        var old = GameState.Load(json, TestData.Data);
+        var oldTower = old.Map.Objects.OfType<ObservationTower>().Single(t => t.Id == tower.Id);
+        Assert.False(oldTower.Large);
+        Assert.Single(oldTower.Footprint);
+        Assert.False(old.Map.Objects.OfType<SageHut>().First().Large);
+        // sauvegardée de nouveau, elle reste sur une case
+        var again = GameState.Load(old.Save(), TestData.Data);
+        Assert.False(again.Map.Objects.OfType<ObservationTower>().Single(t => t.Id == tower.Id).Large);
     }
 }

@@ -201,6 +201,12 @@ public sealed class MapGenerator
     private readonly HashSet<Cell> _mineCells = new();
 
     /// <summary>
+    /// Les cases sous l'image d'un lieu haut (<see cref="TallSite"/>), qui déborde d'une demi-case de chaque côté : on y
+    /// passe, mais aucun autre objet ni monstre n'y est posé.
+    /// </summary>
+    private readonly HashSet<Cell> _overhang = new();
+
+    /// <summary>
     /// Pose une mine d'entrée <paramref name="entrance"/> si ses 6 cases et la case devant l'entrée sont libres, et si
     /// tout reste accessible ; sinon rien (null).
     /// </summary>
@@ -1011,6 +1017,18 @@ public sealed class MapGenerator
     private void PlaceSites(List<Cell> free)
     {
         int next = 0;
+        bool Fits(MapObject obj)
+        {
+            var cells = obj.Footprint.ToList();
+            if (cells.Any(_overhang.Contains))
+                return false;
+            // la case au-dessus de la porte : un terrain où l'on marche, sans route ni objet
+            if (!cells.Where(c => c != obj.Position).All(c => _map.IsPassable(c) && !_map.HasRoad(c)
+                    && _map.OccupantAt(c) == null && !_mineCells.Contains(c) && c != _map.Treasure))
+                return false;
+            return cells.Count == 1 || Sides(cells).All(c => !_map.InBounds(c) || _map.OccupantAt(c) == null);
+        }
+        static IEnumerable<Cell> Sides(List<Cell> cells) => cells.SelectMany(c => new[] { c.Offset(-1, 0), c.Offset(1, 0) });
         bool Place(Func<Cell, MapObject> make)
         {
             while (next < free.Count)
@@ -1019,9 +1037,16 @@ public sealed class MapGenerator
                 if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null || cell == _map.Treasure)
                     continue;
                 var obj = make(cell);
+                if (!Fits(obj))
+                    continue;
                 _map.AddObject(obj);
                 if (AllObjectsReachable())
+                {
+                    var footprint = obj.Footprint.ToList();
+                    if (footprint.Count > 1)
+                        _overhang.UnionWith(Sides(footprint));
                     return true;
+                }
                 _map.RemoveObject(obj);
             }
             return false;
@@ -1158,7 +1183,8 @@ public sealed class MapGenerator
     /// </summary>
     private bool CanPlaceGuard(Cell c)
     {
-        if (!_map.IsPassable(c) || _map.OccupantAt(c) != null || _reserved.Contains(c) || c == _map.Treasure || _mineCells.Contains(c))
+        if (!_map.IsPassable(c) || _map.OccupantAt(c) != null || _reserved.Contains(c) || c == _map.Treasure || _mineCells.Contains(c)
+            || _overhang.Contains(c))
             return false;
         if (StepsToStart(c) < 4)
             return false;

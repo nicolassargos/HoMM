@@ -783,8 +783,14 @@ choix de l'utilisateur) :
 - **Des lieux** (pour 40 × 30 cases, plus sur une grande carte) : 4 **autels** (+1 attaque, défense, puissance ou savoir,
   une fois par héros), 2 **cabanes du sage** (un sort des niveaux 1 et 2), une **roue à eau** (500 or par semaine) et un
   **moulin** (2 d'une ressource rare par semaine), une **tour d'observation** (dévoile 20 cases autour) ; **42 tas** au
-  lieu de 28. Sauvegarde version 5. Images : dessins par formes en attendant la session images (`objects/shrine-attack`,
-  `-defense`, `-power`, `-knowledge`, `sage`, `water-wheel`, `windmill`, `tower`). Tests : `CarteObjetsTests`.
+  lieu de 28. Sauvegarde version 5. Tests : `CarteObjetsTests`.
+  ✅ **Leurs images, et les lieux hauts sur 2 cases** (2026-11-12, branche `lieux-carte`, choix de l'utilisateur, comme
+  Heroes 2 et 3 où les lieux sont plus grands qu'une case) : la cabane du sage, le moulin, la roue à eau, la tour
+  d'observation et le temple occupent leur porte (où le héros entre) et la case au-dessus, qui bloque (`TallSite`) ; leur
+  image de 64 pixels d'art de large déborde d'une demi-case de chaque côté, où le générateur ne pose rien. Les autels et
+  le cercle des fées restent sur une case (32 pixels). Sauvegarde version 7 (les lieux d'avant gardent une case).
+  Images PixelLab (`objects/shrine-*`, `sage`, `water-wheel`, `windmill`, `tower`, `temple`, `fairy-ring`) ; le moulin et
+  la roue ne tournent plus (une animation, plus tard peut-être).
 - Mesuré (`Mesures`) : la simulation gagne toujours (petites cartes jour 88, normales 86, grandes 154) ; un adversaire
   après six semaines : Facile 17 200, Normal 16 800, Difficile 22 900 en or d'armée.
 - **Plus tard** : des **cavernes** où l'on apprend un talent (avec les classes) ou trouve un artefact.

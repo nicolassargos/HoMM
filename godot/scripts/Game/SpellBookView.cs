@@ -28,8 +28,11 @@ public partial class SpellBookView : Control
     /// <summary>Le livre ouvert (couverture comprise).</summary>
     public const int BookWidth = 480, BookHeight = 288;
     private const int Cover = 8, Spine = 8;
-    private const int PageWidth = (BookWidth - 2 * Cover - Spine) / 2, PageHeight = BookHeight - 2 * Cover;
-    private const int PageMargin = 10, HeaderHeight = 28, FooterHeight = 28;
+    /// <summary>La tranche des pages, sous elles (l'image du livre la dessine).</summary>
+    private const int PageEdges = 16;
+    private const int PageWidth = (BookWidth - 2 * Cover - Spine) / 2, PageHeight = BookHeight - 2 * Cover - PageEdges;
+    /// <summary>La marge du texte dans une page : le papier se courbe vers le dos, et l'image a un bord abîmé.</summary>
+    private const int PageMargin = 16, HeaderHeight = 24, FooterHeight = 24;
     private const int Columns = 2, Rows = 3, SpellsPerPage = Columns * Rows;
     private const int CellWidth = (PageWidth - 2 * PageMargin) / Columns, CellHeight = (PageHeight - HeaderHeight - FooterHeight) / Rows;
 
@@ -513,8 +516,17 @@ public partial class SpellBookView : Control
 
     // ------------------------------------------------------------------ le livre
 
+    /// <summary>L'image du livre ouvert (<c>art/ui/livre-ouvert.png</c>, 480 × 288 : la couverture, les pages blanches,
+    /// leur tranche), à la place du livre dessiné.</summary>
+    private static readonly Texture2D? Image = Art.Get("ui/livre-ouvert");
+
     private void DrawBook()
     {
+        if (Image != null)
+        {
+            _bookLayer.DrawTextureRect(Image, new Rect2(Vector2.Zero, A(BookWidth, BookHeight)), false);
+            return;
+        }
         // la couverture de cuir, un liseré clair, le dos plus sombre
         var book = new Rect2(Vector2.Zero, A(BookWidth, BookHeight));
         _bookLayer.DrawRect(book, Leather);

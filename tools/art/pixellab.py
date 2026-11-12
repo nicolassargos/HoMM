@@ -25,7 +25,8 @@ La clé d'API est lue dans la variable d'environnement PIXELLAB_API_KEY (jamais 
         (pas les couleurs ; « - » pour aucun) ; les <modele> (4 au plus, PNG ou JPEG) montrent le sujet, pas le style ;
         coûte de l'argent ; option --fond (après les autres) : garder le fond (une petite peinture qui remplit l'image)
     python -I tools/art/pixellab.py retoucher image.png dossier "changement" [graine]
-        modifie une image d'après un texte (« Edit images », Pro), en gardant sa forme et sa pose ; coûte de l'argent
+        modifie une image d'après un texte (« Edit images », Pro), en gardant sa forme et sa pose ; coûte de l'argent ;
+        option --fond : garder le fond (sinon ce que PixelLab prend pour le fond devient transparent)
     python -I tools/art/pixellab.py repeindre image.png sortie.png x y largeur hauteur "description" [graine]
         repeint seulement le rectangle donné (en pixels de l'image), le reste ne change pas (« Inpaint », Pro) ;
         coûte de l'argent
@@ -285,9 +286,10 @@ def ecrire_images(dossier, images):
     return chemins
 
 
-def retoucher(image, dossier, changement, graine=None):
+def retoucher(image, dossier, changement, graine=None, fond=False):
+    # fond : garder le fond (sinon PixelLab rend transparent ce qu'il prend pour le fond, ainsi les pages d'un livre)
     w, h = taille_png(image)
-    corps = {"method": "edit_with_text", "description": changement, "no_background": True,
+    corps = {"method": "edit_with_text", "description": changement, "no_background": not fond,
              "edit_images": [{"image": image_base64(image), "width": w, "height": h}],
              "image_size": {"width": max(w, 32), "height": max(h, 32)}}
     if graine is not None:
@@ -333,9 +335,11 @@ def main():
     if a[1] == "solde":
         solde()
     elif a[1] == "retoucher":
+        fond = "--fond" in a
+        a = [x for x in a if x != "--fond"]
         if len(a) < 5:
             sys.exit(__doc__)
-        retoucher(a[2], a[3], a[4], int(a[5]) if len(a) > 5 else None)
+        retoucher(a[2], a[3], a[4], int(a[5]) if len(a) > 5 else None, fond)
     elif a[1] == "repeindre":
         if len(a) < 9:
             sys.exit(__doc__)

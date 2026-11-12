@@ -392,6 +392,13 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   haut, un livre rouge foncé aux ferrures d'or ; 0,17 $ le lot (0,115 $ annoncé). Choisi : le 3, un socle rond et massif
   de bois sculpté. Écartés par l'utilisateur : un lutrin vu de face, et un zoom du livre du lutrin vers le livre ouvert
   (essayé) : le clic ouvre le livre au milieu de l'écran, sans transition.
+- **Le livre ouvert** (2026-11-12, `art/ui/livre-ouvert.png`, 480 × 288, ×2, sous les sorts que le jeu écrit) : trop
+  grand pour « pro » (170 px au plus). `ui` avec un dessin de la disposition comme modèle : le livre sort petit (165 px)
+  au milieu d'une image vide, inutilisable. Ce qui marche : **`retoucher` sur un dessin de la disposition** (la
+  couverture de 8 px, les deux pages, le dos, la tranche ; fait en Python), qui garde la taille et les proportions,
+  **avec `--fond`** (sans elle, les pages blanches deviennent transparentes) et en demandant une couverture fine et
+  un dos étroit (sinon 24 et 36 px). 0,15 $ annoncé, environ 0,15 à 0,23 $ au solde. Quelques pixels blancs restés
+  du modèle sur les bords, rendus transparents.
 - **Icônes du panneau de la carte** (2026-11-09, même méthode, l'engrenage choisi comme image de style) : suivant 56
   (heaume et flèche), avancer 3 (botte), centrer 15 (cible), royaume 8 (couronne), creuser 48 (pelle), trésor 60 (carte
   roulée) ; Sorts et Options reprennent le livre et l'engrenage du combat. Le code commun : `IconButtons.cs`.

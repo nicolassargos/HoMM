@@ -105,6 +105,33 @@ public sealed class BattleEffects
         public Vector2 From, Velocity;
         public double Age, Life;
         public int Seed;
+        /// <summary>1 : une miette, 2 : une motte, 3 : une grosse motte.</summary>
+        public int Size;
+    }
+
+    /// <summary>
+    /// Projette une motte de <paramref name="from"/> à la vitesse <paramref name="velocity"/> ; elle disparaît en touchant
+    /// le sol (<paramref name="land"/> : la hauteur du sol à l'écran).
+    /// </summary>
+    private void Throw(Vector2 from, Vector2 velocity, float land, int size)
+    {
+        // le moment où elle retombe au sol : from.Y + vy t + g t² / 2 = land
+        float drop = Math.Max(0, land - from.Y);
+        double life = (-velocity.Y + Math.Sqrt(velocity.Y * velocity.Y + 2 * ClodGravity * drop)) / ClodGravity;
+        _clods.Add(new Clod { From = from, Velocity = velocity, Life = life, Seed = ++_seed, Size = size });
+    }
+
+    /// <summary>Une gerbe de terre : le fouisseur plonge dans le sol ou en ressort.</summary>
+    private void Burst(Vector2 ground)
+    {
+        for (int k = 0; k < 22; k++)
+        {
+            int s = ++_seed;
+            float side = (Noise(s, 1) - 0.5f) * 2;
+            Throw(ground + new Vector2(side * 10 * U, -(2 + Noise(s, 4) * 6) * U),
+                new Vector2(side * (20 + Noise(s, 5) * 35) * U, -(30 + Noise(s, 2) * 45) * U),
+                ground.Y + (Noise(s, 3) - 0.3f) * 4 * U, 1 + (int)(Noise(s, 6) * 3));
+        }
     }
 
     private readonly List<Clod> _clods = new();
@@ -144,6 +171,7 @@ public sealed class BattleEffects
             b = new Digger { At = ground, Last = ground, Seed = ++_seed };
             _burrowers[who] = b;
             _ruts.Add(new Rut { At = ground, Seed = ++_seed });
+            Burst(ground);
         }
         float moved = ground.DistanceTo(b.At);
         b.Dir = moved > 0.01f ? (ground - b.At) / moved : Vector2.Zero;
@@ -158,21 +186,33 @@ public sealed class BattleEffects
         b.Spray -= delta;
         while (b.Spray <= 0)
         {
-            b.Spray += 0.07;
+            b.Spray += 0.03;
             int s = ++_seed;
-            // des mottes qui roulent sur les flancs de la bosse : elles montent peu et partent sur les côtés
-            float side = Noise(s, 1) < 0.5f ? -1 : 1;
-            var velocity = new Vector2(side * (15 + Noise(s, 5) * 25) * U, -(18 + Noise(s, 2) * 22) * U);
-            _clods.Add(new Clod
+            float land = ground.Y + (Noise(s, 7) - 0.3f) * 4 * U;
+            if (b.Dir != Vector2.Zero && Noise(s, 8) < 0.3f)
             {
-                From = ground + new Vector2(side * (4 + Noise(s, 3) * 8) * U, -(4 + Noise(s, 4) * 4) * U),
-                Velocity = velocity, Life = 2 * -velocity.Y / ClodGravity, Seed = s,
-            });
+                // une motte poussée devant lui : elle part vers l'avant et roule sur l'herbe
+                var front = ground + b.Dir * (12 + Noise(s, 3) * 4) * U - new Vector2(0, (3 + Noise(s, 4) * 4) * U);
+                Throw(front, b.Dir * (25 + Noise(s, 5) * 30) * U - new Vector2(0, (15 + Noise(s, 2) * 20) * U), land,
+                    2 + (int)(Noise(s, 6) * 2));
+            }
+            else
+            {
+                // des miettes qui tombent des flancs de la bosse : elles montent peu et partent sur les côtés
+                float side = Noise(s, 1) < 0.5f ? -1 : 1;
+                Throw(ground + new Vector2(side * (4 + Noise(s, 3) * 10) * U, -(4 + Noise(s, 4) * 6) * U),
+                    new Vector2(side * (10 + Noise(s, 5) * 25) * U, -(8 + Noise(s, 2) * 22) * U), land,
+                    Noise(s, 6) < 0.6f ? 1 : 2);
+            }
         }
     }
 
-    /// <summary>Le fouisseur ne creuse plus : son sillon s'efface tout seul.</summary>
-    public void EndBurrow(object who) => _burrowers.Remove(who);
+    /// <summary>Le fouisseur ne creuse plus (il ressort du sol) : une gerbe de terre, puis son sillon s'efface tout seul.</summary>
+    public void EndBurrow(object who)
+    {
+        if (_burrowers.Remove(who, out var b))
+            Burst(b.At);
+    }
 
     /// <summary>Durée d'un éclair à l'écran (il touche presque aussitôt, puis s'éteint).</summary>
     private const double BeamTime = 0.3;
@@ -425,9 +465,17 @@ public sealed class BattleEffects
         int kind = (int)(Noise(c.Seed, 7) * 4);
         var color = kind switch { 0 => EarthDark, 1 => EarthMid, 2 => EarthLight, _ => Pebble };
         Dot(canvas, at, color);
-        Dot(canvas, at + new Vector2(Pixel, 0), color.Darkened(0.25f));
-        if (Noise(c.Seed, 8) < 0.5f)
+        if (c.Size >= 2)
+        {
+            Dot(canvas, at + new Vector2(Pixel, 0), color.Darkened(0.25f));
             Dot(canvas, at + new Vector2(0, -Pixel), color.Lightened(0.15f));
+        }
+        if (c.Size >= 3)
+        {
+            Dot(canvas, at + new Vector2(Pixel, -Pixel), color);
+            Dot(canvas, at + new Vector2(0, Pixel), color.Darkened(0.35f));
+            Dot(canvas, at + new Vector2(Pixel, Pixel), color.Darkened(0.35f));
+        }
     }
 
     // ------------------------------------------------------------------ projectiles

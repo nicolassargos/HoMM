@@ -45,6 +45,12 @@
     { "id": "mephis-le-cornu",       "name": "Méphis le Cornu",         "faction": "enfer"  },
     { "id": "dame-cendre",           "name": "Dame Cendre",             "faction": "enfer"  },
     { "id": "zarkhan",               "name": "Zarkhan",                 "faction": "enfer"  },
-    { "id": "sorcha-la-damnee",      "name": "Sorcha la Damnée",        "faction": "enfer"  }
+    { "id": "sorcha-la-damnee",      "name": "Sorcha la Damnée",        "faction": "enfer"  },
+    { "id": "brokk-marteau-noir",    "name": "Brokk Marteau-Noir",      "faction": "nains"  },
+    { "id": "hulda-pierre-lune",     "name": "Hulda Pierre-Lune",       "faction": "nains"  },
+    { "id": "gunnar-fend-la-roche",  "name": "Gunnar Fend-la-Roche",    "faction": "nains"  },
+    { "id": "ingrid-vapeur-d-airain", "name": "Ingrid Vapeur-d'Airain", "faction": "nains"  },
+    { "id": "bardur-le-tetu",        "name": "Bardur le Têtu",          "faction": "nains"  },
+    { "id": "kalla-oeil-de-braise",  "name": "Kalla Œil-de-Braise",     "faction": "nains"  }
   ]
 }

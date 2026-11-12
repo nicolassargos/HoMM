@@ -1300,6 +1300,7 @@ public static class Texts
         Talents.Scholar => $"Talent : érudit (+{Talents.ScholarPercentPerLevel} % de force des sorts par niveau)",
         Talents.Pact => $"Talent : pacte (le prix du sang peut rendre {Talents.PactPerLevel} point de sort de plus par niveau dans un combat)",
         Talents.Dread => $"Talent : effroi (l'armée ennemie commence le combat à −1 de moral, −1 de plus tous les {Talents.DreadLevels} niveaux)",
+        Talents.Obstinacy => $"Talent : obstination (les troupes qui n'ont pas bougé prennent {Talents.ObstinacyPerLevel:P0} de dégâts en moins de plus par niveau)",
         _ => null,
     };
 

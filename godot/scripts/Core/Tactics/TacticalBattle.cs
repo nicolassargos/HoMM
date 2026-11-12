@@ -1088,9 +1088,9 @@ public sealed partial class TacticalBattle
         // le mur de boucliers : un tireur à côté d'un Porte-bouclier ami
         if (ranged && to.CanShoot && Neighbours(to).Any(u => u.Side == to.Side && u.Has(Ability.ShieldWall)))
             damage *= 0.5;
-        // l'obstination des Nains : la troupe n'a pas bougé depuis le début du round
+        // l'obstination des Nains : la troupe n'a pas bougé depuis le début du round (plus, avec le talent de son héros)
         if (to.Has(Ability.Stubborn) && !to.HasMoved)
-            damage *= 1 - StubbornShare;
+            damage *= 1 - Talents.StubbornShare(to.IsRebel ? null : HeroOf(to.Side), StubbornShare);
         // les sorts : bénédiction et malédiction (en pourcentage), bouclier contre les tirs
         damage *= 1 + (from.SpellAmount(SpellEffect.Bless) - from.SpellAmount(SpellEffect.Curse)) / 100.0;
         // les talents de la classe du héros : le Croisé contre les morts-vivants, le Chasseur pour ses tirs

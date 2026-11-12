@@ -108,7 +108,7 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | **en cours** |
 | **Enfer** | le chaos et le feu, le prix du sang | Démon → Archidémon | mercure | soufre | jouable |
 | **Donjon** | les seigneurs des abîmes, la Terreur | Hydre → (à choisir) | soufre | mercure | jouable |
-| **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | **en cours** |
+| **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | jouable |
 
 - **L'Ange ressuscite** (idée de l'utilisateur, 2026-11-08, **plus tard**, sur une branche à part) : à la place de son
   action, il ramène des créatures amies tuées dans ce combat (pas les morts-vivants), **à chacun de ses tours** s'il le
@@ -124,7 +124,6 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 - Le **Tyran œil** : un œil géant qui tire des rayons, chacun un sort néfaste au hasard. La **Machine de guerre** :
   une machine à vapeur avec un canon (un tireur dont le coup touche une zone).
 - La **faction neutre** garde les monstres de la carte seulement : le **Dragon rouge** (et d'autres au fil du temps).
-- Les **héros** : les Nains n'en ont pas encore.
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
 
@@ -139,12 +138,12 @@ Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Hero
 - Ressources : cristal (principale : l'habitation et la créature du niveau 7), soufre (secondaire : niveaux 5 et 6).
 - **Les machines** (Gyrocoptère, Machine de guerre) sont **façonnées**, comme les golems de la Tour : elles résistent
   à la magie (choix de l'utilisateur).
-- **La classe** (nom à choisir) : attaque 1, défense 3, puissance 1, savoir 2 ; École de la terre au départ ; talent
-  **Obstination** : l'obstination grandit avec le niveau (proposé : 1 % de dégâts en moins de plus par niveau).
-- **À décider** : le nom de la classe, ses sorts de départ et son charisme.
-- **Les héros** : six portraits faits, à la Heroes 2 (2026-11-12, choix de l'utilisateur ; femmes sans barbe, robustes
-  et en armure) : Brokk Marteau-Noir, Hulda Pierre-Lune, Gunnar Fend-la-Roche, Ingrid Vapeur-d'Airain, Bardur le Têtu,
-  Kalla Œil-de-Braise (`godot/art/heroes/portraits/`) ; à ajouter dans `heroes.json` avec la ville (étape 2).
+- **La classe Thane** (choix de l'utilisateur, 2026-11-12) : attaque 1, défense 3, puissance 1, savoir 2, charisme 11 ;
+  Peau de pierre ; École de la terre au départ ; talent **Obstination** : 1 % de dégâts en moins de plus par niveau
+  (la moitié au plus).
+- **Les héros** (portraits à la Heroes 2, 2026-11-12, choix de l'utilisateur ; femmes sans barbe, robustes et en
+  armure) : Brokk Marteau-Noir, Hulda Pierre-Lune, Gunnar Fend-la-Roche, Ingrid Vapeur-d'Airain, Bardur le Têtu,
+  Kalla Œil-de-Braise.
 
 | Niveau | Créature | Rôle | Capacité (proposée, chiffres à régler) |
 |---|---|---|---|
@@ -180,6 +179,16 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
    86, 148) ; les gardiens nains demandent de 0,92 à 1,17 fois la même armée ; adversaires (six semaines, Normal, or
    d'armée, les cartes changent un peu) : Château 54 400, morts-vivants 52 600, Barbares 51 400, Forêt 62 800, Tour
    46 400, Donjon 56 800, Enfer 60 200. Tests : `NainsTests`.
+2. ✅ La ville et le jeu (2026-11-12, branche `nains-ville`) : 7 habitations (`salle-boucliers` Salle des boucliers,
+   `atelier-arbaletriers` Atelier des arbalétriers, `enclos-chevres` Enclos des chèvres, `salle-ancetres` Salle des
+   ancêtres, `forge-flammes` Forge des flammes, `hangar-gyrocopteres` Hangar des gyrocoptères, `grande-fonderie` Grande
+   fonderie : prix et places de celles de l'Enfer ; soufre aux niveaux 5 et 6, cristal au niveau 7 ; le grand hôtel de
+   ville accepte aussi la Salle des ancêtres), la classe Thane (armée de départ au prix des autres : 14 Porte-boucliers,
+   5 Arbalétriers, 2 Chevaucheurs de chèvre) et son talent Obstination (`Talents.StubbornShare`), les 6 héros nains
+   jouables ; `--faction=nains`. Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Nains 59 700**, Château
+   56 500, morts-vivants 53 900, Barbares 54 200, Forêt 64 700, Tour 49 400, Donjon 62 200, Enfer 62 000 ; la simulation
+   seule comme avant (jours 72, 86, 150). Tests : `VilleNainsTests`.
+3. Les images (session images) : les 7 créatures, la ville sur la carte.
 
 #### L'Enfer (en cours)
 Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).

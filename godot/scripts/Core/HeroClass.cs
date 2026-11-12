@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -131,8 +132,19 @@ public static class Talents
     /// <summary>Le prix du sang : au plus tant de points de sort par combat, par point de savoir du héros.</summary>
     public const int BloodPricePerKnowledge = 2;
 
+    /// <summary>
+    /// Obstination (le Thane) : l'obstination de ses troupes (moins de dégâts tant qu'elles n'ont pas bougé dans le
+    /// round) grandit de 1 % par niveau du héros, sans dépasser la moitié des dégâts.
+    /// </summary>
+    public const string Obstinacy = "obstinacy";
+    public const double ObstinacyPerLevel = 0.01, StubbornMax = 0.5;
+
     /// <summary>Tous les talents connus (pour vérifier les données).</summary>
-    public static readonly string[] All = { Necromancy, Crusader, Warlord, Hunter, Scholar, Dread, Pact };
+    public static readonly string[] All = { Necromancy, Crusader, Warlord, Hunter, Scholar, Dread, Pact, Obstinacy };
+
+    /// <summary>La part des dégâts qu'une troupe obstinée de ce héros ne prend pas (l'obstination de base, plus le talent).</summary>
+    public static double StubbornShare(Hero? hero, double baseShare) =>
+        Math.Min(StubbornMax, baseShare + (hero?.Class?.Talent == Obstinacy ? ObstinacyPerLevel * hero.Level : 0));
 
     /// <summary>Les points de sort que le prix du sang peut rendre à ce héros dans un combat (le Pacte en ajoute).</summary>
     public static int BloodPriceCap(Hero hero) =>

@@ -870,6 +870,11 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sorts de l'IA) ; `Talents.BloodPriceCap` et le talent `Pact` (prêt pour la classe). À l'écran, une troupe qui apparaît
   en cours de combat est ajoutée cachée quand l'événement arrive, puis montrée par son animation
   (`BattleFieldView.AddShown`, `Appear`, `Announce`). Réglage en trois passes de `Duels_a_prix_egal`.
+- ✅ **Les Nains jouables** (2026-11-12, branche `nains-ville`) : une classe de faction `nains` suffit
+  (`PlayableFactions`). `Talents.Obstinacy` et `StubbornShare` (0,2 + 0,01 × niveau, 0,5 au plus), appliqué dans
+  `TacticalBattle.RollDamage` à la place de la part fixe ; `Texts.TalentText`. `Art.Slug` écrit « œ » et « æ » en deux
+  lettres (le portrait de Kalla Œil-de-Braise : `kalla-oeil-de-braise.png`). Portraits : quatre essais avant le bon
+  (voir `tools/art/METHODE.md`).
 - ✅ **L'Enfer jouable** (2026-11-11, branche `enfer`, faite pendant une coupure de GitHub, à la suite de l'étape 1) :
   comme le Donjon, une classe de faction `enfer` suffit (`PlayableFactions`). `Texts.TalentText` pour le Pacte ; les
   quatre héros « sombres » qui restaient passent à l'Enfer, `DataValidation.PlannedFactions` est vide.

@@ -348,6 +348,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   la cabane choisie (« add a second, lower room… ; remove the sand and ground… », 0,08 $) ; « pro » à 48 × 48 (25 cabanes
   pour 0,08 $, avec la cabane comme style et un modèle) en donnait aussi de bonnes. La cabane (42 × 42) est à l'échelle des
   autres bâtiments de mine (38 × 32 à 52 × 51) ; sa porte n'est pas au milieu : l'assemblage la pose au-dessus du chemin.
+- **Lieux de la carte (2026-11-12)** : PixelLab « pro » à 64 × 64 (16 candidats pour 0,08 $ par lieu), la mine d'or comme
+  style, « one small object alone on a transparent background, seen from the front and slightly from above… no grass
+  patch, no ground base, no shadow » : des lieux nets, sans socle, au style des mines. **Montrer les candidats à leur
+  taille de jeu** (un pixel d'image = 2 pixels de l'écran) : à ×1, ils paraissaient plus fins que le reste et
+  l'utilisateur les a crus d'un autre style. Un lieu d'une case : l'image réduite de moitié (32 × 32) ; un lieu haut
+  (2 cases) : l'image de 64 × 64 telle quelle. Recadrer chaque image sur son dessin avant de l'installer (le jeu pose le
+  bas de l'image sur le bas de la case : des rangées vides dessous le feraient flotter). `--center=windmill` (sage,
+  temple…) centre la capture sur un lieu.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 

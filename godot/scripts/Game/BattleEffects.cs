@@ -109,8 +109,22 @@ public sealed class BattleEffects
 
     private readonly List<Clod> _clods = new();
 
-    /// <summary>Les fouisseurs en train de creuser : le dernier morceau de sillon posé, et le temps avant la prochaine motte.</summary>
-    private readonly Dictionary<object, (Vector2 Last, double Spray)> _burrowers = new();
+    /// <summary>Un fouisseur en train de creuser.</summary>
+    private sealed class Digger
+    {
+        /// <summary>Là où il est (le sol), le dernier morceau de galerie posé, et le sens où il avance (zéro à l'arrêt).</summary>
+        public Vector2 At, Last, Dir;
+        /// <summary>Le temps avant la prochaine motte.</summary>
+        public double Spray;
+        /// <summary>Le chemin parcouru sous terre (les fissures devant lui sont posées le long de ce chemin).</summary>
+        public float Travelled;
+        public int Seed;
+    }
+
+    private readonly Dictionary<object, Digger> _burrowers = new();
+
+    /// <summary>L'écart entre deux fissures devant le fouisseur, et la distance où le sol commence à se fendre.</summary>
+    private const float CrackStep = 9 * U, CrackReach = 60 * U, CrackNear = 24 * U;
 
     /// <summary>Le sillon reste visible, puis s'efface en <see cref="RutFade"/> secondes.</summary>
     private const double RutTime = 1.2, RutFade = 0.8;
@@ -127,9 +141,14 @@ public sealed class BattleEffects
     {
         if (!_burrowers.TryGetValue(who, out var b))
         {
-            b = (ground, 0);
+            b = new Digger { At = ground, Last = ground, Seed = ++_seed };
+            _burrowers[who] = b;
             _ruts.Add(new Rut { At = ground, Seed = ++_seed });
         }
+        float moved = ground.DistanceTo(b.At);
+        b.Dir = moved > 0.01f ? (ground - b.At) / moved : Vector2.Zero;
+        b.Travelled += moved;
+        b.At = ground;
         // un morceau de sillon tous les quelques pixels : ils se chevauchent en une seule traînée
         if (ground.DistanceTo(b.Last) >= 3 * U)
         {
@@ -150,7 +169,6 @@ public sealed class BattleEffects
                 Velocity = velocity, Life = 2 * -velocity.Y / ClodGravity, Seed = s,
             });
         }
-        _burrowers[who] = b;
     }
 
     /// <summary>Le fouisseur ne creuse plus : son sillon s'efface tout seul.</summary>
@@ -295,6 +313,8 @@ public sealed class BattleEffects
     {
         foreach (var r in _ruts)
             DrawRut(canvas, r);
+        foreach (var d in _burrowers.Values)
+            DrawCracks(canvas, d);
         foreach (var s in _strikes)
             if (PlaysOnHex(s.Kind))
                 DrawLightningGround(canvas, s);
@@ -356,6 +376,42 @@ public sealed class BattleEffects
                     // la lumière vient d'en haut à gauche : le flanc droit et le bas plus sombres
                     color = x > w * 0.25f || y < Pixel * 2 ? EarthMid.Darkened(0.25f) : EarthMid;
                 Dot(canvas, foot - new Vector2(0, y), new Color(color, a));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Le sol qui se fend devant le fouisseur, avant qu'il passe : des fissures posées le long de son chemin, qui s'ouvrent
+    /// et s'allongent à mesure qu'il approche (la bosse de terre les recouvre quand il arrive dessus).
+    /// </summary>
+    private static void DrawCracks(CanvasItem canvas, Digger d)
+    {
+        if (d.Dir == Vector2.Zero)
+            return;
+        var side = new Vector2(-d.Dir.Y, d.Dir.X);
+        for (float ahead = CrackStep - d.Travelled % CrackStep; ahead < CrackReach; ahead += CrackStep)
+        {
+            float open = Math.Clamp((CrackReach - ahead) / (CrackReach - CrackNear), 0, 1);
+            int seed = d.Seed * 1000 + (int)MathF.Round((d.Travelled + ahead) / CrackStep);
+            var center = d.At + d.Dir * ahead + side * (Noise(seed, 1) - 0.5f) * 5 * U;
+            // deux ou trois fentes qui partent du même point, plutôt vers l'avant et les côtés, aplaties comme le sol
+            int branches = 2 + (int)(Noise(seed, 2) * 2);
+            for (int k = 0; k < branches; k++)
+            {
+                float angle = Noise(seed, 10 + k) * MathF.Tau;
+                var dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle) * 0.45f);
+                float length = open * (4 + Noise(seed, 20 + k) * 6) * U;
+                var at = center;
+                for (float run = 0; run < length; run += Pixel)
+                {
+                    // une fente brisée : elle dévie d'un pixel de temps en temps
+                    at += dir * Pixel + (Noise(seed, 30 + k * 50 + (int)(run / Pixel)) < 0.3f ? new Vector2(0, Pixel) : Vector2.Zero)
+                        - (Noise(seed, 60 + k * 50 + (int)(run / Pixel)) < 0.3f ? new Vector2(0, Pixel) : Vector2.Zero);
+                    Dot(canvas, at, new Color(EarthDark, 0.9f * open));
+                    // le bord soulevé de la fente : un pixel de terre claire, quand elle est bien ouverte
+                    if (open > 0.5f && run < length * 0.6f)
+                        Dot(canvas, at - new Vector2(0, Pixel), new Color(EarthMid, 0.8f * open));
+                }
             }
         }
     }

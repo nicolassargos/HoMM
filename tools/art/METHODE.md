@@ -399,6 +399,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   **avec `--fond`** (sans elle, les pages blanches deviennent transparentes) et en demandant une couverture fine et
   un dos étroit (sinon 24 et 36 px). 0,15 $ annoncé, environ 0,15 à 0,23 $ au solde. Quelques pixels blancs restés
   du modèle sur les bords, rendus transparents.
+- **L'étude** (2026-11-12, `art/ui/scenes/etude.png`, 504 × 296, ×2, le fond de l'onglet Magie) : même recette
+  (`retoucher --fond` sur un dessin de la disposition : mur, sol aux 72 % de la hauteur, fenêtre à gauche, étagère à
+  droite, bougie sur une table, le milieu vide pour le lutrin) ; « cozy medieval wizard study at night… the middle of
+  the room left empty and uncluttered, keep the exact same layout and proportions ». Réussie du premier coup, 0,15 $.
 - **Icônes du panneau de la carte** (2026-11-09, même méthode, l'engrenage choisi comme image de style) : suivant 56
   (heaume et flèche), avancer 3 (botte), centrer 15 (cible), royaume 8 (couronne), creuser 48 (pelle), trésor 60 (carte
   roulée) ; Sorts et Options reprennent le livre et l'engrenage du combat. Le code commun : `IconButtons.cs`.

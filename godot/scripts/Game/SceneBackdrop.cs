@@ -23,6 +23,9 @@ public partial class SceneBackdrop : Control
     public static readonly Vector2 StudySize = new(504, 296), AcademySize = new(480, 232);
 
     private Texture2D? _image;
+
+    /// <summary>La scène a-t-elle son image ? Elle contient alors le lutrin (<see cref="LecternView.ShowImage"/>).</summary>
+    public bool HasImage => Art.Get($"ui/scenes/{SceneName}") != null;
     private double _time;
 
     public SceneBackdrop()

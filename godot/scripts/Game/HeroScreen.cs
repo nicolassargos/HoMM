@@ -381,7 +381,7 @@ public partial class HeroScreen : ScreenWindow
         var scene = new SceneBackdrop { SceneName = "etude", Size = SceneBackdrop.StudySize * Grid };
         scene.Position = new Vector2(SnapDown((Px(PageSize.X) - scene.Size.X) / 2), SnapDown((Px(PageSize.Y) - scene.Size.Y) / 2));
         page.AddChild(scene);
-        var lectern = new LecternView();
+        var lectern = new LecternView { ShowImage = !scene.HasImage };
         lectern.Position = scene.Position + new Vector2(SnapDown((scene.Size.X - lectern.Size.X) / 2), scene.Size.Y - lectern.Size.Y - ArtPx(6));
         lectern.TooltipText = Texts.OpenSpellBookHint;
         lectern.Opened += () =>

@@ -16,6 +16,10 @@ public partial class LecternView : Control
 
     public event Action? Opened;
 
+    /// <summary>Dessiner le lutrin ? Non quand l'image de la scène le contient déjà (même point de vue, même lumière : choix
+    /// de l'utilisateur, 2026-11-12) : il ne reste alors que la lueur, les étincelles et le clic.</summary>
+    public bool ShowImage { get; init; } = true;
+
     private static readonly Color Wood = MapRenderer.Rgb(104, 66, 38), WoodDark = MapRenderer.Rgb(62, 38, 22),
         WoodLight = MapRenderer.Rgb(140, 94, 56), Leather = MapRenderer.Rgb(96, 44, 30), LeatherDark = MapRenderer.Rgb(52, 22, 16),
         Pages = MapRenderer.Rgb(214, 196, 150), Gold = MapRenderer.Rgb(196, 150, 60), Glow = MapRenderer.Rgb(255, 226, 140);
@@ -64,14 +68,22 @@ public partial class LecternView : Control
     private static Vector2 A(float x, float y) => new(ArtPx(x), ArtPx(y));
 
     /// <summary>L'image du lutrin et de son livre (<c>art/ui/lutrin.png</c>), dessinée à la place de la maquette.</summary>
-    private readonly Texture2D? _image = Art.Get("ui/lutrin");
+    private Texture2D? _image;
+
+    public override void _Ready() => _image = ShowImage ? Art.Get("ui/lutrin") : null;
 
     public override void _Draw()
     {
-        // la lueur derrière le livre : des rectangles de lumière, qui battent ; plus forte au survol
-        float pulse = (_hover ? 0.32f : 0.18f) * (0.8f + 0.2f * MathF.Sin((float)_time * 2.5f));
+        // la lueur autour du livre : des ovales de lumière posés les uns sur les autres (plus clairs au centre), qui battent ;
+        // plus forte au survol
+        float pulse = (_hover ? 0.16f : 0.08f) * (0.8f + 0.2f * MathF.Sin((float)_time * 2.5f));
         for (int ring = 0; ring < 4; ring++)
-            DrawRect(new Rect2(A(40 - ring * 8, 30 - ring * 6), A(80 + ring * 16, 40 + ring * 12)), new Color(Glow, pulse * (1 - ring / 4f)));
+            DrawOval(A(80, 52), ArtPx(30 + ring * 12), ArtPx(20 + ring * 8), new Color(Glow, pulse));
+        if (!ShowImage)
+        {
+            DrawSparks();
+            return;
+        }
         if (_image != null)
         {
             var size = _image.GetSize() * ArtScale;
@@ -100,6 +112,18 @@ public partial class LecternView : Control
         DrawColoredPolygon(mark, Gold.Darkened(0.25f));
         DrawPolyline(new[] { mark[0], mark[1], mark[2], mark[3], mark[0] }, Gold, Grid);
         DrawSparks();
+    }
+
+    /// <summary>Un ovale plein, en bandes d'un pixel d'art (net, sur la grille).</summary>
+    private void DrawOval(Vector2 center, float rx, float ry, Color color)
+    {
+        for (float y = -ry; y < ry; y += Grid)
+        {
+            float v = (y + Grid / 2f) / ry;
+            float half = SnapDown(rx * MathF.Sqrt(Math.Max(0, 1 - v * v)));
+            if (half > 0)
+                DrawRect(new Rect2(center.X - half, center.Y + y, 2 * half, Grid), color);
+        }
     }
 
     /// <summary>Les étincelles qui montent du livre et pâlissent.</summary>

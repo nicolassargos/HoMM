@@ -403,6 +403,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (`retoucher --fond` sur un dessin de la disposition : mur, sol aux 72 % de la hauteur, fenêtre à gauche, étagère à
   droite, bougie sur une table, le milieu vide pour le lutrin) ; « cozy medieval wizard study at night… the middle of
   the room left empty and uncluttered, keep the exact same layout and proportions ». Réussie du premier coup, 0,15 $.
+  **Puis refaite avec le lutrin dedans** (choix de l'utilisateur) : le lutrin généré à part n'avait ni le point de vue
+  ni la lumière de la pièce. Recette : coller le lutrin choisi (`art/ui/lutrin.png`) dans l'image de la scène, à sa place
+  dans le jeu (en bas au milieu, 6 pixels au-dessus du bord), puis `retoucher --fond` : « one single consistent point
+  of view and one single warm candle lighting for the whole scene, the lectern lit and shaded like the rest of the room
+  and standing firmly on the floor with a soft shadow; fill the room with more details: a rug, a desk with scrolls,
+  potions and a quill, a globe, a small cauldron, hanging dried herbs, piles of books, a few more candles; keep … the
+  lectern in the middle at the same place and size ». Deux essais (0,15 $ chacun) ; choisi le A (moins de bougies). Le
+  jeu ne dessine plus le lutrin sur une scène qui a son image (`LecternView.ShowImage`) : la lueur, les étincelles et le
+  clic seulement. **À refaire ainsi pour chaque académie.**
 - **Icônes du panneau de la carte** (2026-11-09, même méthode, l'engrenage choisi comme image de style) : suivant 56
   (heaume et flèche), avancer 3 (botte), centrer 15 (cible), royaume 8 (couronne), creuser 48 (pelle), trésor 60 (carte
   roulée) ; Sorts et Options reprennent le livre et l'engrenage du combat. Le code commun : `IconButtons.cs`.

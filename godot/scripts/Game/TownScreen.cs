@@ -789,7 +789,7 @@ public partial class TownScreen : CanvasLayer
         var window = OpenWindow(new Vector2(sceneSize.X + 2 * WindowMargin, top + sceneSize.Y + WindowMargin), Texts.GuildTitle(town), overView: true);
         var scene = new SceneBackdrop { SceneName = $"academie-{town.Faction}", Faction = town.Faction, Size = sceneSize, Position = new Vector2(WindowMargin, top) };
         window.AddChild(scene);
-        var lectern = new LecternView { TooltipText = Texts.OpenGuildBookHint };
+        var lectern = new LecternView { TooltipText = Texts.OpenGuildBookHint, ShowImage = !scene.HasImage };
         lectern.Position = scene.Position + new Vector2(SnapDown((sceneSize.X - lectern.Size.X) / 2), sceneSize.Y - lectern.Size.Y - ArtPx(4));
         lectern.Opened += () =>
         {

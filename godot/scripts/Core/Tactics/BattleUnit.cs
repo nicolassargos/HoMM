@@ -159,6 +159,25 @@ public static class Ability
     /// <summary>Invoque (le Démon) : une fois par combat, à la place de son action, fait venir une troupe (« summon »).</summary>
     public const string Summons = "summons";
 
+    /// <summary>
+    /// L'obstination (la marque des Nains) : une troupe qui ne s'est pas déplacée depuis le début du round prend moins de
+    /// dégâts.
+    /// </summary>
+    public const string Stubborn = "stubborn";
+    /// <summary>Mur de boucliers (le Porte-bouclier) : les tireurs amis voisins prennent moitié moins de dégâts des tirs.</summary>
+    public const string ShieldWall = "shield-wall";
+    /// <summary>Carreaux perçants (l'Arbalétrier) : ses tirs ignorent 30 % de la défense de la cible.</summary>
+    public const string Piercing = "piercing";
+    /// <summary>
+    /// Pied sûr (le Chevaucheur de chèvre) : attaqué au corps à corps, il riposte avant le coup ; rien ne le déplace
+    /// (le crochet du Tourmenteur).
+    /// </summary>
+    public const string SureFooted = "sure-footed";
+    /// <summary>Bannière (le Porte-étendard des ancêtres) : les troupes amies voisines ont plus de défense.</summary>
+    public const string Banner = "banner";
+    /// <summary>Explosion (le Gyrocoptère, la Machine de guerre) : son attaque touche aussi les ennemis autour de la cible.</summary>
+    public const string Blast = "blast";
+
     public static readonly string[] Known =
     {
         Shoots, NoRangePenalty, Flies, DoubleRetaliation, NoRetaliation, Breath, RangedResistance,
@@ -169,6 +188,7 @@ public static class Ability
         Made, Repairs, Blessing, NoMeleePenalty,
         Terror, Horror, Brave, EndlessRetaliation, Burrows, Swallow, Rays,
         Infernal, ManaThief, Sacrifice, Splits, Seduce, Hook, HeatAura, Feeds, Summons,
+        Stubborn, ShieldWall, Piercing, SureFooted, Banner, Blast,
     };
 }
 
@@ -422,6 +442,9 @@ public sealed class BattleUnit
 
     /// <summary>Le Démon a déjà invoqué dans ce combat.</summary>
     public bool HasSummoned { get; internal set; }
+
+    /// <summary>La troupe s'est déplacée d'elle-même dans ce round (l'obstination des Nains ne compte plus).</summary>
+    public bool HasMoved { get; internal set; }
 
     /// <summary>Le Limon de magma s'est déjà divisé dans ce round.</summary>
     internal bool HasSplit { get; set; }

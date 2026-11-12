@@ -136,29 +136,11 @@ public sealed class BattleEffects
 
     private readonly List<Clod> _clods = new();
 
-    /// <summary>
-    /// Une butte de terre soulevée par le fouisseur, qui ne bouge pas : elle sort du sol quand il passe dessous, s'éboule
-    /// un moment (l'animation de la feuille), puis retombe dans le sol.
-    /// </summary>
-    private sealed class Heap
-    {
-        public Vector2 At;
-        public double Age;
-        public Texture2D Sheet = null!;
-    }
-
-    private readonly List<Heap> _heaps = new();
-
-    /// <summary>Une butte sort du sol, s'éboule, puis rentre dans le sol (secondes).</summary>
-    private const double HeapRise = 0.25, HeapStay = 0.9, HeapSink = 0.4;
-
     /// <summary>Un fouisseur en train de creuser.</summary>
     private sealed class Digger
     {
         /// <summary>Là où il est (le sol), le dernier morceau de galerie posé, et le sens où il avance (zéro à l'arrêt).</summary>
         public Vector2 At, Last, Dir;
-        /// <summary>Là où il a soulevé sa dernière butte (null : pas encore parti).</summary>
-        public Vector2? LastHeap;
         /// <summary>Le temps avant la prochaine motte.</summary>
         public double Spray;
         /// <summary>Le chemin parcouru sous terre (les fissures devant lui sont posées le long de ce chemin).</summary>
@@ -182,7 +164,7 @@ public sealed class BattleEffects
     /// la terre se soulève (des mottes et des cailloux projetés) et la terre se soulève en galerie derrière lui. À
     /// appeler à chaque image tant qu'il creuse, puis <see cref="EndBurrow"/>.
     /// </summary>
-    public void Burrow(object who, Vector2 ground, double delta, Texture2D? heap = null)
+    public void Burrow(object who, Vector2 ground, double delta)
     {
         if (!_burrowers.TryGetValue(who, out var b))
         {
@@ -194,19 +176,9 @@ public sealed class BattleEffects
         float moved = ground.DistanceTo(b.At);
         b.Dir = moved > 0.01f ? (ground - b.At) / moved : Vector2.Zero;
         b.Travelled += moved;
-        if (heap != null && b.Dir != Vector2.Zero)
-        {
-            // au départ, la butte où il a plongé reste là (déjà sortie), puis rentre dans le sol ; en chemin, la galerie,
-            // les fissures et les mottes suffisent (des buttes tout du long cachaient le reste : choix de l'utilisateur)
-            if (b.LastHeap == null)
-            {
-                _heaps.Add(new Heap { At = b.At, Age = HeapRise, Sheet = heap });
-                b.LastHeap = b.At;
-            }
-        }
         b.At = ground;
         // un morceau de sillon tous les quelques pixels : ils se chevauchent en une seule traînée
-        if (ground.DistanceTo(b.Last) >= 3 * U)
+        if (ground.DistanceTo(b.Last) >= 4 * U)
         {
             _ruts.Add(new Rut { At = ground, Seed = ++_seed });
             b.Last = ground;
@@ -330,7 +302,6 @@ public sealed class BattleEffects
         _beams.Clear();
         _flows.Clear();
         _ruts.Clear();
-        _heaps.Clear();
         _clods.Clear();
         _burrowers.Clear();
     }
@@ -363,9 +334,6 @@ public sealed class BattleEffects
         foreach (var r in _ruts)
             r.Age += delta;
         _ruts.RemoveAll(r => r.Age > RutTime + RutFade);
-        foreach (var h in _heaps)
-            h.Age += delta;
-        _heaps.RemoveAll(h => h.Age > HeapRise + HeapStay + HeapSink);
         foreach (var c in _clods)
             c.Age += delta;
         _clods.RemoveAll(c => c.Age > c.Life);
@@ -387,8 +355,6 @@ public sealed class BattleEffects
             DrawRut(canvas, r);
         foreach (var d in _burrowers.Values)
             DrawCracks(canvas, d);
-        foreach (var h in _heaps)
-            DrawHeap(canvas, h);
         foreach (var s in _strikes)
             if (PlaysOnHex(s.Kind))
                 DrawLightningGround(canvas, s);
@@ -429,7 +395,7 @@ public sealed class BattleEffects
         // la terre monte vite quand il passe dessous
         float grow = (float)Math.Clamp(r.Age / 0.15, 0, 1);
         // des mottes inégales : la galerie fait des bosses
-        float h = (2 + Noise(r.Seed, 1) * 4) * U * grow, w = (3 + Noise(r.Seed, 2) * 2) * U;
+        float h = (4 + Noise(r.Seed, 1) * 5) * U * grow, w = (5 + Noise(r.Seed, 2) * 3) * U;
         for (float x = -w; x <= w; x += Pixel)
         {
             float top = MathF.Floor(h * (1 - x * x / (w * w)) / Pixel) * Pixel;
@@ -457,7 +423,7 @@ public sealed class BattleEffects
 
     /// <summary>
     /// Le sol qui se fend devant le fouisseur, avant qu'il passe : des fissures posées le long de son chemin, qui s'ouvrent
-    /// et s'allongent à mesure qu'il approche (la bosse de terre les recouvre quand il arrive dessus).
+    /// et s'allongent à mesure qu'il approche (la galerie les recouvre quand il passe dessous).
     /// </summary>
     private static void DrawCracks(CanvasItem canvas, Digger d)
     {
@@ -489,26 +455,6 @@ public sealed class BattleEffects
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// Une butte : une image de la feuille (8 images, 4 × 2, les pieds en bas de l'image, agrandie ×2 comme les créatures),
-    /// dont on ne montre que le haut qui est sorti du sol : elle monte de terre, s'éboule, puis y rentre.
-    /// </summary>
-    private static void DrawHeap(CanvasItem canvas, Heap h)
-    {
-        var cell = new Vector2(h.Sheet.GetWidth() / 4f, h.Sheet.GetHeight() / 2f);
-        // sortie du sol (0 à 1), puis rentrée
-        float up = (float)Math.Clamp(Math.Min(h.Age / HeapRise, (HeapRise + HeapStay + HeapSink - h.Age) / HeapSink), 0, 1);
-        // elle s'éboule tant qu'elle est là, puis reste sur sa dernière image en rentrant dans le sol
-        int index = (int)(Math.Min(h.Age, HeapRise + HeapStay) * 10) % 8;
-        // la terre est dans le bas de l'image (le haut est vide) : on montre l'image jusqu'à une rangée qui descend avec
-        // la sortie, posée sur le sol ; seul le haut de la butte dépasse, puis toute la butte
-        float shown = MathF.Round(cell.Y * (0.65f + 0.35f * up));
-        var source = new Rect2(new Vector2(index % 4 * cell.X, index / 4 * cell.Y), new Vector2(cell.X, MathF.Round(shown)));
-        var size = source.Size * Pixel;
-        // la partie montrée est posée sur le sol : la butte sort de terre (le bas de l'image est caché sous le sol)
-        canvas.DrawTextureRectRegion(h.Sheet, new Rect2(h.At + new Vector2(-size.X / 2, -size.Y), size), source);
     }
 
     /// <summary>Une motte projetée : deux ou trois pixels de terre (ou un caillou gris) qui montent puis retombent.</summary>

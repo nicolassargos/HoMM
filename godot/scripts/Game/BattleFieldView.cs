@@ -1072,12 +1072,10 @@ public partial class BattleFieldView : Control
                     bool arrived = false;
                     // un fouisseur (le Ver des profondeurs) soulève la terre en plongeant et en avançant sous le sol
                     bool burrows = moved.Unit.Has(Ability.Burrows);
-                    // les buttes de terre qu'il soulève en passant dessous (elles restent sur place)
-                    var heap = burrows ? Art.Get($"creatures/battle/{moved.Unit.Type.Id}-terre") : null;
                     _animations.Enqueue(delta =>
                     {
                         if (burrows && !arrived)
-                            _effects.Burrow(shown, Ground(shown), delta, heap);
+                            _effects.Burrow(shown, Ground(shown), delta);
                         if (start == null)
                         {
                             start = shown.Position; // d'où elle part : là où elle est dessinée

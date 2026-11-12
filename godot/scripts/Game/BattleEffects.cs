@@ -149,9 +149,8 @@ public sealed class BattleEffects
 
     private readonly List<Heap> _heaps = new();
 
-    /// <summary>Une butte sort du sol, s'éboule, puis rentre dans le sol (secondes) ; l'écart entre deux buttes.</summary>
+    /// <summary>Une butte sort du sol, s'éboule, puis rentre dans le sol (secondes).</summary>
     private const double HeapRise = 0.25, HeapStay = 0.9, HeapSink = 0.4;
-    private const float HeapStep = 30 * U;
 
     /// <summary>Un fouisseur en train de creuser.</summary>
     private sealed class Digger
@@ -197,16 +196,12 @@ public sealed class BattleEffects
         b.Travelled += moved;
         if (heap != null && b.Dir != Vector2.Zero)
         {
-            // au départ, la butte où il a plongé reste là (déjà sortie) ; puis une nouvelle butte tous les quelques pas
+            // au départ, la butte où il a plongé reste là (déjà sortie), puis rentre dans le sol ; en chemin, la galerie,
+            // les fissures et les mottes suffisent (des buttes tout du long cachaient le reste : choix de l'utilisateur)
             if (b.LastHeap == null)
             {
                 _heaps.Add(new Heap { At = b.At, Age = HeapRise, Sheet = heap });
                 b.LastHeap = b.At;
-            }
-            if (ground.DistanceTo(b.LastHeap.Value) >= HeapStep)
-            {
-                _heaps.Add(new Heap { At = ground, Sheet = heap });
-                b.LastHeap = ground;
             }
         }
         b.At = ground;

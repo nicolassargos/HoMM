@@ -28,5 +28,6 @@
   "homme-lezard": {"idleFrames": 16, "moveFrames": 16},
   "homme-grenouille": {"moveFrames": 16, "idleFrames": 16, "projectile": "pierre", "launchFrame": 4, "launchPoint": [102, 38]},
   "minotaure": {"idleFrames": 16, "move": 12, "moveFrames": 16},
-  "aberration": {"idleFrames": 16, "move": 12}
+  "aberration": {"idleFrames": 16, "move": 12},
+  "ver-des-profondeurs": {"idleFrames": 16, "transform": 10, "move": 10}
 }

@@ -1511,6 +1511,51 @@
         "move": "walks forward, staying in place: it lifts its left clawed leg high and steps, then its right clawed leg high and steps, its body bobbing up and down with each heavy step, its six arms swaying",
         "attack": "lunges forward and swipes all six long clawed arms at the enemy in front of it, the toothy mouths in its hands biting, its belly mouth gaping wide, then crouches back to its stance"
       }
+    },
+    "ver-des-profondeurs": {
+      "nom": "Ver des profondeurs",
+      "gabarit": "grand",
+      "hauteur": 90,
+      "generation": [
+        128,
+        128
+      ],
+      "marge_bas": 0.06,
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "aberration",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 5 : le fouisseur, sur une case (références de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : terre brun-gris (L1 à L3), larve pâle (L4 à L6).",
+      "references": [
+        "art-candidats/references/donjon/ver-des-profondeurs-1.png::concept reference (a huge segmented worm rising out of the ground, spikes on its back, its head bent forward with a toothy jaw): keep this design and this rising pose; ignore the pencil style",
+        "art-candidats/references/donjon/ver-des-profondeurs-2.png::concept reference for the mouth only (a wide round mouth ringed with long teeth): ignore its pose and the black and white ink style and the signature"
+      ],
+      "description": "a huge deep worm rising out of a mound of broken earth and rocks: a thick segmented body of pale yellowish-white grub flesh with darker ochre folds between the rings, a row of dark bony spikes along its back, its head bent forward with a wide round mouth ringed with long sharp teeth, drooling",
+      "sujet": "a huge pale yellowish-white segmented deep worm rising out of a mound of earth, its round toothy mouth open, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L6-1",
+        "idle": "idle-2",
+        "attack": "attack-12-c",
+        "transform": "transform-1",
+        "move": "move-taupe"
+      },
+      "grande": "art-candidats/references/derives/ver-des-profondeurs-grand.png",
+      "consignes": {
+        "idle": "stays in place in its mound of earth, its body swaying slowly from side to side like a snake, its round toothy mouth slowly opening and closing, drool dripping",
+        "move": "the worm swims forward through the earth like a sea serpent, staying in place: the spiky arches of its back rise out of the soil and plunge back in one after another, pushing up dirt and stones, the earth churning around it",
+        "attack": "rears its body up very high, then stretches its long body far forward to the right in a big arc and plunges its head down onto the ground far in front of it, a full body length away from its mound, its round toothy mouth wide open facing the ground, closes its mouth there, then pulls its long body back into its stance",
+        "transform": "dives head first down into its mound of earth and disappears underground, only the churned earth remains"
+      }
     }
   }
 }

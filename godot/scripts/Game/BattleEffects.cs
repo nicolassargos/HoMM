@@ -89,6 +89,73 @@ public sealed class BattleEffects
     /// <summary>Un flux de gouttes rouges de <paramref name="from"/> (la victime) à <paramref name="to"/> (le Vampire).</summary>
     public void Drain(Vector2 from, Vector2 to) => _flows.Add(new Flow { From = from, To = to, Seed = ++_seed });
 
+    /// <summary>Un morceau de la galerie qu'un fouisseur (le Ver des profondeurs) creuse sous le sol, comme une taupe.</summary>
+    private sealed class Rut
+    {
+        public Vector2 At;
+        public double Age;
+        public int Seed;
+    }
+
+    private readonly List<Rut> _ruts = new();
+
+    /// <summary>Une motte de terre ou un caillou projeté par le fouisseur, qui monte puis retombe.</summary>
+    private sealed class Clod
+    {
+        public Vector2 From, Velocity;
+        public double Age, Life;
+        public int Seed;
+    }
+
+    private readonly List<Clod> _clods = new();
+
+    /// <summary>Les fouisseurs en train de creuser : le dernier morceau de sillon posé, et le temps avant la prochaine motte.</summary>
+    private readonly Dictionary<object, (Vector2 Last, double Spray)> _burrowers = new();
+
+    /// <summary>Le sillon reste visible, puis s'efface en <see cref="RutFade"/> secondes.</summary>
+    private const double RutTime = 1.2, RutFade = 0.8;
+
+    /// <summary>La pesanteur des mottes (pixels de l'écran par seconde²).</summary>
+    private const float ClodGravity = 300 * U;
+
+    /// <summary>
+    /// Un fouisseur <paramref name="who"/> creuse sous <paramref name="ground"/> (le sol de sa case, là où il est dessiné) :
+    /// la terre se soulève (des mottes et des cailloux projetés) et la terre se soulève en galerie derrière lui. À
+    /// appeler à chaque image tant qu'il creuse, puis <see cref="EndBurrow"/>.
+    /// </summary>
+    public void Burrow(object who, Vector2 ground, double delta)
+    {
+        if (!_burrowers.TryGetValue(who, out var b))
+        {
+            b = (ground, 0);
+            _ruts.Add(new Rut { At = ground, Seed = ++_seed });
+        }
+        // un morceau de sillon tous les quelques pixels : ils se chevauchent en une seule traînée
+        if (ground.DistanceTo(b.Last) >= 3 * U)
+        {
+            _ruts.Add(new Rut { At = ground, Seed = ++_seed });
+            b.Last = ground;
+        }
+        b.Spray -= delta;
+        while (b.Spray <= 0)
+        {
+            b.Spray += 0.07;
+            int s = ++_seed;
+            // des mottes qui roulent sur les flancs de la bosse : elles montent peu et partent sur les côtés
+            float side = Noise(s, 1) < 0.5f ? -1 : 1;
+            var velocity = new Vector2(side * (15 + Noise(s, 5) * 25) * U, -(18 + Noise(s, 2) * 22) * U);
+            _clods.Add(new Clod
+            {
+                From = ground + new Vector2(side * (4 + Noise(s, 3) * 8) * U, -(4 + Noise(s, 4) * 4) * U),
+                Velocity = velocity, Life = 2 * -velocity.Y / ClodGravity, Seed = s,
+            });
+        }
+        _burrowers[who] = b;
+    }
+
+    /// <summary>Le fouisseur ne creuse plus : son sillon s'efface tout seul.</summary>
+    public void EndBurrow(object who) => _burrowers.Remove(who);
+
     /// <summary>Durée d'un éclair à l'écran (il touche presque aussitôt, puis s'éteint).</summary>
     private const double BeamTime = 0.3;
     private readonly List<Impact> _impacts = new();
@@ -176,6 +243,9 @@ public sealed class BattleEffects
         _impacts.Clear();
         _beams.Clear();
         _flows.Clear();
+        _ruts.Clear();
+        _clods.Clear();
+        _burrowers.Clear();
     }
 
     public void Update(double delta)
@@ -203,6 +273,12 @@ public sealed class BattleEffects
             if (!s.Frozen)
                 s.Age += delta;
         _strikes.RemoveAll(s => !s.Frozen && s.Age > StrikeTime(s.Kind));
+        foreach (var r in _ruts)
+            r.Age += delta;
+        _ruts.RemoveAll(r => r.Age > RutTime + RutFade);
+        foreach (var c in _clods)
+            c.Age += delta;
+        _clods.RemoveAll(c => c.Age > c.Life);
     }
 
     /// <summary>Durée d'un impact : bref, sauf le nuage de mort qui s'étale.</summary>
@@ -217,6 +293,8 @@ public sealed class BattleEffects
     /// <summary>Ce que les effets laissent au sol, sous les troupes (la lueur et la marque brûlée de la foudre).</summary>
     public void DrawGround(CanvasItem canvas)
     {
+        foreach (var r in _ruts)
+            DrawRut(canvas, r);
         foreach (var s in _strikes)
             if (PlaysOnHex(s.Kind))
                 DrawLightningGround(canvas, s);
@@ -235,6 +313,64 @@ public sealed class BattleEffects
             DrawProjectile(canvas, p);
         foreach (var i in _impacts)
             DrawImpact(canvas, i);
+        foreach (var c in _clods)
+            DrawClod(canvas, c);
+    }
+
+    // ------------------------------------------------------------------ le fouisseur
+
+    private static readonly Color EarthDark = new(0.22f, 0.15f, 0.1f), EarthMid = new(0.42f, 0.3f, 0.19f),
+        EarthLight = new(0.58f, 0.45f, 0.3f), Pebble = new(0.56f, 0.54f, 0.5f);
+
+    /// <summary>
+    /// Un morceau de la galerie, comme celle d'une taupe : une petite bosse de terre soulevée (le haut éclairé, l'ombre au
+    /// pied), qui monte quand le fouisseur passe dessous, puis s'efface. Les morceaux se chevauchent en un bourrelet.
+    /// </summary>
+    private static void DrawRut(CanvasItem canvas, Rut r)
+    {
+        float a = (float)Math.Clamp(1 - (r.Age - RutTime) / RutFade, 0, 1);
+        if (a <= 0)
+            return;
+        // la terre monte vite quand il passe dessous
+        float grow = (float)Math.Clamp(r.Age / 0.15, 0, 1);
+        // des mottes inégales : la galerie fait des bosses
+        float h = (2 + Noise(r.Seed, 1) * 4) * U * grow, w = (3 + Noise(r.Seed, 2) * 2) * U;
+        for (float x = -w; x <= w; x += Pixel)
+        {
+            float top = MathF.Floor(h * (1 - x * x / (w * w)) / Pixel) * Pixel;
+            if (top < Pixel)
+                continue;
+            var foot = r.At + new Vector2(x, 0);
+            Dot(canvas, foot + new Vector2(0, Pixel), new Color(EarthDark, 0.6f * a)); // l'ombre au pied
+            Dot(canvas, foot - new Vector2(0, top), new Color(EarthDark, 0.8f * a)); // le contour, sur l'herbe
+            for (float y = 0; y < top; y += Pixel)
+            {
+                int k = (int)(x * 7 + y * 3);
+                Color color;
+                if (y + Pixel >= top)
+                    // la crête : la terre éclairée, parfois une touffe d'herbe arrachée
+                    color = Noise(r.Seed, k + 90) < 0.2f ? new Color(0.25f, 0.48f, 0.14f) : EarthLight;
+                else if (Noise(r.Seed, k) < 0.12f)
+                    color = Pebble;
+                else
+                    // la lumière vient d'en haut à gauche : le flanc droit et le bas plus sombres
+                    color = x > w * 0.25f || y < Pixel * 2 ? EarthMid.Darkened(0.25f) : EarthMid;
+                Dot(canvas, foot - new Vector2(0, y), new Color(color, a));
+            }
+        }
+    }
+
+    /// <summary>Une motte projetée : deux ou trois pixels de terre (ou un caillou gris) qui montent puis retombent.</summary>
+    private static void DrawClod(CanvasItem canvas, Clod c)
+    {
+        float t = (float)c.Age;
+        var at = c.From + c.Velocity * t + new Vector2(0, ClodGravity * t * t / 2);
+        int kind = (int)(Noise(c.Seed, 7) * 4);
+        var color = kind switch { 0 => EarthDark, 1 => EarthMid, 2 => EarthLight, _ => Pebble };
+        Dot(canvas, at, color);
+        Dot(canvas, at + new Vector2(Pixel, 0), color.Darkened(0.25f));
+        if (Noise(c.Seed, 8) < 0.5f)
+            Dot(canvas, at + new Vector2(0, -Pixel), color.Lightened(0.15f));
     }
 
     // ------------------------------------------------------------------ projectiles

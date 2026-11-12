@@ -1070,8 +1070,12 @@ public partial class BattleFieldView : Control
                     double change = transforms ? Frames(moved.Unit, Transform) / Fps(moved.Unit, Transform) : 0;
                     double changing = 0;
                     bool arrived = false;
+                    // un fouisseur (le Ver des profondeurs) soulève la terre en plongeant et en avançant sous le sol
+                    bool burrows = moved.Unit.Has(Ability.Burrows);
                     _animations.Enqueue(delta =>
                     {
+                        if (burrows && !arrived)
+                            _effects.Burrow(shown, Ground(shown), delta);
                         if (start == null)
                         {
                             start = shown.Position; // d'où elle part : là où elle est dessinée
@@ -1107,6 +1111,8 @@ public partial class BattleFieldView : Control
                         t = 0;
                         if (++step < points.Count)
                             return false;
+                        if (burrows)
+                            _effects.EndBurrow(shown);
                         if (transforms)
                         {
                             arrived = true;

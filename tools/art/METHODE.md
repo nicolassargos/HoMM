@@ -94,6 +94,16 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   **pas seulement des humains** (squelette, orc, nain, elfe, gnome, barbare vraiment sauvage), **l'allure des jeux
   des années 80-90** avec des **fonds simples et dramatiques** (un ciel de feu, une lune, une lueur verte), pas
   seulement de belles images. Ses préférés : Comte Morvan, Mortimer, Tarka, Ulrik.
+  **Les héros nains, à la Heroes 2** (2026-11-12, choix de l'utilisateur, 5,4 $ en quatre essais) : regarder d'abord la
+  planche des portraits de Heroes 2 (`HoMM-images/art-candidats/references/heroes1-2/heroes 2/`). Écartés : des visages
+  réalistes ; puis la « panoplie du nain » (lunettes, casque à lanterne, barbe fourchue, cache-œil, graisse : trop
+  cliché) ; puis des visages de face sans traits de nain (on ne voyait plus des nains) ; **pas de femmes à barbe**.
+  Ce qui marche (`@h2n`, `@h2f` dans `assets.json`) : la fin « 1996 hand-painted VGA fantasy strategy game hero
+  portrait, head and shoulders filling the whole frame, face straight towards the viewer… detailed bright painted
+  landscape background » ; pour un nain, « very wide square face, large broad nose, deep-set eyes under heavy brows,
+  ruddy cheeks, thick neck, massive broad shoulders » et une longue barbe ; pour une naine, sans barbe, c'est la
+  carrure et l'armure qui la disent naine : « stout heavyset dwarf woman warrior, short and very broad, round heavy
+  face… huge armoured shoulders, smooth bare chin », un casque, des tresses épaisses à anneaux de métal.
 - **Petites images des créatures (24 × 24, la carte)** : ne jamais réduire une image de combat (bouillie), même en la
   donnant à Retro Diffusion comme image de départ. Pour qu'elle ressemble à l'image de combat : PixelLab `pro` à
   24 × 24, l'image de combat comme sujet, la petite image du Gobelin (`godot/art/creatures/gobelin.png`) comme style

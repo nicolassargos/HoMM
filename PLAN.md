@@ -141,7 +141,10 @@ Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Hero
   à la magie (choix de l'utilisateur).
 - **La classe** (nom à choisir) : attaque 1, défense 3, puissance 1, savoir 2 ; École de la terre au départ ; talent
   **Obstination** : l'obstination grandit avec le niveau (proposé : 1 % de dégâts en moins de plus par niveau).
-- **À décider** : le nom de la classe, ses sorts de départ et son charisme, les héros (aucun pour l'instant).
+- **À décider** : le nom de la classe, ses sorts de départ et son charisme.
+- **Les héros** : six portraits faits, à la Heroes 2 (2026-11-12, choix de l'utilisateur ; femmes sans barbe, robustes
+  et en armure) : Brokk Marteau-Noir, Hulda Pierre-Lune, Gunnar Fend-la-Roche, Ingrid Vapeur-d'Airain, Bardur le Têtu,
+  Kalla Œil-de-Braise (`godot/art/heroes/portraits/`) ; à ajouter dans `heroes.json` avec la ville (étape 2).
 
 | Niveau | Créature | Rôle | Capacité (proposée, chiffres à régler) |
 |---|---|---|---|

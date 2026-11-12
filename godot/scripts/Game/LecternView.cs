@@ -48,7 +48,7 @@ public partial class LecternView : Control
         _time += delta;
         // de temps en temps, une étincelle monte du livre (plus souvent au survol)
         if (_random.NextDouble() < (_hover ? 0.25 : 0.06))
-            _sparks.Add((new Vector2(ArtPx(56 + (float)_random.NextDouble() * 48), ArtPx(40)), 0, 0.8f + (float)_random.NextDouble() * 0.6f));
+            _sparks.Add((new Vector2(ArtPx(56 + (float)_random.NextDouble() * 48), ArtPx(34)), 0, 0.8f + (float)_random.NextDouble() * 0.6f));
         for (int i = _sparks.Count - 1; i >= 0; i--)
         {
             var s = _sparks[i];

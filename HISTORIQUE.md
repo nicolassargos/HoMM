@@ -897,6 +897,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   100 or, hôtel de ville 1000 par jour), elle était trois fois plus serrée. Villes 300 / 600 / 1200, mines d'or 500.
   Les cartes normales ne vont pas plus vite (la simulation y livre un combat tous les deux jours, c'est sa limite).
 ### 10. Finitions : apparence et détails
+- ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
+  (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
+  tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans
+  la roche) ; choisie **a-1**. Trois retouches essayées (montagne plus sombre, forteresse plus sombre, les deux ; bannières
+  rouges et bleues, cuivre, runes d'or) et vues en jeu : l'utilisateur garde a-1 telle quelle (luminosité 98). Pieds
+  revus par l'utilisateur (deux segments, opacité 0,8).
 - ✅ Ville de l'Enfer sur la carte (2026-11-11, branche `ville-enfer`, PixelLab, 1,31 $) : trois idées (a : citadelle noire,
   b : cité du portail, c : temple de Moloch) ; choisie a-2, trop sombre (luminosité 32, contours durs) : les deux
   retouches de la méthode (ombrage doux, puis détails) l'ont rendue lisible (f-1, luminosité 51, gardée telle quelle).

@@ -321,6 +321,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Luminosité des villes (2026-11-11)** : mesurée par `luminosite.py mesure` (Château 125, Forêt 77, Barbares 74,
   morts-vivants 45) ; la Tour (156, trop claire) ramenée à 125 par une courbe. Éclaircir la Forêt et les Barbares (même
   en gardant les sombres) a été refusé par l'utilisateur.
+- **Ville des Nains (2026-11-12)** : les mots de la Tour dans la description du premier lot (« shaded with several light
+  and dark tones like the reference castle, lit from the upper left, a thin consistent outline… ») donnent d'emblée des
+  villes lisibles, sans retouche d'ombrage. Pour comparer des retouches, les poser une à une en
+  `objects/town-<faction>.png` et capturer le départ (`--seed=42 --faction=<faction>`) : la ville de départ est à
+  l'écran ; retirer l'image d'essai ensuite. Une retouche « plus de couleurs » (bannières, cuivre, runes d'or) marche
+  (0,08 $) mais assombrit l'image (98 → 64).
 - **Ville barbare (2026-11-09)** : une image trop détaillée (« croustillante ») s'adoucit en ajoutant « simple clean
   shapes, smooth soft shading, few small details, not noisy, not grainy » et en prenant `objects/town.png` comme style ;
   le contour noir épais des villes de PixelLab s'adoucit avec `adoucir.py` (0,7, 60, 2 passes : le bord prend une teinte

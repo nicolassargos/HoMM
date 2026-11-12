@@ -188,7 +188,9 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
    jouables ; `--faction=nains`. Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Nains 59 700**, Château
    56 500, morts-vivants 53 900, Barbares 54 200, Forêt 64 700, Tour 49 400, Donjon 62 200, Enfer 62 000 ; la simulation
    seule comme avant (jours 72, 86, 150). Tests : `VilleNainsTests`.
-3. Les images (session images) : les 7 créatures, la ville sur la carte.
+3. Les images (session images) : les 7 créatures. ✅ La ville sur la carte (2026-11-12, branche `creatures-nains`, choix
+   de l'utilisateur) : une forteresse taillée dans une montagne grise, une porte gravée de runes d'or entre deux statues
+   de rois nains, une cheminée de forge (`objects/town-nains.png`, luminosité 98, gardée telle quelle).
 
 #### L'Enfer (en cours)
 Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).

@@ -138,5 +138,6 @@
   "objects/town-enfer": {"pieds": [[[20, 84], [30, 103]], [[33, 107], [130, 106]], [[131, 103], [140, 82]]], "verifie": true, "opacite": 0.9},
   "objects/town-foret": {"pieds": [[[15, 102], [80, 113]], [[84, 113], [142, 95]]], "verifie": true},
   "objects/town-morts-vivants": {"pieds": [[[17, 113], [143, 113]]], "verifie": true},
+  "objects/town-nains": {"pieds": [[[14, 102], [79, 110]], [[145, 102], [83, 111]]], "verifie": true, "opacite": 0.8},
   "objects/town-tour": {"pieds": [[[16, 90], [67, 111]], [[68, 111], [92, 111]], [[94, 113], [143, 85]]], "verifie": true, "opacite": 0.9}
 }

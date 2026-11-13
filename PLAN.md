@@ -87,7 +87,30 @@ cet ordre :
    **L'équilibre force / magie est reporté aux classes de héros** (choix de l'utilisateur) : d'abord apprendre à la
    simulation à ramasser les tas, puis comparer les classes (`Simulation_force_ou_magie`).
 2. **Le livre de sorts en image** : un vrai livre ouvert, une page par niveau, une animation de page qui tourne.
-3. **Une image par sort** (le livre, la guilde).
+   Décidé avec l'utilisateur (2026-11-11, « ne pas dépenser à l'aveugle ») : **une page par niveau** (niveaux 1-2, puis
+   3-4) et des **onglets par école** sur le bord (Eau, Feu, Terre, Air, Tous) pour n'en montrer qu'une ; chaque sort :
+   **son icône, son nom, son coût** (l'effet au survol), six par page ; au combat, un clic lance, un sort impossible est
+   grisé ; sur la carte, le livre se lit. **D'abord une maquette dans le jeu sans rien générer** (parchemin et onglets
+   dessinés par le code, icônes d'attente), pour régler les tailles sur des captures ; **ensuite seulement** l'image du
+   livre ouvert, à la taille trouvée. La page qui tourne : dessinée par le code.
+   Puis (2026-11-11, choix de l'utilisateur) : **en perspective et magique**. La perspective vient des images, jamais
+   d'une déformation par le jeu (les pixels resteraient réguliers et les sorts lisibles) : dans l'onglet Magie de
+   l'écran du héros, **le livre fermé posé sur un lutrin**, en perspective, qui luit ; un clic l'**ouvre** (la
+   couverture tourne, une gerbe de lumière et d'étincelles) ; le livre ouvert **vu un peu d'en haut**, comme posé sur une
+   table, les sorts dessinés à plat sur les pages. Effets dessinés par le jeu : la gerbe à l'ouverture, des étincelles
+   derrière la page qui tourne, une lueur de la couleur de l'école autour du sort survolé (des sons plus tard). **La
+   guilde des mages montre son propre grimoire** : le même livre, ses sorts par niveau, ceux que le héros connaît déjà
+   marqués, les niveaux pas encore construits dits. **Des scènes** (choix de l'utilisateur) : l'onglet Magie montre le
+   lutrin dans **une étude** (la même pour tous les héros : une bougie, une étagère, une fenêtre) ; la guilde ouvre
+   d'abord **l'académie de la faction**, une scène par faction (le Château d'abord, les autres avec les images de leur
+   ville), le grimoire sur son lutrin au milieu ; un clic ouvre le livre. Chaque scène remplit son onglet ou sa fenêtre ;
+   le fond est une image sans le lutrin (`art/ui/scenes/etude.png`, `academie-<faction>.png`), le lutrin et son livre une
+   image à part posée dessus (`art/ui/lutrin.png` : il luit, on clique dessus). Sans image, le jeu dessine une scène
+   d'attente. ✅ Le lutrin (le 3, un socle rond sculpté) le livre ouvert et l'étude (2026-11-12 ; le lutrin fait partie de l'image de chaque scène, pour le même point de vue et la même lumière : choix de l'utilisateur). ✅ L'académie du Château
+   (2026-11-13 : une petite pièce sous le toit d'une tour, choix de l'utilisateur). Images à faire ensuite : une icône par
+   sort ; plus tard les autres académies (de petites pièces, pas de grandes salles).
+3. **Une image par sort** (le livre, la guilde) : **de petites peintures en couleur**, comme Heroes 2 et 3 (choix de
+   l'utilisateur), à la taille trouvée avec la maquette.
 4. **Une animation par sort** sur le champ (projectile, éclair, explosion…) et un **effet visible sur les troupes**
    (lueur, aura tant qu'un sort dure…). Puis le reste au fil des idées (sons…).
 

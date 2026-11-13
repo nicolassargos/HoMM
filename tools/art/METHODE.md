@@ -400,6 +400,50 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   commencer 62 ; fuir refait (« de profil, vers la gauche, tête basse de honte » : n° 4 ; le premier lot, vu de dos,
   ressemblait à des cosmonautes). Le jeu les **incruste** dans la pierre du bouton (`BattleScreen.Engrave` : un creux
   autour de l'argent, l'ombre en haut à gauche, la lumière en bas à droite, contrastes doux).
+- **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
+  guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
+  pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,
+  le sujet flotte sur du transparent), sans image de style, 64 candidats par sort, 0,08 $ le lot (vérifié au solde :
+  0,27 $ pour trois). Début de la description, le même pour tous les sorts : « tiny square spell icon for a 1990s
+  fantasy strategy game, a small painted scene filling the whole square edge to edge, rich saturated colours, soft
+  painterly shading, crisp clean pixel art, readable at small size, no text, no border, no frame: » puis le sujet et le
+  fond (« a blazing orange and yellow fireball bursting with flames and sparks, against a deep red and black
+  background »). Page de choix : chaque candidat ×2 sur le parchemin du livre, avec le nom et le coût du sort.
+  Choisis : Boule de feu 50 (une comète de feu), Bénédiction 45 (une épée dans des rayons d'or, ciel bleu), Éclair 8
+  (un éclair fourchu sous les nuages, nuit bleue).
+- **Le lutrin et son livre fermé** (2026-11-12, `art/ui/lutrin.png`, 160 × 168, ×2, posé en bas au milieu de
+  `LecternView`) : PixelLab « pro », 4 candidats, l'image de la ville (`town.png`) comme style, vus de trois quarts d'en
+  haut, un livre rouge foncé aux ferrures d'or ; 0,17 $ le lot (0,115 $ annoncé). Choisi : le 3, un socle rond et massif
+  de bois sculpté. Écartés par l'utilisateur : un lutrin vu de face, et un zoom du livre du lutrin vers le livre ouvert
+  (essayé) : le clic ouvre le livre au milieu de l'écran, sans transition.
+- **Le livre ouvert** (2026-11-12, `art/ui/livre-ouvert.png`, 480 × 288, ×2, sous les sorts que le jeu écrit) : trop
+  grand pour « pro » (170 px au plus). `ui` avec un dessin de la disposition comme modèle : le livre sort petit (165 px)
+  au milieu d'une image vide, inutilisable. Ce qui marche : **`retoucher` sur un dessin de la disposition** (la
+  couverture de 8 px, les deux pages, le dos, la tranche ; fait en Python), qui garde la taille et les proportions,
+  **avec `--fond`** (sans elle, les pages blanches deviennent transparentes) et en demandant une couverture fine et
+  un dos étroit (sinon 24 et 36 px). 0,15 $ annoncé, environ 0,15 à 0,23 $ au solde. Quelques pixels blancs restés
+  du modèle sur les bords, rendus transparents.
+- **L'étude** (2026-11-12, `art/ui/scenes/etude.png`, 504 × 296, ×2, le fond de l'onglet Magie) : même recette
+  (`retoucher --fond` sur un dessin de la disposition : mur, sol aux 72 % de la hauteur, fenêtre à gauche, étagère à
+  droite, bougie sur une table, le milieu vide pour le lutrin) ; « cozy medieval wizard study at night… the middle of
+  the room left empty and uncluttered, keep the exact same layout and proportions ». Réussie du premier coup, 0,15 $.
+  **Puis refaite avec le lutrin dedans** (choix de l'utilisateur) : le lutrin généré à part n'avait ni le point de vue
+  ni la lumière de la pièce. Recette : coller le lutrin choisi (`art/ui/lutrin.png`) dans l'image de la scène, à sa place
+  dans le jeu (en bas au milieu, 6 pixels au-dessus du bord), puis `retoucher --fond` : « one single consistent point
+  of view and one single warm candle lighting for the whole scene, the lectern lit and shaded like the rest of the room
+  and standing firmly on the floor with a soft shadow; fill the room with more details: a rug, a desk with scrolls,
+  potions and a quill, a globe, a small cauldron, hanging dried herbs, piles of books, a few more candles; keep … the
+  lectern in the middle at the same place and size ». Deux essais (0,15 $ chacun) ; choisi le A (moins de bougies). Le
+  jeu ne dessine plus le lutrin sur une scène qui a son image (`LecternView.ShowImage`) : la lueur, les étincelles et le
+  clic seulement. **À refaire ainsi pour chaque académie.**
+- **L'académie du Château** (2026-11-13, `art/ui/scenes/academie-chateau.png`, 480 × 232) : même recette. Écartées par
+  l'utilisateur : deux grandes salles vues de face (« la perspective ne marche pas » : un mur plat de face ne va pas
+  avec le lutrin vu de trois quarts et d'un peu au-dessus). Réussi : **une petite pièce fermée**, vue d'un peu au-dessus
+  comme le lutrin ; le dessin de départ a un mur rond (son pied descend vers les côtés), un sol de planches en rayons,
+  un tapis rond, deux fenêtres étroites, une bannière derrière le lutrin, des étagères sur les côtés ; « small cozy
+  round room at the top of a stone castle tower… seen from slightly above… one single consistent point of view matching
+  the lectern… ». Deux essais (graines 11 et 29, 0,15 $ chacun) ; choisi le 29 (une pièce sous un toit en pente, plus
+  riche). Pour les autres académies : de petites pièces de ce genre.
 - **Icônes du panneau de la carte** (2026-11-09, même méthode, l'engrenage choisi comme image de style) : suivant 56
   (heaume et flèche), avancer 3 (botte), centrer 15 (cible), royaume 8 (couronne), creuser 48 (pelle), trésor 60 (carte
   roulée) ; Sorts et Options reprennent le livre et l'engrenage du combat. Le code commun : `IconButtons.cs`.

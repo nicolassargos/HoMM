@@ -384,10 +384,13 @@ public sealed class BattleEffects
 
     // les couleurs de la butte du Ver des profondeurs (terre sombre et cailloux) : la galerie est la même terre
     private static readonly Color EarthDark = new(0.14f, 0.1f, 0.07f), EarthMid = new(0.25f, 0.2f, 0.16f),
-        EarthLight = new(0.4f, 0.35f, 0.28f), Pebble = new(0.5f, 0.48f, 0.44f);
+        EarthLight = new(0.4f, 0.35f, 0.28f), Pebble = new(0.5f, 0.48f, 0.44f),
+        RootLight = new(0.6f, 0.47f, 0.3f), GrassTorn = new(0.25f, 0.48f, 0.14f);
+
+    private const byte Stone = 1, Root = 2, Grass = 3, Crumb = 4;
 
     /// <summary>La plus grande hauteur du bourrelet de la galerie, et la taille des mottes qui le font.</summary>
-    private const float RidgeHeight = 4 * U, ClodCell = 5 * Pixel;
+    private const float RidgeHeight = 5 * U, ClodCell = 5 * Pixel;
 
     /// <summary>La galerie passe un peu au-dessus du pied du fouisseur, au milieu de sa case.</summary>
     private static readonly Vector2 TrailLift = new(0, -6 * U);
@@ -404,7 +407,7 @@ public sealed class BattleEffects
         if (trail.Count < 2)
             return;
         int seed = trail[0].Trail;
-        float reach = 15 * U;
+        float reach = 19 * U;
         float minX = trail.Min(r => r.At.X) - reach, maxX = trail.Max(r => r.At.X) + reach;
         float minY = trail.Min(r => r.At.Y) - reach, maxY = trail.Max(r => r.At.Y) + reach;
         int x0 = (int)MathF.Floor(minX / Pixel), y0 = (int)MathF.Floor(minY / Pixel);
@@ -412,6 +415,8 @@ public sealed class BattleEffects
         var heights = new float[width, height];
         var fades = new float[width, height];
         var cells = new int[width, height];
+        // ce que montre chaque point : de la terre, une pierre, une racine, de l'herbe arrachée, une miette sur l'herbe
+        var kinds = new byte[width, height];
         for (int gy = 0; gy < height; gy++)
             for (int gx = 0; gx < width; gx++)
             {
@@ -434,7 +439,7 @@ public sealed class BattleEffects
                     // la largeur change doucement : le bourrelet enfle et se resserre
                     float arc = (r0.Travelled + MathF.Sqrt(len2) * t) / (8 * Pixel);
                     float swell = Mathf.Lerp(Noise(seed, (int)arc), Noise(seed, (int)arc + 1), arc % 1);
-                    half = (9 + 5 * swell) * U * (0.5f + 0.5f * grow);
+                    half = (11 + 6 * swell) * U * (0.5f + 0.5f * grow);
                 }
                 // les mottes : chaque case de terre a sa bosse, de taille et de place inégales
                 int cx = (int)MathF.Floor(p.X / ClodCell), cy = (int)MathF.Floor(p.Y * 2 / ClodCell);
@@ -445,12 +450,33 @@ public sealed class BattleEffects
                 float edge = 0.8f + 0.35f * Noise(seed, cell + 2);
                 float ratio = half > 0 ? best / half : 2;
                 if (ratio >= edge)
+                {
+                    // des miettes tombées sur l'herbe, le long des bords
+                    if (ratio < edge + 0.3f && grow > 0.5f && Noise(seed, (x0 + gx) * 977 + (y0 + gy) * 31 + 17) < 0.07f)
+                    {
+                        kinds[gx, gy] = Crumb;
+                        fades[gx, gy] = fade;
+                        cells[gx, gy] = cell;
+                    }
                     continue;
+                }
                 float ridge = RidgeHeight * grow * MathF.Sqrt(Math.Max(0, 1 - ratio * ratio));
                 float bump = (0.5f + Noise(seed, cell + 3)) * 2 * Pixel * grow * Math.Max(0, 1 - r * r * 1.6f);
                 heights[gx, gy] = Math.Max(Pixel, ridge + bump);
                 fades[gx, gy] = fade;
                 cells[gx, gy] = cell;
+                if (Noise(seed, cell + 11) < 0.07f)
+                    kinds[gx, gy] = Stone; // une pierre remontée avec la terre
+                else if (Noise(seed, cell + 13) < 0.07f)
+                {
+                    // une racine arrachée : un trait clair à travers la motte
+                    float angle = Noise(seed, cell + 14) * MathF.PI;
+                    var off = new Vector2(p.X - clod.X, (p.Y - clod.Y) * 2);
+                    if (MathF.Abs(off.X * MathF.Sin(angle) - off.Y * MathF.Cos(angle)) < Pixel * 0.7f && r < 1.1f)
+                        kinds[gx, gy] = Root;
+                }
+                else if (ratio > 0.55f && Noise(seed, cell + 15) < 0.15f && r < 0.45f)
+                    kinds[gx, gy] = Grass; // une touffe d'herbe arrachée, sur les bords
             }
         // de l'arrière vers l'avant : la rangée de devant recouvre le flanc de celle de derrière
         for (int gy = 0; gy < height; gy++)
@@ -458,9 +484,14 @@ public sealed class BattleEffects
             {
                 float h = heights[gx, gy];
                 // il s'efface en perdant ses mottes une à une (une transparence se verrait aux pixels qui se recouvrent)
-                if (h <= 0 || Noise(seed, cells[gx, gy] + 5) >= fades[gx, gy])
+                if ((h <= 0 && kinds[gx, gy] != Crumb) || Noise(seed, cells[gx, gy] + 5) >= fades[gx, gy])
                     continue;
                 float x = (x0 + gx) * Pixel, ground = (y0 + gy) * Pixel;
+                if (h <= 0)
+                {
+                    canvas.DrawRect(new Rect2(x, ground, Pixel, Pixel), Noise(seed, cells[gx, gy] + 6) < 0.5f ? EarthMid : EarthDark);
+                    continue;
+                }
                 float top = MathF.Floor((ground - h) / Pixel) * Pixel;
                 // l'ombre sur l'herbe devant la galerie
                 if (gy + 1 < height && heights[gx, gy + 1] <= 0)
@@ -469,17 +500,29 @@ public sealed class BattleEffects
                 float back = gx > 0 && gy > 0 ? heights[gx - 1, gy - 1] : 0;
                 float slope = (h - back) / Pixel;
                 int k2 = (x0 + gx) * 131 + (y0 + gy);
-                Color color = Noise(seed, k2) < 0.05f ? Pebble
-                    : Noise(seed, k2 + 9) < 0.015f ? new Color(0.25f, 0.48f, 0.14f) // une touffe d'herbe arrachée
-                    : slope > 1f ? EarthLight.Lightened(0.15f) : slope > -0.2f ? EarthLight
-                    : slope > -1.2f ? EarthMid : EarthMid.Darkened(0.3f);
+                Color color = kinds[gx, gy] switch
+                {
+                    Stone => slope > 0.5f ? Pebble.Lightened(0.25f) : slope > -0.8f ? Pebble : Pebble.Darkened(0.4f),
+                    Root => slope > 0 ? RootLight : RootLight.Darkened(0.25f),
+                    Grass => Noise(seed, k2 + 4) < 0.5f ? GrassTorn : GrassTorn.Lightened(0.2f),
+                    _ => Noise(seed, k2) < 0.05f ? Pebble
+                        : slope > 1f ? EarthLight.Lightened(0.15f) : slope > -0.2f ? EarthLight
+                        : slope > -1.2f ? EarthMid : EarthMid.Darkened(0.3f),
+                };
                 // le flanc, sous le dessus : la même terre un peu plus sombre, le pied dans l'ombre
                 if (ground - top > Pixel)
                 {
-                    canvas.DrawRect(new Rect2(x, top + Pixel, Pixel, ground - top - Pixel), color.Darkened(0.3f));
+                    // une pierre montre un peu son flanc ; l'herbe et les racines sont posées sur la terre
+                    var side = kinds[gx, gy] == 0 ? color.Darkened(0.3f) : EarthMid.Darkened(0.3f);
+                    canvas.DrawRect(new Rect2(x, top + Pixel, Pixel, ground - top - Pixel), side);
+                    if (kinds[gx, gy] == Stone)
+                        canvas.DrawRect(new Rect2(x, top + Pixel, Pixel, Pixel), Pebble.Darkened(0.4f));
                     canvas.DrawRect(new Rect2(x, ground - Pixel, Pixel, Pixel), EarthDark);
                 }
                 canvas.DrawRect(new Rect2(x, top, Pixel, Pixel), color);
+                // les brins de l'herbe arrachée dépassent de la terre
+                if (kinds[gx, gy] == Grass && Noise(seed, k2 + 8) < 0.45f)
+                    canvas.DrawRect(new Rect2(x, top - Pixel * (1 + (int)(Noise(seed, k2 + 7) * 2)), Pixel, Pixel * 2), GrassTorn.Lightened(0.1f));
             }
     }
 

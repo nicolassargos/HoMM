@@ -386,66 +386,98 @@ public sealed class BattleEffects
     private static readonly Color EarthDark = new(0.14f, 0.1f, 0.07f), EarthMid = new(0.25f, 0.2f, 0.16f),
         EarthLight = new(0.4f, 0.35f, 0.28f), Pebble = new(0.5f, 0.48f, 0.44f);
 
+    /// <summary>La plus grande hauteur du bourrelet de la galerie, et la taille des mottes qui le font.</summary>
+    private const float RidgeHeight = 3 * U, ClodCell = 4 * Pixel;
+
     /// <summary>
-    /// La galerie d'un fouisseur, comme celle d'une taupe, vue d'en haut comme le champ : un bourrelet de terre continu le
-    /// long de son chemin (de point en point de <paramref name="trail"/>), la pente du haut éclairée, celle du bas à
-    /// l'ombre, des bords émiettés et inégaux, une ombre sur l'herbe en dessous. Il s'élargit quand le fouisseur passe
-    /// dessous, puis s'efface.
+    /// La galerie d'un fouisseur, comme celle d'une taupe, vue de biais comme le champ : un bourrelet de terre le long de
+    /// son chemin (de point en point de <paramref name="trail"/>), fait de mottes. Le sol sous la galerie est une carte des
+    /// hauteurs (le bourrelet arrondi, chaque motte une petite bosse), dessinée de l'arrière vers l'avant : chaque point
+    /// montre son dessus (éclairé s'il regarde vers le haut à gauche, d'où vient la lumière) et, sous lui, son flanc à
+    /// l'ombre, que la rangée de devant cache en partie. Il monte quand le fouisseur passe dessous, puis s'émiette.
     /// </summary>
     private static void DrawTrail(CanvasItem canvas, List<Rut> trail)
     {
-        for (int p = 0; p + 1 < trail.Count; p++)
-        {
-            Rut r0 = trail[p], r1 = trail[p + 1];
-            float length = r0.At.DistanceTo(r1.At);
-            if (length < 0.01f)
-                continue;
-            var along = (r1.At - r0.At) / length;
-            // la largeur vers le bas de l'écran (ou vers la droite) : la pente éclairée est de l'autre côté
-            var across = new Vector2(-along.Y, along.X);
-            if (across.Y < 0 || (across.Y == 0 && across.X < 0))
-                across = -across;
-            for (float s = 0; s < length; s += Pixel * 0.7f)
+        if (trail.Count < 2)
+            return;
+        int seed = trail[0].Trail;
+        float reach = 10 * U;
+        float minX = trail.Min(r => r.At.X) - reach, maxX = trail.Max(r => r.At.X) + reach;
+        float minY = trail.Min(r => r.At.Y) - reach, maxY = trail.Max(r => r.At.Y) + reach;
+        int x0 = (int)MathF.Floor(minX / Pixel), y0 = (int)MathF.Floor(minY / Pixel);
+        int width = (int)MathF.Ceiling(maxX / Pixel) - x0 + 1, height = (int)MathF.Ceiling(maxY / Pixel) - y0 + 1;
+        var heights = new float[width, height];
+        var fades = new float[width, height];
+        var cells = new int[width, height];
+        for (int gy = 0; gy < height; gy++)
+            for (int gx = 0; gx < width; gx++)
             {
-                float f = s / length;
-                float a = Mathf.Lerp(Fade(r0), Fade(r1), f), grow = Mathf.Lerp(Grow(r0), Grow(r1), f);
-                if (a <= 0)
-                    continue;
-                int i = (int)((r0.Travelled + s) / Pixel), seed = r0.Trail;
-                // la largeur change doucement : le bourrelet enfle et se resserre
-                float swell = Mathf.Lerp(Noise(seed, i / 8), Noise(seed, i / 8 + 1), i % 8 / 8f);
-                float half = (6 + 4 * swell) * U * (0.5f + 0.5f * grow);
-                float top = half + (Noise(seed, i * 3) - 0.5f) * 2 * Pixel, bottom = half + (Noise(seed, i * 3 + 1) - 0.5f) * 2 * Pixel;
-                var center = r0.At + along * s;
-                // l'ombre sur l'herbe, sous le bourrelet
-                for (float t = bottom; t < bottom + 2 * Pixel; t += Pixel)
-                    if (Noise(seed, i * 131 + (int)MathF.Floor(t / Pixel) + 3) < a)
-                        Dot(canvas, center + across * t, new Color(EarthDark, 0.35f));
-                for (float t = -top; t <= bottom; t += Pixel * 0.8f)
+                var p = new Vector2((x0 + gx + 0.5f) * Pixel, (y0 + gy + 0.5f) * Pixel);
+                // le point du chemin le plus proche ; vu de biais, le sol est écrasé de moitié en hauteur
+                float best = float.MaxValue, half = 0, grow = 0, fade = 0;
+                for (int k = 0; k + 1 < trail.Count; k++)
                 {
-                    int j = (int)MathF.Floor(t / Pixel), k = i * 131 + j;
-                    Color color;
-                    if (t < -top + Pixel || t > bottom - Pixel)
-                        color = EarthDark; // le bord émietté, sur l'herbe
-                    else if (Noise(seed, k + 7) < 0.07f)
-                        color = Pebble;
-                    else if (Noise(seed, k + 9) < 0.02f)
-                        color = new Color(0.25f, 0.48f, 0.14f); // une touffe d'herbe arrachée
-                    else
-                    {
-                        // la lumière vient d'en haut : la pente du haut claire, celle du bas sombre ; des mottes par
-                        // petits paquets de pixels
-                        float clump = Noise(seed, (i / 2) * 57 + (int)MathF.Floor(t / (2 * Pixel)) + 500);
-                        float light = -t / half + (clump - 0.5f) * 0.8f;
-                        color = light > 0.6f ? EarthLight.Lightened(0.12f) : light > 0 ? EarthLight
-                            : light > -0.55f ? EarthMid : EarthMid.Darkened(0.3f);
-                    }
-                    // il s'efface en perdant ses pixels un à un (une transparence se verrait aux pixels qui se recouvrent)
-                    if (Noise(seed, k + 3) < a)
-                        Dot(canvas, center + across * t, color);
+                    Rut r0 = trail[k], r1 = trail[k + 1];
+                    var seg = r1.At - r0.At;
+                    float len2 = seg.LengthSquared();
+                    float t = len2 < 0.01f ? 0 : Math.Clamp((p - r0.At).Dot(seg) / len2, 0, 1);
+                    var d = p - (r0.At + seg * t);
+                    float dist = new Vector2(d.X, d.Y * 2).Length();
+                    if (dist >= best)
+                        continue;
+                    best = dist;
+                    grow = Mathf.Lerp(Grow(r0), Grow(r1), t);
+                    fade = Mathf.Lerp(Fade(r0), Fade(r1), t);
+                    // la largeur change doucement : le bourrelet enfle et se resserre
+                    float arc = (r0.Travelled + MathF.Sqrt(len2) * t) / (8 * Pixel);
+                    float swell = Mathf.Lerp(Noise(seed, (int)arc), Noise(seed, (int)arc + 1), arc % 1);
+                    half = (7 + 4 * swell) * U * (0.5f + 0.5f * grow);
                 }
+                // les mottes : chaque case de terre a sa bosse, de taille et de place inégales
+                int cx = (int)MathF.Floor(p.X / ClodCell), cy = (int)MathF.Floor(p.Y * 2 / ClodCell);
+                int cell = cx * 7919 + cy * 104729;
+                var clod = new Vector2((cx + 0.2f + 0.6f * Noise(seed, cell)) * ClodCell, (cy + 0.2f + 0.6f * Noise(seed, cell + 1)) * ClodCell / 2);
+                float r = new Vector2(p.X - clod.X, (p.Y - clod.Y) * 2).Length() / ClodCell;
+                // le bord est fait de mottes : il s'arrête là où la motte s'arrête
+                float edge = 0.8f + 0.35f * Noise(seed, cell + 2);
+                float ratio = half > 0 ? best / half : 2;
+                if (ratio >= edge)
+                    continue;
+                float ridge = RidgeHeight * grow * MathF.Sqrt(Math.Max(0, 1 - ratio * ratio));
+                float bump = (0.5f + Noise(seed, cell + 3)) * 2 * Pixel * grow * Math.Max(0, 1 - r * r * 1.6f);
+                heights[gx, gy] = Math.Max(Pixel, ridge + bump);
+                fades[gx, gy] = fade;
+                cells[gx, gy] = cell;
             }
-        }
+        // de l'arrière vers l'avant : la rangée de devant recouvre le flanc de celle de derrière
+        for (int gy = 0; gy < height; gy++)
+            for (int gx = 0; gx < width; gx++)
+            {
+                float h = heights[gx, gy];
+                // il s'efface en perdant ses mottes une à une (une transparence se verrait aux pixels qui se recouvrent)
+                if (h <= 0 || Noise(seed, cells[gx, gy] + 5) >= fades[gx, gy])
+                    continue;
+                float x = (x0 + gx) * Pixel, ground = (y0 + gy) * Pixel;
+                float top = MathF.Floor((ground - h) / Pixel) * Pixel;
+                // l'ombre sur l'herbe devant la galerie
+                if (gy + 1 < height && heights[gx, gy + 1] <= 0)
+                    canvas.DrawRect(new Rect2(x, ground + Pixel, Pixel, Pixel), new Color(EarthDark, 0.4f));
+                // le dessus : éclairé s'il monte depuis le haut à gauche, sombre s'il descend vers le bas
+                float back = gx > 0 && gy > 0 ? heights[gx - 1, gy - 1] : 0;
+                float slope = (h - back) / Pixel;
+                int k2 = (x0 + gx) * 131 + (y0 + gy);
+                Color color = Noise(seed, k2) < 0.05f ? Pebble
+                    : Noise(seed, k2 + 9) < 0.015f ? new Color(0.25f, 0.48f, 0.14f) // une touffe d'herbe arrachée
+                    : slope > 1f ? EarthLight.Lightened(0.15f) : slope > -0.2f ? EarthLight
+                    : slope > -1.2f ? EarthMid : EarthMid.Darkened(0.3f);
+                // le flanc, sous le dessus : la même terre un peu plus sombre, le pied dans l'ombre
+                if (ground - top > Pixel)
+                {
+                    canvas.DrawRect(new Rect2(x, top + Pixel, Pixel, ground - top - Pixel), color.Darkened(0.3f));
+                    canvas.DrawRect(new Rect2(x, ground - Pixel, Pixel, Pixel), EarthDark);
+                }
+                canvas.DrawRect(new Rect2(x, top, Pixel, Pixel), color);
+            }
     }
 
     private static float Fade(Rut r) => (float)Math.Clamp(1 - (r.Age - RutTime) / RutFade, 0, 1);

@@ -178,7 +178,7 @@ public sealed class BattleEffects
         b.Travelled += moved;
         b.At = ground;
         // un morceau de sillon tous les quelques pixels : ils se chevauchent en une seule traînée
-        if (ground.DistanceTo(b.Last) >= 6 * U)
+        if (ground.DistanceTo(b.Last) >= 4 * U)
         {
             _ruts.Add(new Rut { At = ground, Seed = ++_seed });
             b.Last = ground;
@@ -352,9 +352,7 @@ public sealed class BattleEffects
     public void DrawGround(CanvasItem canvas)
     {
         foreach (var r in _ruts)
-            DrawRut(canvas, r, true);
-        foreach (var r in _ruts)
-            DrawRut(canvas, r, false);
+            DrawRut(canvas, r);
         foreach (var d in _burrowers.Values)
             DrawCracks(canvas, d);
         foreach (var s in _strikes)
@@ -386,12 +384,10 @@ public sealed class BattleEffects
         EarthLight = new(0.4f, 0.35f, 0.28f), Pebble = new(0.5f, 0.48f, 0.44f);
 
     /// <summary>
-    /// Un morceau de la galerie, comme celle d'une taupe, vu d'en haut comme le champ : une large motte de terre soulevée
-    /// (un ovale aplati : le dessus éclairé en haut à gauche, un flanc sombre visible devant, le contour et l'ombre sur
-    /// l'herbe), qui monte quand le fouisseur passe dessous, puis s'efface. Les morceaux se chevauchent en un bourrelet :
-    /// d'abord le contour de tous (<paramref name="outline"/>), puis la terre de tous par-dessus, sans couture entre eux.
+    /// Un morceau de la galerie, comme celle d'une taupe : une petite bosse de terre soulevée (le haut éclairé, l'ombre au
+    /// pied), qui monte quand le fouisseur passe dessous, puis s'efface. Les morceaux se chevauchent en un bourrelet.
     /// </summary>
-    private static void DrawRut(CanvasItem canvas, Rut r, bool outline)
+    private static void DrawRut(CanvasItem canvas, Rut r)
     {
         float a = (float)Math.Clamp(1 - (r.Age - RutTime) / RutFade, 0, 1);
         if (a <= 0)
@@ -399,45 +395,28 @@ public sealed class BattleEffects
         // la terre monte vite quand il passe dessous
         float grow = (float)Math.Clamp(r.Age / 0.15, 0, 1);
         // des mottes inégales : la galerie fait des bosses
-        float rx = (8 + Noise(r.Seed, 2) * 7) * U * (0.6f + 0.4f * grow), ry = rx * (0.4f + Noise(r.Seed, 3) * 0.25f);
-        float h = (2 + Noise(r.Seed, 1) * 3) * U * grow;
-        // chaque motte un peu à côté du chemin : le bourrelet serpente
-        var center = r.At + new Vector2((Noise(r.Seed, 4) - 0.5f) * 4 * U, (Noise(r.Seed, 5) - 0.5f) * 4 * U);
-        float edge = outline ? Pixel : 0;
-        for (float x = -rx - edge; x <= rx + edge; x += Pixel)
+        float h = (4 + Noise(r.Seed, 1) * 5) * U * grow, w = (5 + Noise(r.Seed, 2) * 3) * U;
+        for (float x = -w; x <= w; x += Pixel)
         {
-            float wide = rx + edge;
-            float half = (ry + edge) * MathF.Sqrt(Math.Max(0, 1 - x * x / (wide * wide)));
-            if (half < Pixel / 2)
+            float top = MathF.Floor(h * (1 - x * x / (w * w)) / Pixel) * Pixel;
+            if (top < Pixel)
                 continue;
-            // de haut en bas : le dessus (un ovale levé de h), puis le flanc jusqu'à l'ovale posé au sol
-            for (float y = -h - half; y <= half + (outline ? Pixel : 0); y += Pixel)
+            var foot = r.At + new Vector2(x, 0);
+            Dot(canvas, foot + new Vector2(0, Pixel), new Color(EarthDark, 0.6f * a)); // l'ombre au pied
+            Dot(canvas, foot - new Vector2(0, top), new Color(EarthDark, 0.8f * a)); // le contour, sur l'herbe
+            for (float y = 0; y < top; y += Pixel)
             {
-                var at = center + new Vector2(x, y);
-                if (outline)
-                {
-                    // le contour sombre, et l'ombre plus douce sous la motte
-                    Dot(canvas, at, new Color(EarthDark, (y > half - Pixel ? 0.5f : 0.85f) * a));
-                    continue;
-                }
-                int k = (int)(x * 7 + y * 13);
-                float ty = y + h; // la place sur le dessus de la motte
+                int k = (int)(x * 7 + y * 3);
                 Color color;
-                if (ty > half)
-                    // le flanc, à l'ombre
-                    color = Noise(r.Seed, k) < 0.1f ? EarthDark : EarthMid.Darkened(0.4f);
-                else if (Noise(r.Seed, k) < 0.08f)
+                if (y + Pixel >= top)
+                    // la crête : la terre éclairée, parfois une touffe d'herbe arrachée
+                    color = Noise(r.Seed, k + 90) < 0.2f ? new Color(0.25f, 0.48f, 0.14f) : EarthLight;
+                else if (Noise(r.Seed, k) < 0.12f)
                     color = Pebble;
-                else if (Noise(r.Seed, k + 90) < 0.03f)
-                    color = new Color(0.25f, 0.48f, 0.14f); // une touffe d'herbe arrachée
                 else
-                {
-                    // la lumière vient d'en haut à gauche
-                    float light = -(x / rx + 1.5f * ty / ry) + (Noise(r.Seed, k + 40) - 0.5f) * 0.8f;
-                    color = light > 0.9f ? EarthLight.Lightened(0.15f) : light > 0.1f ? EarthLight
-                        : light < -0.9f ? EarthMid.Darkened(0.25f) : EarthMid;
-                }
-                Dot(canvas, at, new Color(color, a));
+                    // la lumière vient d'en haut à gauche : le flanc droit et le bas plus sombres
+                    color = x > w * 0.25f || y < Pixel * 2 ? EarthMid.Darkened(0.25f) : EarthMid;
+                Dot(canvas, foot - new Vector2(0, y), new Color(color, a));
             }
         }
     }

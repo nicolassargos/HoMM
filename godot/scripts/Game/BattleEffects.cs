@@ -352,7 +352,9 @@ public sealed class BattleEffects
     public void DrawGround(CanvasItem canvas)
     {
         foreach (var r in _ruts)
-            DrawRut(canvas, r);
+            DrawRut(canvas, r, false);
+        foreach (var r in _ruts)
+            DrawRut(canvas, r, true);
         foreach (var d in _burrowers.Values)
             DrawCracks(canvas, d);
         foreach (var s in _strikes)
@@ -385,9 +387,10 @@ public sealed class BattleEffects
 
     /// <summary>
     /// Un morceau de la galerie, comme celle d'une taupe : une petite bosse de terre soulevée (le haut éclairé, l'ombre au
-    /// pied), qui monte quand le fouisseur passe dessous, puis s'efface. Les morceaux se chevauchent en un bourrelet.
+    /// pied), qui monte quand le fouisseur passe dessous, puis s'efface. Les morceaux se chevauchent en un bourrelet :
+    /// d'abord le flanc de tous, puis le dessus de tous (<paramref name="crestOnly"/>), qu'une bosse ne cache pas.
     /// </summary>
-    private static void DrawRut(CanvasItem canvas, Rut r)
+    private static void DrawRut(CanvasItem canvas, Rut r, bool crestOnly)
     {
         float a = (float)Math.Clamp(1 - (r.Age - RutTime) / RutFade, 0, 1);
         if (a <= 0)
@@ -395,27 +398,35 @@ public sealed class BattleEffects
         // la terre monte vite quand il passe dessous
         float grow = (float)Math.Clamp(r.Age / 0.15, 0, 1);
         // des mottes inégales : la galerie fait des bosses
-        float h = (4 + Noise(r.Seed, 1) * 5) * U * grow, w = (5 + Noise(r.Seed, 2) * 3) * U;
+        float h = (5 + Noise(r.Seed, 1) * 6) * U * grow, w = (7 + Noise(r.Seed, 2) * 4) * U;
         for (float x = -w; x <= w; x += Pixel)
         {
             float top = MathF.Floor(h * (1 - x * x / (w * w)) / Pixel) * Pixel;
             if (top < Pixel)
                 continue;
+            // vue un peu d'en haut : le dessus de la bosse se voit, une bande éclairée plus large au milieu
+            float crest = MathF.Max(Pixel, MathF.Floor(3 * Pixel * MathF.Sqrt(1 - x * x / (w * w)) * grow / Pixel) * Pixel);
             var foot = r.At + new Vector2(x, 0);
-            Dot(canvas, foot + new Vector2(0, Pixel), new Color(EarthDark, 0.6f * a)); // l'ombre au pied
-            Dot(canvas, foot - new Vector2(0, top), new Color(EarthDark, 0.8f * a)); // le contour, sur l'herbe
+            if (!crestOnly)
+            {
+                Dot(canvas, foot + new Vector2(0, Pixel), new Color(EarthDark, 0.6f * a)); // l'ombre au pied
+                Dot(canvas, foot - new Vector2(0, top), new Color(EarthDark, 0.8f * a)); // le contour, sur l'herbe
+            }
             for (float y = 0; y < top; y += Pixel)
             {
                 int k = (int)(x * 7 + y * 3);
                 Color color;
-                if (y + Pixel >= top)
-                    // la crête : la terre éclairée, parfois une touffe d'herbe arrachée
-                    color = Noise(r.Seed, k + 90) < 0.2f ? new Color(0.25f, 0.48f, 0.14f) : EarthLight;
+                if (crestOnly != (y + crest >= top))
+                    continue;
+                if (crestOnly)
+                    // le dessus : la terre éclairée, parfois une touffe d'herbe arrachée ou un caillou
+                    color = Noise(r.Seed, k + 90) < 0.08f ? new Color(0.25f, 0.48f, 0.14f)
+                        : Noise(r.Seed, k) < 0.1f ? Pebble : EarthLight;
                 else if (Noise(r.Seed, k) < 0.12f)
                     color = Pebble;
                 else
-                    // la lumière vient d'en haut à gauche : le flanc droit et le bas plus sombres
-                    color = x > w * 0.25f || y < Pixel * 2 ? EarthMid.Darkened(0.25f) : EarthMid;
+                    // le flanc, plus sombre vers le bas
+                    color = y < Pixel * 3 ? EarthMid.Darkened(0.25f) : EarthMid;
                 Dot(canvas, foot - new Vector2(0, y), new Color(color, a));
             }
         }

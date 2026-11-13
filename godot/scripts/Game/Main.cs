@@ -244,9 +244,25 @@ public partial class Main : Node2D
         // Développement : « --center=treasure » centre la vue sur le trésor (pour une capture d'écran)
         if (OS.GetCmdlineUserArgs().Contains("--center=treasure") && _state.Map.Treasure is { } hidden)
             _camera.CenterOn(hidden);
-        // « --center=sites » : la vue sur la tour d'observation (les lieux de la carte, pour une capture)
-        if (OS.GetCmdlineUserArgs().Contains("--center=sites") && _state.Map.Objects.OfType<ObservationTower>().FirstOrDefault() is { } tower)
-            _camera.CenterOn(tower.Position);
+        // « --center=sites » : la vue sur la tour d'observation ; « --center=windmill » (ou shrine, sage, water-wheel, tower,
+        // temple, fairy-ring) : sur le premier lieu de ce genre (pour une capture)
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--center=")) is { } centerArg)
+        {
+            var kind = centerArg["--center=".Length..] is "sites" ? "tower" : centerArg["--center=".Length..];
+            if (_state.Map.Objects.FirstOrDefault(o => SiteKind(o) == kind) is { } site)
+                _camera.CenterOn(site.Position);
+        }
+        static string? SiteKind(MapObject o) => o switch
+        {
+            Shrine => "shrine",
+            SageHut => "sage",
+            WeeklyProducer { IsWaterWheel: true } => "water-wheel",
+            WeeklyProducer => "windmill",
+            ObservationTower => "tower",
+            BlessingSite { Blessing: Blessing.Morale } => "temple",
+            BlessingSite => "fairy-ring",
+            _ => null,
+        };
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
             _camera.CenterOn(firstObelisk.Position);
         // « --turns=5 » : joue 5 jours dès le lancement (adversaires compris), pour voir où ils en sont

@@ -94,6 +94,16 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   **pas seulement des humains** (squelette, orc, nain, elfe, gnome, barbare vraiment sauvage), **l'allure des jeux
   des années 80-90** avec des **fonds simples et dramatiques** (un ciel de feu, une lune, une lueur verte), pas
   seulement de belles images. Ses préférés : Comte Morvan, Mortimer, Tarka, Ulrik.
+  **Les héros nains, à la Heroes 2** (2026-11-12, choix de l'utilisateur, 5,4 $ en quatre essais) : regarder d'abord la
+  planche des portraits de Heroes 2 (`HoMM-images/art-candidats/references/heroes1-2/heroes 2/`). Écartés : des visages
+  réalistes ; puis la « panoplie du nain » (lunettes, casque à lanterne, barbe fourchue, cache-œil, graisse : trop
+  cliché) ; puis des visages de face sans traits de nain (on ne voyait plus des nains) ; **pas de femmes à barbe**.
+  Ce qui marche (`@h2n`, `@h2f` dans `assets.json`) : la fin « 1996 hand-painted VGA fantasy strategy game hero
+  portrait, head and shoulders filling the whole frame, face straight towards the viewer… detailed bright painted
+  landscape background » ; pour un nain, « very wide square face, large broad nose, deep-set eyes under heavy brows,
+  ruddy cheeks, thick neck, massive broad shoulders » et une longue barbe ; pour une naine, sans barbe, c'est la
+  carrure et l'armure qui la disent naine : « stout heavyset dwarf woman warrior, short and very broad, round heavy
+  face… huge armoured shoulders, smooth bare chin », un casque, des tresses épaisses à anneaux de métal.
 - **Petites images des créatures (24 × 24, la carte)** : ne jamais réduire une image de combat (bouillie), même en la
   donnant à Retro Diffusion comme image de départ. Pour qu'elle ressemble à l'image de combat : PixelLab `pro` à
   24 × 24, l'image de combat comme sujet, la petite image du Gobelin (`godot/art/creatures/gobelin.png`) comme style
@@ -311,6 +321,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Luminosité des villes (2026-11-11)** : mesurée par `luminosite.py mesure` (Château 125, Forêt 77, Barbares 74,
   morts-vivants 45) ; la Tour (156, trop claire) ramenée à 125 par une courbe. Éclaircir la Forêt et les Barbares (même
   en gardant les sombres) a été refusé par l'utilisateur.
+- **Ville des Nains (2026-11-12)** : les mots de la Tour dans la description du premier lot (« shaded with several light
+  and dark tones like the reference castle, lit from the upper left, a thin consistent outline… ») donnent d'emblée des
+  villes lisibles, sans retouche d'ombrage. Pour comparer des retouches, les poser une à une en
+  `objects/town-<faction>.png` et capturer le départ (`--seed=42 --faction=<faction>`) : la ville de départ est à
+  l'écran ; retirer l'image d'essai ensuite. Une retouche « plus de couleurs » (bannières, cuivre, runes d'or) marche
+  (0,08 $) mais assombrit l'image (98 → 64).
 - **Ville barbare (2026-11-09)** : une image trop détaillée (« croustillante ») s'adoucit en ajoutant « simple clean
   shapes, smooth soft shading, few small details, not noisy, not grainy » et en prenant `objects/town.png` comme style ;
   le contour noir épais des villes de PixelLab s'adoucit avec `adoucir.py` (0,7, 60, 2 passes : le bord prend une teinte
@@ -332,6 +348,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   la cabane choisie (« add a second, lower room… ; remove the sand and ground… », 0,08 $) ; « pro » à 48 × 48 (25 cabanes
   pour 0,08 $, avec la cabane comme style et un modèle) en donnait aussi de bonnes. La cabane (42 × 42) est à l'échelle des
   autres bâtiments de mine (38 × 32 à 52 × 51) ; sa porte n'est pas au milieu : l'assemblage la pose au-dessus du chemin.
+- **Lieux de la carte (2026-11-12)** : PixelLab « pro » à 64 × 64 (16 candidats pour 0,08 $ par lieu), la mine d'or comme
+  style, « one small object alone on a transparent background, seen from the front and slightly from above… no grass
+  patch, no ground base, no shadow » : des lieux nets, sans socle, au style des mines. **Montrer les candidats à leur
+  taille de jeu** (un pixel d'image = 2 pixels de l'écran) : à ×1, ils paraissaient plus fins que le reste et
+  l'utilisateur les a crus d'un autre style. Un lieu d'une case : l'image réduite de moitié (32 × 32) ; un lieu haut
+  (2 cases) : l'image de 64 × 64 telle quelle. Recadrer chaque image sur son dessin avant de l'installer (le jeu pose le
+  bas de l'image sur le bas de la case : des rangées vides dessous le feraient flotter). `--center=windmill` (sage,
+  temple…) centre la capture sur un lieu.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 

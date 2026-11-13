@@ -79,7 +79,8 @@ public static class Art
         {
             if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.NonSpacingMark)
                 continue;
-            plain.Append(char.IsLetterOrDigit(c) ? c : '-');
+            // les ligatures s'écrivent en deux lettres (« Œil » : oeil)
+            plain.Append(c switch { 'œ' => "oe", 'æ' => "ae", _ => char.IsLetterOrDigit(c) ? c.ToString() : "-" });
         }
         return string.Join('-', plain.ToString().Split('-', StringSplitOptions.RemoveEmptyEntries));
     }

@@ -968,6 +968,12 @@ public static class Texts
         Ability.HeatAura => "aura de chaleur (brûle les ennemis voisins)",
         Ability.Feeds => "se nourrit des morts de l'Enfer (+1 attaque)",
         Ability.Summons => "invoque des diablotins (une fois par combat)",
+        Ability.Stubborn => "obstiné (20 % de dégâts en moins tant qu'il n'a pas bougé dans le round)",
+        Ability.ShieldWall => "mur de boucliers (les tireurs amis voisins prennent moitié des dégâts des tirs)",
+        Ability.Piercing => "carreaux perçants (ignorent 30 % de la défense)",
+        Ability.SureFooted => "pied sûr (riposte avant le coup, rien ne le déplace)",
+        Ability.Banner => "bannière (+2 défense aux troupes amies voisines)",
+        Ability.Blast => "explosion (touche aussi les ennemis autour de la cible)",
         _ => ability,
     };
 
@@ -1294,6 +1300,7 @@ public static class Texts
         Talents.Scholar => $"Talent : érudit (+{Talents.ScholarPercentPerLevel} % de force des sorts par niveau)",
         Talents.Pact => $"Talent : pacte (le prix du sang peut rendre {Talents.PactPerLevel} point de sort de plus par niveau dans un combat)",
         Talents.Dread => $"Talent : effroi (l'armée ennemie commence le combat à −1 de moral, −1 de plus tous les {Talents.DreadLevels} niveaux)",
+        Talents.Obstinacy => $"Talent : obstination (les troupes qui n'ont pas bougé prennent {Talents.ObstinacyPerLevel:P0} de dégâts en moins de plus par niveau)",
         _ => null,
     };
 

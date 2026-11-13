@@ -870,6 +870,11 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sorts de l'IA) ; `Talents.BloodPriceCap` et le talent `Pact` (prêt pour la classe). À l'écran, une troupe qui apparaît
   en cours de combat est ajoutée cachée quand l'événement arrive, puis montrée par son animation
   (`BattleFieldView.AddShown`, `Appear`, `Announce`). Réglage en trois passes de `Duels_a_prix_egal`.
+- ✅ **Les Nains jouables** (2026-11-12, branche `nains-ville`) : une classe de faction `nains` suffit
+  (`PlayableFactions`). `Talents.Obstinacy` et `StubbornShare` (0,2 + 0,01 × niveau, 0,5 au plus), appliqué dans
+  `TacticalBattle.RollDamage` à la place de la part fixe ; `Texts.TalentText`. `Art.Slug` écrit « œ » et « æ » en deux
+  lettres (le portrait de Kalla Œil-de-Braise : `kalla-oeil-de-braise.png`). Portraits : quatre essais avant le bon
+  (voir `tools/art/METHODE.md`).
 - ✅ **L'Enfer jouable** (2026-11-11, branche `enfer`, faite pendant une coupure de GitHub, à la suite de l'étape 1) :
   comme le Donjon, une classe de faction `enfer` suffit (`PlayableFactions`). `Texts.TalentText` pour le Pacte ; les
   quatre héros « sombres » qui restaient passent à l'Enfer, `DataValidation.PlannedFactions` est vide.
@@ -892,6 +897,21 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   100 or, hôtel de ville 1000 par jour), elle était trois fois plus serrée. Villes 300 / 600 / 1200, mines d'or 500.
   Les cartes normales ne vont pas plus vite (la simulation y livre un combat tous les deux jours, c'est sa limite).
 ### 10. Finitions : apparence et détails
+- ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
+  à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),
+  sage 8, roue à eau 13, moulin 12, tour 16, temple 8, cercle des fées 12. L'utilisateur trouvait les lieux petits : comme
+  Heroes 2 et 3, les lieux hauts prennent 2 cases (`TallSite.FootprintAt` : la porte, `Position`, et la case au-dessus,
+  qui bloque ; `Large`, faux pour les sauvegardes d'avant la version 7). Une empreinte de 2 × 2 aurait mis la porte à
+  côté du héros (largeur paire) : une colonne de 2 cases et une image qui déborde d'une demi-case de chaque côté, comme
+  Heroes. Générateur : `PlaceSites` vérifie la case du toit (terrain où l'on marche, sans route ni objet) et les cases
+  sous l'image (`_overhang`, que `CanPlaceGuard` évite aussi : des monstres errants s'y posaient). Pieds revus par
+  l'utilisateur. Tests : `CarteObjetsTests` (lieux hauts, générateur sur quatre cartes, sauvegarde).
+- ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
+  (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
+  tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans
+  la roche) ; choisie **a-1**. Trois retouches essayées (montagne plus sombre, forteresse plus sombre, les deux ; bannières
+  rouges et bleues, cuivre, runes d'or) et vues en jeu : l'utilisateur garde a-1 telle quelle (luminosité 98). Pieds
+  revus par l'utilisateur (deux segments, opacité 0,8).
 - ✅ Ville de l'Enfer sur la carte (2026-11-11, branche `ville-enfer`, PixelLab, 1,31 $) : trois idées (a : citadelle noire,
   b : cité du portail, c : temple de Moloch) ; choisie a-2, trop sombre (luminosité 32, contours durs) : les deux
   retouches de la méthode (ombrage doux, puis détails) l'ont rendue lisible (f-1, luminosité 51, gardée telle quelle).

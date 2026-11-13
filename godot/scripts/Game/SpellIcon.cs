@@ -16,6 +16,9 @@ public partial class SpellIcon : Control
     public Color Color { get; set; } = Colors.Gray;
     public string Initials { get; set; } = "";
 
+    /// <summary>Le héros connaît déjà ce sort (grimoire de la guilde) : une petite coche verte à droite de l'icône.</summary>
+    public bool Known { get; init; }
+
     private bool _highlight;
 
     /// <summary>Le sort est survolé : un cadre doré.</summary>
@@ -75,5 +78,18 @@ public partial class SpellIcon : Control
         }
         // un cadre fin d'encre, doré au survol
         DrawRect(all, _highlight ? MapRenderer.Rgb(230, 190, 80) : MapRenderer.Rgb(58, 38, 22), false, Grid);
+        if (Known)
+            DrawTick(new Vector2(Size.X + 3 * Grid, Size.Y - 9 * Grid));
+    }
+
+    // la coche, pixel par pixel (un pixel d'art = Grid), cernée d'encre
+    private static readonly (int X, int Y)[] Tick = { (0, 3), (1, 4), (2, 5), (3, 4), (4, 3), (5, 2), (6, 1), (7, 0) };
+
+    private void DrawTick(Vector2 at)
+    {
+        foreach (var (x, y) in Tick)
+            DrawRect(new Rect2(at + new Vector2(x - 1, y - 1) * Grid, new Vector2(3, 4) * Grid), MapRenderer.Rgb(58, 38, 22));
+        foreach (var (x, y) in Tick)
+            DrawRect(new Rect2(at + new Vector2(x, y) * Grid, new Vector2(1, 2) * Grid), MapRenderer.Rgb(70, 150, 60));
     }
 }

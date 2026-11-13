@@ -255,18 +255,19 @@ public partial class SpellBookView : Control
         var icon = new SpellIcon
         {
             Picture = Art.Get($"spells/{spell.Id}"), Color = SchoolColor(spell.School), Initials = Initials(spell.Name),
+            Known = _book.MarkKnown && reader?.Knows(spell) == true,
             Position = A((CellWidth - IconSize) / 2f, 0), Size = A(IconSize, IconSize),
         };
         cell.AddChild(icon);
-        // le nom (deux lignes au plus) puis le coût, juste dessous ; dans un grimoire de guilde, « connu » si le héros l'a
+        // le nom (deux lignes au plus) puis le coût, juste dessous (dans un grimoire de guilde, une coche sur l'icône
+        // d'un sort que le héros connaît : « connu » en texte débordait sur la colonne voisine)
         var lines = new VBoxContainer { Position = A(0, IconSize + 2), Size = A(CellWidth, 0), MouseFilter = MouseFilterEnum.Ignore };
         lines.AddThemeConstantOverride("separation", 0);
         var name = InkLabel(spell.Name, 12, Ink, Vector2.Zero, CellWidth, center: true, wrap: true);
         name.MaxLinesVisible = 2;
         lines.AddChild(name);
         bool tooDear = reader != null && reader.SpellCost(spell) > points;
-        string cost = Texts.SpellCost(spell, reader) + (_book.MarkKnown && reader?.Knows(spell) == true ? $" · {Texts.SpellKnown}" : "");
-        lines.AddChild(InkLabel(cost, 11, tooDear ? MapRenderer.Rgb(150, 40, 30) : SoftInk, Vector2.Zero, CellWidth, center: true));
+        lines.AddChild(InkLabel(Texts.SpellCost(spell, reader), 11, tooDear ? MapRenderer.Rgb(150, 40, 30) : SoftInk, Vector2.Zero, CellWidth, center: true));
         cell.AddChild(lines);
         // développement : « --book-hover=id » montre la lueur de ce sort
         if (OS.GetCmdlineUserArgs().Contains($"--book-hover={spell.Id}"))

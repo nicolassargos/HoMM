@@ -1330,7 +1330,6 @@ public static class Texts
 
     /// <summary>La ligne sous le grimoire de la guilde.</summary>
     public static string GuildNotice(Town town) => $"{GuildTitle(town)} · {(town.MageGuildLevel > 0 ? GuildText : NoGuild)}";
-    public static string SpellKnown => "connu";
     public static string NoGuild => "Cette ville n'a pas encore de guilde des mages.";
     /// <summary>« 5 points » : ce que coûte le sort, à ce héros s'il est donné (son école de magie le rend moins cher).</summary>
     public static string SpellCost(SpellType spell, Hero? hero = null) => $"{hero?.SpellCost(spell) ?? spell.Cost} points";

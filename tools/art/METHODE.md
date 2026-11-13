@@ -412,6 +412,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   lectern in the middle at the same place and size ». Deux essais (0,15 $ chacun) ; choisi le A (moins de bougies). Le
   jeu ne dessine plus le lutrin sur une scène qui a son image (`LecternView.ShowImage`) : la lueur, les étincelles et le
   clic seulement. **À refaire ainsi pour chaque académie.**
+- **L'académie du Château** (2026-11-13, `art/ui/scenes/academie-chateau.png`, 480 × 232) : même recette. Écartées par
+  l'utilisateur : deux grandes salles vues de face (« la perspective ne marche pas » : un mur plat de face ne va pas
+  avec le lutrin vu de trois quarts et d'un peu au-dessus). Réussi : **une petite pièce fermée**, vue d'un peu au-dessus
+  comme le lutrin ; le dessin de départ a un mur rond (son pied descend vers les côtés), un sol de planches en rayons,
+  un tapis rond, deux fenêtres étroites, une bannière derrière le lutrin, des étagères sur les côtés ; « small cozy
+  round room at the top of a stone castle tower… seen from slightly above… one single consistent point of view matching
+  the lectern… ». Deux essais (graines 11 et 29, 0,15 $ chacun) ; choisi le 29 (une pièce sous un toit en pente, plus
+  riche). Pour les autres académies : de petites pièces de ce genre.
 - **Icônes du panneau de la carte** (2026-11-09, même méthode, l'engrenage choisi comme image de style) : suivant 56
   (heaume et flèche), avancer 3 (botte), centrer 15 (cible), royaume 8 (couronne), creuser 48 (pelle), trésor 60 (carte
   roulée) ; Sorts et Options reprennent le livre et l'engrenage du combat. Le code commun : `IconButtons.cs`.

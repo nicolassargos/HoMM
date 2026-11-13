@@ -173,7 +173,7 @@ public sealed class BattleEffects
         {
             b = new Digger { At = ground, Last = ground, Seed = ++_seed };
             _burrowers[who] = b;
-            _ruts.Add(new Rut { At = ground, Trail = b.Seed });
+            _ruts.Add(new Rut { At = ground + TrailLift, Trail = b.Seed });
             Burst(ground);
         }
         float moved = ground.DistanceTo(b.At);
@@ -183,7 +183,7 @@ public sealed class BattleEffects
         // un morceau de sillon tous les quelques pixels : ils se chevauchent en une seule traînée
         if (ground.DistanceTo(b.Last) >= 4 * U)
         {
-            _ruts.Add(new Rut { At = ground, Trail = b.Seed, Travelled = b.Travelled });
+            _ruts.Add(new Rut { At = ground + TrailLift, Trail = b.Seed, Travelled = b.Travelled });
             b.Last = ground;
         }
         b.Spray -= delta;
@@ -387,7 +387,10 @@ public sealed class BattleEffects
         EarthLight = new(0.4f, 0.35f, 0.28f), Pebble = new(0.5f, 0.48f, 0.44f);
 
     /// <summary>La plus grande hauteur du bourrelet de la galerie, et la taille des mottes qui le font.</summary>
-    private const float RidgeHeight = 3 * U, ClodCell = 4 * Pixel;
+    private const float RidgeHeight = 4 * U, ClodCell = 5 * Pixel;
+
+    /// <summary>La galerie passe un peu au-dessus du pied du fouisseur, au milieu de sa case.</summary>
+    private static readonly Vector2 TrailLift = new(0, -6 * U);
 
     /// <summary>
     /// La galerie d'un fouisseur, comme celle d'une taupe, vue de biais comme le champ : un bourrelet de terre le long de
@@ -401,7 +404,7 @@ public sealed class BattleEffects
         if (trail.Count < 2)
             return;
         int seed = trail[0].Trail;
-        float reach = 10 * U;
+        float reach = 15 * U;
         float minX = trail.Min(r => r.At.X) - reach, maxX = trail.Max(r => r.At.X) + reach;
         float minY = trail.Min(r => r.At.Y) - reach, maxY = trail.Max(r => r.At.Y) + reach;
         int x0 = (int)MathF.Floor(minX / Pixel), y0 = (int)MathF.Floor(minY / Pixel);
@@ -431,7 +434,7 @@ public sealed class BattleEffects
                     // la largeur change doucement : le bourrelet enfle et se resserre
                     float arc = (r0.Travelled + MathF.Sqrt(len2) * t) / (8 * Pixel);
                     float swell = Mathf.Lerp(Noise(seed, (int)arc), Noise(seed, (int)arc + 1), arc % 1);
-                    half = (7 + 4 * swell) * U * (0.5f + 0.5f * grow);
+                    half = (9 + 5 * swell) * U * (0.5f + 0.5f * grow);
                 }
                 // les mottes : chaque case de terre a sa bosse, de taille et de place inégales
                 int cx = (int)MathF.Floor(p.X / ClodCell), cy = (int)MathF.Floor(p.Y * 2 / ClodCell);

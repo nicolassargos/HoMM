@@ -262,7 +262,9 @@ creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objec
    faction sombre attendent l'Enfer) ; `--faction=donjon`. Mesuré (un adversaire, Normal, six semaines, or d'armée) :
    **Donjon 29 100**, Château 27 300, morts-vivants 24 700, Barbares 29 200, Forêt 34 000, Tour 25 900 ; la simulation
    seule comme avant (jours 95, 88, 153). Tests : `VilleDonjonTests`.
-3. Les images (session images) : les 7 créatures, la ville sur la carte.
+3. Les images (session images) : les 7 créatures, la ville sur la carte. **Plus tard** (choix de l'utilisateur,
+   2026-11-14) : revoir les animations du Ver des profondeurs (il devrait glisser vers sa cible en attaquant ; les
+   fissures devant lui quand il creuse sont à améliorer ; peut-être une animation où il avale une créature).
 
 #### La Tour de magie (en cours)
 Décidée avec l'utilisateur (2026-11-09).

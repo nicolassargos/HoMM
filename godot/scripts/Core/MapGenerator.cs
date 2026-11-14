@@ -236,6 +236,13 @@ public sealed class MapGenerator
     /// <summary>Cases des passages et leurs abords : ni objet, ni ville, ni autre monstre.</summary>
     private readonly HashSet<Cell> _reserved = new();
 
+    /// <summary>
+    /// Les pas en diagonale des routes : leurs deux coins restent praticables et sans objet (un héros ne coupe pas un coin
+    /// bloqué ; un monstre peut s'y tenir, comme sur la route : on le combat). Une ville peut couvrir un coin : l'autre devient alors une route (<see cref="KeepRoadsAround"/>).
+    /// </summary>
+    private readonly List<(Cell A, Cell B)> _diagonalSteps = new();
+    private readonly HashSet<Cell> _roadCorners = new();
+
     private int MaxLevel => _zones.Count == 0 ? 0 : _zones.Max(z => z.Level);
 
     /// <summary>
@@ -269,9 +276,19 @@ public sealed class MapGenerator
 
         _zoneOf = new int[_map.Width, _map.Height];
         _border = new bool[_map.Width, _map.Height];
+        // Des bords de zones qui serpentent (pas des lignes droites de cases ; choix de l'utilisateur, 2026-11-14) : chaque
+        // case est déplacée par un bruit doux avant de chercher le centre le plus proche ; rien autour des départs, pour que
+        // les murs restent loin du château
+        var (warpX, warpY) = (SmoothNoise(ZoneWarpStep), SmoothNoise(ZoneWarpStep));
         for (int y = 0; y < _map.Height; y++)
         for (int x = 0; x < _map.Width; x++)
-            _zoneOf[x, y] = _zones.OrderBy(z => SquaredDistance(z.Center, new Cell(x, y))).First().Index;
+        {
+            double nearStart = _map.Starts.Min(s => Math.Sqrt(SquaredDistance(s, new Cell(x, y))));
+            double amount = ZoneWarp * Math.Clamp((nearStart - 9) / 6, 0, 1);
+            double wx = x + amount * warpX(x, y), wy = y + amount * warpY(x, y);
+            _zoneOf[x, y] = _zones.OrderBy(z => (z.Center.X - wx) * (z.Center.X - wx) + (z.Center.Y - wy) * (z.Center.Y - wy)).First().Index;
+        }
+        JoinZoneIslands();
 
         var startZone = ZoneAt(_map.Start);
         var startZones = _map.Starts.Select(ZoneAt).Distinct().ToList();
@@ -317,6 +334,73 @@ public sealed class MapGenerator
             foreach (var start in _map.Starts.Where(s => ZoneAt(s) == zone))
                 StartRoad(start, zone, carved);
         }
+    }
+
+    /// <summary>
+    /// Les bords qui serpentent peuvent détacher un morceau d'une zone, perdu dans une autre (il serait entouré de murs) :
+    /// chaque zone ne garde que le morceau de son centre, les autres rejoignent la zone qui les entoure.
+    /// </summary>
+    private void JoinZoneIslands()
+    {
+        var kept = new bool[_map.Width, _map.Height];
+        foreach (var zone in _zones)
+        {
+            _zoneOf[zone.Center.X, zone.Center.Y] = zone.Index; // son centre lui reste
+            var queue = new Queue<Cell>(new[] { zone.Center });
+            kept[zone.Center.X, zone.Center.Y] = true;
+            while (queue.Count > 0)
+                foreach (var n in Orthogonal(queue.Dequeue()).Where(_map.InBounds))
+                    if (!kept[n.X, n.Y] && _zoneOf[n.X, n.Y] == zone.Index)
+                    {
+                        kept[n.X, n.Y] = true;
+                        queue.Enqueue(n);
+                    }
+        }
+        // les cases perdues prennent, de proche en proche, la zone d'une voisine gardée
+        bool changed = true;
+        while (changed)
+        {
+            changed = false;
+            for (int y = 0; y < _map.Height; y++)
+            for (int x = 0; x < _map.Width; x++)
+            {
+                if (kept[x, y])
+                    continue;
+                var from = Orthogonal(new Cell(x, y)).Where(_map.InBounds).FirstOrDefault(n => kept[n.X, n.Y], new Cell(-1, -1));
+                if (from.X < 0)
+                    continue;
+                _zoneOf[x, y] = _zoneOf[from.X, from.Y];
+                kept[x, y] = true;
+                changed = true;
+            }
+        }
+    }
+
+    /// <summary>De combien de cases les bords des zones s'écartent au plus d'une ligne droite, et la taille de leurs méandres.</summary>
+    private const double ZoneWarp = 3;
+    private const int ZoneWarpStep = 7;
+
+    /// <summary>
+    /// Un bruit doux sur la carte, de −1 à 1 : des valeurs au hasard toutes les <paramref name="step"/> cases, mêlées en
+    /// douceur entre elles.
+    /// </summary>
+    private Func<int, int, double> SmoothNoise(int step)
+    {
+        int w = _map.Width / step + 2, h = _map.Height / step + 2;
+        var values = new double[w, h];
+        for (int j = 0; j < h; j++)
+        for (int i = 0; i < w; i++)
+            values[i, j] = _rng.NextDouble() * 2 - 1;
+        static double Smooth(double t) => t * t * (3 - 2 * t);
+        return (x, y) =>
+        {
+            double gx = (double)x / step, gy = (double)y / step;
+            int i = (int)gx, j = (int)gy;
+            double fx = Smooth(gx - i), fy = Smooth(gy - j);
+            double top = values[i, j] + (values[i + 1, j] - values[i, j]) * fx;
+            double bottom = values[i, j + 1] + (values[i + 1, j + 1] - values[i, j + 1]) * fx;
+            return top + (bottom - top) * fy;
+        };
     }
 
     private static int SquaredDistance(Cell a, Cell b) => (a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y);
@@ -474,32 +558,66 @@ public sealed class MapGenerator
 
     /// <summary>
     /// Trace une route (ponts et cols compris) par le plus court chemin à l'intérieur d'une zone,
-    /// sans passer par ses murs (sauf les passages ouverts) ni par les cases interdites.
+    /// sans passer par ses murs (sauf les passages ouverts) ni par les cases interdites. Elle va aussi en diagonale
+    /// (comme Heroes : des lignes à 45° plutôt que des escaliers ; choix de l'utilisateur, 2026-11-14), au plus près de
+    /// la ligne droite entre ses deux bouts ; un pas en diagonale ne passe pas entre deux coins interdits.
     /// </summary>
     private void Road(Cell from, Cell to, int zone, HashSet<Cell> carved, HashSet<Cell>? forbidden = null, bool joinRoad = false)
     {
         bool Allowed(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone
             && (!_border[c.X, c.Y] || carved.Contains(c)) && forbidden?.Contains(c) != true && !InStartingTown(c);
+        bool Enter(Cell c) => Allowed(c) || c == to;
+        // l'écart à la ligne droite, qui départage les chemins de même longueur (pas pour rejoindre une route)
+        double dx = to.X - from.X, dy = to.Y - from.Y, length = Math.Sqrt(dx * dx + dy * dy);
+        double OffLine(Cell c) => joinRoad || length == 0 ? 0 : Math.Abs((c.X - from.X) * dy - (c.Y - from.Y) * dx) / length;
 
         var previous = new Dictionary<Cell, Cell> { [from] = from };
-        var queue = new Queue<Cell>(new[] { from });
-        while (queue.Count > 0 && !previous.ContainsKey(to))
+        var cost = new Dictionary<Cell, double> { [from] = 0 };
+        var queue = new PriorityQueue<Cell, double>();
+        queue.Enqueue(from, 0);
+        while (queue.TryDequeue(out var c, out double known))
         {
-            var c = queue.Dequeue();
+            if (known > cost[c])
+                continue;
+            if (c == to)
+                break;
             // joinRoad : on s'arrête à la première route rencontrée (la plus proche)
             if (joinRoad && c != from && _map.HasRoad(c))
             {
                 to = c;
                 break;
             }
-            foreach (var next in Orthogonal(c))
-                if ((Allowed(next) || next == to) && previous.TryAdd(next, c))
-                    queue.Enqueue(next);
+            foreach (var next in Neighbours(c))
+            {
+                bool diagonal = next.X != c.X && next.Y != c.Y;
+                if (!Enter(next) || (diagonal && !(Enter(new Cell(next.X, c.Y)) && Enter(new Cell(c.X, next.Y)))))
+                    continue;
+                double total = known + (diagonal ? Math.Sqrt(2) : 1) + 0.05 * OffLine(next);
+                if (cost.TryGetValue(next, out double old) && old <= total)
+                    continue;
+                cost[next] = total;
+                previous[next] = c;
+                queue.Enqueue(next, total);
+            }
         }
         if (!previous.ContainsKey(to))
             return;
         for (var c = to; c != from; c = previous[c])
+        {
             PaveRoad(c);
+            var back = previous[c];
+            // un pas en diagonale : ses deux coins restent praticables et libres (un héros ne coupe pas un coin bloqué)
+            if (back.X != c.X && back.Y != c.Y)
+            {
+                _diagonalSteps.Add((back, c));
+                foreach (var corner in new[] { new Cell(back.X, c.Y), new Cell(c.X, back.Y) })
+                {
+                    if (_map.GetTerrain(corner) is TerrainType.Water or TerrainType.Mountain or TerrainType.Forest)
+                        _map.SetTerrain(corner, TerrainType.Grass);
+                    _roadCorners.Add(corner);
+                }
+            }
+        }
         PaveRoad(from);
     }
 
@@ -543,12 +661,29 @@ public sealed class MapGenerator
         while (trimmed)
         {
             trimmed = false;
-            foreach (var c in walls.SelectMany(Orthogonal).Distinct().ToList())
-                if (Road(c) && !walls.Contains(c) && c != approach && Orthogonal(c).Count(Road) <= 1)
+            foreach (var c in walls.SelectMany(Neighbours).Distinct().ToList())
+                if (Road(c) && !walls.Contains(c) && c != approach && Neighbours(c).Count(Road) <= 1)
                 {
                     _map.SetRoad(c, false);
                     trimmed = true;
                 }
+        }
+    }
+
+    /// <summary>
+    /// Une ville posée sur un coin d'un pas en diagonale d'une route : l'autre coin devient une route, pour qu'on y passe
+    /// encore (un petit coude). Les deux coins ne peuvent pas être sous la ville sans les deux bouts du pas.
+    /// </summary>
+    private void KeepRoadsAround(HashSet<Cell> walls)
+    {
+        foreach (var (a, b) in _diagonalSteps)
+        {
+            if (walls.Contains(a) || walls.Contains(b) || !_map.HasRoad(a) || !_map.HasRoad(b))
+                continue;
+            var corners = new[] { new Cell(a.X, b.Y), new Cell(b.X, a.Y) };
+            if (corners.Any(walls.Contains))
+                foreach (var corner in corners.Where(c => !walls.Contains(c)))
+                    PaveRoad(corner);
         }
     }
 
@@ -657,6 +792,7 @@ public sealed class MapGenerator
                 _map.SetRoad(f, false);
         }
         TrimRoadsAgainst(Town.FootprintAt(start).ToList(), start.Offset(0, 1));
+        KeepRoadsAround(Town.FootprintAt(start).ToHashSet());
         var town = new Town(start, name, faction, data);
         town.AddBuilding(data.Buildings.Get("salle-village"));
         if (town.DwellingOfTier(1) is { } dwelling)
@@ -698,7 +834,7 @@ public sealed class MapGenerator
         var footprint = Town.FootprintAt(cell).ToHashSet();
         var approach = cell.Offset(0, 1);
         // les bouts d'une route coupée par les murs : ils rejoindront la porte en contournant la ville
-        var cut = footprint.Where(_map.HasRoad).SelectMany(Orthogonal)
+        var cut = footprint.Where(_map.HasRoad).SelectMany(Neighbours)
             .Where(c => !footprint.Contains(c) && _map.InBounds(c) && _map.HasRoad(c)).Distinct().ToList();
         foreach (var f in footprint.Append(approach))
         {
@@ -711,6 +847,7 @@ public sealed class MapGenerator
         // la route part de la porte et rejoint la route la plus proche (sinon le centre de la zone)
         Road(approach, zone.Center, zone.Index, new HashSet<Cell>(), footprint, joinRoad: true);
         TrimRoadsAgainst(footprint, approach);
+        KeepRoadsAround(footprint);
         AddTown(data, cell, name, zone.Level);
         return true;
     }
@@ -853,7 +990,7 @@ public sealed class MapGenerator
             .Where(c => _map.Starts.All(s => Math.Abs(c.X - s.X) + Math.Abs(c.Y - s.Y) > 2))
             .Where(c => !_map.HasRoad(c))
             .Where(c => _map.ObjectAt(c) == null && DistanceToNearestTown(c) > 1) // l'entrée de la ville reste libre
-            .Where(c => !_reserved.Contains(c)) // les passages restent libres
+            .Where(c => !_reserved.Contains(c) && !_roadCorners.Contains(c)) // les passages et les coins des routes restent libres
             .OrderBy(c => c.Y).ThenBy(c => c.X) // ordre stable avant le mélange
             .ToList();
         Shuffle(free);
@@ -1144,8 +1281,14 @@ public sealed class MapGenerator
         var guarded = _map.Objects.Where(o => o is Mine or TreasureChest && !_startZoneMines.Contains(o))
             .OrderBy(o => o.Position.Y).ThenBy(o => o.Position.X)
             .ToList();
-        foreach (var target in guarded)
+        // le plus à l'étroit d'abord (le moins de places possibles pour son gardien) : dans une zone où les objets se
+        // serrent, un gardien ne prend pas la seule place d'un voisin
+        while (guarded.Count > 0)
         {
+            var target = guarded.MinBy(o => Neighbours(o.Position).Count(CanPlaceGuard))!;
+            guarded.Remove(target);
+            if (_map.IsGuarded(target.Position))
+                continue; // déjà sous la garde d'un monstre voisin
             var spots = Neighbours(target.Position).ToList();
             Shuffle(spots);
             foreach (var spot in spots)
@@ -1217,7 +1360,8 @@ public sealed class MapGenerator
     private bool AllObjectsReachable()
     {
         var reachable = WalkableFromStart();
-        return _map.Objects.All(o => o is MonsterGuard || reachable.Contains(o.Position))
+        // les monstres aussi : un monstre ne doit pas en enfermer un autre (on ne passe pas à travers un monstre)
+        return _map.Objects.All(o => reachable.Contains(o.Position))
             && (_map.Treasure is not { } treasure || reachable.Contains(treasure))
             && _map.Starts.All(reachable.Contains);
     }

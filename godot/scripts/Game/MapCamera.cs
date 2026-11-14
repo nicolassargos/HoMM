@@ -67,10 +67,21 @@ public partial class MapCamera : Camera2D
         MoveTo(fixedPoint - anchor / Zooms[index]);
     }
 
+    /// <summary>Développement (« --zoom=0.4 ») : un zoom hors des niveaux ordinaires, pour voir toute la carte d'un coup.</summary>
+    private float? _devZoom;
+
+    public void SetDevZoom(float zoom)
+    {
+        _devZoom = zoom;
+        Zoom = new Vector2(zoom, zoom);
+        ViewSize = _screenView / zoom;
+        MoveTo(TopLeft);
+    }
+
     public void MoveTo(Vector2 topLeft)
     {
         var mapSize = new Vector2(_map.Width, _map.Height) * T;
-        float zoom = Zooms[_zoomIndex];
+        float zoom = _devZoom ?? Zooms[_zoomIndex];
         // calé sur les pixels de l'écran, pour que chaque pixel d'art ait toujours la même taille
         TopLeft = (topLeft.Clamp(Vector2.Zero, (mapSize - ViewSize).Max(Vector2.Zero)) * zoom).Round() / zoom;
         // La caméra montre aussi la barre du haut : on la décale d'autant

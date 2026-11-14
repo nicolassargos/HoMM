@@ -173,43 +173,53 @@ float wave(vec2 center) {
 		+ (noise(center / (wave_scale / 3.0) + vec2(41.0, 7.0)) * 2.0 - 1.0) * wave_detail;
 }
 
+// La part du terrain t autour du pixel d'art p, de 0 à 1 : les quatre centres de cases autour du pixel, mélangés selon
+// sa place entre eux (« marching squares »). La ligne entre deux terrains passe là où la part vaut 0,5 : au milieu
+// entre deux centres pour un bord droit, en biais (à 45°) le long d'un escalier de cases, en arrondi au coin d'un
+// rectangle. Le même calcul vu de toute case : le mélange se raccorde sans couture.
+float part_of(int t, vec2 p) {
+	vec2 g = (p + 0.5) / ART - 0.5;
+	ivec2 c0 = ivec2(floor(g));
+	vec2 f = g - vec2(c0);
+	return mix(mix(float(terrain_at(c0) == t), float(terrain_at(c0 + ivec2(1, 0)) == t), f.x),
+		mix(float(terrain_at(c0 + ivec2(0, 1)) == t), float(terrain_at(c0 + ivec2(1, 1)) == t), f.x), f.y);
+}
+
 // Le mélange au pixel d'art p : terrain de la case (a), autre terrain proche (b), et la part de b (0 à 1).
 // La part de b vaut 0,5 sur la ligne ; la ligne d'un même couple de terrains est la même vue des deux
 // cases, si bien que le mélange se raccorde sans couture.
 void mixture(vec2 p, out int a, out int b, out float share) {
-	ivec2 c = ivec2(floor(p / ART));
-	vec2 local = p - vec2(c) * ART + 0.5;
 	vec2 center = p + 0.5;
-	a = terrain_at(c);
+	a = terrain_at(ivec2(floor(p / ART)));
 	b = a;
 	share = 0.0;
+	// les terrains des quatre centres de cases autour du pixel
+	vec2 g = center / ART - 0.5;
+	ivec2 c0 = ivec2(floor(g));
+	int around[4] = { terrain_at(c0), terrain_at(c0 + ivec2(1, 0)), terrain_at(c0 + ivec2(0, 1)), terrain_at(c0 + ivec2(1, 1)) };
 	float w = wave(center);
-	float limit = edge_bias + edge_wave * (1.0 + wave_detail) + blend + 1.0;
-	for (int dy = -1; dy <= 1; dy++) {
-		for (int dx = -1; dx <= 1; dx++) {
-			if (dx == 0 && dy == 0) continue;
-			int t = terrain_at(c + ivec2(dx, dy));
-			if (t == a) continue;
-			// distance du pixel à la case voisine (jusqu'au bord, ou jusqu'au coin pour une diagonale)
-			float ex = dx == 1 ? ART - local.x : (dx == -1 ? local.x : 0.0);
-			float ey = dy == 1 ? ART - local.y : (dy == -1 ? local.y : 0.0);
-			float d = length(vec2(ex, ey));
-			if (d > limit) continue;
-			// la ligne avance dans cette case si le voisin est au-dessus, recule sinon
-			float side = priority[t] > priority[a] ? 1.0 : -1.0;
-			float line = side * (edge_bias + w * edge_wave);
-			float gap = d - line;
-			float s;
-			if (t == water || a == water) {
-				s = gap < 0.0 ? 1.0 : 0.0; // rive : nette
-			} else {
-				float grain = (noise(center / grain_scale + vec2(float(min(t, a) * 7 + max(t, a)) * 3.1)) - 0.5) * blend_grain;
-				s = clamp(0.5 - gap / (2.0 * blend) + grain * side, 0.0, 1.0);
-			}
-			if (s > share) {
-				share = s;
-				b = t;
-			}
+	for (int i = 0; i < 4; i++) {
+		int t = around[i];
+		if (t == a) continue;
+		bool seen = false;
+		for (int j = 0; j < i; j++) seen = seen || around[j] == t;
+		if (seen) continue;
+		// « distance » du pixel au terrain t (pixels d'art ; négative dedans)
+		float d = (0.5 - part_of(t, p)) * ART;
+		// la ligne avance dans cette case si le voisin est au-dessus, recule sinon
+		float side = priority[t] > priority[a] ? 1.0 : -1.0;
+		float line = side * (edge_bias + w * edge_wave);
+		float gap = d - line;
+		float s;
+		if (t == water || a == water) {
+			s = gap < 0.0 ? 1.0 : 0.0; // rive : nette
+		} else {
+			float grain = (noise(center / grain_scale + vec2(float(min(t, a) * 7 + max(t, a)) * 3.1)) - 0.5) * blend_grain;
+			s = clamp(0.5 - gap / (2.0 * blend) + grain * side, 0.0, 1.0);
+		}
+		if (s > share) {
+			share = s;
+			b = t;
 		}
 	}
 }
@@ -223,30 +233,12 @@ int owner(vec2 p) {
 	return share >= 0.5 ? b : a;
 }
 
-// Distance du pixel d'art p (qui appartient à la terre) à la rive la plus proche, en pixels d'art (très grande loin de
-// l'eau). La rive est la même ligne ondulée que dans mixture() : elle avance dans la case d'eau de
-// edge_bias + ondulation pixels.
+// Distance du pixel d'art p (qui appartient à la terre) à la rive, en pixels d'art (très grande loin de l'eau). La rive
+// est la même ligne que dans mixture() : du côté de l'eau, à edge_bias + ondulation pixels de la ligne du milieu.
 float shore_distance(vec2 p) {
-	ivec2 c = ivec2(floor(p / ART));
-	vec2 local = p - vec2(c) * ART + 0.5;
-	int a = terrain_at(c);
-	float line = edge_bias + wave(p + 0.5) * edge_wave;
-	// une case de terre : la rive la plus proche ; une case d'eau gagnée par la terre : la terre la couvre jusqu'à la
-	// rive la plus éloignée (celle du côté de terre qui avance le plus)
-	float best = a == water ? -1e5 : 1e5;
-	for (int dy = -1; dy <= 1; dy++) {
-		for (int dx = -1; dx <= 1; dx++) {
-			if (dx == 0 && dy == 0) continue;
-			int t = terrain_at(c + ivec2(dx, dy));
-			if ((a == water) == (t == water)) continue;
-			float ex = dx == 1 ? ART - local.x : (dx == -1 ? local.x : 0.0);
-			float ey = dy == 1 ? ART - local.y : (dy == -1 ? local.y : 0.0);
-			float d = length(vec2(ex, ey));
-			// une case de terre : la rive est au-delà du bord ; une case d'eau gagnée par la terre : la rive est devant
-			best = a == water ? max(best, line - d) : min(best, d + line);
-		}
-	}
-	return a == water && best < 0.0 ? 1e5 : best;
+	float part = part_of(water, p);
+	if (part <= 0.0) return 1e5;
+	return (0.5 - part) * ART + edge_bias + wave(p + 0.5) * edge_wave;
 }
 
 // Une fleur (ou un caillou) au pixel d'art p, s'il y en a une : sa couleur dans « flower », et vrai

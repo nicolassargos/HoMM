@@ -206,6 +206,10 @@ public partial class Main : Node2D
             _hud.ShowRulesChoice(rules => _state.ChooseRules(rules with { Difficulty = ReadDifficulty() }));
         if (OS.GetCmdlineUserArgs().Contains("--zoom")) // développement : partir zoomé
             _camera.ZoomBy(+1);
+        // développement : « --zoom=0.4 », un zoom libre (toute la carte d'un coup, pour une capture)
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--zoom=")) is { } devZoom
+            && float.TryParse(devZoom["--zoom=".Length..], System.Globalization.CultureInfo.InvariantCulture, out float zoom))
+            _camera.SetDevZoom(zoom);
         if (_capturePath != null && OS.GetCmdlineUserArgs().Contains("--town"))
             ShowTownForCapture();
         CenterOnHero();

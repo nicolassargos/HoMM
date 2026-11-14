@@ -1547,7 +1547,8 @@
         "idle": "idle-2",
         "attack": "attack-12-c",
         "transform": "transform-terre",
-        "move": "move-vide"
+        "move": "move-vide",
+        "carte": "p1-3"
       },
       "grande": "art-candidats/references/derives/ver-des-profondeurs-grand.png",
       "consignes": {

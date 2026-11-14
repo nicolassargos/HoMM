@@ -106,6 +106,7 @@
   "creatures/treant": {"pieds": [[[8, 29], [26, 25]]], "verifie": true},
   "creatures/troll": {"pieds": [[[9, 29], [23, 27]]], "verifie": true},
   "creatures/vampire": {"pieds": [[[7, 28], [24, 29]]], "verifie": true},
+  "creatures/ver-des-profondeurs": {"pieds": [[[3, 28], [28, 28]]], "verifie": false},
   "creatures/zombie": {"pieds": [[[7, 28], [25, 28]]], "verifie": true},
   "decor/autumn": {"pieds": [[[8, 28], [14, 28]]], "verifie": true},
   "decor/autumn-2": {"pieds": [[[10, 28], [14, 28]]], "verifie": true},

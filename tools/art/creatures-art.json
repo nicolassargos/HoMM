@@ -1589,8 +1589,8 @@
       "flotte": 14,
       "choix": {
         "fixe": "L2-1",
-        "idle": "idle-2",
-        "move": "vent-2",
+        "idle": "calme-2",
+        "move": "vent-4",
         "attack": "regard-3"
       },
       "grande": "art-candidats/references/derives/tyran-oeil-grand.png",

@@ -790,10 +790,11 @@ public sealed class BattleEffects
         {
             var at = b.From + dir * s;
             float wave = MathF.Sin(s / (8 * U) - (float)b.Age * 40) * 0.5f + 0.5f;
-            int haloWidth = 1 + (int)MathF.Round(wave * (t < 0.6f ? 2 : 1));
-            for (int x = -haloWidth - 1; x <= haloWidth + 1; x++)
+            // un cœur de trois pixels d'art, le halo de deux à quatre de chaque côté, la lueur de deux
+            int haloWidth = 3 + (int)MathF.Round(wave * (t < 0.6f ? 2 : 1));
+            for (int x = -haloWidth - 2; x <= haloWidth + 2; x++)
             {
-                var color = Math.Abs(x) == 0 ? heart : Math.Abs(x) <= haloWidth ? halo : glow;
+                var color = Math.Abs(x) <= 1 ? heart : Math.Abs(x) <= haloWidth ? halo : glow;
                 Dot(canvas, at + side * Pixel * x, color);
             }
         }

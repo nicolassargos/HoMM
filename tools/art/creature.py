@@ -167,7 +167,7 @@ def choisir_fixe(donnees, ident, nom):
     ecrire(f"{BATAILLE}/{ident}.png", n.poser(q, largeur, len(q) + 2 + flotte, centre, marge_bas=flotte))
     f.setdefault("choix", {})["fixe"] = nom
     f["grande"] = grande.replace("\\", "/")
-    print(f"{BATAILLE}/{ident}.png installée ({largeur} × {len(q) + 2}) ; grande image gardée : {grande}")
+    print(f"{BATAILLE}/{ident}.png installée ({largeur} × {len(q) + 2 + flotte}) ; grande image gardée : {grande}")
 
 
 # --- animations ---

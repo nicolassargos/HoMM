@@ -1586,7 +1586,16 @@
         "L5": "angle seul",
         "L6": "références"
       },
-      "flotte": 14
+      "flotte": 14,
+      "choix": {
+        "fixe": "L2-1"
+      },
+      "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
+      "consignes": {
+        "idle": "hovering in place, swaying gently, very small movements",
+        "move": "flying forward to the right, gliding smoothly through the air",
+        "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place"
+      }
     }
   }
 }

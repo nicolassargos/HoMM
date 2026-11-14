@@ -481,7 +481,8 @@ public static class ComputerPlayer
 
     /// <summary>
     /// Le coût du chemin le plus court jusqu'à chaque case qu'on peut atteindre sans combat, par les cases que le joueur
-    /// connaît : ni zone de monstre, ni objet à traverser (on peut seulement s'y arrêter), ni autre héros.
+    /// connaît : ni zone de monstre, ni objet à traverser (on peut seulement s'y arrêter ; un bateau : on y monte, et l'on
+    /// continue en mer), ni autre héros. Les règles des pas sont celles du <see cref="Pathfinder"/>.
     /// </summary>
     private static Dictionary<Cell, int> SafeCosts(GameState state, Hero hero)
     {
@@ -496,18 +497,20 @@ public static class ComputerPlayer
         {
             if (cost > costs[cell])
                 continue;
-            if (cell != hero.Position && (map.ObjectAt(cell) != null || enemies.Contains(cell)))
+            if (cell != hero.Position && (map.ObjectAt(cell) is not (null or Boat) || enemies.Contains(cell)))
                 continue; // on visite un objet (on attaque un héros ennemi), on ne le traverse pas
             foreach (var next in Neighbours(cell))
             {
-                if (!map.IsPassable(next) || !fog.IsExplored(next) || heroes.Contains(next) || KnownGuards(state, hero, next).Any())
+                if (!map.InBounds(next) || !Pathfinder.CanEnter(map, cell, next) || !fog.IsExplored(next) || heroes.Contains(next)
+                    || KnownGuards(state, hero, next).Any())
                     continue;
                 if (map.ObjectAt(next) is MonsterGuard)
                     continue;
                 int dx = next.X - cell.X, dy = next.Y - cell.Y;
-                if (dx != 0 && dy != 0 && !(map.IsPassable(cell.Offset(dx, 0)) && map.IsPassable(cell.Offset(0, dy))))
+                if (dx != 0 && dy != 0 && !Pathfinder.CornersOpen(map, cell, next))
                     continue;
-                int nextCost = cost + Pathfinder.StepCost(map, cell, next, hero.RoughTerrainReduction);
+                int nextCost = cost + Pathfinder.StepCost(map, cell, next, hero.RoughTerrainReduction)
+                    + (Pathfinder.Boards(map, cell, next) ? Pathfinder.BoardingPenalty : 0);
                 if (nextCost < costs.GetValueOrDefault(next, int.MaxValue))
                 {
                     costs[next] = nextCost;

@@ -339,6 +339,8 @@ public partial class TownScreen : CanvasLayer
                 OpenGuild();
             else if (building.Market)
                 OpenMarket();
+            else if (building.Shipyard)
+                OpenShipyard();
             else if (building.DailyGold > 0)
                 OpenBuild();
         };
@@ -722,6 +724,31 @@ public partial class TownScreen : CanvasLayer
             }
         };
         Show();
+    }
+
+    /// <summary>Le chantier naval : construire un bateau, qui apparaît sur l'eau à côté de la ville.</summary>
+    private void OpenShipyard()
+    {
+        if (_town is not { } town)
+            return;
+        var status = _state.CanBuildBoat(town);
+        var window = OpenWindow(V(560, 220), Texts.ShipyardTitle, overView: true);
+        var text = At(MakeLabel(Texts.ShipyardText, 13, SoftTextColor), 18, 58);
+        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        text.CustomMinimumSize = V(524, 0);
+        window.AddChild(text);
+        if (status != BoatResult.Ok)
+            window.AddChild(At(MakeLabel(Texts.BoatStatus(status), 14, TextColor), 18, 120));
+        var build = Sized(MakeButton(Texts.BuildBoatButton, 15), Px(260), ButtonHeight);
+        build.Position = V(150, 158);
+        build.Disabled = status != BoatResult.Ok;
+        build.Pressed += () =>
+        {
+            _state.BuildBoat(town);
+            Refresh();
+            OpenShipyard();
+        };
+        window.AddChild(build);
     }
 
     private void OpenTavern()

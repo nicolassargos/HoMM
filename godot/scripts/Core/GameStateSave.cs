@@ -54,7 +54,8 @@ public sealed partial class GameState
         Dictionary<string, int>? Available = null, List<StackData>? Garrison = null, List<string>? GuildSpells = null,
         bool? Small = null, // une mine ou un lieu haut sur une case, une ville sur 3 × 3 (venus d'une sauvegarde d'avant)
         HeroStat? Stat = null, string? Spell = null, List<int>? Visitors = null, bool? Stocked = null, // les lieux (version 5)
-        Blessing? Blessing = null); // temple ou cercle des fées (version 6)
+        Blessing? Blessing = null, // temple ou cercle des fées (version 6)
+        Cell? Spot = null); // la case d'eau d'un chantier naval de la côte
 
     private sealed record StackData(string Creature, int Count);
 
@@ -119,6 +120,8 @@ public sealed partial class GameState
         ResourcePile pile => new ObjectData("pile", obj.Id, obj.Position, Resource: pile.Resource, Amount: pile.Amount),
         TreasureChest chest => new ObjectData("chest", obj.Id, obj.Position, Amount: chest.Gold),
         Obelisk => new ObjectData("obelisk", obj.Id, obj.Position),
+        Boat => new ObjectData("boat", obj.Id, obj.Position),
+        Shipyard shipyard => new ObjectData("shipyard", obj.Id, obj.Position, Spot: shipyard.BoatSpot),
         Shrine shrine => new ObjectData("shrine", obj.Id, obj.Position, Stat: shrine.Stat, Visitors: shrine.Visitors.Order().ToList()),
         SageHut hut => new ObjectData("sage", obj.Id, obj.Position, Spell: hut.Spell.Id, Small: hut.Large ? null : true),
         WeeklyProducer producer => new ObjectData("producer", obj.Id, obj.Position, Resource: producer.Resource, Stocked: producer.Stocked, Small: producer.Large ? null : true),
@@ -229,6 +232,8 @@ public sealed partial class GameState
                 "pile" => new ResourcePile(o.Position, o.Resource!.Value, o.Amount!.Value),
                 "chest" => new TreasureChest(o.Position, o.Amount!.Value),
                 "obelisk" => new Obelisk(o.Position),
+                "boat" => new Boat(o.Position),
+                "shipyard" => new Shipyard(o.Position, o.Spot!.Value),
                 "shrine" => WithVisitors(new Shrine(o.Position, o.Stat!.Value), s => s.Visitors, o.Visitors),
                 "sage" => new SageHut(o.Position, data.Spells.Get(o.Spell!)) { Large = Tall(o) },
                 "producer" => new WeeklyProducer(o.Position, o.Resource!.Value) { Stocked = o.Stocked != false, Large = Tall(o) },
@@ -293,6 +298,7 @@ public sealed partial class GameState
         foreach (var p in save.Players)
             Owner(p.Id).Fog.Import(p.Fog);
 
+        state.UpdateBoatSpots();
         state.CurrentHero = save.CurrentHero is { } heroId ? state.HeroById(heroId) : null;
         foreach (var c in save.Choices)
         {

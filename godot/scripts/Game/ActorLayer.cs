@@ -111,7 +111,7 @@ public partial class ActorLayer : Node2D
         foreach (var hero in State.AllHeroes)
         {
             var (at, left, frame) = HeroPose(hero);
-            MapRenderer.DrawHero(this, at + half + new Vector2(0, 4), _time, hero, left, frame);
+            MapRenderer.DrawHero(this, at + half + new Vector2(0, 4), _time, hero, left, frame, hero.AtSea(State.Map));
         }
         // (la case survolée n'est plus encadrée : le panneau la décrit, cela suffit)
     }

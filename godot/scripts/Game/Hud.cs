@@ -621,8 +621,9 @@ public partial class Hud : CanvasLayer
         if (hovered is not { } cell || !Viewer.Fog.IsExplored(cell))
             return "";
         var terrain = _state.Map.GetTerrain(cell);
-        bool passable = TerrainInfo.IsPassable(terrain);
-        int? days = passable && ShownHero != null ? _state.DaysTo(cell) : null;
+        int? days = ShownHero != null && (TerrainInfo.IsPassable(terrain) || _state.Map.IsWater(cell)) ? _state.DaysTo(cell) : null;
+        // l'eau : on y va en bateau (seulement si le héros peut l'atteindre)
+        bool passable = TerrainInfo.IsPassable(terrain) || (_state.Map.IsWater(cell) && days != null);
         string line = Texts.CellLine(terrain, _state.Map.HasRoad(cell), passable ? _state.Map.MoveCost(cell) : null, days);
         var obj = _state.Map.OccupantAt(cell);
         // un héros adverse sur la case : son nom, sa couleur et le danger de l'attaquer (son bonus compte)
@@ -1123,6 +1124,43 @@ public partial class Hud : CanvasLayer
     });
 
     /// <summary>Un coffre ouvert : deux grands boutons, l'or ou l'expérience (<paramref name="choose"/> reçoit vrai pour l'or).</summary>
+    /// <summary>
+    /// Le chantier naval de la côte : acheter un bateau (<paramref name="status"/> : peut-on ? sinon pourquoi), ou partir.
+    /// </summary>
+    public void ShowShipyard(BoatResult status, Action buy) => Enqueue(done =>
+    {
+        var dialog = new GameDialog { Title = Texts.ShipyardTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", (int)Px(10));
+        var text = MakeLabel(Texts.ShipyardText + (status == BoatResult.Ok ? "" : "\n" + Texts.BoatStatus(status)), 15, TextColor);
+        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        text.CustomMinimumSize = V(440, 0);
+        content.AddChild(text);
+        var button = Sized(MakeButton(Texts.BuildBoatButton, 16), Px(260), ButtonHeight);
+        button.Disabled = status != BoatResult.Ok;
+        button.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+        content.AddChild(button);
+        dialog.AddChild(content);
+        bool closed = false;
+        void Close()
+        {
+            if (closed)
+                return;
+            closed = true;
+            dialog.QueueFree();
+            done();
+        }
+        button.Pressed += () =>
+        {
+            buy();
+            Close();
+        };
+        dialog.Confirmed += Close;
+        dialog.Canceled += Close;
+        AddChild(dialog);
+        dialog.PopupCentered(new Vector2I((int)Px(480), 0));
+    });
+
     public void ShowChestChoice(ChestOpened chest, Action<bool> choose) => Enqueue(done =>
     {
         var dialog = new GameDialog { Title = Texts.ChestTitle, Exclusive = true, Unresizable = true };

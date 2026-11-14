@@ -218,8 +218,12 @@ public sealed class Hero
             SpellPoints = System.Math.Min(MaxSpellPoints, SpellPoints + 1 + SkillValue(HoMM.Core.Skills.Mysticism));
     }
 
-    public bool CanStepTo(AdventureMap map, Cell next) =>
-        Pathfinder.StepCost(map, Position, next, RoughTerrainReduction) <= Movement;
+    public bool CanStepTo(AdventureMap map, Cell next) => Pathfinder.Boards(map, Position, next)
+        ? Movement > 0
+        : Pathfinder.StepCost(map, Position, next, RoughTerrainReduction) <= Movement;
+
+    /// <summary>Le héros est en mer (dans son bateau) : sur une case d'eau.</summary>
+    public bool AtSea(AdventureMap map) => map.IsWater(Position);
 
     /// <summary>L'Orientation : le surcoût des terrains difficiles baisse d'autant (en pourcentage).</summary>
     public int RoughTerrainReduction => SkillValue(HoMM.Core.Skills.Pathfinding);
@@ -228,7 +232,8 @@ public sealed class Hero
 
     public void StepTo(AdventureMap map, Cell next)
     {
-        SpendMovement(Pathfinder.StepCost(map, Position, next, RoughTerrainReduction));
+        // monter à bord ou débarquer : tout le mouvement qui reste
+        SpendMovement(Pathfinder.Boards(map, Position, next) ? Movement : Pathfinder.StepCost(map, Position, next, RoughTerrainReduction));
         Position = next;
         Owner.Fog.Reveal(Position, VisionRadius);
     }

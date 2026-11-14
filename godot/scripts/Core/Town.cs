@@ -4,7 +4,7 @@ using System.Linq;
 namespace HoMM.Core;
 
 /// <summary>Pourquoi un bâtiment peut (ou ne peut pas) être construit.</summary>
-public enum BuildResult { Ok, NotOwner, AlreadyBuilt, AlreadyBuiltToday, MissingRequirement, NotEnoughResources }
+public enum BuildResult { Ok, NotOwner, AlreadyBuilt, AlreadyBuiltToday, MissingRequirement, NotEnoughResources, NotCoastal }
 
 /// <summary>Pourquoi un recrutement peut (ou ne peut pas) se faire.</summary>
 public enum RecruitResult { Ok, NotOwner, NotAvailable, NotEnoughResources, NoRoom }
@@ -69,6 +69,12 @@ public sealed class Town : MapObject
     /// <summary>Un seul bâtiment par jour, comme dans Heroes.</summary>
     public bool BuiltToday { get; internal set; }
 
+    /// <summary>
+    /// La case d'eau où son chantier naval met ses bateaux (null : la ville n'est pas au bord de l'eau, pas de chantier
+    /// naval). Calculée d'après la carte (<see cref="GameState"/>), pas sauvegardée.
+    /// </summary>
+    public Cell? BoatSpot { get; internal set; }
+
     /// <summary>Créatures prêtes à être recrutées, par type (elles s'accumulent de semaine en semaine).</summary>
     public Dictionary<CreatureType, int> Available { get; } = new();
 
@@ -90,6 +96,8 @@ public sealed class Town : MapObject
         if (Has(building.Id))
             return BuildResult.AlreadyBuilt;
         // Les raisons durables d'abord : c'est ce que le joueur a besoin de savoir
+        if (building.Shipyard && BoatSpot == null)
+            return BuildResult.NotCoastal;
         if (building.RequirementChoices.Any(choices => !choices.Any(Has)))
             return BuildResult.MissingRequirement;
         if (!player.CanAfford(building.Cost))

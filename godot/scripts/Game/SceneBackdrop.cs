@@ -49,12 +49,16 @@ public partial class SceneBackdrop : Control
         "morts-vivants" => (MapRenderer.Rgb(52, 60, 56), MapRenderer.Rgb(34, 38, 36), MapRenderer.Rgb(70, 66, 58), MapRenderer.Rgb(150, 220, 170)),
         "barbares" => (MapRenderer.Rgb(92, 64, 44), MapRenderer.Rgb(60, 42, 30), MapRenderer.Rgb(110, 72, 40), MapRenderer.Rgb(255, 190, 110)),
         "foret" => (MapRenderer.Rgb(58, 78, 48), MapRenderer.Rgb(40, 52, 32), MapRenderer.Rgb(96, 70, 40), MapRenderer.Rgb(220, 240, 150)),
-        "tour" => (MapRenderer.Rgb(58, 64, 96), MapRenderer.Rgb(38, 42, 66), MapRenderer.Rgb(92, 80, 70), MapRenderer.Rgb(170, 200, 255)),
+        "tour" => (MapRenderer.Rgb(58, 64, 96), MapRenderer.Rgb(38, 42, 66), MapRenderer.Rgb(92, 80, 70), MapRenderer.Rgb(255, 200, 120)),
         "donjon" => (MapRenderer.Rgb(60, 44, 76), MapRenderer.Rgb(36, 26, 46), MapRenderer.Rgb(70, 52, 60), MapRenderer.Rgb(230, 150, 255)),
         "enfer" => (MapRenderer.Rgb(84, 36, 30), MapRenderer.Rgb(52, 22, 20), MapRenderer.Rgb(70, 40, 34), MapRenderer.Rgb(255, 140, 70)),
+        "nains" => (MapRenderer.Rgb(84, 80, 74), MapRenderer.Rgb(54, 50, 46), MapRenderer.Rgb(104, 70, 42), MapRenderer.Rgb(255, 170, 80)),
         null => (MapRenderer.Rgb(70, 54, 40), MapRenderer.Rgb(46, 34, 26), MapRenderer.Rgb(104, 70, 42), MapRenderer.Rgb(255, 214, 140)),
         _ => (MapRenderer.Rgb(84, 80, 74), MapRenderer.Rgb(54, 50, 46), MapRenderer.Rgb(104, 70, 42), MapRenderer.Rgb(255, 214, 140)),
     };
+
+    /// <summary>La lumière de la pièce : la lueur du lutrin la prend (une lueur jaune jurait dans une caverne violette).</summary>
+    public Color Light => Palette.Light;
 
     public override void _Draw()
     {

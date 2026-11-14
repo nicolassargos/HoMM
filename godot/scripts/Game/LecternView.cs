@@ -20,6 +20,9 @@ public partial class LecternView : Control
     /// de l'utilisateur, 2026-11-12) : il ne reste alors que la lueur, les étincelles et le clic.</summary>
     public bool ShowImage { get; init; } = true;
 
+    /// <summary>La couleur de la lueur et des étincelles : la lumière de la scène.</summary>
+    public Color GlowColor { get; init; } = Glow;
+
     private static readonly Color Wood = MapRenderer.Rgb(104, 66, 38), WoodDark = MapRenderer.Rgb(62, 38, 22),
         WoodLight = MapRenderer.Rgb(140, 94, 56), Leather = MapRenderer.Rgb(96, 44, 30), LeatherDark = MapRenderer.Rgb(52, 22, 16),
         Pages = MapRenderer.Rgb(214, 196, 150), Gold = MapRenderer.Rgb(196, 150, 60), Glow = MapRenderer.Rgb(255, 226, 140);
@@ -78,7 +81,7 @@ public partial class LecternView : Control
         // plus forte au survol
         float pulse = (_hover ? 0.16f : 0.08f) * (0.8f + 0.2f * MathF.Sin((float)_time * 2.5f));
         for (int ring = 0; ring < 4; ring++)
-            DrawOval(A(80, 52), ArtPx(30 + ring * 12), ArtPx(20 + ring * 8), new Color(Glow, pulse));
+            DrawOval(A(80, 52), ArtPx(30 + ring * 12), ArtPx(20 + ring * 8), new Color(GlowColor, pulse));
         if (!ShowImage)
         {
             DrawSparks();
@@ -132,7 +135,7 @@ public partial class LecternView : Control
         foreach (var s in _sparks)
         {
             var at = s.At - new Vector2(0, ArtPx(36) * s.Age / s.Life);
-            DrawRect(new Rect2(new Vector2(SnapDown(at.X), SnapDown(at.Y)), new Vector2(Grid, Grid)), new Color(Glow, 1 - s.Age / s.Life));
+            DrawRect(new Rect2(new Vector2(SnapDown(at.X), SnapDown(at.Y)), new Vector2(Grid, Grid)), new Color(GlowColor, 1 - s.Age / s.Life));
         }
     }
 }

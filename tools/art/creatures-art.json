@@ -1588,11 +1588,14 @@
       },
       "flotte": 14,
       "choix": {
-        "fixe": "L2-1"
+        "fixe": "L2-1",
+        "idle": "idle-2",
+        "move": "vent-2",
+        "attack": "regard-3"
       },
       "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
       "consignes": {
-        "idle": "hovering in place, swaying gently, very small movements",
+        "idle": "floats in place, bobbing slowly up and down in the air, its thin eye stalks writhing gently like snakes, its huge central eye blinking once, its fanged mouth opening and closing a little",
         "move": "flying forward to the right, gliding smoothly through the air",
         "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place"
       }

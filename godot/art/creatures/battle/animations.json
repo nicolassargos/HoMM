@@ -29,5 +29,6 @@
   "homme-grenouille": {"moveFrames": 16, "idleFrames": 16, "projectile": "pierre", "launchFrame": 4, "launchPoint": [102, 38]},
   "minotaure": {"idleFrames": 16, "move": 12, "moveFrames": 16},
   "aberration": {"idleFrames": 16, "move": 12},
-  "ver-des-profondeurs": {"idleFrames": 16, "transform": 10, "move": 10}
+  "ver-des-profondeurs": {"idleFrames": 16, "transform": 10, "move": 10},
+  "tyran-oeil": {"projectile": "rayon", "launchFrame": 4, "launchPoint": [86, 61]}
 }

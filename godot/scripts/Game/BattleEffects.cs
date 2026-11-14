@@ -71,6 +71,8 @@ public sealed class BattleEffects
         public Vector2? From2;
         public double Age;
         public int Seed;
+        /// <summary>« eclair » (le Mage), « rayon » (le Tyran œil).</summary>
+        public string Kind = "eclair";
     }
 
     private readonly List<Beam> _beams = new();
@@ -261,6 +263,7 @@ public sealed class BattleEffects
         "fleche" => "piqure",
         "boule-feu" => "feu",
         "eclair" => "eclair",
+        "rayon" => "rayon",
         "boule-poison" => "poison",
         "hache" => "entaille",
         "feuilles" => "feuilles",
@@ -282,10 +285,10 @@ public sealed class BattleEffects
     /// </summary>
     public void Launch(string kind, Vector2 from, Vector2 to, Action arrived, Vector2? from2 = null)
     {
-        if (kind == "eclair")
+        if (kind is "eclair" or "rayon")
         {
-            // un éclair n'a pas de trajet : il frappe presque aussitôt (un projectile invisible porte le moment du coup)
-            _beams.Add(new Beam { From = from, From2 = from2, To = to, Seed = ++_seed });
+            // un éclair ou un rayon n'a pas de trajet : il frappe presque aussitôt (un projectile invisible porte le moment du coup)
+            _beams.Add(new Beam { Kind = kind, From = from, From2 = from2, To = to, Seed = ++_seed });
             _projectiles.Add(new Projectile { Kind = "", From = to, To = to, Duration = 0.06, Arrived = arrived });
             return;
         }
@@ -345,7 +348,7 @@ public sealed class BattleEffects
         _impacts.RemoveAll(i => i.Age > ImpactTime(i.Kind));
         foreach (var b in _beams)
             b.Age += delta;
-        _beams.RemoveAll(b => b.Age > BeamTime);
+        _beams.RemoveAll(b => b.Age > (b.Kind == "rayon" ? RayTime : BeamTime));
         foreach (var w in _flows)
             w.Age += delta;
         _flows.RemoveAll(w => w.Age > FlowTime);
@@ -730,6 +733,11 @@ public sealed class BattleEffects
     /// </summary>
     private static void DrawBeam(CanvasItem canvas, Beam b)
     {
+        if (b.Kind == "rayon")
+        {
+            DrawRay(canvas, b);
+            return;
+        }
         float fade = 1 - (float)(b.Age / BeamTime);
         int flicker = (int)(b.Age / 0.05);
         int seed = b.Seed + flicker * 31;
@@ -753,6 +761,44 @@ public sealed class BattleEffects
             var branch = along.Rotated(turn) * U * (6 + 6 * Noise(seed + 109, k));
             Bolt(canvas, points[k], points[k] + branch, seed + 211 * k, fade * 0.85f, 1, 2 * U);
         }
+    }
+
+    /// <summary>Durée du rayon du Tyran œil à l'écran (il reste un peu plus qu'un éclair : on le voit sortir de l'œil).</summary>
+    private const double RayTime = 0.45;
+
+    /// <summary>
+    /// Le rayon du Tyran œil : un trait droit de son œil à la cible, un cœur pâle, un halo violet qui ondule (plus large
+    /// par endroits, des vagues qui filent vers la cible), une lueur à la sortie de l'œil ; il jaillit, puis s'amincit et
+    /// s'éteint.
+    /// </summary>
+    private static void DrawRay(CanvasItem canvas, Beam b)
+    {
+        float t = (float)(b.Age / RayTime);
+        // il jaillit de l'œil en un instant, puis s'éteint
+        float reach = Math.Min(1, t / 0.15f), fade = t < 0.6f ? 1 : 1 - (t - 0.6f) / 0.4f;
+        var to = b.From.Lerp(b.To, reach);
+        float length = b.From.DistanceTo(to);
+        if (length < 1)
+            return;
+        var dir = (to - b.From) / length;
+        var side = new Vector2(-dir.Y, dir.X);
+        var heart = new Color(0.97f, 0.9f, 1, fade);
+        var halo = new Color(0.72f, 0.3f, 0.95f, 0.95f * fade);
+        var glow = new Color(0.5f, 0.15f, 0.7f, 0.4f * fade);
+        // par petits tronçons d'un pixel d'art : le halo s'élargit là où passe une vague
+        for (float s = 0; s < length; s += Pixel)
+        {
+            var at = b.From + dir * s;
+            float wave = MathF.Sin(s / (8 * U) - (float)b.Age * 40) * 0.5f + 0.5f;
+            int haloWidth = 1 + (int)MathF.Round(wave * (t < 0.6f ? 2 : 1));
+            for (int x = -haloWidth - 1; x <= haloWidth + 1; x++)
+            {
+                var color = Math.Abs(x) == 0 ? heart : Math.Abs(x) <= haloWidth ? halo : glow;
+                Dot(canvas, at + side * Pixel * x, color);
+            }
+        }
+        // la lueur de l'œil : une petite croix pâle qui pulse
+        Cross(canvas, b.From, 2 + (int)(MathF.Sin((float)b.Age * 50) + 1), new Color(0.97f, 0.9f, 1, fade));
     }
 
     /// <summary>
@@ -810,6 +856,7 @@ public sealed class BattleEffects
             "poison" => (9, new[] { new Color(0.6f, 0.95f, 0.35f), new Color(0.3f, 0.6f, 0.2f) }, 8f, 1),
             "feuilles" => (12, new[] { new Color(0.55f, 0.85f, 0.3f), new Color(0.3f, 0.6f, 0.2f), new Color(0.8f, 0.9f, 0.35f) }, 10f, 1),
             "eclair" => (6, new[] { new Color(0.88f, 0.95f, 1), new Color(0.35f, 0.6f, 1) }, 7f, 2),
+            "rayon" => (8, new[] { new Color(0.95f, 0.85f, 1), new Color(0.7f, 0.3f, 0.95f), new Color(0.45f, 0.15f, 0.6f) }, 8f, 2),
             "entaille" => (6, new[] { new Color(1, 1, 0.9f), new Color(0.7f, 0.15f, 0.1f) }, 7f, 1),
             _ => (7, new[] { new Color(1, 1, 0.85f), new Color(0.75f, 0.72f, 0.65f) }, 8f, 1), // « choc »
         };

@@ -265,6 +265,8 @@ creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objec
 3. Les images (session images) : les 7 créatures, la ville sur la carte. **Plus tard** (choix de l'utilisateur,
    2026-11-14) : revoir les animations du Ver des profondeurs (il devrait glisser vers sa cible en attaquant ; les
    fissures devant lui quand il creuse sont à améliorer ; peut-être une animation où il avale une créature).
+   **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui frappe le sol avec sa colonne
+   pourrait toucher une zone (les cases autour de sa cible) : une règle à concevoir avec la session règles.
 
 #### La Tour de magie (en cours)
 Décidée avec l'utilisateur (2026-11-09).

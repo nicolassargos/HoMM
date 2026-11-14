@@ -29,6 +29,9 @@ public partial class GameDialog : AcceptDialog
     /// <summary>Le voile qui assombrit l'écran derrière la fenêtre, tant qu'elle est ouverte (comme les grandes fenêtres).</summary>
     private CanvasLayer? _veil;
 
+    /// <summary>L'opacité du voile (plus forte derrière le livre de sorts, qui s'ouvre par-dessus une autre fenêtre).</summary>
+    protected float VeilOpacity { get; init; } = 0.45f;
+
     private void ShowVeil(bool shown)
     {
         if (shown && _veil == null)
@@ -37,7 +40,7 @@ public partial class GameDialog : AcceptDialog
             _veil = new CanvasLayer { Layer = 90 };
             _veil.AddChild(new ColorRect
             {
-                Size = GetTree().Root.GetVisibleRect().Size, Color = new Color(0, 0, 0, 0.45f),
+                Size = GetTree().Root.GetVisibleRect().Size, Color = new Color(0, 0, 0, VeilOpacity),
                 MouseFilter = Control.MouseFilterEnum.Ignore,
             });
             // plus tard : la racine peut être occupée à ajouter des nœuds

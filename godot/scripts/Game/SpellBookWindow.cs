@@ -29,6 +29,9 @@ public partial class SpellBookWindow : GameDialog
     private SpellBookWindow(SpellBookView.Content content, string? notice, Func<SpellType, bool>? canCast, Action<SpellType>? chosen)
     {
         OkButtonText = Texts.CloseButton;
+        // plus sombre derrière : dans la ville, le livre s'ouvre par-dessus la fenêtre de la guilde, qui ne doit pas lui
+        // disputer le regard
+        VeilOpacity = 0.7f;
         // pas de cadre ni de titre : le livre est la fenêtre (une fenêtre de Godot a sinon un fond gris et « Alert! »)
         Title = "";
         Transparent = TransparentBg = true;

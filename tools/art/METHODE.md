@@ -424,6 +424,17 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   background »). Page de choix : chaque candidat ×2 sur le parchemin du livre, avec le nom et le coût du sort.
   Choisis : Boule de feu 50 (une comète de feu), Bénédiction 45 (une épée dans des rayons d'or, ciel bleu), Éclair 8
   (un éclair fourchu sous les nuages, nuit bleue).
+  **Les 15 autres** (2026-11-14) : même recette, 15 lots lancés ensemble (5 à la fois), 0,08 $ chacun. Choix sur une
+  **page où l'on ne fait que cliquer** (demandé par l'utilisateur : ne rien recopier à la main) : une rangée de 64
+  icônes ×2 par sort, le choisi montré dans une case du livre, « Aucun ne va » et un commentaire ; chaque clic est
+  envoyé à `tools/art/revue.py serveur` (toute page nommée `revue-<nom>.html` qui envoie `{page, items}`), qui écrit
+  `en-cours/revue-<nom>.json`, lu ensuite par Claude. Choisis : Flèche magique 14 (flèche violette), Malédiction 54
+  (crâne dans une fumée verte), Soif de sang 37 (lame sanglante), Hâte 20 (bottes ailées), Lenteur 5 (escargot),
+  Soins 21 (mains et croix de lumière), Bouclier contre les tirs 13, Faiblesse 6 (épée brisée), Aveuglement 39 (yeux
+  bandés), Téléportation 13 (portail bleu), Dissipation 3 (éclat blanc), Résurrection 22 (ankh d'or à l'aube), Pluie
+  de météores 24, Chaîne d'éclairs 45. Peau de pierre refaite à la demande de l'utilisateur : « a warrior seen from
+  behind, his back and shoulders slowly turning into grey cracked stone » (choisi le 31 ; le poing qui devient pierre
+  écarté).
 - **Le lutrin et son livre fermé** (2026-11-12, `art/ui/lutrin.png`, 160 × 168, ×2, posé en bas au milieu de
   `LecternView`) : PixelLab « pro », 4 candidats, l'image de la ville (`town.png`) comme style, vus de trois quarts d'en
   haut, un livre rouge foncé aux ferrures d'or ; 0,17 $ le lot (0,115 $ annoncé). Choisi : le 3, un socle rond et massif

@@ -107,10 +107,9 @@ cet ordre :
    le fond est une image sans le lutrin (`art/ui/scenes/etude.png`, `academie-<faction>.png`), le lutrin et son livre une
    image à part posée dessus (`art/ui/lutrin.png` : il luit, on clique dessus). Sans image, le jeu dessine une scène
    d'attente. ✅ Le lutrin (le 3, un socle rond sculpté) le livre ouvert et l'étude (2026-11-12 ; le lutrin fait partie de l'image de chaque scène, pour le même point de vue et la même lumière : choix de l'utilisateur). ✅ L'académie du Château
-   (2026-11-13 : une petite pièce sous le toit d'une tour, choix de l'utilisateur). Images à faire ensuite : une icône par
-   sort ; plus tard les autres académies (de petites pièces, pas de grandes salles).
-3. **Une image par sort** (le livre, la guilde) : **de petites peintures en couleur**, comme Heroes 2 et 3 (choix de
-   l'utilisateur), à la taille trouvée avec la maquette.
+   (2026-11-13 : une petite pièce sous le toit d'une tour, choix de l'utilisateur). Plus tard : les autres académies (de petites pièces, pas de grandes salles).
+3. ✅ **Une image par sort** (le livre, la guilde) : **de petites peintures en couleur**, comme Heroes 2 et 3 (choix de
+   l'utilisateur), 32 × 32 ×2 ; les 18 faites (2026-11-14).
 4. **Une animation par sort** sur le champ (projectile, éclair, explosion…) et un **effet visible sur les troupes**
    (lueur, aura tant qu'un sort dure…). Puis le reste au fil des idées (sons…).
 

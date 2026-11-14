@@ -316,8 +316,9 @@ public class GameStateTests
         Assert.Null(state.Map.ObjectAt(pile.Position));
     }
 
+    /// <summary>« Vaincre tous les monstres » n'est plus une façon de gagner (2026-11-14) : la partie continue.</summary>
     [Fact]
-    public void Vaincre_le_dernier_monstre_fait_gagner_la_partie()
+    public void Vaincre_le_dernier_monstre_ne_finit_plus_la_partie()
     {
         var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         foreach (var g in state.Map.Objects.OfType<MonsterGuard>().ToList())
@@ -329,8 +330,10 @@ public class GameStateTests
         state.StepAlongPath();
         state.ResolveEncounter(EncounterChoice.Fight); // il s'enfuit : on le poursuit
 
-        Assert.Equal(GameOutcome.Victory, state.Outcome);
-        Assert.Equal(new GameEnded(GameOutcome.Victory, GameEndReason.GuardsCleared), state.TakeEvents().OfType<GameEnded>().Single());
+        Assert.DoesNotContain(state.Map.Objects, o => o is MonsterGuard);
+        Assert.Equal(GameOutcome.Playing, state.Outcome);
+        state.EndTurn();
+        Assert.Equal(GameOutcome.Playing, state.Outcome);
     }
 
     [Fact]

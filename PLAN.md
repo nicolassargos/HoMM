@@ -895,9 +895,10 @@ croissance, prix, garde.
   semaines ; normales par défaut, la force exacte à voir en jouant) ; une ville au plus par zone ; une scierie et une mine
   de minerai près de chaque ville, gardées par une petite armée, **sauf celles de la ville de départ** (sans gardien,
   comme avant) ; les tours d'observation loin des bords ; **les tailles de Heroes 3** (36, 72, 108, 144 cases de côté,
-  carrées, plus une toute petite pour les tests) ; plus d'« échelles » de routes. **À revoir avec l'utilisateur** : sur
-  ces grandes cartes, « vaincre tous les monstres » (la victoire par défaut) prend plus de six mois (la simulation seule :
-  jour 198 sur la normale, jamais en 200 jours sur la grande).
+  carrées, plus une toute petite pour les tests) ; plus d'« échelles » de routes. **La victoire** (choix de
+  l'utilisateur, 2026-11-14) : « vaincre tous les monstres » est retiré (il n'a plus de sens sur ces grandes cartes) ; par
+  défaut, **prendre toutes les villes**, comme Heroes 3 ; **les parties longues sont acceptées** (la simulation seule
+  prend toutes les villes de la normale vers le jour 210).
 - **À concevoir ensuite avec l'utilisateur (2026-11-14)** : les **bateaux** et la **navigation**, les **types de
   cartes** (continents, îles…), les **ressources sur l'eau**.
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et

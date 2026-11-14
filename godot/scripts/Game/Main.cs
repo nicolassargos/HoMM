@@ -235,7 +235,7 @@ public partial class Main : Node2D
             _hud.ShowOptions();
         // « --open=end » : la fenêtre de fin de partie (une victoire, sans rien changer)
         if (OS.GetCmdlineUserArgs().Contains("--open=end"))
-            _hud.ShowGameOver(new GameEnded(GameOutcome.Victory, GameEndReason.GuardsCleared), () => { });
+            _hud.ShowGameOver(new GameEnded(GameOutcome.Victory, GameEndReason.TownsCaptured), () => { });
         // « --open=level » : la fenêtre d'un choix de niveau (sans rien changer)
         if (OS.GetCmdlineUserArgs().Contains("--open=level") && _state.CurrentHero is { } leveling)
             _hud.ShowLevelChoice(new HeroLevelChoice(leveling, 2, new[] { HeroStat.Attack, HeroStat.Defense, HeroStat.Power }), _ => { });

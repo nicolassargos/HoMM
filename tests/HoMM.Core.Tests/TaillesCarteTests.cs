@@ -59,9 +59,10 @@ public class TaillesCarteTests(ITestOutputHelper output)
     }
 
     /// <summary>
-    /// La simulation d'équilibrage (optimiste, un seul héros) gagne sur les petites cartes ; sur les grandes, il y a
-    /// beaucoup plus de monstres à vaincre : elle prend au moins une ville, sans forcément tout vaincre en 200 jours
-    /// (depuis les tailles de Heroes 3 : la normale, 72 × 72, deux fois sur six vers le jour 193 ; la grande, jamais).
+    /// La simulation d'équilibrage (optimiste, un seul héros) gagne sur les petites cartes (prendre toutes les villes) ;
+    /// sur les grandes, elle prend au moins une ville, sans forcément toutes en 400 jours (depuis les tailles de Heroes 3 :
+    /// la normale, 72 × 72, vers le jour 210 ; la grande, pas en 400 jours : ses villes lointaines sont trop gardées pour
+    /// un seul héros qui ne voyage pas).
     /// </summary>
     [Theory]
     [InlineData(MapSize.Tiny, true)]

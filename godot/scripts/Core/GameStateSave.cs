@@ -197,7 +197,7 @@ public sealed partial class GameState
         {
             Day = save.Day,
             Outcome = save.Outcome,
-            Rules = save.Rules,
+            Rules = save.Rules.Updated(),
             _currentPlayer = save.CurrentPlayer,
             _nextPlayerId = save.NextPlayerId,
             _nextHeroId = save.NextHeroId,

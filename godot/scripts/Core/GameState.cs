@@ -301,8 +301,6 @@ public sealed partial class GameState
             reason = GameEndReason.TreasureFound;
         else if (Rules.Has(VictoryCondition.CaptureTowns) && Towns.Any() && Towns.All(t => t.Owner == Players[0]))
             reason = GameEndReason.TownsCaptured;
-        else if (Rules.Has(VictoryCondition.ClearGuards) && !Map.Objects.OfType<MonsterGuard>().Any())
-            reason = GameEndReason.GuardsCleared;
         else if (Rules.Has(VictoryCondition.DefeatOpponents) && Opponents.Any() && Opponents.All(p => p.IsDefeated))
             reason = GameEndReason.OpponentsDefeated;
         if (reason is { } won)

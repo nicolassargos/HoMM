@@ -486,7 +486,6 @@ public static class Texts
 
     public static string GameOverText(GameEnded end) => end.Reason switch
     {
-        GameEndReason.GuardsCleared => "Tous les monstres ont été vaincus. La région est à vous !",
         GameEndReason.OpponentsDefeated => "Vos adversaires sont vaincus. La région est à vous !",
         GameEndReason.TownsCaptured => "Toutes les villes sont à vous. La région est à vous !",
         GameEndReason.HeroesLost => "Votre dernier héros est tombé. La partie est perdue.",
@@ -506,7 +505,6 @@ public static class Texts
     /// <summary>Une façon de gagner, telle qu'on la coche au début de la partie.</summary>
     public static string Goal(VictoryCondition condition) => condition switch
     {
-        VictoryCondition.ClearGuards => "Vaincre tous les monstres",
         VictoryCondition.CaptureTowns => "Prendre toutes les villes",
         VictoryCondition.DefeatOpponents => "Vaincre tous les adversaires",
         _ => "Trouver le trésor enfoui",
@@ -758,7 +756,6 @@ public static class Texts
         ObeliskVisited => "Vous avez déjà lu cet obélisque.",
         NothingDug dug => $"{dug.Hero.Name} creuse… il n'y a rien ici.",
         TreasureDug dug => $"{dug.Hero.Name} déterre le {dug.Artifact.Name} ! {Bonus(dug.Artifact)}.",
-        GameEnded { Reason: GameEndReason.GuardsCleared } => "La région est libérée de ses monstres. Victoire !",
         GameEnded { Reason: GameEndReason.OpponentsDefeated } => "Tous vos adversaires sont vaincus. Victoire !",
         GameEnded { Reason: GameEndReason.TownsCaptured } => "Toutes les villes sont à vous. Victoire !",
         GameEnded { Reason: GameEndReason.HeroesLost } => "Vous n'avez plus de héros. Défaite...",
@@ -798,8 +795,6 @@ public static class Texts
     public static string GoalTooltip(GameState state, Player viewer)
     {
         var lines = new List<string> { $"Objectif : {Objective(state.Rules)}." };
-        if (state.Rules.Has(VictoryCondition.ClearGuards))
-            lines.Add($"Monstres restants : {state.Map.Objects.OfType<MonsterGuard>().Count()}");
         if (state.Rules.Has(VictoryCondition.CaptureTowns))
             lines.Add($"Villes à vous : {viewer.Towns.Count} / {state.Towns.Count()}");
         if (state.Rules.Has(VictoryCondition.FindTreasure))

@@ -934,6 +934,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
     Château 50 000, morts-vivants 47 400, Barbares 51 700, Forêt 57 000, Tour 47 500, Donjon 52 700, Enfer 50 100,
     Nains 49 700 ; Facile 29 100, Normal 48 200, Difficile 73 400.
   - **Les routes se rejoignent** : suivre une route coûte moins, la longer à côté coûte plus (plus d'« échelles »).
+  - **La victoire** (choix de l'utilisateur) : « vaincre tous les monstres » retiré (sur la carte normale de 72 × 72, la
+    simulation ne gagnait plus qu'au jour 198) ; par défaut, prendre toutes les villes ; les parties longues sont
+    acceptées, comme Heroes 3. Une ancienne sauvegarde qui l'avait prend « prendre toutes les villes »
+    (`GameRules.Updated`). La simulation gagne en prenant toutes les villes, en 400 jours au plus (200 avant) : petite
+    carte vers le jour 15 (elle n'a que deux villes), normale vers le jour 210, grande pas en 400 jours (ses villes
+    lointaines sont trop gardées pour un seul héros qui ne voyage pas).
 - ✅ Les diagonales sur la carte (2026-11-14, branche `diagonales`) : tout était fait de rectangles (zones posées en
   grille, routes en angles droits, bords des terrains le long des cases). **Le dessin** (`terrain.gdshader`) : la part
   d'un terrain autour d'un pixel mêle les quatre centres de cases voisins (« marching squares », `part_of`) ; la ligne

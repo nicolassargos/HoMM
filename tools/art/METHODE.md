@@ -468,6 +468,17 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   round room at the top of a stone castle tower… seen from slightly above… one single consistent point of view matching
   the lectern… ». Deux essais (graines 11 et 29, 0,15 $ chacun) ; choisi le 29 (une pièce sous un toit en pente, plus
   riche). Pour les autres académies : de petites pièces de ce genre.
+- **Les académies des 7 autres factions** (2026-11-14, `art/ui/scenes/academie-<faction>.png`) : même dessin de départ,
+  aux couleurs de chaque faction (mur, sol, lumière, bannière, tapis), et une description par faction (crypte, hutte du
+  chaman, pièce dans un arbre, tour de marbre, roche volcanique, caverne aux cristaux, salle des runes). Deux essais par
+  faction (graines 11 et 29, 2,19 $ les 14) ; choisis : morts-vivants B, Barbares B, Forêt B, Enfer B, Donjon B,
+  Nains A. La Tour refaite : « très blanche et froide » ; plus chaude (marbre couleur de miel, ciel du soir, bougies,
+  « no white or cold tones »), choisie la graine 47. **Le lutrin dans la lumière de la pièce** (demandé par l'utilisateur :
+  un lutrin brun à la lueur jaune jurait dans la caverne violette) : `tools/art/teinter_lutrin.py <scène> <lutrin.png>
+  <r,g,b> 0.6 <sortie>` multiplie le lutrin par la couleur de la lumière puis l'éclaire (plus sur les faces claires : les
+  ombres restent sombres), sur la forme du lutrin collé, élargie de 2 pixels ; et le jeu donne à la lueur et aux
+  étincelles la lumière de la scène (`SceneBackdrop.Light`, `LecternView.GlowColor`). Un lutrin trop « baigné » (écran
+  sur tous les pixels, bord de 4 pixels) paraissait voilé, comme dans la brume.
 - **Icônes du panneau de la carte** (2026-11-09, même méthode, l'engrenage choisi comme image de style) : suivant 56
   (heaume et flèche), avancer 3 (botte), centrer 15 (cible), royaume 8 (couronne), creuser 48 (pelle), trésor 60 (carte
   roulée) ; Sorts et Options reprennent le livre et l'engrenage du combat. Le code commun : `IconButtons.cs`.

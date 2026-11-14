@@ -794,7 +794,18 @@ public partial class TownScreen : CanvasLayer
             return;
         var sceneSize = SceneBackdrop.AcademySize * Grid;
         float top = WindowMargin + ButtonHeight + ArtPx(4);
-        var window = OpenWindow(new Vector2(sceneSize.X + 2 * WindowMargin, top + sceneSize.Y + WindowMargin), Texts.GuildTitle(town), overView: true);
+        // ce que fait la guilde, sur une ligne sous la scène (sur la scène, la plaque en cachait le coin)
+        var text = MakeLabel(town.MageGuildLevel > 0 ? Texts.GuildText : Texts.NoGuild, 13, TextColor);
+        text.HorizontalAlignment = HorizontalAlignment.Center;
+        text.Position = new Vector2(WindowMargin, top + sceneSize.Y + ArtPx(4));
+        // sur deux lignes si elle ne tient pas sur une (la hauteur de la fenêtre suit)
+        var oneLine = text.GetMinimumSize();
+        int lines = (int)MathF.Ceiling(oneLine.X / sceneSize.X);
+        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        text.CustomMinimumSize = new Vector2(sceneSize.X, 0);
+        float textHeight = Snap(oneLine.Y * lines);
+        var window = OpenWindow(new Vector2(sceneSize.X + 2 * WindowMargin, top + sceneSize.Y + ArtPx(4) + textHeight + WindowMargin),
+            Texts.GuildTitle(town), overView: true);
         var scene = new SceneBackdrop { SceneName = $"academie-{town.Faction}", Faction = town.Faction, Size = sceneSize, Position = new Vector2(WindowMargin, top) };
         window.AddChild(scene);
         var lectern = new LecternView { TooltipText = Texts.OpenGuildBookHint, ShowImage = !scene.HasImage };
@@ -807,14 +818,7 @@ public partial class TownScreen : CanvasLayer
             book.Open();
         };
         window.AddChild(lectern);
-        // ce que fait la guilde, sur une plaque en haut de la scène
-        var plate = new PanelContainer { Position = scene.Position + new Vector2(ArtPx(8), ArtPx(6)) };
-        plate.AddThemeStyleboxOverride("panel", Plate(DarkPanelColor));
-        var text = MakeLabel(town.MageGuildLevel > 0 ? Texts.GuildText : Texts.NoGuild, 13, TextColor);
-        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        text.CustomMinimumSize = new Vector2(ArtPx(200), 0);
-        plate.AddChild(text);
-        window.AddChild(plate);
+        window.AddChild(text);
         // développement : « --guild-book » ouvre aussitôt le grimoire (capture)
         if (OS.GetCmdlineUserArgs().Contains("--guild-book"))
             Callable.From(lectern.Open).CallDeferred();

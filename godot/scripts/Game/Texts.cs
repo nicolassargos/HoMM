@@ -1325,7 +1325,7 @@ public static class Texts
     public static string GuildButton => "Guilde";
     public static string GuildTitle(Town town) => $"Guilde des mages de {town.Name}";
     public static string GuildText =>
-        "Un héros qui entre dans la ville apprend tous les sorts de la guilde et retrouve tous ses points de sort.";
+        "Un héros qui entre dans la ville apprend tous les sorts de la guilde et retrouve ses points de sort.";
     public static string GuildLevel(int level) => $"Niveau {level}";
     public static string GuildLevelMissing => "pas encore construit";
 

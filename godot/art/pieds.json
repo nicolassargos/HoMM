@@ -105,6 +105,7 @@
   "creatures/squelette": {"pieds": [[[7, 29], [20, 28]]], "verifie": true},
   "creatures/treant": {"pieds": [[[8, 29], [26, 25]]], "verifie": true},
   "creatures/troll": {"pieds": [[[9, 29], [23, 27]]], "verifie": true},
+  "creatures/tyran-oeil": {"pieds": [[[7, 24], [23, 28]]], "verifie": false},
   "creatures/vampire": {"pieds": [[[7, 28], [24, 29]]], "verifie": true},
   "creatures/ver-des-profondeurs": {"pieds": [[[3, 28], [28, 28]]], "verifie": false},
   "creatures/zombie": {"pieds": [[[7, 28], [25, 28]]], "verifie": true},

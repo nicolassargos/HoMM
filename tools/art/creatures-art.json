@@ -1591,7 +1591,8 @@
         "fixe": "L2-1",
         "idle": "calme-2",
         "move": "vent-4",
-        "attack": "regard-3"
+        "attack": "regard-3",
+        "carte": "p1-13"
       },
       "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
       "consignes": {

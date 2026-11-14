@@ -232,6 +232,15 @@ public partial class BattleFieldView : Control
     /// <summary>Projectiles et impacts (dessinés par le jeu).</summary>
     private readonly BattleEffects _effects = new();
 
+    /// <summary>Les animations des sorts (ce qui part du héros, ce qui se joue sur une troupe).</summary>
+    private readonly SpellEffects _spells = new();
+
+    /// <summary>D'où part le prochain arc d'une chaîne d'éclairs : le héros, puis chaque troupe touchée.</summary>
+    private Vector2 _chainFrom;
+
+    /// <summary>Le prochain arc est le premier de la chaîne (du héros à la troupe visée : le plus épais).</summary>
+    private bool _chainFirst;
+
     /// <summary>Le temps du combat à l'écran (pour les auras, qui tournent en boucle).</summary>
     private double _time;
 
@@ -274,6 +283,7 @@ public partial class BattleFieldView : Control
         _shown.Clear();
         _floating.Clear();
         _effects.Clear();
+        _spells.Clear();
         foreach (var unit in battle.Units)
             _shown[unit] = new Shown { Position = UnitCenter(unit, unit.Position), Count = unit.Count, Phase = unit.Id * 0.37 };
         CustomMinimumSize = FieldSize;
@@ -1234,24 +1244,69 @@ public partial class BattleFieldView : Control
                     var hexes = cast.Spell.Target == SpellTarget.Area
                         ? new[] { cast.Target }.Concat(cast.Target.Neighbours()).Where(Battlefield.InBounds).ToList()
                         : Battle.UnitAt(cast.Target)?.Hexes.ToList() ?? new List<Hex> { cast.Target };
-                    double burst = 0;
+                    bool started = false, struckDown = false;
+                    double casting = 0;
                     _animations.Enqueue(delta =>
                     {
-                        if (burst == 0)
-                            _bursts.Add((hexes, SpellColor(cast.Spell), 0));
-                        burst += delta;
-                        return burst >= BurstTime * 0.7;
+                        if (!started)
+                        {
+                            started = true;
+                            var hand = CastPoint(cast.Side);
+                            var ground = Center(cast.Target) + new Vector2(0, HexHeight / 2 - Ui.Px(10));
+                            var body = Battle.UnitAt(cast.Target) is { } aimed && _shown.TryGetValue(aimed, out var aimedShown)
+                                ? BodyCenter(aimed, aimedShown) : ground - Ui.V(0, 30);
+                            var area = hexes.Select(h => Center(h) + new Vector2(0, HexHeight / 2 - Ui.Px(10))).ToArray();
+                            switch (cast.Spell.Id)
+                            {
+                                // ce qui file du héros à la cible : les dégâts s'affichent quand il touche
+                                case "fleche-magique":
+                                    _spells.Launch("fleche-magique", hand, body, ground, area, () => struckDown = true);
+                                    break;
+                                case "boule-de-feu":
+                                    _spells.Launch("boule-de-feu", hand, ground - Ui.V(0, 20), ground, area, () => struckDown = true);
+                                    break;
+                                case "pluie-de-meteores":
+                                    _spells.Meteors(area, () => struckDown = true);
+                                    break;
+                                // l'éclair tombe du ciel, comme la foudre de l'Oiseau-tonnerre
+                                case "eclair":
+                                    _effects.OnHex("foudre", ground);
+                                    break;
+                                default:
+                                    // les arcs de la chaîne partent du héros ; les autres sorts se jouent sur les troupes touchées
+                                    _chainFrom = hand;
+                                    _chainFirst = true;
+                                    struckDown = true;
+                                    break;
+                            }
+                        }
+                        casting += delta;
+                        return cast.Spell.Id == "eclair" ? casting >= BattleEffects.LightningHitTime : struckDown;
                     });
                     break;
                 case SpellDamaged damaged:
+                    // une chaîne d'éclairs : un arc va du héros à la première troupe, puis d'une troupe à la suivante
+                    if (damaged.Spell.Target == SpellTarget.Chain)
+                    {
+                        bool arced = false, reached = false;
+                        _animations.Enqueue(delta =>
+                        {
+                            if (!arced)
+                            {
+                                arced = true;
+                                var body = BodyCenter(damaged.Target, _shown[damaged.Target]);
+                                _spells.Arc(_chainFrom, body, _chainFirst, () => reached = true);
+                                _chainFrom = body;
+                                _chainFirst = false;
+                            }
+                            return reached;
+                        });
+                    }
                     double hurt = 0;
                     _animations.Enqueue(delta =>
                     {
                         if (hurt == 0)
                         {
-                            // une chaîne d'éclairs : chaque troupe touchée s'allume à son tour
-                            if (damaged.Spell.Target == SpellTarget.Chain)
-                                _bursts.Add((damaged.Target.Hexes.ToList(), SpellColor(damaged.Spell), 0));
                             var target = _shown[damaged.Target];
                             target.Count = Math.Max(0, target.Count - damaged.Killed);
                             target.Flash = 1;
@@ -1274,11 +1329,22 @@ public partial class BattleFieldView : Control
                         // la troupe disparaît d'une case et apparaît sur l'autre, dans un éclat
                         if (jump == 0)
                         {
-                            _shown[teleported.Unit].Position = UnitCenter(teleported.Unit, teleported.To);
-                            _bursts.Add((teleported.Unit.HexesAt(teleported.To).ToList(), MapRenderer.Rgb(250, 220, 120), 0));
+                            var leaving = _shown[teleported.Unit];
+                            _spells.OnUnit("teleport-depart", BodyCenter(teleported.Unit, leaving), Ground(leaving), Facing(teleported.Unit));
                         }
-                        jump += delta;
-                        return jump >= 0.3;
+                        jump += Math.Max(delta, 1e-6);
+                        double vanish = SpellEffects.UnitTime("teleport-depart") * 0.8;
+                        if (jump < vanish)
+                            return false;
+                        // elle réapparaît sur sa nouvelle case, dans un tourbillon qui s'ouvre
+                        var arriving = _shown[teleported.Unit];
+                        var there = UnitCenter(teleported.Unit, teleported.To);
+                        if (arriving.Position != there)
+                        {
+                            arriving.Position = there;
+                            _spells.OnUnit("teleport-arrivee", BodyCenter(teleported.Unit, arriving), Ground(arriving), Facing(teleported.Unit));
+                        }
+                        return jump >= vanish + 0.3;
                     });
                     break;
                 case SpellsDispelled dispelled:
@@ -1286,9 +1352,13 @@ public partial class BattleFieldView : Control
                     _animations.Enqueue(delta =>
                     {
                         if (gone == 0)
-                            _floating.Add((dispelled.Spell.Name, _shown[dispelled.Unit].Position + Ui.V(0, -50), 0, MapRenderer.Rgb(200, 220, 255)));
-                        gone += delta;
-                        return gone >= 0.3;
+                        {
+                            var shown = _shown[dispelled.Unit];
+                            _spells.OnUnit("dissipation", BodyCenter(dispelled.Unit, shown), Ground(shown), Facing(dispelled.Unit));
+                            _floating.Add((dispelled.Spell.Name, shown.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(200, 220, 255)));
+                        }
+                        gone += Math.Max(delta, 1e-6);
+                        return gone >= 0.5;
                     });
                     break;
                 case UnitPoisoned poisoned:
@@ -1550,12 +1620,12 @@ public partial class BattleFieldView : Control
                         {
                             var target = _shown[healed.Unit];
                             target.Count += healed.Revived;
-                            _effects.Hit("soin", BodyCenter(healed.Unit, target), 1);
+                            _spells.OnUnit(SpellEffects.UnitEffectOf(healed.Spell) ?? "soins", BodyCenter(healed.Unit, target), Ground(target), Facing(healed.Unit));
                             target.Gone = target.Count == 0;
                             _floating.Add(($"+{healed.HitPoints}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(140, 235, 140)));
                         }
-                        heal += delta;
-                        return heal >= 0.35;
+                        heal += Math.Max(delta, 1e-6);
+                        return heal >= 0.6;
                     });
                     break;
                 case SpellApplied applied:
@@ -1563,9 +1633,14 @@ public partial class BattleFieldView : Control
                     _animations.Enqueue(delta =>
                     {
                         if (marked == 0)
-                            _floating.Add((applied.Spell.Name, _shown[applied.Unit].Position + Ui.V(0, -50), 0, SpellColor(applied.Spell)));
-                        marked += delta;
-                        return marked >= 0.3;
+                        {
+                            var shown = _shown[applied.Unit];
+                            if (SpellEffects.UnitEffectOf(applied.Spell) is { } kind)
+                                _spells.OnUnit(kind, BodyCenter(applied.Unit, shown), Ground(shown), Facing(applied.Unit));
+                            _floating.Add((applied.Spell.Name, shown.Position + Ui.V(0, -50), 0, SpellColor(applied.Spell)));
+                        }
+                        marked += Math.Max(delta, 1e-6);
+                        return marked >= 0.5;
                     });
                     break;
                 case AttackerFled:
@@ -1590,6 +1665,122 @@ public partial class BattleFieldView : Control
 
     /// <summary>Le sol sous une troupe (là où tombe un effet joué sur sa case).</summary>
     private static Vector2 Ground(Shown shown) => shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10));
+
+    /// <summary>Le côté de l'ennemi pour une troupe (+1 : la droite) : son bouclier contre les tirs se lève de ce côté.</summary>
+    private static float Facing(BattleUnit unit) => unit.Side == BattleSide.Attacker ? 1 : -1;
+
+    /// <summary>D'où part un sort : la main levée du héros qui le lance, sur le côté du champ (le haut du champ s'il n'est pas dessiné).</summary>
+    private Vector2 CastPoint(BattleSide side)
+    {
+        var hero = side == BattleSide.Attacker ? AttackerHero : DefenderHero;
+        var rect = side == BattleSide.Attacker ? HeroRect : DefenderHeroRect;
+        return hero != null ? rect.Position + new Vector2(rect.Size.X / 2, rect.Size.Y * 0.3f) : new Vector2(Size.X / 2, 0);
+    }
+
+    /// <summary>
+    /// Développement : « --spell-preview=boule-de-feu » (avec « --spells ») joue sans cesse l'animation de ce sort, lancé
+    /// par le héros de gauche (sur les troupes de droite, ou sur les siennes pour un sort utile), sans rien changer au
+    /// combat ; l'aura d'un sort qui dure reste ensuite sur la troupe.
+    /// </summary>
+    private static readonly string? SpellPreviewArg = OS.GetCmdlineUserArgs()
+        .FirstOrDefault(a => a.StartsWith("--spell-preview="))?["--spell-preview=".Length..];
+
+    /// <summary>Le temps entre deux lancers de l'aperçu d'un sort.</summary>
+    private const double SpellPreviewCycle = 2.6;
+
+    private double _spellPreviewClock = -1;
+    private (BattleUnit Unit, SpellEffect Effect)? _previewAura;
+
+    private void PreviewSpell(double delta)
+    {
+        if (SpellPreviewArg is not { } id || Battle == null || AttackerHero?.Spells.FirstOrDefault(sp => sp.Id == id) is not { } spell)
+            return;
+        // une première seconde pour que le champ se pose, puis un lancer par cycle
+        _spellPreviewClock += delta;
+        if (_spellPreviewClock < 0)
+            return;
+        _spellPreviewClock -= SpellPreviewCycle;
+        _previewAura = null;
+        bool friendly = !spell.Harmful && spell.Effect is not SpellEffect.Damage;
+        var targets = _shown.Where(p => !p.Value.Gone && p.Key.IsAlive && (p.Key.Side == BattleSide.Attacker) == friendly)
+            .OrderBy(p => p.Key.Position.Col * (friendly ? -1 : 1)).ThenBy(p => Math.Abs(p.Key.Position.Row - Battlefield.Rows / 2))
+            .Select(p => p.Key).ToList();
+        if (targets.Count == 0)
+            return;
+        var first = targets[0];
+        var hand = CastPoint(BattleSide.Attacker);
+        var ground = Ground(_shown[first]);
+        var body = BodyCenter(first, _shown[first]);
+        var area = new[] { first.Position }.Concat(first.Position.Neighbours()).Where(Battlefield.InBounds)
+            .Select(h => Center(h) + new Vector2(0, HexHeight / 2 - Ui.Px(10))).ToArray();
+        switch (id)
+        {
+            case "fleche-magique" or "boule-de-feu":
+                _spells.Launch(id, hand, id == "boule-de-feu" ? ground - Ui.V(0, 20) : body, ground, area, () => _shown[first].Flash = 1);
+                break;
+            case "pluie-de-meteores":
+                _spells.Meteors(area, () => _shown[first].Flash = 1);
+                break;
+            case "eclair":
+                _effects.OnHex("foudre", ground);
+                break;
+            case "chaine-eclairs":
+                // un arc du héros à la première troupe, puis de troupe en troupe (quatre au plus)
+                var chain = Battle.AffectedBy(spell, first.Position).Select(u => BodyCenter(u, _shown[u])).ToList();
+                void Jump(int k, Vector2 from)
+                {
+                    if (k < chain.Count)
+                        _spells.Arc(from, chain[k], k == 0, () => GetTree().CreateTimer(0.2).Timeout += () => Jump(k + 1, chain[k]));
+                }
+                Jump(0, hand);
+                break;
+            case "teleportation":
+                _spells.OnUnit("teleport-depart", body, ground, Facing(first));
+                GetTree().CreateTimer(SpellEffects.UnitTime("teleport-depart") * 0.8).Timeout +=
+                    () => _spells.OnUnit("teleport-arrivee", body, ground, Facing(first));
+                break;
+            default:
+                if (SpellEffects.UnitEffectOf(spell) is { } kind)
+                    _spells.OnUnit(kind, body, ground, Facing(first));
+                if (spell.Lasts)
+                    _previewAura = (first, spell.Effect);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Développement : « --record=dossier » enregistre l'écran, 25 images par seconde, en images WebP numérotées, pendant
+    /// « --record-time=2.6 » secondes (après « --record-delay=1 »), puis quitte : pour montrer une animation sur une page
+    /// de choix. « --record-rect=x,y,l,h » : ne garder que ce rectangle de l'écran.
+    /// </summary>
+    private static readonly string[] Args = OS.GetCmdlineUserArgs();
+
+    private static string? ArgValue(string name) => Args.FirstOrDefault(a => a.StartsWith($"--{name}="))?[(name.Length + 3)..];
+
+    private double _recordClock;
+    private int _recordFrame;
+
+    private void Record(double delta)
+    {
+        if (ArgValue("record") is not { } folder)
+            return;
+        double wait = double.TryParse(ArgValue("record-delay"), System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 1;
+        double length = double.TryParse(ArgValue("record-time"), System.Globalization.CultureInfo.InvariantCulture, out var l) ? l : 2.6;
+        _recordClock += delta;
+        if (_recordClock < wait || _recordClock < wait + _recordFrame / 25.0)
+            return;
+        if (_recordClock > wait + length)
+        {
+            GetTree().Quit();
+            return;
+        }
+        var image = GetViewport().GetTexture().GetImage();
+        if (ArgValue("record-rect")?.Split(',').Select(int.Parse).ToArray() is { Length: 4 } r)
+            image = image.GetRegion(new Rect2I(r[0], r[1], r[2], r[3]));
+        DirAccess.MakeDirRecursiveAbsolute(folder);
+        image.SaveWebp($"{folder}/{_recordFrame:000}.webp", true, 0.7f);
+        _recordFrame++;
+    }
 
     private void PreviewEffect(double delta)
     {
@@ -1673,7 +1864,10 @@ public partial class BattleFieldView : Control
             shown.StateTime += delta;
         }
         _effects.Update(delta);
+        _spells.Update(delta);
         PreviewEffect(delta);
+        PreviewSpell(delta);
+        Record(delta);
         _time += delta;
         for (int i = _bursts.Count - 1; i >= 0; i--)
         {
@@ -1808,8 +2002,13 @@ public partial class BattleFieldView : Control
         }
         foreach (var (unit, shown) in _shown)
             if (!shown.Gone)
+            {
+                // juste avant la troupe : ce que ses sorts ont derrière elle (son corps le cache)
+                things.Add((shown.Position.Y - 0.01f, () => DrawSpellsBehind(unit, shown)));
                 things.Add((shown.Position.Y, () => DrawUnit(unit, shown)));
+            }
         _effects.DrawGround(this);
+        _spells.DrawGround(this);
         foreach (var (_, draw) in things.OrderBy(t => t.Y))
             draw();
         // les auras des états qui durent : poison, sorts utiles ou néfastes
@@ -1820,12 +2019,11 @@ public partial class BattleFieldView : Control
             var body = BodyCenter(unit, shown);
             if (unit.PoisonTurnsLeft > 0)
                 BattleEffects.DrawAura(this, "poison", body, _time, unit.Id * 7 + 1);
-            if (unit.Spells.Any(s => !s.Spell.Harmful))
-                BattleEffects.DrawAura(this, "benefique", body, _time, unit.Id * 7 + 2);
-            if (unit.Spells.Any(s => s.Spell.Harmful))
-                BattleEffects.DrawAura(this, "nefaste", body, _time, unit.Id * 7 + 3);
+            // chaque sort qui dure a son aura (la Bénédiction : des grains d'or qui montent…)
+            DrawAuras(unit, shown, false);
         }
         _effects.Draw(this);
+        _spells.Draw(this);
 
         var font = ThemeDB.FallbackFont;
         foreach (var (text, position, age, color) in _floating)
@@ -1963,6 +2161,23 @@ public partial class BattleFieldView : Control
         return foot + new Vector2(x, (point.Y - cell.Y) * BattleSpriteScale);
     }
 
+    /// <summary>Les auras des sorts qui durent sur la troupe : la part de derrière elle (<paramref name="behind"/>) ou de devant.</summary>
+    private void DrawAuras(BattleUnit unit, Shown shown, bool behind)
+    {
+        var body = BodyCenter(unit, shown);
+        foreach (var lasting in unit.Spells)
+            SpellEffects.DrawLasting(this, lasting.Spell.Effect, body, Ground(shown), Facing(unit), _time, unit.Id * 7 + (int)lasting.Spell.Effect, behind);
+        if (_previewAura is { } aura && aura.Unit == unit)
+            SpellEffects.DrawLasting(this, aura.Effect, body, Ground(shown), Facing(unit), _time, unit.Id * 7 + (int)aura.Effect, behind);
+    }
+
+    private void DrawSpellsBehind(BattleUnit unit, Shown shown)
+    {
+        _spells.DrawBehind(this, Ground(shown));
+        if (unit.IsAlive)
+            DrawAuras(unit, shown, true);
+    }
+
     private void DrawUnit(BattleUnit unit, Shown shown)
     {
         // une troupe touchée recule d'un coup (3 pixels d'art) puis revient à sa place
@@ -1977,6 +2192,10 @@ public partial class BattleFieldView : Control
             float pulse = 0.5f + 0.5f * MathF.Sin((float)_time * 3 + unit.Id);
             tint *= new Color(0.72f - 0.08f * pulse, 1, 0.62f - 0.08f * pulse);
         }
+        // un sort joué sur la troupe la teinte (rouge de rage, grise de pierre…), l'efface (téléportation) ou la dédouble (hâte)
+        var (spellTint, alpha, ghost) = _spells.Look(Ground(shown));
+        tint *= spellTint;
+        tint.A = alpha;
         // L'image de combat (plus détaillée), sinon la petite de la carte ×4 ; une grande créature est centrée sur ses 2 cases
         var battleImage = Art.Get($"creatures/battle/{unit.Type.Id}");
         var (sheet, frame) = Frame(unit, shown);
@@ -1987,16 +2206,24 @@ public partial class BattleFieldView : Control
             int scale = sheet != null || battleImage != null ? BattleSpriteScale : SpriteScale;
             var source = sheet != null ? frame : new Rect2(Vector2.Zero, image.GetSize());
             var size = source.Size * scale;
-            var rect = new Rect2(foot + new Vector2(-size.X / 2, -size.Y), size);
-            if (shown.FacesLeft ?? unit.Side == BattleSide.Defender)
+            bool mirrored = shown.FacesLeft ?? unit.Side == BattleSide.Defender;
+            void Sprite(Vector2 at, Color color)
             {
-                // tourné vers la gauche : dessiné en miroir
-                DrawSetTransform(new Vector2(foot.X * 2, 0), 0, new Vector2(-1, 1));
-                DrawTextureRectRegion(image, new Rect2(new Vector2(foot.X - size.X / 2, rect.Position.Y), size), source, tint);
-                DrawSetTransform(Vector2.Zero, 0, Vector2.One);
+                var rect = new Rect2(at + new Vector2(-size.X / 2, -size.Y), size);
+                if (mirrored)
+                {
+                    // tourné vers la gauche : dessiné en miroir
+                    DrawSetTransform(new Vector2(at.X * 2, 0), 0, new Vector2(-1, 1));
+                    DrawTextureRectRegion(image, rect, source, color);
+                    DrawSetTransform(Vector2.Zero, 0, Vector2.One);
+                }
+                else
+                    DrawTextureRectRegion(image, rect, source, color);
             }
-            else
-                DrawTextureRectRegion(image, rect, source, tint);
+            // la hâte : deux images fantômes bleutées, en arrière
+            for (int k = 2; ghost > 0 && k >= 1; k--)
+                Sprite(foot - new Vector2(Facing(unit) * k * BattleEffects.U * 7, 0), new Color(0.7f, 0.85f, 1, ghost * (k == 1 ? 0.4f : 0.2f)));
+            Sprite(foot, tint);
         }
         else
             DrawCircle(foot + Ui.V(0, -24), Ui.Px(20), unit.Side == PlayerSide ? MapRenderer.PlayerColor : MapRenderer.NeutralColor);

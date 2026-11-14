@@ -751,8 +751,43 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   - **Le livre de sorts en image** : un vrai livre ouvert, une page par niveau, avec une **animation de page qui
     tourne** pour passer d'un niveau à l'autre.
   - **Une image par sort** (icône dans le livre et la guilde).
-  - **Une animation par sort** sur le champ de bataille (projectile, éclair, explosion…), et un **effet visible sur
-    les troupes** touchées (lueur, aura tant qu'un sort dure, créature ralentie…).
+  - ✅ **Une animation par sort** sur le champ de bataille, et un **effet visible sur les troupes** (2026-11-14,
+    branche `sorts-animations`). Tout est dessiné par le jeu (`Game/SpellEffects.cs`, avec les outils de
+    `BattleEffects` : pixels d'art de 2 pixels, unité `U`), sans dépense. Revu avec l'utilisateur en quatre passages sur
+    une page (`revue-sorts.html` : chaque sort joué en boucle, « Bien » ou « À revoir » et un commentaire) ; ses
+    remarques : « des formes trop simples » (des points, des anneaux), les effets passaient devant le corps, la boule
+    de feu pas assez impressionnante ; il a donné deux planches d'effets en pixel art comme modèle (formes franches, 3 à
+    4 tons chauds, flammes larges à plusieurs pointes, boules à bandes en spirale). Ce qui est fait :
+    - **La profondeur** : ce qui tourne autour d'une troupe (volutes, pierres, vent, fumée, âmes…) a une profondeur `z` ;
+      la part de derrière se dessine juste avant la troupe (`SpellEffects.DrawBehind`, une entrée de plus dans la liste
+      triée des troupes de `BattleFieldView`), son corps la cache ; de même pour les auras (`DrawLasting(…, behind)`).
+    - **La troupe change** pendant le sort (`SpellEffects.Look` : une teinte multipliée, au-delà de 1 elle éclaire ;
+      une opacité ; des images fantômes) : violette (malédiction), terne (faiblesse), couleur de pierre (peau de
+      pierre), rouge à deux battements (soif de sang), verte (soins), dorée (résurrection), sable (lenteur), un éclair
+      blanc (aveuglement, dissipation), deux images fantômes bleutées en arrière (hâte), effacée puis rendue
+      (téléportation).
+    - **Les formes** : lueurs en dégradé par paliers (`Glow`), anneaux, rubans qui s'amincissent (`Ribbon`), étincelles
+      (`Star`), traînées, bouffées de fumée bosselées (`Puff`), boules de feu qui bouillonnent (`Blaze`), sphère à bandes
+      en spirale (`SwirlBall`), traîne de comète en bandes (`CometTail`), langues de flamme et flammes larges à trois
+      pointes (`Tongue`, `FlameBush`), pierres ombrées et fissurées de lave (`Rock`), sablier ouvragé (`Hourglass`),
+      bouclier en treillis d'hexagones (`Shield`, `HexEdge`).
+    - **Chaque sort** : flèche magique (un fer et une hampe de lumière violette, un sillage, elle se brise en éclats) ;
+      éclair (la foudre de l'Oiseau-tonnerre, `foudre` : « foudre-forte » était trop épaisse) ; chaîne d'éclairs (13
+      pixels d'art de large pour le premier arc, 9 pour les sauts suivants, des fourches) ; boule de feu (une boule en
+      feu qui file droit, une explosion avec onde au sol, de grandes flammes qui brûlent 1,45 s, braises, fumée) ; pluie
+      de météores (deux par case, roches fissurées dans une traîne de feu, éclats, poussière, cratères qui refroidissent,
+      trois grandes flammes par impact) ; bénédiction (gardée de la première version) ; malédiction ; peau de pierre (des
+      pierres arrivent en spirale et se fondent dans la peau) ; soif de sang (flammes rouges de rage, gouttes) ; hâte ;
+      lenteur (un sablier au-dessus de la tête, un cadran au sol) ; faiblesse (une lueur chaude qui s'éteint, des
+      coulées pâles qui descendent en tournant ; des flèches vers le bas ont été écartées) ; aveuglement ; bouclier
+      contre les tirs ; soins ; résurrection ; téléportation ; dissipation (un cercle de runes, des éclats de couleur).
+    - **Règle** : la chaîne d'éclairs ne saute qu'à `SpellType.ChainReach` (3) cases au plus de la troupe précédente
+      (choix de l'utilisateur : elle sautait d'un bout à l'autre du champ). Test : `MagieTests`.
+    - Outils de développement : `--spell-preview=id` (avec `--spells` : le sort lancé sans cesse par le héros de gauche,
+      sur la troupe ennemie ou amie la plus proche, sans changer le combat ; la chaîne suit la règle du jeu, à essayer
+      avec `--creature-preview=orc,gobelin,loup` pour des troupes côte à côte), `--record=dossier` (25 images WebP par
+      seconde, avec `--fixed-fps 25` ; `--record-delay`, `--record-time`, `--record-rect`) ; un enregistrement ne montre
+      pas la fenêtre des conditions de la partie.
   - Le reste au fil des idées (sons, sorts de la carte…).
 - **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
   (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.

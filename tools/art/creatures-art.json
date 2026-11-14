@@ -1630,7 +1630,10 @@
         "L6": "références"
       },
       "choix": {
-        "fixe": "L3-4"
+        "fixe": "L3-4",
+        "idle": "mm-calme-3",
+        "move": "mm-marche-1",
+        "attack": "mm-morsure-4"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png"
     }

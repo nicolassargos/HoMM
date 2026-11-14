@@ -5,6 +5,7 @@
     { "id": "orientation",  "name": "Orientation",       "tree": "Aventure",     "row": 2, "values": [25, 50, 75] },
     { "id": "intendance",   "name": "Intendance",        "tree": "Aventure",     "row": 2, "values": [100, 150, 200] },
     { "id": "chance",       "name": "Chance",            "tree": "Aventure",     "row": 2, "values": [1, 2, 3] },
+    { "id": "navigation",   "name": "Navigation",        "tree": "Aventure",     "row": 2, "values": [50, 100, 150], "values2": [20, 40, 60] },
     { "id": "diplomatie",   "name": "Diplomatie",        "tree": "Aventure",     "row": 3, "values": [1, 2, 3] },
     { "id": "commandement", "name": "Commandement",      "tree": "Commandement", "row": 1, "values": [10, 20, 30] },
     { "id": "discipline",   "name": "Discipline",        "tree": "Commandement", "row": 1, "values": [25, 50, 75] },

@@ -457,8 +457,8 @@ public partial class HeroScreen : ScreenWindow
         int floor = Hero.ExperienceForLevel(hero.Level), next = Hero.ExperienceForLevel(hero.Level + 1);
         _experienceBar.MaxValue = next - floor;
         _experienceBar.Value = hero.Experience - floor;
-        _movementText.Text = $"{hero.Movement} / {hero.MaxMovement}";
-        _movementBar.MaxValue = hero.MaxMovement;
+        _movementText.Text = $"{hero.Movement} / {hero.DayMovement}";
+        _movementBar.MaxValue = hero.DayMovement;
         _movementBar.Value = hero.Movement;
         foreach (var (stat, name, value, effect) in _stats)
         {

@@ -1692,7 +1692,10 @@ public sealed class MapGenerator
         }
 
         if (Sailing)
+        {
             PlaceHarbours(free, freeSet);
+            PlaceSeaObjects(free, freeSet);
+        }
 
         // Puis les autres : la carte prévoit une mine de chaque ressource, et d'autres tour à tour (voir ExtraMine) ; celles
         // posées près des départs en font partie (elles ne s'y ajoutent que si elles dépassent ce qui était prévu)
@@ -1798,6 +1801,96 @@ public sealed class MapGenerator
         }
         if (start is { } s)
             _harbourChecks.Add((s, cell));
+    }
+
+    /// <summary>
+    /// Pour 1000 cases de haute mer : épaves flottantes, coffres de la mer, bouées, sirènes, paires de tourbillons, phares
+    /// (étape 3 de la mer, 2026-11-14 ; chiffres à régler en jouant).
+    /// </summary>
+    private const double FlotsamPerSea = 4, SeaChestsPerSea = 2, BuoysPerSea = 1, MermaidsPerSea = 1, WhirlpoolPairsPerSea = 0.5,
+        LighthousesPerSea = 0.7;
+
+    /// <summary>
+    /// Les objets de la mer, sur la haute mer, loin de la côte (leurs 8 cases voisines sont de l'eau : ils ne gênent ni
+    /// l'embarquement ni le débarquement) et à 3 cases au moins de tout autre objet ; les deux tourbillons d'une paire à
+    /// 20 cases au moins l'un de l'autre. Les phares sur la côte, hors des zones de départ.
+    /// </summary>
+    private void PlaceSeaObjects(List<Cell> free, HashSet<Cell> freeSet)
+    {
+        var open = OpenSea();
+        int seaArea = AllCells().Count(c => open[c.X, c.Y]);
+        int Count(double perSea) => (int)Math.Round(perSea * seaArea / 1000);
+        bool Open(Cell c) => _map.InBounds(c) && open[c.X, c.Y];
+        var spots = AllCells().Where(c => open[c.X, c.Y] && Neighbours(c).All(Open)).ToList();
+        Shuffle(spots);
+        bool Clear(Cell c) => Around(c, 2).All(n => !_map.InBounds(n) || _map.ObjectAt(n) == null && _map.OccupantAt(n) == null);
+        int next = 0;
+        // sur les îles, le parcours du générateur passe par la mer : un objet ne doit pas fermer un détroit
+        bool Placed(MapObject obj)
+        {
+            _map.AddObject(obj);
+            if (Type == MapType.Seas || AllObjectsReachable())
+                return true;
+            _map.RemoveObject(obj);
+            return false;
+        }
+        // à terre, toujours : il ne doit couper aucun chemin
+        bool OnLand(MapObject obj)
+        {
+            _map.AddObject(obj);
+            if (AllObjectsReachable())
+                return true;
+            _map.RemoveObject(obj);
+            return false;
+        }
+        bool OnWater(Func<Cell, MapObject> make)
+        {
+            while (next < spots.Count)
+            {
+                var cell = spots[next++];
+                if (Clear(cell) && Placed(make(cell)))
+                    return true;
+            }
+            return false;
+        }
+
+        for (int i = 0; i < Count(FlotsamPerSea); i++)
+            OnWater(c => new Flotsam(c, _rng));
+        for (int i = 0; i < Count(SeaChestsPerSea); i++)
+            OnWater(c => new SeaChest(c, _rng));
+        for (int i = 0; i < Count(BuoysPerSea); i++)
+            OnWater(c => new BlessingSite(c, Blessing.Morale) { Sea = true });
+        for (int i = 0; i < Count(MermaidsPerSea); i++)
+            OnWater(c => new BlessingSite(c, Blessing.Luck) { Sea = true });
+        for (int i = 0; i < Count(WhirlpoolPairsPerSea); i++)
+        {
+            var a = spots.Skip(next).FirstOrDefault(Clear, new Cell(-1, -1));
+            var b = spots.Skip(next).FirstOrDefault(c => Clear(c) && SquaredDistance(a, c) >= 20 * 20, new Cell(-1, -1));
+            if (a.X < 0 || b.X < 0)
+                break;
+            var first = new Whirlpool(a, b);
+            if (!Placed(first))
+                continue;
+            if (!Placed(new Whirlpool(b, a)))
+                _map.RemoveObject(first);
+        }
+
+        // les phares, sur la côte (un lieu haut : la case au-dessus de la porte est de la terre, libre)
+        for (int i = 0; i < Count(LighthousesPerSea); i++)
+        {
+            var spot = free.Where(c => freeSet.Contains(c) && ZoneAt(c).Level >= 1 && Orthogonal(c).Any(Open)
+                    && _map.IsPassable(c.Offset(0, -1)) && !_map.HasRoad(c.Offset(0, -1)) && freeSet.Contains(c.Offset(0, -1))
+                    && _map.Objects.OfType<Lighthouse>().All(l => SquaredDistance(l.Position, c) >= 20 * 20))
+                .Cast<Cell?>().FirstOrDefault(c => OnLand(new Lighthouse(c!.Value)));
+            if (spot is not { } placed)
+                break;
+            foreach (var c in TallSite.FootprintAt(placed))
+            {
+                free.Remove(c);
+                freeSet.Remove(c);
+            }
+            _overhang.UnionWith(TallSite.FootprintAt(placed).SelectMany(c => new[] { c.Offset(-1, 0), c.Offset(1, 0) }));
+        }
     }
 
     /// <summary>La haute mer : l'eau d'un seul tenant d'au moins 30 cases (un bateau sur un petit lac ne mène nulle part).</summary>
@@ -2143,7 +2236,9 @@ public sealed class MapGenerator
         bool Reached(Cell c) => reachable[c.X, c.Y];
         // les monstres aussi : un monstre ne doit pas en enfermer un autre (on ne passe pas à travers un monstre) ; un
         // bateau, depuis la terre à côté
-        return _map.Objects.All(o => Reached(o.Position) || o is Boat && Neighbours(o.Position).Any(n => _map.InBounds(n) && Reached(n)))
+        // (avec des mers, le parcours reste à terre : un objet sur l'eau s'atteint en bateau, il ne coupe aucun chemin)
+        return _map.Objects.All(o => Reached(o.Position) || o is Boat && Neighbours(o.Position).Any(n => _map.InBounds(n) && Reached(n))
+                                     || Type == MapType.Seas && _map.IsWater(o.Position))
             && (_map.Treasure is not { } treasure || Reached(treasure))
             && _map.Starts.All(Reached)
             && _harbourChecks.GroupBy(h => h.Start).All(g => OnFootGrid(g.Key) is var walk && g.All(h => walk[h.Cell.X, h.Cell.Y]));

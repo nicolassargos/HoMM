@@ -733,7 +733,7 @@ public partial class TownScreen : CanvasLayer
             return;
         var status = _state.CanBuildBoat(town);
         var window = OpenWindow(V(560, 220), Texts.ShipyardTitle, overView: true);
-        var text = At(MakeLabel(Texts.ShipyardText, 13, SoftTextColor), 18, 58);
+        var text = At(MakeLabel(Texts.ShipyardText(_state.BoatCost(town.Owner!)), 13, SoftTextColor), 18, 58);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         text.CustomMinimumSize = V(524, 0);
         window.AddChild(text);

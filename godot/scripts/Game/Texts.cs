@@ -99,8 +99,14 @@ public static class Texts
         WeeklyProducer { IsWaterWheel: true } => "Roue à eau",
         WeeklyProducer producer => $"Moulin ({Resource(producer.Resource)})",
         ObservationTower => "Tour d'observation",
+        BlessingSite { Sea: true, Blessing: Blessing.Morale } => "Bouée",
+        BlessingSite { Sea: true } => "Sirènes",
         BlessingSite { Blessing: Blessing.Morale } => "Temple",
         BlessingSite => "Cercle des fées",
+        Flotsam => "Épave flottante",
+        SeaChest => "Coffre de la mer",
+        Whirlpool => "Tourbillon",
+        Lighthouse lighthouse => lighthouse.Owner is { } owner ? $"Phare ({owner.Name})" : "Phare",
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
         Town town => town.Name,
@@ -267,6 +273,7 @@ public static class Texts
         WeeklyProducer { Stocked: false } => " (vide cette semaine)",
         ObservationTower tower when tower.Visitors.Contains(viewer.Id) => " (déjà visitée)",
         BlessingSite site when hero != null && site.AlreadyGiven(hero) => $" ({hero.Name} en a déjà la bénédiction)",
+        Whirlpool => " (emporte le bateau, coûte quelques créatures)",
         _ => "",
     };
 
@@ -416,8 +423,8 @@ public static class Texts
     };
 
     public static string ShipyardTitle => "Chantier naval";
-    public static string ShipyardText => "Un bateau coûte 1000 or et 10 bois. Il apparaît sur l'eau, à côté du chantier ; "
-        + "monter à bord ou débarquer prend tout le mouvement qui reste au héros.";
+    public static string ShipyardText(IReadOnlyDictionary<ResourceType, int> cost) => $"Un bateau coûte {Cost(cost)}. Il apparaît sur "
+        + "l'eau, à côté du chantier ; monter à bord ou débarquer prend tout le mouvement qui reste au héros.";
     public static string BuildBoatButton => "Construire un bateau";
 
     /// <summary>Pourquoi le chantier ne peut pas construire de bateau (rien quand il le peut).</summary>
@@ -780,6 +787,8 @@ public static class Texts
         ShrineVisited shrine => $"{shrine.Hero.Name} a déjà prié à cet autel.",
         SageVisited { Learned: true } sage => $"Le sage enseigne {sage.Hut.Spell.Name} à {sage.Hero.Name}.",
         SageVisited sage => $"{sage.Hero.Name} connaît déjà le sort du sage ({sage.Hut.Spell.Name}).",
+        BlessingVisited { Gained: true, Site: { Sea: true, Blessing: Blessing.Morale } } b => $"La bouée guide le bateau de {b.Hero.Name} : +1 moral jusqu'au prochain combat.",
+        BlessingVisited { Gained: true, Site.Sea: true } b => $"Les sirènes chantent pour {b.Hero.Name} : +1 chance jusqu'au prochain combat.",
         BlessingVisited { Gained: true, Site.Blessing: Blessing.Morale } b => $"{b.Hero.Name} se recueille au temple : +1 moral jusqu'au prochain combat.",
         BlessingVisited { Gained: true } b => $"{b.Hero.Name} danse avec les fées : +1 chance jusqu'au prochain combat.",
         BlessingVisited b => $"{b.Hero.Name} a déjà cette bénédiction (elle dure jusqu'au prochain combat).",
@@ -789,6 +798,16 @@ public static class Texts
         BoatBoarded boarded => $"{boarded.Hero.Name} monte à bord.",
         BoatLeft left => $"{left.Hero.Name} débarque ; le bateau reste amarré.",
         BoatBuilt => "Un bateau neuf attend sur l'eau, à côté du chantier naval.",
+        FlotsamFound { Flotsam: { Wood: 0, Gold: 0 } } f => $"{f.Hero.Name} repêche une épave : il n'y a rien à garder.",
+        FlotsamFound { Flotsam.Gold: 0 } f => $"{f.Hero.Name} repêche une épave : {f.Flotsam.Wood} bois.",
+        FlotsamFound f => $"{f.Hero.Name} repêche une épave : {f.Flotsam.Wood} bois et {f.Flotsam.Gold} or.",
+        SeaChestOpened { Gold: 0 } chest => $"{chest.Hero.Name} ouvre un coffre de la mer : il est vide.",
+        SeaChestOpened chest => $"{chest.Hero.Name} ouvre un coffre de la mer : {chest.Gold} or.",
+        WhirlpoolCrossed { Exit: null } w => $"Le tourbillon ne peut emporter le bateau de {w.Hero.Name} : un autre bateau est à la sortie.",
+        WhirlpoolCrossed { LostType: { } type } w => $"Le tourbillon emporte le bateau de {w.Hero.Name} au loin ; {w.Lost} {(w.Lost > 1 ? type.Plural : type.Name)} passent par-dessus bord.",
+        WhirlpoolCrossed w => $"Le tourbillon emporte le bateau de {w.Hero.Name} au loin.",
+        LighthouseVisited { Captured: true } l => $"{l.Hero.Name} prend le phare : vos bateaux vont plus loin (+{Lighthouse.SeaMovementBonus} de mouvement en mer).",
+        LighthouseVisited => "Le phare est déjà à vous.",
         ObeliskVisited { FirstVisit: true } => "Un obélisque ! Un morceau de la carte au trésor apparaît.",
         ObeliskVisited => "Vous avez déjà lu cet obélisque.",
         NothingDug dug => $"{dug.Hero.Name} creuse… il n'y a rien ici.",
@@ -859,7 +878,7 @@ public static class Texts
 
     /// <summary>L'info-bulle d'un héros de la liste.</summary>
     public static string HeroTooltip(Hero hero) =>
-        $"{hero.Name} · niveau {hero.Level}\nMouvement {hero.Movement} / {hero.MaxMovement}\n"
+        $"{hero.Name} · niveau {hero.Level}\nMouvement {hero.Movement} / {hero.DayMovement}\n"
         + $"Points de sort {hero.SpellPoints} / {hero.MaxSpellPoints}\n"
         + string.Join(", ", hero.Army.Stacks.Select(Stack));
 
@@ -1157,6 +1176,7 @@ public static class Texts
             HoMM.Core.Skills.Logistics => $"+{v} % de mouvement sur la carte",
             HoMM.Core.Skills.Scouting => $"voit {v} cases plus loin",
             HoMM.Core.Skills.Pathfinding => $"le surcoût des terrains difficiles baisse de {v} %",
+            HoMM.Core.Skills.Navigation => $"+{v} % de mouvement en mer, bateaux {v2} % moins chers",
             HoMM.Core.Skills.Estates => $"+{v} or par jour",
             HoMM.Core.Skills.Leadership => $"+{v} % de points de commandement par troupe",
             HoMM.Core.Skills.Discipline => $"révoltes {v} % moins probables",
@@ -1219,7 +1239,7 @@ public static class Texts
     public static string HeroDetails(Hero hero) =>
         $"{hero.Name} · niveau {hero.Level}\n"
         + $"Attaque {hero.Attack} · défense {hero.Defense} · puissance {hero.Power} · savoir {hero.Knowledge} · charisme {hero.Charisma}\n"
-        + $"Mouvement {hero.Movement} / {hero.MaxMovement}\n"
+        + $"Mouvement {hero.Movement} / {hero.DayMovement}\n"
         + $"Armée : {(hero.Army.IsEmpty ? "aucune" : string.Join(", ", hero.Army.Stacks.Select(Stack)))}";
 
     /// <summary>Le détail d'une ville au survol, dans le royaume.</summary>

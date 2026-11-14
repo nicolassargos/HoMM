@@ -923,7 +923,12 @@ croissance, prix, garde.
     images) ; 2. ✅ les types de cartes (2026-11-14, branche `types-cartes` : liste « Carte » de la nouvelle partie,
     continent par défaut ; des mers, îles, archipel ; un chantier naval et un bateau amarré sur l'île de chaque joueur,
     après la sortie de sa zone de départ ; des villes au bord de la mer ; l'IA achète un bateau quand elle n'a plus rien
-    à faire à pied ; sur les îles et l'archipel, une ville au plus par île, choix de l'utilisateur) ; 3. les objets de la mer ; 4. les images (session images). À voir en chemin : la compétence
+    à faire à pied ; sur les îles et l'archipel, une ville au plus par île, choix de l'utilisateur) ; 3. les objets de la mer, en deux parties (choix de l'utilisateur, 2026-11-14 : un combat en mer se joue sur le champ
+    ordinaire en attendant un pont de navire avec les images ; un tourbillon coûte quelques créatures ; la Navigation donne
+    du mouvement en mer et des bateaux moins chers ; les pirates sont des créatures neutres) : 3a. ✅ épaves flottantes,
+    coffres de la mer, bouées, sirènes, tourbillons, phares, la compétence Navigation (2026-11-14, branche `objets-mer`) ;
+    3b. les navires abandonnés (un équipage de morts-vivants), les pirates, les gardiens de la mer ; 4. les images
+    (session images). À voir en chemin : la compétence
     **Navigation** et les **combats en mer** (un pont de navire comme champ de bataille).
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix

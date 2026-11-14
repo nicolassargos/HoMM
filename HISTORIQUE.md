@@ -955,6 +955,22 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
   dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
   Tests : `MerTests`.
+- ✅ La mer, les objets de la mer, première partie (2026-11-14, branche `objets-mer`, choix de l'utilisateur) : sur l'eau,
+  l'**épave flottante** (`Flotsam`, comme Heroes 3 : rien, 5 bois, 5 bois et 200 or, ou 10 bois et 500 or), le **coffre
+  de la mer** (`SeaChest` : vide une fois sur cinq, sinon 1000 ou 1500 or ; un artefact plus tard), la **bouée** (+1 moral)
+  et les **sirènes** (+1 chance), jusqu'au prochain combat (`BlessingSite` avec `Sea`), le **tourbillon** (`Whirlpool`, par
+  paires : le bateau ressort par l'autre, la troupe la plus faible perd un dixième de ses créatures, au moins une, jamais
+  la dernière de l'armée ; `WhirlpoolCrossed`) ; sur la côte, le **phare** (`Lighthouse`, un lieu haut qu'on prend en y
+  passant : +500 de mouvement par phare à chaque journée commencée en mer). La compétence **Navigation** (Aventure,
+  rangée 2) : +50 / 100 / 150 % de mouvement en mer, bateaux 20 / 40 / 60 % moins chers (la baisse du meilleur marin du
+  joueur, `GameState.BoatCost`). Le mouvement d'une journée commencée en mer : `Hero.SeaMovement`,
+  `GameState.DayMovement` ; les barres de mouvement montrent celui du matin (`Hero.DayMovement`). Le générateur, sur les
+  cartes où l'on navigue seulement, pour 1000 cases de haute mer : 4 épaves, 2 coffres, 1 bouée, 1 sirènes, une demi-paire
+  de tourbillons (à 20 cases au moins l'un de l'autre), 0,7 phare (hors des zones de départ, à 20 cases l'un de l'autre) ;
+  loin de la côte (leurs 8 voisines sont de l'eau) et à 3 cases de tout autre objet. Carte normale : 5 à 7 épaves avec des
+  mers, 11 ou 12 sur les îles et l'archipel. L'IA ramasse épaves et coffres, prend les phares, apprend la Navigation en
+  dernier. Dessinés par le jeu en attendant leurs images. Développement : `--center=flotsam`, `sea-chest`, `buoy`,
+  `mermaids`, `whirlpool`, `lighthouse`. Tests : `ObjetsMerTests`.
 - ✅ La mer, les types de cartes (2026-11-14, branche `types-cartes`, choix de l'utilisateur) : une option de la nouvelle
   partie (`MapType`, liste « Carte » à côté de la graine, continent par défaut ; `--map-type=`). Le générateur part des
   zones : avec **des mers**, 20 % des zones (jamais un départ) sont toutes de mer, la terre restant d'un seul tenant ;

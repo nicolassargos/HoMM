@@ -28,8 +28,6 @@ namespace HoMM.Game;
 /// </summary>
 public partial class Main : Node2D
 {
-    private const double StepDuration = 0.09; // secondes par case pendant la marche
-
     private GameState _state = null!;
     private ActorLayer _actors = null!;
     private MapCamera _camera = null!;
@@ -49,6 +47,9 @@ public partial class Main : Node2D
 
     private bool _walking;
     private double _stepTimer;
+
+    /// <summary>Un pas est montré (le héros glisse vers la case suivante) ; les règles l'y mettront à la fin.</summary>
+    private bool _stepping;
 
     /// <summary>Ville à ouvrir dès que les fenêtres (compte rendu de combat…) sont fermées.</summary>
     private Town? _townToOpen;
@@ -552,7 +553,7 @@ public partial class Main : Node2D
         _rivalTimer -= delta;
         if (_rivalTimer > 0)
             return;
-        _rivalTimer = StepDuration * 1.5;
+        _rivalTimer = MapRenderer.HeroStepTime;
         var move = _rivalMoves.Dequeue();
         _actors.ShownAt[move.Hero] = move.To;
         _camera.Follow(move.To);
@@ -763,6 +764,18 @@ public partial class Main : Node2D
         _townScreen.Open(town);
     }
 
+    /// <summary>La case où le héros va vraiment entrer au prochain pas (pas un monstre ni un héros à attaquer, ni un des siens qui barre le chemin), sinon null.</summary>
+    private Cell? NextStep()
+    {
+        if (!_state.CanStartWalking)
+            return null;
+        var hero = _state.CurrentHero!;
+        var next = _state.Path![0];
+        if (_state.Map.ObjectAt(next) is MonsterGuard || _state.AllHeroes.Any(h => h != hero && h.Position == next))
+            return null;
+        return next;
+    }
+
     private void StartWalking()
     {
         if (!CanAct)
@@ -876,9 +889,25 @@ public partial class Main : Node2D
             _stepTimer -= delta;
             if (_stepTimer <= 0)
             {
-                _stepTimer = StepDuration;
-                if (!_state.StepAlongPath() || _state.Path == null)
+                // le pas montré est fini : les règles y mettent le héros (une rencontre arrive quand il y est)
+                if (_stepping)
+                {
+                    _stepping = false;
+                    if (!_state.StepAlongPath() || _state.Path == null)
+                        _walking = false;
+                }
+                if (_walking && NextStep() is { } next)
+                {
+                    _actors.BeginStep(_state.CurrentHero!, next);
+                    _stepping = true;
+                    _stepTimer = MapRenderer.HeroStepTime;
+                }
+                else if (_walking)
+                {
+                    // rien à montrer (un monstre ou un héros sur la case suivante, plus de mouvement) : les règles décident
+                    _state.StepAlongPath();
                     _walking = false;
+                }
             }
         }
 

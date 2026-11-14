@@ -300,8 +300,8 @@ public static class MapRenderer
         ObjectImage(obj) is { } image ? (image, ArtRect(image, ObjectArea(obj, o))) : null;
 
     /// <summary>L'image du héros posé sur la case <paramref name="o"/> et l'endroit où elle est dessinée (pour son ombre).</summary>
-    public static (Texture2D Image, Rect2 Rect)? HeroArt(Player? owner, Vector2 o) =>
-        HeroImage(owner) is { } image ? (image, ArtRect(image, HeroArea(o + V(T / 2f, T / 2f + 4)))) : null;
+    public static (Texture2D Image, Rect2 Rect)? HeroArt(Hero hero, Vector2 o, bool left = false, int frame = -1) =>
+        HeroImage(hero, left, frame) is { } image ? (image, ArtRect(image, HeroArea(o + V(T / 2f, T / 2f + 4)))) : null;
 
     /// <summary>La case où se pose l'image du héros, <paramref name="c"/> étant le point où il est dessiné.</summary>
     private static Rect2 HeroArea(Vector2 c) => new(c - V(T / 2f, T / 2f + 4), T, T);
@@ -512,43 +512,91 @@ public static class MapRenderer
 
     // --------------------------------------------------------------------- héros
 
-    private static readonly Dictionary<int, Texture2D?> HeroImages = new();
+    private static readonly Dictionary<(string Name, int Owner, bool Left, int Frame), Texture2D?> HeroImages = new();
 
     /// <summary>
-    /// L'image du héros aux couleurs de son joueur : son étendard rouge (et les rouges de sa selle) prend la teinte du
-    /// joueur ; le joueur rouge garde l'image telle quelle.
+    /// Le temps d'un pas d'une case (3 cases par seconde, choix de l'utilisateur, 2026-11-14). Les images de marche
+    /// (heroes/hero-{faction}-move.png : une rangée d'images de sa taille, ou plusieurs) font un cycle en deux cases.
     /// </summary>
-    public static Texture2D? HeroImage(Player? owner)
+    public const double HeroStepTime = 1 / 3.0;
+
+    /// <summary>
+    /// L'élan du cheval : un appui par case, il repart vite et ralentit avant le suivant (0 : une vitesse égale). Sa
+    /// vitesse est 1 − élan × cos(2π (p + moment)), p l'avancée dans la case (réglé par l'utilisateur, 2026-11-14).
+    /// </summary>
+    private const double HeroPush = 0.1, HeroPushPhase = 0.8;
+
+    /// <summary>La part de la case parcourue quand le pas est avancé de <paramref name="p"/> (de 0 à 1), avec l'élan.</summary>
+    public static double HeroStepShare(double p) =>
+        p - HeroPush * (Math.Sin(2 * Math.PI * (p + HeroPushPhase)) - Math.Sin(2 * Math.PI * HeroPushPhase)) / (2 * Math.PI);
+
+    /// <summary>Le nom de l'image d'un héros sur la carte : celle de la faction de sa classe (heroes/hero-{faction}), sinon le cavalier commun.</summary>
+    private static string HeroArtName(Hero? hero) =>
+        hero?.Class?.Faction is { Length: > 0 } faction && Art.Get($"heroes/hero-{faction}") != null ? $"heroes/hero-{faction}" : "heroes/hero";
+
+    /// <summary>Le nombre d'images de marche d'un héros (0 : il n'en a pas, l'image fixe glisse de case en case).</summary>
+    public static int HeroWalkFrames(Hero? hero)
     {
-        int id = owner?.Id ?? 1;
-        if (HeroImages.TryGetValue(id, out var cached))
+        var name = HeroArtName(hero);
+        if (Art.Get(name) is not { } still || Art.Get(name + "-move") is not { } sheet)
+            return 0;
+        return (int)(sheet.GetWidth() / still.GetWidth()) * (int)(sheet.GetHeight() / still.GetHeight());
+    }
+
+    /// <summary>
+    /// L'image du héros sur la carte, aux couleurs de son joueur (son étendard rouge, et les rouges de sa selle, prennent
+    /// la teinte du joueur ; le joueur rouge garde l'image telle quelle), tournée vers la gauche si <paramref name="left"/>,
+    /// et l'image <paramref name="frame"/> de sa marche (-1 : l'image fixe). Une image tournée garde ses pieds (retournés)
+    /// pour l'ombre de contact.
+    /// </summary>
+    public static Texture2D? HeroImage(Hero? hero, bool left = false, int frame = -1)
+    {
+        var name = HeroArtName(hero);
+        int id = hero?.Owner.Id ?? 1;
+        if (frame >= HeroWalkFrames(hero))
+            frame = -1;
+        var key = (name, id, left, frame);
+        if (HeroImages.TryGetValue(key, out var cached))
             return cached;
         Texture2D? texture = null;
-        if (id == 1 || owner == null)
-            texture = Art.Get("heroes/hero");
-        else if (Art.GetImage("heroes/hero") is { } source)
+        if (Art.GetImage(name) is { } still)
         {
-            var image = (Image)source.Duplicate();
-            image.Convert(Image.Format.Rgba8);
-            float hue = ColorOf(owner).H;
-            for (int y = 0; y < image.GetHeight(); y++)
-            for (int x = 0; x < image.GetWidth(); x++)
+            var image = (Image)still.Duplicate();
+            if (frame >= 0 && Art.GetImage(name + "-move") is { } sheet)
             {
-                var p = image.GetPixel(x, y);
-                if (p.A > 0.5f && p.S > 0.45f && (p.H < 0.05f || p.H > 0.93f))
-                    image.SetPixel(x, y, Color.FromHsv(hue, p.S, p.V, p.A));
+                int w = still.GetWidth(), h = still.GetHeight(), columns = sheet.GetWidth() / w;
+                image = sheet.GetRegion(new Rect2I(frame % columns * w, frame / columns * h, w, h));
             }
+            image.Convert(Image.Format.Rgba8);
+            if (id != 1 && hero != null)
+            {
+                float hue = ColorOf(hero.Owner).H;
+                for (int y = 0; y < image.GetHeight(); y++)
+                for (int x = 0; x < image.GetWidth(); x++)
+                {
+                    var p = image.GetPixel(x, y);
+                    if (p.A > 0.5f && p.S > 0.45f && (p.H < 0.05f || p.H > 0.93f))
+                        image.SetPixel(x, y, Color.FromHsv(hue, p.S, p.V, p.A));
+                }
+            }
+            if (left)
+                image.FlipX();
             texture = ImageTexture.CreateFromImage(image);
-            Art.Alias(texture, "heroes/hero");
+            // les images de marche gardent les pieds de l'image fixe
+            Art.Alias(texture, left ? name + Art.MirrorSuffix : name);
         }
-        HeroImages[id] = texture;
+        HeroImages[key] = texture;
         return texture;
     }
 
-    /// <summary>Un cavalier très stylisé avec son étendard, aux couleurs de son joueur.</summary>
-    public static void DrawHero(CanvasItem ci, Vector2 c, double time, Player? owner = null)
+    /// <summary>
+    /// Le héros sur la carte (son image, tournée et à l'image <paramref name="frame"/> de sa marche ; sans image, un
+    /// cavalier très stylisé avec son étendard, aux couleurs de son joueur).
+    /// </summary>
+    public static void DrawHero(CanvasItem ci, Vector2 c, double time, Hero hero, bool left = false, int frame = -1)
     {
-        if (HeroImage(owner) is { } image)
+        var owner = hero.Owner;
+        if (HeroImage(hero, left, frame) is { } image)
         {
             DrawArt(ci, image, HeroArea(c));
             return;

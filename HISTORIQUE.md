@@ -906,6 +906,22 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   Heroes. Générateur : `PlaceSites` vérifie la case du toit (terrain où l'on marche, sans route ni objet) et les cases
   sous l'image (`_overhang`, que `CanPlaceGuard` évite aussi : des monstres errants s'y posaient). Pieds revus par
   l'utilisateur. Tests : `CarteObjetsTests` (lieux hauts, générateur sur quatre cartes, sauvegarde).
+- ✅ Le héros du Château sur la carte (2026-11-14, branche `heros-carte`, PixelLab, environ 1,30 $) : **une image par
+  faction** (`heroes/hero-{faction}.png`, sinon `heroes/hero.png`), **48 × 48** (choisie en jeu après 48, 56 et 64 ;
+  l'ancienne faisait 32), tournée vers la gauche ou la droite (miroir, `Art.MirrorSuffix` ; ses pieds retournés pour
+  l'ombre), aux couleurs du joueur (les rouges de l'étendard et de la selle). Le chevalier : d'abord générés à 96 et
+  réduits (b-1 : cheval caparaçonné, choisi pour l'allure mais peu lisible), puis de profil (d à g : écartés), puis
+  **générés à 48 directement avec b-1 comme style** (« pro », 25 candidats) : choisi **i-21** (« bold simple
+  silhouette, few colours, strong contrast, dark outline… »). **La marche** (`hero-chateau-move.png`, 8 images de
+  48 × 48, 4 × 2) : 8 essais d'`animer` (a à h ; écartés : PixMiniMax, le trot, 16 images…) ; choisie **d**
+  (`--enrichir`), puis **posée au sol** (le cheval flottait de 1 à 2 pixels : on aurait dit qu'il glissait) et un
+  **rebond** (le haut du dessin descend d'un pixel pendant deux images, deux fois par cycle : « d3 »). **Le pas** : le
+  héros glisse de case en case (il sautait d'une case à l'autre toutes les 0,09 s), **3 cases par seconde**
+  (`MapRenderer.HeroStepTime`), avec **un élan par case** (vitesse 1 − 0,1 × cos(2π (p + 0,8)), `HeroStepShare`),
+  réglés par l'utilisateur sur une page à curseurs ; un cycle d'images en deux cases. Le pas du héros du joueur est
+  montré avant que les règles ne le fassent (`ActorLayer.BeginStep`, `Main.NextStep` : une rencontre arrive quand il est
+  sur la case) ; les adversaires rejoués glissent de même. Au combat, l'image de la carte ×2 en attendant la sienne.
+  Pieds revus par l'utilisateur.
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

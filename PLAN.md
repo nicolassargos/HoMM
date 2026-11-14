@@ -879,9 +879,15 @@ croissance, prix, garde.
   carte** (2026-11-14, branche `heros-carte`, choix de l'utilisateur) : une image par faction, 48 × 48, gauche et droite,
   une marche de 8 images avec un rebond, un pas de 3 cases par seconde avec un élan par case. Reste : les 7 autres
   factions, la marche dans les **8 directions** (essayer d'abord sur le chevalier), une image de combat par héros.
-  **À faire avant (très important pour l'utilisateur, 2026-11-14) : les diagonales partout sur la carte** (routes,
-  rives, bords des montagnes et des forêts, murs entre zones : des lignes à 45° plutôt que des escaliers de cases). (Icônes des ressources : faites,
-  2026-11-07.)
+  ✅ **Les diagonales partout sur la carte** (2026-11-14, branche `diagonales`, très important pour l'utilisateur) : les
+  bords des terrains suivent les centres des cases (un escalier devient une ligne à 45°, un coin s'arrondit), les routes
+  vont en diagonale, les murs entre zones serpentent. (Icônes des ressources : faites, 2026-11-07.)
+- **La carte, à revoir** (demandé par l'utilisateur, 2026-11-14, à concevoir ensemble) : des graphismes, la répartition
+  des objets ; les **tours d'observation loin des bords** ; des **zones fermées** qu'on n'ouvre qu'en battant une grosse
+  armée (pour ne pas conquérir une autre zone trop tôt ; peut-être une option) ; **une ville au plus par zone**, chaque
+  ville dans sa zone ; **une scierie et une mine de minerai près de chaque ville, toujours, gardées par une petite
+  armée** ; des **cartes plus grandes**, d'après Heroes 1, 2 et 3. Vu aussi : deux routes côte à côte forment parfois
+  une « échelle ».
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix
   `art-candidats/en-cours/revue-<lot>.html`, faites par `tools/art/revue.py`, 2026-11-08) ; le code (taille des cases,

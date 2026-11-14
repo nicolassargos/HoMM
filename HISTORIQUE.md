@@ -906,6 +906,26 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   Heroes. Générateur : `PlaceSites` vérifie la case du toit (terrain où l'on marche, sans route ni objet) et les cases
   sous l'image (`_overhang`, que `CanPlaceGuard` évite aussi : des monstres errants s'y posaient). Pieds revus par
   l'utilisateur. Tests : `CarteObjetsTests` (lieux hauts, générateur sur quatre cartes, sauvegarde).
+- ✅ Les diagonales sur la carte (2026-11-14, branche `diagonales`) : tout était fait de rectangles (zones posées en
+  grille, routes en angles droits, bords des terrains le long des cases). **Le dessin** (`terrain.gdshader`) : la part
+  d'un terrain autour d'un pixel mêle les quatre centres de cases voisins (« marching squares », `part_of`) ; la ligne
+  passe à 0,5 : un bord droit reste au milieu, un escalier devient une ligne à 45°, un coin s'arrondit ; les ondulations,
+  les rangs, les rives, les plages et l'écume suivent (`shore_distance` en découle). **Les routes**
+  (`MapGenerator.Road`) : le plus court chemin dans les 8 directions (diagonale 1,41, et un petit coût d'écart à la ligne
+  droite) ; un pas en diagonale ne passe pas entre deux coins interdits, et ses deux coins restent de l'herbe sans objet
+  (`_roadCorners` ; un monstre peut s'y tenir, comme sur la route) ; une ville posée sur un coin fait de l'autre une route
+  (`KeepRoadsAround`) ; les bouts de route et la route coupée par une ville comptent les 8 voisines. **Les zones** : chaque
+  case est déplacée par un bruit doux (`SmoothNoise`, 3 cases au plus, méandres de 7) avant de chercher le centre le plus
+  proche, sauf près des départs (rien à moins de 9 cases, tout à partir de 15 : avec 6, une zone de départ trop serrée
+  éloignait sa mine) ; un morceau de zone détaché rejoint la zone qui l'entoure (`JoinZoneIslands`). Avec 4 cases, les
+  zones étroites serraient les objets et leurs gardiens (3 cartes sur 14 sous les trois quarts de mines et coffres
+  gardés) ; les gardiens se posent maintenant d'abord autour de l'objet le plus à l'étroit. Corrigé au passage : un
+  monstre pouvait en enfermer un autre (`AllObjectsReachable` ne vérifiait pas les monstres) ; deux tests de l'IA
+  laissaient les lieux de la carte (un autel proche attirait l'adversaire). Mesuré (22 cartes) : 81 % des mines et des
+  coffres gardés (82 % avant). `Mesures` : la simulation seule gagne aux jours 63, 89, 147 (68, 86, 147 avant) ; un
+  adversaire après six semaines (Normal, or d'armée, les cartes ont changé) : Château 48 100, morts-vivants 46 000,
+  Barbares 49 800, Forêt 68 100, Tour 47 800, Donjon 56 700, Enfer 49 000, Nains 48 000 (environ 15 % de moins, à
+  surveiller) ; Facile 32 400, Normal 47 000, Difficile 66 000. Développement : `--zoom=0.4`, toute la carte d'un coup.
 - ✅ Le héros du Château sur la carte (2026-11-14, branche `heros-carte`, PixelLab, environ 1,30 $) : **une image par
   faction** (`heroes/hero-{faction}.png`, sinon `heroes/hero.png`), **48 × 48** (choisie en jeu après 48, 56 et 64 ;
   l'ancienne faisait 32), tournée vers la gauche ou la droite (miroir, `Art.MirrorSuffix` ; ses pieds retournés pour

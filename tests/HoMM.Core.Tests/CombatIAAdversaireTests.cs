@@ -15,7 +15,8 @@ public class CombatIAAdversaireTests
         // aperçoit le héros du joueur et préfère l'attaquer)
         var state = new GameState(4, TestData.Data, MapSize.Tiny, opponents: 1, startingTowns: false, opponentFactions: new[] { "chateau" });
         state.EndTurn();
-        foreach (var obj in state.Map.Objects.Where(o => o is ResourcePile or TreasureChest or Mine or Obelisk or MonsterGuard or Town).ToList())
+        // rien d'autre sur la carte (pas même un lieu : l'adversaire irait le visiter d'abord)
+        foreach (var obj in state.Map.Objects.ToList())
             state.Map.RemoveObject(obj);
         return (state, state.CurrentPlayer.Heroes[0]);
     }

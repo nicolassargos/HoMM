@@ -215,7 +215,8 @@ public partial class Main : Node2D
         }
         else if (setup != null)
             _state.ChooseRules(setup.Rules);
-        else if (_capturePath == null || OS.GetCmdlineUserArgs().Contains("--rules")) // une capture montre la carte, sauf avec --rules
+        // une capture (ou un enregistrement) montre la carte, sauf avec --rules
+        else if ((_capturePath == null && !OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--record="))) || OS.GetCmdlineUserArgs().Contains("--rules"))
             _hud.ShowRulesChoice(rules => _state.ChooseRules(rules with { Difficulty = ReadDifficulty() }));
         if (OS.GetCmdlineUserArgs().Contains("--zoom")) // développement : partir zoomé
             _camera.ZoomBy(+1);

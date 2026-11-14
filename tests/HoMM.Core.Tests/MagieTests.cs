@@ -423,8 +423,8 @@ public class MagieTests
         var peasants = battle.Units.Where(u => u.Side == BattleSide.Defender).ToList();
         peasants[0].Position = new Hex(6, 4);
         peasants[1].Position = new Hex(8, 4);
-        peasants[2].Position = new Hex(8, 0); // la plus loin
-        battle.ForceTurn(archers, new Hex(3, 4));
+        peasants[2].Position = new Hex(8, 1); // la plus loin, à 3 cases de la deuxième
+        battle.ForceTurn(archers, new Hex(7, 0));
 
         var hits = battle.SpellHits(Spell("chaine-eclairs"), peasants[0].Position, BattleSide.Attacker);
         Assert.Equal(new[] { peasants[0], peasants[1], peasants[2], archers }, hits.Select(h => h.Unit));
@@ -434,5 +434,27 @@ public class MagieTests
         Assert.Equal(435, peasants[0].Count);
         Assert.Equal(100, archers.Count); // 8 dégâts : un archer (10 PV) blessé, aucun tué
         Assert.Equal(2, archers.TopHitPoints);
+    }
+
+    [Fact]
+    public void La_chaine_d_eclairs_ne_saute_pas_vers_une_troupe_lointaine()
+    {
+        var defender = new Army();
+        defender.AddStack(Creature("paysan"), 500);
+        defender.AddStack(Creature("paysan"), 500);
+        var battle = new TacticalBattle(ArmyOf("archer", 100), defender, new GameRandom(1), Mage(power: 1, knowledge: 2, spells: "chaine-eclairs"));
+        battle.Field.Obstacles.Clear();
+        var archers = battle.Units.Single(u => u.Side == BattleSide.Attacker);
+        var peasants = battle.Units.Where(u => u.Side == BattleSide.Defender).ToList();
+        peasants[0].Position = new Hex(6, 4);
+        peasants[1].Position = new Hex(6 + SpellType.ChainReach + 1, 4); // une case trop loin
+        battle.ForceTurn(archers, new Hex(0, 0));
+
+        var hits = battle.SpellHits(Spell("chaine-eclairs"), peasants[0].Position, BattleSide.Attacker);
+        Assert.Equal(new[] { peasants[0] }, hits.Select(h => h.Unit));
+
+        peasants[1].Position = new Hex(6 + SpellType.ChainReach, 4); // juste à portée
+        hits = battle.SpellHits(Spell("chaine-eclairs"), peasants[0].Position, BattleSide.Attacker);
+        Assert.Equal(new[] { peasants[0], peasants[1] }, hits.Select(h => h.Unit));
     }
 }

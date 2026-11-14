@@ -67,7 +67,7 @@ Décidé avec l'utilisateur (2026-11-06), proche de Heroes 2 et 3 :
   | 3 | Dissipation | 8 | retire tous les sorts d'une troupe |
   | 4 | Résurrection | 20 | 40 + 20 × puissance PV de créatures tuées dans ce combat |
   | 4 | Pluie de météores | 16 | 25 + 25 × puissance dégâts sur 7 cases (amis compris) |
-  | 4 | Chaîne d'éclairs | 20 | 25 + 40 × puissance dégâts, moitié à chaque saut (4 troupes, amis compris) |
+  | 4 | Chaîne d'éclairs | 20 | 25 + 40 × puissance dégâts, moitié à chaque saut (4 troupes, amis compris, chaque saut à 3 cases au plus) |
 
 - **Plus tard** : écoles de magie et compétences (avec les classes de héros), versions « de masse » (récompense des
   classes), **créatures insensibles à la magie**, un 5e niveau avec les factions (Armageddon, élémentaires, morts
@@ -110,8 +110,11 @@ cet ordre :
    (2026-11-13 : une petite pièce sous le toit d'une tour, choix de l'utilisateur). ✅ Les 7 autres académies (2026-11-14, de petites pièces ; le lutrin et sa lueur prennent la lumière de chaque pièce, choix de l'utilisateur).
 3. ✅ **Une image par sort** (le livre, la guilde) : **de petites peintures en couleur**, comme Heroes 2 et 3 (choix de
    l'utilisateur), 32 × 32 ×2 ; les 18 faites (2026-11-14).
-4. **Une animation par sort** sur le champ (projectile, éclair, explosion…) et un **effet visible sur les troupes**
-   (lueur, aura tant qu'un sort dure…). Puis le reste au fil des idées (sons…).
+4. ✅ **Une animation par sort** sur le champ et un **effet visible sur les troupes** (2026-11-14, branche
+   `sorts-animations`, dessinés par le jeu, revus sort par sort avec l'utilisateur en quatre passages) : ce qui tourne
+   autour d'une troupe passe derrière son corps, la troupe elle-même change (grise sous la peau de pierre, rougit de
+   rage, s'efface dans la téléportation…), une aura tant qu'un sort dure ; la chaîne d'éclairs ne saute qu'à 3 cases au
+   plus (choix de l'utilisateur). Détail dans `HISTORIQUE.md`. Puis le reste au fil des idées (sons…).
 
 ### Les factions (en cours de conception)
 Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouables + 1 faction neutre**. Chacune a sa
@@ -834,8 +837,8 @@ croissance, prix, garde.
 
 ## Étape 10 : finitions
 - Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,
-  impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). Reste : les animations des sorts sur le champ
-  (étape 9), avec le même système (`BattleEffects`), et peut-être une animation « touché » par créature.
+  impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). ✅ Les animations des sorts sur le champ
+  (étape 9, `SpellEffects`). Reste : peut-être une animation « touché » par créature.
   ✅ Les options du combat (bouton Options, touche O) : la vitesse des projectiles (lente, normale, rapide), gardée
   d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - ✅ **Des cases de 32 pixels d'art** (au lieu de 24 ; décision de l'utilisateur, 2026-11-08) : cases de 64 pixels à
@@ -902,6 +905,8 @@ croissance, prix, garde.
   Puis (2026-11-14, remarques de l'utilisateur) : ✅ les tours d'observation à 15 cases des bords et à 30 cases l'une de
   l'autre. **À revoir ensemble** : des routes qui ne mènent nulle part ; un problème du moulin (à en parler) ; **des
   rivières et des ponts**.
+  ✅ **Plus de villes sur les grandes cartes** (2026-11-14, demandé par l'utilisateur) : 14 noms de villes les limitaient à
+  14 ; avec 40 noms, une ville pour trois zones : grande carte 17 à 20 villes, très grande 30 à 33 (avec les châteaux).
 - **La mer** (conçue avec l'utilisateur, 2026-11-14, comme Heroes 3) :
   - **Les bateaux** : un **chantier naval** (bâtiment des villes au bord de l'eau, et lieu sur les côtes de la carte) en
     construit un (or et bois), qui apparaît sur l'eau à côté ; et **quelques bateaux déjà amarrés** sur les côtes.

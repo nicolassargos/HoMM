@@ -1392,7 +1392,7 @@ public static class Texts
         {
             SpellEffect.Damage when spell.Target == SpellTarget.Area => $"{strength} dégâts sur une case et ses 6 voisines (amis compris)",
             SpellEffect.Damage when spell.Target == SpellTarget.Chain =>
-                $"{strength} dégâts à une troupe ennemie, puis moitié moins à chaque saut vers la troupe la plus proche ({SpellType.ChainTargets} au plus, amis compris)",
+                $"{strength} dégâts à une troupe ennemie, puis moitié moins à chaque saut vers la troupe la plus proche, à {SpellType.ChainReach} cases au plus ({SpellType.ChainTargets} troupes au plus, amis compris)",
             SpellEffect.Damage => $"{strength} dégâts à une troupe ennemie",
             SpellEffect.Bless => $"+{spell.Amount} % de dégâts à une troupe amie",
             SpellEffect.Curse => $"−{spell.Amount} % de dégâts à une troupe ennemie",

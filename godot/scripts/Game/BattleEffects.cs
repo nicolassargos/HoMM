@@ -720,7 +720,7 @@ public sealed class BattleEffects
     }
 
     /// <summary>Une ellipse pleine de pixels d'art, au bord un peu irrégulier.</summary>
-    private static void Ellipse(CanvasItem canvas, Vector2 at, float rx, float ry, Color color, int seed)
+    internal static void Ellipse(CanvasItem canvas, Vector2 at, float rx, float ry, Color color, int seed)
     {
         int nx = (int)(rx / Pixel), ny = (int)(ry / Pixel);
         for (int y = -ny; y <= ny; y++)
@@ -734,17 +734,17 @@ public sealed class BattleEffects
 
     // ------------------------------------------------------------------ pixels d'art
 
-    private static float Noise(int seed, int k) => Math.Abs(MathF.Sin(seed * 12.9898f + k * 78.233f) * 43758.547f) % 1;
+    internal static float Noise(int seed, int k) => Math.Abs(MathF.Sin(seed * 12.9898f + k * 78.233f) * 43758.547f) % 1;
 
     /// <summary>Un pixel d'art, posé sur la grille des pixels d'art (net, comme les créatures).</summary>
-    private static void Dot(CanvasItem canvas, Vector2 at, Color color)
+    internal static void Dot(CanvasItem canvas, Vector2 at, Color color)
     {
         var snapped = new Vector2(MathF.Floor(at.X / Pixel) * Pixel, MathF.Floor(at.Y / Pixel) * Pixel);
         canvas.DrawRect(new Rect2(snapped, new Vector2(Pixel, Pixel)), color);
     }
 
     /// <summary>Une ligne de pixels d'art (comme tracée à la main, sans flou), quel que soit son angle.</summary>
-    private static void Line(CanvasItem canvas, Vector2 from, Vector2 to, Color color)
+    internal static void Line(CanvasItem canvas, Vector2 from, Vector2 to, Color color)
     {
         int steps = Math.Max(1, (int)(from.DistanceTo(to) / Pixel));
         for (int k = 0; k <= steps; k++)
@@ -752,7 +752,7 @@ public sealed class BattleEffects
     }
 
     /// <summary>Une petite boule de pixels d'art (rayon en pixels d'art).</summary>
-    private static void Blob(CanvasItem canvas, Vector2 at, int radius, Color color)
+    internal static void Blob(CanvasItem canvas, Vector2 at, int radius, Color color)
     {
         // le rayon est donné dans l'unité U (l'ancien pixel d'art) ; un rayon 0 reste un seul pixel
         radius = Scaled(radius);
@@ -763,7 +763,7 @@ public sealed class BattleEffects
     }
 
     /// <summary>Une petite croix claire : un pixel au milieu et quatre bras de <paramref name="arm"/> unités U.</summary>
-    private static void Cross(CanvasItem canvas, Vector2 at, int arm, Color color)
+    internal static void Cross(CanvasItem canvas, Vector2 at, int arm, Color color)
     {
         Dot(canvas, at, color);
         if (arm <= 0)

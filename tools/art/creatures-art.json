@@ -1557,6 +1557,35 @@
         "attack": "rears its body up very high, then stretches its long body far forward to the right in a big arc and plunges its head down onto the ground far in front of it, a full body length away from its mound, its round toothy mouth wide open facing the ground, closes its mouth there, then pulls its long body back into its stance",
         "transform": "dives head first down into its mound of earth and disappears underground, only the churned earth remains"
       }
+    },
+    "tyran-oeil": {
+      "nom": "Tyran œil",
+      "gabarit": "volant",
+      "hauteur": 76,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "comparer": [
+        "ver-des-profondeurs",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 6 : le tireur d'élite, il vole (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-14). Deux styles : peau marbrée violet-brun (L1 à L3), gris-vert maladif (L4 à L6). Ses rayons sont dessinés par le jeu.",
+      "references": [
+        "art-candidats/references/donjon/tyran-oeil.png::concept reference (a floating round monster with one huge central eye, a wide mouth full of sharp teeth below it, and many thin eye stalks on top): keep this design; ignore the black and white ink style"
+      ],
+      "description": "an eye tyrant floating in the air: a big round body of sickly greenish-grey leathery hide with dark spots with bumpy scaly skin, one huge central eye with a yellow iris and a heavy brow, a very wide mouth full of long sharp fangs under the eye, about ten thin writhing eye stalks on top of its body each ending in a small glaring eye, no arms, no legs",
+      "sujet": "a floating round greenish-grey eye tyrant with one huge central eye, a wide fanged mouth and eye stalks on top, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      }
     }
   }
 }

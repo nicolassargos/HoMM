@@ -577,10 +577,12 @@ public partial class TownScreen : CanvasLayer
         bool built = town.Has(dwelling.Id);
         if (!built)
             card.Modulate = new Color(1, 1, 1, 0.55f);
-        if (CreaturePicture(creature, new Rect2(Px(4), Px(4), w - Px(8), Px(84))) is { } image)
+        const int pictureBottom = 88;
+        if (CreaturePicture(creature, new Rect2(Px(4), Px(4), w - Px(8), Px(pictureBottom - 4))) is { } image)
             card.AddChild(image);
-        // les textes les uns sous les autres (une ligne de plus pousse la suite, sans chevauchement), les boutons en bas
-        var texts = new VBoxContainer { Position = new Vector2(Px(4), Px(84)), Size = new Vector2(w - Px(8), 0) };
+        // les textes les uns sous les autres (une ligne de plus pousse la suite, sans chevauchement), sous l'image (le nom
+        // ne mord plus sur les pieds de la créature), les boutons en bas
+        var texts = new VBoxContainer { Position = new Vector2(Px(4), Px(pictureBottom + 2)), Size = new Vector2(w - Px(8), 0) };
         texts.AddThemeConstantOverride("separation", 0);
         card.AddChild(texts);
         void Centered(string text, int size, Color color)

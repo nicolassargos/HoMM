@@ -38,10 +38,12 @@ public sealed partial class GameState
     /// <param name="faction">La faction du joueur (sans choix : le Château).</param>
     /// <param name="opponentFactions">Celles des adversaires (sans choix : au hasard, d'après la graine).</param>
     /// <param name="access">La force des gardiens des passages entre les zones (sans choix : ouverts, comme avant l'option).</param>
+    /// <param name="mapType">Le type de la carte : la part de la mer (sans choix : un continent, comme avant l'option).</param>
     public GameState(int seed, GameData data, MapSize size, int opponents = 0, bool startingTowns = true, string? heroName = null,
-        string? faction = null, IReadOnlyList<string>? opponentFactions = null, ZoneAccess access = ZoneAccess.Open)
+        string? faction = null, IReadOnlyList<string>? opponentFactions = null, ZoneAccess access = ZoneAccess.Open,
+        MapType mapType = MapType.Continent)
         : this(seed, data, MapSizes.Dimensions(size).Width, MapSizes.Dimensions(size).Height,
-            Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns, heroName, faction, opponentFactions, access)
+            Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns, heroName, faction, opponentFactions, access, mapType)
     {
     }
 
@@ -50,14 +52,18 @@ public sealed partial class GameState
     /// les cartes sur lesquelles ils ont été écrits (54 × 40, 72 × 53 : les tailles d'avant celles de Heroes 3).
     /// </summary>
     public GameState(int seed, GameData data, int width, int height, int opponents = 0, bool startingTowns = true, string? heroName = null,
-        string? faction = null, IReadOnlyList<string>? opponentFactions = null, ZoneAccess access = ZoneAccess.Open)
+        string? faction = null, IReadOnlyList<string>? opponentFactions = null, ZoneAccess access = ZoneAccess.Open,
+        MapType mapType = MapType.Continent)
         : this(seed, data, Generate(seed, data, width, height, Math.Clamp(opponents, 0, 3), startingTowns,
-            Factions(seed, data, Math.Clamp(opponents, 0, 3) + 1, faction, opponentFactions), access))
+            Factions(seed, data, Math.Clamp(opponents, 0, 3) + 1, faction, opponentFactions), access, mapType))
         => AddPlayers(Map.Starts.Count, heroName, Factions(seed, data, Map.Starts.Count, faction, opponentFactions));
 
     private static AdventureMap Generate(int seed, GameData data, int width, int height, int opponents, bool startingTowns,
-        IReadOnlyList<string> factions, ZoneAccess access) =>
-        new MapGenerator(seed, data) { Players = opponents + 1, StartingTowns = startingTowns, PlayerFactions = factions, Access = access }
+        IReadOnlyList<string> factions, ZoneAccess access, MapType mapType) =>
+        new MapGenerator(seed, data)
+            {
+                Players = opponents + 1, StartingTowns = startingTowns, PlayerFactions = factions, Access = access, Type = mapType,
+            }
             .Generate(width, height);
 
     /// <summary>

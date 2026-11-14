@@ -633,6 +633,22 @@ public static class Texts
         + "normaux : il faut environ une semaine d'armée ;\n"
         + "fermés : deux à trois semaines, et les autres passages sont deux fois plus gardés.";
 
+    public static string MapTypeLabel => "Carte";
+    public static string MapTypeHelp =>
+        "La part de la mer :\n"
+        + "continent : la terre partout, quelques lacs ;\n"
+        + "des mers : quelques mers, mais tout s'atteint aussi à pied ;\n"
+        + "îles : chaque joueur sur son île, des îles à prendre en bateau ;\n"
+        + "archipel : beaucoup de petites îles, tout en bateau.";
+
+    public static string MapTypeName(MapType type) => type switch
+    {
+        MapType.Seas => "Des mers",
+        MapType.Islands => "Îles",
+        MapType.Archipelago => "Archipel",
+        _ => "Continent",
+    };
+
     public static string ZoneAccessName(ZoneAccess access) => access switch
     {
         ZoneAccess.Open => "Ouverts",

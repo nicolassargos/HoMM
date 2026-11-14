@@ -70,7 +70,10 @@ public sealed class MapGenerator
     /// <summary>Une mine par zone, et au moins une de chaque ressource.</summary>
     // une mine par zone comme avant (les gemmes comprises), plus une de chacune des trois autres ressources rares : autant
     // de mines d'or, de bois et de minerai qu'avant
-    public int MineCount => Math.Max(ResourceInfo.All.Length, (int)Math.Round(_zones.Count * MinesPerZone) + ResourceInfo.Rare.Length - 1);
+    public int MineCount => Math.Max(ResourceInfo.All.Length, (int)Math.Round(LandZones * MinesPerZone) + ResourceInfo.Rare.Length - 1);
+
+    /// <summary>Le nombre de zones de terre (les zones de mer n'ont ni mine ni ville).</summary>
+    private int LandZones => _zones.Count(z => !z.Sea);
 
     /// <summary>Mines par zone (la carte paraissait vide avec une seule ; Heroes 3 en met souvent 2 à 4).</summary>
     public double MinesPerZone { get; init; } = 1.5;
@@ -126,6 +129,12 @@ public sealed class MapGenerator
     /// <summary>La force des gardiens des passages entre les zones (<see cref="ZoneAccess"/>).</summary>
     public ZoneAccess Access { get; init; } = ZoneAccess.Open;
 
+    /// <summary>Le type de la carte : la part de la mer (<see cref="MapType"/>).</summary>
+    public MapType Type { get; init; } = MapType.Continent;
+
+    /// <summary>Une carte où l'on navigue : des zones de mer, ou des îles.</summary>
+    private bool Sailing => Type != MapType.Continent;
+
     /// <summary>Après <see cref="Generate(int, int)"/> : les cases des gardiens des sorties des zones de départ.</summary>
     public IReadOnlyList<Cell> StartExitGates => _passages
         .Where(p => _zones[p.A].Level == 0 || _zones[p.B].Level == 0).Select(p => p.Gate).ToList();
@@ -157,8 +166,11 @@ public sealed class MapGenerator
             CreatureStrength.Prepare(_data.Creatures);
         _map = new AdventureMap(width, height);
         _map.Starts.AddRange(StartCells(width, height, Math.Clamp(Players, 1, 4)));
+        _landArea = width * height;
         PaintTerrain();
         MakeZones();
+        if (_sea != null)
+            _landArea = AllCells().Count(c => !_sea[c.X, c.Y]);
         ClearStartArea();
         if (_data != null)
             PlaceTowns(_data);
@@ -186,10 +198,10 @@ public sealed class MapGenerator
             for (int dx = -1; dx <= 1; dx++)
             {
                 var next = cell.Offset(dx, dy);
-                if (!_map.IsPassable(next) || seen.Contains(next))
+                if (!Travelable(next) || seen.Contains(next))
                     continue;
                 // pas de diagonale qui coupe un coin infranchissable (comme le Pathfinder)
-                if (dx != 0 && dy != 0 && !(_map.IsPassable(cell.Offset(dx, 0)) && _map.IsPassable(cell.Offset(0, dy))))
+                if (dx != 0 && dy != 0 && !(Travelable(cell.Offset(dx, 0)) && Travelable(cell.Offset(0, dy))))
                     continue;
                 seen.Add(next);
                 queue.Enqueue(next);
@@ -200,7 +212,10 @@ public sealed class MapGenerator
     }
 
     /// <summary>Nombre d'objets à poser pour cette carte, à partir du nombre prévu pour la carte de référence.</summary>
-    private int Scaled(int count) => (int)Math.Round((double)count * _map.Width * _map.Height / ReferenceArea);
+    private int Scaled(int count) => (int)Math.Round((double)count * _landArea / ReferenceArea);
+
+    /// <summary>Le nombre de cases de terre (toute la carte sur un continent ; sans la mer sur une carte où l'on navigue).</summary>
+    private int _landArea;
 
     // ------------------------------------------------------------------- zones
 
@@ -211,8 +226,14 @@ public sealed class MapGenerator
     private sealed class Zone
     {
         public int Index { get; init; }
-        public Cell Center { get; init; }
+        public Cell Center { get; set; }
         public int Level { get; set; } = -1;
+
+        /// <summary>Une zone toute de mer (<see cref="MapType"/>) : ni passage, ni objet.</summary>
+        public bool Sea { get; set; }
+
+        /// <summary>L'île de la zone : on passe d'une île à l'autre en bateau (sur un continent, une seule « île »).</summary>
+        public int Island { get; set; }
     }
 
     /// <summary>Un passage entre deux zones. <see cref="Gate"/> : la case du gardien, du côté de la zone la plus lointaine.</summary>
@@ -366,15 +387,31 @@ public sealed class MapGenerator
                     neighbours.Add((Math.Min(a, b), Math.Max(a, b)));
                 }
 
-        // On ne relie que des zones voisines où un passage peut s'ouvrir
-        var openings = neighbours.ToDictionary(n => n, n => PassageCandidates(n.A, n.B));
+        // la mer : des zones de mer, des îles séparées par l'eau (pas sur un continent) ; d'une île à l'autre, une traversée
+        // compte comme un passage pour le niveau des zones
+        var crossings = new List<(int A, int B)>();
+        if (Sailing)
+            ShapeSeas(neighbours, startZones);
+
+        // On ne relie que des zones voisines de la même île où un passage peut s'ouvrir ; la côte peut couper toutes les
+        // places d'un passage : l'île est alors coupée en deux (avec quelques mers, une zone de mer redevient de la terre)
+        Dictionary<(int A, int B), List<(Cell P, Cell Q)>> openings;
+        do
+            openings = neighbours.ToDictionary(n => n,
+                n => SameIsland(n.A, n.B) ? PassageCandidates(n.A, n.B) : new List<(Cell P, Cell Q)>());
+        while (Sailing && !IslandsWhole(neighbours, openings, startZones));
+        if (Sailing)
+        {
+            PaintSea();
+            crossings = Crossings(neighbours);
+        }
         var links = ChooseLinks(neighbours.Where(n => openings[n].Count > 0).ToList(), startZone.Index);
         // l'échelle du danger, comme si le joueur était seul ; puis les vrais niveaux, depuis le départ le plus proche
-        ComputeLevels(links, new List<Zone> { startZone });
+        ComputeLevels(links.Concat(crossings).ToList(), new List<Zone> { startZone });
         _dangerScale = MaxLevel;
         foreach (var zone in _zones)
             zone.Level = -1;
-        ComputeLevels(links, startZones);
+        ComputeLevels(links.Concat(crossings).ToList(), startZones);
         PaintWalls(neighbours);
 
         var carved = new HashSet<Cell>();
@@ -389,6 +426,17 @@ public sealed class MapGenerator
             foreach (var start in _map.Starts.Where(s => ZoneAt(s) == zone))
                 StartRoad(start, zone, carved);
         }
+        // sur une carte où l'on navigue, une zone sans passage (une petite île) : une route de son centre au rivage, où l'on
+        // débarque (sinon son centre, et la ville posée près de lui, pourraient rester dans un creux de montagnes)
+        if (Sailing)
+            foreach (var zone in _zones.Where(z => !z.Sea && !_passages.Any(p => p.A == z.Index || p.B == z.Index)))
+            {
+                var hub = Hub(zone);
+                if (AllCells().Where(c => _zoneOf[c.X, c.Y] == zone.Index && !IsSea(c) && !_border[c.X, c.Y] && !InStartingTown(c)
+                            && Orthogonal(c).Any(IsSea))
+                        .OrderBy(c => SquaredDistance(c, hub)).ThenBy(c => c.Y).ThenBy(c => c.X).Cast<Cell?>().FirstOrDefault() is { } shore)
+                    Road(hub, shore, zone.Index, carved);
+            }
     }
 
     /// <summary>
@@ -431,6 +479,302 @@ public sealed class MapGenerator
         }
     }
 
+    // ------------------------------------------------------------------- la mer
+
+    /// <summary>Les cases de la mer : les zones de mer et les côtes des îles (null sur un continent).</summary>
+    private bool[,]? _sea;
+
+    private bool IsSea(Cell c) => _sea != null && _map.InBounds(c) && _sea[c.X, c.Y];
+
+    private bool SameIsland(int a, int b) => !_zones[a].Sea && !_zones[b].Sea && _zones[a].Island == _zones[b].Island;
+
+    /// <summary>La part des zones toutes de mer, selon le type de la carte.</summary>
+    private double SeaZoneShare => Type switch
+    {
+        MapType.Seas => 0.2,
+        MapType.Islands => 0.15,
+        MapType.Archipelago => 0.15,
+        _ => 0,
+    };
+
+    /// <summary>Le nombre de zones d'une île neutre (l'île d'un joueur en a au moins deux : sa zone et la suivante).</summary>
+    private int IslandZones => Type switch
+    {
+        MapType.Islands => 3,
+        MapType.Archipelago => 1,
+        _ => int.MaxValue,
+    };
+
+    /// <summary>
+    /// Les zones de mer et les îles (<see cref="MapType"/>), puis les cases de la mer (<see cref="ComputeSeaCells"/>).
+    /// </summary>
+    private void ShapeSeas(SortedSet<(int A, int B)> neighbours, List<Zone> startZones)
+    {
+        var adjacent = _zones.ToDictionary(z => z.Index, _ => new List<int>());
+        foreach (var (a, b) in neighbours)
+        {
+            adjacent[a].Add(b);
+            adjacent[b].Add(a);
+        }
+        bool LandConnected()
+        {
+            var land = _zones.Where(z => !z.Sea).Select(z => z.Index).ToList();
+            var seen = new HashSet<int> { land[0] };
+            var queue = new Queue<int>(seen);
+            while (queue.Count > 0)
+                foreach (int n in adjacent[queue.Dequeue()])
+                    if (!_zones[n].Sea && seen.Add(n))
+                        queue.Enqueue(n);
+            return seen.Count == land.Count;
+        }
+
+        // les zones de mer : jamais un départ, et chaque départ garde une zone de terre voisine (son île en a deux) ; avec
+        // quelques mers, tout reste relié par la terre
+        int wanted = (int)Math.Round(_zones.Count * SeaZoneShare);
+        var order = _zones.Where(z => !startZones.Contains(z)).Select(z => z.Index).ToList();
+        Shuffle(order);
+        foreach (int i in order)
+        {
+            if (wanted == 0)
+                break;
+            _zones[i].Sea = true;
+            bool ok = startZones.All(s => adjacent[s.Index].Any(n => !_zones[n].Sea))
+                && (Type != MapType.Seas || LandConnected());
+            if (ok)
+            {
+                wanted--;
+                _seaZones.Add(i);
+            }
+            else
+                _zones[i].Sea = false;
+        }
+
+        // les îles : celles des joueurs d'abord, qui grandissent d'une zone chacune à tour de rôle, puis les îles neutres
+        if (Type is MapType.Islands or MapType.Archipelago)
+        {
+            foreach (var zone in _zones)
+                zone.Island = -1;
+            var islands = new List<List<int>>();
+            void Grow(List<int> island, int size)
+            {
+                var next = island.SelectMany(z => adjacent[z]).Distinct()
+                    .Where(n => !_zones[n].Sea && _zones[n].Island < 0).OrderBy(n => n).ToList();
+                if (island.Count >= size || next.Count == 0)
+                    return;
+                int chosen = next[_rng.Next(next.Count)];
+                _zones[chosen].Island = _zones[island[0]].Island;
+                island.Add(chosen);
+            }
+            foreach (var start in startZones)
+            {
+                start.Island = islands.Count;
+                islands.Add(new List<int> { start.Index });
+            }
+            int startSize = Math.Max(2, IslandZones);
+            for (int round = 1; round < startSize; round++)
+                foreach (var island in islands.ToList())
+                    Grow(island, startSize);
+            var rest = _zones.Where(z => !z.Sea && z.Island < 0).Select(z => z.Index).ToList();
+            Shuffle(rest);
+            foreach (int i in rest.Where(i => _zones[i].Island < 0))
+            {
+                _zones[i].Island = islands.Count;
+                var island = new List<int> { i };
+                islands.Add(island);
+                for (int round = 1; round < IslandZones; round++)
+                    Grow(island, IslandZones);
+            }
+        }
+
+        // la mer : les zones de mer en entier, et la côte des îles (sans la peindre : une zone de mer peut redevenir de la
+        // terre, voir IslandsWhole)
+        _shore = SmoothNoise(5);
+        ComputeSeaCells();
+    }
+
+    /// <summary>Le bruit doux de la largeur des côtes (tiré une fois, pour que la côte ne change pas d'un essai à l'autre).</summary>
+    private Func<int, int, double> _shore = null!;
+
+    /// <summary>Les zones de mer choisies, dans l'ordre (la dernière redevient de la terre s'il le faut).</summary>
+    private readonly List<int> _seaZones = new();
+
+    /// <summary>La largeur de la côte d'une île, de 1 à 3 cases (de 1 à 2 dans l'archipel : ses îles sont petites).</summary>
+    private double ShoreWidth(int x, int y) =>
+        Type == MapType.Archipelago ? 1.5 + 0.7 * _shore(x, y) : 2 + 1.2 * _shore(x, y);
+
+    /// <summary>
+    /// Les cases de la mer : les zones de mer, et chaque case de terre à moins de <see cref="ShoreWidth"/> d'un rivage (une
+    /// case qui touche une autre île ou une zone de mer) ; sur les îles et l'archipel, aussi le long des bords de la carte
+    /// (pas près des départs : le château y reste).
+    /// </summary>
+    private void ComputeSeaCells()
+    {
+        int width = _map.Width, height = _map.Height;
+        _sea = new bool[width, height];
+        int IslandOf(int x, int y) => _zones[_zoneOf[x, y]].Sea ? -1 : _zones[_zoneOf[x, y]].Island;
+        bool edges = Type is MapType.Islands or MapType.Archipelago;
+        var distance = new int[width, height];
+        var queue = new Queue<Cell>();
+        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+        {
+            distance[x, y] = int.MaxValue;
+            if (IslandOf(x, y) < 0)
+            {
+                _sea[x, y] = true;
+                continue;
+            }
+            var cell = new Cell(x, y);
+            bool coast = Orthogonal(cell).Where(_map.InBounds).Any(n => IslandOf(n.X, n.Y) != IslandOf(x, y));
+            bool edge = edges && (x == 0 || y == 0 || x == width - 1 || y == height - 1) && StepsToStart(cell) > 9;
+            if (coast || edge)
+            {
+                distance[x, y] = 0;
+                queue.Enqueue(cell);
+            }
+        }
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            if (distance[c.X, c.Y] >= 3)
+                continue;
+            foreach (var n in Neighbours(c))
+                if (_map.InBounds(n) && !_sea[n.X, n.Y] && distance[n.X, n.Y] == int.MaxValue)
+                {
+                    distance[n.X, n.Y] = distance[c.X, c.Y] + 1;
+                    queue.Enqueue(n);
+                }
+        }
+        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+            if (distance[x, y] < ShoreWidth(x, y))
+                _sea[x, y] = true;
+
+        // chaque zone ne garde que son plus grand morceau de terre : la côte en détache parfois un bout, qu'on n'atteindrait
+        // qu'en bateau (il devient de la mer)
+        foreach (var zone in _zones.Where(z => !z.Sea))
+        {
+            var pieces = new List<List<Cell>>();
+            var seen = new HashSet<Cell>();
+            bool Land(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone.Index && !_sea[c.X, c.Y];
+            foreach (var cell in AllCells().Where(Land))
+            {
+                if (!seen.Add(cell))
+                    continue;
+                var piece = new List<Cell> { cell };
+                for (int i = 0; i < piece.Count; i++)
+                    foreach (var n in Orthogonal(piece[i]))
+                        if (Land(n) && seen.Add(n))
+                            piece.Add(n);
+                pieces.Add(piece);
+            }
+            var kept = pieces.FirstOrDefault(p => p.Any(_map.Starts.Contains)) ?? pieces.MaxBy(p => p.Count);
+            foreach (var cell in pieces.Where(p => p != kept).SelectMany(p => p))
+                _sea[cell.X, cell.Y] = true;
+        }
+    }
+
+    /// <summary>
+    /// Chaque île est-elle d'un seul tenant, par des passages qui peuvent s'ouvrir ? La côte coupe parfois toutes les places
+    /// d'un passage : avec quelques mers (tout doit s'atteindre à pied), la dernière zone de mer redevient de la terre ;
+    /// sinon, le morceau coupé devient une île à part, que la mer entoure. Faux : on recommence.
+    /// </summary>
+    private bool IslandsWhole(SortedSet<(int A, int B)> neighbours, Dictionary<(int A, int B), List<(Cell P, Cell Q)>> openings,
+        List<Zone> startZones)
+    {
+        var parts = new List<List<Zone>>();
+        var seen = new HashSet<Zone>();
+        foreach (var zone in _zones.Where(z => !z.Sea))
+        {
+            if (!seen.Add(zone))
+                continue;
+            var part = new List<Zone> { zone };
+            for (int i = 0; i < part.Count; i++)
+                foreach (var (a, b) in neighbours.Where(n => (n.A == part[i].Index || n.B == part[i].Index) && openings[n].Count > 0))
+                {
+                    var other = _zones[a == part[i].Index ? b : a];
+                    if (seen.Add(other))
+                        part.Add(other);
+                }
+            parts.Add(part);
+        }
+        var cut = parts.GroupBy(p => p[0].Island).Where(g => g.Count() > 1).ToList();
+        if (cut.Count == 0)
+            return true;
+        if (Type == MapType.Seas && _seaZones.Count > 0)
+        {
+            _zones[_seaZones[^1]].Sea = false;
+            _seaZones.RemoveAt(_seaZones.Count - 1);
+            ComputeSeaCells();
+            return false;
+        }
+        // le morceau qui a un départ (sinon le plus grand) garde l'île ; les autres en deviennent de nouvelles
+        int next = _zones.Max(z => z.Island) + 1;
+        foreach (var island in cut)
+            foreach (var part in island.OrderBy(p => p.Any(startZones.Contains) ? 0 : 1).ThenByDescending(p => p.Count)
+                         .ThenBy(p => p.Min(z => z.Index)).Skip(1))
+            {
+                foreach (var zone in part)
+                    zone.Island = next;
+                next++;
+            }
+        // la mer longe aussi les nouveaux rivages
+        ComputeSeaCells();
+        return false;
+    }
+
+    /// <summary>
+    /// La mer peinte sur la carte. Le centre d'une zone tombé dans la mer (une petite île) revient à sa case de terre la plus
+    /// proche : ses routes y mènent.
+    /// </summary>
+    private void PaintSea()
+    {
+        foreach (var cell in AllCells().Where(IsSea))
+            _map.SetTerrain(cell, TerrainType.Water);
+        foreach (var zone in _zones.Where(z => !z.Sea && (IsSea(z.Center) || _border[z.Center.X, z.Center.Y])))
+            if (AllCells().Where(c => _zoneOf[c.X, c.Y] == zone.Index && !IsSea(c) && !_border[c.X, c.Y])
+                    .OrderBy(c => SquaredDistance(c, zone.Center)).ThenBy(c => c.Y).ThenBy(c => c.X).Cast<Cell?>().FirstOrDefault() is { } land)
+                zone.Center = land;
+    }
+
+    /// <summary>
+    /// Les traversées : deux zones de terre d'îles différentes, voisines ou reliées par des zones de mer. Une traversée
+    /// compte comme un passage pour le niveau des zones (et donc la force des monstres).
+    /// </summary>
+    private List<(int A, int B)> Crossings(SortedSet<(int A, int B)> neighbours)
+    {
+        var crossings = new SortedSet<(int A, int B)>();
+        void Add(int a, int b)
+        {
+            if (!_zones[a].Sea && !_zones[b].Sea && _zones[a].Island != _zones[b].Island)
+                crossings.Add((Math.Min(a, b), Math.Max(a, b)));
+        }
+        foreach (var (a, b) in neighbours)
+            Add(a, b);
+        // chaque mer (des zones de mer qui se touchent) : toutes les zones de terre de ses rivages
+        var seen = new HashSet<int>();
+        foreach (var sea in _zones.Where(z => z.Sea))
+        {
+            if (!seen.Add(sea.Index))
+                continue;
+            var waters = new List<int> { sea.Index };
+            var shores = new SortedSet<int>();
+            for (int i = 0; i < waters.Count; i++)
+                foreach (var (a, b) in neighbours.Where(n => n.A == waters[i] || n.B == waters[i]))
+                {
+                    int other = a == waters[i] ? b : a;
+                    if (!_zones[other].Sea)
+                        shores.Add(other);
+                    else if (seen.Add(other))
+                        waters.Add(other);
+                }
+            foreach (int a in shores)
+                foreach (int b in shores.Where(b => b > a))
+                    Add(a, b);
+        }
+        return crossings.ToList();
+    }
+
     /// <summary>De combien de cases les bords des zones s'écartent au plus d'une ligne droite, et la taille de leurs méandres.</summary>
     private const double ZoneWarp = 3;
     private const int ZoneWarpStep = 7;
@@ -463,7 +807,10 @@ public sealed class MapGenerator
     private static IEnumerable<Cell> Orthogonal(Cell c) =>
         new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) };
 
-    /// <summary>Les passages à ouvrir : de quoi relier toutes les zones, plus quelques-uns au hasard.</summary>
+    /// <summary>
+    /// Les passages à ouvrir : de quoi relier toutes les zones (sur une carte où l'on navigue, celles de chaque île), plus
+    /// quelques-uns au hasard.
+    /// </summary>
     private List<(int A, int B)> ChooseLinks(List<(int A, int B)> neighbours, int startZone)
     {
         var links = new List<(int, int)>();
@@ -471,6 +818,12 @@ public sealed class MapGenerator
         while (connected.Count < _zones.Count)
         {
             var frontier = neighbours.Where(n => connected.Contains(n.A) != connected.Contains(n.B)).ToList();
+            if (frontier.Count == 0 && Sailing && _zones.FirstOrDefault(z => !z.Sea && !connected.Contains(z.Index)) is { } island)
+            {
+                // une autre île : on relie aussi ses zones entre elles
+                connected.Add(island.Index);
+                continue;
+            }
             if (frontier.Count == 0)
                 break;
             var link = frontier[_rng.Next(frontier.Count)];
@@ -520,6 +873,8 @@ public sealed class MapGenerator
             if (!_border[x, y])
                 continue;
             var cell = new Cell(x, y);
+            if (IsSea(cell))
+                continue; // la mer est déjà peinte
             int own = _zoneOf[x, y];
             int other = Orthogonal(cell).Where(_map.InBounds).Select(n => _zoneOf[n.X, n.Y]).Where(z => z != own).Min();
             _map.SetTerrain(cell, wallOf[(Math.Min(own, other), Math.Max(own, other))]);
@@ -568,8 +923,8 @@ public sealed class MapGenerator
     private List<(Cell P, Cell Q)> PassageCandidates(int a, int b)
     {
         var middle = new Cell((_zones[a].Center.X + _zones[b].Center.X) / 2, (_zones[a].Center.Y + _zones[b].Center.Y) / 2);
-        bool InZones(Cell c) => _map.InBounds(c) && (_zoneOf[c.X, c.Y] == a || _zoneOf[c.X, c.Y] == b);
-        bool Inside(Cell c, int zone) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone && !_border[c.X, c.Y];
+        bool InZones(Cell c) => _map.InBounds(c) && (_zoneOf[c.X, c.Y] == a || _zoneOf[c.X, c.Y] == b) && !IsSea(c);
+        bool Inside(Cell c, int zone) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone && !_border[c.X, c.Y] && !IsSea(c);
         bool Valid(Cell p, Cell q)
         {
             int dx = q.X - p.X, dy = q.Y - p.Y;
@@ -619,7 +974,7 @@ public sealed class MapGenerator
     /// </summary>
     private void Road(Cell from, Cell to, int zone, HashSet<Cell> carved, HashSet<Cell>? forbidden = null, bool joinRoad = false)
     {
-        bool Allowed(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone
+        bool Allowed(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone && !IsSea(c)
             && (!_border[c.X, c.Y] || carved.Contains(c)) && forbidden?.Contains(c) != true && !InStartingTown(c);
         bool Enter(Cell c) => Allowed(c) || c == to;
         bool NextToRoad(Cell c) => Neighbours(c).Any(n => _map.InBounds(n) && _map.HasRoad(n));
@@ -777,7 +1132,7 @@ public sealed class MapGenerator
     // ------------------------------------------------------------------ villes
 
     /// <summary>Une ville pour trois zones, et au moins une par joueur.</summary>
-    private int TownCount => Math.Max(_map.Starts.Count, _zones.Count / 3);
+    private int TownCount => Math.Max(_map.Starts.Count, LandZones / 3);
 
     /// <summary>
     /// Des villes neutres du Château : la première dans une zone voisine du départ, les autres plus loin,
@@ -812,11 +1167,18 @@ public sealed class MapGenerator
         // tient pas dans la zone préférée (5 × 4 cases), la suivante.
         int placed = 0;
         var used = new HashSet<Zone>();
+        // sur les îles et l'archipel, une ville au plus par île (choix de l'utilisateur, 2026-11-14) : celle d'un joueur a
+        // déjà son château
+        bool onePerIsland = Type is MapType.Islands or MapType.Archipelago;
+        var townIslands = new HashSet<int>(StartingTowns ? _map.Starts.Select(s => ZoneAt(s).Island) : Enumerable.Empty<int>());
+        bool IslandFree(Zone z) => !onePerIsland || !townIslands.Contains(z.Island);
         foreach (var start in _map.Starts)
         {
             bool Own(Zone z) => _map.Starts.All(other => other == start || SquaredDistance(z.Center, start) < SquaredDistance(z.Center, other));
-            var choices = _zones.Where(z => z.Level == 1 && !used.Contains(z))
-                .OrderBy(z => Own(z) ? 0 : 1).ThenBy(z => SquaredDistance(z.Center, start)).ToList();
+            // sur son île d'abord (sur un continent, toutes les zones sont sur la même)
+            var choices = _zones.Where(z => z.Level == 1 && !z.Sea && !used.Contains(z))
+                .OrderBy(z => z.Island == ZoneAt(start).Island ? 0 : 1)
+                .ThenBy(z => Own(z) ? 0 : 1).ThenBy(z => SquaredDistance(z.Center, start)).ToList();
             // d'abord une place plus proche de lui que des autres départs, dans l'une de ces zones ; sinon n'importe où
             bool done = false;
             foreach (bool ownOnly in new[] { true, false })
@@ -824,24 +1186,30 @@ public sealed class MapGenerator
                 {
                     if (done || placed == TownCount || placed == names.Count)
                         break;
+                    if (!IslandFree(zone))
+                        continue;
                     // seul, le joueur a sa ville au milieu de la zone voisine (comme avant les adversaires)
                     if (PlaceTownInZone(data, zone, names[placed], _map.Starts.Count == 1 ? zone.Center : start, ownOnly && _map.Starts.Count > 1))
                     {
                         used.Add(zone);
+                        townIslands.Add(zone.Island);
                         placed++;
                         done = true;
                     }
                 }
         }
         // les autres, au milieu de leur zone
-        var far = _zones.Where(z => z.Level >= 2).OrderBy(z => z.Index).ToList();
+        var far = _zones.Where(z => z.Level >= 2 && !z.Sea).OrderBy(z => z.Index).ToList();
         Shuffle(far);
         foreach (var zone in far)
         {
             if (placed == TownCount || placed == names.Count)
                 break;
-            if (PlaceTownInZone(data, zone, names[placed]))
+            if (IslandFree(zone) && PlaceTownInZone(data, zone, names[placed]))
+            {
+                townIslands.Add(zone.Island);
                 placed++;
+            }
         }
     }
 
@@ -884,21 +1252,49 @@ public sealed class MapGenerator
 
     private bool PlaceTownInZone(GameData data, Zone zone, string name, Cell? towards = null, bool ownOnly = false)
     {
-        bool Free(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone.Index && !_border[c.X, c.Y]
+        bool Free(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone.Index && !_border[c.X, c.Y] && !IsSea(c)
             && !_reserved.Contains(c) && _map.ObjectAt(c) == null && DistanceToStart(c) > 4;
+        // au bord de la mer, la case tout autour peut être de l'eau : la ville est un port (un chantier naval s'y bâtit)
+        bool Ring(Cell entrance, Cell c) => c != entrance.Offset(0, 1) && !Town.FootprintAt(entrance).Contains(c);
+        bool Shore(Cell entrance) => TownMargin(entrance).Any(m => Ring(entrance, m) && IsSea(m));
+        // sur une carte où l'on navigue, une ville sur deux au bord de la mer, si elle y tient
+        bool port = Sailing && _rng.NextDouble() < 0.5;
         // L'entrée et ses abords (une case de plus tout autour de la ville et de sa case d'approche) restent dans la zone ;
         // de préférence, les murs de la ville ne coupent aucune route (sinon, dans une petite zone que ses routes
         // traversent de partout, la route coupée est détournée jusqu'à la porte)
         var places = AllCells()
             .Where(c => _zoneOf[c.X, c.Y] == zone.Index)
-            .Where(c => TownMargin(c).All(Free))
+            .Where(c => TownMargin(c).All(m => Free(m) || Ring(c, m) && IsSea(m)))
             .Where(c => !ownOnly || towards is not { } own || _map.Starts.All(s => s == own || SquaredDistance(c, own) < SquaredDistance(c, s)))
-            .OrderBy(c => SquaredDistance(c, towards ?? zone.Center)).ThenBy(c => c.Y).ThenBy(c => c.X)
+            .OrderBy(c => port && !Shore(c) ? 1 : 0)
+            .ThenBy(c => SquaredDistance(c, towards ?? zone.Center)).ThenBy(c => c.Y).ThenBy(c => c.X)
             .ToList();
         // de préférence loin des autres villes : chacune a la place de sa scierie et de sa mine de minerai
         var spaced = places.Where(c => Town.FootprintAt(c).Append(c.Offset(0, 1)).Min(DistanceToNearestTown) >= TownSpacing).ToList();
         if (spaced.Count > 0)
             places = spaced;
+        // sur une carte où l'on navigue, la porte doit mener par la terre au centre de la zone (pas une plage enfermée entre
+        // la ville et l'eau, ni un bout de zone entre la mer et ses murs)
+        if (Sailing)
+            places = places.Where(ReachesCenter).Take(50).ToList();
+        bool ReachesCenter(Cell entrance)
+        {
+            var walls = Town.FootprintAt(entrance).ToHashSet();
+            bool Open(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone.Index && !IsSea(c) && !_border[c.X, c.Y]
+                && !walls.Contains(c) && !InStartingTown(c);
+            var seen = new HashSet<Cell> { entrance.Offset(0, 1) };
+            var queue = new Queue<Cell>(seen);
+            while (queue.Count > 0)
+            {
+                var c = queue.Dequeue();
+                if (c == zone.Center)
+                    return true;
+                foreach (var n in Orthogonal(c))
+                    if (Open(n) && seen.Add(n))
+                        queue.Enqueue(n);
+            }
+            return false;
+        }
         var candidates = places.Where(c => Town.FootprintAt(c).All(f => !_map.HasRoad(f))).Take(5).ToList();
         if (candidates.Count == 0)
             candidates = places.Take(5).ToList();
@@ -921,10 +1317,31 @@ public sealed class MapGenerator
             Road(end, approach, zone.Index, new HashSet<Cell>(), footprint);
         // la route part de la porte et rejoint la route la plus proche (sinon le centre de la zone)
         Road(approach, zone.Center, zone.Index, new HashSet<Cell>(), footprint, joinRoad: true);
+        // sur une carte où l'on navigue, une petite zone : si la porte ne mène toujours pas à pied au centre de la zone, une
+        // route tout droit jusqu'au centre
+        if (Sailing && !WalksTo(approach, zone.Center, footprint))
+            Road(approach, zone.Center, zone.Index, new HashSet<Cell>(), footprint);
         TrimRoadsAgainst(footprint, approach);
         KeepRoadsAround(footprint);
         AddTown(data, cell, name, zone.Level);
         return true;
+    }
+
+    /// <summary>Peut-on aller à pied de <paramref name="from"/> à <paramref name="to"/>, sans passer par <paramref name="blocked"/> ?</summary>
+    private bool WalksTo(Cell from, Cell to, HashSet<Cell> blocked)
+    {
+        var seen = new HashSet<Cell> { from };
+        var queue = new Queue<Cell>(seen);
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            if (c == to)
+                return true;
+            foreach (var n in Orthogonal(c))
+                if ((n == to || _map.IsPassable(n) && _map.OccupantAt(n) == null) && !blocked.Contains(n) && seen.Add(n))
+                    queue.Enqueue(n);
+        }
+        return false;
     }
 
     /// <summary>La ville dont l'entrée serait en <paramref name="entrance"/>, sa case d'approche, et une case tout autour.</summary>
@@ -1076,7 +1493,7 @@ public sealed class MapGenerator
             }
     }
 
-    /// <summary>Toutes les cases accessibles à pied depuis le départ.</summary>
+    /// <summary>Toutes les cases accessibles à pied depuis le départ (et en bateau, sur une carte où l'on navigue).</summary>
     private HashSet<Cell> ReachableCells()
     {
         var seen = new HashSet<Cell> { _map.Start };
@@ -1085,15 +1502,23 @@ public sealed class MapGenerator
         {
             var c = queue.Dequeue();
             foreach (var next in new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) })
-                if (_map.IsPassable(next) && seen.Add(next))
+                if (Travelable(next) && seen.Add(next))
                     queue.Enqueue(next);
         }
         return seen;
     }
 
+    /// <summary>
+    /// Une case où l'on passe : un terrain où l'on marche, ou l'eau sur les îles et l'archipel (chaque joueur trouve un
+    /// bateau sur son île, et le garde : il le laisse au bord de l'eau en débarquant). Avec quelques mers, tout s'atteint
+    /// à pied : l'eau ne compte pas.
+    /// </summary>
+    private bool Travelable(Cell c) => _map.IsPassable(c) || Type is MapType.Islands or MapType.Archipelago && _map.IsWater(c);
+
     private void PlaceObjects()
     {
         var free = ReachableCells()
+            .Where(_map.IsPassable) // pas sur l'eau
             .Where(c => _map.Starts.All(s => Math.Abs(c.X - s.X) + Math.Abs(c.Y - s.Y) > 2))
             .Where(c => !_map.HasRoad(c))
             .Where(c => _map.ObjectAt(c) == null && DistanceToNearestTown(c) > 1) // l'entrée de la ville reste libre
@@ -1266,6 +1691,9 @@ public sealed class MapGenerator
             }
         }
 
+        if (Sailing)
+            PlaceHarbours(free, freeSet);
+
         // Puis les autres : la carte prévoit une mine de chaque ressource, et d'autres tour à tour (voir ExtraMine) ; celles
         // posées près des départs en font partie (elles ne s'y ajoutent que si elles dépassent ce qui était prévu)
         var planned = ResourceInfo.All.Concat(Enumerable.Range(0, MineCount - ResourceInfo.All.Length).Select(ExtraMine)).ToList();
@@ -1300,6 +1728,174 @@ public sealed class MapGenerator
         PlaceSites(free.Skip(next).ToList());
     }
 
+    /// <summary>Les cases de terre d'où l'on monte dans un bateau amarré : ni objet ni monstre n'y va.</summary>
+    private readonly HashSet<Cell> _landings = new();
+
+    /// <summary>
+    /// Les ports d'une carte où l'on navigue : sur l'île de chaque joueur, un chantier naval de la côte et un bateau amarré
+    /// à côté, hors de sa zone de départ si l'île en a une autre (on prend la mer après avoir franchi la sortie de sa zone,
+    /// comme pour entrer dans la zone voisine) ; un chantier sur une île neutre sur deux. Avec quelques mers, un chantier et
+    /// un bateau au bord de chaque mer, hors des zones de départ.
+    /// </summary>
+    private void PlaceHarbours(List<Cell> free, HashSet<Cell> freeSet)
+    {
+        var open = OpenSea();
+        // Start : sur l'île d'un joueur, il doit les atteindre à pied (pas un bout de côte coupé)
+        var harbours = new List<(List<Zone> Zones, bool Boat, Cell? Start)>();
+        if (Type == MapType.Seas)
+        {
+            // chaque mer : les zones de terre de ses rivages
+            var seen = new HashSet<Zone>();
+            foreach (var sea in _zones.Where(z => z.Sea))
+            {
+                if (!seen.Add(sea))
+                    continue;
+                var waters = new List<Zone> { sea };
+                var shores = new HashSet<Zone>();
+                for (int i = 0; i < waters.Count; i++)
+                    foreach (var cell in AllCells().Where(c => _zoneOf[c.X, c.Y] == waters[i].Index))
+                        foreach (var n in Orthogonal(cell).Where(_map.InBounds).Select(ZoneAt))
+                            if (!n.Sea)
+                                shores.Add(n);
+                            else if (seen.Add(n))
+                                waters.Add(n);
+                harbours.Add((shores.Where(z => z.Level >= 1).OrderBy(z => z.Level).ThenBy(z => z.Index).ToList(), true, null));
+            }
+        }
+        else
+        {
+            var startIslands = _map.Starts.Select(s => ZoneAt(s).Island).ToList();
+            foreach (var start in _map.Starts)
+                harbours.Add((_zones.Where(z => z.Island == ZoneAt(start).Island && !z.Sea)
+                    .OrderBy(z => z.Level == 0 ? 1 : 0).ThenBy(z => z.Level).ThenBy(z => z.Index).ToList(), true, start));
+            // un chantier sur une île neutre sur deux (une sur trois dans l'archipel : elles sont nombreuses)
+            double yards = Type == MapType.Archipelago ? 0.35 : 0.5;
+            foreach (var island in _zones.Where(z => !z.Sea && !startIslands.Contains(z.Island)).GroupBy(z => z.Island).OrderBy(g => g.Key))
+                if (_rng.NextDouble() < yards)
+                    harbours.Add((island.OrderBy(z => z.Index).ToList(), false, null));
+        }
+
+        foreach (var (zones, boat, start) in harbours)
+        {
+            var yard = PlaceShipyard(zones, open, free, freeSet, start);
+            if (boat)
+                PlaceMooredBoat(zones, yard, open, free, freeSet, start);
+        }
+    }
+
+    /// <summary>
+    /// Une case d'un port (le chantier, celle d'où l'on monte dans le bateau) : rien ne se pose autour (on y passe), et le
+    /// joueur de <paramref name="start"/> doit continuer de l'atteindre à pied.
+    /// </summary>
+    private void KeepHarbour(Cell cell, Cell? start, List<Cell> free, HashSet<Cell> freeSet)
+    {
+        foreach (var c in Neighbours(cell).Append(cell))
+        {
+            free.Remove(c);
+            freeSet.Remove(c);
+            if (c != cell)
+                _landings.Add(c);
+        }
+        if (start is { } s)
+            _harbourChecks.Add((s, cell));
+    }
+
+    /// <summary>La haute mer : l'eau d'un seul tenant d'au moins 30 cases (un bateau sur un petit lac ne mène nulle part).</summary>
+    private bool[,] OpenSea()
+    {
+        int width = _map.Width, height = _map.Height;
+        var open = new bool[width, height];
+        var seen = new bool[width, height];
+        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+        {
+            if (seen[x, y] || !_map.IsWater(new Cell(x, y)))
+                continue;
+            var water = new List<Cell> { new(x, y) };
+            seen[x, y] = true;
+            for (int i = 0; i < water.Count; i++)
+                foreach (var n in Orthogonal(water[i]))
+                    if (_map.IsWater(n) && !seen[n.X, n.Y])
+                    {
+                        seen[n.X, n.Y] = true;
+                        water.Add(n);
+                    }
+            if (water.Count >= 30)
+                foreach (var c in water)
+                    open[c.X, c.Y] = true;
+        }
+        return open;
+    }
+
+    /// <summary>
+    /// Un chantier naval sur la côte de l'une de ces zones (dans l'ordre, au plus près de son centre), sa case de bateau
+    /// sur la haute mer ; null s'il n'y tient pas.
+    /// </summary>
+    private Shipyard? PlaceShipyard(List<Zone> zones, bool[,] open, List<Cell> free, HashSet<Cell> freeSet, Cell? start)
+    {
+        bool Spot(Cell w) => _map.InBounds(w) && open[w.X, w.Y] && _map.ObjectAt(w) == null;
+        var walk = start is { } s ? OnFootGrid(s) : null;
+        foreach (var zone in zones)
+            foreach (var cell in free.Where(c => freeSet.Contains(c) && ZoneAt(c) == zone && walk?[c.X, c.Y] != false
+                             && !_mineCells.Contains(c) && _map.OccupantAt(c) == null)
+                         .OrderBy(c => SquaredDistance(c, zone.Center)).ThenBy(c => c.Y).ThenBy(c => c.X).ToList())
+            {
+                if (Orthogonal(cell).Where(Spot).Cast<Cell?>().FirstOrDefault() is not { } spot)
+                    continue;
+                var yard = new Shipyard(cell, spot);
+                _map.AddObject(yard);
+                if (start is { } check)
+                    _harbourChecks.Add((check, cell));
+                if (!AllObjectsReachable())
+                {
+                    _map.RemoveObject(yard);
+                    if (start != null)
+                        _harbourChecks.RemoveAt(_harbourChecks.Count - 1);
+                    continue;
+                }
+                KeepHarbour(cell, null, free, freeSet);
+                return yard;
+            }
+        return null;
+    }
+
+    /// <summary>
+    /// Un bateau amarré sur la haute mer, contre la côte de l'une de ces zones : au plus près du chantier naval s'il y en a
+    /// un (pas sur sa case de bateau), sinon du centre de la zone. La case de terre d'où l'on y monte reste libre.
+    /// </summary>
+    private void PlaceMooredBoat(List<Zone> zones, Shipyard? yard, bool[,] open, List<Cell> free, HashSet<Cell> freeSet, Cell? start)
+    {
+        // (après le chantier : on ne monte pas à bord à travers lui)
+        var walk = start is { } s ? OnFootGrid(s) : null;
+        foreach (var zone in zones)
+        {
+            var near = yard is { } y && ZoneAt(y.Position) == zone ? y.Position : zone.Center;
+            var landings = free.Where(c => freeSet.Contains(c) && ZoneAt(c) == zone && walk?[c.X, c.Y] != false && !_mineCells.Contains(c) && _map.OccupantAt(c) == null)
+                .OrderBy(c => SquaredDistance(c, near)).ThenBy(c => c.Y).ThenBy(c => c.X);
+            foreach (var landing in landings)
+            {
+                var water = Orthogonal(landing).FirstOrDefault(w => _map.InBounds(w) && open[w.X, w.Y] && _map.ObjectAt(w) == null
+                    && w != yard?.BoatSpot, new Cell(-1, -1));
+                if (water.X < 0)
+                    continue;
+                var boat = new Boat(water);
+                _map.AddObject(boat);
+                if (start is { } check)
+                    _harbourChecks.Add((check, landing));
+                if (!AllObjectsReachable())
+                {
+                    _map.RemoveObject(boat);
+                    if (start != null)
+                        _harbourChecks.RemoveAt(_harbourChecks.Count - 1);
+                    continue;
+                }
+                _landings.Add(landing);
+                KeepHarbour(landing, null, free, freeSet);
+                return;
+            }
+        }
+    }
+
     /// <summary>Autels (un de chaque caractéristique, tour à tour), pour une carte de 40 × 30 (plus sur une grande carte).</summary>
     public int ShrineCount { get; init; } = 4;
     public int SageCount { get; init; } = 2;
@@ -1315,7 +1911,10 @@ public sealed class MapGenerator
     /// cabanes du sage, moulins et roues à eau, autels.
     /// </summary>
     /// <summary>La distance au plus proche bord de la carte d'une tour d'observation, au moins (le quart de la carte au plus).</summary>
-    public const int TowerEdgeMargin = 10;
+    public const int TowerEdgeMargin = 15;
+
+    /// <summary>L'écart entre deux tours d'observation, au moins : chacune dévoile sa part de la carte.</summary>
+    public const int TowerSpacing = ObservationTower.Radius * 3 / 2;
 
     private void PlaceSites(List<Cell> free)
     {
@@ -1327,7 +1926,8 @@ public sealed class MapGenerator
                 return false;
             // la case au-dessus de la porte : un terrain où l'on marche, sans route ni objet
             if (!cells.Where(c => c != obj.Position).All(c => _map.IsPassable(c) && !_map.HasRoad(c)
-                    && _map.OccupantAt(c) == null && !_mineCells.Contains(c) && c != _map.Treasure && !_keptFree.Contains(c)))
+                    && _map.OccupantAt(c) == null && !_mineCells.Contains(c) && c != _map.Treasure && !_keptFree.Contains(c)
+                    && !_landings.Contains(c)))
                 return false;
             return cells.Count == 1 || Sides(cells).All(c => !_map.InBounds(c) || _map.OccupantAt(c) == null);
         }
@@ -1359,13 +1959,15 @@ public sealed class MapGenerator
             return false;
         }
 
-        // les tours d'observation loin des bords : près d'un bord, une bonne part de ce qu'elles dévoilent tomberait hors de
-        // la carte (choix de l'utilisateur, 2026-11-14)
+        // les tours d'observation loin des bords et loin l'une de l'autre : près d'un bord, une bonne part de ce qu'elles
+        // dévoilent tomberait hors de la carte ; proches, elles dévoileraient la même chose (choix de l'utilisateur,
+        // 2026-11-14). Celles qui ne trouvent pas de place ne sont pas posées (les autres lieux, si).
         int margin = Math.Min(TowerEdgeMargin, Math.Min(_map.Width, _map.Height) / 4);
-        bool Central(Cell c) => c.X >= margin && c.Y >= margin && c.X < _map.Width - margin && c.Y < _map.Height - margin;
+        bool Central(Cell c) => c.X >= margin && c.Y >= margin && c.X < _map.Width - margin && c.Y < _map.Height - margin
+            && _map.Objects.OfType<ObservationTower>().All(t => SquaredDistance(t.Position, c) >= TowerSpacing * TowerSpacing);
         for (int i = 0; i < Math.Max(1, Scaled(TowerCount)); i++)
             if (!Place(c => new ObservationTower(c), Central))
-                return;
+                break;
         var spells = _data?.Spells.All.Where(sp => sp.Level <= 2).OrderBy(sp => sp.Id).ToList() ?? new List<SpellType>();
         if (spells.Count > 0)
             for (int i = 0; i < Scaled(SageCount); i++)
@@ -1505,7 +2107,7 @@ public sealed class MapGenerator
     private bool CanPlaceGuard(Cell c)
     {
         if (!_map.IsPassable(c) || _map.OccupantAt(c) != null || _reserved.Contains(c) || c == _map.Treasure || _mineCells.Contains(c)
-            || _overhang.Contains(c))
+            || _overhang.Contains(c) || _landings.Contains(c))
             return false;
         if (StepsToStart(c) < 4)
             return false;
@@ -1539,10 +2141,48 @@ public sealed class MapGenerator
     {
         var reachable = WalkableGrid();
         bool Reached(Cell c) => reachable[c.X, c.Y];
-        // les monstres aussi : un monstre ne doit pas en enfermer un autre (on ne passe pas à travers un monstre)
-        return _map.Objects.All(o => Reached(o.Position))
+        // les monstres aussi : un monstre ne doit pas en enfermer un autre (on ne passe pas à travers un monstre) ; un
+        // bateau, depuis la terre à côté
+        return _map.Objects.All(o => Reached(o.Position) || o is Boat && Neighbours(o.Position).Any(n => _map.InBounds(n) && Reached(n)))
             && (_map.Treasure is not { } treasure || Reached(treasure))
-            && _map.Starts.All(Reached);
+            && _map.Starts.All(Reached)
+            && _harbourChecks.GroupBy(h => h.Start).All(g => OnFootGrid(g.Key) is var walk && g.All(h => walk[h.Cell.X, h.Cell.Y]));
+    }
+
+    /// <summary>
+    /// Sur les îles : chaque joueur doit atteindre à pied (en battant les monstres) son chantier naval et la case d'où l'on
+    /// monte dans son bateau. Le parcours depuis le premier départ passe aussi par la mer : il ne le vérifie pas.
+    /// </summary>
+    private readonly List<(Cell Start, Cell Cell)> _harbourChecks = new();
+
+    /// <summary>Les cases atteintes à pied depuis un départ, comme <see cref="WalkableGrid"/>, à travers les monstres (on les bat).</summary>
+    private bool[,] OnFootGrid(Cell start)
+    {
+        int width = _map.Width, height = _map.Height;
+        var seen = new bool[width, height];
+        var from = start.Offset(0, 1); // devant la porte de son château
+        if (!_map.InBounds(from))
+            from = start;
+        seen[from.X, from.Y] = true;
+        var queue = new Queue<Cell>(new[] { from });
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            if (c != from && _map.ObjectAt(c) is { } obj && obj is not MonsterGuard)
+                continue;
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                var n = c.Offset(dx, dy);
+                if ((dx == 0 && dy == 0) || !_map.IsPassable(n) || seen[n.X, n.Y])
+                    continue;
+                if (dx != 0 && dy != 0 && !(_map.IsPassable(c.Offset(dx, 0)) && _map.IsPassable(c.Offset(0, dy))))
+                    continue;
+                seen[n.X, n.Y] = true;
+                queue.Enqueue(n);
+            }
+        }
+        return seen;
     }
 
     /// <summary>
@@ -1567,7 +2207,7 @@ public sealed class MapGenerator
         var passable = new bool[width, height];
         for (int y = 0; y < height; y++)
         for (int x = 0; x < width; x++)
-            passable[x, y] = _map.IsPassable(new Cell(x, y));
+            passable[x, y] = Travelable(new Cell(x, y));
         var seen = new bool[width, height];
         var queue = new Queue<Cell>();
         seen[_map.Start.X, _map.Start.Y] = true;

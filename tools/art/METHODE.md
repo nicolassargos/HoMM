@@ -272,6 +272,19 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   `launchPoint` ([x, y] dans l'image d'attaque), `impact`. Le coup d'un tir porte à l'arrivée du projectile.
 - Écarté : le style `rd_animation__vfx` de Retro Diffusion (2026-11-07) : trois essais rendus vides (0,28 $).
 
+## Animations des sorts (dessinées par le jeu, 2026-11-14)
+- `Game/SpellEffects.cs`. Les revoir sur une page où chaque sort est joué en boucle, à la vitesse du jeu : enregistrer le
+  jeu (`--spell-preview=id --record=dossier --fixed-fps 25`, images WebP, qualité 0,7 : environ 7 Mo par sort) ; une
+  bande de quelques images recadrées sur la cible suffit pour vérifier soi-même avant de montrer.
+- Ce qui plaît à l'utilisateur : **des formes franches et pleines**, pas des points ni des anneaux d'un pixel (« formes
+  trop simples ») ; 3 à 4 tons par effet, du plus chaud au plus sombre, par paliers ; des flammes larges à plusieurs
+  pointes ; une boule de feu qui est une seule boule en feu (une sphère suivie d'une traîne à part paraît bizarre) ; des
+  flammes qui durent.
+- **La profondeur** : ce qui tourne autour d'une troupe passe derrière son corps (sinon l'effet paraît collé devant).
+- **La troupe elle-même change** (teinte, opacité, images fantômes) : c'est ce qui rend un sort lisible.
+- Écarté : des flèches vers le bas pour la faiblesse (l'utilisateur ne les aime pas) ; les chevrons ressemblaient à des
+  oiseaux.
+
 ## Sommets de la carte (32 px, 2026-11-08)
 - Comme Heroes 2 : roche grise avec de l'herbe dans les creux, sans neige, plus grands (64 × 48). Retro Diffusion les pose
   sur un socle d'herbe en losange : en jeu, les chaînes ressemblaient à des cases empilées. `tools/art/fondu.py` fond ce

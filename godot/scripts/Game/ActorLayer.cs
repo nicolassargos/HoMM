@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 using HoMM.Core;
@@ -28,6 +29,65 @@ public partial class ActorLayer : Node2D
     /// </summary>
     public Dictionary<Hero, Cell> ShownAt { get; } = new();
 
+    /// <summary>
+    /// Pour chaque héros, son dernier pas : d'où, vers où, quand il a commencé, s'il regarde vers la gauche, et le
+    /// nombre de pas de suite (la marche fait un cycle d'images en deux pas) ; <c>Ahead</c> : un pas commencé avant que
+    /// les règles ne déplacent le héros (<see cref="BeginStep"/>).
+    /// </summary>
+    private readonly Dictionary<Hero, (Cell From, Cell To, double Since, bool Left, int Steps, bool Ahead)> _motion = new();
+
+    /// <summary>
+    /// Le héros du joueur commence un pas vers <paramref name="to"/> : il y glisse pendant <see cref="MapRenderer.HeroStepTime"/>,
+    /// et les règles ne l'y mettent qu'à la fin (une rencontre arrive quand il y est).
+    /// </summary>
+    public void BeginStep(Hero hero, Cell to) => Step(hero, to, ahead: true);
+
+    private void Step(Hero hero, Cell to, bool ahead)
+    {
+        var (from, left, steps) = (hero.Position, false, 0);
+        if (_motion.TryGetValue(hero, out var motion))
+        {
+            from = motion.To;
+            left = motion.Left;
+            // une marche qui continue garde son cycle d'images
+            steps = _time - motion.Since < MapRenderer.HeroStepTime * 1.5 ? motion.Steps + 1 : 0;
+        }
+        left = to.X < from.X || (to.X == from.X && left);
+        _motion[hero] = (from, to, _time, left, steps, ahead);
+    }
+
+    /// <summary>
+    /// Où montrer un héros (en pixels, le coin de sa case), et comment : tourné vers où il est allé en dernier (vers la
+    /// gauche ou la droite), et l'image de sa marche pendant un pas (-1 : l'image fixe).
+    /// </summary>
+    public (Vector2 At, bool Left, int Frame) HeroPose(Hero hero)
+    {
+        var at = ShownAt.TryGetValue(hero, out var shown) ? shown : hero.Position;
+        if (!_motion.TryGetValue(hero, out var motion))
+            motion = _motion[hero] = (at, at, double.NegativeInfinity, false, 0, false);
+        else if (motion.To != at && !(motion.Ahead && motion.From == at && _time - motion.Since < MapRenderer.HeroStepTime))
+        {
+            // un pas que les règles ont déjà fait (les adversaires rejoués), ou un pas commencé que les règles n'ont pas
+            // fait (le héros reste) ; un saut de plus d'une case (chargement, nouveau tour) n'est pas une marche
+            bool step = Math.Abs(at.X - motion.To.X) <= 1 && Math.Abs(at.Y - motion.To.Y) <= 1;
+            if (step && !(motion.Ahead && at == motion.From))
+                Step(hero, at, ahead: false);
+            else
+                _motion[hero] = (at, at, double.NegativeInfinity, motion.Left, 0, false);
+            motion = _motion[hero];
+        }
+        double p = (_time - motion.Since) / MapRenderer.HeroStepTime;
+        if (p >= 1)
+            return (ToPixels(motion.To), motion.Left, -1);
+        var from = ToPixels(motion.From);
+        var pixels = from + (ToPixels(motion.To) - from) * (float)MapRenderer.HeroStepShare(p);
+        // sur la grille des pixels d'art (2 pixels de l'écran)
+        pixels = (pixels / 2).Round() * 2;
+        int frames = MapRenderer.HeroWalkFrames(hero);
+        int frame = frames > 0 ? (int)((motion.Steps + p) / 2 * frames) % frames : -1;
+        return (pixels, motion.Left, frame);
+    }
+
     public override void _Draw()
     {
         const int t = MapRenderer.TileSize;
@@ -47,11 +107,11 @@ public partial class ActorLayer : Node2D
 
         // Le héros sélectionné a un anneau doré à ses pieds
         if (mine && State.CurrentHero is { } selected)
-            MapRenderer.DrawSelection(this, ToPixels(selected.Position) + half + new Vector2(0, 14 * t / 48f), _time);
+            MapRenderer.DrawSelection(this, HeroPose(selected).At + half + new Vector2(0, 14 * t / 48f), _time);
         foreach (var hero in State.AllHeroes)
         {
-            var at = ShownAt.TryGetValue(hero, out var shown) ? shown : hero.Position;
-            MapRenderer.DrawHero(this, ToPixels(at) + half + new Vector2(0, 4), _time, hero.Owner);
+            var (at, left, frame) = HeroPose(hero);
+            MapRenderer.DrawHero(this, at + half + new Vector2(0, 4), _time, hero, left, frame);
         }
         // (la case survolée n'est plus encadrée : le panneau la décrit, cela suffit)
     }

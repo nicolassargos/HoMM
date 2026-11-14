@@ -56,10 +56,18 @@ public partial class GameDialog : AcceptDialog
         }
     }
 
+    public override void _Process(double delta)
+    {
+        if (Visible != (_veil != null))
+            ShowVeil(Visible);
+    }
+
+    public override void _ExitTree() => ShowVeil(false);
+
     public override void _Ready()
     {
-        VisibilityChanged += () => ShowVeil(Visible);
-        TreeExiting += () => ShowVeil(false);
+        // le voile suit la fenêtre à chaque image (_Process) : une fenêtre que Godot retire puis remet dans l'arbre au moment
+        // de l'ouvrir (ainsi dans l'écran de ville) perdait son voile avec les seuls signaux
         if (Visible)
             ShowVeil(true);
 

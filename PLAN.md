@@ -87,7 +87,29 @@ cet ordre :
    **L'équilibre force / magie est reporté aux classes de héros** (choix de l'utilisateur) : d'abord apprendre à la
    simulation à ramasser les tas, puis comparer les classes (`Simulation_force_ou_magie`).
 2. **Le livre de sorts en image** : un vrai livre ouvert, une page par niveau, une animation de page qui tourne.
-3. **Une image par sort** (le livre, la guilde).
+   Décidé avec l'utilisateur (2026-11-11, « ne pas dépenser à l'aveugle ») : **une page par niveau** (niveaux 1-2, puis
+   3-4) et des **onglets par école** sur le bord (Eau, Feu, Terre, Air, Tous) pour n'en montrer qu'une ; chaque sort :
+   **son icône, son nom, son coût** (l'effet au survol), six par page ; au combat, un clic lance, un sort impossible est
+   grisé ; sur la carte, le livre se lit. **D'abord une maquette dans le jeu sans rien générer** (parchemin et onglets
+   dessinés par le code, icônes d'attente), pour régler les tailles sur des captures ; **ensuite seulement** l'image du
+   livre ouvert, à la taille trouvée. La page qui tourne : dessinée par le code.
+   Puis (2026-11-11, choix de l'utilisateur) : **en perspective et magique**. La perspective vient des images, jamais
+   d'une déformation par le jeu (les pixels resteraient réguliers et les sorts lisibles) : dans l'onglet Magie de
+   l'écran du héros, **le livre fermé posé sur un lutrin**, en perspective, qui luit ; un clic l'**ouvre** (la
+   couverture tourne, une gerbe de lumière et d'étincelles) ; le livre ouvert **vu un peu d'en haut**, comme posé sur une
+   table, les sorts dessinés à plat sur les pages. Effets dessinés par le jeu : la gerbe à l'ouverture, des étincelles
+   derrière la page qui tourne, une lueur de la couleur de l'école autour du sort survolé (des sons plus tard). **La
+   guilde des mages montre son propre grimoire** : le même livre, ses sorts par niveau, ceux que le héros connaît déjà
+   marqués, les niveaux pas encore construits dits. **Des scènes** (choix de l'utilisateur) : l'onglet Magie montre le
+   lutrin dans **une étude** (la même pour tous les héros : une bougie, une étagère, une fenêtre) ; la guilde ouvre
+   d'abord **l'académie de la faction**, une scène par faction (le Château d'abord, les autres avec les images de leur
+   ville), le grimoire sur son lutrin au milieu ; un clic ouvre le livre. Chaque scène remplit son onglet ou sa fenêtre ;
+   le fond est une image sans le lutrin (`art/ui/scenes/etude.png`, `academie-<faction>.png`), le lutrin et son livre une
+   image à part posée dessus (`art/ui/lutrin.png` : il luit, on clique dessus). Sans image, le jeu dessine une scène
+   d'attente. ✅ Le lutrin (le 3, un socle rond sculpté) le livre ouvert et l'étude (2026-11-12 ; le lutrin fait partie de l'image de chaque scène, pour le même point de vue et la même lumière : choix de l'utilisateur). ✅ L'académie du Château
+   (2026-11-13 : une petite pièce sous le toit d'une tour, choix de l'utilisateur). Plus tard : les autres académies (de petites pièces, pas de grandes salles).
+3. ✅ **Une image par sort** (le livre, la guilde) : **de petites peintures en couleur**, comme Heroes 2 et 3 (choix de
+   l'utilisateur), 32 × 32 ×2 ; les 18 faites (2026-11-14).
 4. **Une animation par sort** sur le champ (projectile, éclair, explosion…) et un **effet visible sur les troupes**
    (lueur, aura tant qu'un sort dure…). Puis le reste au fil des idées (sons…).
 
@@ -108,7 +130,7 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 | **Tour de magie** | la faction de la magie | Géant → Titan | gemmes | mercure | **en cours** |
 | **Enfer** | le chaos et le feu, le prix du sang | Démon → Archidémon | mercure | soufre | jouable |
 | **Donjon** | les seigneurs des abîmes, la Terreur | Hydre → (à choisir) | soufre | mercure | jouable |
-| **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | à faire |
+| **Nains** | montagne, très solides, runes et machines | Machine de guerre → Forteresse ambulante | cristal | soufre | jouable |
 
 - **L'Ange ressuscite** (idée de l'utilisateur, 2026-11-08, **plus tard**, sur une branche à part) : à la place de son
   action, il ramène des créatures amies tuées dans ce combat (pas les morts-vivants), **à chacun de ses tours** s'il le
@@ -120,13 +142,77 @@ niveaux 5 et 6 : chaque ressource est principale pour deux factions et secondair
 - Les **Barbares** : voir plus bas.
 - La **Forêt** : voir plus bas ; le Troll ancien se régénérera plus, et ses coups repousseront l'ennemi (il ne riposte
   plus).
-- L'**Enfer** : voir plus bas. Les **Nains** : échanger des ressources contre de l'or, ou miner davantage (à voir).
+- L'**Enfer** et les **Nains** : voir plus bas.
 - Le **Tyran œil** : un œil géant qui tire des rayons, chacun un sort néfaste au hasard. La **Machine de guerre** :
   une machine à vapeur avec un canon (un tireur dont le coup touche une zone).
 - La **faction neutre** garde les monstres de la carte seulement : le **Dragon rouge** (et d'autres au fil du temps).
-- Les **héros** : les Nains n'en ont pas encore.
 - L'IA devra apprendre chaque nouvelle faction. **Plus tard : les créatures améliorées** ; la **Banshee** sera le
   Fantôme amélioré.
+
+#### Les Nains (en cours de conception)
+Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Heroes 3 ni Heroes 5 (choix de l'utilisateur).
+- **Philosophie : les halls de la montagne.** Des artisans têtus qui gravent des runes et bâtissent des machines.
+- **Forces** (proposées) : les troupes les plus solides (défense, points de vie), les machines de guerre, une économie
+  forte (leurs mines produisent davantage, à voir).
+- **Faiblesses** (proposées) : lents (vitesse 3 à 5), aucune créature vivante qui vole, peu de magie, chers au début.
+- **Leur marque : l'obstination** (choix de l'utilisateur) : une troupe naine qui ne s'est pas déplacée de tout le round
+  prend 20 % de dégâts en moins (chiffre à régler en mesurant).
+- Ressources : cristal (principale : l'habitation et la créature du niveau 7), soufre (secondaire : niveaux 5 et 6).
+- **Les machines** (Gyrocoptère, Machine de guerre) sont **façonnées**, comme les golems de la Tour : elles résistent
+  à la magie (choix de l'utilisateur).
+- **La classe Thane** (choix de l'utilisateur, 2026-11-12) : attaque 1, défense 3, puissance 1, savoir 2, charisme 11 ;
+  Peau de pierre ; École de la terre au départ ; talent **Obstination** : 1 % de dégâts en moins de plus par niveau
+  (la moitié au plus).
+- **Les héros** (portraits à la Heroes 2, 2026-11-12, choix de l'utilisateur ; femmes sans barbe, robustes et en
+  armure) : Brokk Marteau-Noir, Hulda Pierre-Lune, Gunnar Fend-la-Roche, Ingrid Vapeur-d'Airain, Bardur le Têtu,
+  Kalla Œil-de-Braise.
+
+| Niveau | Créature | Rôle | Capacité (proposée, chiffres à régler) |
+|---|---|---|---|
+| 1 | Porte-bouclier | le mur | les tireurs amis voisins ne prennent que moitié des dégâts des tirs |
+| 2 | Arbalétrier | le tireur | ses carreaux percent 30 % de la défense de la cible |
+| 3 | Chevaucheur de chèvre | la cavalerie de montagne, la seule troupe rapide | pied sûr : frappe le premier quand on le charge, rien ne le repousse |
+| 4 | Porte-étendard des ancêtres | la bannière | aura : +2 défense aux troupes amies voisines |
+| 5 | Lance-flammes | le feu de près | sa flamme touche la cible et la case derrière elle |
+| 6 | Gyrocoptère | la machine volante | vole ; lâche une bombe sur la cible et les cases voisines |
+| 7 | Machine de guerre (→ Forteresse ambulante) | le canon à vapeur | tire ; son obus touche une zone |
+
+Écartés pour l'instant (idées à garder pour des monstres neutres ou des améliorations) : le Mineur, le Porteur de
+lanterne, le Lanceur de poudre, le Brasseur, le Brise-fer, le Forgeron de guerre, le Tueur de géants, le Prêtre des
+ancêtres, le Forgeron des runes, le Gardien de pierre, l'Ours des cavernes, le Dragon rouge et le Phénix.
+Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images.
+1. ✅ Les créatures et leurs capacités (2026-11-11, branche `nains`) : `stubborn` (20 % de dégâts en moins tant que la
+   troupe ne s'est pas déplacée d'elle-même dans le round, `BattleUnit.HasMoved`), `shield-wall`, `piercing` (30 %),
+   `sure-footed` (la riposte avant le coup ; le crochet ne le tire pas), `banner` (+2 défense, `TacticalBattle.BannerBonus`),
+   `blast` (les ennemis autour de la cible, au corps à corps comme au tir) ; le Lance-flammes prend le souffle du Dragon ;
+   les Nains gardent aussi des passages de la carte (`MonsterFactions`). Chiffres réglés par `Duels_a_prix_egal` (chaque
+   créature au milieu de son niveau ; les auras du Porte-bouclier et du Porte-étendard ne comptent pas en duel, une seule
+   troupe par camp) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Porte-bouclier | 3 | 5 | 1-3 | 8 | 4 | 14 | 15 |
+   | Arbalétrier | 8 | 6 | 3-6 | 16 | 4 | 10 | 35 |
+   | Chevaucheur de chèvre | 9 | 7 | 4-6 | 25 | 7 | 8 | 65 |
+   | Porte-étendard des ancêtres | 11 | 13 | 6-9 | 58 | 4 | 5 | 140 |
+   | Lance-flammes | 14 | 12 | 10-14 | 70 | 4 | 4 | 230 |
+   | Gyrocoptère | 18 | 13 | 18-24 | 95 | 9 | 3 | 370 |
+   | Machine de guerre | 27 | 24 | 100-120 | 1900 | 3 | 2 | 4900 et 1 cristal |
+   Victoires en duel dans leur niveau : 54, 53, 55, 60, 55, 52, 57 %. Mesuré : la simulation gagne comme avant (jours 69,
+   86, 148) ; les gardiens nains demandent de 0,92 à 1,17 fois la même armée ; adversaires (six semaines, Normal, or
+   d'armée, les cartes changent un peu) : Château 54 400, morts-vivants 52 600, Barbares 51 400, Forêt 62 800, Tour
+   46 400, Donjon 56 800, Enfer 60 200. Tests : `NainsTests`.
+2. ✅ La ville et le jeu (2026-11-12, branche `nains-ville`) : 7 habitations (`salle-boucliers` Salle des boucliers,
+   `atelier-arbaletriers` Atelier des arbalétriers, `enclos-chevres` Enclos des chèvres, `salle-ancetres` Salle des
+   ancêtres, `forge-flammes` Forge des flammes, `hangar-gyrocopteres` Hangar des gyrocoptères, `grande-fonderie` Grande
+   fonderie : prix et places de celles de l'Enfer ; soufre aux niveaux 5 et 6, cristal au niveau 7 ; le grand hôtel de
+   ville accepte aussi la Salle des ancêtres), la classe Thane (armée de départ au prix des autres : 14 Porte-boucliers,
+   5 Arbalétriers, 2 Chevaucheurs de chèvre) et son talent Obstination (`Talents.StubbornShare`), les 6 héros nains
+   jouables ; `--faction=nains`. Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Nains 59 700**, Château
+   56 500, morts-vivants 53 900, Barbares 54 200, Forêt 64 700, Tour 49 400, Donjon 62 200, Enfer 62 000 ; la simulation
+   seule comme avant (jours 72, 86, 150). Tests : `VilleNainsTests`.
+3. Les images (session images) : les 7 créatures. ✅ La ville sur la carte (2026-11-12, branche `creatures-nains`, choix
+   de l'utilisateur) : une forteresse taillée dans une montagne grise, une porte gravée de runes d'or entre deux statues
+   de rois nains, une cheminée de forge (`objects/town-nains.png`, luminosité 98, gardée telle quelle).
 
 #### L'Enfer (en cours)
 Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).
@@ -226,7 +312,7 @@ Décidé avec l'utilisateur (2026-11-11), d'après ses images (`art-candidats/re
 
 Écartés de la faction, pour les monstres neutres de la carte ou les améliorations : la Méduse (trop proche de la Naga de
 la Tour), le Gnoll, l'Augure vautour, la Manticore, la Chimère, la Wyverne, le Centaure orc (trop proche des Nomades).
-Le Dragon rouge reste neutre (peut-être le niveau 7 des Nains, à moins du Phénix).
+Le Dragon rouge reste neutre (les Nains gardent la Machine de guerre au niveau 7 : choix de l'utilisateur, 2026-11-11).
 Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images
 (les créatures : session images ; ✅ la ville sur la carte, 2026-11-11, branche `villes-carte` : une forteresse sombre
 creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objects/town-donjon.png`, luminosité 60).
@@ -719,8 +805,14 @@ choix de l'utilisateur) :
 - **Des lieux** (pour 40 × 30 cases, plus sur une grande carte) : 4 **autels** (+1 attaque, défense, puissance ou savoir,
   une fois par héros), 2 **cabanes du sage** (un sort des niveaux 1 et 2), une **roue à eau** (500 or par semaine) et un
   **moulin** (2 d'une ressource rare par semaine), une **tour d'observation** (dévoile 20 cases autour) ; **42 tas** au
-  lieu de 28. Sauvegarde version 5. Images : dessins par formes en attendant la session images (`objects/shrine-attack`,
-  `-defense`, `-power`, `-knowledge`, `sage`, `water-wheel`, `windmill`, `tower`). Tests : `CarteObjetsTests`.
+  lieu de 28. Sauvegarde version 5. Tests : `CarteObjetsTests`.
+  ✅ **Leurs images, et les lieux hauts sur 2 cases** (2026-11-12, branche `lieux-carte`, choix de l'utilisateur, comme
+  Heroes 2 et 3 où les lieux sont plus grands qu'une case) : la cabane du sage, le moulin, la roue à eau, la tour
+  d'observation et le temple occupent leur porte (où le héros entre) et la case au-dessus, qui bloque (`TallSite`) ; leur
+  image de 64 pixels d'art de large déborde d'une demi-case de chaque côté, où le générateur ne pose rien. Les autels et
+  le cercle des fées restent sur une case (32 pixels). Sauvegarde version 7 (les lieux d'avant gardent une case).
+  Images PixelLab (`objects/shrine-*`, `sage`, `water-wheel`, `windmill`, `tower`, `temple`, `fairy-ring`) ; le moulin et
+  la roue ne tournent plus (une animation, plus tard peut-être).
 - Mesuré (`Mesures`) : la simulation gagne toujours (petites cartes jour 88, normales 86, grandes 154) ; un adversaire
   après six semaines : Facile 17 200, Normal 16 800, Difficile 22 900 en or d'armée.
 - **Plus tard** : des **cavernes** où l'on apprend un talent (avec les classes) ou trouve un artefact.
@@ -785,7 +877,12 @@ croissance, prix, garde.
   l'utilisateur (rides de vent, traînées de points, fissures, touffes, cailloux de couleurs mêlées, en taches irrégulières
   aux couleurs nuancées), grès, grosses souches et troncs blanchis, arbustes, buissons épineux, palmiers. Reste : le
   marais (même recette), peut-être des rochers dans les collines et quelques nuages. Détail dans `HISTORIQUE.md`.
-- Le héros sur la carte et au combat ; cadres des portraits, bandeau de la date. (Icônes des ressources : faites,
+- Le héros sur la carte et au combat ; cadres des portraits, bandeau de la date. ✅ **Le héros du Château sur la
+  carte** (2026-11-14, branche `heros-carte`, choix de l'utilisateur) : une image par faction, 48 × 48, gauche et droite,
+  une marche de 8 images avec un rebond, un pas de 3 cases par seconde avec un élan par case. Reste : les 7 autres
+  factions, la marche dans les **8 directions** (essayer d'abord sur le chevalier), une image de combat par héros.
+  **À faire avant (très important pour l'utilisateur, 2026-11-14) : les diagonales partout sur la carte** (routes,
+  rives, bords des montagnes et des forêts, murs entre zones : des lignes à 45° plutôt que des escaliers de cases). (Icônes des ressources : faites,
   2026-11-07.)
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix
@@ -797,7 +894,7 @@ croissance, prix, garde.
     avec `--ground=`. Plus tard : **un style de sol par zone de faction** (comme Heroes 3 : herbe fleurie pour le Château,
     herbe sèche et rocailleuse pour les Barbares, herbe morte pour les morts-vivants…) ; le générateur sait déjà la zone
     et la faction de chaque ville (session règles).
-  - le **héros** de la carte, plus tard.
+  - le **héros** de la carte : voir plus haut.
   Fait (2026-11-08) : ✅ les **villes sur 5 × 4 cases** (160 × 128, PixelLab « Pro » d'un seul coup, vues de face : bien
   meilleur que l'assemblage de pièces ; l'empreinte et le drapeau viennent de l'autre session, PR #76 et #77), ✅ la
   mine de soufre (entrée plus grande), ✅ le squelette et le colosse d'os (PixelLab « Pro », l'image de combat comme

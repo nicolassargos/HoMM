@@ -94,6 +94,16 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   **pas seulement des humains** (squelette, orc, nain, elfe, gnome, barbare vraiment sauvage), **l'allure des jeux
   des années 80-90** avec des **fonds simples et dramatiques** (un ciel de feu, une lune, une lueur verte), pas
   seulement de belles images. Ses préférés : Comte Morvan, Mortimer, Tarka, Ulrik.
+  **Les héros nains, à la Heroes 2** (2026-11-12, choix de l'utilisateur, 5,4 $ en quatre essais) : regarder d'abord la
+  planche des portraits de Heroes 2 (`HoMM-images/art-candidats/references/heroes1-2/heroes 2/`). Écartés : des visages
+  réalistes ; puis la « panoplie du nain » (lunettes, casque à lanterne, barbe fourchue, cache-œil, graisse : trop
+  cliché) ; puis des visages de face sans traits de nain (on ne voyait plus des nains) ; **pas de femmes à barbe**.
+  Ce qui marche (`@h2n`, `@h2f` dans `assets.json`) : la fin « 1996 hand-painted VGA fantasy strategy game hero
+  portrait, head and shoulders filling the whole frame, face straight towards the viewer… detailed bright painted
+  landscape background » ; pour un nain, « very wide square face, large broad nose, deep-set eyes under heavy brows,
+  ruddy cheeks, thick neck, massive broad shoulders » et une longue barbe ; pour une naine, sans barbe, c'est la
+  carrure et l'armure qui la disent naine : « stout heavyset dwarf woman warrior, short and very broad, round heavy
+  face… huge armoured shoulders, smooth bare chin », un casque, des tresses épaisses à anneaux de métal.
 - **Petites images des créatures (24 × 24, la carte)** : ne jamais réduire une image de combat (bouillie), même en la
   donnant à Retro Diffusion comme image de départ. Pour qu'elle ressemble à l'image de combat : PixelLab `pro` à
   24 × 24, l'image de combat comme sujet, la petite image du Gobelin (`godot/art/creatures/gobelin.png`) comme style
@@ -311,6 +321,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Luminosité des villes (2026-11-11)** : mesurée par `luminosite.py mesure` (Château 125, Forêt 77, Barbares 74,
   morts-vivants 45) ; la Tour (156, trop claire) ramenée à 125 par une courbe. Éclaircir la Forêt et les Barbares (même
   en gardant les sombres) a été refusé par l'utilisateur.
+- **Ville des Nains (2026-11-12)** : les mots de la Tour dans la description du premier lot (« shaded with several light
+  and dark tones like the reference castle, lit from the upper left, a thin consistent outline… ») donnent d'emblée des
+  villes lisibles, sans retouche d'ombrage. Pour comparer des retouches, les poser une à une en
+  `objects/town-<faction>.png` et capturer le départ (`--seed=42 --faction=<faction>`) : la ville de départ est à
+  l'écran ; retirer l'image d'essai ensuite. Une retouche « plus de couleurs » (bannières, cuivre, runes d'or) marche
+  (0,08 $) mais assombrit l'image (98 → 64).
 - **Ville barbare (2026-11-09)** : une image trop détaillée (« croustillante ») s'adoucit en ajoutant « simple clean
   shapes, smooth soft shading, few small details, not noisy, not grainy » et en prenant `objects/town.png` comme style ;
   le contour noir épais des villes de PixelLab s'adoucit avec `adoucir.py` (0,7, 60, 2 passes : le bord prend une teinte
@@ -332,8 +348,29 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   la cabane choisie (« add a second, lower room… ; remove the sand and ground… », 0,08 $) ; « pro » à 48 × 48 (25 cabanes
   pour 0,08 $, avec la cabane comme style et un modèle) en donnait aussi de bonnes. La cabane (42 × 42) est à l'échelle des
   autres bâtiments de mine (38 × 32 à 52 × 51) ; sa porte n'est pas au milieu : l'assemblage la pose au-dessus du chemin.
+- **Lieux de la carte (2026-11-12)** : PixelLab « pro » à 64 × 64 (16 candidats pour 0,08 $ par lieu), la mine d'or comme
+  style, « one small object alone on a transparent background, seen from the front and slightly from above… no grass
+  patch, no ground base, no shadow » : des lieux nets, sans socle, au style des mines. **Montrer les candidats à leur
+  taille de jeu** (un pixel d'image = 2 pixels de l'écran) : à ×1, ils paraissaient plus fins que le reste et
+  l'utilisateur les a crus d'un autre style. Un lieu d'une case : l'image réduite de moitié (32 × 32) ; un lieu haut
+  (2 cases) : l'image de 64 × 64 telle quelle. Recadrer chaque image sur son dessin avant de l'installer (le jeu pose le
+  bas de l'image sur le bas de la case : des rangées vides dessous le feraient flotter). `--center=windmill` (sage,
+  temple…) centre la capture sur un lieu.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
+
+## Héros de la carte (48 × 48, 2026-11-14)
+- **Générer à la taille du jeu** (« pro » à 48, 25 candidats pour 0,08 $) avec une image choisie comme style : plus
+  lisible que réduire une image de 96 (les petits détails deviennent du bruit). Ce qui rend lisible : « bold simple
+  silhouette, large flat areas of colour, few colours, strong contrast, dark outline all around, very few small
+  details ». De profil (« side view, four visible legs »), les chevaliers étaient lisibles mais l'utilisateur préférait
+  le cheval caparaçonné de trois quarts.
+- **La marche** : `pixellab.py animer` (8 images, la 1re est l'image fixe) ; `--enrichir` a donné la meilleure.
+  Vérifier que le dessin touche le sol à chaque image (sinon il glisse) ; un rebond d'un pixel du haut du dessin (les
+  jambes encaissent) quand un sabot se pose. Le mouvement sur la carte n'est pas régulier : un élan par case
+  (page à curseurs `en-cours/heros-elan.html` pour régler vitesse, élan et moment avec l'utilisateur).
+- Montrer une marche **jouée**, à la taille et à la vitesse du jeu, sur place et en avançant sur l'herbe : la planche
+  d'images ne permet pas de juger les jambes.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans
@@ -376,6 +413,61 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   commencer 62 ; fuir refait (« de profil, vers la gauche, tête basse de honte » : n° 4 ; le premier lot, vu de dos,
   ressemblait à des cosmonautes). Le jeu les **incruste** dans la pierre du bouton (`BattleScreen.Engrave` : un creux
   autour de l'argent, l'ombre en haut à gauche, la lumière en bas à droite, contrastes doux).
+- **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
+  guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
+  pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,
+  le sujet flotte sur du transparent), sans image de style, 64 candidats par sort, 0,08 $ le lot (vérifié au solde :
+  0,27 $ pour trois). Début de la description, le même pour tous les sorts : « tiny square spell icon for a 1990s
+  fantasy strategy game, a small painted scene filling the whole square edge to edge, rich saturated colours, soft
+  painterly shading, crisp clean pixel art, readable at small size, no text, no border, no frame: » puis le sujet et le
+  fond (« a blazing orange and yellow fireball bursting with flames and sparks, against a deep red and black
+  background »). Page de choix : chaque candidat ×2 sur le parchemin du livre, avec le nom et le coût du sort.
+  Choisis : Boule de feu 50 (une comète de feu), Bénédiction 45 (une épée dans des rayons d'or, ciel bleu), Éclair 8
+  (un éclair fourchu sous les nuages, nuit bleue).
+  **Les 15 autres** (2026-11-14) : même recette, 15 lots lancés ensemble (5 à la fois), 0,08 $ chacun. Choix sur une
+  **page où l'on ne fait que cliquer** (demandé par l'utilisateur : ne rien recopier à la main) : une rangée de 64
+  icônes ×2 par sort, le choisi montré dans une case du livre, « Aucun ne va » et un commentaire ; chaque clic est
+  envoyé à `tools/art/revue.py serveur` (toute page nommée `revue-<nom>.html` qui envoie `{page, items}`), qui écrit
+  `en-cours/revue-<nom>.json`, lu ensuite par Claude. Choisis : Flèche magique 14 (flèche violette), Malédiction 54
+  (crâne dans une fumée verte), Soif de sang 37 (lame sanglante), Hâte 20 (bottes ailées), Lenteur 5 (escargot),
+  Soins 21 (mains et croix de lumière), Bouclier contre les tirs 13, Faiblesse 6 (épée brisée), Aveuglement 39 (yeux
+  bandés), Téléportation 13 (portail bleu), Dissipation 3 (éclat blanc), Résurrection 22 (ankh d'or à l'aube), Pluie
+  de météores 24, Chaîne d'éclairs 45. Peau de pierre refaite à la demande de l'utilisateur : « a warrior seen from
+  behind, his back and shoulders slowly turning into grey cracked stone » (choisi le 31 ; le poing qui devient pierre
+  écarté).
+- **Le lutrin et son livre fermé** (2026-11-12, `art/ui/lutrin.png`, 160 × 168, ×2, posé en bas au milieu de
+  `LecternView`) : PixelLab « pro », 4 candidats, l'image de la ville (`town.png`) comme style, vus de trois quarts d'en
+  haut, un livre rouge foncé aux ferrures d'or ; 0,17 $ le lot (0,115 $ annoncé). Choisi : le 3, un socle rond et massif
+  de bois sculpté. Écartés par l'utilisateur : un lutrin vu de face, et un zoom du livre du lutrin vers le livre ouvert
+  (essayé) : le clic ouvre le livre au milieu de l'écran, sans transition.
+- **Le livre ouvert** (2026-11-12, `art/ui/livre-ouvert.png`, 480 × 288, ×2, sous les sorts que le jeu écrit) : trop
+  grand pour « pro » (170 px au plus). `ui` avec un dessin de la disposition comme modèle : le livre sort petit (165 px)
+  au milieu d'une image vide, inutilisable. Ce qui marche : **`retoucher` sur un dessin de la disposition** (la
+  couverture de 8 px, les deux pages, le dos, la tranche ; fait en Python), qui garde la taille et les proportions,
+  **avec `--fond`** (sans elle, les pages blanches deviennent transparentes) et en demandant une couverture fine et
+  un dos étroit (sinon 24 et 36 px). 0,15 $ annoncé, environ 0,15 à 0,23 $ au solde. Quelques pixels blancs restés
+  du modèle sur les bords, rendus transparents.
+- **L'étude** (2026-11-12, `art/ui/scenes/etude.png`, 504 × 296, ×2, le fond de l'onglet Magie) : même recette
+  (`retoucher --fond` sur un dessin de la disposition : mur, sol aux 72 % de la hauteur, fenêtre à gauche, étagère à
+  droite, bougie sur une table, le milieu vide pour le lutrin) ; « cozy medieval wizard study at night… the middle of
+  the room left empty and uncluttered, keep the exact same layout and proportions ». Réussie du premier coup, 0,15 $.
+  **Puis refaite avec le lutrin dedans** (choix de l'utilisateur) : le lutrin généré à part n'avait ni le point de vue
+  ni la lumière de la pièce. Recette : coller le lutrin choisi (`art/ui/lutrin.png`) dans l'image de la scène, à sa place
+  dans le jeu (en bas au milieu, 6 pixels au-dessus du bord), puis `retoucher --fond` : « one single consistent point
+  of view and one single warm candle lighting for the whole scene, the lectern lit and shaded like the rest of the room
+  and standing firmly on the floor with a soft shadow; fill the room with more details: a rug, a desk with scrolls,
+  potions and a quill, a globe, a small cauldron, hanging dried herbs, piles of books, a few more candles; keep … the
+  lectern in the middle at the same place and size ». Deux essais (0,15 $ chacun) ; choisi le A (moins de bougies). Le
+  jeu ne dessine plus le lutrin sur une scène qui a son image (`LecternView.ShowImage`) : la lueur, les étincelles et le
+  clic seulement. **À refaire ainsi pour chaque académie.**
+- **L'académie du Château** (2026-11-13, `art/ui/scenes/academie-chateau.png`, 480 × 232) : même recette. Écartées par
+  l'utilisateur : deux grandes salles vues de face (« la perspective ne marche pas » : un mur plat de face ne va pas
+  avec le lutrin vu de trois quarts et d'un peu au-dessus). Réussi : **une petite pièce fermée**, vue d'un peu au-dessus
+  comme le lutrin ; le dessin de départ a un mur rond (son pied descend vers les côtés), un sol de planches en rayons,
+  un tapis rond, deux fenêtres étroites, une bannière derrière le lutrin, des étagères sur les côtés ; « small cozy
+  round room at the top of a stone castle tower… seen from slightly above… one single consistent point of view matching
+  the lectern… ». Deux essais (graines 11 et 29, 0,15 $ chacun) ; choisi le 29 (une pièce sous un toit en pente, plus
+  riche). Pour les autres académies : de petites pièces de ce genre.
 - **Icônes du panneau de la carte** (2026-11-09, même méthode, l'engrenage choisi comme image de style) : suivant 56
   (heaume et flèche), avancer 3 (botte), centrer 15 (cible), royaume 8 (couronne), creuser 48 (pelle), trésor 60 (carte
   roulée) ; Sorts et Options reprennent le livre et l'engrenage du combat. Le code commun : `IconButtons.cs`.

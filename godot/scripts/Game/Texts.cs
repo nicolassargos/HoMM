@@ -969,6 +969,12 @@ public static class Texts
         Ability.HeatAura => "aura de chaleur (brûle les ennemis voisins)",
         Ability.Feeds => "se nourrit des morts de l'Enfer (+1 attaque)",
         Ability.Summons => "invoque des diablotins (une fois par combat)",
+        Ability.Stubborn => "obstiné (20 % de dégâts en moins tant qu'il n'a pas bougé dans le round)",
+        Ability.ShieldWall => "mur de boucliers (les tireurs amis voisins prennent moitié des dégâts des tirs)",
+        Ability.Piercing => "carreaux perçants (ignorent 30 % de la défense)",
+        Ability.SureFooted => "pied sûr (riposte avant le coup, rien ne le déplace)",
+        Ability.Banner => "bannière (+2 défense aux troupes amies voisines)",
+        Ability.Blast => "explosion (touche aussi les ennemis autour de la cible)",
         _ => ability,
     };
 
@@ -1295,6 +1301,7 @@ public static class Texts
         Talents.Scholar => $"Talent : érudit (+{Talents.ScholarPercentPerLevel} % de force des sorts par niveau)",
         Talents.Pact => $"Talent : pacte (le prix du sang peut rendre {Talents.PactPerLevel} point de sort de plus par niveau dans un combat)",
         Talents.Dread => $"Talent : effroi (l'armée ennemie commence le combat à −1 de moral, −1 de plus tous les {Talents.DreadLevels} niveaux)",
+        Talents.Obstinacy => $"Talent : obstination (les troupes qui n'ont pas bougé prennent {Talents.ObstinacyPerLevel:P0} de dégâts en moins de plus par niveau)",
         _ => null,
     };
 
@@ -1321,7 +1328,9 @@ public static class Texts
         "Un héros qui entre dans la ville apprend tous les sorts de la guilde et retrouve tous ses points de sort.";
     public static string GuildLevel(int level) => $"Niveau {level}";
     public static string GuildLevelMissing => "pas encore construit";
-    public static string SpellKnown => "connu";
+
+    /// <summary>La ligne sous le grimoire de la guilde.</summary>
+    public static string GuildNotice(Town town) => $"{GuildTitle(town)} · {(town.MageGuildLevel > 0 ? GuildText : NoGuild)}";
     public static string NoGuild => "Cette ville n'a pas encore de guilde des mages.";
     /// <summary>« 5 points » : ce que coûte le sort, à ce héros s'il est donné (son école de magie le rend moins cher).</summary>
     public static string SpellCost(SpellType spell, Hero? hero = null) => $"{hero?.SpellCost(spell) ?? spell.Cost} points";
@@ -1420,6 +1429,38 @@ public static class Texts
     public static string SpellBookTooltip => "Livre de sorts du héros";
     public static string NotEnoughSpellPoints => "pas assez de points";
     public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";
+    public static string NoSpellOfSchool => "Aucun sort de cette école.";
+    public static string OpenSpellBookHint => "Ouvrir le livre de sorts";
+    public static string OpenGuildBookHint => "Ouvrir le grimoire de la guilde";
+    public static string SpellsKnownCount(int count) => count switch
+    {
+        0 => "Aucun sort dans le livre",
+        1 => "1 sort dans le livre",
+        _ => $"{count} sorts dans le livre",
+    };
+    public static string PreviousPage => "Page précédente";
+    public static string NextPage => "Page suivante";
+
+    /// <summary>L'info-bulle d'un onglet du livre de sorts.</summary>
+    public static string SchoolTabTooltip(string? school) =>
+        school == null ? "Tous les sorts" : $"Les sorts {SchoolName(school)}";
+
+    /// <summary>Le nom d'un onglet du livre de sorts : une école, ou tous les sorts (null).</summary>
+    public static string SchoolTab(string? school) => school switch
+    {
+        null => "Tous",
+        "eau" => "Eau",
+        "feu" => "Feu",
+        "terre" => "Terre",
+        "air" => "Air",
+        _ => school,
+    };
+
+    /// <summary>Le détail d'un sort au survol, dans le livre : son nom, son niveau et son école, son coût, ce qu'il fait.</summary>
+    public static string SpellTooltip(SpellType spell, Hero hero, int points) =>
+        $"{spell.Name} · niveau {spell.Level}{(spell.School is { } school ? $" · école {SchoolName(school)}" : "")}\n"
+        + $"{SpellCost(spell, hero)}{(hero.SpellCost(spell) > points ? $" · {NotEnoughSpellPoints}" : "")}\n"
+        + SpellEffectText(spell, hero);
     public static string SpellTargetPrompt(SpellType spell) => spell.Target switch
     {
         SpellTarget.Any => $"{spell.Name} : choisissez une troupe (clic droit ou Échap : annuler).",

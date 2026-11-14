@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 using HoMM.Core;
 using static HoMM.Game.Ui;
@@ -6,65 +7,66 @@ using static HoMM.Game.Ui;
 namespace HoMM.Game;
 
 /// <summary>
-/// Le livre de sorts d'un héros (étape 9) : ses points de sort, puis chaque sort (un bouton à son nom, ses points et ce
-/// qu'il fait, d'après la puissance du héros), sur deux colonnes s'il y en a beaucoup. Au combat, un clic sur un sort
-/// qu'on peut lancer le choisit ; sinon (sur la carte, ou quand on ne peut pas lancer), le livre se lit seulement, et
-/// <paramref name="notice"/> dit pourquoi. En attendant le vrai livre, une page par niveau (étape 10).
+/// Le livre de sorts (étape 9) : le livre ouvert (<see cref="SpellBookView"/>) posé sur l'écran assombri, sans cadre de
+/// fenêtre ; dessous, une ligne (pourquoi on ne peut pas lancer de sort, ou ce que fait la guilde) et « Fermer ». Le livre
+/// d'un héros : au combat, un clic sur un sort qu'on peut lancer le choisit ; sinon, il se lit seulement. Le grimoire d'une
+/// guilde des mages : ses sorts par niveau, ceux que le héros en visite connaît déjà marqués (<see cref="ForGuild"/>).
 /// </summary>
 public partial class SpellBookWindow : GameDialog
 {
     public SpellBookWindow() { } // pour Godot
 
+    /// <summary>Le livre d'un héros.</summary>
     /// <param name="points">Les points de sort qui restent (au combat, ceux du combat).</param>
     /// <param name="canCast">Ce sort peut-il être lancé maintenant ? (null : jamais, le livre se lit seulement)</param>
     /// <param name="chosen">Appelé avec le sort choisi (la fenêtre se ferme).</param>
     public SpellBookWindow(Hero hero, int points, Func<SpellType, bool>? canCast = null, string? notice = null,
         Action<SpellType>? chosen = null)
+        : this(new SpellBookView.Content(hero.Spells.ToList(), hero, points), notice, canCast, chosen)
     {
-        Title = Texts.SpellBookTitle(hero);
-        OkButtonText = Texts.CloseButton;
-        var list = new VBoxContainer();
-        list.AddThemeConstantOverride("separation", (int)Px(6));
-        list.AddChild(MakeLabel(Texts.SpellPointsLine(points, hero.MaxSpellPoints), 15, TextColor));
-        if (notice != null)
-            list.AddChild(MakeLabel(notice, 13, SoftTextColor));
-        if (hero.Spells.Count == 0)
-            list.AddChild(MakeLabel(Texts.NoSpellsKnown, 13, SoftTextColor));
-        var grid = new GridContainer { Columns = hero.Spells.Count > 8 ? 2 : 1 };
-        grid.AddThemeConstantOverride("h_separation", (int)Px(24));
-        grid.AddThemeConstantOverride("v_separation", (int)Px(6));
-        list.AddChild(grid);
-        foreach (var spell in hero.Spells)
-        {
-            var row = new HBoxContainer();
-            row.AddThemeConstantOverride("separation", (int)Px(10));
-            bool castable = canCast?.Invoke(spell) == true;
-            var button = FixedButton(spell.Name, 14, new Vector2(Px(206), ButtonHeight)); // aussi sa taille dans une rangée
-            button.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-            button.Disabled = !castable;
-            button.Pressed += () =>
-            {
-                Hide();
-                QueueFree();
-                chosen?.Invoke(spell);
-            };
-            row.AddChild(button);
-            string cost = hero.SpellCost(spell) > points ? $"{Texts.SpellCost(spell, hero)} · {Texts.NotEnoughSpellPoints}" : Texts.SpellCost(spell, hero);
-            var text = MakeLabel($"{cost}\n{Texts.SpellEffectText(spell, hero)}", 12, SoftTextColor);
-            text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            text.CustomMinimumSize = V(330, 0);
-            text.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-            row.AddChild(text);
-            grid.AddChild(row);
-        }
-        AddChild(list);
-        Confirmed += QueueFree;
-        Canceled += QueueFree;
-        _width = Px(grid.Columns == 2 ? 1120 : 580);
     }
 
-    private readonly float _width;
+    private SpellBookWindow(SpellBookView.Content content, string? notice, Func<SpellType, bool>? canCast, Action<SpellType>? chosen)
+    {
+        OkButtonText = Texts.CloseButton;
+        // pas de cadre ni de titre : le livre est la fenêtre (une fenêtre de Godot a sinon un fond gris et « Alert! »)
+        Title = "";
+        Transparent = TransparentBg = true;
+        AddThemeStyleboxOverride("panel", new StyleBoxEmpty());
+        var column = new VBoxContainer();
+        column.AddThemeConstantOverride("separation", (int)ArtPx(4));
+        column.AddChild(new SpellBookView(content, canCast, spell =>
+        {
+            Hide();
+            QueueFree();
+            chosen?.Invoke(spell);
+        }));
+        if (notice != null)
+        {
+            var text = MakeLabel(notice, 13, TextColor);
+            text.HorizontalAlignment = HorizontalAlignment.Center;
+            text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            text.CustomMinimumSize = new Vector2(SpellBookView.TotalSize.X - Px(24), 0);
+            // sur une plaque sombre : derrière, l'écran assombri a ses propres textes
+            var plate = new PanelContainer();
+            plate.AddThemeStyleboxOverride("panel", Plate(DarkPanelColor));
+            plate.AddChild(text);
+            column.AddChild(plate);
+        }
+        AddChild(column);
+        Confirmed += QueueFree;
+        Canceled += QueueFree;
+    }
+
+    /// <summary>
+    /// Le grimoire de la guilde des mages d'une ville : tous ses niveaux (un niveau pas encore construit le dit), ses sorts ;
+    /// <paramref name="visitor"/> (le héros en visite) : ses coûts, et les sorts qu'il connaît déjà marqués.
+    /// </summary>
+    public static SpellBookWindow ForGuild(Town town, Hero? visitor) =>
+        new(new SpellBookView.Content(town.GuildSpells.ToList(), visitor, null,
+                Enumerable.Range(1, Town.GuildSpellsPerLevel.Length).ToList(), level => level <= town.MageGuildLevel, MarkKnown: true),
+            Texts.GuildNotice(town), null, null);
 
     /// <summary>Montre le livre au milieu de l'écran (après l'avoir ajouté à l'arbre).</summary>
-    public void Open() => PopupCentered(new Vector2I((int)_width, 0));
+    public void Open() => PopupCentered(new Vector2I((int)SpellBookView.TotalSize.X, 0));
 }

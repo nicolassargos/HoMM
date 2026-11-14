@@ -98,6 +98,9 @@ public sealed class BattleEffects
         /// <summary>Le fouisseur qui l'a creusé (son tirage), et le chemin qu'il avait parcouru.</summary>
         public int Trail;
         public float Travelled;
+        /// <summary>Sa largeur (1 : la galerie ; plus : le tas de terre où il plonge et d'où il ressort), et le temps qu'il met à monter.</summary>
+        public float Scale = 1;
+        public double GrowTime = 0.15;
     }
 
     private readonly List<Rut> _ruts = new();
@@ -173,7 +176,8 @@ public sealed class BattleEffects
         {
             b = new Digger { At = ground, Last = ground, Seed = ++_seed };
             _burrowers[who] = b;
-            _ruts.Add(new Rut { At = ground + TrailLift, Trail = b.Seed });
+            // le tas de terre où il plonge : il monte pendant qu'il s'enfonce, autour de ses gravats
+            AddHeap(b, ground, 0.6);
             Burst(ground);
         }
         float moved = ground.DistanceTo(b.At);
@@ -213,8 +217,23 @@ public sealed class BattleEffects
     /// <summary>Le fouisseur ne creuse plus (il ressort du sol) : une gerbe de terre, puis son sillon s'efface tout seul.</summary>
     public void EndBurrow(object who)
     {
-        if (_burrowers.Remove(who, out var b))
-            Burst(b.At);
+        if (!_burrowers.Remove(who, out var b))
+            return;
+        // la galerie va jusqu'à lui, puis le tas de terre d'où il ressort
+        _ruts.Add(new Rut { At = b.At + TrailLift, Trail = b.Seed, Travelled = b.Travelled });
+        AddHeap(b, b.At, 0.15);
+        Burst(b.At);
+    }
+
+    /// <summary>Un tas de terre au bout de la galerie, plus large qu'elle, posé autour des gravats du fouisseur.</summary>
+    private void AddHeap(Digger b, Vector2 ground, double growTime)
+    {
+        foreach (float side in new[] { -1f, 1f })
+            _ruts.Add(new Rut
+            {
+                At = ground + TrailLift + new Vector2(side * 4 * U, 0), Trail = b.Seed, Travelled = b.Travelled + side * 4 * U,
+                Scale = 1.5f, GrowTime = growTime,
+            });
     }
 
     /// <summary>Durée d'un éclair à l'écran (il touche presque aussitôt, puis s'éteint).</summary>
@@ -407,7 +426,7 @@ public sealed class BattleEffects
         if (trail.Count < 2)
             return;
         int seed = trail[0].Trail;
-        float reach = 19 * U;
+        float reach = 23 * U * trail.Max(r => r.Scale);
         float minX = trail.Min(r => r.At.X) - reach, maxX = trail.Max(r => r.At.X) + reach;
         float minY = trail.Min(r => r.At.Y) - reach, maxY = trail.Max(r => r.At.Y) + reach;
         int x0 = (int)MathF.Floor(minX / Pixel), y0 = (int)MathF.Floor(minY / Pixel);
@@ -421,8 +440,9 @@ public sealed class BattleEffects
             for (int gx = 0; gx < width; gx++)
             {
                 var p = new Vector2((x0 + gx + 0.5f) * Pixel, (y0 + gy + 0.5f) * Pixel);
-                // le point du chemin le plus proche ; vu de biais, le sol est écrasé de moitié en hauteur
-                float best = float.MaxValue, half = 0, grow = 0, fade = 0;
+                // le morceau du chemin qui couvre le plus ce point (le tas, plus large, l'emporte sur la galerie qui en
+                // part) ; vu de biais, le sol est écrasé de moitié en hauteur
+                float ratio = float.MaxValue, half = 0, grow = 0, fade = 0, scale = 1;
                 for (int k = 0; k + 1 < trail.Count; k++)
                 {
                     Rut r0 = trail[k], r1 = trail[k + 1];
@@ -431,15 +451,18 @@ public sealed class BattleEffects
                     float t = len2 < 0.01f ? 0 : Math.Clamp((p - r0.At).Dot(seg) / len2, 0, 1);
                     var d = p - (r0.At + seg * t);
                     float dist = new Vector2(d.X, d.Y * 2).Length();
-                    if (dist >= best)
-                        continue;
-                    best = dist;
-                    grow = Mathf.Lerp(Grow(r0), Grow(r1), t);
-                    fade = Mathf.Lerp(Fade(r0), Fade(r1), t);
+                    float g = Mathf.Lerp(Grow(r0), Grow(r1), t), s = Mathf.Lerp(r0.Scale, r1.Scale, t);
                     // la largeur change doucement : le bourrelet enfle et se resserre
                     float arc = (r0.Travelled + MathF.Sqrt(len2) * t) / (8 * Pixel);
                     float swell = Mathf.Lerp(Noise(seed, (int)arc), Noise(seed, (int)arc + 1), arc % 1);
-                    half = (11 + 6 * swell) * U * (0.5f + 0.5f * grow);
+                    float h = (11 + 6 * swell) * U * (0.5f + 0.5f * g) * s;
+                    if (dist / h >= ratio)
+                        continue;
+                    ratio = dist / h;
+                    half = h;
+                    grow = g;
+                    scale = s;
+                    fade = Mathf.Lerp(Fade(r0), Fade(r1), t);
                 }
                 // les mottes : chaque case de terre a sa bosse, de taille et de place inégales
                 int cx = (int)MathF.Floor(p.X / ClodCell), cy = (int)MathF.Floor(p.Y * 2 / ClodCell);
@@ -448,7 +471,6 @@ public sealed class BattleEffects
                 float r = new Vector2(p.X - clod.X, (p.Y - clod.Y) * 2).Length() / ClodCell;
                 // le bord est fait de mottes : il s'arrête là où la motte s'arrête
                 float edge = 0.8f + 0.35f * Noise(seed, cell + 2);
-                float ratio = half > 0 ? best / half : 2;
                 if (ratio >= edge)
                 {
                     // des miettes tombées sur l'herbe, le long des bords
@@ -460,9 +482,10 @@ public sealed class BattleEffects
                     }
                     continue;
                 }
-                float ridge = RidgeHeight * grow * MathF.Sqrt(Math.Max(0, 1 - ratio * ratio));
+                float ridge = RidgeHeight * scale * grow * MathF.Sqrt(Math.Max(0, 1 - ratio * ratio));
                 float bump = (0.5f + Noise(seed, cell + 3)) * 2 * Pixel * grow * Math.Max(0, 1 - r * r * 1.6f);
-                heights[gx, gy] = Math.Max(Pixel, ridge + bump);
+                // en s'effaçant, la terre retombe (sans quoi les mottes qui restent se dressent en piliers)
+                heights[gx, gy] = Math.Max(Pixel, (ridge + bump) * (0.3f + 0.7f * fade));
                 fades[gx, gy] = fade;
                 cells[gx, gy] = cell;
                 if (Noise(seed, cell + 11) < 0.07f)
@@ -529,7 +552,7 @@ public sealed class BattleEffects
     private static float Fade(Rut r) => (float)Math.Clamp(1 - (r.Age - RutTime) / RutFade, 0, 1);
 
     /// <summary>La terre monte vite quand le fouisseur passe dessous.</summary>
-    private static float Grow(Rut r) => (float)Math.Clamp(r.Age / 0.15, 0, 1);
+    private static float Grow(Rut r) => (float)Math.Clamp(r.Age / r.GrowTime, 0, 1);
 
     /// <summary>
     /// Le sol qui se fend devant le fouisseur, avant qu'il passe : des fissures posées le long de son chemin, qui s'ouvrent

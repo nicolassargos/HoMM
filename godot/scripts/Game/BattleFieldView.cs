@@ -166,17 +166,17 @@ public partial class BattleFieldView : Control
     /// <summary>Le camp du joueur : ses troupes ont la couleur bleue (le joueur attaqué se défend à droite).</summary>
     public BattleSide PlayerSide { get; set; } = BattleSide.Attacker;
 
-    private const int HeroScale = 4;
+    private const int HeroScale = 2; // comme tout le pixel art (×4 quand l'image de la carte faisait 32 pixels)
 
     /// <summary>Où est dessiné le héros de l'attaquant, à gauche de la grille (pour savoir si on clique dessus).</summary>
-    public Rect2 HeroRect => HeroRectAt(SideMargin / 2);
+    public Rect2 HeroRect => HeroRectAt(SideMargin / 2, AttackerHero);
 
     /// <summary>Où est dessiné le héros qui se défend, à droite de la grille.</summary>
-    public Rect2 DefenderHeroRect => HeroRectAt(FieldSize.X - SideMargin / 2);
+    public Rect2 DefenderHeroRect => HeroRectAt(FieldSize.X - SideMargin / 2, DefenderHero);
 
-    private static Rect2 HeroRectAt(float centerX)
+    private static Rect2 HeroRectAt(float centerX, Hero? hero)
     {
-        var size = (Art.Get("heroes/hero")?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
+        var size = (MapRenderer.HeroImage(hero)?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
         return new Rect2(new Vector2(centerX - size.X / 2, (FieldSize.Y + TopMargin) / 2 - size.Y / 2), size); // au milieu de la grille
     }
 
@@ -1789,9 +1789,9 @@ public partial class BattleFieldView : Control
 
         // les héros (leur image de la carte, à leurs couleurs, en attendant une image de combat) : l'attaquant à gauche,
         // celui qui se défend à droite, tourné vers la gauche
-        if (AttackerHero != null && MapRenderer.HeroImage(AttackerHero.Owner) is { } heroImage)
+        if (AttackerHero != null && MapRenderer.HeroImage(AttackerHero) is { } heroImage)
             DrawTextureRect(heroImage, HeroRect, false);
-        if (DefenderHero != null && MapRenderer.HeroImage(DefenderHero.Owner) is { } defenderImage)
+        if (DefenderHero != null && MapRenderer.HeroImage(DefenderHero) is { } defenderImage)
         {
             var rect = DefenderHeroRect;
             DrawSetTransform(new Vector2(rect.End.X, rect.Position.Y), 0, new Vector2(-1, 1));

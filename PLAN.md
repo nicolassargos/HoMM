@@ -852,7 +852,12 @@ croissance, prix, garde.
   l'utilisateur (rides de vent, traînées de points, fissures, touffes, cailloux de couleurs mêlées, en taches irrégulières
   aux couleurs nuancées), grès, grosses souches et troncs blanchis, arbustes, buissons épineux, palmiers. Reste : le
   marais (même recette), peut-être des rochers dans les collines et quelques nuages. Détail dans `HISTORIQUE.md`.
-- Le héros sur la carte et au combat ; cadres des portraits, bandeau de la date. (Icônes des ressources : faites,
+- Le héros sur la carte et au combat ; cadres des portraits, bandeau de la date. ✅ **Le héros du Château sur la
+  carte** (2026-11-14, branche `heros-carte`, choix de l'utilisateur) : une image par faction, 48 × 48, gauche et droite,
+  une marche de 8 images avec un rebond, un pas de 3 cases par seconde avec un élan par case. Reste : les 7 autres
+  factions, la marche dans les **8 directions** (essayer d'abord sur le chevalier), une image de combat par héros.
+  **À faire avant (très important pour l'utilisateur, 2026-11-14) : les diagonales partout sur la carte** (routes,
+  rives, bords des montagnes et des forêts, murs entre zones : des lignes à 45° plutôt que des escaliers de cases). (Icônes des ressources : faites,
   2026-11-07.)
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix
@@ -864,7 +869,7 @@ croissance, prix, garde.
     avec `--ground=`. Plus tard : **un style de sol par zone de faction** (comme Heroes 3 : herbe fleurie pour le Château,
     herbe sèche et rocailleuse pour les Barbares, herbe morte pour les morts-vivants…) ; le générateur sait déjà la zone
     et la faction de chaque ville (session règles).
-  - le **héros** de la carte, plus tard.
+  - le **héros** de la carte : voir plus haut.
   Fait (2026-11-08) : ✅ les **villes sur 5 × 4 cases** (160 × 128, PixelLab « Pro » d'un seul coup, vues de face : bien
   meilleur que l'assemblage de pièces ; l'empreinte et le drapeau viennent de l'autre session, PR #76 et #77), ✅ la
   mine de soufre (entrée plus grande), ✅ le squelette et le colosse d'os (PixelLab « Pro », l'image de combat comme

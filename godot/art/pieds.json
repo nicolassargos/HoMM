@@ -116,6 +116,8 @@
   "decor/pine": {"pieds": [[[10, 29], [13, 29]]], "verifie": true},
   "decor/pine-2": {"pieds": [[[10, 29], [13, 29]]], "verifie": true},
   "heroes/hero": {"pieds": [[[7, 27], [23, 27]]], "verifie": true},
+  "heroes/hero-chateau": {"pieds": [[[12, 44], [30, 45]]], "verifie": true, "etalement": 2, "opacite": 0.5},
+  "heroes/hero-chateau-move": {"pieds": [[[11, 42], [28, 41]], [[57, 41], [75, 40]], [[108, 41], [125, 41]], [[157, 42], [176, 42]], [[14, 91], [33, 90]], [[62, 90], [81, 91]], [[108, 91], [129, 92]], [[158, 92], [177, 93]]], "verifie": true, "etalement": 2, "opacite": 0.5},
   "objects/chest": {"pieds": [[[7, 21], [26, 21]]], "verifie": true},
   "objects/fairy-ring": {"pieds": [[[7, 28], [9, 28]], [[13, 30], [16, 30]], [[19, 12], [21, 12]], [[23, 33], [37, 28]], [[30, 13], [33, 9]]], "verifie": true},
   "objects/mine-crystal": {"pieds": [[[2, 20], [20, 21]], [[12, 58], [24, 58]], [[22, 37], [41, 38]], [[68, 58], [80, 58]], [[78, 19], [92, 19]], [[84, 40], [92, 40]], [[54, 38], [71, 35]]], "verifie": true},

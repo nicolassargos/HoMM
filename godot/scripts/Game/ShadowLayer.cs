@@ -117,8 +117,8 @@ public partial class ShadowLayer : Node2D
                 draw(ci, art.Image, art.Rect);
         foreach (var hero in State.AllHeroes)
         {
-            var at = Actors.ShownAt.TryGetValue(hero, out var shown) ? shown : hero.Position;
-            if (MapRenderer.HeroArt(hero.Owner, ActorLayer.ToPixels(at)) is { } art)
+            var (at, left, frame) = Actors.HeroPose(hero);
+            if (MapRenderer.HeroArt(hero, at, left, frame) is { } art)
                 draw(ci, art.Image, art.Rect);
         }
     }
@@ -314,7 +314,7 @@ public partial class ShadowLayer : Node2D
     public static Color ContactTint(Texture2D texture)
     {
         FeetOf(texture); // lit pieds.json la première fois
-        return Art.NameOf(texture) is { } name && Tints.TryGetValue(name, out var tint) ? tint : new Color(0, 0, 0, 1);
+        return Art.NameOf(texture) is { } name && Tints.TryGetValue(name.Replace(Art.MirrorSuffix, ""), out var tint) ? tint : new Color(0, 0, 0, 1);
     }
 
     /// <summary>Les pieds d'une image et son étalement, d'après godot/art/pieds.json (aucun pied si l'image n'y est pas).</summary>
@@ -343,7 +343,15 @@ public partial class ShadowLayer : Node2D
                         Tints[entry.Name] = new Color(color, opacity);
                     }
         }
-        return Art.NameOf(texture) is { } name && _feet.TryGetValue(name, out var feet) ? feet : (new(), DefaultSpread);
+        if (Art.NameOf(texture) is not { } name)
+            return (new(), DefaultSpread);
+        if (name.EndsWith(Art.MirrorSuffix) && _feet.TryGetValue(name[..^Art.MirrorSuffix.Length], out var source))
+        {
+            // une image retournée : ses pieds aussi (le pied gauche devient le droit)
+            int w = texture.GetWidth();
+            return (source.Feet.Select(f => ((w - 1 - f.Right.X, f.Right.Y), (w - 1 - f.Left.X, f.Left.Y))).ToList(), source.Spread);
+        }
+        return _feet.TryGetValue(name, out var feet) ? feet : (new(), DefaultSpread);
     }
 
     /// <summary>

@@ -359,6 +359,19 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 
+## Héros de la carte (48 × 48, 2026-11-14)
+- **Générer à la taille du jeu** (« pro » à 48, 25 candidats pour 0,08 $) avec une image choisie comme style : plus
+  lisible que réduire une image de 96 (les petits détails deviennent du bruit). Ce qui rend lisible : « bold simple
+  silhouette, large flat areas of colour, few colours, strong contrast, dark outline all around, very few small
+  details ». De profil (« side view, four visible legs »), les chevaliers étaient lisibles mais l'utilisateur préférait
+  le cheval caparaçonné de trois quarts.
+- **La marche** : `pixellab.py animer` (8 images, la 1re est l'image fixe) ; `--enrichir` a donné la meilleure.
+  Vérifier que le dessin touche le sol à chaque image (sinon il glisse) ; un rebond d'un pixel du haut du dessin (les
+  jambes encaissent) quand un sabot se pose. Le mouvement sur la carte n'est pas régulier : un élan par case
+  (page à curseurs `en-cours/heros-elan.html` pour régler vitesse, élan et moment avec l'utilisateur).
+- Montrer une marche **jouée**, à la taille et à la vitesse du jeu, sur place et en avançant sur l'herbe : la planche
+  d'images ne permet pas de juger les jambes.
+
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans
   la barre des ressources et le royaume ; `-grand.png` en 32 × 32 pour les fenêtres à venir) : PixelLab « Pro » à 32 × 32

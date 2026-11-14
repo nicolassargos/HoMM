@@ -1190,6 +1190,14 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
     les nombres des caractéristiques au bout de la ligne de leur nom, les cartes de recrutement (trois lignes de
     caractéristiques), la description d'un sort de la guilde sur deux lignes au plus (le reste au survol), la taverne
     et le champ du nom d'une sauvegarde, « Max » dans `Texts`.
+  - **Écran par écran** (branche `interface-ecrans`) : les listes des héros et des villes de la colonne de la carte comme
+    Heroes 2, des portraits sans nom, deux par rangée (six visibles au lieu de trois ; les flèches font défiler une
+    rangée), le détail au survol (points de sort ajoutés au héros, `Texts.TownDetails` pour la ville) ; à côté d'un
+    héros, deux barres qui se vident vers le bas (mouvement vert, points de sort bleus) ; à côté d'une ville, une marque
+    verte si l'on peut encore y construire. La fiche du héros plus aérée. Les cartes de recrutement : les textes dans
+    une colonne (`VBoxContainer`), les boutons calés en bas. Le choix de niveau et les barres du combat n'avaient plus
+    besoin de changer. Les images des villes de la liste restent un morceau de 64 pixels ×1 (×2, on n'en verrait que la
+    porte).
   - Gardé : les petites images de l'armée dans la colonne de la carte restent ×1 (choix de l'utilisateur du
     2026-11-08, entières plutôt que ×2 coupées), à revoir avec la colonne.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).

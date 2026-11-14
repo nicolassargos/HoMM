@@ -1145,6 +1145,11 @@ public sealed class MapGenerator
         // tient pas dans la zone préférée (5 × 4 cases), la suivante.
         int placed = 0;
         var used = new HashSet<Zone>();
+        // sur les îles et l'archipel, une ville au plus par île (choix de l'utilisateur, 2026-11-14) : celle d'un joueur a
+        // déjà son château
+        bool onePerIsland = Type is MapType.Islands or MapType.Archipelago;
+        var townIslands = new HashSet<int>(StartingTowns ? _map.Starts.Select(s => ZoneAt(s).Island) : Enumerable.Empty<int>());
+        bool IslandFree(Zone z) => !onePerIsland || !townIslands.Contains(z.Island);
         foreach (var start in _map.Starts)
         {
             bool Own(Zone z) => _map.Starts.All(other => other == start || SquaredDistance(z.Center, start) < SquaredDistance(z.Center, other));
@@ -1159,10 +1164,13 @@ public sealed class MapGenerator
                 {
                     if (done || placed == TownCount || placed == names.Count)
                         break;
+                    if (!IslandFree(zone))
+                        continue;
                     // seul, le joueur a sa ville au milieu de la zone voisine (comme avant les adversaires)
                     if (PlaceTownInZone(data, zone, names[placed], _map.Starts.Count == 1 ? zone.Center : start, ownOnly && _map.Starts.Count > 1))
                     {
                         used.Add(zone);
+                        townIslands.Add(zone.Island);
                         placed++;
                         done = true;
                     }
@@ -1175,8 +1183,11 @@ public sealed class MapGenerator
         {
             if (placed == TownCount || placed == names.Count)
                 break;
-            if (PlaceTownInZone(data, zone, names[placed]))
+            if (IslandFree(zone) && PlaceTownInZone(data, zone, names[placed]))
+            {
+                townIslands.Add(zone.Island);
                 placed++;
+            }
         }
     }
 
@@ -1878,7 +1889,10 @@ public sealed class MapGenerator
     /// cabanes du sage, moulins et roues à eau, autels.
     /// </summary>
     /// <summary>La distance au plus proche bord de la carte d'une tour d'observation, au moins (le quart de la carte au plus).</summary>
-    public const int TowerEdgeMargin = 10;
+    public const int TowerEdgeMargin = 15;
+
+    /// <summary>L'écart entre deux tours d'observation, au moins : chacune dévoile sa part de la carte.</summary>
+    public const int TowerSpacing = ObservationTower.Radius * 3 / 2;
 
     private void PlaceSites(List<Cell> free)
     {
@@ -1923,13 +1937,15 @@ public sealed class MapGenerator
             return false;
         }
 
-        // les tours d'observation loin des bords : près d'un bord, une bonne part de ce qu'elles dévoilent tomberait hors de
-        // la carte (choix de l'utilisateur, 2026-11-14)
+        // les tours d'observation loin des bords et loin l'une de l'autre : près d'un bord, une bonne part de ce qu'elles
+        // dévoilent tomberait hors de la carte ; proches, elles dévoileraient la même chose (choix de l'utilisateur,
+        // 2026-11-14). Celles qui ne trouvent pas de place ne sont pas posées (les autres lieux, si).
         int margin = Math.Min(TowerEdgeMargin, Math.Min(_map.Width, _map.Height) / 4);
-        bool Central(Cell c) => c.X >= margin && c.Y >= margin && c.X < _map.Width - margin && c.Y < _map.Height - margin;
+        bool Central(Cell c) => c.X >= margin && c.Y >= margin && c.X < _map.Width - margin && c.Y < _map.Height - margin
+            && _map.Objects.OfType<ObservationTower>().All(t => SquaredDistance(t.Position, c) >= TowerSpacing * TowerSpacing);
         for (int i = 0; i < Math.Max(1, Scaled(TowerCount)); i++)
             if (!Place(c => new ObservationTower(c), Central))
-                return;
+                break;
         var spells = _data?.Spells.All.Where(sp => sp.Level <= 2).OrderBy(sp => sp.Id).ToList() ?? new List<SpellType>();
         if (spells.Count > 0)
             for (int i = 0; i < Scaled(SageCount); i++)

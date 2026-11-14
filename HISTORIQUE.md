@@ -947,7 +947,11 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   semaines, `Adversaires_par_type_de_carte`) : continent 48 200 or d'armée, 2,7 villes ; des mers 44 100, 3,0 villes ;
   îles 29 800, 2,5 villes, 10 embarquements par partie ; archipel 28 900, 3,2 villes, 12 embarquements (moins de terre,
   donc moins de gardiens à battre et d'armée). Les cartes du continent ne changent pas (aucun tirage de plus). Tests :
-  `TypesCartesTests`, `MerTests`.
+  `TypesCartesTests`, `MerTests`. Puis, remarques de l'utilisateur : sur les îles et l'archipel, **une ville au plus par
+  île** (l'île d'un joueur n'a que son château ; sa ville voisine est sur une île proche) ; les **tours d'observation** à
+  15 cases des bords au moins (`TowerEdgeMargin`, le quart de la carte au plus) et à 30 cases l'une de l'autre
+  (`TowerSpacing`, une fois et demie ce qu'elles dévoilent) ; une tour sans place n'empêche plus les autres lieux. Les
+  cartes du continent changent un peu (les tours, puis les lieux posés après elles).
 - ✅ Les zones de la carte (2026-11-14, branche `carte-zones`, demandé par l'utilisateur) :
   - **Les passages entre les zones**, une option de la nouvelle partie (`ZoneAccess`, liste « Passages » à côté de la
     taille, normaux par défaut ; `--access=`) : ouverts (comme avant), normaux (le gardien de la sortie de la zone de

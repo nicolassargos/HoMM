@@ -128,6 +128,14 @@ public class TypesCartesTests(ITestOutputHelper output)
                 // et toutes les villes ne sont pas sur son île
                 Assert.Contains(towns, t => !onFoot.Contains(t.Position));
             }
+            // une ville au plus par île (choix de l'utilisateur) : d'aucune ville, on n'atteint une autre à pied
+            foreach (var town in towns)
+            {
+                var onFoot = Reach(map, town.Approach, sail: false, throughGuards: true);
+                Assert.All(towns.Where(t => t != town), other => Assert.False(onFoot.Contains(other.Position),
+                    $"{type}, graine {seed} : {town.Position} et {other.Position} sur la même île"));
+            }
+            Assert.True(towns.Count >= map.Starts.Count * 2, $"{type}, graine {seed} : {towns.Count} villes");
         }
     }
 

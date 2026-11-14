@@ -899,6 +899,9 @@ croissance, prix, garde.
   l'utilisateur, 2026-11-14) : « vaincre tous les monstres » est retiré (il n'a plus de sens sur ces grandes cartes) ; par
   défaut, **prendre toutes les villes**, comme Heroes 3 ; **les parties longues sont acceptées** (la simulation seule
   prend toutes les villes de la normale vers le jour 210).
+  Puis (2026-11-14, remarques de l'utilisateur) : ✅ les tours d'observation à 15 cases des bords et à 30 cases l'une de
+  l'autre. **À revoir ensemble** : des routes qui ne mènent nulle part ; un problème du moulin (à en parler) ; **des
+  rivières et des ponts**.
 - **La mer** (conçue avec l'utilisateur, 2026-11-14, comme Heroes 3) :
   - **Les bateaux** : un **chantier naval** (bâtiment des villes au bord de l'eau, et lieu sur les côtes de la carte) en
     construit un (or et bois), qui apparaît sur l'eau à côté ; et **quelques bateaux déjà amarrés** sur les côtes.
@@ -915,7 +918,7 @@ croissance, prix, garde.
     images) ; 2. ✅ les types de cartes (2026-11-14, branche `types-cartes` : liste « Carte » de la nouvelle partie,
     continent par défaut ; des mers, îles, archipel ; un chantier naval et un bateau amarré sur l'île de chaque joueur,
     après la sortie de sa zone de départ ; des villes au bord de la mer ; l'IA achète un bateau quand elle n'a plus rien
-    à faire à pied) ; 3. les objets de la mer ; 4. les images (session images). À voir en chemin : la compétence
+    à faire à pied ; sur les îles et l'archipel, une ville au plus par île, choix de l'utilisateur) ; 3. les objets de la mer ; 4. les images (session images). À voir en chemin : la compétence
     **Navigation** et les **combats en mer** (un pont de navire comme champ de bataille).
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix

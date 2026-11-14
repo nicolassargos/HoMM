@@ -246,6 +246,17 @@ public static class MapRenderer
                 DrawSite(ci, obj, c, time);
                 break;
 
+            case Boat:
+                DrawBoat(ci, c, time, null);
+                break;
+
+            case Shipyard:
+                // en attendant son image : une cabane de bois et un ponton vers l'eau
+                ci.DrawRect(new Rect2(c + V(-14, -10), 22, 18), Rgb(120, 80, 40));
+                Triangle(ci, c + V(-17, -10), c + V(-3, -22), c + V(11, -10), Rgb(150, 60, 40));
+                ci.DrawRect(new Rect2(c + V(8, 4), 18, 4), Rgb(150, 105, 55));
+                break;
+
             case Obelisk:
                 // une colonne de pierre avec une rune bleue
                 ci.DrawColoredPolygon(new[] { c + V(-5, -20), c + V(5, -20), c + V(8, 14), c + V(-8, 14) }, Rgb(130, 125, 120));
@@ -593,9 +604,26 @@ public static class MapRenderer
     /// Le héros sur la carte (son image, tournée et à l'image <paramref name="frame"/> de sa marche ; sans image, un
     /// cavalier très stylisé avec son étendard, aux couleurs de son joueur).
     /// </summary>
-    public static void DrawHero(CanvasItem ci, Vector2 c, double time, Hero hero, bool left = false, int frame = -1)
+    /// <summary>
+    /// Un bateau dessiné (en attendant son image) : une coque de bois, un mât, une voile (aux couleurs de son héros quand
+    /// il en porte un, <paramref name="sail"/>), qui tangue un peu.
+    /// </summary>
+    public static void DrawBoat(CanvasItem ci, Vector2 c, double time, Color? sail)
+    {
+        float roll = (int)(time * 2) % 2 == 0 ? 0 : 1; // il tangue
+        var hull = c + V(0, 6 + roll);
+        ci.DrawColoredPolygon(new[] { hull + V(-26, -4), hull + V(26, -4), hull + V(18, 8), hull + V(-18, 8) }, Rgb(110, 70, 35));
+        ci.DrawRect(new Rect2(hull + V(-26, -6), 52, 3), Rgb(150, 100, 50));
+        ci.DrawLine(hull + V(-2, -6), hull + V(-2, -40), Rgb(80, 50, 20), 2);
+        ci.DrawColoredPolygon(new[] { hull + V(-1, -38), hull + V(16, -24), hull + V(-1, -10) }, sail ?? Rgb(235, 228, 205));
+    }
+
+    /// <summary>Le héros sur la carte ; en mer (<paramref name="atSea"/>), sur son bateau.</summary>
+    public static void DrawHero(CanvasItem ci, Vector2 c, double time, Hero hero, bool left = false, int frame = -1, bool atSea = false)
     {
         var owner = hero.Owner;
+        if (atSea)
+            DrawBoat(ci, c, time, ColorOf(owner));
         if (HeroImage(hero, left, frame) is { } image)
         {
             DrawArt(ci, image, HeroArea(c));

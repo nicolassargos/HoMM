@@ -899,8 +899,22 @@ croissance, prix, garde.
   l'utilisateur, 2026-11-14) : « vaincre tous les monstres » est retiré (il n'a plus de sens sur ces grandes cartes) ; par
   défaut, **prendre toutes les villes**, comme Heroes 3 ; **les parties longues sont acceptées** (la simulation seule
   prend toutes les villes de la normale vers le jour 210).
-- **À concevoir ensuite avec l'utilisateur (2026-11-14)** : les **bateaux** et la **navigation**, les **types de
-  cartes** (continents, îles…), les **ressources sur l'eau**.
+- **La mer** (conçue avec l'utilisateur, 2026-11-14, comme Heroes 3) :
+  - **Les bateaux** : un **chantier naval** (bâtiment des villes au bord de l'eau, et lieu sur les côtes de la carte) en
+    construit un (or et bois), qui apparaît sur l'eau à côté ; et **quelques bateaux déjà amarrés** sur les côtes.
+  - **Monter à bord ou débarquer prend tout le mouvement qui reste** au héros ; en mer, il va à sa vitesse ordinaire.
+  - **Les types de cartes** (option de la nouvelle partie) : **continent** (aujourd'hui), **quelques mers** (tout
+    s'atteint aussi à pied), **îles** (chaque joueur sur son île, des îles neutres), **archipel** (beaucoup de petites
+    îles, tout en bateau).
+  - **Sur l'eau** : épaves flottantes et coffres de la mer ; bouées (+1 moral) et sirènes (+1 chance) ; tourbillons
+    (téléportent le bateau, coûtent une part de la troupe la plus faible) ; phare (les bateaux de son propriétaire vont
+    plus loin) ; **des navires abandonnés gardés par des morts-vivants**, un trésor à bord ; peut-être **des pirates**,
+    les monstres de la mer (idées de l'utilisateur).
+  - Dans l'ordre : 1. ✅ les règles (2026-11-14, branche `mer` : bateau, embarquer, naviguer, chantier naval des villes
+    et de la côte, l'IA qui prend un bateau amarré ; le bateau et le chantier dessinés par le jeu en attendant leurs
+    images ; l'IA n'achète pas encore de bateau) ; 2. les types
+    de cartes ; 3. les objets de la mer ; 4. les images (session images). À voir en chemin : la compétence
+    **Navigation** et les **combats en mer** (un pont de navire comme champ de bataille).
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix
   `art-candidats/en-cours/revue-<lot>.html`, faites par `tools/art/revue.py`, 2026-11-08) ; le code (taille des cases,

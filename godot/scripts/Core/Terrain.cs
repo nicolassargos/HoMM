@@ -22,6 +22,8 @@ public static class TerrainInfo
     public static int MoveCost(TerrainType terrain) => terrain switch
     {
         TerrainType.Grass => 100,
+        // en bateau (la mer : la vitesse ordinaire du héros, comme Heroes 3)
+        TerrainType.Water => 100,
         TerrainType.Sand => 150,
         TerrainType.Swamp => 175,
         _ => 0,

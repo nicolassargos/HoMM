@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HoMM.Core;
 
@@ -16,6 +17,39 @@ public static class Pathfinder
     /// le chemin contourne les monstres quand c'est possible, et ne les traverse que sinon.
     /// </summary>
     public const int GuardPenalty = 100_000;
+
+    /// <summary>
+    /// Coût ajouté (pour la recherche seulement) pour monter à bord ou débarquer : cela prend tout le mouvement qui reste,
+    /// comme une journée de marche.
+    /// </summary>
+    public const int BoardingPenalty = Hero.DefaultMovement;
+
+    /// <summary>Ce pas fait monter à bord d'un bateau ou débarquer (il passe de la terre à l'eau, ou l'inverse).</summary>
+    public static bool Boards(AdventureMap map, Cell from, Cell to) => map.IsWater(from) != map.IsWater(to);
+
+    /// <summary>
+    /// Peut-on aller de <paramref name="from"/> à sa voisine <paramref name="to"/> ? À terre, sur une case où l'on marche,
+    /// ou sur l'eau seulement pour monter dans un bateau ; en mer, sur l'eau (pas dans un autre bateau), ou débarquer sur
+    /// une case de terre libre.
+    /// </summary>
+    public static bool CanEnter(AdventureMap map, Cell from, Cell to)
+    {
+        if (!map.IsWater(from))
+            return map.IsWater(to) ? map.ObjectAt(to) is Boat : map.IsPassable(to);
+        return map.IsWater(to) ? map.ObjectAt(to) is not Boat : map.IsPassable(to) && map.ObjectAt(to) == null;
+    }
+
+    /// <summary>Un pas en diagonale ne « coupe » pas un coin : à terre, deux coins où l'on marche ; en mer, deux coins d'eau.</summary>
+    public static bool CornersOpen(AdventureMap map, Cell from, Cell to)
+    {
+        var corners = new[] { new Cell(to.X, from.Y), new Cell(from.X, to.Y) };
+        bool fromWater = map.IsWater(from), toWater = map.IsWater(to);
+        if (fromWater && toWater)
+            return corners.All(map.IsWater);
+        if (!fromWater && !toWater)
+            return corners.All(map.IsPassable);
+        return corners.All(c => map.IsPassable(c) || map.IsWater(c));
+    }
 
     private static readonly int MinStepCost = TerrainInfo.RoadCost;
     private static readonly int MinDiagonalCost = (int)(MinStepCost * Math.Sqrt(2));
@@ -41,13 +75,13 @@ public static class Pathfinder
     /// <summary>
     /// Renvoie les cases à parcourir, de la première après <paramref name="start"/> jusqu'à
     /// <paramref name="goal"/> incluse, ou null s'il n'y a pas de chemin.
-    /// Un objet bloque le passage : on peut seulement s'arrêter dessus. Le chemin évite
-    /// si possible les cases gardées par un monstre (voir <see cref="GuardPenalty"/>).
+    /// Un objet bloque le passage : on peut seulement s'arrêter dessus (un bateau : on y monte, et le chemin continue en
+    /// mer). Le chemin évite si possible les cases gardées par un monstre (voir <see cref="GuardPenalty"/>).
     /// <paramref name="blocked"/> : cases interdites en plus (les autres héros).
     /// </summary>
     public static List<Cell>? FindPath(AdventureMap map, Cell start, Cell goal, IReadOnlySet<Cell>? blocked = null, int roughReduction = 0)
     {
-        if (start == goal || !map.IsPassable(goal) || blocked?.Contains(goal) == true)
+        if (start == goal || !(map.IsPassable(goal) || map.IsWater(goal)) || blocked?.Contains(goal) == true)
             return null;
 
         double Estimate(Cell c)
@@ -73,18 +107,19 @@ public static class Pathfinder
                 return Rebuild(cameFrom, start, goal);
             if (cost > bestCost[cell])
                 continue;
-            if (cell != start && map.ObjectAt(cell) != null)
+            if (cell != start && map.ObjectAt(cell) is not (null or Boat))
                 continue;
 
             foreach (var (dx, dy) in Directions)
             {
                 var next = cell.Offset(dx, dy);
-                if (!map.IsPassable(next) || blocked?.Contains(next) == true)
+                if (!map.InBounds(next) || !CanEnter(map, cell, next) || blocked?.Contains(next) == true)
                     continue;
                 // Pas de diagonale qui « coupe » un coin infranchissable
-                if (dx != 0 && dy != 0 && !(map.IsPassable(cell.Offset(dx, 0)) && map.IsPassable(cell.Offset(0, dy))))
+                if (dx != 0 && dy != 0 && !CornersOpen(map, cell, next))
                     continue;
-                int newCost = cost + StepCost(map, cell, next, roughReduction) + (map.IsGuarded(next) ? GuardPenalty : 0);
+                int newCost = cost + StepCost(map, cell, next, roughReduction) + (Boards(map, cell, next) ? BoardingPenalty : 0)
+                    + (map.IsGuarded(next) ? GuardPenalty : 0);
                 if (newCost < bestCost.GetValueOrDefault(next, int.MaxValue))
                 {
                     bestCost[next] = newCost;

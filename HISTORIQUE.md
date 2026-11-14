@@ -906,6 +906,20 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   Heroes. Générateur : `PlaceSites` vérifie la case du toit (terrain où l'on marche, sans route ni objet) et les cases
   sous l'image (`_overhang`, que `CanPlaceGuard` évite aussi : des monstres errants s'y posaient). Pieds revus par
   l'utilisateur. Tests : `CarteObjetsTests` (lieux hauts, générateur sur quatre cartes, sauvegarde).
+- ✅ La mer, les règles (2026-11-14, branche `mer`, conçue avec l'utilisateur comme Heroes 3) : un bateau (`Boat`, objet
+  de la carte sur l'eau) ; **un héros sur l'eau est dans son bateau** (rien de plus dans la sauvegarde des héros). Le
+  `Pathfinder` sait les pas : à terre vers l'eau seulement sur un bateau (on y monte, le chemin continue en mer), en mer
+  sur l'eau (pas dans un autre bateau), débarquer sur une case de terre libre ; monter à bord ou débarquer prend tout le
+  mouvement qui reste (`Hero.StepTo`, `PathReachability`, `DaysTo`) et coûte une journée pour choisir un chemin
+  (`BoardingPenalty`) ; l'eau coûte comme l'herbe. Monter à bord retire le bateau de la carte, débarquer le laisse sur la
+  case d'eau quittée (`BoatBoarded`, `BoatLeft`). Un monstre de la terre n'attaque pas un bateau (`GuardsAround`). Le
+  **chantier naval** : un bâtiment commun (2000 or, 20 bois), seulement dans une ville dont les murs touchent l'eau
+  (`Town.BoatSpot`, calculé d'après la carte, `BuildResult.NotCoastal`) ; un bateau coûte 1000 or et 10 bois
+  (`GameState.BuildBoat`), apparaît sur cette case si elle est libre ; un **chantier de la côte** (`Shipyard`, lieu de la
+  carte) vend de même (`BuyBoat`, une fenêtre à la visite) ; le générateur les posera avec les types de cartes. L'IA
+  sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
+  dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
+  Tests : `MerTests`.
 - ✅ Les zones de la carte (2026-11-14, branche `carte-zones`, demandé par l'utilisateur) :
   - **Les passages entre les zones**, une option de la nouvelle partie (`ZoneAccess`, liste « Passages » à côté de la
     taille, normaux par défaut ; `--access=`) : ouverts (comme avant), normaux (le gardien de la sortie de la zone de

@@ -92,6 +92,8 @@ public static class Texts
         ResourcePile pile => $"Tas de {Resource(pile.Resource)}",
         TreasureChest => "Coffre au trésor",
         Obelisk => "Obélisque",
+        Boat => "Bateau",
+        Shipyard => "Chantier naval",
         Shrine shrine => $"Autel {OfStat(shrine.Stat)}",
         SageHut hut => $"Cabane du sage ({hut.Spell.Name})",
         WeeklyProducer { IsWaterWheel: true } => "Roue à eau",
@@ -409,7 +411,23 @@ public static class Texts
                 .SelectMany(choices => town.Buildings.Where(b => choices.Contains(b.Id)).Take(1)).Select(b => b.Name)),
         BuildResult.NotEnoughResources => "Ressources insuffisantes",
         BuildResult.NotOwner => "Ville ennemie",
+        BuildResult.NotCoastal => "Pas au bord de l'eau",
         _ => result.ToString(),
+    };
+
+    public static string ShipyardTitle => "Chantier naval";
+    public static string ShipyardText => "Un bateau coûte 1000 or et 10 bois. Il apparaît sur l'eau, à côté du chantier ; "
+        + "monter à bord ou débarquer prend tout le mouvement qui reste au héros.";
+    public static string BuildBoatButton => "Construire un bateau";
+
+    /// <summary>Pourquoi le chantier ne peut pas construire de bateau (rien quand il le peut).</summary>
+    public static string BoatStatus(BoatResult result) => result switch
+    {
+        BoatResult.NoShipyard => "Il faut d'abord bâtir le chantier naval.",
+        BoatResult.NotOwner => "Ce chantier n'est pas à vous.",
+        BoatResult.SpotTaken => "Un bateau, ou un héros, occupe déjà la place devant le chantier.",
+        BoatResult.NotEnoughResources => "Ressources insuffisantes.",
+        _ => "",
     };
 
     /// <summary>Ce qu'apporte un bâtiment, en une ligne.</summary>
@@ -752,6 +770,9 @@ public static class Texts
         ProducerVisited { Amount: > 0 } producer => $"{ObjectName(producer.Producer)} : +{producer.Amount} {Resource(producer.Producer.Resource)}.",
         ProducerVisited producer => $"{ObjectName(producer.Producer)} : rien à prendre avant la semaine prochaine.",
         TowerVisited tower => $"Du haut de la tour, {tower.Hero.Name} découvre les environs.",
+        BoatBoarded boarded => $"{boarded.Hero.Name} monte à bord.",
+        BoatLeft left => $"{left.Hero.Name} débarque ; le bateau reste amarré.",
+        BoatBuilt => "Un bateau neuf attend sur l'eau, à côté du chantier naval.",
         ObeliskVisited { FirstVisit: true } => "Un obélisque ! Un morceau de la carte au trésor apparaît.",
         ObeliskVisited => "Vous avez déjà lu cet obélisque.",
         NothingDug dug => $"{dug.Hero.Name} creuse… il n'y a rien ici.",

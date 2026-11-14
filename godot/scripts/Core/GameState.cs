@@ -149,6 +149,64 @@ public sealed partial class GameState
         Data = data;
         _rng = new GameRandom(seed);
         Map = map;
+        UpdateBoatSpots();
+    }
+
+    /// <summary>Où les chantiers navals des villes mettent leurs bateaux (d'après la carte ; après une partie chargée aussi).</summary>
+    internal void UpdateBoatSpots()
+    {
+        foreach (var town in Towns)
+            town.BoatSpot = Boats.SpotFor(Map, town);
+    }
+
+    // ------------------------------------------------------------------ bateaux
+
+    /// <summary>La case est-elle libre pour un nouveau bateau (ni objet, ni héros) ?</summary>
+    private bool BoatSpotFree(Cell spot) => Map.ObjectAt(spot) == null && Map.OccupantAt(spot) == null && AllHeroes.All(h => h.Position != spot);
+
+    /// <summary>Le chantier naval de cette ville peut-il construire un bateau pour son propriétaire ?</summary>
+    public BoatResult CanBuildBoat(Town town)
+    {
+        if (town.Owner != CurrentPlayer)
+            return BoatResult.NotOwner;
+        if (town.BoatSpot is not { } spot || !town.Buildings.Any(b => b.Shipyard && town.Has(b.Id)))
+            return BoatResult.NoShipyard;
+        if (!BoatSpotFree(spot))
+            return BoatResult.SpotTaken;
+        return CurrentPlayer.CanAfford(Boats.Cost) ? BoatResult.Ok : BoatResult.NotEnoughResources;
+    }
+
+    /// <summary>Le chantier naval de la ville construit un bateau (événement <see cref="BoatBuilt"/>).</summary>
+    public bool BuildBoat(Town town)
+    {
+        if (CanBuildBoat(town) != BoatResult.Ok)
+            return false;
+        PlaceBoat(town.BoatSpot!.Value);
+        return true;
+    }
+
+    /// <summary>Le joueur courant peut-il acheter un bateau à ce chantier de la côte ?</summary>
+    public BoatResult CanBuyBoat(Shipyard shipyard)
+    {
+        if (!BoatSpotFree(shipyard.BoatSpot))
+            return BoatResult.SpotTaken;
+        return CurrentPlayer.CanAfford(Boats.Cost) ? BoatResult.Ok : BoatResult.NotEnoughResources;
+    }
+
+    /// <summary>Achète un bateau au chantier de la côte (événement <see cref="BoatBuilt"/>).</summary>
+    public bool BuyBoat(Shipyard shipyard)
+    {
+        if (CanBuyBoat(shipyard) != BoatResult.Ok)
+            return false;
+        PlaceBoat(shipyard.BoatSpot);
+        return true;
+    }
+
+    private void PlaceBoat(Cell spot)
+    {
+        CurrentPlayer.Pay(Boats.Cost);
+        Map.AddObject(new Boat(spot));
+        Emit(new BoatBuilt(CurrentPlayer, spot));
     }
 
     public int Seed { get; }
@@ -467,8 +525,23 @@ public sealed partial class GameState
 
         Path.RemoveAt(0);
         var from = hero.Position;
+        // monter à bord : le bateau quitte la carte, il porte le héros ; débarquer : il reste amarré sur l'eau
+        bool boarding = !Map.IsWater(from) && Map.ObjectAt(next) is Boat;
+        bool landing = Map.IsWater(from) && !Map.IsWater(next);
+        if (boarding)
+            Map.RemoveObject(Map.ObjectAt(next)!);
         hero.StepTo(Map, next);
         Emit(new HeroMoved(hero, from, next));
+        if (boarding)
+        {
+            Emit(new BoatBoarded(hero, next));
+            return true;
+        }
+        if (landing)
+        {
+            Map.AddObject(new Boat(from));
+            Emit(new BoatLeft(hero, from));
+        }
 
         // Les monstres autour attaquent, puis la garnison d'une ville ennemie ou neutre ; ensuite seulement, la visite
         var opponents = Map.GuardsAround(next).Select(g => ((MapObject)g, g.Army)).ToList();
@@ -861,13 +934,15 @@ public sealed partial class GameState
         var previous = hero.Position;
         foreach (var cell in path)
         {
-            int cost = Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
+            // monter à bord ou débarquer : possible avec un peu de mouvement, puis la journée est finie
+            bool boards = Pathfinder.Boards(Map, previous, cell);
+            int cost = boards ? 1 : Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
             if (cost > movement)
             {
                 days++;
                 movement = hero.MaxMovement;
             }
-            movement -= cost;
+            movement = boards ? 0 : movement - cost;
             previous = cell;
         }
         return days;
@@ -882,8 +957,17 @@ public sealed partial class GameState
         var previous = hero.Position;
         foreach (var cell in Path)
         {
-            movement -= Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
-            result.Add(movement >= 0);
+            // monter à bord ou débarquer : possible avec un peu de mouvement, et il n'en reste plus
+            if (Pathfinder.Boards(Map, previous, cell))
+            {
+                result.Add(movement > 0);
+                movement = movement > 0 ? 0 : -1;
+            }
+            else
+            {
+                movement -= Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
+                result.Add(movement >= 0);
+            }
             previous = cell;
         }
         return result;

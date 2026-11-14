@@ -108,6 +108,18 @@ public partial class Main : Node2D
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
         // Développement : « --rich » : le joueur a de quoi tout bâtir et tout recruter, remis au plein chaque jour (Enrich)
         Enrich();
+        // Développement : « --boat » : un bateau amarré sur l'eau la plus proche du héros, au bord d'une rive
+        if (loaded == null && OS.GetCmdlineUserArgs().Contains("--boat") && _state.CurrentHero is { } sailor)
+        {
+            var map = _state.Map;
+            var shore = Enumerable.Range(0, map.Width).SelectMany(x => Enumerable.Range(0, map.Height).Select(y => new Cell(x, y)))
+                .Where(c => map.IsWater(c) && map.ObjectAt(c) == null
+                    && new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) }.Any(n => map.IsPassable(n) && map.ObjectAt(n) == null))
+                .OrderBy(c => Math.Abs(c.X - sailor.Position.X) + Math.Abs(c.Y - sailor.Position.Y))
+                .Cast<Cell?>().FirstOrDefault();
+            if (shore is { } boatCell)
+                map.AddObject(new Boat(boatCell));
+        }
         // Option de développement : « -- --reveal » retire le brouillard
         if (OS.GetCmdlineUserArgs().Contains("--reveal"))
             _state.CurrentPlayer.Fog.Reveal(new Cell(_state.Map.Width / 2, _state.Map.Height / 2), _state.Map.Width + _state.Map.Height);
@@ -395,7 +407,8 @@ public partial class Main : Node2D
         town.SetOwner(player);
         var data = _state.Data; // les créatures de la partie (une autre copie des données ne fusionnerait pas les troupes)
         // tous les bâtiments de sa faction sauf les trois derniers, pour voir aussi des cartes « à construire »
-        foreach (var building in town.Buildings.ToList().SkipLast(3))
+        // (pas le chantier naval d'une ville loin de l'eau)
+        foreach (var building in town.Buildings.ToList().SkipLast(3).Where(b => !b.Shipyard || town.BoatSpot != null))
             if (!town.Has(building.Id))
                 _state.AddFreeBuilding(town, building);
         foreach (var creature in data.Creatures.All.Where(c => c.Faction == town.Faction).OrderBy(c => c.Tier).Take(4))
@@ -1069,6 +1082,14 @@ public partial class Main : Node2D
                     break;
                 case ChestOpened chest when chest.Hero.Owner == viewer:
                     _hud.ShowChestChoice(chest, gold => _state.ChooseChest(chest, gold));
+                    break;
+                case ShipyardVisited yard when yard.Hero.Owner == viewer:
+                    _walking = false;
+                    _hud.ShowShipyard(_state.CanBuyBoat(yard.Shipyard), () =>
+                    {
+                        _state.BuyBoat(yard.Shipyard);
+                        HandleEvents();
+                    });
                     break;
                 case GuardEncounter encounter when encounter.Hero.Owner == viewer:
                     _walking = false;

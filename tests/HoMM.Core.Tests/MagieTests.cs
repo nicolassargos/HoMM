@@ -302,7 +302,7 @@ public class MagieTests
     [Fact]
     public void Apres_un_combat_sur_la_carte_le_heros_perd_les_points_depenses()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var hero = state.CurrentHero!;
         hero.Learn(Spell("fleche-magique"));
         var start = hero.Position;

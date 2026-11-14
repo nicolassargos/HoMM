@@ -77,7 +77,7 @@ public class CombatIAAdversaireTests
     [Fact]
     public void Un_mois_avec_deux_adversaires_qui_combattent()
     {
-        var state = new GameState(11, TestData.Data, MapSize.Normal, opponents: 2);
+        var state = new GameState(11, TestData.Data, 54, 40, opponents: 2);
         for (int day = 0; day < 28 && state.Outcome == GameOutcome.Playing; day++)
         {
             state.EndTurn();

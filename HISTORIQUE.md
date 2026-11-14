@@ -906,6 +906,40 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   Heroes. Générateur : `PlaceSites` vérifie la case du toit (terrain où l'on marche, sans route ni objet) et les cases
   sous l'image (`_overhang`, que `CanPlaceGuard` évite aussi : des monstres errants s'y posaient). Pieds revus par
   l'utilisateur. Tests : `CarteObjetsTests` (lieux hauts, générateur sur quatre cartes, sauvegarde).
+- ✅ Les zones de la carte (2026-11-14, branche `carte-zones`, demandé par l'utilisateur) :
+  - **Les passages entre les zones**, une option de la nouvelle partie (`ZoneAccess`, liste « Passages » à côté de la
+    taille, normaux par défaut ; `--access=`) : ouverts (comme avant), normaux (le gardien de la sortie de la zone de
+    départ prend la plus grande taille que **deux fois** l'armée de départ bat en perdant au plus 35 %, par recherche
+    dichotomique sur le combat rapide), fermés (quatre fois, et les autres passages deux fois plus gardés). Mesuré (54 ×
+    40) : sortie de 132 or (ouverts), 504 or (normaux), 1056 or (fermés) pour une armée de départ de 520 or. Les
+    adversaires s'en sortent (passages normaux, six semaines : 48 900 or d'armée, 2,8 villes). Le code garde « ouverts »
+    par défaut (tests et mesures inchangés). Test : `La_sortie_de_la_zone_de_depart_demande_l_armee_voulue`
+    (`MapGenerator.StartExitGates`).
+  - **Une scierie et une mine de minerai près de chaque ville neutre**, chacune avec une petite armée (moitié d'un
+    gardien de sa zone, `TownMineGuardFactor`) **posée aussitôt** (posé à la fin avec les autres gardiens, il bouchait
+    souvent un passage étroit et était refusé), sur un abord dégagé de préférence (les deux places du gardien et la case
+    sous l'entrée restent libres, `_keptFree`) ; à 11 pas de la porte de préférence, 18 au plus. Les villes se posent de
+    préférence à 12 cases d'une autre (deux villes serrées au bord de la carte n'avaient plus la place). 160 mines sur
+    160 sur 20 cartes. La ville de départ garde ses mines sans gardien. Une ville par zone : c'était déjà la règle.
+  - **Les tours d'observation à 10 cases des bords** au moins (`TowerEdgeMargin`, le quart de la carte au plus) ; les
+    cases trop près restent aux autres lieux.
+  - **Les tailles de Heroes 3** : 36, 72, 108, 144 cases de côté (et 36 × 27 pour les tests) ; jusqu'à 3 adversaires dès
+    la normale. Le générateur, 20 s pour 144 × 144, en prend 3,8 (la distance aux villes calculée une fois par ville
+    posée, `TownDistances` ; le parcours depuis le départ dans des tableaux, `WalkableGrid`). La carte réduite ne dépasse
+    plus 240 pixels de haut (les cartes carrées poussaient « Fin du tour » hors de l'écran). Les tests qui ne parlent pas
+    de taille gardent leurs cartes (`GameState(seed, data, 54, 40)`, et 72 × 53 pour l'ancienne grande) ; deux tests
+    vérifient l'accès par un seul parcours au lieu d'un chemin par objet (la suite était passée de 39 s à 4 min 44,
+    elle fait 36 s). Mesuré : la simulation seule gagne la petite carte vers le jour 62, la normale (72 × 72) vers le
+    jour 198 (5 fois sur 6), jamais la grande en 200 jours ; un adversaire après six semaines (Normal, or d'armée) :
+    Château 50 000, morts-vivants 47 400, Barbares 51 700, Forêt 57 000, Tour 47 500, Donjon 52 700, Enfer 50 100,
+    Nains 49 700 ; Facile 29 100, Normal 48 200, Difficile 73 400.
+  - **Les routes se rejoignent** : suivre une route coûte moins, la longer à côté coûte plus (plus d'« échelles »).
+  - **La victoire** (choix de l'utilisateur) : « vaincre tous les monstres » retiré (sur la carte normale de 72 × 72, la
+    simulation ne gagnait plus qu'au jour 198) ; par défaut, prendre toutes les villes ; les parties longues sont
+    acceptées, comme Heroes 3. Une ancienne sauvegarde qui l'avait prend « prendre toutes les villes »
+    (`GameRules.Updated`). La simulation gagne en prenant toutes les villes, en 400 jours au plus (200 avant) : petite
+    carte vers le jour 15 (elle n'a que deux villes), normale vers le jour 210, grande pas en 400 jours (ses villes
+    lointaines sont trop gardées pour un seul héros qui ne voyage pas).
 - ✅ Les diagonales sur la carte (2026-11-14, branche `diagonales`) : tout était fait de rectangles (zones posées en
   grille, routes en angles droits, bords des terrains le long des cases). **Le dessin** (`terrain.gdshader`) : la part
   d'un terrain autour d'un pixel mêle les quatre centres de cases voisins (« marching squares », `part_of`) ; la ligne

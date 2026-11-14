@@ -86,6 +86,9 @@ public partial class Hud : CanvasLayer
     private string _predictionText = "";
 
     public Minimap Minimap { get; private set; } = null!;
+
+    /// <summary>La hauteur de la carte réduite au plus (en unités de l'interface : 240 pixels de l'écran).</summary>
+    private const float MinimapMaxHeight = 160;
     public event Action? EndTurnPressed;
     public event Action? SavePressed;
     public event Action? DigPressed;
@@ -135,8 +138,9 @@ public partial class Hud : CanvasLayer
         float margin = Px(8);
         float inner = PanelWidth - 2 * margin;
 
-        // la carte réduite : des cases d'un nombre entier de pixels
-        int scale = (int)Math.Min((PanelWidth - Px(24)) / state.Map.Width, 9);
+        // la carte réduite : des cases d'un nombre entier de pixels, pas plus haute que celle des cartes de 54 × 40 (les
+        // cartes carrées de Heroes 3 poussaient le bas de la colonne hors de l'écran)
+        int scale = (int)Math.Min(Math.Min((PanelWidth - Px(24)) / state.Map.Width, Px(MinimapMaxHeight) / state.Map.Height), 9);
         var minimapSize = new Vector2(state.Map.Width, state.Map.Height) * scale;
         var minimapFrame = new Panel
         {

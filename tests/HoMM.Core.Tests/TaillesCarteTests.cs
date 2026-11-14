@@ -26,21 +26,48 @@ public class TaillesCarteTests(ITestOutputHelper output)
             Assert.Contains(map.Objects, o => o is Town);
             Assert.Contains(map.Objects, o => o is Obelisk);
             Assert.NotNull(map.Treasure);
-            // les objets se rejoignent sans combat (sauf le château de départ) ; un monstre peut être derrière un autre
-            foreach (var obj in map.Objects.Where(o => o.Position != map.Start && o is not MonsterGuard))
-                Assert.NotNull(Pathfinder.FindPath(map, map.Start, obj.Position));
+            // les objets se rejoignent (sauf le château de départ) : un seul parcours depuis le départ, comme le Pathfinder
+            // (un chemin par objet prenait près d'une minute sur les grandes cartes)
+            var reachable = Reachable(map);
+            foreach (var obj in map.Objects.Where(o => o.Position != map.Start))
+                Assert.True(reachable.Contains(obj.Position), $"{obj.GetType().Name} hors d'atteinte en {obj.Position}");
         }
     }
 
+    /// <summary>Les cases qu'un héros atteint depuis le départ, comme le <see cref="Pathfinder"/> : en diagonale sans couper un coin bloqué, en s'arrêtant sur un objet.</summary>
+    internal static System.Collections.Generic.HashSet<Cell> Reachable(AdventureMap map, Cell? from = null)
+    {
+        var start = from ?? map.Start;
+        var seen = new System.Collections.Generic.HashSet<Cell> { start };
+        var queue = new System.Collections.Generic.Queue<Cell>(seen);
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            if (c != start && map.ObjectAt(c) != null)
+                continue;
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                var next = c.Offset(dx, dy);
+                if (!map.IsPassable(next) || (dx != 0 && dy != 0 && !(map.IsPassable(c.Offset(dx, 0)) && map.IsPassable(c.Offset(0, dy)))))
+                    continue;
+                if (seen.Add(next))
+                    queue.Enqueue(next);
+            }
+        }
+        return seen;
+    }
+
     /// <summary>
-    /// La simulation d'équilibrage (optimiste, un seul héros) gagne sur les petites cartes ; sur les grandes, il y a
-    /// beaucoup plus de monstres à vaincre : elle prend au moins une ville, sans forcément tout vaincre en 200 jours
-    /// (grande carte : vers le jour 146 ; très grande : pas en 200 jours).
+    /// La simulation d'équilibrage (optimiste, un seul héros) gagne sur les petites cartes (prendre toutes les villes) ;
+    /// sur les grandes, elle prend au moins une ville, sans forcément toutes en 400 jours (depuis les tailles de Heroes 3 :
+    /// la normale, 72 × 72, vers le jour 210 ; la grande, pas en 400 jours : ses villes lointaines sont trop gardées pour
+    /// un seul héros qui ne voyage pas).
     /// </summary>
     [Theory]
     [InlineData(MapSize.Tiny, true)]
     [InlineData(MapSize.Small, true)]
-    [InlineData(MapSize.Large, false)]
+    [InlineData(MapSize.Normal, false)]
     public void Chaque_taille_se_joue(MapSize size, bool mustWin)
     {
         var seeds = mustWin ? new[] { 1, 7, 42 } : new[] { 1 }; // les grandes cartes sont longues à simuler

@@ -890,6 +890,17 @@ croissance, prix, garde.
   ville dans sa zone ; **une scierie et une mine de minerai près de chaque ville, toujours, gardées par une petite
   armée** ; des **cartes plus grandes**, d'après Heroes 1, 2 et 3. Vu aussi : deux routes côte à côte forment parfois
   une « échelle ».
+  ✅ **Fait (2026-11-14, branche `carte-zones`, détail dans `HISTORIQUE.md`)**, décidé avec l'utilisateur : les passages entre zones selon une **option de la nouvelle partie**
+  (ouvertes : l'armée de départ sort, comme avant ; normales : environ une semaine d'armée ; fermées : deux à trois
+  semaines ; normales par défaut, la force exacte à voir en jouant) ; une ville au plus par zone ; une scierie et une mine
+  de minerai près de chaque ville, gardées par une petite armée, **sauf celles de la ville de départ** (sans gardien,
+  comme avant) ; les tours d'observation loin des bords ; **les tailles de Heroes 3** (36, 72, 108, 144 cases de côté,
+  carrées, plus une toute petite pour les tests) ; plus d'« échelles » de routes. **La victoire** (choix de
+  l'utilisateur, 2026-11-14) : « vaincre tous les monstres » est retiré (il n'a plus de sens sur ces grandes cartes) ; par
+  défaut, **prendre toutes les villes**, comme Heroes 3 ; **les parties longues sont acceptées** (la simulation seule
+  prend toutes les villes de la normale vers le jour 210).
+- **À concevoir ensuite avec l'utilisateur (2026-11-14)** : les **bateaux** et la **navigation**, les **types de
+  cartes** (continents, îles…), les **ressources sur l'eau**.
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix
   `art-candidats/en-cours/revue-<lot>.html`, faites par `tools/art/revue.py`, 2026-11-08) ; le code (taille des cases,

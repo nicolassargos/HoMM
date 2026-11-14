@@ -51,7 +51,7 @@ public class TresorTests
     /// <summary>Une partie où le héros est juste à côté d'un obélisque, sans monstre autour.</summary>
     private static (GameState State, Obelisk Obelisk) GameNextToObelisk()
     {
-        var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(42, TestData.Data, 54, 40, startingTowns: false);
         state.TakeEvents();
         var hero = state.CurrentHero!;
         var cell = hero.Position.Offset(1, 0);
@@ -92,7 +92,7 @@ public class TresorTests
     /// <summary>Une partie où le héros se tient sur le trésor, avec toute sa journée de mouvement.</summary>
     private static GameState GameOnTreasure(VictoryCondition victory)
     {
-        var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(42, TestData.Data, 54, 40, startingTowns: false);
         state.ChooseRules(new GameRules(victory));
         state.TakeEvents();
         state.Map.Treasure = state.CurrentHero!.Position;
@@ -118,7 +118,7 @@ public class TresorTests
     [Fact]
     public void Dans_une_autre_partie_le_plastron_donne_ses_bonus()
     {
-        var state = GameOnTreasure(VictoryCondition.ClearGuards);
+        var state = GameOnTreasure(VictoryCondition.CaptureTowns);
         var hero = state.CurrentHero!;
         var plastron = TestData.Data.Artifacts.Get(ArtifactCatalog.TreasureId);
         var (attack, defense, charisma) = (hero.Attack, hero.Defense, hero.Charisma);
@@ -160,8 +160,8 @@ public class TresorTests
     [Fact]
     public void La_premiere_condition_accomplie_fait_gagner()
     {
-        // monstres ou trésor : déterrer le trésor suffit, même s'il reste des monstres
-        var state = GameOnTreasure(VictoryCondition.ClearGuards | VictoryCondition.FindTreasure);
+        // villes ou trésor : déterrer le trésor suffit, même s'il reste des villes à prendre
+        var state = GameOnTreasure(VictoryCondition.CaptureTowns | VictoryCondition.FindTreasure);
         Assert.Contains(state.Map.Objects, o => o is MonsterGuard);
 
         state.Dig();
@@ -172,7 +172,7 @@ public class TresorTests
     [Fact]
     public void Il_faut_au_moins_une_facon_de_gagner()
     {
-        var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(42, TestData.Data, 54, 40, startingTowns: false);
 
         Assert.False(state.ChooseRules(new GameRules(VictoryCondition.None)));
         Assert.Equal(GameRules.Default, state.Rules);
@@ -181,7 +181,7 @@ public class TresorTests
     [Fact]
     public void Le_choix_des_conditions_indique_ou_est_enfoui_le_tresor()
     {
-        var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(42, TestData.Data, 54, 40, startingTowns: false);
 
         state.ChooseRules(new GameRules(VictoryCondition.CaptureTowns | VictoryCondition.FindTreasure));
 
@@ -194,7 +194,7 @@ public class TresorTests
     public void Tresor_obelisques_et_artefacts_sont_sauvegardes()
     {
         var (state, obelisk) = GameNextToObelisk();
-        state.ChooseRules(new GameRules(VictoryCondition.ClearGuards | VictoryCondition.FindTreasure, DayLimit: 150));
+        state.ChooseRules(new GameRules(VictoryCondition.CaptureTowns | VictoryCondition.FindTreasure, DayLimit: 150));
         state.SetDestination(obelisk.Position);
         state.StepAlongPath();
         var treasure = state.Map.Treasure;
@@ -214,12 +214,15 @@ public class TresorTests
     [Fact]
     public void Une_ancienne_sauvegarde_garde_sa_condition()
     {
-        // avant : une seule condition, écrite « ClearGuards » ; elle se lit toujours
-        var json = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false).Save();
-        Assert.Contains("\"ClearGuards\"", json);
+        // avant : « vaincre tous les monstres », écrit « ClearGuards » (retiré le 2026-11-14) : il devient « prendre toutes
+        // les villes », avec les autres conditions
+        var json = new GameState(42, TestData.Data, 54, 40, startingTowns: false).Save();
+        Assert.Contains("\"CaptureTowns\"", json);
 
-        var loaded = GameState.Load(json, TestData.Data);
+        var alone = GameState.Load(json.Replace("\"CaptureTowns\"", "\"ClearGuards\""), TestData.Data);
+        var both = GameState.Load(json.Replace("\"CaptureTowns\"", "\"ClearGuards, FindTreasure\""), TestData.Data);
 
-        Assert.Equal(VictoryCondition.ClearGuards, loaded.Rules.Victory);
+        Assert.Equal(VictoryCondition.CaptureTowns, alone.Rules.Victory);
+        Assert.Equal(VictoryCondition.CaptureTowns | VictoryCondition.FindTreasure, both.Rules.Victory);
     }
 }

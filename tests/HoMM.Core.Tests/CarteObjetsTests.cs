@@ -15,7 +15,7 @@ public class CarteObjetsTests
     /// </summary>
     internal static (GameState State, T Object) GameNextTo<T>(Func<Cell, T> make) where T : MapObject
     {
-        var state = new GameState(42, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(42, TestData.Data, 54, 40, startingTowns: false);
         state.TakeEvents();
         var hero = state.CurrentHero!;
         var cell = hero.Position.Offset(1, 0);
@@ -166,9 +166,13 @@ public class CarteObjetsTests
     [InlineData(42)]
     public void Le_generateur_pose_les_lieux_et_ils_sont_sauvegardes(int seed)
     {
-        var state = new GameState(seed, TestData.Data, MapSize.Normal);
+        var state = new GameState(seed, TestData.Data, 54, 40);
         var map = state.Map;
         Assert.Contains(map.Objects, o => o is ObservationTower);
+        // les tours loin des bords : ce qu'elles dévoilent reste sur la carte
+        Assert.All(map.Objects.OfType<ObservationTower>(), t => Assert.True(
+            Math.Min(Math.Min(t.Position.X, t.Position.Y), Math.Min(map.Width - 1 - t.Position.X, map.Height - 1 - t.Position.Y)) >= MapGenerator.TowerEdgeMargin,
+            $"tour au bord en {t.Position}"));
         Assert.Contains(map.Objects, o => o is SageHut);
         Assert.Contains(map.Objects, o => o is WeeklyProducer { IsWaterWheel: true });
         Assert.Contains(map.Objects, o => o is WeeklyProducer { IsWaterWheel: false });
@@ -228,7 +232,7 @@ public class CarteObjetsTests
     [Fact]
     public void Les_lieux_hauts_sont_sauvegardes_et_ceux_d_avant_gardent_une_case()
     {
-        var state = new GameState(1, TestData.Data, MapSize.Normal);
+        var state = new GameState(1, TestData.Data, 54, 40);
         var tower = state.Map.Objects.OfType<ObservationTower>().First();
 
         var loaded = GameState.Load(state.Save(), TestData.Data);

@@ -13,6 +13,7 @@ namespace HoMM.Core;
 public sealed class MapGenerator
 {
     private readonly Random _rng;
+    private readonly int _seed;
     /// <summary>Le hasard de la faction des villes neutres, à part : il ne change pas le reste de la carte.</summary>
     private readonly Random _factionRng;
     private readonly GameData? _data;
@@ -24,10 +25,23 @@ public sealed class MapGenerator
         "Pierrelune", "Bois-Doré", "Montclair", "Sombreval", "Aiguerive", "Combelaine", "Brunehaut", "Fontargent",
     };
 
+    /// <summary>
+    /// D'autres noms, pour les grandes cartes (une ville pour trois zones : une trentaine sur la très grande ; demandé par
+    /// l'utilisateur, 2026-11-14). Mêlés à part, après les premiers : les cartes qui en ont assez ne changent pas.
+    /// </summary>
+    private static readonly string[] MoreTownNames =
+    {
+        "Castelroc", "Vaubrume", "Haut-Lierre", "Marbrecoeur", "Rivelune", "Pontdragon", "Orgemont", "Saule-Gris",
+        "Ventelande", "Corbeval", "Ferrandine", "Givremont", "Lunebourg", "Mortefontaine", "Sylvebrune", "Cendrelac",
+        "Belle-Épine", "Roncevaux", "Hautbois", "Étoile-Morte", "Valcendre", "Pierrefeu", "Clairmarais", "Aubefort",
+        "Noirsapin", "Fleur-de-Sel",
+    };
+
     /// <param name="data">Les données de jeu, pour les villes et les monstres. Sans données : ni ville ni monstre.</param>
     public MapGenerator(int seed, GameData? data = null)
     {
         _rng = new Random(seed);
+        _seed = seed;
         _factionRng = new Random(seed * 7919 + 17);
         _data = data;
     }
@@ -773,6 +787,14 @@ public sealed class MapGenerator
     {
         var names = TownNames.ToList();
         Shuffle(names);
+        var more = MoreTownNames.ToList();
+        var moreRng = new Random(_seed * 31 + 5); // un hasard à part : le reste de la carte ne change pas
+        for (int i = more.Count - 1; i > 0; i--)
+        {
+            int j = moreRng.Next(i + 1);
+            (more[i], more[j]) = (more[j], more[i]);
+        }
+        names.AddRange(more);
         // chaque joueur commence avec son château, l'entrée sur son départ (comme dans Heroes 2 et 3)
         foreach (var (start, i) in (StartingTowns ? _map.Starts : new List<Cell>()).Select((s, i) => (s, i)))
         {

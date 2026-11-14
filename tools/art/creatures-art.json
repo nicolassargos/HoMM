@@ -1615,12 +1615,12 @@
         "geant",
         "archer"
       ],
-      "notes": "Donjon, niveau 7 : le géant, sur une case (référence de l'utilisateur, encre : couleurs proposées par Claude, 2026-11-14). Deux styles : écailles vert sombre (L1 à L3), noir et violet (L4 à L6).",
+      "notes": "Donjon, niveau 7 : le géant, sur une case (référence de l'utilisateur, encre : couleurs proposées par Claude, 2026-11-14). Deux styles : écailles vert sombre (L1 à L3), noir et violet (L4 à L6). Choisie : L3-4, écailles vert sombre.",
       "references": [
         "art-candidats/references/donjon/hydre.png::concept reference (a hydra on four clawed legs with a long coiling tail and several long necks ending in dragon heads): keep this design and this pose; ignore the black and white ink style, the ruins, the rocks and the copyright text"
       ],
-      "description": "a huge hydra standing on four thick clawed legs: a heavy reptile body covered in black and dark violet scales with a pale violet belly, a long coiling tail, and five long snake-like necks rising from its shoulders, each ending in a fierce dragon head with sharp fangs, small horns and red eyes, the heads turned in different directions, some mouths open and hissing",
-      "sujet": "a huge black and violet hydra on four clawed legs with five long necks ending in fanged dragon heads, facing right",
+      "description": "a huge hydra standing on four thick clawed legs: a heavy reptile body covered in dark green scales with a pale yellowish belly, a long coiling tail, and five long snake-like necks rising from its shoulders, each ending in a fierce dragon head with sharp fangs, small horns and red eyes, the heads turned in different directions, some mouths open and hissing",
+      "sujet": "a huge dark green hydra on four clawed legs with five long necks ending in fanged dragon heads, facing right",
       "lots": {
         "L1": "références",
         "L2": "angle seul",
@@ -1628,7 +1628,11 @@
         "L4": "références",
         "L5": "angle seul",
         "L6": "références"
-      }
+      },
+      "choix": {
+        "fixe": "L3-4"
+      },
+      "grande": "art-candidats/references/derives/hydre-grand.png"
     }
   }
 }

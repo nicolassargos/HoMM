@@ -230,4 +230,42 @@ public class MerTests
         Assert.DoesNotContain(pile, map.Objects);
         Assert.True(rival.Owner.Resources[ResourceType.Gold] >= gold + 900);
     }
+
+    /// <summary>Sans bateau, l'adversaire en achète un au chantier naval de la côte, puis traverse.</summary>
+    [Fact]
+    public void L_adversaire_achete_un_bateau_pour_traverser()
+    {
+        var state = new GameState(4, TestData.Data, 54, 40, opponents: 1, startingTowns: false, opponentFactions: new[] { "chateau" });
+        state.EndTurn(); // au tour de l'adversaire
+        var rival = state.CurrentPlayer.Heroes[0];
+        var map = state.Map;
+        int rx = rival.Position.X;
+        foreach (var obj in map.Objects.ToList())
+            map.RemoveObject(obj);
+        for (int y = 0; y < map.Height; y++)
+        for (int x = 0; x < map.Width; x++)
+        {
+            var c = new Cell(x, y);
+            map.SetTerrain(c, x >= rx - 7 && x <= rx - 3 ? TerrainType.Water : TerrainType.Grass);
+            map.SetRoad(c, false);
+        }
+        var yard = new Shipyard(new Cell(rx - 2, rival.Position.Y + 2), new Cell(rx - 3, rival.Position.Y + 2));
+        map.AddObject(yard);
+        var pile = new ResourcePile(new Cell(rx - 10, rival.Position.Y), ResourceType.Gold, 900);
+        map.AddObject(pile);
+        rival.Owner.Fog.Reveal(rival.Position, 60); // rien d'autre à découvrir à pied
+        rival.Owner.Resources[ResourceType.Gold] = 5000;
+        rival.Owner.Resources[ResourceType.Wood] = 20;
+
+        for (int day = 0; day < 6 && map.Objects.Contains(pile); day++)
+        {
+            ComputerPlayer.PlayTurn(state);
+            state.EndTurn();
+            while (!state.CurrentPlayer.IsComputer)
+                state.EndTurn();
+        }
+
+        Assert.DoesNotContain(pile, map.Objects);
+        Assert.Single(map.Objects.OfType<Boat>()); // un seul bateau acheté, amarré là où il a débarqué
+    }
 }

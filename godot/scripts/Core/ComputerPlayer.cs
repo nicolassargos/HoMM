@@ -343,7 +343,12 @@ public static class ComputerPlayer
         for (int attempt = 0; attempt < MaxMovesPerHero && hero.Movement > 0; attempt++)
         {
             if (ChooseTarget(state, hero) is not { } target)
+            {
+                // plus rien à faire là où il marche : un bateau, pour aller plus loin
+                if (GetBoat(state, hero) && state.CurrentBattle == null && hero.Owner.Heroes.Contains(hero))
+                    continue;
                 return;
+            }
             state.SetDestination(target);
             // le chemin de la partie doit rester sûr, pour ce que le joueur sait : seule la dernière case peut être dans la
             // zone d'un monstre connu, et d'un seul (celui que le héros va attaquer)
@@ -477,6 +482,43 @@ public static class ComputerPlayer
                 && Neighbours(cell).Any(n => map.InBounds(n) && !player.Fog.IsExplored(n)))
                 return cell;
         return null;
+    }
+
+    /// <summary>
+    /// Plus rien à faire là où il marche (sur une carte d'îles) : un bateau pour aller plus loin, s'il n'en a pas déjà un
+    /// à portée et qu'il lui reste de quoi recruter. D'abord une de ses villes qui a un chantier naval (le bateau apparaît
+    /// sur l'eau à côté) ; sinon le chantier naval de la côte le plus proche, où il va, puis l'achète. Vrai s'il a un
+    /// bateau à prendre.
+    /// </summary>
+    private static bool GetBoat(GameState state, Hero hero)
+    {
+        var map = state.Map;
+        var player = hero.Owner;
+        if (hero.AtSea(map) || player.Resources[ResourceType.Gold] < Boats.Cost[ResourceType.Gold] + RecruitReserve
+            || !player.CanAfford(Boats.Cost))
+            return false;
+        var costs = SafeCosts(state, hero);
+        bool AtHand(Cell water) => Neighbours(water).Any(c => costs.ContainsKey(c) && !map.IsWater(c));
+        if (map.Objects.OfType<Boat>().Any(b => AtHand(b.Position)))
+            return false; // il en a déjà un : la mer ne lui offre rien non plus
+        foreach (var town in player.Towns.OrderBy(t => t.Id))
+            if (town.BoatSpot is { } spot && state.CanBuildBoat(town) == BoatResult.Ok && AtHand(spot))
+                return state.BuildBoat(town);
+        var yard = map.Objects.OfType<Shipyard>()
+            .Where(y => player.Fog.IsExplored(y.Position) && costs.ContainsKey(y.Position) && state.CanBuyBoat(y) == BoatResult.Ok)
+            .OrderBy(y => costs[y.Position]).ThenBy(y => y.Id).FirstOrDefault();
+        if (yard == null)
+            return false;
+        if (hero.Position != yard.Position)
+        {
+            state.SetDestination(yard.Position);
+            while (state.Path is { Count: > 0 } && state.StepAlongPath())
+            {
+            }
+            if (hero.Position != yard.Position)
+                return false; // il y arrivera un autre jour
+        }
+        return state.BuyBoat(yard);
     }
 
     /// <summary>

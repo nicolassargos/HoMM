@@ -9,7 +9,7 @@ namespace HoMM.Game;
 
 /// <summary>Ce que le joueur a choisi pour une nouvelle partie.</summary>
 public sealed record GameSetup(int Seed, MapSize Size, GameRules Rules, int Opponents = 0, string? HeroName = null, string? Faction = null,
-    ZoneAccess Access = ZoneAccess.Normal);
+    ZoneAccess Access = ZoneAccess.Normal, MapType MapType = MapType.Continent);
 
 /// <summary>
 /// Nouvelle partie, depuis le menu principal (arrangement en deux colonnes, choisi par l'utilisateur). À gauche,
@@ -28,6 +28,7 @@ public partial class NewGameWindow : ScreenWindow
     private int _opponents = 1;
     private Difficulty _difficulty = Difficulty.Normal;
     private ZoneAccess _access = ZoneAccess.Normal;
+    private MapType _mapType = MapType.Continent;
     private OptionButton _opponentList = null!, _difficultyList = null!;
     private LineEdit _seed = null!;
     private readonly Dictionary<VictoryCondition, CheckBox> _goals = new();
@@ -126,6 +127,13 @@ public partial class NewGameWindow : ScreenWindow
         random.Position = V(194, 186);
         random.Pressed += () => _seed.Text = Random.Shared.Next(1, 1_000_000).ToString();
         game.AddChild(random);
+        // le type de la carte (la mer), à côté de la graine
+        game.AddChild(Small(Texts.MapTypeLabel, 330, 166));
+        var mapType = MakeDropdown(Enum.GetValues<MapType>().Select(Texts.MapTypeName), (int)_mapType, new Vector2(Px(126), ButtonHeight),
+            i => _mapType = (MapType)i);
+        mapType.Position = V(330, 186);
+        mapType.TooltipText = Texts.MapTypeHelp;
+        game.AddChild(mapType);
 
         // comment gagner
         game.AddChild(Small(Texts.GoalsLabel, 14, 248));
@@ -325,6 +333,6 @@ public partial class NewGameWindow : ScreenWindow
         var rules = new GameRules(victory, _limit.ButtonPressed ? GameRules.StandardDayLimit : null, _difficulty);
         string? hero = Heroes.Count > 0 ? Heroes[_hero].Name : null;
         Close();
-        Started?.Invoke(new GameSetup(seed, _size, rules, _opponents, hero, _faction, _access));
+        Started?.Invoke(new GameSetup(seed, _size, rules, _opponents, hero, _faction, _access, _mapType));
     }
 }

@@ -920,6 +920,34 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
   dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
   Tests : `MerTests`.
+- ✅ La mer, les types de cartes (2026-11-14, branche `types-cartes`, choix de l'utilisateur) : une option de la nouvelle
+  partie (`MapType`, liste « Carte » à côté de la graine, continent par défaut ; `--map-type=`). Le générateur part des
+  zones : avec **des mers**, 20 % des zones (jamais un départ) sont toutes de mer, la terre restant d'un seul tenant ;
+  avec les **îles**, 15 % de zones de mer, puis l'île de chaque joueur (sa zone et deux voisines, qui grandissent à tour
+  de rôle) et des îles neutres de trois zones ; l'**archipel**, 15 % de zones de mer, une île de deux zones par joueur et
+  une zone par île neutre. La mer : les zones de mer, et une **côte** de 1 à 3 cases (1 à 2 dans l'archipel, un bruit
+  doux) le long de chaque rivage entre deux îles ou contre une zone de mer, et le long des bords de la carte (îles et
+  archipel ; pas près des départs) ; chaque zone ne garde que son plus grand morceau de terre (celui du départ s'il y en
+  a un). La côte coupe parfois toutes les places d'un passage : avec des mers, la dernière zone de mer redevient de la
+  terre ; sinon le morceau devient une île à part (`IslandsWhole`, on recommence). D'une île à l'autre, une **traversée**
+  compte comme un passage pour le niveau des zones (`Crossings`). Une zone sans passage (une petite île) a une route de
+  son centre au rivage. Une ville sur deux préfère le bord de la mer (sa case tout autour peut être de l'eau : un port),
+  si sa porte mène par la terre au centre de la zone. **Les ports** (`PlaceHarbours`) : sur l'île de chaque joueur, un
+  chantier naval de la côte et un bateau amarré à côté, hors de sa zone de départ si l'île en a une autre (on prend la
+  mer après la sortie de sa zone, comme on entre dans la zone voisine), que le joueur doit atteindre à pied
+  (`_harbourChecks`, vérifié à chaque objet posé) ; un chantier sur une île neutre sur deux (une sur trois dans
+  l'archipel) ; avec des mers, un chantier et un bateau au bord de chaque mer, hors des zones de départ. Le générateur
+  compte l'eau comme un chemin sur les îles et l'archipel (chaque joueur a son bateau), pas avec des mers (tout s'atteint
+  à pied). Le nombre d'objets suit la surface de terre ; les mines et les villes, le nombre de zones de terre. Mesuré
+  (cartes normales) : 12 % d'eau sur un continent, 31 à 38 % avec des mers, 55 à 57 % sur les îles et l'archipel ;
+  vérifié sur 138 cartes à quatre joueurs (30 graines par type, et 8 grandes cartes). **L'IA** prend les bateaux amarrés ;
+  quand elle n'a plus rien à faire à pied et pas de bateau à portée, elle en construit un dans une ville qui a un
+  chantier naval, sinon va en acheter un au chantier de la côte le plus proche (`ComputerPlayer.GetBoat`, en gardant
+  1000 or pour recruter) ; elle ne bâtit pas encore le chantier naval de ses villes. Mesuré (un adversaire, Normal, six
+  semaines, `Adversaires_par_type_de_carte`) : continent 48 200 or d'armée, 2,7 villes ; des mers 44 100, 3,0 villes ;
+  îles 29 800, 2,5 villes, 10 embarquements par partie ; archipel 28 900, 3,2 villes, 12 embarquements (moins de terre,
+  donc moins de gardiens à battre et d'armée). Les cartes du continent ne changent pas (aucun tirage de plus). Tests :
+  `TypesCartesTests`, `MerTests`.
 - ✅ Les zones de la carte (2026-11-14, branche `carte-zones`, demandé par l'utilisateur) :
   - **Les passages entre les zones**, une option de la nouvelle partie (`ZoneAccess`, liste « Passages » à côté de la
     taille, normaux par défaut ; `--access=`) : ouverts (comme avant), normaux (le gardien de la sortie de la zone de

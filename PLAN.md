@@ -912,8 +912,10 @@ croissance, prix, garde.
     les monstres de la mer (idées de l'utilisateur).
   - Dans l'ordre : 1. ✅ les règles (2026-11-14, branche `mer` : bateau, embarquer, naviguer, chantier naval des villes
     et de la côte, l'IA qui prend un bateau amarré ; le bateau et le chantier dessinés par le jeu en attendant leurs
-    images ; l'IA n'achète pas encore de bateau) ; 2. les types
-    de cartes ; 3. les objets de la mer ; 4. les images (session images). À voir en chemin : la compétence
+    images) ; 2. ✅ les types de cartes (2026-11-14, branche `types-cartes` : liste « Carte » de la nouvelle partie,
+    continent par défaut ; des mers, îles, archipel ; un chantier naval et un bateau amarré sur l'île de chaque joueur,
+    après la sortie de sa zone de départ ; des villes au bord de la mer ; l'IA achète un bateau quand elle n'a plus rien
+    à faire à pied) ; 3. les objets de la mer ; 4. les images (session images). À voir en chemin : la compétence
     **Navigation** et les **combats en mer** (un pont de navire comme champ de bataille).
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix

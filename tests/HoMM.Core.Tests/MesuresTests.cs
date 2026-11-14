@@ -98,6 +98,49 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Un adversaire (Normal) sur chaque type de carte, six semaines : s'il prend la mer (bateaux pris, débarquements),
+    /// ses villes, son armée. Sur les îles, il doit quitter la sienne.
+    /// </summary>
+    [Mesure]
+    public void Adversaires_par_type_de_carte()
+    {
+        foreach (var type in Enum.GetValues<MapType>())
+        {
+            var values = new List<int>();
+            int towns = 0, boardings = 0, landings = 0, bought = 0, defeated = 0;
+            foreach (int seed in Seeds)
+            {
+                var state = new GameState(seed, TestData.Data, MapSize.Normal, opponents: 1, mapType: type);
+                state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
+                state.Players[0].Heroes[0].Army.Add(TestData.Creatures.Get("ange"), 50);
+                var rival = state.Players[1];
+                for (int day = 0; day < 42 && state.Outcome == GameOutcome.Playing; day++)
+                {
+                    state.EndTurn();
+                    while (state.CurrentPlayer.IsComputer && state.Outcome == GameOutcome.Playing)
+                    {
+                        ComputerPlayer.PlayTurn(state);
+                        foreach (var e in state.TakeEvents())
+                        {
+                            boardings += e is BoatBoarded b && b.Hero.Owner == rival ? 1 : 0;
+                            landings += e is BoatLeft l && l.Hero.Owner == rival ? 1 : 0;
+                            bought += e is BoatBuilt built && built.Player == rival ? 1 : 0;
+                        }
+                        state.EndTurn();
+                    }
+                }
+                values.Add(rival.Heroes.Sum(h => Battle.ExperienceFor(h.Army.Stacks)) + rival.Towns.Sum(t => Battle.ExperienceFor(t.Garrison.Stacks)));
+                towns += rival.Towns.Count;
+                defeated += rival.IsDefeated ? 1 : 0;
+            }
+            int n = Seeds.Length;
+            output.WriteLine($"{type} : armée {Range(values)} ; par partie : {towns / (double)n:0.0} villes, "
+                             + $"{boardings / (double)n:0.0} embarquements, {landings / (double)n:0.0} débarquements, "
+                             + $"{bought / (double)n:0.0} bateaux achetés ; éliminé {defeated} fois");
+        }
+    }
+
+    /// <summary>
     /// Un adversaire de chaque faction (Normal), six semaines, sur les mêmes cartes : les factions doivent se valoir.
     /// </summary>
     [Mesure]

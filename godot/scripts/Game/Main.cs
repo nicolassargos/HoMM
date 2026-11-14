@@ -101,8 +101,8 @@ public partial class Main : Node2D
         var setup = _setup;
         _setup = null;
         _state = loaded ?? (setup != null
-            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents, heroName: setup.HeroName, faction: setup.Faction)
-            : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents(), faction: ReadFaction()));
+            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents, heroName: setup.HeroName, faction: setup.Faction, access: setup.Access)
+            : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents(), faction: ReadFaction(), access: ReadAccess()));
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
@@ -474,6 +474,13 @@ public partial class Main : Node2D
     {
         var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--opponents="));
         return arg != null && int.TryParse(arg["--opponents=".Length..], out int count) ? count : 0;
+    }
+
+    /// <summary>Développement : « --access=open|normal|closed », les passages entre les zones (normaux sans l'option).</summary>
+    private static ZoneAccess ReadAccess()
+    {
+        var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--access="));
+        return arg != null && Enum.TryParse(arg["--access=".Length..], ignoreCase: true, out ZoneAccess access) ? access : ZoneAccess.Normal;
     }
 
     private static MapSize ReadSize()

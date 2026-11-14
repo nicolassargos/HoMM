@@ -21,7 +21,13 @@ public sealed partial class GameState
     private int _nextPlayerId = 1;
     private int _nextHeroId = 1;
 
-    public GameState(int seed, GameData data) : this(seed, data, MapSize.Normal) { }
+    /// <summary>
+    /// Une partie seule sur une carte de la taille par défaut du générateur (54 × 40 : la carte « normale » d'avant les
+    /// tailles de Heroes 3, sur laquelle les tests ont été écrits).
+    /// </summary>
+    public GameState(int seed, GameData data)
+        : this(seed, data, new MapGenerator(seed, data) { PlayerFactions = Factions(seed, data, 1, null, null) }.Generate())
+        => AddPlayers(Map.Starts.Count, null, Factions(seed, data, Map.Starts.Count, null, null));
 
     /// <summary>
     /// Une nouvelle partie sur une carte générée de cette taille, avec <paramref name="opponents"/> adversaires joués par
@@ -31,18 +37,28 @@ public sealed partial class GameState
     /// <param name="heroName">Le héros choisi par le joueur (data/heroes.json) ; sans choix, le premier de la liste.</param>
     /// <param name="faction">La faction du joueur (sans choix : le Château).</param>
     /// <param name="opponentFactions">Celles des adversaires (sans choix : au hasard, d'après la graine).</param>
+    /// <param name="access">La force des gardiens des passages entre les zones (sans choix : ouverts, comme avant l'option).</param>
     public GameState(int seed, GameData data, MapSize size, int opponents = 0, bool startingTowns = true, string? heroName = null,
-        string? faction = null, IReadOnlyList<string>? opponentFactions = null)
-        : this(seed, data, Generate(seed, data, size, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns,
-            Factions(seed, data, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)) + 1, faction, opponentFactions)))
+        string? faction = null, IReadOnlyList<string>? opponentFactions = null, ZoneAccess access = ZoneAccess.Open)
+        : this(seed, data, MapSizes.Dimensions(size).Width, MapSizes.Dimensions(size).Height,
+            Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns, heroName, faction, opponentFactions, access)
+    {
+    }
+
+    /// <summary>
+    /// Une nouvelle partie sur une carte générée de ces dimensions (au plus 3 adversaires) : pour les tests, qui gardent
+    /// les cartes sur lesquelles ils ont été écrits (54 × 40, 72 × 53 : les tailles d'avant celles de Heroes 3).
+    /// </summary>
+    public GameState(int seed, GameData data, int width, int height, int opponents = 0, bool startingTowns = true, string? heroName = null,
+        string? faction = null, IReadOnlyList<string>? opponentFactions = null, ZoneAccess access = ZoneAccess.Open)
+        : this(seed, data, Generate(seed, data, width, height, Math.Clamp(opponents, 0, 3), startingTowns,
+            Factions(seed, data, Math.Clamp(opponents, 0, 3) + 1, faction, opponentFactions), access))
         => AddPlayers(Map.Starts.Count, heroName, Factions(seed, data, Map.Starts.Count, faction, opponentFactions));
 
-    private static AdventureMap Generate(int seed, GameData data, MapSize size, int opponents, bool startingTowns, IReadOnlyList<string> factions)
-    {
-        var (width, height) = MapSizes.Dimensions(size);
-        return new MapGenerator(seed, data) { Players = opponents + 1, StartingTowns = startingTowns, PlayerFactions = factions }
+    private static AdventureMap Generate(int seed, GameData data, int width, int height, int opponents, bool startingTowns,
+        IReadOnlyList<string> factions, ZoneAccess access) =>
+        new MapGenerator(seed, data) { Players = opponents + 1, StartingTowns = startingTowns, PlayerFactions = factions, Access = access }
             .Generate(width, height);
-    }
 
     /// <summary>
     /// La faction de chaque joueur : celle choisie par le joueur (sinon le Château), puis celles des adversaires, choisies

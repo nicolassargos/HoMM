@@ -16,12 +16,14 @@ public class BalanceTests
 {
     private static readonly int[] Seeds = { 1, 7, 42, 99, 2026 };
 
+    // sur la petite carte (36 × 36) : depuis les tailles de Heroes 3 (2026-11-14), la normale fait 72 × 72, et vaincre
+    // tous ses monstres y prend plus de six mois
     [Fact]
     public void La_victoire_est_possible_en_un_a_cinq_mois()
     {
         foreach (int seed in Seeds)
         {
-            var result = BalanceSimulation.Play(seed);
+            var result = BalanceSimulation.Play(seed, MapSize.Small);
             Assert.True(result.TownTaken, $"graine {seed} : aucune ville prise");
             Assert.True(result.VictoryDay is >= 20 and <= 150, $"graine {seed} : victoire au jour {result.VictoryDay}");
         }

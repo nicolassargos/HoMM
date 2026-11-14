@@ -219,7 +219,7 @@ public class GameStateTests
     [Fact]
     public void Une_mine_capturee_rapporte_a_chaque_fin_de_tour()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var mine = state.Map.Objects.OfType<Mine>().First(m => m.Resource == ResourceType.Gold);
         mine.Visit(Hero(state));
         int gold = Human(state).Resources[ResourceType.Gold];
@@ -232,7 +232,7 @@ public class GameStateTests
     [Fact]
     public void La_fin_du_tour_rend_les_points_de_mouvement()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         state.SetDestination(NearestSafePile(state).Position);
         while (state.StepAlongPath()) { }
         Assert.True(Hero(state).Movement < Hero(state).MaxMovement);
@@ -246,7 +246,7 @@ public class GameStateTests
     [Fact]
     public void Ramasser_un_tas_ajoute_la_ressource_et_le_retire_de_la_carte()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var pile = NearestSafePile(state);
         int before = Human(state).Resources[pile.Resource];
 
@@ -264,7 +264,7 @@ public class GameStateTests
     [Fact]
     public void Entrer_a_cote_d_un_monstre_declenche_le_combat()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var start = Hero(state).Position;
         var guard = new MonsterGuard(start.Offset(2, 0), TestData.Creatures.Get("gobelin"), 3);
         state.Map.AddObject(guard);
@@ -290,7 +290,7 @@ public class GameStateTests
     [Fact]
     public void Les_evenements_ne_sont_rendus_qu_une_fois()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         state.EndTurn();
 
         Assert.Equal(new DayStarted(1, false), Assert.Single(state.TakeEvents()));
@@ -300,7 +300,7 @@ public class GameStateTests
     [Fact]
     public void Chaque_pas_et_chaque_visite_donnent_un_evenement()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var pile = NearestSafePile(state);
         state.SetDestination(pile.Position);
         int steps = state.Path!.Count;
@@ -319,7 +319,7 @@ public class GameStateTests
     [Fact]
     public void Vaincre_le_dernier_monstre_fait_gagner_la_partie()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         foreach (var g in state.Map.Objects.OfType<MonsterGuard>().ToList())
             state.Map.RemoveObject(g);
         var start = Hero(state).Position;
@@ -336,7 +336,7 @@ public class GameStateTests
     [Fact]
     public void Perdre_son_seul_heros_fait_perdre_la_partie()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var start = Hero(state).Position;
         state.Map.AddObject(new MonsterGuard(start.Offset(2, 0), TestData.Creatures.Get("dragon"), 50));
 
@@ -354,7 +354,7 @@ public class GameStateTests
     [Fact]
     public void Les_monstres_grossissent_chaque_semaine()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var guard = state.Map.Objects.OfType<MonsterGuard>().First();
         int before = guard.Count;
 
@@ -367,6 +367,41 @@ public class GameStateTests
 
 public class GuardPlacementTests
 {
+    /// <summary>
+    /// Les passages entre les zones (option de la nouvelle partie) : la sortie de la zone de départ s'ouvre avec l'armée de
+    /// départ (ouverts), deux fois (normaux) ou quatre fois (fermés) cette armée, pas avec moins.
+    /// </summary>
+    [Theory]
+    [InlineData(ZoneAccess.Open)]
+    [InlineData(ZoneAccess.Normal)]
+    [InlineData(ZoneAccess.Closed)]
+    public void La_sortie_de_la_zone_de_depart_demande_l_armee_voulue(ZoneAccess access)
+    {
+        foreach (int seed in new[] { 1, 42 })
+        {
+            var generator = new MapGenerator(seed, TestData.Data) { Players = 2, Access = access };
+            var map = generator.Generate(54, 40);
+            Assert.NotEmpty(generator.StartExitGates);
+            foreach (var gate in generator.StartExitGates)
+            {
+                var guard = Assert.IsType<MonsterGuard>(map.ObjectAt(gate));
+                bool Wins(double armies)
+                {
+                    var army = new Army();
+                    foreach (var stack in GameState.StartingArmy(TestData.Creatures).Stacks)
+                        army.Add(stack.Type, (int)System.Math.Round(stack.Count * armies));
+                    var report = Battle.Resolve(army.Clone(), guard.Army.Clone());
+                    return report.AttackerWon && Battle.ExperienceFor(report.AttackerLosses)
+                        <= MapGenerator.StartExitLosses * Battle.ExperienceFor(army.Stacks);
+                }
+                double needed = MapGenerator.StartExitArmies(access);
+                Assert.True(Wins(needed), $"{access} : {needed} armées ne battent pas {guard.Count} {guard.Type.Plural} en {gate}");
+                if (access != ZoneAccess.Open)
+                    Assert.False(Wins(1), $"{access} : l'armée de départ bat déjà {guard.Count} {guard.Type.Plural} en {gate}");
+            }
+        }
+    }
+
     // (depuis les routes en diagonale et les zones qui serpentent, 2026-11-14 : sur 22 cartes, 81 % des mines et des
     // coffres restent gardés, 82 % avant ; 2 cartes sous les trois quarts, dont la 2026, 1 sur 20 avant)
     [Theory]

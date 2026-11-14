@@ -14,9 +14,10 @@ public enum MapSize
 }
 
 /// <summary>
-/// Les dimensions de chaque taille de carte. Le générateur découpe la carte en zones de
-/// <see cref="MapGenerator.ZoneWidth"/> × <see cref="MapGenerator.ZoneHeight"/> cases environ :
-/// 4, 6, 9, 16 et 25 zones. La force des monstres suit le niveau de la zone par rapport à la plus lointaine,
+/// Les dimensions de chaque taille de carte : celles de Heroes 3 (36, 72, 108 et 144 cases de côté, choix de
+/// l'utilisateur, 2026-11-14 ; avant : de 54 × 27 à 90 × 66), et une toute petite pour les tests. Le générateur découpe
+/// la carte en zones de <see cref="MapGenerator.ZoneWidth"/> × <see cref="MapGenerator.ZoneHeight"/> cases environ :
+/// 4, 4, 20, 48 et 88 zones. La force des monstres suit le niveau de la zone par rapport à la plus lointaine,
 /// les coffres, tas et monstres errants la surface de la carte.
 /// </summary>
 public static class MapSizes
@@ -26,21 +27,20 @@ public static class MapSizes
     public static (int Width, int Height) Dimensions(MapSize size) => size switch
     {
         MapSize.Tiny => (36, 27),
-        MapSize.Small => (54, 27),
-        MapSize.Normal => (54, 40),
-        MapSize.Large => (72, 53),
-        MapSize.Huge => (90, 66),
+        MapSize.Small => (36, 36),
+        MapSize.Normal => (72, 72),
+        MapSize.Large => (108, 108),
+        MapSize.Huge => (144, 144),
         _ => throw new ArgumentOutOfRangeException(nameof(size)),
     };
 
     /// <summary>
     /// Le nombre d'adversaires au plus : chaque joueur a son coin et une zone voisine avec une ville (1 sur les petites
-    /// cartes de 4 et 6 zones, 2 sur la normale, 3 sur les grandes).
+    /// cartes de 4 zones, 3 sur les autres).
     /// </summary>
     public static int MaxOpponents(MapSize size) => size switch
     {
         MapSize.Tiny or MapSize.Small => 1,
-        MapSize.Normal => 2,
         _ => 3,
     };
 

@@ -11,7 +11,7 @@ public class TownTests
     /// <summary>Une partie avec une ville de test juste à côté du héros (deux cases à droite).</summary>
     private static (GameState State, Town Town) GameWithTownNearby(int garrisonPaysans = 0, string garrisonId = "paysan")
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var cell = state.CurrentHero!.Position.Offset(2, 0);
         var town = new Town(cell, "Testville", "chateau", TestData.Data);
         town.AddBuilding(B("salle-village"));

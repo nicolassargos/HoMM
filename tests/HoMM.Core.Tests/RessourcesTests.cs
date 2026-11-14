@@ -90,6 +90,24 @@ public class RessourcesTests
         }
     }
 
+    /// <summary>Une scierie et une mine de minerai près de chaque ville neutre, gardées (choix de l'utilisateur, 2026-11-14).</summary>
+    [Theory]
+    [InlineData(1, MapSize.Normal, 1)]
+    [InlineData(42, MapSize.Normal, 2)]
+    [InlineData(7, MapSize.Large, 3)]
+    public void Chaque_ville_neutre_a_sa_scierie_et_sa_mine_de_minerai_gardees(int seed, MapSize size, int opponents)
+    {
+        var state = new GameState(seed, TestData.Data, size, opponents);
+        var map = state.Map;
+        var mines = map.Objects.OfType<Mine>().ToList();
+        var towns = map.Objects.OfType<Town>().Where(t => !map.Starts.Contains(t.Position)).ToList();
+        Assert.NotEmpty(towns);
+        foreach (var town in towns)
+            foreach (var resource in new[] { ResourceType.Wood, ResourceType.Ore })
+                Assert.Contains(mines, m => m.Resource == resource && map.IsGuarded(m.Position)
+                    && Math.Max(Math.Abs(m.Position.X - town.Approach.X), Math.Abs(m.Position.Y - town.Approach.Y)) <= 18);
+    }
+
     [Fact]
     public void Une_mine_occupe_trois_cases_sur_deux_et_s_entre_par_le_bas()
     {

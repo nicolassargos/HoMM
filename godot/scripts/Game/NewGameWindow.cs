@@ -8,7 +8,8 @@ using static HoMM.Game.Ui;
 namespace HoMM.Game;
 
 /// <summary>Ce que le joueur a choisi pour une nouvelle partie.</summary>
-public sealed record GameSetup(int Seed, MapSize Size, GameRules Rules, int Opponents = 0, string? HeroName = null, string? Faction = null);
+public sealed record GameSetup(int Seed, MapSize Size, GameRules Rules, int Opponents = 0, string? HeroName = null, string? Faction = null,
+    ZoneAccess Access = ZoneAccess.Normal);
 
 /// <summary>
 /// Nouvelle partie, depuis le menu principal (arrangement en deux colonnes, choisi par l'utilisateur). À gauche,
@@ -26,6 +27,7 @@ public partial class NewGameWindow : ScreenWindow
     private MapSize _size = MapSize.Normal;
     private int _opponents = 1;
     private Difficulty _difficulty = Difficulty.Normal;
+    private ZoneAccess _access = ZoneAccess.Normal;
     private OptionButton _opponentList = null!, _difficultyList = null!;
     private LineEdit _seed = null!;
     private readonly Dictionary<VictoryCondition, CheckBox> _goals = new();
@@ -83,6 +85,13 @@ public partial class NewGameWindow : ScreenWindow
             new Vector2(Px(300), ButtonHeight), i => SelectSize(MapSizes.All.ElementAt(i)));
         sizes.Position = V(14, 54);
         game.AddChild(sizes);
+        // les passages entre les zones, à côté de la taille de la carte
+        game.AddChild(Small(Texts.ZoneAccessLabel, 330, 34));
+        var access = MakeDropdown(Enum.GetValues<ZoneAccess>().Select(Texts.ZoneAccessName), (int)_access, new Vector2(Px(126), ButtonHeight),
+            i => _access = (ZoneAccess)i);
+        access.Position = V(330, 54);
+        access.TooltipText = Texts.ZoneAccessHelp;
+        game.AddChild(access);
         // développement (« --dropdown-open ») : la liste des tailles ouverte, pour une capture
         if (OS.GetCmdlineUserArgs().Contains("--dropdown-open"))
             Callable.From(sizes.ShowPopup).CallDeferred();
@@ -316,6 +325,6 @@ public partial class NewGameWindow : ScreenWindow
         var rules = new GameRules(victory, _limit.ButtonPressed ? GameRules.StandardDayLimit : null, _difficulty);
         string? hero = Heroes.Count > 0 ? Heroes[_hero].Name : null;
         Close();
-        Started?.Invoke(new GameSetup(seed, _size, rules, _opponents, hero, _faction));
+        Started?.Invoke(new GameSetup(seed, _size, rules, _opponents, hero, _faction, _access));
     }
 }

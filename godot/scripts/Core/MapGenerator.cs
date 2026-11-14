@@ -109,6 +109,24 @@ public sealed class MapGenerator
     /// <summary>Chaque joueur commence avec un château sur son départ (sans : le départ en pleine nature, comme avant).</summary>
     public bool StartingTowns { get; init; } = true;
 
+    /// <summary>La force des gardiens des passages entre les zones (<see cref="ZoneAccess"/>).</summary>
+    public ZoneAccess Access { get; init; } = ZoneAccess.Open;
+
+    /// <summary>Après <see cref="Generate(int, int)"/> : les cases des gardiens des sorties des zones de départ.</summary>
+    public IReadOnlyList<Cell> StartExitGates => _passages
+        .Where(p => _zones[p.A].Level == 0 || _zones[p.B].Level == 0).Select(p => p.Gate).ToList();
+
+    /// <summary>
+    /// Combien de fois l'armée de départ il faut pour franchir la sortie de sa zone de départ (en perdant au plus
+    /// <see cref="StartExitLosses"/>), selon <see cref="Access"/>.
+    /// </summary>
+    public static double StartExitArmies(ZoneAccess access) => access switch
+    {
+        ZoneAccess.Normal => 2,
+        ZoneAccess.Closed => 4,
+        _ => 1,
+    };
+
     /// <summary>Les départs : à 4 cases des bords, dans l'ordre des joueurs.</summary>
     private static IEnumerable<Cell> StartCells(int width, int height, int players) =>
         new[] { new Cell(4, 4), new Cell(width - 5, height - 5), new Cell(width - 5, 4), new Cell(4, height - 5) }.Take(players);
@@ -232,6 +250,29 @@ public sealed class MapGenerator
 
     /// <summary>Les mines posées dans la zone de départ d'un joueur (bois, minerai, ressource principale) : sans gardien.</summary>
     private readonly HashSet<MapObject> _startZoneMines = new();
+
+    /// <summary>
+    /// La scierie et la mine de minerai près de chaque ville neutre (choix de l'utilisateur, 2026-11-14) : gardées par une
+    /// petite armée (<see cref="TownMineGuardFactor"/>).
+    /// </summary>
+    private readonly HashSet<MapObject> _townMines = new();
+
+    /// <summary>Les cases qu'aucun objet ne doit couvrir (les places des gardiens des mines près des villes, leurs abords).</summary>
+    private readonly HashSet<Cell> _keptFree = new();
+
+    /// <summary>
+    /// Les cases libres à côté de l'entrée d'une mine (posée ou à poser en <paramref name="entrance"/>) où son gardien peut
+    /// se tenir : de part et d'autre de la case d'où l'on y entre, à 4 cases au moins d'une ville.
+    /// </summary>
+    private List<Cell> GuardSpotsFor(Cell entrance, HashSet<Cell> freeSet)
+    {
+        var mine = Mine.FootprintAt(entrance).Append(entrance.Offset(0, 1)).ToHashSet();
+        return Neighbours(entrance).Where(n => !mine.Contains(n) && freeSet.Contains(n) && DistanceToNearestTown(n) >= 4)
+            .OrderBy(n => n.Y).ThenBy(n => n.X).ToList();
+    }
+
+    /// <summary>La taille du gardien d'une mine près d'une ville, par rapport à un gardien ordinaire de sa zone.</summary>
+    public double TownMineGuardFactor { get; init; } = 0.5;
 
     /// <summary>Cases des passages et leurs abords : ni objet, ni ville, ni autre monstre.</summary>
     private readonly HashSet<Cell> _reserved = new();
@@ -567,6 +608,7 @@ public sealed class MapGenerator
         bool Allowed(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone
             && (!_border[c.X, c.Y] || carved.Contains(c)) && forbidden?.Contains(c) != true && !InStartingTown(c);
         bool Enter(Cell c) => Allowed(c) || c == to;
+        bool NextToRoad(Cell c) => Neighbours(c).Any(n => _map.InBounds(n) && _map.HasRoad(n));
         // l'écart à la ligne droite, qui départage les chemins de même longueur (pas pour rejoindre une route)
         double dx = to.X - from.X, dy = to.Y - from.Y, length = Math.Sqrt(dx * dx + dy * dy);
         double OffLine(Cell c) => joinRoad || length == 0 ? 0 : Math.Abs((c.X - from.X) * dy - (c.Y - from.Y) * dx) / length;
@@ -592,7 +634,10 @@ public sealed class MapGenerator
                 bool diagonal = next.X != c.X && next.Y != c.Y;
                 if (!Enter(next) || (diagonal && !(Enter(new Cell(next.X, c.Y)) && Enter(new Cell(c.X, next.Y)))))
                     continue;
-                double total = known + (diagonal ? Math.Sqrt(2) : 1) + 0.05 * OffLine(next);
+                // suivre une route déjà tracée coûte moins, longer une route à côté coûte plus : les routes se rejoignent au
+                // lieu de courir côte à côte (deux routes voisines faisaient une « échelle »)
+                double step = (diagonal ? Math.Sqrt(2) : 1) * (_map.HasRoad(next) ? 0.6 : NextToRoad(next) ? 1.6 : 1);
+                double total = known + step + 0.05 * OffLine(next);
                 if (cost.TryGetValue(next, out double old) && old <= total)
                     continue;
                 cost[next] = total;
@@ -798,6 +843,7 @@ public sealed class MapGenerator
         if (town.DwellingOfTier(1) is { } dwelling)
             town.AddBuilding(dwelling);
         _map.AddObject(town);
+        _townDistance = null; // une ville de plus
     }
 
     /// <summary>La faction d'une ville neutre : une des factions qu'on peut jouer, au hasard.</summary>
@@ -811,6 +857,9 @@ public sealed class MapGenerator
     /// Une ville neutre dans la zone, au plus près de <paramref name="towards"/> (sinon du centre de la zone) ;
     /// <paramref name="ownOnly"/> : seulement plus près de ce départ que des autres. Faux si elle n'y tient pas.
     /// </summary>
+    /// <summary>L'écart voulu entre les murs de deux villes (en cases).</summary>
+    private const int TownSpacing = 12;
+
     private bool PlaceTownInZone(GameData data, Zone zone, string name, Cell? towards = null, bool ownOnly = false)
     {
         bool Free(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone.Index && !_border[c.X, c.Y]
@@ -824,6 +873,10 @@ public sealed class MapGenerator
             .Where(c => !ownOnly || towards is not { } own || _map.Starts.All(s => s == own || SquaredDistance(c, own) < SquaredDistance(c, s)))
             .OrderBy(c => SquaredDistance(c, towards ?? zone.Center)).ThenBy(c => c.Y).ThenBy(c => c.X)
             .ToList();
+        // de préférence loin des autres villes : chacune a la place de sa scierie et de sa mine de minerai
+        var spaced = places.Where(c => Town.FootprintAt(c).Append(c.Offset(0, 1)).Min(DistanceToNearestTown) >= TownSpacing).ToList();
+        if (spaced.Count > 0)
+            places = spaced;
         var candidates = places.Where(c => Town.FootprintAt(c).All(f => !_map.HasRoad(f))).Take(5).ToList();
         if (candidates.Count == 0)
             candidates = places.Take(5).ToList();
@@ -912,15 +965,47 @@ public sealed class MapGenerator
             town.Garrison.Add(type, Math.Max(1, (int)Math.Round(count * factor)));
         }
         _map.AddObject(town);
+        _townDistance = null; // une ville de plus
     }
 
     private static double Distance(Cell a, Cell b) => Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
 
     /// <summary>Distance « en cases » (déplacement en diagonale compris) jusqu'à la case la plus proche d'une ville (murs compris).</summary>
-    private int DistanceToNearestTown(Cell c) => _map.Objects.OfType<Town>()
-        .SelectMany(t => t.Footprint.Append(t.Approach))
-        .Select(f => Math.Max(Math.Abs(c.X - f.X), Math.Abs(c.Y - f.Y)))
-        .DefaultIfEmpty(int.MaxValue).Min();
+    private int DistanceToNearestTown(Cell c)
+    {
+        _townDistance ??= TownDistances();
+        return _townDistance[c.X, c.Y];
+    }
+
+    /// <summary>Les distances de <see cref="DistanceToNearestTown"/>, calculées une fois pour toute la carte (refaites après chaque ville posée).</summary>
+    private int[,]? _townDistance;
+
+    private int[,] TownDistances()
+    {
+        var distance = new int[_map.Width, _map.Height];
+        for (int y = 0; y < _map.Height; y++)
+        for (int x = 0; x < _map.Width; x++)
+            distance[x, y] = int.MaxValue;
+        // de proche en proche depuis toutes les cases des villes, dans les 8 directions (la distance « en cases »)
+        var queue = new Queue<Cell>();
+        foreach (var cell in _map.Objects.OfType<Town>().SelectMany(t => t.Footprint.Append(t.Approach)).Where(_map.InBounds))
+            if (distance[cell.X, cell.Y] != 0)
+            {
+                distance[cell.X, cell.Y] = 0;
+                queue.Enqueue(cell);
+            }
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            foreach (var n in Neighbours(c))
+                if (_map.InBounds(n) && distance[n.X, n.Y] == int.MaxValue)
+                {
+                    distance[n.X, n.Y] = distance[c.X, c.Y] + 1;
+                    queue.Enqueue(n);
+                }
+        }
+        return distance;
+    }
 
     private void PaintTerrain()
     {
@@ -1103,6 +1188,62 @@ public sealed class MapGenerator
                 }
         }
 
+        // Une scierie et une mine de minerai près de chaque ville neutre (choix de l'utilisateur, 2026-11-14), dans sa zone
+        // et à 11 pas au plus de sa porte de préférence, chacune avec son gardien, une petite armée, posé aussitôt : les
+        // objets posés ensuite s'arrangent autour de lui (posé à la fin, il boucherait souvent un passage étroit)
+        foreach (var town in _map.Objects.OfType<Town>().Where(t => !_map.Starts.Contains(t.Position)).OrderBy(t => t.Id).ToList())
+        {
+            var gate = town.Approach;
+            int Steps(Cell c) => Math.Max(Math.Abs(c.X - gate.X), Math.Abs(c.Y - gate.Y));
+            bool Home(Cell c) => _zones.Count == 0 || ZoneAt(c) == ZoneAt(town.Position);
+            foreach (var (resource, target) in new[] { (ResourceType.Wood, 36), (ResourceType.Ore, 64) })
+            {
+                // un abord dégagé de préférence : les deux places du gardien et la case sous celle d'où l'on entre, libres ;
+                // sinon une place au moins pour son gardien (à côté de l'entrée, à 4 cases au moins d'une ville)
+                bool Open(Cell c) => GuardSpotsFor(c, freeSet).Count == 2 && freeSet.Contains(c.Offset(0, 2)) && _map.IsPassable(c.Offset(0, 2));
+                bool Guardable(Cell c) => GuardSpotsFor(c, freeSet).Count > 0;
+                var tries = new (Func<Cell, bool> Where, Func<Cell, int> Order)[]
+                {
+                    (c => Home(c) && Steps(c) <= 11 && Open(c), c => Math.Abs(SquaredDistance(c, gate) - target)),
+                    (c => Home(c) && Open(c), c => SquaredDistance(c, gate)),
+                    // une ville à l'étroit dans sa zone : au plus près, même hors de sa zone
+                    (c => Steps(c) <= 12 && Guardable(c), c => SquaredDistance(c, gate)),
+                    (c => Steps(c) <= 14 && Guardable(c), c => SquaredDistance(c, gate)),
+                    (c => Steps(c) <= 18 && Guardable(c), c => SquaredDistance(c, gate)),
+                };
+                bool done = false;
+                foreach (var (where, order) in tries)
+                {
+                    foreach (var cell in free.Where(c => DistanceToNearestTown(c) >= 5 && where(c)).OrderBy(order).ThenBy(c => c.Y).ThenBy(c => c.X).ToList())
+                    {
+                        var spots = GuardSpotsFor(cell, freeSet);
+                        if (TryPlaceMine(cell, resource, freeSet) is not { } mine)
+                            continue;
+                        if (_data != null && !spots.Any(spot => CanPlaceGuard(spot) && TryAddGuard(_data.Creatures, spot, TownMineGuardFactor)))
+                        {
+                            // pas de place pour son gardien : la mine va ailleurs
+                            _map.RemoveObject(mine);
+                            _mineCells.ExceptWith(Mine.FootprintAt(cell).Append(mine.Approach));
+                            continue;
+                        }
+                        startMines.Add(resource);
+                        _townMines.Add(mine);
+                        // l'autre place de son gardien et la case sous celle d'où l'on entre restent libres : on y passe
+                        foreach (var kept in spots.Append(mine.Approach.Offset(0, 1)).Where(freeSet.Contains).ToList())
+                        {
+                            free.Remove(kept);
+                            freeSet.Remove(kept);
+                            _keptFree.Add(kept);
+                        }
+                        done = true;
+                        break;
+                    }
+                    if (done)
+                        break;
+                }
+            }
+        }
+
         // Puis les autres : la carte prévoit une mine de chaque ressource, et d'autres tour à tour (voir ExtraMine) ; celles
         // posées près des départs en font partie (elles ne s'y ajoutent que si elles dépassent ce qui était prévu)
         var planned = ResourceInfo.All.Concat(Enumerable.Range(0, MineCount - ResourceInfo.All.Length).Select(ExtraMine)).ToList();
@@ -1151,6 +1292,9 @@ public sealed class MapGenerator
     /// Les lieux à visiter (après tout le reste : sur une petite carte, on pose ce qui rentre) : tours d'observation,
     /// cabanes du sage, moulins et roues à eau, autels.
     /// </summary>
+    /// <summary>La distance au plus proche bord de la carte d'une tour d'observation, au moins (le quart de la carte au plus).</summary>
+    public const int TowerEdgeMargin = 10;
+
     private void PlaceSites(List<Cell> free)
     {
         int next = 0;
@@ -1161,15 +1305,19 @@ public sealed class MapGenerator
                 return false;
             // la case au-dessus de la porte : un terrain où l'on marche, sans route ni objet
             if (!cells.Where(c => c != obj.Position).All(c => _map.IsPassable(c) && !_map.HasRoad(c)
-                    && _map.OccupantAt(c) == null && !_mineCells.Contains(c) && c != _map.Treasure))
+                    && _map.OccupantAt(c) == null && !_mineCells.Contains(c) && c != _map.Treasure && !_keptFree.Contains(c)))
                 return false;
             return cells.Count == 1 || Sides(cells).All(c => !_map.InBounds(c) || _map.OccupantAt(c) == null);
         }
         static IEnumerable<Cell> Sides(List<Cell> cells) => cells.SelectMany(c => new[] { c.Offset(-1, 0), c.Offset(1, 0) });
-        bool Place(Func<Cell, MapObject> make)
+        // <where> : seulement sur ces cases ; les autres restent pour les lieux suivants
+        bool Place(Func<Cell, MapObject> make, Func<Cell, bool>? where = null)
         {
-            while (next < free.Count)
+            for (int j = next; j < free.Count; j++)
             {
+                if (where != null && !where(free[j]))
+                    continue;
+                (free[j], free[next]) = (free[next], free[j]);
                 var cell = free[next++];
                 if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null || cell == _map.Treasure)
                     continue;
@@ -1189,8 +1337,12 @@ public sealed class MapGenerator
             return false;
         }
 
+        // les tours d'observation loin des bords : près d'un bord, une bonne part de ce qu'elles dévoilent tomberait hors de
+        // la carte (choix de l'utilisateur, 2026-11-14)
+        int margin = Math.Min(TowerEdgeMargin, Math.Min(_map.Width, _map.Height) / 4);
+        bool Central(Cell c) => c.X >= margin && c.Y >= margin && c.X < _map.Width - margin && c.Y < _map.Height - margin;
         for (int i = 0; i < Math.Max(1, Scaled(TowerCount)); i++)
-            if (!Place(c => new ObservationTower(c)))
+            if (!Place(c => new ObservationTower(c), Central))
                 return;
         var spells = _data?.Spells.All.Where(sp => sp.Level <= 2).OrderBy(sp => sp.Id).ToList() ?? new List<SpellType>();
         if (spells.Count > 0)
@@ -1266,14 +1418,16 @@ public sealed class MapGenerator
     /// </summary>
     private void PlaceGuards(CreatureCatalog creatures)
     {
-        // Il n'y a pas de ville dans la zone de départ : ses sorties restent à la portée de l'armée de départ
+        // Les sorties d'une zone de départ : à la portée de l'armée de départ (passages ouverts, avec des adversaires), ou
+        // d'une armée de quelques semaines (normaux, fermés : on ne prend pas trop tôt la zone voisine)
+        double others = Access == ZoneAccess.Closed ? 2 * PassageGuardFactor : PassageGuardFactor;
         foreach (var passage in _passages)
             if (_map.ObjectAt(passage.Gate) == null)
             {
                 bool leavesStart = _zones[passage.A].Level == 0 || _zones[passage.B].Level == 0;
-                var guard = AddGuard(creatures, passage.Gate, leavesStart ? 1 : PassageGuardFactor, PassageDanger(passage));
-                if (leavesStart && guard != null && _map.Starts.Count > 1)
-                    FitToStartingArmy(creatures, guard);
+                var guard = AddGuard(creatures, passage.Gate, leavesStart ? 1 : others, PassageDanger(passage));
+                if (leavesStart && guard != null && (Access != ZoneAccess.Open || _map.Starts.Count > 1))
+                    FitToStartingArmy(creatures, guard, StartExitArmies(Access));
             }
 
         // les mines de la zone de départ ne sont pas gardées (comme dans Heroes 3) : elles assurent à chacun de quoi bâtir,
@@ -1291,9 +1445,11 @@ public sealed class MapGenerator
                 continue; // déjà sous la garde d'un monstre voisin
             var spots = Neighbours(target.Position).ToList();
             Shuffle(spots);
+            // une mine près d'une ville sans son gardien (pas de créatures au moment de la poser) : une petite armée
+            double size = _townMines.Contains(target) ? TownMineGuardFactor : 1;
             foreach (var spot in spots)
             {
-                if (CanPlaceGuard(spot) && TryAddGuard(creatures, spot))
+                if (CanPlaceGuard(spot) && TryAddGuard(creatures, spot, size))
                     break;
             }
         }
@@ -1346,9 +1502,9 @@ public sealed class MapGenerator
     }
 
     /// <summary>Pose un monstre, sauf s'il couperait le chemin vers un objet (il bloque sa case) : renvoie false.</summary>
-    private bool TryAddGuard(CreatureCatalog creatures, Cell cell)
+    private bool TryAddGuard(CreatureCatalog creatures, Cell cell, double sizeFactor = 1)
     {
-        if (AddGuard(creatures, cell) is not { } guard)
+        if (AddGuard(creatures, cell, sizeFactor) is not { } guard)
             return false;
         if (AllObjectsReachable())
             return true;
@@ -1356,14 +1512,15 @@ public sealed class MapGenerator
         return false;
     }
 
-    /// <summary>Peut-on encore atteindre tous les objets (sauf les monstres) et le trésor enfoui depuis le départ ?</summary>
+    /// <summary>Peut-on encore atteindre tous les objets (les monstres compris) et le trésor enfoui depuis le départ ?</summary>
     private bool AllObjectsReachable()
     {
-        var reachable = WalkableFromStart();
+        var reachable = WalkableGrid();
+        bool Reached(Cell c) => reachable[c.X, c.Y];
         // les monstres aussi : un monstre ne doit pas en enfermer un autre (on ne passe pas à travers un monstre)
-        return _map.Objects.All(o => reachable.Contains(o.Position))
-            && (_map.Treasure is not { } treasure || reachable.Contains(treasure))
-            && _map.Starts.All(reachable.Contains);
+        return _map.Objects.All(o => Reached(o.Position))
+            && (_map.Treasure is not { } treasure || Reached(treasure))
+            && _map.Starts.All(Reached);
     }
 
     /// <summary>
@@ -1372,48 +1529,92 @@ public sealed class MapGenerator
     /// </summary>
     private HashSet<Cell> WalkableFromStart()
     {
-        var seen = new HashSet<Cell> { _map.Start };
-        var queue = new Queue<Cell>(seen);
+        var grid = WalkableGrid();
+        var seen = new HashSet<Cell>();
+        for (int y = 0; y < _map.Height; y++)
+        for (int x = 0; x < _map.Width; x++)
+            if (grid[x, y])
+                seen.Add(new Cell(x, y));
+        return seen;
+    }
+
+    /// <summary>Les cases de <see cref="WalkableFromStart"/>, en tableau (bien plus rapide : on le refait après chaque objet posé).</summary>
+    private bool[,] WalkableGrid()
+    {
+        int width = _map.Width, height = _map.Height;
+        var passable = new bool[width, height];
+        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+            passable[x, y] = _map.IsPassable(new Cell(x, y));
+        var seen = new bool[width, height];
+        var queue = new Queue<Cell>();
+        seen[_map.Start.X, _map.Start.Y] = true;
+        queue.Enqueue(_map.Start);
         while (queue.Count > 0)
         {
             var c = queue.Dequeue();
             if (c != _map.Start && _map.ObjectAt(c) != null)
                 continue;
-            foreach (var next in Neighbours(c))
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
             {
-                int dx = next.X - c.X, dy = next.Y - c.Y;
-                if (!_map.IsPassable(next))
+                int nx = c.X + dx, ny = c.Y + dy;
+                if ((dx == 0 && dy == 0) || nx < 0 || ny < 0 || nx >= width || ny >= height || seen[nx, ny] || !passable[nx, ny])
                     continue;
-                if (dx != 0 && dy != 0 && !(_map.IsPassable(c.Offset(dx, 0)) && _map.IsPassable(c.Offset(0, dy))))
+                if (dx != 0 && dy != 0 && !(passable[nx, c.Y] && passable[c.X, ny]))
                     continue;
-                if (seen.Add(next))
-                    queue.Enqueue(next);
+                seen[nx, ny] = true;
+                queue.Enqueue(new Cell(nx, ny));
             }
         }
         return seen;
     }
 
     /// <summary>Les pertes que l'armée de départ peut subir en franchissant la sortie de sa zone (en valeur).</summary>
-    private const double StartExitLosses = 0.35;
+    public const double StartExitLosses = 0.35;
 
     /// <summary>
-    /// Avec des adversaires (chacun joue en combats rapides) : le gardien d'une sortie de zone de départ est réduit jusqu'à
-    /// ce que l'armée de départ le batte en perdant au plus <see cref="StartExitLosses"/> de sa valeur (selon la prévision),
-    /// pour que chacun puisse sortir de son coin et prendre sa ville.
+    /// Le gardien d'une sortie de zone de départ, à la mesure de <paramref name="armies"/> fois l'armée de départ (selon la
+    /// prévision d'un combat rapide, en perdant au plus <see cref="StartExitLosses"/> de sa valeur). Une fois l'armée de
+    /// départ (passages ouverts, avec des adversaires qui jouent en combats rapides) : il est seulement réduit jusqu'à ce
+    /// qu'elle le batte, pour que chacun puisse sortir de son coin et prendre sa ville. Plus (passages normaux ou fermés) :
+    /// il prend la plus grande taille que cette armée bat ; l'armée de départ seule ne passe pas.
     /// </summary>
-    private void FitToStartingArmy(CreatureCatalog creatures, MonsterGuard guard)
+    private void FitToStartingArmy(CreatureCatalog creatures, MonsterGuard guard, double armies = 1)
     {
-        var army = GameState.StartingArmy(creatures);
+        var army = new Army();
+        foreach (var stack in GameState.StartingArmy(creatures).Stacks)
+            army.Add(stack.Type, (int)Math.Round(stack.Count * armies));
         int value = Battle.ExperienceFor(army.Stacks);
-        int count = guard.Count;
-        while (count > 1)
+        bool Beaten(int count)
         {
             var enemy = new Army();
             enemy.Add(guard.Type, count);
             var report = Battle.Resolve(army.Clone(), enemy);
-            if (report.AttackerWon && Battle.ExperienceFor(report.AttackerLosses) <= StartExitLosses * value)
-                break;
-            count = Math.Max(1, count * 4 / 5);
+            return report.AttackerWon && Battle.ExperienceFor(report.AttackerLosses) <= StartExitLosses * value;
+        }
+        int count = guard.Count;
+        if (armies <= 1)
+            while (count > 1 && !Beaten(count))
+                count = Math.Max(1, count * 4 / 5);
+        else
+        {
+            // la plus grande taille battue : on double jusqu'à ne plus gagner, puis on coupe en deux
+            int low = 1, high = Math.Max(2, count);
+            while (Beaten(high) && high < 100000)
+            {
+                low = high;
+                high *= 2;
+            }
+            while (high - low > 1)
+            {
+                int middle = (low + high) / 2;
+                if (Beaten(middle))
+                    low = middle;
+                else
+                    high = middle;
+            }
+            count = low;
         }
         if (count == guard.Count)
             return;

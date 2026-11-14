@@ -902,6 +902,8 @@ croissance, prix, garde.
   l'utilisateur, 2026-11-14) : « vaincre tous les monstres » est retiré (il n'a plus de sens sur ces grandes cartes) ; par
   défaut, **prendre toutes les villes**, comme Heroes 3 ; **les parties longues sont acceptées** (la simulation seule
   prend toutes les villes de la normale vers le jour 210).
+  ✅ **Plus de villes sur les grandes cartes** (2026-11-14, demandé par l'utilisateur) : 14 noms de villes les limitaient à
+  14 ; avec 40 noms, une ville pour trois zones : grande carte 17 à 20 villes, très grande 30 à 33 (avec les châteaux).
 - **La mer** (conçue avec l'utilisateur, 2026-11-14, comme Heroes 3) :
   - **Les bateaux** : un **chantier naval** (bâtiment des villes au bord de l'eau, et lieu sur les côtes de la carte) en
     construit un (or et bois), qui apparaît sur l'eau à côté ; et **quelques bateaux déjà amarrés** sur les côtes.

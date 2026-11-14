@@ -955,6 +955,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
   dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
   Tests : `MerTests`.
+- ✅ Plus de villes sur les grandes cartes (2026-11-14, branche `plus-de-villes`, demandé par l'utilisateur : une grande
+  carte doit pouvoir contenir au moins 8 villes) : le générateur vise une ville pour trois zones, mais s'arrêtait aux 14
+  noms de `TownNames`. 26 noms de plus (`MoreTownNames`), mêlés par un hasard à part (d'après la graine) et ajoutés après
+  les premiers : les cartes qui avaient assez de noms ne changent pas. Mesuré (deux graines ; seul, puis à quatre) :
+  normale 7 et 10 villes (comme avant), grande 17 et 20 (14 avant), très grande 30 et 33 (14 avant). Générer une très
+  grande carte prend 7 à 8 s (4 avant : les mines et leurs gardiens près de chaque ville). Test : `TaillesCarteTests`.
 - ✅ Les zones de la carte (2026-11-14, branche `carte-zones`, demandé par l'utilisateur) :
   - **Les passages entre les zones**, une option de la nouvelle partie (`ZoneAccess`, liste « Passages » à côté de la
     taille, normaux par défaut ; `--access=`) : ouverts (comme avant), normaux (le gardien de la sortie de la zone de

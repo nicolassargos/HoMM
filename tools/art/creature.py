@@ -143,7 +143,9 @@ def cmd_fixe(ident, lots=4, graine=0):
         for i in range(1, 30):
             chemin = os.path.join(d, f"{i}.png")
             if os.path.exists(chemin):
-                ecrire(os.path.join(base, "reduit", f"L{k}-{i}.png"), preparer_fixe(lire(chemin)[2], f))
+                q = preparer_fixe(lire(chemin)[2], f)
+                # une créature qui flotte : la page de choix la montre déjà au-dessus du sol
+                ecrire(os.path.join(base, "reduit", f"L{k}-{i}.png"), q + [[n.VIDE] * len(q[0]) for _ in range(f.get("flotte", 0))])
     enregistrer(donnees)
     cmd_page(ident)
     pixellab.solde()
@@ -161,7 +163,8 @@ def choisir_fixe(donnees, ident, nom):
     q = preparer_fixe(lire(grande)[2], f)
     centre = n.axe(q)
     largeur = 2 * math.ceil(max(centre, len(q[0]) - centre)) + 2
-    ecrire(f"{BATAILLE}/{ident}.png", n.poser(q, largeur, len(q) + 2, centre))
+    flotte = f.get("flotte", 0)
+    ecrire(f"{BATAILLE}/{ident}.png", n.poser(q, largeur, len(q) + 2 + flotte, centre, marge_bas=flotte))
     f.setdefault("choix", {})["fixe"] = nom
     f["grande"] = grande.replace("\\", "/")
     print(f"{BATAILLE}/{ident}.png installée ({largeur} × {len(q) + 2}) ; grande image gardée : {grande}")
@@ -337,6 +340,7 @@ def choisir_anim(donnees, ident, etat, nom, fps=None):
     f.setdefault("choix", {})[etat] = nom
     dossier_images = dossier(ident, "anim", nom.split("-r")[0])
     total = nombre_images(dossier_images) if os.path.isdir(dossier_images) else 8
+    flotter(f"{BATAILLE}/{ident}-{etat}.png", f, total)
     vitesses = lire_vitesses()
     reglages = vitesses.setdefault(ident, {})
     if fps:
@@ -362,8 +366,9 @@ def cmd_retailler(ident, hauteur):
     q = preparer_fixe(lire(f["grande"])[2], f)
     centre = n.axe(q)
     largeur = 2 * math.ceil(max(centre, len(q[0]) - centre)) + 2
-    ecrire(f"{BATAILLE}/{ident}.png", n.poser(q, largeur, len(q) + 2, centre))
-    print(f"{BATAILLE}/{ident}.png : {largeur} × {len(q) + 2}")
+    flotte = f.get("flotte", 0)
+    ecrire(f"{BATAILLE}/{ident}.png", n.poser(q, largeur, len(q) + 2 + flotte, centre, marge_bas=flotte))
+    print(f"{BATAILLE}/{ident}.png : {largeur} × {len(q) + 2 + flotte}")
     facteur = hauteur / len(n.recadrer(lire(f["grande"])[2]))
     d = dossier(ident, "anim")
     for etat, nom in f.get("choix", {}).items():
@@ -376,9 +381,21 @@ def cmd_retailler(ident, hauteur):
         images, _, _ = traiter_feuille(os.path.join(d, base), facteur, f, etat)
         ecrire(os.path.join(d, base + ".png"), n.assembler(images))
         shutil.copy(os.path.join(d, base + ".png"), f"{BATAILLE}/{ident}-{etat}.png")
+        flotter(f"{BATAILLE}/{ident}-{etat}.png", f, len(images))
         print(f"{BATAILLE}/{ident}-{etat}.png refaite" + (f" (sans les retouches de {nom} : à refaire)" if base != nom else ""))
     enregistrer(donnees)
     cmd_page(ident)
+
+
+def flotter(chemin, f, total):
+    """Une créature qui flotte (« flotte » : des pixels vides sous elle, dans chaque image de la feuille installée) : le jeu
+    pose le bas de l'image sur le sol de sa case, elle plane donc au-dessus."""
+    flotte = f.get("flotte", 0)
+    if not flotte:
+        return
+    images = n.decouper(lire(chemin)[2], 4, (total + 3) // 4)
+    largeur = len(images[0][0])
+    ecrire(chemin, n.assembler([q + [[n.VIDE] * largeur for _ in range(flotte)] for q in images]))
 
 
 def cmd_choisir(ident, quoi, nom, fps=None):

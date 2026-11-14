@@ -1561,7 +1561,7 @@
     "tyran-oeil": {
       "nom": "Tyran œil",
       "gabarit": "volant",
-      "hauteur": 76,
+      "hauteur": 64,
       "generation": [
         128,
         128
@@ -1585,7 +1585,8 @@
         "L4": "références",
         "L5": "angle seul",
         "L6": "références"
-      }
+      },
+      "flotte": 14
     }
   }
 }

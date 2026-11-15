@@ -1844,7 +1844,7 @@ public partial class BattleFieldView : Control
             age += Math.Max(delta, 1e-6);
             double release = throws ? (Setting(hookerUnit, "throwFrame") ?? 3) / Fps(hookerUnit, Throw) : 0;
             const double flight = 0.25, pull = 0.35;
-            var hand = SheetPoint(hookerUnit, hooker, "throwPoint", Throw) ?? BodyCenter(hookerUnit, hooker);
+            var hand = ThrowHand(hookerUnit, hooker) ?? BodyCenter(hookerUnit, hooker);
             if (age < release)
                 return false;
             if (age < release + flight)
@@ -1864,6 +1864,30 @@ public partial class BattleFieldView : Control
             hooker.Play(Idle);
             return true;
         });
+    }
+
+    /// <summary>
+    /// D'où part la chaîne dessinée par le jeu : le « throwPoint » de l'image du lancer, ou, avec « throwPoints » (un point
+    /// par image), celui de l'image montrée : la chaîne de l'image bouge un peu d'une image à l'autre, celle du jeu la suit.
+    /// </summary>
+    private static Vector2? ThrowHand(BattleUnit unit, Shown shown)
+    {
+        if (Raw(unit, "throwPoints") is { ValueKind: System.Text.Json.JsonValueKind.Array } points && Sheet(unit, Throw) is { } sheet)
+        {
+            int frames = Frames(unit, Throw);
+            int index = Math.Clamp(shown.State == Throw ? (int)(shown.StateTime * Fps(unit, Throw)) : frames - 1, 0, frames - 1);
+            if (index < points.GetArrayLength() && points[index] is { ValueKind: System.Text.Json.JsonValueKind.Array } p)
+            {
+                var foot = shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10));
+                int rows = (frames + AnimationColumns - 1) / AnimationColumns;
+                var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / rows);
+                float x = ((float)p[0].GetDouble() - cell.X / 2) * BattleSpriteScale;
+                if (shown.FacesLeft ?? unit.Side == BattleSide.Defender)
+                    x = -x;
+                return foot + new Vector2(x, ((float)p[1].GetDouble() - cell.Y) * BattleSpriteScale);
+            }
+        }
+        return SheetPoint(unit, shown, "throwPoint", Throw);
     }
 
     /// <summary>

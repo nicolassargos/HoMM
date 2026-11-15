@@ -868,9 +868,10 @@ public sealed class BattleEffects
             canvas.DrawSetTransform(at, along.Angle(), new Vector2(Pixel, Pixel));
             canvas.DrawTexture(link, -size / 2);
         }
-        // le crochet, la pointe vers l'avant (retourné quand la chaîne va vers la gauche), pendu par le haut de sa tige
+        // le crochet, la pointe vers l'avant (retourné quand la chaîne va vers la gauche), pendu par le haut de sa tige et
+        // penché de 45° (choix de l'utilisateur)
         bool left = to.X < from.X;
-        canvas.DrawSetTransform((to / Pixel).Round() * Pixel, 0, new Vector2(left ? -Pixel : Pixel, Pixel));
+        canvas.DrawSetTransform((to / Pixel).Round() * Pixel, left ? MathF.PI / 4 : -MathF.PI / 4, new Vector2(left ? -Pixel : Pixel, Pixel));
         canvas.DrawTexture(hook, new Vector2(-2, -1));
         canvas.DrawSetTransform(Vector2.Zero, 0, Vector2.One);
     }

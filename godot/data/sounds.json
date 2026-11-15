@@ -1,0 +1,20 @@
+{
+  "music": {
+    "menu": ["attente/musique-menu.wav"],
+    "map": ["attente/musique-carte.wav"],
+    "town": ["attente/musique-ville.wav"],
+    "battle": ["attente/musique-combat.wav"]
+  },
+  "sounds": {
+    "click": ["attente/clic.wav"],
+    "pickup": ["attente/ramasser.wav"],
+    "chest": ["attente/coffre.wav"],
+    "capture": ["attente/prendre.wav"],
+    "build": ["attente/construire.wav"],
+    "level-up": ["attente/niveau.wav"],
+    "new-week": ["attente/nouvelle-semaine.wav"],
+    "victory": ["attente/victoire.wav"],
+    "defeat": ["attente/defaite.wav"]
+  },
+  "ambience": {}
+}

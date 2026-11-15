@@ -77,7 +77,8 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
-        Settings.Load(); // les réglages du joueur (vitesse des projectiles…)
+        Settings.Load(); // les réglages du joueur (vitesse des projectiles, volumes…)
+        Audio.Start(GetTree()); // une seule fois : le son survit quand la scène est relancée
         // plein écran au lancement (l'écran de 1920 × 1080 passait sous la barre des tâches) ; pas pour une capture
         if (!_windowModeSet)
         {
@@ -107,6 +108,7 @@ public partial class Main : Node2D
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
+        Audio.PlayMusic("map");
         // Développement : « --rich » : le joueur a de quoi tout bâtir et tout recruter, remis au plein chaque jour (Enrich)
         Enrich();
         // Développement : « --boat » : un bateau amarré sur l'eau la plus proche du héros, au bord d'une rive
@@ -737,6 +739,7 @@ public partial class Main : Node2D
     private void ShowMainMenu()
     {
         _inMenu = true;
+        Audio.PlayMusic("menu");
         var menu = new MainMenu();
         AddChild(menu);
         menu.Build(GetViewportRect().Size);
@@ -1083,6 +1086,7 @@ public partial class Main : Node2D
         {
             if (Texts.Message(e, viewer) is { } message)
                 _hud.AddMessage(message);
+            Audio.PlayFor(e, viewer);
 
             switch (e)
             {

@@ -793,7 +793,7 @@ public partial class Hud : CanvasLayer
 
     /// <summary>
     /// La fenêtre des options (bouton du panneau ou Échap) : sauvegarder, charger, plein écran, menu principal, quitter,
-    /// un bouton par ligne.
+    /// un bouton par ligne ; puis le volume du son.
     /// </summary>
     public void ShowOptions() => Enqueue(done =>
     {
@@ -830,6 +830,7 @@ public partial class Hud : CanvasLayer
             button.Pressed += () => Close(action);
             content.AddChild(button);
         }
+        content.AddChild(VolumeSliders.Make(320));
         var note = MakeLabel(Texts.OptionsText, 13, SoftTextColor);
         note.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         note.CustomMinimumSize = V(320, 0);

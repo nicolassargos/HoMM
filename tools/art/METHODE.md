@@ -53,6 +53,9 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   avec `tools/art/pieds.py` (page `revue-pieds.html` : glisser les points, ajouter ou retirer un pied, régler l'étalement).
   Méthode de l'utilisateur : le bas du contour entre le pixel le plus à gauche et le plus à droite, fermé par un arc au-dessus,
   puis des bagues de plus en plus claires.
+- Les héros de la carte (2026-11-15) : seules les images fixes ont des pieds (la marche et l'ouest en miroir les
+  reprennent) ; `pieds.py page heroes/` ne montre qu'eux. Les 48 propositions étaient presque toutes justes ; le
+  nord-est demande souvent un second pied (le sabot avant, plus haut).
 - Ce que la revue a appris (les propositions corrigées) : les pieds proposés étaient trop larges (1 à 2 pixels de chaque côté)
   et un pixel trop haut (corrigé dans `proposer`) ; un sommet ne garde qu'une petite base au milieu ; le château a un
   second pied le long de la rangée de tours du fond ; une mine a un pied par objet (un arbre collé à la cabane, une souche,
@@ -454,6 +457,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   tourné vers le sud reste le point faible : le cheval y prend souvent un cou arqué tête basse (« un chameau ») ;
   regarder le cou à ×6 avant de montrer une page. Une retouche (« Edit images ») d'un sud-est déjà réussi garde la pose
   mais raccourcit les jambes.
+- **Le thane des Nains** (2026-11-15) : la même recette (idées de côté, rotation de l'est choisi, sud-est au style du
+  rôdeur) a marché du premier coup sur un bélier. Passer les rouges hors du drapeau au brun **avant** de tourner l'image
+  (sinon toutes les vues les gardent). Regarder la hampe du drapeau : PixelLab la coupe souvent à la main du cavalier ;
+  la prolonger par le code avant les marches.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

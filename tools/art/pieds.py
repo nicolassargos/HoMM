@@ -4,7 +4,8 @@
                                                      propose les pieds des images qui n'en ont pas encore (--tout : toutes
                                                      les images non vérifiées ; des noms : ces images-là, vérifiées ou non,
                                                      par exemple après avoir changé l'image) et les écrit dans godot/art/pieds.json
-    python -I tools/art/pieds.py page                écrit art-candidats/en-cours/revue-pieds.html (la page de revue)
+    python -I tools/art/pieds.py page [préfixes…]    écrit art-candidats/en-cours/revue-pieds.html (la page de revue ; des
+                                                     préfixes : ces images-là seulement, par exemple heroes/)
     python -I tools/art/revue.py serveur             (à lancer à côté) écrit les réponses de la page sur le disque
     python -I tools/art/pieds.py appliquer [fichier] reporte les réponses (en-cours/revue-pieds.json, sinon le dernier
                                                      revue-pieds*.json des Téléchargements) dans godot/art/pieds.json
@@ -49,6 +50,8 @@ def images():
     noms = []
     for dossier in ("objects", "decor", "creatures", "heroes", "battle"):
         for f in sorted(glob.glob(os.path.join(ART, dossier, "*.png"))):
+            if dossier == "heroes" and f.endswith("-move.png"):
+                continue  # la marche d'un héros garde les pieds de son image fixe (MapRenderer.HeroImage)
             noms.append(f"{dossier}/{os.path.basename(f)[:-4]}")
     return noms
 
@@ -210,10 +213,12 @@ def proposer(tout, noms=()):
     print(f"Écrit {os.path.relpath(FICHIER, RACINE)}")
 
 
-def page():
+def page(prefixes=()):
     donnees = charger()
     items = []
     for nom in images():
+        if prefixes and not nom.startswith(tuple(prefixes)):
+            continue
         with open(os.path.join(ART, nom + ".png"), "rb") as f:
             octets = f.read()
         src = "data:image/png;base64," + base64.b64encode(octets).decode()
@@ -352,7 +357,7 @@ if __name__ == "__main__":
     if args and args[0] == "proposer":
         proposer("--tout" in args, [a for a in args[1:] if not a.startswith("--")])
     elif args and args[0] == "page":
-        page()
+        page(args[1:])
     elif args and args[0] == "appliquer":
         appliquer(args[1] if len(args) > 1 else None)
     else:

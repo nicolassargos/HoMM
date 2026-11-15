@@ -1633,7 +1633,8 @@
         "fixe": "L3-4",
         "idle": "mm-calme-3",
         "move": "mm-marche-1",
-        "attack": "mm-proche-6"
+        "attack": "mm-proche-6",
+        "carte": "p1-7"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png"
     }

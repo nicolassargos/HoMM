@@ -90,6 +90,7 @@
   "creatures/griffon": {"pieds": [[[4, 27], [24, 28]]], "verifie": true},
   "creatures/homme-grenouille": {"pieds": [[[14, 29], [26, 30]]], "verifie": false},
   "creatures/homme-lezard": {"pieds": [[[3, 29], [27, 29]]], "verifie": false},
+  "creatures/hydre": {"pieds": [[[8, 29], [25, 29]]], "verifie": false},
   "creatures/liche": {"pieds": [[[5, 30], [24, 30]]], "verifie": true},
   "creatures/loup": {"pieds": [[[7, 28], [28, 27]]], "verifie": true},
   "creatures/mage": {"pieds": [[[10, 29], [23, 29]]], "verifie": true},

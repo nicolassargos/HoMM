@@ -101,8 +101,9 @@ public partial class Main : Node2D
         var setup = _setup;
         _setup = null;
         _state = loaded ?? (setup != null
-            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents, heroName: setup.HeroName, faction: setup.Faction, access: setup.Access)
-            : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents(), faction: ReadFaction(), access: ReadAccess()));
+            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents, heroName: setup.HeroName, faction: setup.Faction, access: setup.Access,
+                mapType: setup.MapType)
+            : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents(), faction: ReadFaction(), access: ReadAccess(), mapType: ReadMapType()));
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
@@ -277,8 +278,16 @@ public partial class Main : Node2D
             WeeklyProducer { IsWaterWheel: true } => "water-wheel",
             WeeklyProducer => "windmill",
             ObservationTower => "tower",
+            BlessingSite { Sea: true, Blessing: Blessing.Morale } => "buoy",
+            BlessingSite { Sea: true } => "mermaids",
             BlessingSite { Blessing: Blessing.Morale } => "temple",
             BlessingSite => "fairy-ring",
+            Flotsam => "flotsam",
+            SeaChest => "sea-chest",
+            Whirlpool => "whirlpool",
+            Lighthouse => "lighthouse",
+            AbandonedShip => "abandoned-ship",
+            MonsterGuard { Type.Sea: true } => "pirates",
             _ => null,
         };
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
@@ -488,6 +497,13 @@ public partial class Main : Node2D
     {
         var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--opponents="));
         return arg != null && int.TryParse(arg["--opponents=".Length..], out int count) ? count : 0;
+    }
+
+    /// <summary>Développement : « --map-type=continent|seas|islands|archipelago », le type de la carte (un continent sans l'option).</summary>
+    private static MapType ReadMapType()
+    {
+        var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--map-type="));
+        return arg != null && Enum.TryParse(arg["--map-type=".Length..], ignoreCase: true, out MapType type) ? type : MapType.Continent;
     }
 
     /// <summary>Développement : « --access=open|normal|closed », les passages entre les zones (normaux sans l'option).</summary>
@@ -971,6 +987,7 @@ public partial class Main : Node2D
         {
             MonsterGuard guard => guard.Army,
             Town town => town.Garrison,
+            AbandonedShip ship => ship.Crew,
             HeroDefender defender => defender.Hero.Army,
             _ => new Army(),
         });
@@ -1086,7 +1103,7 @@ public partial class Main : Node2D
                     break;
                 case ShipyardVisited yard when yard.Hero.Owner == viewer:
                     _walking = false;
-                    _hud.ShowShipyard(_state.CanBuyBoat(yard.Shipyard), () =>
+                    _hud.ShowShipyard(_state.CanBuyBoat(yard.Shipyard), _state.BoatCost(yard.Hero.Owner), () =>
                     {
                         _state.BuyBoat(yard.Shipyard);
                         HandleEvents();

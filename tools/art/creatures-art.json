@@ -1335,6 +1335,308 @@
         "attack": "grabs the stone column with both hands, raises it high above his head, then slams it straight down onto the ground in front of him, then lifts it back to his stance",
         "transform": "grabs the stone column with both hands, lifts it and lays it across his right shoulder, then holds it there with one hand, standing upright"
       }
+    },
+    "homme-lezard": {
+      "nom": "Homme-lézard",
+      "gabarit": "humain",
+      "hauteur": 46,
+      "generation": [
+        104,
+        104
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "gnome",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 1 : la masse bon marché (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : lézard des marais (L1 à L3), lézard des cavernes (L4 à L6). Choix (2026-11-11) : L6-1 (lézard des cavernes, lance) à 46 px ; idle-3, move-5-r (la tête fixée sur toutes les images : le corps glissait), attack-2-r (éclat blanc de la pointe effacé).",
+      "references": [
+        "art-candidats/references/donjon/homme-lezard.png::concept reference (a lean lizardman warrior with a spiky crest, a leather harness and a long tail): keep this design and this crouched fighting stance; ignore the black and white ink style"
+      ],
+      "description": "a lean cave lizardman warrior standing in a crouched fighting stance: dark grey-blue scales, a pale grey belly, a crest of bone-white spikes on the head, small pale eyes, a long tail, a leather harness across the chest, holding a spear with a bone tip",
+      "sujet": "a lean grey-blue cave lizardman with a pale belly, a crest of bone spikes, a leather harness and a bone-tipped spear, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L6-1",
+        "idle": "idle-3",
+        "attack": "attack-2-r",
+        "move": "move-5-r",
+        "carte": "p1-7"
+      },
+      "grande": "art-candidats/references/derives/homme-lezard-grand.png",
+      "marge_bas": 0.06,
+      "consignes": {
+        "idle": "stays crouched and alert, breathing, his long tail slowly swaying from side to side, his head turning a little, the spear held ready",
+        "move": "walks forward quickly, low and crouched like a lizard, his long tail swinging from side to side, the spear held ready, a smooth looping walk cycle that ends exactly in the starting pose",
+        "attack": "draws back the spear, then lunges and thrusts it straight forward, then pulls it back to his stance"
+      }
+    },
+    "homme-grenouille": {
+      "nom": "Homme-grenouille",
+      "gabarit": "humain",
+      "hauteur": 48,
+      "generation": [
+        104,
+        104
+      ],
+      "marge_bas": 0.06,
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "homme-lezard",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 2 : le frondeur (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : crapaud des marais (L1 à L3), grenouille des cavernes (L4 à L6) ; puis plus méchants, en colère (L7 à L10, remarque de l'utilisateur). Choix (2026-11-11) : L4-3 (grenouille des cavernes) à 48 px ; idle-5 (le sac vocal orange se gonfle), move-1, attack-5 (la fronde reste dans la main) ; tir : la pierre de fronde (« pierre »).",
+      "references": [
+        "art-candidats/references/donjon/homme-grenouille.png::concept reference (a squat frogman warrior with huge round eyes, a wide open mouth, a chainmail shirt, a round shield and a sling): keep this design; ignore the black and white ink style, the cave and the water"
+      ],
+      "description": "a squat frogman warrior standing on bent legs: smooth dark green skin with bright orange spots like a poison frog, an orange belly, huge round bulging black eyes, a wide mouth, a dark chainmail shirt, a small round wooden shield on one arm and a leather sling in the other hand",
+      "sujet": "a squat dark green frogman with orange spots and belly, bulging black eyes, a dark chainmail shirt, a round shield and a sling, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références",
+        "L7": "références",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul"
+      },
+      "choix": {
+        "fixe": "L4-3",
+        "move": "move-1",
+        "idle": "idle-5",
+        "attack": "attack-5",
+        "carte": "p1-1"
+      },
+      "grande": "art-candidats/references/derives/homme-grenouille-grand.png",
+      "consignes": {
+        "idle": "stands on bent legs; the orange vocal sac under his throat slowly inflates into a big round orange bubble, then deflates back, like a croaking frog; he blinks",
+        "move": "moves forward with short squat waddling hops on his bent frog legs, staying in place, shield and sling held",
+        "attack": "holding the two cords of the leather sling firmly in one hand the whole time, he whirls the sling so its leather pouch circles above his head, then snaps his arm forward toward the enemy; the sling always stays in his hand; then returns to his stance"
+      }
+    },
+    "minotaure": {
+      "nom": "Minotaure",
+      "gabarit": "humain",
+      "hauteur": 84,
+      "generation": [
+        112,
+        128
+      ],
+      "marge_bas": 0.06,
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "homme-grenouille",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 3 : le brave, le mineur des profondeurs (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : mineur brun (L1 à L3), mineur noir (L4 à L6). Choix (2026-11-11) : L5-4 (mineur noir) à 84 px (un peu plus grand qu'un humain) ; idle-2, move-1 (12 images/s), attack-2-r (marteau levé puis abattu ; traînée, explosion et cailloux effacés).",
+      "references": [
+        "art-candidats/references/donjon/minotaure.png::concept reference (a minotaur miner with long horns, a nose ring, a leather apron, a lantern at the belt, a big sledgehammer and a tufted tail): keep this design; ignore the black and white sketch style"
+      ],
+      "description": "a burly minotaur miner standing: a bull head with long dark curved horns and an iron nose ring, black fur with grey streaks, a bare muscular chest, a rusty red leather apron over a fur loincloth, an iron mining lantern hanging from his belt, holding a heavy sledgehammer with a wooden haft, a tufted bull tail, hooves",
+      "sujet": "a burly black minotaur miner with dark horns, an iron nose ring, a rusty red apron, an iron lantern at the belt and a sledgehammer, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L5-4",
+        "idle": "idle-2",
+        "move": "move-1",
+        "attack": "attack-2-r",
+        "carte": "p1-4"
+      },
+      "grande": "art-candidats/references/derives/minotaure-grand.png",
+      "consignes": {
+        "idle": "stands breathing heavily, snorting through his nose ring, his head tossing a little, his tufted tail flicking, the sledgehammer held",
+        "move": "walks forward with heavy steps on his hooves, staying in place, the sledgehammer held, his tail swaying",
+        "attack": "lifts the heavy sledgehammer high over his horns with both hands, then brings it down in a big arc onto the enemy in front of him, then raises it back to his stance"
+      }
+    },
+    "aberration": {
+      "nom": "Aberration",
+      "gabarit": "grand",
+      "hauteur": 80,
+      "generation": [
+        128,
+        128
+      ],
+      "marge_bas": 0.06,
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "minotaure",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 4 : l'horreur (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : chair pâle (L1 à L3), maladive (L4 à L6).",
+      "references": [
+        "art-candidats/references/donjon/aberration.png::concept reference (a crouched monster with six long clawed arms, a toothy mouth in the palm of each hand and a huge fanged mouth across its belly, no head): keep this design and this crouched pose; ignore the black and white ink style and the signature"
+      ],
+      "description": "a horrible aberration crouching on two thick clawed legs: a headless body of pale pinkish-grey flesh with purple veins, six long muscular arms spread around it, each hand opening into a toothy red mouth with claws, a huge wide mouth full of sharp fangs across its belly",
+      "sujet": "a headless pale pinkish-grey aberration with six clawed arms with mouths in the hands and a huge fanged mouth on its belly, crouching, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L3-2",
+        "idle": "idle-5",
+        "move": "move-5",
+        "attack": "attack-5-c",
+        "carte": "p1-6"
+      },
+      "grande": "art-candidats/references/derives/aberration-grand.png",
+      "consignes": {
+        "idle": "stays crouched in place, all the toothy mouths in its six hands and its big belly mouth open and close in turn, as if they were talking to each other, its arms turning a little toward one another",
+        "move": "walks forward, staying in place: it lifts its left clawed leg high and steps, then its right clawed leg high and steps, its body bobbing up and down with each heavy step, its six arms swaying",
+        "attack": "lunges forward and swipes all six long clawed arms at the enemy in front of it, the toothy mouths in its hands biting, its belly mouth gaping wide, then crouches back to its stance"
+      }
+    },
+    "ver-des-profondeurs": {
+      "nom": "Ver des profondeurs",
+      "gabarit": "grand",
+      "hauteur": 90,
+      "generation": [
+        128,
+        128
+      ],
+      "marge_bas": 0.06,
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "aberration",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 5 : le fouisseur, sur une case (références de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-11). Deux styles : terre brun-gris (L1 à L3), larve pâle (L4 à L6).",
+      "references": [
+        "art-candidats/references/donjon/ver-des-profondeurs-1.png::concept reference (a huge segmented worm rising out of the ground, spikes on its back, its head bent forward with a toothy jaw): keep this design and this rising pose; ignore the pencil style",
+        "art-candidats/references/donjon/ver-des-profondeurs-2.png::concept reference for the mouth only (a wide round mouth ringed with long teeth): ignore its pose and the black and white ink style and the signature"
+      ],
+      "description": "a huge deep worm rising out of a mound of broken earth and rocks: a thick segmented body of pale yellowish-white grub flesh with darker ochre folds between the rings, a row of dark bony spikes along its back, its head bent forward with a wide round mouth ringed with long sharp teeth, drooling",
+      "sujet": "a huge pale yellowish-white segmented deep worm rising out of a mound of earth, its round toothy mouth open, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L6-1",
+        "idle": "idle-2",
+        "attack": "attack-12-c",
+        "transform": "transform-terre",
+        "move": "move-vide",
+        "carte": "p1-3"
+      },
+      "grande": "art-candidats/references/derives/ver-des-profondeurs-grand.png",
+      "consignes": {
+        "idle": "stays in place in its mound of earth, its body swaying slowly from side to side like a snake, its round toothy mouth slowly opening and closing, drool dripping",
+        "move": "the worm swims forward through the earth like a sea serpent, staying in place: the spiky arches of its back rise out of the soil and plunge back in one after another, pushing up dirt and stones, the earth churning around it",
+        "attack": "rears its body up very high, then stretches its long body far forward to the right in a big arc and plunges its head down onto the ground far in front of it, a full body length away from its mound, its round toothy mouth wide open facing the ground, closes its mouth there, then pulls its long body back into its stance",
+        "transform": "dives head first down into its mound of earth and disappears underground, only the churned earth remains"
+      }
+    },
+    "tyran-oeil": {
+      "nom": "Tyran œil",
+      "gabarit": "volant",
+      "hauteur": 64,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/griffon.png",
+      "comparer": [
+        "ver-des-profondeurs",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 6 : le tireur d'élite, il vole (référence de l'utilisateur, encre noire : couleurs proposées par Claude, 2026-11-14). Deux styles : peau marbrée violet-brun (L1 à L3), gris-vert maladif (L4 à L6). Ses rayons sont dessinés par le jeu.",
+      "references": [
+        "art-candidats/references/donjon/tyran-oeil.png::concept reference (a floating round monster with one huge central eye, a wide mouth full of sharp teeth below it, and many thin eye stalks on top): keep this design; ignore the black and white ink style"
+      ],
+      "description": "an eye tyrant floating in the air: a big round body of sickly greenish-grey leathery hide with dark spots with bumpy scaly skin, one huge central eye with a yellow iris and a heavy brow, a very wide mouth full of long sharp fangs under the eye, about ten thin writhing eye stalks on top of its body each ending in a small glaring eye, no arms, no legs",
+      "sujet": "a floating round greenish-grey eye tyrant with one huge central eye, a wide fanged mouth and eye stalks on top, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "flotte": 14,
+      "choix": {
+        "fixe": "L2-1",
+        "idle": "calme-2",
+        "move": "vent-4",
+        "attack": "regard-3",
+        "carte": "p1-13"
+      },
+      "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
+      "consignes": {
+        "idle": "floats in place, bobbing slowly up and down in the air, its thin eye stalks writhing gently like snakes, its huge central eye blinking once, its fanged mouth opening and closing a little",
+        "move": "flying forward to the right, gliding smoothly through the air",
+        "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place"
+      }
+    },
+    "hydre": {
+      "nom": "Hydre",
+      "gabarit": "grand",
+      "hauteur": 100,
+      "generation": [
+        160,
+        136
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "geant",
+        "archer"
+      ],
+      "notes": "Donjon, niveau 7 : le géant, sur une case (référence de l'utilisateur, encre : couleurs proposées par Claude, 2026-11-14). Deux styles : écailles vert sombre (L1 à L3), noir et violet (L4 à L6). Choisie : L3-4, écailles vert sombre.",
+      "references": [
+        "art-candidats/references/donjon/hydre.png::concept reference (a hydra on four clawed legs with a long coiling tail and several long necks ending in dragon heads): keep this design and this pose; ignore the black and white ink style, the ruins, the rocks and the copyright text"
+      ],
+      "description": "a huge hydra standing on four thick clawed legs: a heavy reptile body covered in dark green scales with a pale yellowish belly, a long coiling tail, and five long snake-like necks rising from its shoulders, each ending in a fierce dragon head with sharp fangs, small horns and red eyes, the heads turned in different directions, some mouths open and hissing",
+      "sujet": "a huge dark green hydra on four clawed legs with five long necks ending in fanged dragon heads, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L3-4",
+        "idle": "mm-calme-3",
+        "move": "mm-marche-1",
+        "attack": "mm-proche-6",
+        "carte": "p1-7"
+      },
+      "grande": "art-candidats/references/derives/hydre-grand.png"
     }
   }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace HoMM.Game;
@@ -70,6 +71,8 @@ public sealed class BattleEffects
         public Vector2? From2;
         public double Age;
         public int Seed;
+        /// <summary>« eclair » (le Mage), « rayon » (le Tyran œil).</summary>
+        public string Kind = "eclair";
     }
 
     private readonly List<Beam> _beams = new();
@@ -89,6 +92,152 @@ public sealed class BattleEffects
     /// <summary>Un flux de gouttes rouges de <paramref name="from"/> (la victime) à <paramref name="to"/> (le Vampire).</summary>
     public void Drain(Vector2 from, Vector2 to) => _flows.Add(new Flow { From = from, To = to, Seed = ++_seed });
 
+    /// <summary>Un morceau de la galerie qu'un fouisseur (le Ver des profondeurs) creuse sous le sol, comme une taupe.</summary>
+    private sealed class Rut
+    {
+        public Vector2 At;
+        public double Age;
+        /// <summary>Le fouisseur qui l'a creusé (son tirage), et le chemin qu'il avait parcouru.</summary>
+        public int Trail;
+        public float Travelled;
+        /// <summary>Sa largeur (1 : la galerie ; plus : le tas de terre où il plonge et d'où il ressort), et le temps qu'il met à monter.</summary>
+        public float Scale = 1;
+        public double GrowTime = 0.15;
+    }
+
+    private readonly List<Rut> _ruts = new();
+
+    /// <summary>Une motte de terre ou un caillou projeté par le fouisseur, qui monte puis retombe.</summary>
+    private sealed class Clod
+    {
+        public Vector2 From, Velocity;
+        public double Age, Life;
+        public int Seed;
+        /// <summary>1 : une miette, 2 : une motte, 3 : une grosse motte.</summary>
+        public int Size;
+    }
+
+    /// <summary>
+    /// Projette une motte de <paramref name="from"/> à la vitesse <paramref name="velocity"/> ; elle disparaît en touchant
+    /// le sol (<paramref name="land"/> : la hauteur du sol à l'écran).
+    /// </summary>
+    private void Throw(Vector2 from, Vector2 velocity, float land, int size)
+    {
+        // le moment où elle retombe au sol : from.Y + vy t + g t² / 2 = land
+        float drop = Math.Max(0, land - from.Y);
+        double life = (-velocity.Y + Math.Sqrt(velocity.Y * velocity.Y + 2 * ClodGravity * drop)) / ClodGravity;
+        _clods.Add(new Clod { From = from, Velocity = velocity, Life = life, Seed = ++_seed, Size = size });
+    }
+
+    /// <summary>Une gerbe de terre : le fouisseur plonge dans le sol ou en ressort.</summary>
+    private void Burst(Vector2 ground)
+    {
+        for (int k = 0; k < 22; k++)
+        {
+            int s = ++_seed;
+            float side = (Noise(s, 1) - 0.5f) * 2;
+            Throw(ground + new Vector2(side * 10 * U, -(2 + Noise(s, 4) * 6) * U),
+                new Vector2(side * (20 + Noise(s, 5) * 35) * U, -(30 + Noise(s, 2) * 45) * U),
+                ground.Y + (Noise(s, 3) - 0.3f) * 4 * U, 1 + (int)(Noise(s, 6) * 3));
+        }
+    }
+
+    private readonly List<Clod> _clods = new();
+
+    /// <summary>Un fouisseur en train de creuser.</summary>
+    private sealed class Digger
+    {
+        /// <summary>Là où il est (le sol), le dernier morceau de galerie posé, et le sens où il avance (zéro à l'arrêt).</summary>
+        public Vector2 At, Last, Dir;
+        /// <summary>Le temps avant la prochaine motte.</summary>
+        public double Spray;
+        /// <summary>Le chemin parcouru sous terre (les fissures devant lui sont posées le long de ce chemin).</summary>
+        public float Travelled;
+        public int Seed;
+    }
+
+    private readonly Dictionary<object, Digger> _burrowers = new();
+
+    /// <summary>L'écart entre deux fissures devant le fouisseur, et la distance où le sol commence à se fendre.</summary>
+    private const float CrackStep = 9 * U, CrackReach = 60 * U, CrackNear = 24 * U;
+
+    /// <summary>Le sillon reste visible, puis s'efface en <see cref="RutFade"/> secondes.</summary>
+    private const double RutTime = 1.2, RutFade = 0.8;
+
+    /// <summary>La pesanteur des mottes (pixels de l'écran par seconde²).</summary>
+    private const float ClodGravity = 300 * U;
+
+    /// <summary>
+    /// Un fouisseur <paramref name="who"/> creuse sous <paramref name="ground"/> (le sol de sa case, là où il est dessiné) :
+    /// la terre se soulève (des mottes et des cailloux projetés) et la terre se soulève en galerie derrière lui. À
+    /// appeler à chaque image tant qu'il creuse, puis <see cref="EndBurrow"/>.
+    /// </summary>
+    public void Burrow(object who, Vector2 ground, double delta)
+    {
+        if (!_burrowers.TryGetValue(who, out var b))
+        {
+            b = new Digger { At = ground, Last = ground, Seed = ++_seed };
+            _burrowers[who] = b;
+            // le tas de terre où il plonge : il monte pendant qu'il s'enfonce, autour de ses gravats
+            AddHeap(b, ground, 0.6);
+            Burst(ground);
+        }
+        float moved = ground.DistanceTo(b.At);
+        b.Dir = moved > 0.01f ? (ground - b.At) / moved : Vector2.Zero;
+        b.Travelled += moved;
+        b.At = ground;
+        // un morceau de sillon tous les quelques pixels : ils se chevauchent en une seule traînée
+        if (ground.DistanceTo(b.Last) >= 4 * U)
+        {
+            _ruts.Add(new Rut { At = ground + TrailLift, Trail = b.Seed, Travelled = b.Travelled });
+            b.Last = ground;
+        }
+        b.Spray -= delta;
+        while (b.Spray <= 0)
+        {
+            b.Spray += 0.03;
+            int s = ++_seed;
+            float land = ground.Y + (Noise(s, 7) - 0.3f) * 4 * U;
+            if (b.Dir != Vector2.Zero && Noise(s, 8) < 0.3f)
+            {
+                // une motte poussée devant lui : elle part vers l'avant et roule sur l'herbe
+                var front = ground + b.Dir * (12 + Noise(s, 3) * 4) * U - new Vector2(0, (3 + Noise(s, 4) * 4) * U);
+                Throw(front, b.Dir * (25 + Noise(s, 5) * 30) * U - new Vector2(0, (15 + Noise(s, 2) * 20) * U), land,
+                    2 + (int)(Noise(s, 6) * 2));
+            }
+            else
+            {
+                // des miettes qui tombent des flancs de la bosse : elles montent peu et partent sur les côtés
+                float side = Noise(s, 1) < 0.5f ? -1 : 1;
+                Throw(ground + new Vector2(side * (4 + Noise(s, 3) * 10) * U, -(4 + Noise(s, 4) * 6) * U),
+                    new Vector2(side * (10 + Noise(s, 5) * 25) * U, -(8 + Noise(s, 2) * 22) * U), land,
+                    Noise(s, 6) < 0.6f ? 1 : 2);
+            }
+        }
+    }
+
+    /// <summary>Le fouisseur ne creuse plus (il ressort du sol) : une gerbe de terre, puis son sillon s'efface tout seul.</summary>
+    public void EndBurrow(object who)
+    {
+        if (!_burrowers.Remove(who, out var b))
+            return;
+        // la galerie va jusqu'à lui, puis le tas de terre d'où il ressort
+        _ruts.Add(new Rut { At = b.At + TrailLift, Trail = b.Seed, Travelled = b.Travelled });
+        AddHeap(b, b.At, 0.15);
+        Burst(b.At);
+    }
+
+    /// <summary>Un tas de terre au bout de la galerie, plus large qu'elle, posé autour des gravats du fouisseur.</summary>
+    private void AddHeap(Digger b, Vector2 ground, double growTime)
+    {
+        foreach (float side in new[] { -1f, 1f })
+            _ruts.Add(new Rut
+            {
+                At = ground + TrailLift + new Vector2(side * 4 * U, 0), Trail = b.Seed, Travelled = b.Travelled + side * 4 * U,
+                Scale = 1.5f, GrowTime = growTime,
+            });
+    }
+
     /// <summary>Durée d'un éclair à l'écran (il touche presque aussitôt, puis s'éteint).</summary>
     private const double BeamTime = 0.3;
     private readonly List<Impact> _impacts = new();
@@ -101,11 +250,12 @@ public sealed class BattleEffects
         "boule-poison" => 1500,
         "hache" => 1200,
         "feuilles" => 1000,
+        "pierre" => 1300,
         _ => 1500,
     };
 
     /// <summary>Hauteur de la courbe (en part de la distance) : une flèche monte puis redescend, une boule de feu va droit.</summary>
-    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, "feuilles" => 0.02f, _ => 0 };
+    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, "feuilles" => 0.02f, "pierre" => 0.1f, _ => 0 };
 
     /// <summary>L'impact joué à l'arrivée d'un projectile.</summary>
     public static string ImpactOf(string projectile) => projectile switch
@@ -113,9 +263,11 @@ public sealed class BattleEffects
         "fleche" => "piqure",
         "boule-feu" => "feu",
         "eclair" => "eclair",
+        "rayon" => "rayon",
         "boule-poison" => "poison",
         "hache" => "entaille",
         "feuilles" => "feuilles",
+        "pierre" => "choc",
         _ => "choc",
     };
 
@@ -133,10 +285,10 @@ public sealed class BattleEffects
     /// </summary>
     public void Launch(string kind, Vector2 from, Vector2 to, Action arrived, Vector2? from2 = null)
     {
-        if (kind == "eclair")
+        if (kind is "eclair" or "rayon")
         {
-            // un éclair n'a pas de trajet : il frappe presque aussitôt (un projectile invisible porte le moment du coup)
-            _beams.Add(new Beam { From = from, From2 = from2, To = to, Seed = ++_seed });
+            // un éclair ou un rayon n'a pas de trajet : il frappe presque aussitôt (un projectile invisible porte le moment du coup)
+            _beams.Add(new Beam { Kind = kind, From = from, From2 = from2, To = to, Seed = ++_seed });
             _projectiles.Add(new Projectile { Kind = "", From = to, To = to, Duration = 0.06, Arrived = arrived });
             return;
         }
@@ -174,6 +326,9 @@ public sealed class BattleEffects
         _impacts.Clear();
         _beams.Clear();
         _flows.Clear();
+        _ruts.Clear();
+        _clods.Clear();
+        _burrowers.Clear();
     }
 
     public void Update(double delta)
@@ -193,7 +348,7 @@ public sealed class BattleEffects
         _impacts.RemoveAll(i => i.Age > ImpactTime(i.Kind));
         foreach (var b in _beams)
             b.Age += delta;
-        _beams.RemoveAll(b => b.Age > BeamTime);
+        _beams.RemoveAll(b => b.Age > (b.Kind == "rayon" ? RayTime : BeamTime));
         foreach (var w in _flows)
             w.Age += delta;
         _flows.RemoveAll(w => w.Age > FlowTime);
@@ -201,6 +356,12 @@ public sealed class BattleEffects
             if (!s.Frozen)
                 s.Age += delta;
         _strikes.RemoveAll(s => !s.Frozen && s.Age > StrikeTime(s.Kind));
+        foreach (var r in _ruts)
+            r.Age += delta;
+        _ruts.RemoveAll(r => r.Age > RutTime + RutFade);
+        foreach (var c in _clods)
+            c.Age += delta;
+        _clods.RemoveAll(c => c.Age > c.Life);
     }
 
     /// <summary>Durée d'un impact : bref, sauf le nuage de mort qui s'étale.</summary>
@@ -215,6 +376,10 @@ public sealed class BattleEffects
     /// <summary>Ce que les effets laissent au sol, sous les troupes (la lueur et la marque brûlée de la foudre).</summary>
     public void DrawGround(CanvasItem canvas)
     {
+        foreach (var trail in _ruts.GroupBy(r => r.Trail))
+            DrawTrail(canvas, trail.ToList());
+        foreach (var d in _burrowers.Values)
+            DrawCracks(canvas, d);
         foreach (var s in _strikes)
             if (PlaysOnHex(s.Kind))
                 DrawLightningGround(canvas, s);
@@ -233,6 +398,220 @@ public sealed class BattleEffects
             DrawProjectile(canvas, p);
         foreach (var i in _impacts)
             DrawImpact(canvas, i);
+        foreach (var c in _clods)
+            DrawClod(canvas, c);
+    }
+
+    // ------------------------------------------------------------------ le fouisseur
+
+    // les couleurs de la butte du Ver des profondeurs (terre sombre et cailloux) : la galerie est la même terre
+    private static readonly Color EarthDark = new(0.14f, 0.1f, 0.07f), EarthMid = new(0.25f, 0.2f, 0.16f),
+        EarthLight = new(0.4f, 0.35f, 0.28f), Pebble = new(0.5f, 0.48f, 0.44f),
+        RootLight = new(0.6f, 0.47f, 0.3f), GrassTorn = new(0.25f, 0.48f, 0.14f);
+
+    private const byte Stone = 1, Root = 2, Grass = 3, Crumb = 4;
+
+    /// <summary>La plus grande hauteur du bourrelet de la galerie, et la taille des mottes qui le font.</summary>
+    private const float RidgeHeight = 5 * U, ClodCell = 5 * Pixel;
+
+    /// <summary>La galerie passe un peu au-dessus du pied du fouisseur, au milieu de sa case.</summary>
+    private static readonly Vector2 TrailLift = new(0, -6 * U);
+
+    /// <summary>
+    /// La galerie d'un fouisseur, comme celle d'une taupe, vue de biais comme le champ : un bourrelet de terre le long de
+    /// son chemin (de point en point de <paramref name="trail"/>), fait de mottes. Le sol sous la galerie est une carte des
+    /// hauteurs (le bourrelet arrondi, chaque motte une petite bosse), dessinée de l'arrière vers l'avant : chaque point
+    /// montre son dessus (éclairé s'il regarde vers le haut à gauche, d'où vient la lumière) et, sous lui, son flanc à
+    /// l'ombre, que la rangée de devant cache en partie. Il monte quand le fouisseur passe dessous, puis s'émiette.
+    /// </summary>
+    private static void DrawTrail(CanvasItem canvas, List<Rut> trail)
+    {
+        if (trail.Count < 2)
+            return;
+        int seed = trail[0].Trail;
+        float reach = 23 * U * trail.Max(r => r.Scale);
+        float minX = trail.Min(r => r.At.X) - reach, maxX = trail.Max(r => r.At.X) + reach;
+        float minY = trail.Min(r => r.At.Y) - reach, maxY = trail.Max(r => r.At.Y) + reach;
+        int x0 = (int)MathF.Floor(minX / Pixel), y0 = (int)MathF.Floor(minY / Pixel);
+        int width = (int)MathF.Ceiling(maxX / Pixel) - x0 + 1, height = (int)MathF.Ceiling(maxY / Pixel) - y0 + 1;
+        var heights = new float[width, height];
+        var fades = new float[width, height];
+        var cells = new int[width, height];
+        // ce que montre chaque point : de la terre, une pierre, une racine, de l'herbe arrachée, une miette sur l'herbe
+        var kinds = new byte[width, height];
+        for (int gy = 0; gy < height; gy++)
+            for (int gx = 0; gx < width; gx++)
+            {
+                var p = new Vector2((x0 + gx + 0.5f) * Pixel, (y0 + gy + 0.5f) * Pixel);
+                // le morceau du chemin qui couvre le plus ce point (le tas, plus large, l'emporte sur la galerie qui en
+                // part) ; vu de biais, le sol est écrasé de moitié en hauteur
+                float ratio = float.MaxValue, half = 0, grow = 0, fade = 0, scale = 1;
+                for (int k = 0; k + 1 < trail.Count; k++)
+                {
+                    Rut r0 = trail[k], r1 = trail[k + 1];
+                    var seg = r1.At - r0.At;
+                    float len2 = seg.LengthSquared();
+                    float t = len2 < 0.01f ? 0 : Math.Clamp((p - r0.At).Dot(seg) / len2, 0, 1);
+                    var d = p - (r0.At + seg * t);
+                    float dist = new Vector2(d.X, d.Y * 2).Length();
+                    float g = Mathf.Lerp(Grow(r0), Grow(r1), t), s = Mathf.Lerp(r0.Scale, r1.Scale, t);
+                    // la largeur change doucement : le bourrelet enfle et se resserre
+                    float arc = (r0.Travelled + MathF.Sqrt(len2) * t) / (8 * Pixel);
+                    float swell = Mathf.Lerp(Noise(seed, (int)arc), Noise(seed, (int)arc + 1), arc % 1);
+                    float h = (11 + 6 * swell) * U * (0.5f + 0.5f * g) * s;
+                    if (dist / h >= ratio)
+                        continue;
+                    ratio = dist / h;
+                    half = h;
+                    grow = g;
+                    scale = s;
+                    fade = Mathf.Lerp(Fade(r0), Fade(r1), t);
+                }
+                // les mottes : chaque case de terre a sa bosse, de taille et de place inégales
+                int cx = (int)MathF.Floor(p.X / ClodCell), cy = (int)MathF.Floor(p.Y * 2 / ClodCell);
+                int cell = cx * 7919 + cy * 104729;
+                var clod = new Vector2((cx + 0.2f + 0.6f * Noise(seed, cell)) * ClodCell, (cy + 0.2f + 0.6f * Noise(seed, cell + 1)) * ClodCell / 2);
+                float r = new Vector2(p.X - clod.X, (p.Y - clod.Y) * 2).Length() / ClodCell;
+                // le bord est fait de mottes : il s'arrête là où la motte s'arrête
+                float edge = 0.8f + 0.35f * Noise(seed, cell + 2);
+                if (ratio >= edge)
+                {
+                    // des miettes tombées sur l'herbe, le long des bords
+                    if (ratio < edge + 0.3f && grow > 0.5f && Noise(seed, (x0 + gx) * 977 + (y0 + gy) * 31 + 17) < 0.07f)
+                    {
+                        kinds[gx, gy] = Crumb;
+                        fades[gx, gy] = fade;
+                        cells[gx, gy] = cell;
+                    }
+                    continue;
+                }
+                float ridge = RidgeHeight * scale * grow * MathF.Sqrt(Math.Max(0, 1 - ratio * ratio));
+                float bump = (0.5f + Noise(seed, cell + 3)) * 2 * Pixel * grow * Math.Max(0, 1 - r * r * 1.6f);
+                // en s'effaçant, la terre retombe (sans quoi les mottes qui restent se dressent en piliers)
+                heights[gx, gy] = Math.Max(Pixel, (ridge + bump) * (0.3f + 0.7f * fade));
+                fades[gx, gy] = fade;
+                cells[gx, gy] = cell;
+                if (Noise(seed, cell + 11) < 0.07f)
+                    kinds[gx, gy] = Stone; // une pierre remontée avec la terre
+                else if (Noise(seed, cell + 13) < 0.07f)
+                {
+                    // une racine arrachée : un trait clair à travers la motte
+                    float angle = Noise(seed, cell + 14) * MathF.PI;
+                    var off = new Vector2(p.X - clod.X, (p.Y - clod.Y) * 2);
+                    if (MathF.Abs(off.X * MathF.Sin(angle) - off.Y * MathF.Cos(angle)) < Pixel * 0.7f && r < 1.1f)
+                        kinds[gx, gy] = Root;
+                }
+                else if (ratio > 0.55f && Noise(seed, cell + 15) < 0.15f && r < 0.45f)
+                    kinds[gx, gy] = Grass; // une touffe d'herbe arrachée, sur les bords
+            }
+        // de l'arrière vers l'avant : la rangée de devant recouvre le flanc de celle de derrière
+        for (int gy = 0; gy < height; gy++)
+            for (int gx = 0; gx < width; gx++)
+            {
+                float h = heights[gx, gy];
+                // il s'efface en perdant ses mottes une à une (une transparence se verrait aux pixels qui se recouvrent)
+                if ((h <= 0 && kinds[gx, gy] != Crumb) || Noise(seed, cells[gx, gy] + 5) >= fades[gx, gy])
+                    continue;
+                float x = (x0 + gx) * Pixel, ground = (y0 + gy) * Pixel;
+                if (h <= 0)
+                {
+                    canvas.DrawRect(new Rect2(x, ground, Pixel, Pixel), Noise(seed, cells[gx, gy] + 6) < 0.5f ? EarthMid : EarthDark);
+                    continue;
+                }
+                float top = MathF.Floor((ground - h) / Pixel) * Pixel;
+                // l'ombre sur l'herbe devant la galerie
+                if (gy + 1 < height && heights[gx, gy + 1] <= 0)
+                    canvas.DrawRect(new Rect2(x, ground + Pixel, Pixel, Pixel), new Color(EarthDark, 0.4f));
+                // le dessus : éclairé s'il monte depuis le haut à gauche, sombre s'il descend vers le bas
+                float back = gx > 0 && gy > 0 ? heights[gx - 1, gy - 1] : 0;
+                float slope = (h - back) / Pixel;
+                int k2 = (x0 + gx) * 131 + (y0 + gy);
+                Color color = kinds[gx, gy] switch
+                {
+                    Stone => slope > 0.5f ? Pebble.Lightened(0.25f) : slope > -0.8f ? Pebble : Pebble.Darkened(0.4f),
+                    Root => slope > 0 ? RootLight : RootLight.Darkened(0.25f),
+                    Grass => Noise(seed, k2 + 4) < 0.5f ? GrassTorn : GrassTorn.Lightened(0.2f),
+                    _ => Noise(seed, k2) < 0.05f ? Pebble
+                        : slope > 1f ? EarthLight.Lightened(0.15f) : slope > -0.2f ? EarthLight
+                        : slope > -1.2f ? EarthMid : EarthMid.Darkened(0.3f),
+                };
+                // le flanc, sous le dessus : la même terre un peu plus sombre, le pied dans l'ombre
+                if (ground - top > Pixel)
+                {
+                    // une pierre montre un peu son flanc ; l'herbe et les racines sont posées sur la terre
+                    var side = kinds[gx, gy] == 0 ? color.Darkened(0.3f) : EarthMid.Darkened(0.3f);
+                    canvas.DrawRect(new Rect2(x, top + Pixel, Pixel, ground - top - Pixel), side);
+                    if (kinds[gx, gy] == Stone)
+                        canvas.DrawRect(new Rect2(x, top + Pixel, Pixel, Pixel), Pebble.Darkened(0.4f));
+                    canvas.DrawRect(new Rect2(x, ground - Pixel, Pixel, Pixel), EarthDark);
+                }
+                canvas.DrawRect(new Rect2(x, top, Pixel, Pixel), color);
+                // les brins de l'herbe arrachée dépassent de la terre
+                if (kinds[gx, gy] == Grass && Noise(seed, k2 + 8) < 0.45f)
+                    canvas.DrawRect(new Rect2(x, top - Pixel * (1 + (int)(Noise(seed, k2 + 7) * 2)), Pixel, Pixel * 2), GrassTorn.Lightened(0.1f));
+            }
+    }
+
+    private static float Fade(Rut r) => (float)Math.Clamp(1 - (r.Age - RutTime) / RutFade, 0, 1);
+
+    /// <summary>La terre monte vite quand le fouisseur passe dessous.</summary>
+    private static float Grow(Rut r) => (float)Math.Clamp(r.Age / r.GrowTime, 0, 1);
+
+    /// <summary>
+    /// Le sol qui se fend devant le fouisseur, avant qu'il passe : des fissures posées le long de son chemin, qui s'ouvrent
+    /// et s'allongent à mesure qu'il approche (la galerie les recouvre quand il passe dessous).
+    /// </summary>
+    private static void DrawCracks(CanvasItem canvas, Digger d)
+    {
+        if (d.Dir == Vector2.Zero)
+            return;
+        var side = new Vector2(-d.Dir.Y, d.Dir.X);
+        for (float ahead = CrackStep - d.Travelled % CrackStep; ahead < CrackReach; ahead += CrackStep)
+        {
+            float open = Math.Clamp((CrackReach - ahead) / (CrackReach - CrackNear), 0, 1);
+            int seed = d.Seed * 1000 + (int)MathF.Round((d.Travelled + ahead) / CrackStep);
+            var center = d.At + d.Dir * ahead + side * (Noise(seed, 1) - 0.5f) * 5 * U;
+            // deux ou trois fentes qui partent du même point, plutôt vers l'avant et les côtés, aplaties comme le sol
+            int branches = 2 + (int)(Noise(seed, 2) * 2);
+            for (int k = 0; k < branches; k++)
+            {
+                float angle = Noise(seed, 10 + k) * MathF.Tau;
+                var dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle) * 0.45f);
+                float length = open * (4 + Noise(seed, 20 + k) * 6) * U;
+                var at = center;
+                for (float run = 0; run < length; run += Pixel)
+                {
+                    // une fente brisée : elle dévie d'un pixel de temps en temps
+                    at += dir * Pixel + (Noise(seed, 30 + k * 50 + (int)(run / Pixel)) < 0.3f ? new Vector2(0, Pixel) : Vector2.Zero)
+                        - (Noise(seed, 60 + k * 50 + (int)(run / Pixel)) < 0.3f ? new Vector2(0, Pixel) : Vector2.Zero);
+                    Dot(canvas, at, new Color(EarthDark, 0.9f * open));
+                    // le bord soulevé de la fente : un pixel de terre claire, quand elle est bien ouverte
+                    if (open > 0.5f && run < length * 0.6f)
+                        Dot(canvas, at - new Vector2(0, Pixel), new Color(EarthMid, 0.8f * open));
+                }
+            }
+        }
+    }
+
+    /// <summary>Une motte projetée : deux ou trois pixels de terre (ou un caillou gris) qui montent puis retombent.</summary>
+    private static void DrawClod(CanvasItem canvas, Clod c)
+    {
+        float t = (float)c.Age;
+        var at = c.From + c.Velocity * t + new Vector2(0, ClodGravity * t * t / 2);
+        int kind = (int)(Noise(c.Seed, 7) * 4);
+        var color = kind switch { 0 => EarthDark, 1 => EarthMid, 2 => EarthLight, _ => Pebble };
+        Dot(canvas, at, color);
+        if (c.Size >= 2)
+        {
+            Dot(canvas, at + new Vector2(Pixel, 0), color.Darkened(0.25f));
+            Dot(canvas, at + new Vector2(0, -Pixel), color.Lightened(0.15f));
+        }
+        if (c.Size >= 3)
+        {
+            Dot(canvas, at + new Vector2(Pixel, -Pixel), color);
+            Dot(canvas, at + new Vector2(0, Pixel), color.Darkened(0.35f));
+            Dot(canvas, at + new Vector2(Pixel, Pixel), color.Darkened(0.35f));
+        }
     }
 
     // ------------------------------------------------------------------ projectiles
@@ -294,6 +673,16 @@ public sealed class BattleEffects
                 Blob(canvas, here, 1, new Color(0.7f, 0.95f, 0.45f));
                 break;
             }
+            case "pierre":
+            {
+                // la pierre de fronde de l'Homme-grenouille : un petit caillou gris qui tourne (son reflet clair change de
+                // côté), bordé de sombre pour se voir sur l'herbe
+                float spin = (float)p.Age * 25;
+                Blob(canvas, here, 2, new Color(0.22f, 0.2f, 0.18f));
+                Blob(canvas, here, 1, new Color(0.55f, 0.53f, 0.5f));
+                Dot(canvas, here + new Vector2(MathF.Cos(spin), MathF.Sin(spin)) * Pixel, new Color(0.82f, 0.8f, 0.76f));
+                break;
+            }
             case "boule-poison":
             {
                 // une boule verte qui palpite, et des gouttes qui tombent derrière elle
@@ -344,6 +733,11 @@ public sealed class BattleEffects
     /// </summary>
     private static void DrawBeam(CanvasItem canvas, Beam b)
     {
+        if (b.Kind == "rayon")
+        {
+            DrawRay(canvas, b);
+            return;
+        }
         float fade = 1 - (float)(b.Age / BeamTime);
         int flicker = (int)(b.Age / 0.05);
         int seed = b.Seed + flicker * 31;
@@ -367,6 +761,45 @@ public sealed class BattleEffects
             var branch = along.Rotated(turn) * U * (6 + 6 * Noise(seed + 109, k));
             Bolt(canvas, points[k], points[k] + branch, seed + 211 * k, fade * 0.85f, 1, 2 * U);
         }
+    }
+
+    /// <summary>Durée du rayon du Tyran œil à l'écran (il reste un peu plus qu'un éclair : on le voit sortir de l'œil).</summary>
+    private const double RayTime = 0.45;
+
+    /// <summary>
+    /// Le rayon du Tyran œil : un trait droit de son œil à la cible, un cœur pâle, un halo violet qui ondule (plus large
+    /// par endroits, des vagues qui filent vers la cible), une lueur à la sortie de l'œil ; il jaillit, puis s'amincit et
+    /// s'éteint.
+    /// </summary>
+    private static void DrawRay(CanvasItem canvas, Beam b)
+    {
+        float t = (float)(b.Age / RayTime);
+        // il jaillit de l'œil en un instant, puis s'éteint
+        float reach = Math.Min(1, t / 0.15f), fade = t < 0.6f ? 1 : 1 - (t - 0.6f) / 0.4f;
+        var to = b.From.Lerp(b.To, reach);
+        float length = b.From.DistanceTo(to);
+        if (length < 1)
+            return;
+        var dir = (to - b.From) / length;
+        var side = new Vector2(-dir.Y, dir.X);
+        var heart = new Color(0.97f, 0.9f, 1, fade);
+        var halo = new Color(0.72f, 0.3f, 0.95f, 0.95f * fade);
+        var glow = new Color(0.5f, 0.15f, 0.7f, 0.4f * fade);
+        // par petits tronçons d'un pixel d'art : le halo s'élargit là où passe une vague
+        for (float s = 0; s < length; s += Pixel)
+        {
+            var at = b.From + dir * s;
+            float wave = MathF.Sin(s / (8 * U) - (float)b.Age * 40) * 0.5f + 0.5f;
+            // un cœur de trois pixels d'art, le halo de deux à quatre de chaque côté, la lueur de deux
+            int haloWidth = 3 + (int)MathF.Round(wave * (t < 0.6f ? 2 : 1));
+            for (int x = -haloWidth - 2; x <= haloWidth + 2; x++)
+            {
+                var color = Math.Abs(x) <= 1 ? heart : Math.Abs(x) <= haloWidth ? halo : glow;
+                Dot(canvas, at + side * Pixel * x, color);
+            }
+        }
+        // la lueur de l'œil : une petite croix pâle qui pulse
+        Cross(canvas, b.From, 2 + (int)(MathF.Sin((float)b.Age * 50) + 1), new Color(0.97f, 0.9f, 1, fade));
     }
 
     /// <summary>
@@ -424,6 +857,7 @@ public sealed class BattleEffects
             "poison" => (9, new[] { new Color(0.6f, 0.95f, 0.35f), new Color(0.3f, 0.6f, 0.2f) }, 8f, 1),
             "feuilles" => (12, new[] { new Color(0.55f, 0.85f, 0.3f), new Color(0.3f, 0.6f, 0.2f), new Color(0.8f, 0.9f, 0.35f) }, 10f, 1),
             "eclair" => (6, new[] { new Color(0.88f, 0.95f, 1), new Color(0.35f, 0.6f, 1) }, 7f, 2),
+            "rayon" => (8, new[] { new Color(0.95f, 0.85f, 1), new Color(0.7f, 0.3f, 0.95f), new Color(0.45f, 0.15f, 0.6f) }, 8f, 2),
             "entaille" => (6, new[] { new Color(1, 1, 0.9f), new Color(0.7f, 0.15f, 0.1f) }, 7f, 1),
             _ => (7, new[] { new Color(1, 1, 0.85f), new Color(0.75f, 0.72f, 0.65f) }, 8f, 1), // « choc »
         };

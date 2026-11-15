@@ -351,7 +351,15 @@ creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objec
    faction sombre attendent l'Enfer) ; `--faction=donjon`. Mesuré (un adversaire, Normal, six semaines, or d'armée) :
    **Donjon 29 100**, Château 27 300, morts-vivants 24 700, Barbares 29 200, Forêt 34 000, Tour 25 900 ; la simulation
    seule comme avant (jours 95, 88, 153). Tests : `VilleDonjonTests`.
-3. Les images (session images) : les 7 créatures, la ville sur la carte.
+3. Les images (session images) : ✅ les 7 créatures (2026-11-15, branche `creatures-donjon`, choix de l'utilisateur) :
+   Homme-lézard à la lance, Homme-grenouille frondeur, Minotaure mineur, Aberration à la chair pâle, Ver des profondeurs
+   qui creuse une galerie dessinée par le jeu, Tyran œil qui flotte et tire un rayon violet, Hydre verte à cinq têtes qui
+   mordent tout autour : images de combat, animations, petites images de la carte. Détail dans `HISTORIQUE.md`.
+   ✅ La ville sur la carte. **Plus tard** (choix de l'utilisateur,
+   2026-11-14) : revoir les animations du Ver des profondeurs (il devrait glisser vers sa cible en attaquant ; les
+   fissures devant lui quand il creuse sont à améliorer ; peut-être une animation où il avale une créature).
+   **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui frappe le sol avec sa colonne
+   pourrait toucher une zone (les cases autour de sa cible) : une règle à concevoir avec la session règles.
 
 #### La Tour de magie (en cours)
 Décidée avec l'utilisateur (2026-11-09).
@@ -835,6 +843,15 @@ choix de l'utilisateur) :
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et
 croissance, prix, garde.
 
+### Les donjons à explorer (idée, plus tard)
+Idée de l'utilisateur (2026-11-11) : un **donjon** marqué sur la carte, comme un vrai donjon de D&D ; le héros y entre,
+le parcourt et en ressort avec une **grande récompense**. Façon préférée par l'utilisateur : **une petite carte à part**,
+comme le souterrain de Heroes 3, que le héros parcourt case par case (couloirs, salles, gardiens, coffres, pièges, une
+sortie). Écartées pour l'instant : une suite de salles dans une fenêtre (plus simple), un plan de donjon où l'on clique
+la salle suivante. À concevoir avec la session règles : sa génération (`MapGenerator`), sa sauvegarde et son
+brouillard, sortir et revenir ou non, les pertes d'une salle à l'autre, les récompenses (artefact, or, expérience,
+créature rare), le nombre par carte et la difficulté selon la zone ; les créatures du Donjon en gardiens.
+
 ## Étape 10 : finitions
 - Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,
   impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). ✅ Les animations des sorts sur le champ
@@ -904,6 +921,11 @@ croissance, prix, garde.
   l'utilisateur, 2026-11-14) : « vaincre tous les monstres » est retiré (il n'a plus de sens sur ces grandes cartes) ; par
   défaut, **prendre toutes les villes**, comme Heroes 3 ; **les parties longues sont acceptées** (la simulation seule
   prend toutes les villes de la normale vers le jour 210).
+  Puis (2026-11-14, remarques de l'utilisateur) : ✅ les tours d'observation à 15 cases des bords et à 30 cases l'une de
+  l'autre. **À revoir ensemble** : des routes qui ne mènent nulle part ; un problème du moulin (à en parler) ; **des
+  rivières et des ponts**.
+  ✅ **Plus de villes sur les grandes cartes** (2026-11-14, demandé par l'utilisateur) : 14 noms de villes les limitaient à
+  14 ; avec 40 noms, une ville pour trois zones : grande carte 17 à 20 villes, très grande 30 à 33 (avec les châteaux).
 - **La mer** (conçue avec l'utilisateur, 2026-11-14, comme Heroes 3) :
   - **Les bateaux** : un **chantier naval** (bâtiment des villes au bord de l'eau, et lieu sur les côtes de la carte) en
     construit un (or et bois), qui apparaît sur l'eau à côté ; et **quelques bateaux déjà amarrés** sur les côtes.
@@ -917,8 +939,17 @@ croissance, prix, garde.
     les monstres de la mer (idées de l'utilisateur).
   - Dans l'ordre : 1. ✅ les règles (2026-11-14, branche `mer` : bateau, embarquer, naviguer, chantier naval des villes
     et de la côte, l'IA qui prend un bateau amarré ; le bateau et le chantier dessinés par le jeu en attendant leurs
-    images ; l'IA n'achète pas encore de bateau) ; 2. les types
-    de cartes ; 3. les objets de la mer ; 4. les images (session images). À voir en chemin : la compétence
+    images) ; 2. ✅ les types de cartes (2026-11-14, branche `types-cartes` : liste « Carte » de la nouvelle partie,
+    continent par défaut ; des mers, îles, archipel ; un chantier naval et un bateau amarré sur l'île de chaque joueur,
+    après la sortie de sa zone de départ ; des villes au bord de la mer ; l'IA achète un bateau quand elle n'a plus rien
+    à faire à pied ; sur les îles et l'archipel, une ville au plus par île, choix de l'utilisateur) ; 3. les objets de la mer, en deux parties (choix de l'utilisateur, 2026-11-14 : un combat en mer se joue sur le champ
+    ordinaire en attendant un pont de navire avec les images ; un tourbillon coûte quelques créatures ; la Navigation donne
+    du mouvement en mer et des bateaux moins chers ; les pirates sont des créatures neutres) : 3a. ✅ épaves flottantes,
+    coffres de la mer, bouées, sirènes, tourbillons, phares, la compétence Navigation (2026-11-14, branche `objets-mer`) ;
+    3b. ✅ les navires abandonnés (un équipage de morts-vivants), les pirates (une seule créature neutre pour l'instant ;
+    une faction « pirates et monstres de la mer » peut-être plus tard : choix de l'utilisateur, 2026-11-15), les gardiens
+    de la mer (2026-11-15, branche `mer-pirates`) ; 4. les images
+    (session images). À voir en chemin : la compétence
     **Navigation** et les **combats en mer** (un pont de navire comme champ de bataille).
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et
   ×3, mines sur 3 × 2 cases (96 × 64). Images refaites et revues avec l'utilisateur en deux passages (pages de choix

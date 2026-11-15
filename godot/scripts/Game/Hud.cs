@@ -387,9 +387,9 @@ public partial class Hud : CanvasLayer
             _charisma.Text = $"{Texts.StatShort(null)} {hero.Charisma}";
             _charisma.TooltipText = Texts.StatTooltip(null, hero);
             RefreshArtifacts(hero);
-            _movementBar.MaxValue = hero.MaxMovement;
+            _movementBar.MaxValue = hero.DayMovement;
             _movementBar.Value = hero.Movement;
-            _movementText.Text = $"{hero.Movement} / {hero.MaxMovement}";
+            _movementText.Text = $"{hero.Movement} / {hero.DayMovement}";
             _army.Show(hero.Army, hero.CommandLimit, hero);
         }
         else
@@ -440,7 +440,7 @@ public partial class Hud : CanvasLayer
                 () => HeroDetailsPressed?.Invoke(hero));
             if (Art.Portrait(hero.Name) is { } portrait)
                 cell.AddChild(Picture(portrait, new Vector2(Grid, Grid), new Vector2(64, 64)));
-            AddBar(cell, 0, hero.Movement, hero.MaxMovement, MovementColor);
+            AddBar(cell, 0, hero.Movement, hero.DayMovement, MovementColor);
             AddBar(cell, 1, hero.SpellPoints, hero.MaxSpellPoints, SpellPointsColor);
             _heroRows.AddChild(cell);
         }
@@ -1127,12 +1127,12 @@ public partial class Hud : CanvasLayer
     /// <summary>
     /// Le chantier naval de la côte : acheter un bateau (<paramref name="status"/> : peut-on ? sinon pourquoi), ou partir.
     /// </summary>
-    public void ShowShipyard(BoatResult status, Action buy) => Enqueue(done =>
+    public void ShowShipyard(BoatResult status, IReadOnlyDictionary<ResourceType, int> cost, Action buy) => Enqueue(done =>
     {
         var dialog = new GameDialog { Title = Texts.ShipyardTitle, OkButtonText = Texts.CloseButton, Exclusive = true, Unresizable = true };
         var content = new VBoxContainer();
         content.AddThemeConstantOverride("separation", (int)Px(10));
-        var text = MakeLabel(Texts.ShipyardText + (status == BoatResult.Ok ? "" : "\n" + Texts.BoatStatus(status)), 15, TextColor);
+        var text = MakeLabel(Texts.ShipyardText(cost) + (status == BoatResult.Ok ? "" : "\n" + Texts.BoatStatus(status)), 15, TextColor);
         text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         text.CustomMinimumSize = V(440, 0);
         content.AddChild(text);

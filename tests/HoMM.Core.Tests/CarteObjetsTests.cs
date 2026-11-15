@@ -161,6 +161,36 @@ public class CarteObjetsTests
         Assert.Contains(tower.Visitors, id => id == state.CurrentHero!.Owner.Id);
     }
 
+    /// <summary>
+    /// Les tours loin des bords (ce qu'elles dévoilent reste sur la carte : le quart de la carte au plus sur une petite) et
+    /// loin l'une de l'autre (chacune dévoile sa part).
+    /// </summary>
+    internal static void AssertTowersSpread(AdventureMap map)
+    {
+        int margin = Math.Min(MapGenerator.TowerEdgeMargin, Math.Min(map.Width, map.Height) / 4);
+        var towers = map.Objects.OfType<ObservationTower>().ToList();
+        Assert.All(towers, t => Assert.True(
+            Math.Min(Math.Min(t.Position.X, t.Position.Y), Math.Min(map.Width - 1 - t.Position.X, map.Height - 1 - t.Position.Y)) >= margin,
+            $"tour au bord en {t.Position}"));
+        foreach (var a in towers)
+            foreach (var b in towers.Where(b => b != a))
+                Assert.True(Math.Pow(a.Position.X - b.Position.X, 2) + Math.Pow(a.Position.Y - b.Position.Y, 2)
+                    >= MapGenerator.TowerSpacing * MapGenerator.TowerSpacing, $"tours trop proches en {a.Position} et {b.Position}");
+    }
+
+    [Theory]
+    [InlineData(MapSize.Normal)]
+    [InlineData(MapSize.Huge)]
+    public void Les_tours_sont_loin_des_bords_et_l_une_de_l_autre(MapSize size)
+    {
+        foreach (int seed in new[] { 1, 42 })
+        {
+            var map = new GameState(seed, TestData.Data, size).Map;
+            Assert.Contains(map.Objects, o => o is ObservationTower);
+            AssertTowersSpread(map);
+        }
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(42)]
@@ -169,10 +199,7 @@ public class CarteObjetsTests
         var state = new GameState(seed, TestData.Data, 54, 40);
         var map = state.Map;
         Assert.Contains(map.Objects, o => o is ObservationTower);
-        // les tours loin des bords : ce qu'elles dévoilent reste sur la carte
-        Assert.All(map.Objects.OfType<ObservationTower>(), t => Assert.True(
-            Math.Min(Math.Min(t.Position.X, t.Position.Y), Math.Min(map.Width - 1 - t.Position.X, map.Height - 1 - t.Position.Y)) >= MapGenerator.TowerEdgeMargin,
-            $"tour au bord en {t.Position}"));
+        AssertTowersSpread(map);
         Assert.Contains(map.Objects, o => o is SageHut);
         Assert.Contains(map.Objects, o => o is WeeklyProducer { IsWaterWheel: true });
         Assert.Contains(map.Objects, o => o is WeeklyProducer { IsWaterWheel: false });

@@ -24,6 +24,9 @@ public class TaillesCarteTests(ITestOutputHelper output)
             Assert.Equal(MapSizes.Dimensions(size), (map.Width, map.Height));
             Assert.Equal(size, MapSizes.Closest(map.Width, map.Height));
             Assert.Contains(map.Objects, o => o is Town);
+            // une grande carte a de nombreuses villes (une pour trois zones : plus que les 14 noms d'avant)
+            if (size is MapSize.Large or MapSize.Huge)
+                Assert.True(map.Objects.OfType<Town>().Count() >= (size == MapSize.Huge ? 25 : 15), $"{size} : trop peu de villes");
             Assert.Contains(map.Objects, o => o is Obelisk);
             Assert.NotNull(map.Treasure);
             // les objets se rejoignent (sauf le château de départ) : un seul parcours depuis le départ, comme le Pathfinder

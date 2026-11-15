@@ -122,7 +122,7 @@ public sealed record BlessingVisited(Hero Hero, BlessingSite Site, bool Gained) 
 
 /// <summary>
 /// Un temple (+1 moral) ou un cercle des fées (+1 chance) : le bonus dure jusqu'au prochain combat du héros. On peut y
-/// revenir après un combat.
+/// revenir après un combat. Sur l'eau (<see cref="Sea"/>, 2026-11-14) : une bouée (moral) ou des sirènes (chance).
 /// </summary>
 public sealed class BlessingSite : MapObject
 {
@@ -135,9 +135,12 @@ public sealed class BlessingSite : MapObject
     /// <summary>Un temple sur 2 cases (la porte et la case au-dessus), sinon une seule (sauvegardes d'avant).</summary>
     public bool Large { get; init; } = true;
 
+    /// <summary>Sur l'eau : une bouée (moral) ou des sirènes (chance), sur une case.</summary>
+    public bool Sea { get; init; }
+
     /// <summary>Le temple est haut ; le cercle des fées, plat, reste sur sa case (le héros se tient dans le cercle).</summary>
     public override IEnumerable<Cell> Footprint =>
-        Large && Blessing == Blessing.Morale ? TallSite.FootprintAt(Position) : base.Footprint;
+        Large && !Sea && Blessing == Blessing.Morale ? TallSite.FootprintAt(Position) : base.Footprint;
 
     public override bool RemovedOnVisit => false;
 

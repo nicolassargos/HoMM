@@ -955,6 +955,76 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
   dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
   Tests : `MerTests`.
+- ✅ La mer, les objets de la mer, seconde partie (2026-11-15, branche `mer-pirates`, choix de l'utilisateur : les pirates,
+  une seule créature neutre ; une faction « pirates et monstres de la mer » peut-être plus tard). Le **Pirate** (neutre,
+  niveau 3, `"sea": true` dans `creatures.json`, `CreatureType.Sea` : il ne garde que la mer, jamais la terre) : attaque 9,
+  défense 6, dégâts 3-5, 22 PV, vitesse 6, 55 or, frappe deux fois ; `Duels_a_prix_egal` (qui compte maintenant les
+  neutres) : 77 victoires sur 160 dans son niveau (il bat Fantômes, Orcs, Chevaucheurs de chèvre ; égal contre les
+  Archers elfes ; perd contre Griffons, Golems, Minotaures, Limons). Les **gardiens de la mer** : une bande de pirates à
+  côté d'un coffre de la mer sur deux, et 1 bande errante pour 1000 cases de haute mer, à 10 cases au moins d'un départ ;
+  leur force, celle d'un gardien de la terre au même danger (`SeaDanger` : la distance au départ le plus proche, de 0,2 à
+  1 ; les zones de mer n'ont pas de niveau). Ils attaquent un bateau qui passe à côté (`GuardsAround` ne prenait déjà que
+  les gardiens de l'eau en mer). Le **navire abandonné** (`AbandonedShip`, 0,7 pour 1000 cases de haute mer) : un
+  équipage de morts-vivants (une troupe du niveau du danger, une du niveau en dessous ; une fois et demie un gardien),
+  combattu en montant à bord, comme une garnison ; vaincu, de l'or (1500 à 4500) et 2 à 6 d'une ressource rare
+  (`AbandonedShipLooted`), puis le navire disparaît. L'IA y va si l'équipage se bat sans trop de pertes. Mesuré
+  (adversaires, six semaines, Normal, or d'armée) : continent 46 000, des mers 48 300, îles 31 600, archipel 31 600
+  (comme avant). Dessinés par le jeu en attendant leurs images ; `--center=abandoned-ship`, `pirates`. Tests :
+  `ObjetsMerTests`.
+- ✅ La mer, les objets de la mer, première partie (2026-11-14, branche `objets-mer`, choix de l'utilisateur) : sur l'eau,
+  l'**épave flottante** (`Flotsam`, comme Heroes 3 : rien, 5 bois, 5 bois et 200 or, ou 10 bois et 500 or), le **coffre
+  de la mer** (`SeaChest` : vide une fois sur cinq, sinon 1000 ou 1500 or ; un artefact plus tard), la **bouée** (+1 moral)
+  et les **sirènes** (+1 chance), jusqu'au prochain combat (`BlessingSite` avec `Sea`), le **tourbillon** (`Whirlpool`, par
+  paires : le bateau ressort par l'autre, la troupe la plus faible perd un dixième de ses créatures, au moins une, jamais
+  la dernière de l'armée ; `WhirlpoolCrossed`) ; sur la côte, le **phare** (`Lighthouse`, un lieu haut qu'on prend en y
+  passant : +500 de mouvement par phare à chaque journée commencée en mer). La compétence **Navigation** (Aventure,
+  rangée 2) : +50 / 100 / 150 % de mouvement en mer, bateaux 20 / 40 / 60 % moins chers (la baisse du meilleur marin du
+  joueur, `GameState.BoatCost`). Le mouvement d'une journée commencée en mer : `Hero.SeaMovement`,
+  `GameState.DayMovement` ; les barres de mouvement montrent celui du matin (`Hero.DayMovement`). Le générateur, sur les
+  cartes où l'on navigue seulement, pour 1000 cases de haute mer : 4 épaves, 2 coffres, 1 bouée, 1 sirènes, une demi-paire
+  de tourbillons (à 20 cases au moins l'un de l'autre), 0,7 phare (hors des zones de départ, à 20 cases l'un de l'autre) ;
+  loin de la côte (leurs 8 voisines sont de l'eau) et à 3 cases de tout autre objet. Carte normale : 5 à 7 épaves avec des
+  mers, 11 ou 12 sur les îles et l'archipel. L'IA ramasse épaves et coffres, prend les phares, apprend la Navigation en
+  dernier. Dessinés par le jeu en attendant leurs images. Développement : `--center=flotsam`, `sea-chest`, `buoy`,
+  `mermaids`, `whirlpool`, `lighthouse`. Tests : `ObjetsMerTests`.
+- ✅ La mer, les types de cartes (2026-11-14, branche `types-cartes`, choix de l'utilisateur) : une option de la nouvelle
+  partie (`MapType`, liste « Carte » à côté de la graine, continent par défaut ; `--map-type=`). Le générateur part des
+  zones : avec **des mers**, 20 % des zones (jamais un départ) sont toutes de mer, la terre restant d'un seul tenant ;
+  avec les **îles**, 15 % de zones de mer, puis l'île de chaque joueur (sa zone et deux voisines, qui grandissent à tour
+  de rôle) et des îles neutres de trois zones ; l'**archipel**, 15 % de zones de mer, une île de deux zones par joueur et
+  une zone par île neutre. La mer : les zones de mer, et une **côte** de 1 à 3 cases (1 à 2 dans l'archipel, un bruit
+  doux) le long de chaque rivage entre deux îles ou contre une zone de mer, et le long des bords de la carte (îles et
+  archipel ; pas près des départs) ; chaque zone ne garde que son plus grand morceau de terre (celui du départ s'il y en
+  a un). La côte coupe parfois toutes les places d'un passage : avec des mers, la dernière zone de mer redevient de la
+  terre ; sinon le morceau devient une île à part (`IslandsWhole`, on recommence). D'une île à l'autre, une **traversée**
+  compte comme un passage pour le niveau des zones (`Crossings`). Une zone sans passage (une petite île) a une route de
+  son centre au rivage. Une ville sur deux préfère le bord de la mer (sa case tout autour peut être de l'eau : un port),
+  si sa porte mène par la terre au centre de la zone. **Les ports** (`PlaceHarbours`) : sur l'île de chaque joueur, un
+  chantier naval de la côte et un bateau amarré à côté, hors de sa zone de départ si l'île en a une autre (on prend la
+  mer après la sortie de sa zone, comme on entre dans la zone voisine), que le joueur doit atteindre à pied
+  (`_harbourChecks`, vérifié à chaque objet posé) ; un chantier sur une île neutre sur deux (une sur trois dans
+  l'archipel) ; avec des mers, un chantier et un bateau au bord de chaque mer, hors des zones de départ. Le générateur
+  compte l'eau comme un chemin sur les îles et l'archipel (chaque joueur a son bateau), pas avec des mers (tout s'atteint
+  à pied). Le nombre d'objets suit la surface de terre ; les mines et les villes, le nombre de zones de terre. Mesuré
+  (cartes normales) : 12 % d'eau sur un continent, 31 à 38 % avec des mers, 55 à 57 % sur les îles et l'archipel ;
+  vérifié sur 138 cartes à quatre joueurs (30 graines par type, et 8 grandes cartes). **L'IA** prend les bateaux amarrés ;
+  quand elle n'a plus rien à faire à pied et pas de bateau à portée, elle en construit un dans une ville qui a un
+  chantier naval, sinon va en acheter un au chantier de la côte le plus proche (`ComputerPlayer.GetBoat`, en gardant
+  1000 or pour recruter) ; elle ne bâtit pas encore le chantier naval de ses villes. Mesuré (un adversaire, Normal, six
+  semaines, `Adversaires_par_type_de_carte`) : continent 48 200 or d'armée, 2,7 villes ; des mers 44 100, 3,0 villes ;
+  îles 29 800, 2,5 villes, 10 embarquements par partie ; archipel 28 900, 3,2 villes, 12 embarquements (moins de terre,
+  donc moins de gardiens à battre et d'armée). Les cartes du continent ne changent pas (aucun tirage de plus). Tests :
+  `TypesCartesTests`, `MerTests`. Puis, remarques de l'utilisateur : sur les îles et l'archipel, **une ville au plus par
+  île** (l'île d'un joueur n'a que son château ; sa ville voisine est sur une île proche) ; les **tours d'observation** à
+  15 cases des bords au moins (`TowerEdgeMargin`, le quart de la carte au plus) et à 30 cases l'une de l'autre
+  (`TowerSpacing`, une fois et demie ce qu'elles dévoilent) ; une tour sans place n'empêche plus les autres lieux. Les
+  cartes du continent changent un peu (les tours, puis les lieux posés après elles).
+- ✅ Plus de villes sur les grandes cartes (2026-11-14, branche `plus-de-villes`, demandé par l'utilisateur : une grande
+  carte doit pouvoir contenir au moins 8 villes) : le générateur vise une ville pour trois zones, mais s'arrêtait aux 14
+  noms de `TownNames`. 26 noms de plus (`MoreTownNames`), mêlés par un hasard à part (d'après la graine) et ajoutés après
+  les premiers : les cartes qui avaient assez de noms ne changent pas. Mesuré (deux graines ; seul, puis à quatre) :
+  normale 7 et 10 villes (comme avant), grande 17 et 20 (14 avant), très grande 30 et 33 (14 avant). Générer une très
+  grande carte prend 7 à 8 s (4 avant : les mines et leurs gardiens près de chaque ville). Test : `TaillesCarteTests`.
 - ✅ Les zones de la carte (2026-11-14, branche `carte-zones`, demandé par l'utilisateur) :
   - **Les passages entre les zones**, une option de la nouvelle partie (`ZoneAccess`, liste « Passages » à côté de la
     taille, normaux par défaut ; `--access=`) : ouverts (comme avant), normaux (le gardien de la sortie de la zone de
@@ -1166,6 +1236,31 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
     bouge pas les pieds), transform-1 (pose la colonne sur l'épaule ; jouée à l'envers à l'arrivée), marche move-5 (depuis
     la colonne sur l'épaule), attaque attack-5-r (frappe le sol). Carte p1-12.
   - Outils : « marge_bas » dans la fiche (un pied qui descend en marchant n'est plus coupé), `--effect-preview=eclair`.
+- ✅ Créatures du Donjon (2026-11-11 à 15, branche `creatures-donjon`, PixelLab), une à la fois, d'après les références
+  à l'encre de l'utilisateur (couleurs proposées par Claude, deux styles par créature) :
+  - **Homme-lézard** (46 px, L6-1, lézard des cavernes à la lance) : idle-3, move-5-r, attack-2-r. Carte p1-7.
+  - **Homme-grenouille** (48 px, L4-3) : idle-5, move-1, attack-5 ; sa pierre de fronde dessinée par le jeu. Carte p1-1.
+  - **Minotaure** (84 px, L5-4, mineur noir) : idle-2, move-1, attack-2-r. Carte p1-4.
+  - **Aberration** (80 px, L3-2, chair pâle, retournée vers la droite) : idle-5, move-5, attack-5 nettoyée. Carte p1-6.
+  - **Ver des profondeurs** (90 px, L6-1) : idle-2, attaque attack-12-c ; il **creuse** : la transformation
+    (`transform-terre`, refaite à la main) le montre s'enfoncer derrière ses gravats qui s'émiettent ; le jeu dessine le
+    tas de terre au départ et à l'arrivée et la **galerie** (`BattleEffects.DrawTrail` : une carte de hauteurs faite de
+    mottes, vue un peu d'en haut, dessus éclairé selon la pente, flanc à l'ombre, pierres, racines, herbe arrachée, miettes ;
+    elle s'affaisse en s'effaçant). Essayés et écartés : des buttes soulevées en chemin, un bourrelet continu vu d'en haut
+    (« liquide »), la galerie vue de côté. Images d'attaque et de transformation descendues pour que la terre touche le bas
+    de la case. Carte p1-3. **Plus tard** : glisser vers sa cible en attaquant, de meilleures fissures, peut-être avaler.
+  - **Tyran œil** (64 px, L2-1, peau marbrée violet-brun) : il **flotte** (« flotte » : 14 pixels vides sous lui) ;
+    attente calme-2, vol vent-4 (ses tentacules ondulent ; 6 images/s, 0,18 s par case ; attente 7 images/s, pause de 1 à
+    3 s), attaque regard-3 (son œil s'ouvre tout grand). Son tir : le **rayon** du jeu (`rayon`, violet, droit, plus épais,
+    une lueur sur l'œil ; `launchFrame` 4, `launchPoint` [86, 61]). Animé directement par `pixellab.py animer` (le
+    « sujet » et les consignes de `creature.py animer` faisaient venir éclats et autres personnages). Carte p1-13, sans
+    pied (il flotte).
+  - **Hydre** (100 px, L3-4, écailles vert sombre, ventre jaune pâle, cinq têtes de dragon) : attente mm-calme-3, marche
+    mm-marche-1 (ralentie à 6 images/s : à 10, elle courait), attaque mm-proche-6 (les têtes mordent tout autour d'elle sans
+    s'éloigner). Le premier modèle ne bougeait pas ses pattes et couvrait les attaques d'éclairs ; le second (`--minimax`)
+    fait un vrai pas. Carte p1-7.
+  - Au passage, le **Géant** (Tour) retourné vers la droite (image fixe et feuilles, image par image) : il marchait à
+    reculons. Pieds des sept petites images revus par l'utilisateur (le Ver plus léger, aucun sous le Tyran œil).
 - ✅ Combat à ×2 (2026-11-09, branche `combat-x2`). Question de l'utilisateur : un pixel d'art a-t-il la même taille au
   combat et sur la carte ? Non : 3 pixels de l'écran au combat, 2 sur la carte (zoom ×1 ; 3 au zoom ×1,5). Essai montré
   (page `echelle.html` : même combat à ×3 et à ×2, créatures 1,5 fois plus hautes) ; choix de l'utilisateur : ×2 partout

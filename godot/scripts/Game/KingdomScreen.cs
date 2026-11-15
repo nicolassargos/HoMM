@@ -145,7 +145,7 @@ public partial class KingdomScreen : ScreenWindow
             tile.AddChild(new ColorRect { Position = V(10, 120), Size = V(80, 8), Color = MapRenderer.Rgb(20, 16, 12), MouseFilter = Control.MouseFilterEnum.Ignore });
             tile.AddChild(new ColorRect
             {
-                Position = V(10, 120), Size = new Vector2(Px(80) * hero.Movement / Math.Max(1, hero.MaxMovement), Px(8)),
+                Position = V(10, 120), Size = new Vector2(Px(80) * hero.Movement / Math.Max(1, hero.DayMovement), Px(8)),
                 Color = MovementColor, MouseFilter = Control.MouseFilterEnum.Ignore,
             });
             _heroes.AddChild(tile);

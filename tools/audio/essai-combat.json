@@ -1,0 +1,219 @@
+{
+  "_": "Essai d'écoute : les sons d'un combat du Château et une musique de combat, demandés à chaque source (tools/audio/essai.py). Les descriptions sont en anglais (les services les comprennent mieux).",
+  "sons": [
+    {
+      "id": "archer-tir",
+      "nom": "Archer : tir",
+      "duree": 1.0,
+      "texte": "medieval longbow release, string twang and arrow whoosh, close, dry, no music"
+    },
+    {
+      "id": "fleche-impact",
+      "nom": "Flèche qui touche",
+      "duree": 0.6,
+      "texte": "arrow hitting a wooden shield and armored soldier, short thud, no music"
+    },
+    {
+      "id": "griffon-attaque",
+      "nom": "Griffon : attaque",
+      "duree": 1.5,
+      "texte": "fantasy griffin attack, fierce eagle screech with heavy wing flap and claw slash, no music"
+    },
+    {
+      "id": "griffon-mort",
+      "nom": "Griffon : mort",
+      "duree": 1.5,
+      "texte": "wounded griffin dying, weak eagle cry fading, body falling on grass, no music"
+    },
+    {
+      "id": "cavalier-attaque",
+      "nom": "Cavalier : attaque",
+      "duree": 1.5,
+      "texte": "armored horse short gallop charge and lance striking steel armor, no music"
+    },
+    {
+      "id": "cavalier-mort",
+      "nom": "Cavalier : mort",
+      "duree": 1.5,
+      "texte": "horse whinny and armored knight falling to the ground, metal clatter, no music"
+    },
+    {
+      "id": "ange-attaque",
+      "nom": "Ange : attaque",
+      "duree": 1.2,
+      "texte": "holy angel sword swing, bright metallic slash with a soft heavenly choir shimmer, no music"
+    },
+    {
+      "id": "ange-mort",
+      "nom": "Ange : mort",
+      "duree": 2.0,
+      "texte": "angel dying, heavenly choir chord fading away, soft feathers, gentle wind, no drums"
+    },
+    {
+      "id": "coup-epee",
+      "nom": "Coup d'épée",
+      "duree": 0.6,
+      "texte": "sword hitting steel armor, short metallic clang, no music"
+    },
+    {
+      "id": "coup-sourd",
+      "nom": "Coup sourd (pique, poing)",
+      "duree": 0.6,
+      "texte": "heavy blunt hit on a soldier, wooden pitchfork thump and pained grunt, no music"
+    },
+    {
+      "id": "mort-soldat",
+      "nom": "Mort d'un soldat",
+      "duree": 1.2,
+      "texte": "medieval soldier death grunt and body in chainmail falling, no music"
+    },
+    {
+      "id": "sort-fleche-magique",
+      "nom": "Sort : Flèche magique",
+      "duree": 1.2,
+      "texte": "magic missile spell, glowing energy bolt whoosh and sparkling impact, fantasy game, no music"
+    },
+    {
+      "id": "sort-boule-de-feu",
+      "nom": "Sort : Boule de feu",
+      "duree": 2.0,
+      "texte": "fireball spell, whoosh of flames then a big fiery explosion, fantasy game, no music"
+    },
+    {
+      "id": "sort-eclair",
+      "nom": "Sort : Éclair",
+      "duree": 1.5,
+      "texte": "lightning bolt spell, sharp electric crack and close thunder, fantasy game, no music"
+    }
+  ],
+  "musiques": [
+    {
+      "id": "musique-combat",
+      "nom": "Musique de combat",
+      "duree": 60,
+      "texte": "medieval fantasy battle music for a turn-based strategy game in the style of 1990s classics, orchestral, war drums, brass and strings, heroic and tense, steady tempo, instrumental, seamless loop"
+    }
+  ],
+  "libres": [
+    {
+      "id": "archer-tir",
+      "url": "https://opengameart.org/sites/default/files/battle_sound_effects_0.zip",
+      "fichier": "battle_sound_effects/Bow.wav",
+      "licence": "CC0 (au choix parmi CC0, CC-BY 3.0, CC-BY-SA 3.0, GPL)",
+      "auteur": "Ogrebane",
+      "page": "https://opengameart.org/content/battle-sound-effects"
+    },
+    {
+      "id": "fleche-impact",
+      "url": "https://opengameart.org/sites/default/files/impact_-_starninjas.zip",
+      "fichier": "impact.1.ogg",
+      "licence": "CC0",
+      "auteur": "StarNinjas",
+      "page": "https://opengameart.org/content/10-impactshield-blocks"
+    },
+    {
+      "id": "griffon-attaque",
+      "url": "https://opengameart.org/sites/default/files/evil_screech_1.ogg",
+      "fichier": null,
+      "licence": "CC0",
+      "auteur": "Nocturnal_Vanguard",
+      "page": "https://opengameart.org/content/evil-screech-1"
+    },
+    {
+      "id": "griffon-mort",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "fichier": "creature_die_01.ogg",
+      "licence": "CC0",
+      "auteur": "rubberduck",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
+    },
+    {
+      "id": "cavalier-attaque",
+      "url": "https://opengameart.org/sites/default/files/gallop_01.ogg",
+      "fichier": null,
+      "licence": "CC-BY 3.0",
+      "auteur": "AntumDeluge",
+      "page": "https://opengameart.org/content/horse-gallop-loop"
+    },
+    {
+      "id": "cavalier-mort",
+      "url": "https://opengameart.org/sites/default/files/zebra.ogg",
+      "fichier": null,
+      "licence": "CC-BY 3.0",
+      "auteur": "AntumDeluge",
+      "page": "https://opengameart.org/content/zebra-whinny"
+    },
+    {
+      "id": "ange-attaque",
+      "url": "https://opengameart.org/sites/default/files/sword_-_starninjas_1.zip",
+      "fichier": "sword - StarNinjas/sword.1.ogg",
+      "licence": "CC0",
+      "auteur": "StarNinjas",
+      "page": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes"
+    },
+    {
+      "id": "ange-mort",
+      "url": "https://opengameart.org/sites/default/files/Heavenly%20Loop.ogg",
+      "fichier": null,
+      "licence": "CC0",
+      "auteur": "isaiah658",
+      "page": "https://opengameart.org/content/heavenly-loop"
+    },
+    {
+      "id": "coup-epee",
+      "url": "https://opengameart.org/sites/default/files/sword_clash_-_starninjas_0.zip",
+      "fichier": "sword_clash.1.ogg",
+      "licence": "CC0",
+      "auteur": "StarNinjas",
+      "page": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes"
+    },
+    {
+      "id": "coup-sourd",
+      "url": "https://opengameart.org/sites/default/files/5Hit_Sounds.zip",
+      "fichier": "ogg/hit1.ogg",
+      "licence": "CC0",
+      "auteur": "TinyWorlds",
+      "page": "https://opengameart.org/content/5-hit-sounds-dying"
+    },
+    {
+      "id": "mort-soldat",
+      "url": "https://opengameart.org/sites/default/files/aargh.zip",
+      "fichier": "aargh3.ogg",
+      "licence": "CC-BY 3.0",
+      "auteur": "congusbongus (son d'origine : JohnsonBrandEditing, freesound 173944, CC0)",
+      "page": "https://opengameart.org/content/aargh-male-screams"
+    },
+    {
+      "id": "sort-fleche-magique",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "fichier": "spell_01.ogg",
+      "licence": "CC0",
+      "auteur": "rubberduck",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
+    },
+    {
+      "id": "sort-boule-de-feu",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "fichier": "spell_fire_03.ogg",
+      "licence": "CC0",
+      "auteur": "rubberduck",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx"
+    },
+    {
+      "id": "sort-eclair",
+      "url": "https://opengameart.org/sites/default/files/sfx_100_v2.zip",
+      "fichier": "sfx100v2_thunder_01.ogg",
+      "licence": "CC0",
+      "auteur": "rubberduck",
+      "page": "https://opengameart.org/content/100-cc0-sfx-2"
+    },
+    {
+      "id": "musique-combat",
+      "url": "https://opengameart.org/sites/default/files/determined_pursuit_loop.wav",
+      "fichier": null,
+      "licence": "CC0",
+      "auteur": "Emma_MA",
+      "page": "https://opengameart.org/content/determined-pursuit-epic-orchestra-loop"
+    }
+  ]
+}

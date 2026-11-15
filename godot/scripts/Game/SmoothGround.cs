@@ -236,6 +236,7 @@ public partial class SmoothGround : ColorRect
         // la taille d'une case en pixels d'art (celle des images des terrains) ; les longueurs du shader, réglées pour des
         // cases de 24, gardent les mêmes proportions
         material.SetShaderParameter("ART", (float)size.X);
+        material.SetShaderParameter("bridge_art", BridgeLayer.ShaderFlags);
         float k = size.X / 24f;
         foreach (var (name, value) in LengthsAt24)
             material.SetShaderParameter(name, value * k);

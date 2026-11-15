@@ -376,6 +376,18 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   le contour noir épais des villes de PixelLab s'adoucit avec `adoucir.py` (0,7, 60, 2 passes : le bord prend une teinte
   sombre de sa couleur), sans dépense. Le candidat aimé, donné comme modèle, garde la disposition d'un lot à l'autre.
 
+## Ponts de la carte (Retro Diffusion, 2026-11-15)
+- Les juger **en jeu, sur la rivière**, à ×2 : à leur taille, on ne voit rien. Les captures : `--center=bridge`,
+  `bridge:9` (avec une route ; seed 42), `ford` et `ford:2` (une route sur un ruisseau, dans les deux sens).
+- **Accorder les couleurs par rang de luminosité** : chaque pixel prend la couleur du modèle au même rang (pas la plus
+  proche, qui fond les planches en un seul ton) ; les joints et les bords restent lisibles. Gratuit, et chaque fois réussi.
+- L'**image de départ fixe la forme** (largeur, longueur, angle) : la ramener d'abord à la bonne longueur (`reduire.py`),
+  la recentrer sur ses pixels. Ce qui a raté : **tourner de 90° une vue de côté** (le pont de pierre d'ouest en est,
+  mince, devient une bande étroite de pierres) ; **partir d'une image de bois pour la pierre** (les rambardes de bois
+  restent). Ce qui a marché : partir de la forme juste repeinte aux couleurs voulues (le bois du nord au sud aux couleurs
+  de la pierre), force 0,8 ; les petits ponts à partir des grands réduits, force 0,5.
+- Retro Diffusion dessine la pierre presque de côté et grise froide : la réchauffer vers la pierre du temple (rouge × 1,2).
+
 ## Grands objets de la carte (mines…)
 - **Méthode** : des **pièces** séparées faites par Retro Diffusion (`assets.json`, groupe `pieces/` : cabane, chariot,
   chevalet, souches, entrée de mine, chariot sur rails…), **sans socle**, puis **assemblées** aux proportions de Heroes

@@ -286,6 +286,9 @@ public partial class Main : Node2D
                 // une route qui change de sorte (d'une zone à l'autre)
                 "road-change" => c => map.HasRoad(c) && new[] { c.Offset(1, 0), c.Offset(0, 1) }
                     .Any(n => map.InBounds(n) && map.HasRoad(n) && map.GetRoadKind(n) != map.GetRoadKind(c)),
+                // une route sur le sable, sable aussi des deux côtés (« road-sand:2 » : la deuxième)
+                "road-sand" => c => map.HasRoad(c) && new[] { c, c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) }
+                    .All(n => !map.InBounds(n) || map.GetTerrain(n) == TerrainType.Sand),
                 _ => null,
             };
             if (wanted != null && Enumerable.Range(0, map.Width * map.Height).Select(i => new Cell(i % map.Width, i / map.Width))

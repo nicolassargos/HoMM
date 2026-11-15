@@ -103,6 +103,17 @@ uniform float road_grass_stretch = 70.0;
 uniform float road_grass_bare = 0.32;
 uniform float road_grass_lush = 0.68;
 uniform float road_grass_more = 1.6;
+// sur le sable : la route et le sable se mêlent sur plus de pixels (road_sand_scatter, au lieu de road_scatter) ; le sable
+// porté par le vent recouvre le bord de la route en dunes douces (road_sand_drift pixels d'art au plus, des dunes
+// d'environ road_sand_drift_scale pixels, selon le tronçon comme l'herbe), en fine couche tramée à son bout ; le sable
+// repoussé forme un petit bourrelet plus clair le long du bord (road_sand_berm, sur road_sand_berm_width pixels)
+uniform float road_sand_scatter = 4.0;
+uniform float road_sand_drift = 3.5;
+uniform float road_sand_drift_scale = 14.0;
+// la part du bord que le sable recouvre (environ)
+uniform float road_sand_drift_share = 0.6;
+uniform float road_sand_berm = 0.08;
+uniform float road_sand_berm_width = 3.0;
 // la route s'élargit et se rétrécit doucement le long de son chemin : de combien (pixels d'art), sur quelle longueur
 uniform float road_vary = 0.5;
 uniform float road_vary_scale = 12.0;
@@ -594,10 +605,10 @@ void fragment() {
 	// La route, par-dessus le sol
 	int road_kind = 1;
 	float inside = road_inside(p, road_kind); // positif sur la route
-	float spread = max(road_scatter, 0.01);
+	float spread = max(t == sand ? road_sand_scatter : road_scatter, 0.01);
 	int other_kind;
-	// le talus d'en face, au soleil : un liseré plus clair sur l'herbe
-	if (road_rim > 0.0 && inside < 0.0 && inside > -2.0 && road_inside(p - sun * 2.0, other_kind) > 0.0)
+	// le talus d'en face, au soleil : un liseré plus clair sur l'herbe (sur le sable, le bourrelet le remplace)
+	if (road_rim > 0.0 && t != sand && inside < 0.0 && inside > -2.0 && road_inside(p - sun * 2.0, other_kind) > 0.0)
 		color *= 1.0 + road_rim;
 	vec3 ground = color; // le sol sous la route
 	bool paved = false;
@@ -640,6 +651,22 @@ void fragment() {
 				if (below > 0.0 && below < grass_reach(p + 1.0)) color *= 1.0 - road_grass_shadow;
 			}
 		}
+	}
+	// sur le sable : le sable porté par le vent sur le bord de la route, et le bourrelet de sable repoussé le long du bord
+	// qui reste visible (sur le sable posé sur la route comme à côté : le même sable, la même lumière)
+	if (t == sand && !in_water && inside > -road_sand_berm_width - road_sand_drift - 1.0) {
+		float drift = road_sand_drift * grass_amount(p + vec2(311.0, 173.0))
+			* smoothstep(0.85 - road_sand_drift_share, 1.25 - road_sand_drift_share,
+				noise((p + 0.5) / road_sand_drift_scale + vec2(83.0, 41.0)));
+		float edge = inside - drift; // de combien le pixel est dans la route qui reste visible
+		bool buried = paved && drift > 0.0 && (edge < -1.0 || (edge < 1.0 && bayer(p) < (1.0 - edge) / 2.0));
+		if (buried) color = ground;
+		// pas de bourrelet là où le sable recouvre toute la largeur de la route (ce qui reste visible en son milieu)
+		int k;
+		float visible = inside + road_distance(p, k) - drift;
+		if ((!paved || buried) && road_sand_berm > 0.0 && visible > 1.0 && edge < -0.5 && edge > -road_sand_berm_width
+				&& bayer(p) < 1.0 - (-edge - 0.5) / road_sand_berm_width)
+			color *= 1.0 + road_sand_berm;
 	}
 	// la terre battue, par endroits, à cheval sur le bord : son épaisseur change le long de la route, on voit au travers
 	float frame = road_frame * smoothstep(1.0 - road_frame_share - 0.1, 1.0 - road_frame_share + 0.15,

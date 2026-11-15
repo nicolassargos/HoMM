@@ -1115,6 +1115,12 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   lui-même) ; choisi le premier (son nord-ouest regardait du mauvais côté, sans importance : le miroir du nord-est le
   remplace ; son est ressemble presque à son sud-est). Marches : sud 1, les autres 2, posées au sol avec le rebond
   (`hero-morts-vivants-{s,se,e,ne,n}.png` et `-move.png`). Pieds mesurés, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ Le héros des Barbares sur la carte (2026-11-15, branche `heros-carte-barbares`, PixelLab, environ 0,55 $) : même
+  recette ; deux idées (a : un chef au casque à cornes et à la cape de fourrure sur un solide cheval brun, à la hache et
+  à l'étendard rouge ; b : le même sur un grand loup de guerre) ; choisi **a-10**. Tourné en trois lots (deux « Pro »
+  vue plus haute, sans fond blanc cette fois, et une v3) : choisi le second « Pro » ; marches toutes l'essai 2.
+  `hero-barbares.png`, `hero-barbares-{s,se,e,ne,n}.png` et `-move.png`. Pieds mesurés, pas encore revus. Vu en jeu
+  avec `--hero-walk`.
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

@@ -1682,7 +1682,7 @@
     "demon": {
       "nom": "Démon",
       "gabarit": "grand",
-      "hauteur": 105,
+      "hauteur": 132,
       "generation": [
         160,
         160
@@ -1693,7 +1693,7 @@
         "geant",
         "archer"
       ],
-      "notes": "Enfer, niveau 7 : le géant qui invoque des diablotins (références de l'utilisateur, 2026-11-15). Deux directions à essayer : décharné à tête de crâne, peau noire calcinée aux fissures de feu (L1 à L3) ; ailé et musclé, peau rouge sombre (L4 à L6). Il ne vole pas : ailes repliées ou à demi ouvertes. Nouvelle idée de l'utilisateur (2026-11-15, d'après une vieille référence) : un démon gras, surtout rouge, ailes, queue, sabots, barbe et crocs (L7 à L9). Choisi : L7-1 ; essai avec un trident (L10 et L11, idée de l'utilisateur).",
+      "notes": "Enfer, niveau 7 : le géant qui invoque des diablotins (références de l'utilisateur, 2026-11-15). Deux directions à essayer : décharné à tête de crâne, peau noire calcinée aux fissures de feu (L1 à L3) ; ailé et musclé, peau rouge sombre (L4 à L6). Il ne vole pas : ailes repliées ou à demi ouvertes. Nouvelle idée de l'utilisateur (2026-11-15, d'après une vieille référence) : un démon gras, surtout rouge, ailes, queue, sabots, barbe et crocs (L7 à L9). Choisi : L7-1 ; essai avec un trident (L10 et L11, idée de l'utilisateur). L10-1 choisi, fond blanc retiré (l10/1-avec-fond.png gardé), à sa taille d origine (132 px avec le trident : pas de réduction, plus net).",
       "references": [
         "art-candidats/en-cours/candidats/demon/fixe/l7/1.png::the chosen demon: keep exactly this character, its fat red body, black beard, horns, orange wings, tail and hooves; only add the trident"
       ],
@@ -1713,7 +1713,7 @@
         "L11": "angle seul"
       },
       "choix": {
-        "fixe": "L7-1"
+        "fixe": "L10-1"
       },
       "grande": "art-candidats/references/derives/demon-grand.png"
     }

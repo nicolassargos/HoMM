@@ -554,8 +554,11 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   les passe que sur un **pont** gardé. **Les ruisseaux**, dans une zone, se traversent (un décor). Dessinés par le
   shader en courbes douces, avec la plage des lacs. ✅ **Les ponts en images** (2026-11-15, branche `ponts`, détail dans
   `HISTORIQUE.md`) : de bois ou de pierre selon les routes de la zone (pierre là où elles sont pavées), dans les deux
-  sens, et un petit pont où une route croise un ruisseau. **À faire** : revoir les rives plus tard ; **revoir les routes
-  ensuite**. **Plus tard** : redessiner le petit pont de bois d'ouest en est (des marques sur sa face avant) s'il gêne en
+  sens, et un petit pont où une route croise un ruisseau. ✅ **Les rives** (2026-11-15, branche `rives`, choix de
+  l'utilisateur, détail dans `HISTORIQUE.md`) : toutes les rives (lacs, mer, rivières) changent par tronçons (herbe
+  jusqu'à l'eau bordée de terre mouillée, plages de sable plus larges, plages de galets), l'eau claire près du bord et
+  plus sombre au large, des roseaux sur les rives herbeuses, quelques rochers dans l'eau peu profonde. **À continuer**
+  (l'utilisateur) : les rives seront encore travaillées. **Revoir les routes ensuite**. **Plus tard** : redessiner le petit pont de bois d'ouest en est (des marques sur sa face avant) s'il gêne en
   jouant.
   ✅ **Les routes, premières règles (2026-11-15, branche `routes-sans-issue`, détail dans `HISTORIQUE.md`)** : leurs règles se définissent avec l'utilisateur, en
   plusieurs tours (une page de cartes entières, ses remarques, des retouches). Décidé : plus de route qui ne mène nulle

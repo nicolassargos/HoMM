@@ -1459,6 +1459,24 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   l'herbe (`road_rim`) n'est pas dessiné sur le sable. Écartés : 4,5 et 6 pixels (une route trop enterrée). Vu au
   passage : les grandes zones claires et sombres du sol (`shade`) font parfois une bande le long d'une route, sans
   rapport avec elle. Développement : `--center=road-sand` (une route sur le sable).
+- ✅ Les rives (2026-11-15, branche `rives`, choisies par l'utilisateur sur une page de comparaison en deux tours,
+  `art-candidats/archives/2026-11-15-rives/`). Toutes les rives : lacs, mer et rivières (les ruisseaux ne changent
+  pas). Dans le shader du sol :
+  - **Les rives par tronçons** (`bank_kind` : un bruit doux par tronçons de `bank_stretch` 80 pixels d'art) : sous
+    `bank_grass` 0,3, l'herbe descend jusqu'à l'eau, bordée d'une ligne de terre mouillée (`mud_width` 2, `mud_color`) ;
+    au-dessus, une plage plus ou moins large ; au-dessus de `bank_pebbles` 0,72, une plage de galets (`pebbles` 0,35 des
+    carrés de 4 pixels). **Des plages plus larges** (deuxième tour, l'utilisateur voulait plus de sable) : `beach_width`
+    11 au lieu de 8 ; écartés : moins de rives herbeuses (`bank_grass` 0,2 ou 0,15, avec 14 pixels de sable).
+  - **La profondeur** (`water_depth`) : une eau claire et un peu turquoise près du bord (`shallow` 0,25 sur
+    `shallow_width` 5 pixels, tramée), qui s'assombrit vers le large (`deep` 0,35, de `deep_start` 10 à `deep_end` 76
+    pixels, en 5 paliers tramés au bord bruité de ±6 pixels). Au-delà d'une demi-case, la distance à la terre vient d'une
+    nouvelle couche de `water_field` (le bleu : `RiverField.Depth`, une transformée de distance en deux passes, jusqu'à
+    `RiverField.Deep` 96 pixels ; image `Rgbh`). Vu : entre des îles proches, la mer reste claire (un détroit peu
+    profond).
+  - **Des roseaux** (`reed_at`) en touffes sur les rives herbeuses (`reeds` 0,6, `reed_share` 0,45 des tronçons, tous
+    les `reed_scale` 24 pixels), quelques-uns à massette brune ; **des rochers** (`rock_at`) dans l'eau peu profonde,
+    entourés d'écume (`rocks` 0,08).
+  Écartés au premier tour : une version plus légère et une plus forte (plus de profondeur, de roseaux et de rochers).
 - ✅ Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, en deux tours avec l'utilisateur sur une page de
   six cartes entières, `art-candidats/archives/2026-11-15-rivieres/`). D'après 50 cartes de Heroes 3
   (`tools/cartes/rivieres_h3.py`) : 40 en ont, 2,3 % de la terre en médiane, 0,6 rivière pour 1000 cases de terre, longue

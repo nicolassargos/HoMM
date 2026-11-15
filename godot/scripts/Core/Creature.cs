@@ -27,6 +27,11 @@ public sealed record CreatureType
 
     public Dictionary<ResourceType, int> Cost { get; init; } = new();
 
+    /// <summary>
+    /// Une créature de la mer (le Pirate) : elle ne garde que l'eau (les gardiens de la mer), jamais la terre.
+    /// </summary>
+    public bool Sea { get; init; }
+
     /// <summary>Capacités au combat tactique (voir <see cref="Ability"/>) : « shoots »…</summary>
     public List<string> Abilities { get; init; } = new();
 

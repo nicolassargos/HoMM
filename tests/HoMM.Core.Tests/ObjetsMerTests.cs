@@ -7,7 +7,7 @@ namespace HoMM.Core.Tests;
 
 /// <summary>
 /// Les objets de la mer (étape 3 de la mer, 2026-11-14) : épave flottante, coffre de la mer, bouée et sirènes, tourbillon,
-/// phare, et la compétence Navigation.
+/// phare, la compétence Navigation ; puis (2026-11-15) les navires abandonnés et les pirates.
 /// </summary>
 public class ObjetsMerTests
 {
@@ -143,6 +143,9 @@ public class ObjetsMerTests
         map.AddObject(new BlessingSite(new Cell(9, 18), Blessing.Luck) { Sea = true });
         map.AddObject(new Whirlpool(new Cell(9, 22), new Cell(11, 30)));
         map.AddObject(new Lighthouse(new Cell(5, 20)) { Owner = hero.Owner });
+        var ship = new AbandonedShip(new Cell(9, 26), 2500, ResourceType.Gems, 3);
+        ship.Crew.Add(TestData.Creatures.Get("squelette"), 12);
+        map.AddObject(ship);
 
         var loaded = GameState.Load(state.Save(), TestData.Data).Map;
 
@@ -151,6 +154,42 @@ public class ObjetsMerTests
         Assert.True(Assert.IsType<BlessingSite>(loaded.ObjectAt(new Cell(9, 18))).Sea);
         Assert.Equal(new Cell(11, 30), Assert.IsType<Whirlpool>(loaded.ObjectAt(new Cell(9, 22))).Exit);
         Assert.Equal(hero.Owner.Id, Assert.IsType<Lighthouse>(loaded.ObjectAt(new Cell(5, 20))).Owner?.Id);
+        var loadedShip = Assert.IsType<AbandonedShip>(loaded.ObjectAt(new Cell(9, 26)));
+        Assert.Equal((2500, ResourceType.Gems, 3), (loadedShip.Gold, loadedShip.Resource, loadedShip.Amount));
+        Assert.Equal(12, loadedShip.Crew.TotalCount);
+    }
+
+    [Fact]
+    public void Le_navire_abandonne_se_pille_apres_avoir_vaincu_son_equipage()
+    {
+        var (state, hero) = AtSea();
+        var ship = new AbandonedShip(new Cell(9, 4), 2500, ResourceType.Gems, 3);
+        ship.Crew.Add(TestData.Creatures.Get("squelette"), 2);
+        state.Map.AddObject(ship);
+        var resources = hero.Owner.Resources;
+        int gold = resources[ResourceType.Gold], gems = resources[ResourceType.Gems];
+
+        Walk(state, new Cell(9, 4));
+
+        var events = state.TakeEvents();
+        Assert.Contains(events, e => e is BattleFought { Defender: AbandonedShip, Report.AttackerWon: true });
+        Assert.Contains(events, e => e is AbandonedShipLooted);
+        Assert.Equal(gold + 2500, resources[ResourceType.Gold]);
+        Assert.Equal(gems + 3, resources[ResourceType.Gems]);
+        Assert.Null(state.Map.ObjectAt(new Cell(9, 4)));
+        Assert.Equal(new Cell(9, 4), hero.Position);
+    }
+
+    [Fact]
+    public void Les_pirates_attaquent_un_bateau_qui_passe_a_cote()
+    {
+        var (state, hero) = AtSea();
+        state.Map.AddObject(new MonsterGuard(new Cell(10, 5), TestData.Creatures.Get("pirate"), 1));
+
+        Walk(state, new Cell(9, 4));
+
+        Assert.Contains(state.TakeEvents(), e => e is BattleFought { Defender: MonsterGuard { Type.Id: "pirate" } });
+        Assert.Null(state.Map.ObjectAt(new Cell(10, 5)));
     }
 
     [Theory]
@@ -167,6 +206,11 @@ public class ObjetsMerTests
         // sur l'eau, sauf le phare (sur la côte) ; les tourbillons par paires
         Assert.All(map.Objects.Where(o => o is Flotsam or SeaChest or Whirlpool or BlessingSite { Sea: true }), o => Assert.True(map.IsWater(o.Position)));
         Assert.All(map.Objects.OfType<Lighthouse>(), l => Assert.False(map.IsWater(l.Position)));
+        Assert.Contains(map.Objects, o => o is AbandonedShip { Crew.IsEmpty: false });
+        // les pirates ne gardent que la mer
+        var guards = map.Objects.OfType<MonsterGuard>().ToList();
+        Assert.Contains(guards, g => g.Type.Sea);
+        Assert.All(guards, g => Assert.Equal(g.Type.Sea, map.IsWater(g.Position)));
         var whirlpools = map.Objects.OfType<Whirlpool>().ToList();
         Assert.All(whirlpools, w => Assert.Contains(whirlpools, other => other.Position == w.Exit && other.Exit == w.Position));
     }
@@ -175,6 +219,7 @@ public class ObjetsMerTests
     public void Le_continent_n_a_pas_d_objets_de_la_mer()
     {
         var map = new GameState(1, TestData.Data, MapSize.Normal, opponents: 1).Map;
-        Assert.DoesNotContain(map.Objects, o => o is Flotsam or SeaChest or Whirlpool or Lighthouse or BlessingSite { Sea: true });
+        Assert.DoesNotContain(map.Objects, o => o is Flotsam or SeaChest or Whirlpool or Lighthouse or AbandonedShip or BlessingSite { Sea: true }
+                                                or MonsterGuard { Type.Sea: true });
     }
 }

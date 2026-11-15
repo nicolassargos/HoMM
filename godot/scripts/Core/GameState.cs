@@ -564,6 +564,9 @@ public sealed partial class GameState
         var opponents = Map.GuardsAround(next).Select(g => ((MapObject)g, g.Army)).ToList();
         if (Map.ObjectAt(next) is Town { Garrison.IsEmpty: false } town && town.Owner != hero.Owner)
             opponents.Add((town, town.Garrison));
+        // l'équipage d'un navire abandonné défend son trésor
+        if (Map.ObjectAt(next) is AbandonedShip { Crew.IsEmpty: false } ship)
+            opponents.Add((ship, ship.Crew));
         if (opponents.Count > 0)
         {
             BeginFights(hero, from, next, opponents, visit: true);

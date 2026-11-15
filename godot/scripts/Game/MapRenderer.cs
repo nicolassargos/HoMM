@@ -243,7 +243,7 @@ public static class MapRenderer
                     ci.DrawCircle(c + V(10, -13), 2, Rgb(255, 255, 200));
                 break;
 
-            case BlessingSite { Sea: true } or Flotsam or SeaChest or Whirlpool or Lighthouse:
+            case BlessingSite { Sea: true } or Flotsam or SeaChest or Whirlpool or Lighthouse or AbandonedShip:
                 DrawSeaObject(ci, obj, c, time);
                 break;
 
@@ -346,6 +346,14 @@ public static class MapRenderer
                     }
                 }
                 ci.DrawCircle(c, 4, Rgb(20, 50, 90));
+                break;
+            case AbandonedShip:
+                // une coque sombre penchée, un mât brisé, une voile en lambeaux
+                ci.DrawColoredPolygon(new[] { c + V(-24, -2 + bob), c + V(22, -6 + bob), c + V(16, 10 + bob), c + V(-18, 12 + bob) }, Rgb(70, 55, 45));
+                ci.DrawRect(new Rect2(c + V(-20, -2 + bob), 40, 3), Rgb(110, 90, 70));
+                ci.DrawRect(new Rect2(c + V(-2, -34 + bob), 4, 32), Rgb(90, 70, 55));
+                ci.DrawColoredPolygon(new[] { c + V(2, -30 + bob), c + V(16, -26 + bob), c + V(10, -14 + bob), c + V(2, -12 + bob) }, Rgb(150, 150, 135));
+                ci.DrawCircle(c + V(-10, -10 + bob), 3, Rgb(120, 230, 160)); // une lueur verte de mort
                 break;
             case Lighthouse lighthouse:
                 // la porte en bas, la tour monte sur la case du dessus

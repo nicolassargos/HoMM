@@ -216,3 +216,36 @@ public sealed class Lighthouse : MapObject
         return new LighthouseVisited(hero, this, previous, previous != hero.Owner);
     }
 }
+
+/// <summary>Le héros a pillé un navire abandonné (son équipage vaincu) : de l'or et une ressource rare.</summary>
+public sealed record AbandonedShipLooted(Hero Hero, AbandonedShip Ship) : ObjectVisited(Hero, Ship);
+
+/// <summary>
+/// Un navire abandonné, à la dérive sur l'eau (étape 3b de la mer, 2026-11-15) : un équipage de morts-vivants le garde
+/// (<see cref="Crew"/>, combattu en y montant, comme la garnison d'une ville) ; vaincu, le navire livre son trésor (de
+/// l'or et une ressource rare ; un artefact plus tard) et disparaît. Un héros qui fuit le laisse avec l'équipage qui reste.
+/// </summary>
+public sealed class AbandonedShip : MapObject
+{
+    public AbandonedShip(Cell position, int gold, ResourceType resource, int amount) : base(position)
+    {
+        Gold = gold;
+        Resource = resource;
+        Amount = amount;
+    }
+
+    /// <summary>L'équipage, à vaincre avant de piller le navire (vide : le navire se pille aussitôt).</summary>
+    public Army Crew { get; } = new();
+
+    public int Gold { get; }
+    public ResourceType Resource { get; }
+    public int Amount { get; }
+
+    public override ObjectVisited Visit(Hero hero)
+    {
+        var resources = hero.Owner.Resources;
+        resources[ResourceType.Gold] = resources.GetValueOrDefault(ResourceType.Gold) + Gold;
+        resources[Resource] = resources.GetValueOrDefault(Resource) + Amount;
+        return new AbandonedShipLooted(hero, this);
+    }
+}

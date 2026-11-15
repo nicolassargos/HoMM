@@ -903,8 +903,9 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   8 directions** pour le chevalier (2026-11-15, branche `heros-carte-factions`, choix de l'utilisateur) : 5 directions
   dessinées (sud, sud-est, est, nord-est, nord), l'ouest en miroir ; le héros regarde vers son dernier pas. ✅ **Le
   nécromancien des morts-vivants** (2026-11-15, branche `heros-carte-morts-vivants`, choix de l'utilisateur : un
-  nécromancien encapuchonné de violet sur un cheval mort-vivant pâle). Reste : les 6 autres factions (même recette), une
-  image de combat par héros.
+  nécromancien encapuchonné de violet sur un cheval mort-vivant pâle). ✅ **Le chef des Barbares** (2026-11-15, branche
+  `heros-carte-barbares` : casque à cornes, cape de fourrure, sur un cheval brun). Reste : les 5 autres factions (même
+  recette), une image de combat par héros.
   ✅ **Les diagonales partout sur la carte** (2026-11-14, branche `diagonales`, très important pour l'utilisateur) : les
   bords des terrains suivent les centres des cases (un escalier devient une ligne à 45°, un coin s'arrondit), les routes
   vont en diagonale, les murs entre zones serpentent. (Icônes des ressources : faites, 2026-11-07.)

@@ -1824,7 +1824,8 @@
         "fixe": "L1-1",
         "idle": "bouillon-1",
         "attack": "ecrase-1",
-        "move": "rampe32-2"
+        "move": "rampe32-2",
+        "carte": "p1-2"
       },
       "grande": "art-candidats/references/derives/limon-magma-grand.png"
     }

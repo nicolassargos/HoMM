@@ -95,6 +95,7 @@
   "creatures/homme-lezard": {"pieds": [[[3, 29], [27, 29]]], "verifie": true},
   "creatures/hydre": {"pieds": [[[8, 29], [25, 29]]], "verifie": true},
   "creatures/liche": {"pieds": [[[5, 30], [24, 30]]], "verifie": true},
+  "creatures/limon-magma": {"pieds": [[[2, 25], [29, 26]]], "verifie": false},
   "creatures/loup": {"pieds": [[[7, 28], [28, 27]]], "verifie": true},
   "creatures/mage": {"pieds": [[[10, 29], [23, 29]]], "verifie": true},
   "creatures/minotaure": {"pieds": [[[10, 31], [27, 31]]], "verifie": true},

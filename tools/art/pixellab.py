@@ -34,7 +34,10 @@ La clé d'API est lue dans la variable d'environnement PIXELLAB_API_KEY (jamais 
     python -I tools/art/pixellab.py repeindre image.png sortie.png x y largeur hauteur "description" [graine]
         repeint seulement le rectangle donné (en pixels de l'image), le reste ne change pas (« Inpaint », Pro) ;
         coûte de l'argent
-
+    python -I tools/art/pixellab.py tuiles dossier taille "dessous" "dessus" [graine] [dessous.png]
+        des cases de sol vues de dessus (« Create tileset », standard : 16 cases de transition entre deux terrains) ;
+        la case toute « dessus » se répète sans couture : dossier/dessus.png ; <dessous.png> (une case du jeu) guide le
+        terrain du dessous ; écrit aussi dossier/1.png… et dossier/planche.png ; coûte de l'argent
 La première image rendue est l'image d'entrée elle-même. Seule la bibliothèque standard de Python est utilisée.
 """
 
@@ -399,13 +402,46 @@ def tourner(image, dossier, methode="pro", graine=None, vue="low top-down", desc
     print(f"{dossier} : {len(chemins)} directions (coût : {cout.get('usd')} $ / {cout.get('generations')} générations)")
 
 
+def tuiles(dossier, taille, dessous, dessus, graine=None, modele=None):
+    """Un jeu de cases de transition (« Create tileset », standard) entre deux terrains ; la case toute « dessus » se
+    répète sans couture : dossier/dessus.png ; toutes les cases dans dossier/1.png… et dossier/planche.png."""
+    corps = {"lower_description": dessous, "upper_description": dessus, "tile_size": {"width": taille, "height": taille},
+             "mode": "standard", "transition_size": 0.0, "view": "high top-down"}
+    if graine is not None:
+        corps["seed"] = graine
+    if modele:
+        corps["lower_reference_image"] = image_base64(modele)
+    r = requete("POST", "/create-tileset", corps)
+    attendre(r["background_job_id"])
+    etat = requete("GET", f"/tilesets/{r['tileset_id']}")
+    os.makedirs(dossier, exist_ok=True)
+    chemins = []
+    for i, case in enumerate(etat["tileset"]["tiles"], start=1):
+        chemin = os.path.join(dossier, f"{i}.png")
+        with open(chemin, "wb") as f:
+            f.write(decoder(case["image"]))
+        chemins.append(chemin)
+        if all(v == "upper" for v in case.get("corners", {}).values()):
+            with open(os.path.join(dossier, "dessus.png"), "wb") as f:
+                f.write(decoder(case["image"]))
+    feuille(chemins, os.path.join(dossier, "planche.png"))
+    cout = etat.get("usage") or r.get("usage") or {}
+    print(f"{dossier} : {len(chemins)} case(s) (coût : {cout.get('usd')} $)")
+
+
 def main():
     if len(sys.argv) < 2 or sys.argv[1] not in ("solde", "animer", "ui", "panneau", "creer", "pro", "retoucher", "repeindre",
-                                                "tourner"):
+                                                "tourner", "tuiles"):
         sys.exit(__doc__)
     a = sys.argv
     if a[1] == "solde":
         solde()
+    elif a[1] == "tuiles":
+        if len(a) < 5:
+            sys.exit(__doc__)
+        if len(a) < 6:
+            sys.exit(__doc__)
+        tuiles(a[2], int(a[3]), a[4], a[5], int(a[6]) if len(a) > 6 else None, a[7] if len(a) > 7 else None)
     elif a[1] == "tourner":
         options = [x for x in a[2:] if x.startswith("--")]
         a = [x for x in a[2:] if not x.startswith("--")]

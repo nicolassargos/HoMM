@@ -272,16 +272,22 @@ public partial class Main : Node2D
                 _camera.CenterOn(site.Position);
             // « --center=bridge » : le premier pont d'une rivière ; « stream » : un ruisseau ; « ford » : une route qui croise
             // un ruisseau
+            // (« --center=road-change:3 » : le troisième endroit de ce genre)
+            int rank = kind.Split(':') is [_, var r] && int.TryParse(r, out int n) ? Math.Max(1, n) : 1;
+            kind = kind.Split(':')[0];
             var map = _state.Map;
             Func<Cell, bool>? wanted = kind switch
             {
                 "bridge" => c => map.GetRiver(c) == RiverKind.Bridge,
                 "stream" => c => map.GetRiver(c) == RiverKind.Stream,
                 "ford" => c => map.GetRiver(c) == RiverKind.Stream && map.HasRoad(c),
+                // une route qui change de sorte (d'une zone à l'autre)
+                "road-change" => c => map.HasRoad(c) && new[] { c.Offset(1, 0), c.Offset(0, 1) }
+                    .Any(n => map.InBounds(n) && map.HasRoad(n) && map.GetRoadKind(n) != map.GetRoadKind(c)),
                 _ => null,
             };
             if (wanted != null && Enumerable.Range(0, map.Width * map.Height).Select(i => new Cell(i % map.Width, i / map.Width))
-                    .FirstOrDefault(wanted) is var found && wanted(found))
+                    .Where(wanted).Skip(rank - 1).Take(1).ToList() is [var found])
                 _camera.CenterOn(found);
         }
         static string? SiteKind(MapObject o) => o switch

@@ -20,6 +20,12 @@ public enum TerrainType { Grass = 0, Forest = 2, Sand = 3, Swamp = 4, Water = 5,
 /// </summary>
 public enum RiverKind { None = 0, Stream = 1, River = 2, Bridge = 3 }
 
+/// <summary>
+/// La sorte d'une route (2026-11-15, choix de l'utilisateur, comme Heroes 3) : terre, gravier ou pavés, une par zone. Elle ne
+/// change que l'image ; les numéros sont enregistrés dans les sauvegardes.
+/// </summary>
+public enum RoadKind { None = 0, Dirt = 1, Gravel = 2, Cobbles = 3 }
+
 public static class TerrainInfo
 {
     /// <summary>Coût pour quitter une case de route, quel que soit le terrain dessous.</summary>

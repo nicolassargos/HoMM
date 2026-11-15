@@ -148,7 +148,7 @@ public class RoutesTests
             var row = terrain[y]!.GetValue<string>().ToCharArray();
             var road = roads[y]!.GetValue<string>();
             for (int x = 0; x < row.Length; x++)
-                if (road[x] == '1')
+                if (road[x] != '0')
                     row[x] = '1';
             terrain[y] = new string(row);
         }
@@ -164,6 +164,26 @@ public class RoutesTests
             // l'ancienne route devient de l'herbe avec une route
             Assert.Equal(state.Map.HasRoad(cell) ? TerrainType.Grass : state.Map.GetTerrain(cell), loaded.Map.GetTerrain(cell));
         }
+    }
+
+    [Theory]
+    [InlineData(42)]
+    [InlineData(5)]
+    public void Les_routes_prennent_la_sorte_de_leur_zone_et_sont_sauvegardees(int seed)
+    {
+        var state = new GameState(seed, TestData.Data, MapSize.Normal, access: ZoneAccess.Normal);
+        var map = state.Map;
+        var roads = Enumerable.Range(0, map.Height).SelectMany(y => Enumerable.Range(0, map.Width).Select(x => new Cell(x, y)))
+            .Where(map.HasRoad).ToList();
+        Assert.All(roads, c => Assert.NotEqual(RoadKind.None, map.GetRoadKind(c)));
+        // devant la porte d'un château (une ville du Château) : des pavés
+        foreach (var town in map.Objects.OfType<Town>().Where(t => t.Faction == "chateau"))
+            Assert.All(roads.Where(c => System.Math.Abs(c.X - town.Position.X) <= 1 && c.Y == town.Position.Y + 1),
+                c => Assert.Equal(RoadKind.Cobbles, map.GetRoadKind(c)));
+        Assert.Contains(roads, c => map.GetRoadKind(c) != RoadKind.Cobbles); // les zones n'ont pas toutes la même sorte
+
+        var loaded = GameState.Load(state.Save(), TestData.Data);
+        Assert.All(roads, c => Assert.Equal(map.GetRoadKind(c), loaded.Map.GetRoadKind(c)));
     }
 
     [Fact]

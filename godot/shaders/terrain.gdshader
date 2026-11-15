@@ -15,7 +15,8 @@ uniform sampler2D terrain_map : filter_nearest;
 // les formes douces des rivières (rouge) et des ruisseaux (vert), plusieurs points par case (RiverField)
 uniform sampler2D water_field : filter_linear;
 // L'image de la route (24 × 24)
-uniform sampler2D road_tile : filter_nearest, repeat_enable;
+// les images des sortes de routes : terre, gravier, pavés (RoadKind - 1)
+uniform sampler2DArray road_tiles : filter_nearest;
 // Les images de chaque terrain (24 × 24) : « variants » couches par terrain, à la suite
 // (couche = numéro du terrain × variants + variante)
 uniform sampler2DArray tiles : filter_nearest;
@@ -51,8 +52,35 @@ uniform float variant_dither = 0.25;
 uniform float road_width = 4.5;
 uniform float road_wave = 1.5;
 uniform float road_wave_scale = 7.0;
-uniform float road_blend = 1.0;
-uniform float road_edge = 0.15;
+// le bord de la route : cranté (road_jag pixels d'art), la route et le sol s'y mêlent pixel par pixel sur road_scatter
+// pixels (comme l'herbe qui s'éclaircit là où l'on marche) ; une bande de terre battue (l'image de la terre, assombrie)
+// d'épaisseur changeante, jusqu'à road_frame pixels ; la route un peu ombrée près de son bord (road_shade)
+uniform float road_jag = 1.0;
+uniform float road_scatter = 2.5;
+uniform float road_frame = 0.0;
+uniform float road_frame_dark = 0.8;
+// la terre battue n'est que par endroits (la part du bord qui en a, environ) et laisse voir l'herbe ou la route dessous,
+// plus ou moins selon la sorte de la route (elle se voit peu sur la terre, beaucoup sur les pavés gris)
+uniform float road_frame_share = 0.45;
+uniform float road_soil_dirt = 0.45;
+uniform float road_soil_gravel = 0.45;
+uniform float road_soil_cobbles = 0.45;
+// la terre se pose en multipliant (elle teinte et assombrit sans cacher les pierres) et va surtout dans les creux : les
+// pixels sombres (les joints des pavés, l'ombre entre les cailloux) ; road_soil_low : la part qui ne va que dans les creux
+uniform float road_soil_low = 0.7;
+// la clarté de la teinte de terre qui multiplie (plus bas : plus sombre)
+uniform float road_soil_tint = 0.75;
+uniform float road_shade = 0.1;
+// la route est un peu plus basse que l'herbe : le soleil vient d'en bas à droite (les ombres de la carte vont vers la
+// gauche et le haut) ; le talus du côté du soleil jette une ombre douce sur la route (road_shadow : sa force, sur
+// road_shadow_length pixels d'art), le talus d'en face reçoit le soleil (road_rim : un liseré plus clair sur l'herbe)
+uniform float road_shadow = 0.15;
+uniform float road_shadow_length = 3.0;
+uniform float road_rim = 0.07;
+uniform vec2 sun = vec2(0.67, 0.74);
+// la route s'élargit et se rétrécit doucement le long de son chemin : de combien (pixels d'art), sur quelle longueur
+uniform float road_vary = 0.5;
+uniform float road_vary_scale = 12.0;
 // Plages : largeur de la bande de sable côté terre (pixels d'art, 0 = aucune), ondulation de son bord,
 // sable mouillé (assombrissement) sur les derniers pixels avant l'eau
 uniform float beach_width = 8.0;
@@ -90,7 +118,13 @@ int terrain_at(ivec2 c) {
 
 bool road_at(ivec2 c) {
 	if (c.x < 0 || c.y < 0 || c.x >= map_cells.x || c.y >= map_cells.y) return false;
-	return texelFetch(terrain_map, c, 0).g > 0.5;
+	return texelFetch(terrain_map, c, 0).g > 0.1;
+}
+
+// La sorte de la route de la case c (1 terre, 2 gravier, 3 pavés ; 0 sans route)
+int road_kind_at(ivec2 c) {
+	if (c.x < 0 || c.y < 0 || c.x >= map_cells.x || c.y >= map_cells.y) return 0;
+	return int(texelFetch(terrain_map, c, 0).g * 255.0 / 64.0 + 0.5);
 }
 
 // La rivière de la case c (0 hors de la carte)
@@ -149,15 +183,22 @@ float road_in_cell(vec2 q, ivec2 n) {
 	return best;
 }
 
-// Distance du pixel d'art p à la ligne médiane des routes proches (très grande s'il n'y en a pas)
-float road_distance(vec2 p) {
+// Distance du pixel d'art p à la ligne médiane des routes proches (très grande s'il n'y en a pas) ; kind : la sorte de
+// la route la plus proche (chaque case dessine sa moitié de ses liaisons : la sorte change au milieu entre deux cases)
+float road_distance(vec2 p, out int kind) {
 	ivec2 c = ivec2(floor(p / ART));
 	vec2 q = p + 0.5;
 	float best = 1e5;
 	for (int dy = -1; dy <= 1; dy++) {
 		for (int dx = -1; dx <= 1; dx++) {
 			ivec2 n = c + ivec2(dx, dy);
-			if (road_at(n)) best = min(best, road_in_cell(q, n));
+			if (road_at(n)) {
+				float d = road_in_cell(q, n);
+				if (d < best) {
+					best = d;
+					kind = road_kind_at(n);
+				}
+			}
 		}
 	}
 	return best;
@@ -340,6 +381,16 @@ vec3 tile_color(int t, vec2 p) {
 	return color;
 }
 
+// De combien le pixel d'art p est dans la route (pixels d'art ; négatif dehors) : la distance à sa ligne médiane, sa
+// largeur qui change le long du chemin et son bord cranté ; kind : la sorte de la route la plus proche
+float road_inside(vec2 p, out int kind) {
+	float dist = road_distance(p, kind);
+	float width = road_width + (noise((p + 0.5) / road_wave_scale + vec2(71.0, 13.0)) * 2.0 - 1.0) * road_wave
+		+ (noise((p + 0.5) / road_vary_scale + vec2(37.0, 83.0)) * 2.0 - 1.0) * road_vary
+		+ (noise((p + 0.5) / 3.0 + vec2(13.0, 29.0)) * 2.0 - 1.0) * road_jag;
+	return width - dist;
+}
+
 void fragment() {
 	vec2 p = floor(UV * vec2(map_cells) * ART);
 	int a;
@@ -412,16 +463,44 @@ void fragment() {
 		}
 	}
 	// La route, par-dessus le sol
-	float dist = road_distance(p);
-	float width = road_width + (noise((p + 0.5) / road_wave_scale + vec2(71.0, 13.0)) * 2.0 - 1.0) * road_wave;
-	if (dist < width + road_blend) {
-		float on_road = clamp((width - dist) / (2.0 * road_blend) + 0.5, 0.0, 1.0);
-		if (blend_steps > 0.0 && on_road > 0.0 && on_road < 1.0)
-			on_road = clamp(floor(on_road * blend_steps + bayer(p)) / blend_steps, 0.0, 1.0);
-		vec3 road = texelFetch(road_tile, ivec2(mod(p, ART)), 0).rgb;
-		// le bord de la route un peu plus sombre (ornières)
-		if (dist > width - 1.5) road *= 1.0 - road_edge;
-		color = mix(color, road, on_road);
+	int road_kind = 1;
+	float inside = road_inside(p, road_kind); // positif sur la route
+	float spread = max(road_scatter, 0.01);
+	int other_kind;
+	// le talus d'en face, au soleil : un liseré plus clair sur l'herbe
+	if (road_rim > 0.0 && inside < 0.0 && inside > -2.0 && road_inside(p - sun * 2.0, other_kind) > 0.0)
+		color *= 1.0 + road_rim;
+	if (inside > -spread * 0.5 && hash(p + vec2(0.37, 0.71)) < clamp(inside / spread + 0.5, 0.0, 1.0)) {
+		vec3 road = texelFetch(road_tiles, ivec3(ivec2(mod(p, ART)), max(road_kind, 1) - 1), 0).rgb;
+		if (inside < 1.5)
+			road *= 1.0 - road_shade;
+		// l'ombre du talus du côté du soleil, douce, en paliers tramés comme le reste
+		if (road_shadow > 0.0 && inside < road_width * 2.0 + 2.0) {
+			float shadow = 0.0;
+			for (float k = 1.0; k <= 6.0; k += 1.0) {
+				if (k > road_shadow_length) break;
+				if (road_inside(p + sun * k, other_kind) < 0.0) {
+					shadow = 1.0 - (k - 1.0) / road_shadow_length;
+					break;
+				}
+			}
+			shadow = clamp(floor(shadow * 3.0 + bayer(p)) / 3.0, 0.0, 1.0);
+			road *= 1.0 - road_shadow * shadow;
+		}
+		color = road;
+	}
+	// la terre battue, par endroits, à cheval sur le bord : son épaisseur change le long de la route, on voit au travers
+	float frame = road_frame * smoothstep(1.0 - road_frame_share - 0.1, 1.0 - road_frame_share + 0.15,
+		noise((p + 0.5) / 9.0 + vec2(91.0, 7.0)));
+	if (frame > 0.3 && inside > -frame * 0.6 && inside < frame) {
+		vec3 soil = texelFetch(road_tiles, ivec3(ivec2(mod(p, ART)), 0), 0).rgb * road_frame_dark;
+		float alpha = road_kind == 3 ? road_soil_cobbles : (road_kind == 2 ? road_soil_gravel : road_soil_dirt);
+		float light = dot(color, vec3(0.299, 0.587, 0.114));
+		float low = 1.0 - smoothstep(0.2, 0.6, light);
+		alpha *= (1.0 - road_soil_low + road_soil_low * low) * (0.6 + 0.4 * hash(p + vec2(5.3, 1.9)));
+		// la terre, ramenée à une teinte claire, multiplie la couleur dessous
+		vec3 tint = clamp(soil / max(dot(soil, vec3(0.299, 0.587, 0.114)), 0.05) * road_soil_tint, 0.0, 1.0);
+		color = mix(color, color * tint, alpha);
 	}
 	// Les ponts : sur les deux cases d'un pont de rivière, en travers de la bande, et au-delà tant qu'il y a de l'eau (la
 	// rivière lissée déborde un peu des cases) ; là où une route croise un ruisseau, au-dessus de l'eau

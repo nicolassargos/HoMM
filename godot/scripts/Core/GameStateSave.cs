@@ -21,7 +21,7 @@ public sealed partial class GameState
     /// Version 2 : les routes sont une couche à part (<see cref="MapData.Roads"/>). Une sauvegarde de la version 1
     /// (où la route était un terrain, le numéro 1) est encore lue : ses routes deviennent de l'herbe avec une route.
     /// </summary>
-    public const int SaveVersion = 8; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts ; 6 : temples et cercles des fées ; 7 : les lieux hauts sur 2 cases ; 8 : les rivières
+    public const int SaveVersion = 9; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts ; 6 : temples et cercles des fées ; 7 : les lieux hauts sur 2 cases ; 8 : les rivières ; 9 : les sortes de routes
 
     private static readonly JsonSerializerOptions SaveOptions = new()
     {
@@ -40,7 +40,8 @@ public sealed partial class GameState
 
     /// <summary>
     /// Le terrain : une ligne de chiffres par rangée de la carte (le numéro du terrain). Les routes : une ligne
-    /// par rangée, « 1 » pour une case avec une route, « 0 » sinon (absentes dans la version 1). Les rivières : une ligne
+    /// par rangée, la sorte de la route de chaque case (<see cref="RoadKind"/>, « 0 » sans route ; « 1 » avant la version 9 :
+    /// une route de terre ; absentes dans la version 1). Les rivières : une ligne
     /// par rangée, le numéro de la rivière de chaque case (<see cref="RiverKind"/> ; absentes avant la version 8).
     /// </summary>
     private sealed record MapData(int Width, int Height, Cell Start, List<string> Terrain, List<ObjectData> Objects,
@@ -113,7 +114,7 @@ public sealed partial class GameState
             terrain.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => (char)('0' + (int)Map.GetTerrain(new Cell(x, y))))));
         var roads = new List<string>();
         for (int y = 0; y < Map.Height; y++)
-            roads.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => Map.HasRoad(new Cell(x, y)) ? '1' : '0')));
+            roads.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => (char)('0' + (int)Map.GetRoadKind(new Cell(x, y))))));
         var rivers = new List<string>();
         for (int y = 0; y < Map.Height; y++)
             rivers.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => (char)('0' + (int)Map.GetRiver(new Cell(x, y))))));
@@ -168,7 +169,7 @@ public sealed partial class GameState
         try
         {
             if (JsonSerializer.Deserialize<SaveFile>(json, SaveOptions) is not { Map: not null, Players.Count: > 0 } save
-                || save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or SaveVersion))
+                || save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or SaveVersion))
                 return null;
             var hero = save.Heroes.Where(h => h.Owner == save.Players[0].Id)
                 .OrderByDescending(h => h.Id == save.CurrentHero).ThenByDescending(h => h.Level).FirstOrDefault();
@@ -194,7 +195,7 @@ public sealed partial class GameState
         }
         if (save == null)
             throw new FormatException("sauvegarde vide");
-        if (save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or SaveVersion))
+        if (save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or SaveVersion))
             throw new FormatException($"version de sauvegarde inconnue : {save.Version} (attendue : {SaveVersion})");
         try
         {
@@ -379,12 +380,12 @@ public sealed partial class GameState
                 throw new FormatException($"terrain inconnu en ({x}, {y})");
             map.SetTerrain(cell, (TerrainType)terrain);
             if (m.Roads != null)
-                map.SetRoad(cell, m.Roads[y][x] switch
-                {
-                    '1' => true,
-                    '0' => false,
-                    _ => throw new FormatException($"route illisible en ({x}, {y})"),
-                });
+            {
+                int road = m.Roads[y][x] - '0';
+                if (!Enum.IsDefined(typeof(RoadKind), road))
+                    throw new FormatException($"route illisible en ({x}, {y})");
+                map.SetRoadKind(cell, (RoadKind)road);
+            }
             if (m.Rivers != null)
             {
                 int river = m.Rivers[y][x] - '0';

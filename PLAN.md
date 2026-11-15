@@ -943,8 +943,21 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   route y couvre 3 à 9 % de la terre, 13 % chez nous ; 1,3 à 1,5 villes pour 1000 cases de terre) : le réseau principal
   est un arbre entre les villes, les mines des villes et les ports, de courts sentiers mènent aux autres mines (5 cases)
   et aux lieux (3 cases) ; au plus 1,5 villes pour 1000 cases de terre (chaque joueur garde sa ville voisine). Mesuré :
-  routes 7,5 % de la terre (normale), 8,4 % (grande), 5 % (îles), 11,6 % (petite : 4 villes sur peu de terre). À revoir : une route dans les zones sans ville ; les sortes de routes (terre,
-  gravier, pavés : après les sols de la carte) ; la quantité de routes.
+  routes 7,5 % de la terre (normale), 8,4 % (grande), 5 % (îles), 11,6 % (petite : 4 villes sur peu de terre). À revoir : une route dans les zones sans ville ; la quantité de routes.
+  **Les sortes et le dessin des routes (en cours, 2026-11-15, branche `routes-suite`)**, avec l'utilisateur. D'après 43
+  cartes de Heroes 3 (`tools/cartes/sortes_routes_h3.py` : terre 37 %, gravier 31 %, pavés 33 % ; une carte emploie
+  surtout une sorte, en longs morceaux ; la sorte dépend peu de ce que la route relie) : **une sorte par zone**
+  (`RoadKind`, sauvegarde version 9), celle de la faction de sa ville (pavés : Château, Tour, Nains ; gravier :
+  morts-vivants, Donjon, Enfer ; terre : Barbares, Forêt), sinon terre ou gravier au hasard. Images Retro Diffusion
+  choisies en jeu (terre 3, gravier 2, pavés 1 ; Retro Diffusion bien meilleur que PixelLab pour ces cases). Le dessin :
+  des routes plus fines (de 7 à 9 pixels d'art, une largeur qui change vite), un bord éparpillé (la route et l'herbe se
+  mêlent pixel par pixel), une ombre douce du côté du soleil et un liseré de soleil sur l'herbe d'en face (légers).
+  Écartés : le cadre de terre sombre de Heroes 3 (« pas naturel »), la terre battue posée ou multipliée (des taches,
+  pas des formes ; le code reste, éteint). **Ensuite** : de petits cailloux le long du bord ; l'herbe qui déborde sur la
+  route (**en option**, à essayer) ; le bord sur le sable ; une revue de six cartes. **Plus tard** (idées) : une route
+  enneigée (avec un sol de neige) ; un coût de marche par sorte comme Heroes 3 (pavés 50 %, gravier 65 %, terre 75 %) ;
+  une entrée pavée devant chaque ville (Heroes 2) ; des ornières ou des flaques dessinées sur la terre ; **le shader de
+  l'herbe sera revu par l'utilisateur** (le bord des routes prend la couleur du sol, il suivra).
   ✅ **Plus de villes sur les grandes cartes** (2026-11-14, demandé par l'utilisateur) : 14 noms de villes les limitaient à
   14 ; avec 40 noms, une ville pour trois zones : grande carte 17 à 20 villes, très grande 30 à 33 (avec les châteaux).
 - **La mer** (conçue avec l'utilisateur, 2026-11-14, comme Heroes 3) :

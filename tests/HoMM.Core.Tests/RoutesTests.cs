@@ -65,16 +65,57 @@ public class RoutesTests
         Cell[] Around(Cell c) => new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1),
             c.Offset(1, 1), c.Offset(-1, 1), c.Offset(1, -1), c.Offset(-1, -1) };
 
+        // une petite route peut finir à l'entrée d'une mine qui touche les murs, ou à côté d'un lieu
+        var mines = map.Objects.OfType<Mine>().Select(m => m.Approach)
+            .Concat(map.Objects.Where(o => o is Shrine or SageHut or WeeklyProducer or ObservationTower or BlessingSite).SelectMany(o => Around(o.Position)))
+            .ToHashSet();
         foreach (var town in map.Objects.OfType<Town>())
         {
             var walls = town.Footprint.ToHashSet();
             Assert.True(Road(town.Approach), $"pas de route devant la porte de {town.Name} ({town.Position})");
             foreach (var wall in walls.Where(w => w != town.Position))
                 Assert.False(Road(wall), $"route sous les murs de {town.Name} en {wall}");
-            // une route qui finit (une seule voisine) contre la ville ne peut finir que devant la porte
-            foreach (var end in walls.SelectMany(Around).Where(c => !walls.Contains(c) && c != town.Approach).Distinct())
+            // une route qui finit (une seule voisine) contre la ville ne peut finir que devant la porte (ou une mine)
+            foreach (var end in walls.SelectMany(Around).Where(c => !walls.Contains(c) && c != town.Approach && !mines.Contains(c)).Distinct())
                 Assert.False(Road(end) && Around(end).Count(Road) <= 1, $"route en cul-de-sac contre {town.Name} en {end}");
         }
+    }
+
+    /// <summary>
+    /// Chaque bout de route arrive quelque part (demandé par l'utilisateur, 2026-11-15) : à la porte d'une ville, à l'entrée
+    /// d'une mine, à un chantier naval, à un bateau amarré, à un lieu ; aucune route ne s'arrête au milieu d'une zone vide.
+    /// </summary>
+    [Theory]
+    [InlineData(1, MapSize.Normal, MapType.Continent)]
+    [InlineData(2, MapSize.Normal, MapType.Islands)]
+    [InlineData(3, MapSize.Large, MapType.Continent)]
+    [InlineData(4, MapSize.Normal, MapType.Archipelago)]
+    public void Les_routes_ne_menent_pas_nulle_part(int seed, MapSize size, MapType type)
+    {
+        var map = new GameState(seed, TestData.Data, size, opponents: 1, mapType: type).Map;
+        bool Road(Cell c) => map.InBounds(c) && map.HasRoad(c);
+        var around = new[] { (-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1) };
+        var destinations = map.Objects.SelectMany(o => o switch
+        {
+            Town town => new[] { town.Approach },
+            Mine mine => new[] { mine.Approach },
+            Shipyard or Shrine or SageHut or WeeklyProducer or ObservationTower or BlessingSite => around.Select(d => o.Position.Offset(d.Item1, d.Item2)).ToArray(),
+            // la case de terre d'où l'on monte dans un bateau amarré
+            Boat boat => new[] { boat.Position.Offset(1, 0), boat.Position.Offset(-1, 0), boat.Position.Offset(0, 1), boat.Position.Offset(0, -1) },
+            _ => System.Array.Empty<Cell>(),
+        }).ToHashSet();
+        for (int y = 0; y < map.Height; y++)
+        for (int x = 0; x < map.Width; x++)
+        {
+            var c = new Cell(x, y);
+            if (!Road(c) || destinations.Contains(c))
+                continue;
+            var near = around.Select(d => c.Offset(d.Item1, d.Item2)).Where(Road).ToList();
+            bool deadEnd = near.Count <= 1
+                           || near.Count == 2 && System.Math.Max(System.Math.Abs(near[0].X - near[1].X), System.Math.Abs(near[0].Y - near[1].Y)) == 1;
+            Assert.False(deadEnd, $"une route finit sans rien en {c}");
+        }
+        Assert.Contains(destinations, Road);
     }
 
     [Fact]

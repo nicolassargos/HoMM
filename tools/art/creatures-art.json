@@ -1709,7 +1709,11 @@
         "L7": "références",
         "L8": "angle seul",
         "L9": "références"
-      }
+      },
+      "choix": {
+        "fixe": "L7-1"
+      },
+      "grande": "art-candidats/references/derives/demon-grand.png"
     }
   }
 }

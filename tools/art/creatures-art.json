@@ -1674,7 +1674,8 @@
         "fixe": "L7-1",
         "attack": "mm-baiser-1",
         "idle": "queue-2",
-        "move": "mm-pas-3"
+        "move": "mm-pas-3",
+        "carte": "p1-6"
       },
       "grande": "art-candidats/references/derives/succube-grand.png"
     }

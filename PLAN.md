@@ -580,7 +580,8 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Écartés : le cadre de terre sombre de Heroes 3 (« pas naturel »), la terre battue posée ou multipliée (des taches,
   pas des formes ; le code reste, éteint). ✅ L'herbe qui déborde sur la
   route (2026-11-15, branche `routes-herbe`, choix de l'utilisateur) : par plaques et en touffes, sans herbe sur
-  certains tronçons, envahie sur d'autres. **Ensuite** : le bord sur le sable ; une revue de six cartes. **Plus tard** (idées) : une route
+  certains tronçons, envahie sur d'autres. ✅ Le bord sur le sable (2026-11-15, branche `routes-sable`, choix de l'utilisateur) : le sable
+  recouvre un peu le bord, un bourrelet clair à côté. **Ensuite** : une revue de six cartes. **Plus tard** (idées) : une route
   enneigée (avec un sol de neige) ; un coût de marche par sorte comme Heroes 3 (pavés 50 %, gravier 65 %, terre 75 %) ;
   une entrée pavée devant chaque ville (Heroes 2) ; des ornières ou des flaques dessinées sur la terre ; **le shader de
   l'herbe sera revu par l'utilisateur** (le bord des routes prend la couleur du sol, il suivra).

@@ -243,7 +243,7 @@ public static class MapRenderer
                     ci.DrawCircle(c + V(10, -13), 2, Rgb(255, 255, 200));
                 break;
 
-            case BlessingSite { Sea: true } or Flotsam or SeaChest or Whirlpool or Lighthouse:
+            case BlessingSite { Sea: true } or Flotsam or SeaChest or Whirlpool or Lighthouse or AbandonedShip:
                 DrawSeaObject(ci, obj, c, time);
                 break;
 
@@ -347,6 +347,14 @@ public static class MapRenderer
                 }
                 ci.DrawCircle(c, 4, Rgb(20, 50, 90));
                 break;
+            case AbandonedShip:
+                // une coque sombre penchée, un mât brisé, une voile en lambeaux
+                ci.DrawColoredPolygon(new[] { c + V(-24, -2 + bob), c + V(22, -6 + bob), c + V(16, 10 + bob), c + V(-18, 12 + bob) }, Rgb(70, 55, 45));
+                ci.DrawRect(new Rect2(c + V(-20, -2 + bob), 40, 3), Rgb(110, 90, 70));
+                ci.DrawRect(new Rect2(c + V(-2, -34 + bob), 4, 32), Rgb(90, 70, 55));
+                ci.DrawColoredPolygon(new[] { c + V(2, -30 + bob), c + V(16, -26 + bob), c + V(10, -14 + bob), c + V(2, -12 + bob) }, Rgb(150, 150, 135));
+                ci.DrawCircle(c + V(-10, -10 + bob), 3, Rgb(120, 230, 160)); // une lueur verte de mort
+                break;
             case Lighthouse lighthouse:
                 // la porte en bas, la tour monte sur la case du dessus
                 ci.DrawColoredPolygon(new[] { c + V(-9, 14), c + V(9, 14), c + V(5, -50), c + V(-5, -50) }, Rgb(235, 230, 220));
@@ -380,8 +388,8 @@ public static class MapRenderer
         ObjectImage(obj) is { } image ? (image, ArtRect(image, ObjectArea(obj, o))) : null;
 
     /// <summary>L'image du héros posé sur la case <paramref name="o"/> et l'endroit où elle est dessinée (pour son ombre).</summary>
-    public static (Texture2D Image, Rect2 Rect)? HeroArt(Hero hero, Vector2 o, bool left = false, int frame = -1) =>
-        HeroImage(hero, left, frame) is { } image ? (image, ArtRect(image, HeroArea(o + V(T / 2f, T / 2f + 4)))) : null;
+    public static (Texture2D Image, Rect2 Rect)? HeroArt(Hero hero, Vector2 o, HeroFacing facing = default, int frame = -1) =>
+        HeroImage(hero, facing, frame) is { } image ? (image, ArtRect(image, HeroArea(o + V(T / 2f, T / 2f + 4)))) : null;
 
     /// <summary>La case où se pose l'image du héros, <paramref name="c"/> étant le point où il est dessiné.</summary>
     private static Rect2 HeroArea(Vector2 c) => new(c - V(T / 2f, T / 2f + 4), T, T);
@@ -592,7 +600,27 @@ public static class MapRenderer
 
     // --------------------------------------------------------------------- héros
 
-    private static readonly Dictionary<(string Name, int Owner, bool Left, int Frame), Texture2D?> HeroImages = new();
+    private static readonly Dictionary<(string Name, int Owner, bool Mirror, int Frame), Texture2D?> HeroImages = new();
+
+    /// <summary>
+    /// Où regarde un héros sur la carte : la direction de son dernier pas (<c>X</c>, <c>Y</c> de -1 à 1, <c>Y</c> vers le
+    /// bas, le sud ; 0, 0 : il n'a pas encore bougé et regarde vers le sud-est), et <c>Left</c> pour une image qui n'a que
+    /// deux côtés (après un pas vers le nord ou le sud, elle reste tournée du même côté).
+    /// </summary>
+    public readonly record struct HeroFacing(int X, int Y, bool Left);
+
+    /// <summary>
+    /// Les directions dessinées (heroes/hero-{faction}-{direction}.png et -move.png, 2026-11-15) : le sud, le sud-est,
+    /// l'est, le nord-est et le nord ; l'ouest, le nord-ouest et le sud-ouest en sont le miroir.
+    /// </summary>
+    private static string DirectionCode(HeroFacing facing) => (Math.Abs(facing.X), Math.Sign(facing.Y)) switch
+    {
+        (0, 1) => "s",
+        (1, 0) => "e",
+        (1, -1) => "ne",
+        (0, -1) => "n",
+        _ => "se",
+    };
 
     /// <summary>
     /// Le temps d'un pas d'une case (3 cases par seconde, choix de l'utilisateur, 2026-11-14). Les images de marche
@@ -614,10 +642,21 @@ public static class MapRenderer
     private static string HeroArtName(Hero? hero) =>
         hero?.Class?.Faction is { Length: > 0 } faction && Art.Get($"heroes/hero-{faction}") != null ? $"heroes/hero-{faction}" : "heroes/hero";
 
-    /// <summary>Le nombre d'images de marche d'un héros (0 : il n'en a pas, l'image fixe glisse de case en case).</summary>
-    public static int HeroWalkFrames(Hero? hero)
+    /// <summary>
+    /// L'image d'un héros tourné vers <paramref name="facing"/> : celle de sa direction s'il en a (retournée vers l'ouest),
+    /// sinon son image de profil, retournée vers la gauche.
+    /// </summary>
+    private static (string Name, bool Mirror) HeroArtName(Hero? hero, HeroFacing facing)
     {
         var name = HeroArtName(hero);
+        var turned = $"{name}-{DirectionCode(facing)}";
+        return Art.Get(turned) != null ? (turned, facing.X < 0) : (name, facing.Left);
+    }
+
+    /// <summary>Le nombre d'images de marche d'un héros (0 : il n'en a pas, l'image fixe glisse de case en case).</summary>
+    public static int HeroWalkFrames(Hero? hero, HeroFacing facing = default)
+    {
+        var (name, _) = HeroArtName(hero, facing);
         if (Art.Get(name) is not { } still || Art.Get(name + "-move") is not { } sheet)
             return 0;
         return (int)(sheet.GetWidth() / still.GetWidth()) * (int)(sheet.GetHeight() / still.GetHeight());
@@ -625,15 +664,15 @@ public static class MapRenderer
 
     /// <summary>
     /// L'image du héros sur la carte, aux couleurs de son joueur (son étendard rouge, et les rouges de sa selle, prennent
-    /// la teinte du joueur ; le joueur rouge garde l'image telle quelle), tournée vers la gauche si <paramref name="left"/>,
-    /// et l'image <paramref name="frame"/> de sa marche (-1 : l'image fixe). Une image tournée garde ses pieds (retournés)
+    /// la teinte du joueur ; le joueur rouge garde l'image telle quelle), tournée vers <paramref name="facing"/>, et
+    /// l'image <paramref name="frame"/> de sa marche (-1 : l'image fixe). Une image retournée garde ses pieds (retournés)
     /// pour l'ombre de contact.
     /// </summary>
-    public static Texture2D? HeroImage(Hero? hero, bool left = false, int frame = -1)
+    public static Texture2D? HeroImage(Hero? hero, HeroFacing facing = default, int frame = -1)
     {
-        var name = HeroArtName(hero);
+        var (name, left) = HeroArtName(hero, facing);
         int id = hero?.Owner.Id ?? 1;
-        if (frame >= HeroWalkFrames(hero))
+        if (frame >= HeroWalkFrames(hero, facing))
             frame = -1;
         var key = (name, id, left, frame);
         if (HeroImages.TryGetValue(key, out var cached))
@@ -688,12 +727,12 @@ public static class MapRenderer
     }
 
     /// <summary>Le héros sur la carte ; en mer (<paramref name="atSea"/>), sur son bateau.</summary>
-    public static void DrawHero(CanvasItem ci, Vector2 c, double time, Hero hero, bool left = false, int frame = -1, bool atSea = false)
+    public static void DrawHero(CanvasItem ci, Vector2 c, double time, Hero hero, HeroFacing facing = default, int frame = -1, bool atSea = false)
     {
         var owner = hero.Owner;
         if (atSea)
             DrawBoat(ci, c, time, ColorOf(owner));
-        if (HeroImage(hero, left, frame) is { } image)
+        if (HeroImage(hero, facing, frame) is { } image)
         {
             DrawArt(ci, image, HeroArea(c));
             return;

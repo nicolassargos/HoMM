@@ -230,6 +230,7 @@ public partial class TownScreen : CanvasLayer
         CloseWindow();
         _recruitOverlay.Visible = false;
         Refresh();
+        Audio.PlayMusic($"town-{town.Faction}", "town");
     }
 
     public void Close()
@@ -239,6 +240,7 @@ public partial class TownScreen : CanvasLayer
         CloseWindow();
         _town = null;
         Visible = false;
+        Audio.PlayMusic("map");
         Closed?.Invoke();
     }
 

@@ -931,6 +931,466 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   l'économie : la simulation finissait chaque semaine avec 450 à 600 or (tout dépensé) ; comparée à Heroes 3 (archer
   100 or, hôtel de ville 1000 par jour), elle était trois fois plus serrée. Villes 300 / 600 / 1200, mines d'or 500.
   Les cartes normales ne vont pas plus vite (la simulation y livre un combat tous les deux jours, c'est sa limite).
+- **Les factions : conception et chiffres** (déplacés de `PLAN.md` le 2026-11-15, tels quels : chaque faction telle
+  qu'elle a été conçue, ses créatures, ses chiffres réglés et ses mesures).
+
+#### Les Nains
+Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Heroes 3 ni Heroes 5 (choix de l'utilisateur).
+- **Philosophie : les halls de la montagne.** Des artisans têtus qui gravent des runes et bâtissent des machines.
+- **Forces** (proposées) : les troupes les plus solides (défense, points de vie), les machines de guerre, une économie
+  forte (leurs mines produisent davantage, à voir).
+- **Faiblesses** (proposées) : lents (vitesse 3 à 5), aucune créature vivante qui vole, peu de magie, chers au début.
+- **Leur marque : l'obstination** (choix de l'utilisateur) : une troupe naine qui ne s'est pas déplacée de tout le round
+  prend 20 % de dégâts en moins (chiffre à régler en mesurant).
+- Ressources : cristal (principale : l'habitation et la créature du niveau 7), soufre (secondaire : niveaux 5 et 6).
+- **Les machines** (Gyrocoptère, Machine de guerre) sont **façonnées**, comme les golems de la Tour : elles résistent
+  à la magie (choix de l'utilisateur).
+- **La classe Thane** (choix de l'utilisateur, 2026-11-12) : attaque 1, défense 3, puissance 1, savoir 2, charisme 11 ;
+  Peau de pierre ; École de la terre au départ ; talent **Obstination** : 1 % de dégâts en moins de plus par niveau
+  (la moitié au plus).
+- **Les héros** (portraits à la Heroes 2, 2026-11-12, choix de l'utilisateur ; femmes sans barbe, robustes et en
+  armure) : Brokk Marteau-Noir, Hulda Pierre-Lune, Gunnar Fend-la-Roche, Ingrid Vapeur-d'Airain, Bardur le Têtu,
+  Kalla Œil-de-Braise.
+
+| Niveau | Créature | Rôle | Capacité (proposée, chiffres à régler) |
+|---|---|---|---|
+| 1 | Porte-bouclier | le mur | les tireurs amis voisins ne prennent que moitié des dégâts des tirs |
+| 2 | Arbalétrier | le tireur | ses carreaux percent 30 % de la défense de la cible |
+| 3 | Chevaucheur de chèvre | la cavalerie de montagne, la seule troupe rapide | pied sûr : frappe le premier quand on le charge, rien ne le repousse |
+| 4 | Porte-étendard des ancêtres | la bannière | aura : +2 défense aux troupes amies voisines |
+| 5 | Lance-flammes | le feu de près | sa flamme touche la cible et la case derrière elle |
+| 6 | Gyrocoptère | la machine volante | vole ; lâche une bombe sur la cible et les cases voisines |
+| 7 | Machine de guerre (→ Forteresse ambulante) | le canon à vapeur | tire ; son obus touche une zone |
+
+Écartés pour l'instant (idées à garder pour des monstres neutres ou des améliorations) : le Mineur, le Porteur de
+lanterne, le Lanceur de poudre, le Brasseur, le Brise-fer, le Forgeron de guerre, le Tueur de géants, le Prêtre des
+ancêtres, le Forgeron des runes, le Gardien de pierre, l'Ours des cavernes, le Dragon rouge et le Phénix.
+Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images.
+1. ✅ Les créatures et leurs capacités (2026-11-11, branche `nains`) : `stubborn` (20 % de dégâts en moins tant que la
+   troupe ne s'est pas déplacée d'elle-même dans le round, `BattleUnit.HasMoved`), `shield-wall`, `piercing` (30 %),
+   `sure-footed` (la riposte avant le coup ; le crochet ne le tire pas), `banner` (+2 défense, `TacticalBattle.BannerBonus`),
+   `blast` (les ennemis autour de la cible, au corps à corps comme au tir) ; le Lance-flammes prend le souffle du Dragon ;
+   les Nains gardent aussi des passages de la carte (`MonsterFactions`). Chiffres réglés par `Duels_a_prix_egal` (chaque
+   créature au milieu de son niveau ; les auras du Porte-bouclier et du Porte-étendard ne comptent pas en duel, une seule
+   troupe par camp) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Porte-bouclier | 3 | 5 | 1-3 | 8 | 4 | 14 | 15 |
+   | Arbalétrier | 8 | 6 | 3-6 | 16 | 4 | 10 | 35 |
+   | Chevaucheur de chèvre | 9 | 7 | 4-6 | 25 | 7 | 8 | 65 |
+   | Porte-étendard des ancêtres | 11 | 13 | 6-9 | 58 | 4 | 5 | 140 |
+   | Lance-flammes | 14 | 12 | 10-14 | 70 | 4 | 4 | 230 |
+   | Gyrocoptère | 18 | 13 | 18-24 | 95 | 9 | 3 | 370 |
+   | Machine de guerre | 27 | 24 | 100-120 | 1900 | 3 | 2 | 4900 et 1 cristal |
+   Victoires en duel dans leur niveau : 54, 53, 55, 60, 55, 52, 57 %. Mesuré : la simulation gagne comme avant (jours 69,
+   86, 148) ; les gardiens nains demandent de 0,92 à 1,17 fois la même armée ; adversaires (six semaines, Normal, or
+   d'armée, les cartes changent un peu) : Château 54 400, morts-vivants 52 600, Barbares 51 400, Forêt 62 800, Tour
+   46 400, Donjon 56 800, Enfer 60 200. Tests : `NainsTests`.
+2. ✅ La ville et le jeu (2026-11-12, branche `nains-ville`) : 7 habitations (`salle-boucliers` Salle des boucliers,
+   `atelier-arbaletriers` Atelier des arbalétriers, `enclos-chevres` Enclos des chèvres, `salle-ancetres` Salle des
+   ancêtres, `forge-flammes` Forge des flammes, `hangar-gyrocopteres` Hangar des gyrocoptères, `grande-fonderie` Grande
+   fonderie : prix et places de celles de l'Enfer ; soufre aux niveaux 5 et 6, cristal au niveau 7 ; le grand hôtel de
+   ville accepte aussi la Salle des ancêtres), la classe Thane (armée de départ au prix des autres : 14 Porte-boucliers,
+   5 Arbalétriers, 2 Chevaucheurs de chèvre) et son talent Obstination (`Talents.StubbornShare`), les 6 héros nains
+   jouables ; `--faction=nains`. Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Nains 59 700**, Château
+   56 500, morts-vivants 53 900, Barbares 54 200, Forêt 64 700, Tour 49 400, Donjon 62 200, Enfer 62 000 ; la simulation
+   seule comme avant (jours 72, 86, 150). Tests : `VilleNainsTests`.
+3. Les images (session images) : les 7 créatures. ✅ La ville sur la carte (2026-11-12, branche `creatures-nains`, choix
+   de l'utilisateur) : une forteresse taillée dans une montagne grise, une porte gravée de runes d'or entre deux statues
+   de rois nains, une cheminée de forge (`objects/town-nains.png`, luminosité 98, gardée telle quelle).
+
+#### L'Enfer
+Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).
+- **Philosophie : le chaos et le feu.** Des démons venus d'un monde qui brûle : imprévisibles, destructeurs, ils brûlent
+  tout, leurs propres pertes comprises.
+- **Forces** : la magie du feu la plus forte ; **toutes les créatures de l'Enfer sont insensibles au feu** (Boule de feu,
+  l'aura du Moloch, plus tard le feu de l'Archidémon) : le héros lance le feu dans la mêlée sans blesser ses troupes.
+- **Faiblesses** : plus faibles au corps à corps pur (peu de défense et de PV) ; elles comptent sur la magie de leur héros
+  (plus faibles sans héros, ou quand ses points de sort sont épuisés).
+- **Sa marque : le prix du sang** (choix de l'utilisateur, plutôt que sacrifier des créatures pour lancer un sort) :
+  chaque créature de l'Enfer tuée au combat rend au héros des points de sort (proposé : son niveau, au plus deux fois
+  le savoir du héros par combat ; à régler en mesurant).
+- **La classe Démoniste** : attaque 1, défense 1, puissance 3, savoir 2, charisme 9 ; École du feu au départ ; deux sorts
+  du feu de niveau 1 (Soif de sang, Malédiction) ; talent **Pacte** : le prix du sang rend plus avec le niveau du héros
+  (proposé : le plafond monte de 1 par niveau).
+- Ressources : mercure (principale : l'habitation et la créature du niveau 7), soufre (secondaire : niveaux 5 et 6).
+- **Les héros** : les quatre de la « faction sombre » qui restent (Méphis le Cornu, Dame Cendre, Zarkhan, Sorcha la
+  Damnée).
+
+| Niveau | Créature | Rôle | Capacité (chiffres proposés, à régler) |
+|---|---|---|---|
+| 1 | Diablotin | le voleur | vole ; **vole des points de sort** : chacun de ses coups retire au héros ennemi des points de sort (1 par 5 diablotins) et les donne au sien |
+| 2 | Cultistes (des humains qui ont vendu leur âme) | le sang pour la force | **sacrifice** : avant chaque attaque, un cultiste sur dix meurt, et la troupe frappe 50 % plus fort (ces morts nourrissent le prix du sang) |
+| 3 | Limon de magma | l'essaim qui se divise | **se divise** : frappée sans mourir, un tiers de la troupe se détache en une nouvelle troupe sur une case libre voisine (3 créatures au moins) ; elles se rejoignent après le combat |
+| 4 | Succube | la tireuse qui séduit | tire (un baiser de feu) ; **séduit** : un tir sur quatre fige la cible, qui passe son prochain tour et ne riposte plus (sauf ceux que rien n'effraie : morts-vivants, façonnés, niveau 7) |
+| 5 | Tourmenteur | le crochet | **chaîne** : au lieu d'attaquer, lance son crochet sur un ennemi à 3 cases au plus, le tire contre lui et le frappe (pas les créatures de 2 cases ni du niveau 7) : il arrache les tireurs à leur abri |
+| 6 | Moloch (une idole de bronze, une fournaise dedans) | la fournaise | lent ; **aura de chaleur** : au début de son tour, brûle chaque ennemi voisin ; **grandit** : +1 attaque chaque fois que des créatures de l'Enfer meurent (+6 au plus) |
+| 7 | Démon | le géant | **invoque des diablotins** : une fois par combat, à la place de son action, ouvre un portail : une troupe de diablotins (10 par démon) apparaît sur une case libre voisine, et disparaît après le combat |
+
+Écartés : les créatures de Heroes 3 (Cerbère, Gog, Efrit, Seigneur des abîmes…), les Furies, les Scarabées de soufre, les
+Feux follets, l'Oni, le Rejeton du chaos, la Forge vivante (idées à garder pour des monstres neutres ou des améliorations).
+Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images.
+1. ✅ Les créatures et leurs capacités (2026-11-11, branche `enfer`) : `infernal` (insensible aux sorts de dégâts du feu
+   et à l'aura du Moloch ; le prix du sang, événement `BloodPaid`), `mana-thief` (`SpellPointsStolen`), `sacrifice`
+   (`UnitSacrificed`), `splits` (une nouvelle troupe en cours de combat, `UnitSplit`, une fois par round ; elle rejoint
+   l'armée après), `seduce` (`UnitSeduced`, puis `UnitEntranced` au tour passé), `hook` (`TacticalBattle.Hook`,
+   `UnitHooked`), `heat-aura` (`UnitBurned`), `feeds`, `summons` (« summon » dans `creatures.json` ;
+   `TacticalBattle.Summon`, `UnitSummoned` ; les invoqués ne comptent ni dans les pertes ni dans l'expérience). Les
+   points de sort gagnés ou volés reviennent au héros après le combat (`BattleReport.AttackerSpellPointsGained`, sans
+   dépasser son maximum). À l'écran : le crochet au clic (curseur de tir), le bouton « Invoquer » (touche I, icône à
+   faire), les troupes qui apparaissent, des textes. L'IA invoque aussitôt, et lance d'abord son crochet sur un tireur.
+   Chiffres réglés par `Duels_a_prix_egal` (sans héros : l'Enfer y perd sa magie ; la Succube un peu en dessous, comme
+   le Mage : les duels en terrain ouvert avantagent le corps à corps) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Diablotin | 4 | 3 | 1-3 | 6 | 7 | 16 | 11 |
+   | Cultiste | 6 | 4 | 3-5 | 16 | 5 | 12 | 28 |
+   | Limon de magma | 9 | 7 | 4-6 | 34 | 4 | 9 | 50 |
+   | Succube | 14 | 9 | 7-10 | 45 | 6 | 6 | 130 |
+   | Tourmenteur | 15 | 12 | 10-14 | 60 | 6 | 4 | 210 |
+   | Moloch | 16 | 16 | 18-24 | 120 | 4 | 3 | 360 |
+   | Démon | 26 | 22 | 80-100 | 1500 | 7 | 2 | 4900 et 1 mercure |
+   Mesuré : la simulation gagne toujours, normales jour 89, grandes 153, petites 101 en moyenne dont une au jour 164 (les
+   gardiens du Donjon et de l'Enfer, à surveiller) ; adversaires (six semaines, Normal, or d'armée) : Château 25 200,
+   morts-vivants 25 800, Barbares 31 500, Forêt 33 000, Tour 23 700, Donjon 31 400. Courbe des paysans : Diablotin 4,
+   Cultiste 14, Limon 22, Succube 75, Tourmenteur 52, Moloch 121, Démon 1170. Tests : `EnferTests`.
+2. ✅ La ville et le jeu (2026-11-11, branche `enfer`) : 7 habitations (`puits-diablotins` Puits des diablotins,
+   `temple-culte` Temple du culte, `coulee-magma` Coulée de magma, `palais-succubes` Palais des succubes,
+   `salle-tourments` Salle des tourments, `fournaise-moloch` Fournaise du Moloch, `portail-demons` Portail des démons :
+   prix et places de celles de la Forêt ; soufre aux niveaux 5 et 6, mercure au niveau 7 ; le grand hôtel de ville
+   accepte aussi le Palais des succubes ; noms à revoir si l'utilisateur le souhaite), la classe Démoniste (armée de
+   départ au prix des autres : 15 Diablotins, 7 Cultistes, 3 Limons de magma) et son talent Pacte (le plafond du prix
+   du sang monte de 1 par niveau), les 4 héros de l'Enfer jouables (plus aucun héros de la « faction sombre ») ;
+   `--faction=enfer`. Un test des héros face à face fixe la faction de l'adversaire (un Magicien, tiré au sort avec la
+   nouvelle faction, gagnait par ses sorts). Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Enfer 30 800**, Château
+   24 700, morts-vivants 25 900, Barbares 30 200, Forêt 32 500, Tour 24 800, Donjon 30 800 ; la simulation seule comme
+   avant (jours 101, 86, 153). Tests : `VilleEnferTests`.
+3. Les images (session images) : ✅ les 7 créatures et l'icône du bouton « Invoquer » (2026-11-15, branche
+   `creatures-enfer` : voir « Créatures de l'Enfer » plus bas). ✅ La ville sur la carte (2026-11-11,
+   branche `ville-enfer`, choix de l'utilisateur) : une citadelle de roche noire hérissée de pointes, des coulées de lave,
+   une porte en tête de démon cornu au feu dans la gueule (`objects/town-enfer.png`, luminosité 51).
+
+#### Le Donjon
+Décidé avec l'utilisateur (2026-11-11), d'après ses images (`art-candidats/references/donjon/`).
+- **Philosophie : les seigneurs des abîmes.** Des sorciers qui règnent sur les monstres des profondeurs par la peur :
+  la ruse, la cruauté, la domination.
+- **Forces** : des créatures d'élite puissantes (niveaux 5 à 7), une magie de destruction forte, forte en fin de partie.
+- **Faiblesses** : une base faible (les premiers niveaux médiocres), des troupes chères ; faible au début.
+- **Sa marque : la Terreur** : chaque coup d'une troupe du Donjon fait perdre 1 de moral à sa cible jusqu'à la fin du
+  combat (cumulable) : l'armée ennemie se brise peu à peu. Insensibles : les morts-vivants, les créatures façonnées et
+  celles du niveau 7.
+- **La classe Seigneur des abîmes** : attaque 1, défense 1, puissance 3, savoir 2, charisme 9 ; Flèche magique et
+  Malédiction ; École de l'air au départ (le feu ira à l'Enfer, choix de l'utilisateur) ; talent **Effroi** (l'armée ennemie commence le combat à −1 de moral, −1 de plus
+  tous les 8 niveaux).
+- Ressources : soufre (principale : l'habitation et la créature du niveau 7), mercure (secondaire : niveaux 5 et 6).
+- **Les héros** : à choisir parmi ceux de la « faction sombre » (proposé : Corvin le Maudit, Ysolde la Noire, Malachar,
+  Dame Sombreval, Dame Morgane ; les quatre autres, plus démoniaques, pour l'Enfer).
+
+| Niveau | Créature | Rôle | Capacité |
+|---|---|---|---|
+| 1 | Homme-lézard | la masse bon marché | (la Terreur seulement) |
+| 2 | Homme-grenouille | le frondeur | tire, à courte portée |
+| 3 | Minotaure (le mineur des profondeurs) | le brave | son moral ne descend jamais sous +1 ; insensible à la Terreur |
+| 4 | Aberration (six bras, des gueules dans les mains) | l'horreur | riposte à chaque attaque (pas une fois par round) ; ses coups font perdre 2 de moral |
+| 5 | Ver des profondeurs | le fouisseur | se déplace sous terre (passe sous les troupes et les obstacles) ; sa morsure peut **avaler** une créature entière de la cible, en plus des dégâts |
+| 6 | Tyran œil | le tireur d'élite | tire ; chaque tir lance aussi un sort néfaste au hasard (Malédiction, Lenteur, Faiblesse, Aveuglement) |
+| 7 | Hydre | le géant | mord toutes les troupes ennemies voisines, et aucune ne riposte |
+
+Écartés de la faction, pour les monstres neutres de la carte ou les améliorations : la Méduse (trop proche de la Naga de
+la Tour), le Gnoll, l'Augure vautour, la Manticore, la Chimère, la Wyverne, le Centaure orc (trop proche des Nomades).
+Le Dragon rouge reste neutre (les Nains gardent la Machine de guerre au niveau 7 : choix de l'utilisateur, 2026-11-11).
+Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la ville, la classe et ses héros ; 3. les images
+(les créatures : session images ; ✅ la ville sur la carte, 2026-11-11, branche `villes-carte` : une forteresse sombre
+creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objects/town-donjon.png`, luminosité 60).
+1. ✅ Les créatures et leurs capacités (2026-11-11, branche `donjon`) : `terror` (−1 de moral par coup, jusqu'à −3 ;
+   événement `UnitTerrified`), `horror` (−2), `brave` (moral au moins +1, insensible), `endless-retaliation`, `burrows`
+   (se déplace comme en volant, sous terre), `swallow` (une chance sur cinq par morsure, pas en riposte, une cible d'un
+   niveau au plus égal ; événement `UnitSwallowed`), `rays` (les sorts dans `creatures.json` : `rays`, pour 2 rounds, pas
+   sur une cible qui y résiste) ; le Donjon garde aussi des passages de la carte (`MonsterFactions`). Chiffres réglés par
+   `Duels_a_prix_egal` (chaque créature au milieu de son niveau ; la riposte sans fin de l'Aberration compte peu en duel) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Homme-lézard | 3 | 2 | 1-3 | 6 | 5 | 16 | 12 |
+   | Homme-grenouille | 8 | 6 | 3-5 | 17 | 5 | 12 | 28 |
+   | Minotaure | 9 | 7 | 4-7 | 30 | 5 | 8 | 64 |
+   | Aberration | 13 | 10 | 6-9 | 55 | 5 | 6 | 130 |
+   | Ver des profondeurs | 14 | 11 | 10-14 | 60 | 7 | 4 | 215 |
+   | Tyran œil | 17 | 13 | 16-22 | 80 | 5 | 3 | 340 |
+   | Hydre | 23 | 21 | 60-75 | 1400 | 5 | 2 | 4900 et 1 soufre |
+   La Terreur fait boule de neige (le camp qui prend l'avantage fige l'autre) : un petit changement de chiffres fait
+   passer une créature de toutes ses défaites à toutes ses victoires. Mesuré : la simulation gagne toujours, les cartes
+   normales (jour 87) et grandes (153) comme avant ; les petites en moyenne au jour 98, dont une au jour 158 (des gardiens
+   du Donjon : leur Terreur fige l'armée, **à surveiller**). Adversaires (six semaines, Normal, or d'armée) : Château
+   26 500, morts-vivants 26 100, Barbares 27 000, Forêt 33 800, Tour 23 900. Courbe des paysans : le Tyran œil en
+   demande 448 (les autres niveaux 6 : 106 à 174), la Terreur brise les grosses troupes de paysans.
+   Tests : `DonjonTests`.
+2. ✅ La ville et le jeu (2026-11-11, branche `donjon-ville`) : 7 habitations (`bourbier-lezards` Bourbier des
+   hommes-lézards, `mare-grenouilles` Mare des hommes-grenouilles, `labyrinthe` Labyrinthe des minotaures,
+   `fosse-aberrations` Fosse des aberrations, `galeries-vers` Galeries des vers, `chambre-tyrans` Chambre des tyrans,
+   `gouffre-hydre` Gouffre de l'hydre : prix et places de celles de la Forêt ; mercure aux niveaux 5 et 6, soufre au
+   niveau 7 ; le grand hôtel de ville accepte aussi la Fosse des aberrations ; noms à revoir si l'utilisateur le
+   souhaite), la classe Seigneur des abîmes (armée de départ au prix des autres : 15 Hommes-lézards, 7 Hommes-grenouilles,
+   2 Minotaures) et son talent Effroi (`Talents.DreadMorale`), les 5 héros du Donjon jouables (les 4 autres de la
+   faction sombre attendent l'Enfer) ; `--faction=donjon`. Mesuré (un adversaire, Normal, six semaines, or d'armée) :
+   **Donjon 29 100**, Château 27 300, morts-vivants 24 700, Barbares 29 200, Forêt 34 000, Tour 25 900 ; la simulation
+   seule comme avant (jours 95, 88, 153). Tests : `VilleDonjonTests`.
+3. Les images (session images) : ✅ les 7 créatures (2026-11-15, branche `creatures-donjon`, choix de l'utilisateur) :
+   Homme-lézard à la lance, Homme-grenouille frondeur, Minotaure mineur, Aberration à la chair pâle, Ver des profondeurs
+   qui creuse une galerie dessinée par le jeu, Tyran œil qui flotte et tire un rayon violet, Hydre verte à cinq têtes qui
+   mordent tout autour : images de combat, animations, petites images de la carte. Détail dans `HISTORIQUE.md`.
+   ✅ La ville sur la carte. **Plus tard** (choix de l'utilisateur,
+   2026-11-14) : revoir les animations du Ver des profondeurs (il devrait glisser vers sa cible en attaquant ; les
+   fissures devant lui quand il creuse sont à améliorer ; peut-être une animation où il avale une créature).
+   **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui frappe le sol avec sa colonne
+   pourrait toucher une zone (les cases autour de sa cible) : une règle à concevoir avec la session règles.
+
+#### La Tour de magie
+Décidée avec l'utilisateur (2026-11-09).
+- **Philosophie : le savoir.** Une cité de savants qui lient les esprits et animent la pierre et le métal : des mages,
+  des créatures **façonnées** (gargouilles, golems) et des géants gardiens de la Tour.
+- **Forces** : la magie la plus forte (la classe Magicien, la ville qui apprend plus de sorts) ; les créatures façonnées
+  **résistent à la magie** ; forte en fin de partie (le Géant, puis le Titan ; les mages qui tirent de loin).
+- **Faiblesses** : lente et chère au début (peu de troupes, des golems lents, une croissance faible) ; un charisme bas
+  (les grosses troupes se révoltent plus vite) ; fragile au corps à corps contre les troupes rapides qui atteignent ses
+  mages.
+- **Sa marque : la bibliothèque des arcanes** : la guilde des mages de la Tour propose un sort de plus par niveau
+  (4 sur 5 aux niveaux 1 et 2, 3 sur 5 au niveau 3, 3 sur 3 au niveau 4).
+- **Résiste à la magie** (les créatures façonnées) : les sorts de dégâts font moitié moins, les sorts néfastes
+  (Lenteur, Faiblesse, Malédiction, Aveuglement) ne les touchent pas ; les sorts amis marchent.
+- **La classe Magicien** : attaque 0, défense 1, puissance 3, savoir 3, charisme 8 ; Flèche magique et Bénédiction ;
+  Mysticisme au départ ; talent **Érudit** (+2 % de force des sorts par niveau).
+- Ressources : gemmes (principale), mercure (secondaire).
+
+| Niveau | Créature (→ amélioration plus tard) | Rôle | Capacité | Habitation |
+|---|---|---|---|---|
+| 1 | Gnome | petit et vif | **répare les créatures façonnées** : au début de son tour, soigne la créature de tête de chaque troupe façonnée voisine | Atelier des gnomes |
+| 2 | Gargouille | le volant | vole ; façonnée : résiste à la magie | Perchoir des gargouilles |
+| 3 | Golem de pierre (→ Golem d'airain) | le mur lent | façonné : résiste à la magie | Carrière des golems |
+| 4 | Naga | la lame rapide | pas de riposte contre elle | Bassin des nagas |
+| 5 | Djinn | le soutien volant | vole ; au début de son tour, une petite bénédiction au hasard sur une troupe amie (Bénédiction, Peau de pierre ou Hâte) | Lampe des djinns |
+| 6 | Mage (→ Archimage) | le grand tireur | tire ; pas de pénalité au corps à corps | Académie des mages |
+| 7 | Géant (→ Titan) | le gardien | fort au corps à corps (le Titan lancera la foudre de loin) | Sommet des géants |
+
+Découpage comme la Forêt : 1. les créatures et leurs capacités ; 2. la ville, la bibliothèque des arcanes et la classe ;
+3. les images (session images).
+1. ✅ Les créatures et leurs capacités (2026-11-09, branche `tour-de-magie`) : `made` (résiste à la magie), `repairs`
+   (1 PV par Gnome), `blessing` (les sorts du Djinn dans `creatures.json` : `blessings`, pour ce round), `no-melee-penalty` ;
+   la Tour garde aussi des passages de la carte (`MonsterFactions`). Chiffres réglés par `Duels_a_prix_egal` (chaque
+   créature au milieu de son niveau ; le Mage un peu en dessous, à revoir quand la Tour sera jouable : les duels en
+   terrain ouvert avantagent le corps à corps) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Gnome | 3 | 3 | 1-3 | 6 | 6 | 16 | 12 |
+   | Gargouille | 9 | 9 | 3-5 | 22 | 8 | 12 | 35 |
+   | Golem de pierre | 8 | 10 | 4-6 | 30 | 3 | 8 | 60 |
+   | Naga | 10 | 10 | 6-8 | 42 | 6 | 6 | 130 |
+   | Djinn | 13 | 11 | 9-12 | 50 | 9 | 4 | 200 |
+   | Mage | 18 | 14 | 18-24 | 75 | 6 | 3 | 330 |
+   | Géant | 26 | 22 | 85-105 | 1600 | 6 | 2 | 4900 et 1 gemme |
+   Mesuré : la simulation gagne comme avant (jours 81, 86, 153) ; les gardiens de la Tour changent les cartes, donc les
+   adversaires (six semaines, Normal, or d'armée) : Château 23 500, morts-vivants 25 800, Barbares 24 900, Forêt 32 000 ;
+   Facile 27 200 et Normal 25 200 (Facile au-dessus de Normal sur ces cartes : à surveiller à l'équilibrage), Difficile
+   34 700. Tests : `TourTests`.
+2. ✅ La ville et le jeu (2026-11-10, branche `tour-ville`) : 7 habitations (`atelier-gnomes`, `perchoir-gargouilles`,
+   `carriere-golems`, `bassin-nagas`, `lampe-djinns`, `academie-mages`, `sommet-geants` : prix et places de celles de la
+   Forêt ; mercure aux niveaux 5 et 6, gemmes au niveau 7 ; le grand hôtel de ville accepte aussi le Bassin des nagas),
+   la bibliothèque des arcanes (`Town.GuildSpellsAt`), la classe Magicien (armée de départ au prix des autres : 15 Gnomes,
+   6 Gargouilles, 2 Golems de pierre) et son talent Érudit (`Hero.SpellBonus`), les 6 héros de la Tour jouables ;
+   `--faction=tour`. Un test de l'IA fixe la faction de son adversaire (le Rôdeur, qui voit plus loin, préférait attaquer
+   le héros du joueur). Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Tour 27 000**, Château 25 600,
+   morts-vivants 24 000, Barbares 25 600, Forêt 29 200 (les cartes changent un peu : des villes neutres de la Tour).
+   Tests : `VilleTourTests`.
+3. ✅ Les images des créatures (2026-11-11, branche `creatures-tour`, choix de l'utilisateur, d'après ses références) :
+   Gnome mage chauve, Gargouille de pierre, Golem sans tête au visage dans la poitrine, Naga bleue à six bras armés,
+   Djinn à la queue de fumée d'or, Mage brun sans chapeau qui lance un **éclair bleu des deux mains**, Géant bleu mince en
+   tunique grecque qui pose sa colonne sur l'épaule pour marcher : images de combat, animations, petites images de la
+   carte. Détail dans `HISTORIQUE.md`. ✅ La ville sur la carte (2026-11-11, branche `ville-tour`, choix de
+   l'utilisateur) : une tour de mages au dôme d'or en bulbe (un air oriental, comme les créatures : Naga, Djinn), petits
+   dômes bleus, enceinte ronde de pierre claire (`objects/town-tour.png`), ramenée à la luminosité du Château. Puis
+   (branche `villes-carte`) la Tour et les Barbares redessinés avec l'ombrage doux du Château et des détails sur les murs.
+
+#### La Forêt
+Décidé avec l'utilisateur (2026-11-09).
+- **Philosophie : les esprits du bois.** Magie et créatures en équilibre : les plantes, les bêtes et les elfes de la
+  forêt, qui frappent de loin et se soignent.
+- **Forces** : les meilleurs tireurs (l'Archer elfe tire deux fois, le Druide tire sans pénalité de distance) ; des
+  troupes qui se remettent de leurs blessures.
+- **Faiblesses** : peu nombreux, ils grandissent lentement (moins de croissance, des prix plus hauts, chaque créature
+  plus forte : à prix égal, un combat reste égal) ; faibles au corps à corps quand l'ennemi atteint leurs tireurs.
+- **Leur marque : la régénération de la nature** : au début de son tour, la créature de tête de chaque troupe de la
+  Forêt retrouve un quart de ses points de vie (le Troll, tous).
+- **La classe Rôdeur** (un chasseur des bois, peu tourné vers la magie ; le Druide est une créature) : attaque 3,
+  défense 1, puissance 1, savoir 2, charisme 9, Soins au départ.
+- Ressources : gemmes (principale : l'habitation et la créature du niveau 7), cristal (secondaire : niveaux 5 et 6).
+
+| Niveau | Créature | Rôle | Capacité | Habitation |
+|---|---|---|---|---|
+| 1 | Farfadet | petit et vif | vole | Bosquet des farfadets |
+| 2 | Sanglier | la charge | charge (+5 % de dégâts par case parcourue) | Bauge des sangliers |
+| 3 | Archer elfe | le meilleur tireur | **tire deux fois** | Camp des archers |
+| 4 | Cerf | le rapide | **bondit** : passe par-dessus troupes et obstacles, comme en volant, mais au sol | Clairière des cerfs |
+| 5 | Druide | tireur et soigneur | tire sans pénalité de distance ; **aura de soin** : au début de son tour, soigne la créature de tête de chaque troupe amie voisine | Cercle des druides |
+| 6 | Tréant | le mur lent | résiste aux tirs (écorce) ; ses coups **enracinent** : la cible ne peut pas se déplacer à son prochain tour | Bois des tréants |
+| 7 | Troll (des neutres) | le géant | la régénération de la nature, comme toute la Forêt (sa régénération entière revient au Troll ancien) | Antre du troll |
+
+1. ✅ Les créatures et leurs capacités (2026-11-09) : `nature-regeneration`, `double-shot`, `leaps`, `healing-aura`
+   (5 PV par Druide), `roots` (`BattleUnit.IsRooted`). Le Troll n'est plus neutre (les neutres : le Dragon rouge seul).
+   **La régénération entière ne va pas à une créature de 1000 PV** : rien ne la tue sous 1000 dégâts par tour, tout la
+   tue au-delà (à prix égal : 100 % de victoires contre les Anges, 100 % de défaites contre les Béhémoths) ; le Troll
+   prend donc la régénération de la nature. Chiffres réglés par `Duels_a_prix_egal` (chaque créature au milieu de son
+   niveau ; au niveau 7, les écarts restent grands : les Trolls battent les Anges, perdent contre les Béhémoths) :
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Farfadet | 4 | 3 | 1-3 | 7 | 7 | 18 | 12 |
+   | Sanglier | 9 | 7 | 4-6 | 26 | 7 | 12 | 44 |
+   | Archer elfe | 9 | 6 | 3-5 | 18 | 6 | 9 | 56 |
+   | Cerf | 12 | 10 | 6-9 | 48 | 9 | 6 | 120 |
+   | Druide | 13 | 10 | 10-14 | 55 | 6 | 4 | 210 |
+   | Tréant | 16 | 20 | 15-20 | 150 | 4 | 3 | 450 |
+   | Troll | 22 | 20 | 65-80 | 1200 | 6 | 2 | 4900 et 1 gemme |
+2. ✅ La ville et le jeu (2026-11-09) : 7 habitations (`bosquet-farfadets`, `bauge-sangliers`, `camp-archers`,
+   `clairiere-cerfs`, `cercle-druides`, `bois-treants`, `antre-troll`), la classe Rôdeur (armée de départ au prix des
+   autres : 15 Farfadets, 5 Sangliers, 2 Archers elfes), les 6 héros de la Forêt jouables ; `--faction=foret`. Tests :
+   `ForetTests`. Mesuré (un adversaire, Normal, six semaines, or d'armée) : Château 25 000, morts-vivants 20 900,
+   Barbares 23 100, **Forêt 30 600** : la plus forte (sa régénération lui fait perdre moins à chaque combat), à revoir
+   à l'équilibrage. La simulation seule gagne toujours (petites cartes jour 79, normales 86, grandes 153).
+3. ✅ Les images des créatures (2026-11-09, branche `creatures-foret`, choix de l'utilisateur) : Farfadet aux ailes de
+   feuilles (bord semi-transparent), Sanglier sauvage, Archer elfe encapuchonné, grand Cerf, Druide trapu à la chouette
+   (d'après deux références de l'utilisateur ; il lance un tourbillon de feuilles dessiné par le jeu), Tréant en fleurs
+   (un arbre qui marche, pas un homme de bois) : images de combat, animations, petites images de la carte. Détail dans
+   `HISTORIQUE.md`. ✅ La ville de la Forêt sur la carte (2026-11-09, branche `ville-foret`) : un grand chêne aux maisons
+   perchées dans une palissade ronde (`objects/town-foret.png`).
+
+#### Les Barbares
+Décidé avec l'utilisateur (2026-11-08).
+- **Philosophie : la horde.** La force brute, le nombre et la vitesse : ils frappent les premiers et fort, et méprisent
+  la magie.
+- **Forces** : des troupes bon marché qui grandissent vite (la faction la plus forte des premières semaines) ; beaucoup
+  d'attaque et de dégâts, des créatures rapides ; le héros qui a le plus d'attaque. **La horde** (choix de
+  l'utilisateur) : aux niveaux 1 à 4, des créatures moins chères, plus nombreuses chaque semaine et plus faibles une à
+  une ; à prix égal, un combat reste égal : leur avantage est d'en avoir plus.
+- **Aux sièges** (quand les combats en ville auront des murs ; idée de l'utilisateur, 2026-11-08) : les troupes barbares
+  peuvent frapper les murs directement, contrairement aux autres factions ; ils prennent ainsi une ville sans attendre
+  leurs Oiseaux-tonnerre, leurs Orcs tirant mal.
+- **Faiblesses** : peu de défense (ils frappent fort mais meurent vite) ; peu de tireurs, à courte portée ; peu de
+  magie, par le héros seulement (la guilde des mages est complète) ; moins disciplinés que le Château (charisme 10
+  contre 14).
+- **Leur marque : la Rage** (comme la nécromancie des morts-vivants) : une troupe barbare frappée gagne de l'attaque
+  jusqu'à la fin du combat (chiffres à régler en mesurant).
+- **La classe Barbare** : attaque 3, défense 2, puissance 0, savoir 1, charisme 10, aucun sort au départ ; armée de
+  départ : 25 Gobelins, 8 Loups, 3 Orcs.
+- Le Gobelin, le Loup, l'Orc et l'Ogre deviennent barbares et restent des monstres de la carte (comme les morts-vivants).
+  Mis à l'échelle de prix du Château, ils rapportent moins d'expérience : ✅ l'expérience reste le prix des créatures
+  tuées (juste aussi pour les créatures magiques, puisque les prix se règlent à prix égal), et chaque niveau en demande
+  moins (2026-11-09, choix de l'utilisateur) : 700 × (n−1) × n / 2 au lieu de 1000. Mesuré : la simulation gagne au
+  niveau 21 environ (20 avant les Barbares ; 300 la menait au niveau 31).
+
+| Niveau | Créature | Rôle | Capacité | Habitation |
+|---|---|---|---|---|
+| 1 | Gobelin (des neutres) | la masse | rapide au premier round (déjà) | Hutte des gobelins |
+| 2 | Loup (des neutres) | le harceleur | frappe deux fois (déjà) | Tanière des loups |
+| 3 | Orc (des neutres) | le seul tireur | tir court (déjà) | Camp des orcs |
+| 4 | Ogre (des neutres) | la brute | coup écrasant : ignore 40 % de la défense (déjà) | Fort des ogres |
+| 5 | **Nomades** (choix de l'utilisateur) | cavaliers rapides, sur 2 cases | **frappe et repart** : après l'attaque, ils se déplacent avec ce qui leur reste de mouvement (l'ennemi riposte comme d'habitude) ; à mesurer contre les armées lentes | Campement nomade |
+| 6 | **Oiseau-tonnerre** | le volant, sur une case (ailes repliées) | vole ; ses coups appellent parfois la foudre (des dégâts en plus) | Nid du tonnerre |
+| 7 | Béhémoth | le géant, debout sur une case | ses griffes ignorent 60 % de la défense | Repaire du béhémoth |
+
+Habitations : mêmes prix et places que celles du Château, cristal (secondaire) aux niveaux 5 et 6, soufre (principale)
+au niveau 7 et pour le Béhémoth. Découpage comme les morts-vivants :
+1. ✅ Les créatures et leurs capacités (2026-11-08) : `rage` (+2 attaque par coup reçu, +6 au plus), `hit-and-run`
+   (`TacticalBattle.RetreatSteps` ; le bouton « Se défendre » devient « Rester » ; l'IA repart vers la case que le moins
+   d'ennemis au corps à corps peuvent atteindre, mais reste à côté d'un tireur pour l'empêcher de tirer), `lightning`
+   (une chance sur cinq, 15 dégâts par oiseau, sans défense), `rending` (60 %). Les gardiens de la carte se mesurent à
+   une force de référence par niveau (`MapGenerator.GuardReferenceStrength`, celle des anciens neutres).
+   Chiffres réglés avec l'utilisateur, par une nouvelle mesure, **`Duels_a_prix_egal`** (chaque créature contre celles
+   du même niveau pour le même prix en or : plus juste que la courbe des paysans, qui ne voit pas la taille des troupes)
+   : chaque créature barbare est au milieu de son niveau (elle bat l'une, perd contre l'autre, ou de peu).
+   | | Att. | Déf. | Dégâts | PV | Vit. | Croiss. | Prix |
+   |---|---|---|---|---|---|---|---|
+   | Gobelin | 2 | 1 | 1-2 | 3 | 5 | 30 | 6 |
+   | Loup | 6 | 4 | 2-4 | 9 | 6 | 18 | 21 |
+   | Orc | 8 | 3 | 2-5 | 15 | 4 | 14 | 32 |
+   | Ogre | 10 | 5 | 4-6 | 30 | 4 | 9 | 76 |
+   | Nomade | 13 | 8 | 10-14 | 45 | 8 | 6 | 165 |
+   | Oiseau-tonnerre | 16 | 10 | 18-24 | 90 | 11 | 4 | 320 |
+   | Béhémoth | 22 | 20 | 80-90 | 1400 | 7 | 2 | 4900 et 1 soufre |
+   **Frappe et repart** (mesure `Nomades_frappe_et_repart`) aide un peu contre les troupes lentes (contre des Ogres ou
+   des Vampires du même prix : 2 victoires sur 20 avec, aucune sans) sans rendre les Nomades plus forts que les autres
+   créatures du niveau 5. **Tailles** (choix de l'utilisateur, avec les images) : les Nomades sur 2 cases (un vrai
+   cheval), le Béhémoth et l'Oiseau-tonnerre sur une seule (debout ; l'oiseau, ailes repliées) ; à prix égal, les Nomades battent les Moines (il leur
+   reste 71 %) et perdent contre les Vampires (93 % restent aux Vampires) ; le Béhémoth ne change pas.
+   Mesuré (avec 30 paysans par semaine) : la simulation gagne les petites cartes vers le jour 89, les normales 86, les
+   grandes 152 ; un adversaire : Facile 11 700, Normal 15 400, Difficile 20 600 en or d'armée ; Château 21 900,
+   morts-vivants 15 600. Les anciens neutres rapportent moins d'expérience (prix plus bas) : **l'expérience sera
+   redéfinie**. Tests : `BarbaresTests`.
+   Vu au passage (`Duels_a_prix_egal`, à revoir avec l'utilisateur) : l'Archer perd contre tous les niveaux 2, le
+   Griffon bat largement les niveaux 3, le Vampire écrase le Moine, le Cavalier écrase les niveaux 6, l'Ange écrase le
+   Colosse d'os.
+2. ✅ La ville et le jeu (2026-11-08) : les 7 habitations (`hutte-gobelins`, `taniere-loups`, `camp-orcs`, `fort-ogres`,
+   `campement-nomade`, `nid-tonnerre`, `repaire-behemoth` : prix et places de celles du Château ; le grand hôtel de
+   ville demande aussi bien le Fort des ogres), la classe Barbare (armée de départ ramenée au prix des autres : 30
+   Gobelins, 10 Loups, 4 Orcs), les 5 héros barbares jouables ; rien à changer dans l'IA ni la nouvelle partie (tout
+   vient des données). Option `--faction=barbares`. Tests : `VilleBarbaresTests`. Mesuré (un adversaire, Normal, six
+   semaines, en or d'armée, ce qui compare bien puisqu'à prix égal un combat est égal) : Château 22 500, morts-vivants
+   16 100, **Barbares 17 400** ; la simulation seule comme avant (jours 87, 87, 152). À voir : la horde devrait être
+   la plus forte des premières semaines.
+3. Les images (session images : Nomades, Oiseau-tonnerre, Béhémoth, la ville ; en attendant, des ronds de couleur).
+
+#### Les morts-vivants
+| Niveau | Créature | Rôle | Capacité (proposition) |
+|---|---|---|---|
+| 1 | Squelette (des neutres) | l'infanterie de base, nombreuse | encaisse les tirs (déjà) |
+| 2 | Zombie | un mur lent et solide | lent, beaucoup de PV |
+| 3 | Fantôme | grossit en tuant (choix de l'utilisateur) | vole ; **chaque créature ennemie tuée ajoute un fantôme à sa troupe**, pour de bon : une troupe qui grossit peut dépasser le charisme du héros et se révolter **aussitôt, pendant le combat** (elle change de camp ; ses survivants quittent l'armée ; 2026-11-08) |
+| 4 | Araignée géante | (choix de l'utilisateur) | morsure **empoisonnée** : des dégâts au début de chaque tour de la cible |
+| 5 | Vampire | le tueur au corps à corps | vole, **draine la vie** : ses dégâts soignent sa créature de tête, puis ramènent des vampires tués dans ce combat (jamais plus qu'au début) |
+| 6 | Liche | le tireur | **nuage de mort** : son tir touche aussi les cases voisines, sauf les morts-vivants |
+| 7 | Colosse d'os | le géant du sommet (fort comme l'Ange) | **balayage** : frappe tous les ennemis voisins |
+Écartés pour le niveau 4 : la Banshee (trop proche du Fantôme : elle sera sa version améliorée), la Goule, le
+Chevalier noir. Images de combat : toutes faites (Squelette, Zombie, Fantôme, Araignée, Vampire, Liche, Colosse d'os).
+Décidé : **tous les morts-vivants sont insensibles aux sorts de l'esprit** (aveuglement, malédiction, faiblesse), et
+**soins et résurrection n'ont pas d'effet sur eux** (les premières créatures qui résistent à la magie).
+Chiffres décidés (2026-11-06), chaque créature à peu près aussi forte que celle du Château du même niveau (paysans pour
+en vaincre une : Squelette 3, Zombie 10, Fantôme 13, Araignée 24, Vampire 50, Liche 106, Colosse d'os 964 ; Château :
+Archer 8, Griffon 14, Épéiste 26, Moine 63, Cavalier 116, Ange 1643). Squelette 3/2, 1-2, 4 PV, 9 or (l'utilisateur
+craint qu'il soit trop fort face aux paysans : à surveiller en jeu) ; Zombie 5/6, 2-3, 20 PV, vitesse 3 ; Fantôme 7/5,
+3-4, 12 PV, vitesse 7 ; Araignée 10/9, 5-7, 30 PV (poison : 2 par araignée, 3 tours) ; Vampire 13/10, 9-12, 40 PV ;
+Liche 15/13, 14-18, 70 PV ; Colosse d'os 22/24, 60-80, 1400 PV, vitesse 6. Le Colosse est plus faible que l'Ange :
+à revoir.
+Découpage : 1. ✅ les créatures et leurs capacités au combat (`undead`, `ghost-growth`, `poison`, `life-drain`,
+`death-cloud`, `sweep`), les morts-vivants déjà rencontrés comme monstres sur la carte (`MapGenerator.MonsterFactions`) ;
+un gardien d'une autre faction que les neutres est dimensionné pour avoir la force du gardien neutre du même niveau
+(`CreatureStrength`, mesurée au combat), sinon les Liches (niveau 6, les neutres n'en ont pas) et les Colosses (4 fois
+un Dragon) rendaient les cartes bien plus dures. La simulation gagne comme avant. Tests : `MortsVivantsTests`.
+2. ✅ La ville et le jeu : les bâtiments communs à toutes les factions (salle du village et hôtels de ville, taverne,
+guilde : faction « * ») et 7 habitations par faction (Ossuaire, Cimetière, Étang des noyées, Antre des araignées, Crypte,
+Tour de la liche, Charnier : mêmes prix et places que celles du Château) ; un prérequis « a|b » (le grand hôtel de ville
+demande la Caserne ou l'Antre). Nouvelle partie : la faction (le Château ou les morts-vivants), sa classe et ce qu'elle
+donne ; les adversaires et les villes neutres ont une faction au hasard (un hasard à part, fixé par la graine : la carte
+ne change pas) ; une garnison neutre de morts-vivants vaut celle du Château. Le Nécromancien (armée : 20 Squelettes,
+10 Zombies, 2 Fantômes) et la **nécromancie** (`Talents`, événement `DeadRaised`, dans le journal). L'IA construit dans
+l'ordre des niveaux pour toutes les factions. La simulation (Château) prend dans une ville prise les 7 meilleures
+troupes (avec deux factions, il y a plus de créatures que de places). Option `--faction=morts-vivants`. Tests :
+`VilleMortsVivantsTests`. Mesuré (un adversaire, Normal, six semaines) : Château 16 100 or d'armée, morts-vivants
+12 700 : un peu plus faibles, à revoir (avec le Colosse). L'amplificateur de nécromancie : plus tard, une fois la
+nécromancie essayée.
+3. ✅ Les images : les images de combat ; la ville des morts-vivants sur la carte (`art/objects/town-morts-vivants.png`,
+`Art.Town` : chaque ville prend l'image de sa faction, sinon le château ; la carte, les listes, le royaume, l'écran de
+ville). Les petites images de la carte (24 × 24) de **toutes les créatures**, refaites d'après leur image de combat
+(PixelLab `pro` : l'image de combat comme sujet, une petite image comme style ; 64 candidats d'un coup), choisies par
+l'utilisateur sur une page de choix ; Zombie et Fantôme par Retro Diffusion. Reste : la ville vue de face en images
+(étape 10, pour toutes les factions).
+✅ **Les créatures dans l'interface, comme Heroes 1 et 2** (choix de l'utilisateur, 2026-11-07, après la liste de toutes
+les places : on y mêlait l'image de combat et la petite image, à des tailles de pixels différentes) : les places
+ordinaires (garnison, héros en ville, écran du héros, recrutement, construction, bilan) montrent **l'image de combat,
+toujours ×2** (`Ui.CreaturePicture`) : les pixels ont la même taille partout, et une grande créature qui ne tient pas
+est coupée en gardant sa tête et son avant ; les places étroites (panneau de la carte, ordre de jeu du combat) montrent
+la petite image (`Ui.SmallCreatureArt`, ×2 dans le panneau). Plus tard peut-être : les créatures animées sur la carte.
+Décidé aussi : la classe **Nécromancien** (attaque 1, défense 1, puissance 2, savoir 2, charisme 8, Malédiction au
+départ, talent **Nécromancie** : après une victoire, 10 % des ennemis tués + 2 % par niveau se relèvent en Squelettes,
+sans dépasser son charisme). À choisir avec la ville : les noms des habitations (proposés : Ossuaire, Cimetière, Étang
+des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
+
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
   à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),
@@ -955,6 +1415,124 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
   dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
   Tests : `MerTests`.
+- ✅ Les routes, premières règles (2026-11-15, branche `routes-sans-issue`, en quatre tours avec l'utilisateur sur une page
+  de six cartes entières, `art-candidats/archives/2026-11-15-routes/`) :
+  1. **Plus de route qui ne mène nulle part** : une route était tracée du centre de chaque zone à ses passages ; dans une
+     zone sans ville, elle finissait au milieu de rien (126 bouts sans rien sur 16 cartes). `RemoveDeadEndRoads` retire
+     les bouts qui n'arrivent à aucune destination ; le terrain reste. **Les routes serpentent** (`WindingCost`, un bruit
+     doux). **Des petites routes** vers les mines des villes et les ports (`ConnectToRoads`, `RoadToNetwork`).
+  2. **Les villes bien réparties** (remarque de l'utilisateur : six villes en haut de la carte, aucune en bas) : les zones
+     étaient déjà une grille régulière, mais les villes neutres prenaient des zones au hasard ; chacune va maintenant dans
+     l'une des zones les plus éloignées des villes déjà posées.
+  3. **Plus de passages** : chaque zone en a au moins deux (plus de cul-de-sac), d'autres au hasard jusqu'à trois
+     (`ExtraPassageChance` 0,4, `MaxPassages`) ; des sentiers vers les lieux. Deux obélisques ne se posent plus côte à
+     côte de part et d'autre d'un passage ; le test des gardiens demande deux tiers des mines et coffres gardés (trois
+     quarts avant : les passages gardent plus de cases libres).
+  4. **D'après 160 cartes de Heroes 2 et 3** (`tools/cartes/` ; la route y couvre 3 à 9 % de la terre, la nôtre 13 %,
+     faite de boucles entre les passages ; 1,3 à 1,5 villes pour 1000 cases de terre ; les routes finissent surtout aux
+     villes, aux mines, aux habitations, aux monstres et aux tas) : le réseau principal est un arbre (`KeepMainNetwork`)
+     entre les villes, les mines des villes et les ports ; de courts sentiers vers les autres mines (5 cases) et les lieux
+     (3 cases) ; au plus 1,5 villes pour 1000 cases de terre (`TownsPerLand` ; chaque joueur garde sa ville voisine).
+  Mesuré : routes 7,5 % de la terre (normale), 8,4 % (grande), 5,2 % (îles), 4,2 % (archipel), 11,6 % (petite : quatre
+  villes sur peu de terre) ; villes pour 1000 cases de terre 1,7 (continent), 1,8 (îles, 3 avant). Adversaires (six
+  semaines, Normal, or d'armée) : continent 55 000, des mers 52 100, îles 32 200, archipel 31 700. Tests :
+  `Les_routes_ne_menent_pas_nulle_part`, `Les_villes_sont_reparties_sur_toute_la_carte`.
+- ✅ L'herbe qui déborde sur les routes (2026-11-15, branche `routes-herbe`, choisie par l'utilisateur sur une page qui
+  compare cinq forces, à la taille du jeu et ×2, `art-candidats/archives/2026-11-15-herbe-routes/`). Dessinée par le
+  shader (`terrain.gdshader`), seulement là où le sol est de l'herbe : par plaques le long du bord (`road_grass_share`
+  0,45 du bord, plaques de `road_grass_scale` 10 pixels d'art), l'herbe avance sur la route de `road_grass` 2,2 pixels
+  d'art au plus, en brins de longueurs inégales (chaque colonne de pixels, par bouts de trois), le bout des brins un peu
+  plus clair ; de petites touffes de trois brins sur la route (pied sombre, pointe claire ; `road_tufts` 0,3 des carrés
+  de 7 pixels près du bord, `road_tufts_middle` 0,04 au milieu) ; une petite ombre de l'herbe vers le haut et la gauche
+  (`road_grass_shadow`). **Selon le tronçon** (idée de l'utilisateur) : un bruit doux de `road_grass_stretch` 70 pixels
+  d'art donne des tronçons sans herbe (sous 0,32) et d'autres envahis (au-dessus de 0,68 : 1,6 fois plus). Écarté :
+  3 pixels partout (les routes de 7 à 9 pixels paraissaient étouffées). Avec `--ground=road_grass:0,road_tufts:0,
+  road_tufts_middle:0`, rien. Attention : `--zoom` montre la carte à ×1,5, pas à la taille du jeu.
+- ✅ Le bord des routes sur le sable (2026-11-15, branche `routes-sable`, choisi par l'utilisateur parmi huit versions
+  sur une page de comparaison, `art-candidats/archives/2026-11-15-routes-sable/`). Avant, le bord sur le sable était
+  celui de l'herbe (net, cranté) : la route semblait posée sur le sable, la terre s'y perdait. Dans le shader, là où le
+  sol est du sable : la route et le sable se mêlent sur plus de pixels (`road_sand_scatter` 4 au lieu de 2,5) ; **le
+  sable porté par le vent recouvre le bord** en dunes douces (`road_sand_drift` 3,5 pixels d'art au plus,
+  `road_sand_drift_share` 0,6 du bord, dunes de `road_sand_drift_scale` 14 pixels, selon le tronçon comme l'herbe),
+  tramé à son bout ; **un bourrelet de sable repoussé**, plus clair (`road_sand_berm` +8 % sur 3 pixels), le long du
+  bord **qui reste visible** : le sable posé sur la route et celui d'à côté ont la même lumière (remarque de
+  l'utilisateur : ils ne s'accordaient pas), et rien là où le sable couvre toute la largeur ; le liseré au soleil de
+  l'herbe (`road_rim`) n'est pas dessiné sur le sable. Écartés : 4,5 et 6 pixels (une route trop enterrée). Vu au
+  passage : les grandes zones claires et sombres du sol (`shade`) font parfois une bande le long d'une route, sans
+  rapport avec elle. Développement : `--center=road-sand` (une route sur le sable).
+- ✅ Les rives (2026-11-15, branche `rives`, choisies par l'utilisateur sur une page de comparaison en deux tours,
+  `art-candidats/archives/2026-11-15-rives/`). Toutes les rives : lacs, mer et rivières (les ruisseaux ne changent
+  pas). Dans le shader du sol :
+  - **Les rives par tronçons** (`bank_kind` : un bruit doux par tronçons de `bank_stretch` 80 pixels d'art) : sous
+    `bank_grass` 0,3, l'herbe descend jusqu'à l'eau, bordée d'une ligne de terre mouillée (`mud_width` 2, `mud_color`) ;
+    au-dessus, une plage plus ou moins large ; au-dessus de `bank_pebbles` 0,72, une plage de galets (`pebbles` 0,35 des
+    carrés de 4 pixels). **Des plages plus larges** (deuxième tour, l'utilisateur voulait plus de sable) : `beach_width`
+    11 au lieu de 8 ; écartés : moins de rives herbeuses (`bank_grass` 0,2 ou 0,15, avec 14 pixels de sable).
+  - **La profondeur** (`water_depth`) : une eau claire et un peu turquoise près du bord (`shallow` 0,25 sur
+    `shallow_width` 5 pixels, tramée), qui s'assombrit vers le large (`deep` 0,35, de `deep_start` 10 à `deep_end` 76
+    pixels, en 5 paliers tramés au bord bruité de ±6 pixels). Au-delà d'une demi-case, la distance à la terre vient d'une
+    nouvelle couche de `water_field` (le bleu : `RiverField.Depth`, une transformée de distance en deux passes, jusqu'à
+    `RiverField.Deep` 96 pixels ; image `Rgbh`). Vu : entre des îles proches, la mer reste claire (un détroit peu
+    profond).
+  - **Des roseaux** (`reed_at`) en touffes sur les rives herbeuses (`reeds` 0,6, `reed_share` 0,45 des tronçons, tous
+    les `reed_scale` 24 pixels), quelques-uns à massette brune ; **des rochers** (`rock_at`) dans l'eau peu profonde,
+    entourés d'écume (`rocks` 0,08).
+  Écartés au premier tour : une version plus légère et une plus forte (plus de profondeur, de roseaux et de rochers).
+- ✅ Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, en deux tours avec l'utilisateur sur une page de
+  six cartes entières, `art-candidats/archives/2026-11-15-rivieres/`). D'après 50 cartes de Heroes 3
+  (`tools/cartes/rivieres_h3.py`) : 40 en ont, 2,3 % de la terre en médiane, 0,6 rivière pour 1000 cases de terre, longue
+  de 20 cases, un décor qu'on traverse. Décidé avec l'utilisateur : **deux sortes**, une couche sur le terrain comme la
+  route (`RiverKind` : `River`, `Stream`, `Bridge` ; `AdventureMap.GetRiver`, sauvegarde version 8).
+  1. **Les rivières** remplacent les murs d'eau entre les zones et bloquent (`AdventureMap.IsPassable`). Premier tour :
+     30 % des frontières au hasard, de petits bouts isolés ; puis (remarque de l'utilisateur) **d'un bord de la carte à
+     un autre** (`ChooseRivers` : un plus court chemin par les cases des murs, d'un bout du bord à un autre bord, ou à la
+     mer, un poids au hasard par frontière ; une rivière pour 48 cases de côté) ; là où elle passe d'une frontière à
+     l'autre, les cases d'un troisième mur deviennent la rivière aussi (sinon elle s'arrêtait). Le passage d'une
+     rivière est un **pont** d'une case de large, choisi là où la bande va tout droit ; son gardien se tient à côté de son
+     bout, sur une case qui garde tout atteignable (`Passage.OtherGates`, essayées dans `PlaceGuards`).
+  2. **Les ruisseaux** (`PlaceStreams`, `StreamsPerThousand` 0,6) : une marche au hasard guidée d'une source vers une
+     rivière, un lac ou la mer (8 à 30 cases), qui croise une route tout droit (un petit pont) ; rien n'y est posé.
+  3. **Le dessin** (shader) : premier tour, des bords par cases (des escaliers) et une rive fine à part, qui jurait avec
+     la plage des lacs ; puis `RiverField` (une image de 8 points par case, calculée une fois) : la bande des rivières
+     floutée (son bord suit des courbes douces) et la distance aux ruisseaux, dont la ligne passe par les centres des
+     cases, arrondie (Chaikin) ; les rivières ont **la plage des lacs et de la mer** ; un ruisseau ne se dessine plus sur
+     l'eau où il se jette. Les ponts en planches dessinés par le jeu, en attendant des images (l'utilisateur : pas
+     convaincants). La mini-carte, la carte au trésor et le texte du survol (« Rivière », « Pont », « …, ruisseau »).
+     Développement : `--center=bridge`, `stream`, `ford`.
+  Mesuré (`Rivieres_par_type_de_carte`, six cartes normales) : rivières et ruisseaux 4,6 % de la terre d'un continent,
+  6 ponts et 3 ruisseaux par carte ; des mers 3,3 % ; îles 2,4 % (pas de rivière : îles trop petites). Adversaires (six
+  semaines, Normal, or d'armée ; avant → après) : continent 54 900 → 63 400, des mers 52 100 → 36 700, îles 32 200 →
+  30 900, archipel 31 700 → 22 500 (sans rivière : l'archipel montre combien ces chiffres changent avec les cartes ; les
+  mers sont à surveiller). Tests : `RivieresTests`.
+- ✅ Les ponts en images (2026-11-15, branche `ponts`, choisis avec l'utilisateur, puis par la session de coordination à
+  qui il a laissé les choix) : huit images Retro Diffusion (`rd_tile__tile_object`), **2,64 $ en tout, 11 lots de 4**.
+  `BridgeLayer` les pose sur le sol, sous les ombres et les objets, centrées sur les deux cases du pont ; le shader ne
+  dessine plus de planches là où un pont a son image (`bridge_art`). **Pierre là où la route du pont ou de ses abords est
+  pavée** (Château, Tour, Nains : comme les sortes de routes), bois ailleurs ; sans image d'une sorte, l'autre la remplace.
+  Ponts de rivière (96 × 48 et 48 × 96) : bois d'ouest en est, le 3 du premier lot (rambardes des deux côtés, d'une berge
+  à l'autre) ; pierre d'ouest en est, au troisième lot (le 1 en ruine, le 2 trop dessin animé, le 3 avec des buissons ;
+  partir du bois donnait des rambardes de bois ; parti du 4, raccourci à la longueur du bois, puis réchauffé vers la
+  pierre du temple) ; du nord au sud, partis du pont d'ouest en est tourné : bois réussi (le 2, aux couleurs du bois
+  d'ouest en est), pierre ratée (une bande étroite : le pont d'ouest en est est vu de côté), puis réussie en partant du
+  bois du nord au sud repeint aux couleurs de la pierre (le 3). Petits ponts des ruisseaux (48 × 24 et 24 × 48), partis
+  des grands réduits : bois 4 et 4, pierre 1 (d'ouest en est) et 3. Chaque image prend la palette du pont d'ouest en est
+  de sa sorte, par rang de luminosité. Développement : `--center=bridge:9` (un pont et une route), `ford`, `ford:2`.
+- ✅ La mer, les objets de la mer, seconde partie (2026-11-15, branche `mer-pirates`, choix de l'utilisateur : les pirates,
+  une seule créature neutre ; une faction « pirates et monstres de la mer » peut-être plus tard). Le **Pirate** (neutre,
+  niveau 3, `"sea": true` dans `creatures.json`, `CreatureType.Sea` : il ne garde que la mer, jamais la terre) : attaque 9,
+  défense 6, dégâts 3-5, 22 PV, vitesse 6, 55 or, frappe deux fois ; `Duels_a_prix_egal` (qui compte maintenant les
+  neutres) : 77 victoires sur 160 dans son niveau (il bat Fantômes, Orcs, Chevaucheurs de chèvre ; égal contre les
+  Archers elfes ; perd contre Griffons, Golems, Minotaures, Limons). Les **gardiens de la mer** : une bande de pirates à
+  côté d'un coffre de la mer sur deux, et 1 bande errante pour 1000 cases de haute mer, à 10 cases au moins d'un départ ;
+  leur force, celle d'un gardien de la terre au même danger (`SeaDanger` : la distance au départ le plus proche, de 0,2 à
+  1 ; les zones de mer n'ont pas de niveau). Ils attaquent un bateau qui passe à côté (`GuardsAround` ne prenait déjà que
+  les gardiens de l'eau en mer). Le **navire abandonné** (`AbandonedShip`, 0,7 pour 1000 cases de haute mer) : un
+  équipage de morts-vivants (une troupe du niveau du danger, une du niveau en dessous ; une fois et demie un gardien),
+  combattu en montant à bord, comme une garnison ; vaincu, de l'or (1500 à 4500) et 2 à 6 d'une ressource rare
+  (`AbandonedShipLooted`), puis le navire disparaît. L'IA y va si l'équipage se bat sans trop de pertes. Mesuré
+  (adversaires, six semaines, Normal, or d'armée) : continent 46 000, des mers 48 300, îles 31 600, archipel 31 600
+  (comme avant). Dessinés par le jeu en attendant leurs images ; `--center=abandoned-ship`, `pirates`. Tests :
+  `ObjetsMerTests`.
 - ✅ La mer, les objets de la mer, première partie (2026-11-14, branche `objets-mer`, choix de l'utilisateur) : sur l'eau,
   l'**épave flottante** (`Flotsam`, comme Heroes 3 : rien, 5 bois, 5 bois et 200 or, ou 10 bois et 500 or), le **coffre
   de la mer** (`SeaChest` : vide une fois sur cinq, sinon 1000 ou 1500 or ; un artefact plus tard), la **bouée** (+1 moral)
@@ -1079,6 +1657,107 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   montré avant que les règles ne le fassent (`ActorLayer.BeginStep`, `Main.NextStep` : une rencontre arrive quand il est
   sur la case) ; les adversaires rejoués glissent de même. Au combat, l'image de la carte ×2 en attendant la sienne.
   Pieds revus par l'utilisateur.
+- ✅ La marche du chevalier dans les 8 directions (2026-11-15, branche `heros-carte-factions`, PixelLab, 0,44 $) : l'image
+  du chevalier tournée par PixelLab (`pixellab.py tourner`) en trois lots : « Pro » vue basse, « Pro » vue plus haute,
+  v3 (qui garde notre dessin pour sa direction, mais d'autres floues ou mal tournées) ; choisi **la vue plus haute**
+  (« high top-down », un chevalier un peu plus mince que le nôtre). Puis deux marches par direction (`animer
+  --enrichir`, 8 images), pour le sud, le sud-est, l'est, le nord-est et le nord : choisies sud 1, les autres 2 ; posées
+  au sol et le même rebond que la première marche (images 2, 3, 6 et 7). Images `heroes/hero-chateau-{s,se,e,ne,n}.png`
+  et `-move.png` ; l'ouest, le nord-ouest et le sud-ouest sont le miroir de l'est, du nord-est et du sud-est. Le héros
+  regarde vers son dernier pas (`MapRenderer.HeroFacing`, la direction et le côté gauche ou droit pour une faction qui
+  n'a pas encore ses directions) ; avant tout pas, vers le sud-est (comme l'ancienne image). Au combat, l'image du
+  sud-est. Pieds des 5 images mesurés (pas encore revus par l'utilisateur ; les images de marche prennent ceux de leur
+  image fixe). Voir la marche en jeu : `--hero-walk` (le héros choisi fait sans cesse le tour d'un octogone, montré
+  seulement).
+- ✅ Le héros des morts-vivants sur la carte (2026-11-15, branche `heros-carte-morts-vivants`, PixelLab, environ 0,50 $) :
+  deux idées, 25 essais chacune (« pro » à 48, le sud-est du chevalier comme style) : a, un chevalier noir sur un cheval
+  squelette ; b, un nécromancien encapuchonné de violet sur un cheval mort-vivant pâle, au bâton à crâne et à l'étendard
+  rouge (la couleur du joueur) ; choisi **b-1** (`heroes/hero-morts-vivants.png`). Tourné en trois lots (deux « Pro »
+  vue plus haute, une v3) : les « Pro » sont revenus sur un **fond blanc opaque** (retiré, et désormais par `tourner`
+  lui-même) ; choisi le premier (son nord-ouest regardait du mauvais côté, sans importance : le miroir du nord-est le
+  remplace ; son est ressemble presque à son sud-est). Marches : sud 1, les autres 2, posées au sol avec le rebond
+  (`hero-morts-vivants-{s,se,e,ne,n}.png` et `-move.png`). Pieds mesurés, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ Le héros des Barbares sur la carte (2026-11-15, branche `heros-carte-barbares`, PixelLab, environ 0,55 $) : même
+  recette ; deux idées (a : un chef au casque à cornes et à la cape de fourrure sur un solide cheval brun, à la hache et
+  à l'étendard rouge ; b : le même sur un grand loup de guerre) ; choisi **a-10**. Tourné en trois lots (deux « Pro »
+  vue plus haute, sans fond blanc cette fois, et une v3) : choisi le second « Pro » ; marches toutes l'essai 2.
+  `hero-barbares.png`, `hero-barbares-{s,se,e,ne,n}.png` et `-move.png`. Pieds mesurés, pas encore revus. Vu en jeu
+  avec `--hero-walk`.
+- ✅ Le héros de la Forêt sur la carte (2026-11-15, branche `heros-carte-foret`, PixelLab, environ 0,90 $) : deux idées
+  (a : un rôdeur encapuchonné à la cape verte et à l'arc long sur un cheval alezan ; b : le même sur un grand cerf) ;
+  choisi **a-10**. Deux lots « Pro » tournés (sans v3) : choisi le second. **L'utilisateur veut l'est vu de côté** (dans
+  chaque lot, l'est ressemblait au sud-est) : une rotation avec la caméra « side » ne change rien ; 25 essais `pro` vus
+  de côté, avec l'est du chevalier comme style et a-10 comme modèle, donnent de vrais profils : choisi le 25. **Et le
+  sud-est plus tourné vers le sud** : avec le sud-est du chevalier comme style, les essais restent à son angle ; sans
+  style, avec la vue de face, le profil et a-10 comme modèles, ils viennent vers nous : choisi le 2 (un peu plus petit
+  que les autres vues ; posé 2 pixels plus haut, ramené au même sol). Une v3 tournée depuis la vue de face : dessin plus
+  grand, d'un autre style, écartée. Marches : sud 1, sud-est 1, est 2, nord-est 1, nord 1. `hero-foret.png`,
+  `hero-foret-{s,se,e,ne,n}.png` et `-move.png`. Pieds mesurés, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ L'est de côté et le sud-est vers le sud pour le nécromancien et le chef barbare (2026-11-15, branche
+  `heros-carte-profils`, PixelLab, environ 1,65 $ : dix-huit lots `pro` de 25, une retouche, six marches). **Nécromancien** :
+  l'est vu de côté (style l'est du chevalier, choisi le 4) ; le sud-est n'a marché qu'avec **le sud-est du rôdeur comme
+  style** (choisi le 8 du lot 6) : sans style, les essais restaient de trois quarts et souvent trop petits (28 à 41 pixels
+  au lieu de 45 : l'utilisateur l'a vu) ; avec la vue de face en modèle et « almost a front view », ils regardaient droit
+  vers le sud (et revenaient sur un fond blanc). **Chef barbare** : l'est avec le style et le modèle des profils du
+  rôdeur et du chevalier (le cheval enfin de profil ; choisi le 1), sa cape trop sombre éclaircie par une retouche
+  (« make the fur cloak pale cream white ») ; préciser « a pale cream white fur cloak » dans la description pour les
+  essais suivants. Son sud-est : six lots, jamais juste (trois quarts avec le style du rôdeur, plein sud avec la vue de
+  face en modèle, entre les deux rien de mieux) ; **l'utilisateur garde l'ancien** pour l'instant. Les essais trop petits
+  sont retirés de la page (hauteur mesurée), les fonds blancs nettoyés (bords, puis taches enfermées de blanc pur).
+  Marches : nécromancien est 2 et sud-est 2, chef barbare est 2, posées au sol commun (rangée 45) avec le rebond. Pieds
+  mesurés, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ Le héros de la Tour sur la carte (2026-11-15, branche `heros-carte-tour`, PixelLab, environ 2 $) : deux idées (a : un
+  magicien à longue barbe blanche, robe bleue et or au capuchon pointu, bâton au cristal bleu ; b : un mage enturbanné),
+  sur un cheval blanc caparaçonné de bleu et d'or ; choisi **a-6**. Sud, nord-est et nord : le lot « Pro » tourné A.
+  **L'est** : les essais faits d'après nos propres vues de l'est (chevalier, rôdeur) et d'après a-6 restaient un peu
+  tournés vers le sud (l'utilisateur : « always slightly oriented south ») ; seuls les cavaliers des images de combat
+  (`creatures/battle/cavalier.png`, `nomades.png`) comme modèles, sans style ni a-6, donnent un vrai profil (choisi le 2
+  du lot 4). Ses couleurs plus vives et son drapeau d'une autre forme corrigés par le code : chaque pixel ramené à la
+  couleur la plus proche de la palette de a-6, le drapeau et le haut de la hampe de a-6 à la place des siens.
+  **Le sud-est** : le style du rôdeur donne l'angle, mais PixelLab dessine le cheval qui vient vers nous à 40-42 pixels
+  quels que soient les modèles (six lots ; une toile de 54 n'agrandit pas le dessin) : le 6 du lot 8, agrandi au plus
+  proche voisin à 46 pixels (des rangées et colonnes répétées, sans flou), une ligne blanche entre les jambes avant
+  retirée. **Le nord-est** : le drapeau flottait vers l'avant ; retourné autour de la hampe (derrière le bâton).
+  Marches : sud 1, nord 1, puis (après des remarques : foulées trop lentes à l'est) sud-est 3, est 4 (« walks briskly with
+  long quick strides »), nord-est 3 ; posées au sol commun (rangée 45) avec le rebond. Pieds mesurés à la main, pas encore
+  revus. Vu en jeu avec `--hero-walk` (l'herbe y paraît bleue sur `main` depuis les rivières, pour toutes les factions :
+  signalé à l'utilisateur).
+- ✅ Le héros de l'Enfer sur la carte (2026-11-15, branche `heros-carte-enfer`, PixelLab, environ 1,70 $) : deux idées
+  (a : un démoniste aux petites cornes, robe noire à capuchon aux runes orange, bâton de feu ; b : au masque de crâne de
+  bouc), sur un cheval noir à la crinière de feu ; choisi **a-12**. **Le rouge** : le jeu peint les rouges saturés de la
+  couleur du joueur ; le bout des flammes y tombait : tout rouge hors du drapeau passé à l'orange par le code (le drapeau :
+  une grande tache rouge en haut de l'image ; une première règle qui demandait aussi un rouge sombre a pris le drapeau plus
+  clair d'une marche pour une flamme), et sous la toile du drapeau, dans chaque image des marches, plus aucun rouge (la
+  hampe). **L'est** vraiment de côté du premier coup, d'après les cavaliers des images de combat (choisi le 19) ;
+  l'utilisateur l'a adoré (« the horse looks like a horse ») et trouvait les autres vues, tirées de a-12, à poney : **toutes
+  les vues refaites d'après l'est** (une rotation « Pro » de l'est 19 donne sud, nord-est et nord au grand cheval ; une
+  seconde et une v3 ratées). Le sud-est : sans a-12 comme modèle, le nouveau sud et les sud-est déjà choisis en modèles, le
+  sud-est du rôdeur en style (choisi le 18 du lot 6), mis à la taille du corps de la vue de face. L'ensemble fait 42 à 43
+  pixels de haut ; agrandir tout d'un même facteur (45 ou 46) a été proposé, l'utilisateur le garde tel quel pour l'instant.
+  Marches (« walks briskly with long strides ») : sud 1, sud-est 2, est 1, nord-est 1, nord 2 ; posées au sol commun
+  (rangée 45) avec le rebond. L'image fixe `hero-enfer.png` est le sud-est (a-12 était l'ancien cheval). Pieds mesurés à la
+  main, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ Le héros du Donjon sur la carte (2026-11-15, branche `heros-carte-donjon`, PixelLab, environ 1,30 $) : les idées
+  dessinées **tout de suite de côté** (l'est), d'après les cavaliers des images de combat : a, un seigneur sorcier en
+  armure noire hérissée, cape violette, heaume d'argent à cornes, bâton à l'orbe violet, sur un grand cheval gris sombre ;
+  b, le même sur un lézard des cavernes ; choisi **a-16**. Sa rotation « Pro » donne le sud, le nord-est, le nord (et un
+  sud-est de trois quarts) au même cheval ; le premier lot avait perdu l'étendard au sud, le second gardé. **Le sud-est
+  tourné vers le sud** : deux lots, puis deux autres d'après le sud-est du démoniste : le cheval y a un cou arqué, la tête
+  basse (l'utilisateur : « looks like a camel ») ; trois retouches du sud-est du démoniste (on ne change que le cavalier et
+  les couleurs) gardent la pose mais raccourcissent les jambes : refusées. **L'utilisateur garde le sud-est de la rotation**
+  (trois quarts, le même cheval que les autres vues) pour l'instant, comme le chef barbare. Marches : sud 1, sud-est 1,
+  est 2, nord-est 2, nord 1 ; posées au sol commun (rangée 45) avec le rebond. L'image fixe est le sud-est. Pieds mesurés
+  à la main, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ Le héros des Nains sur la carte (2026-11-15, branche `heros-carte-nains`, PixelLab, environ 0,75 $) : les idées
+  dessinées de côté d'emblée : a, un thane nain en armure d'acier et d'or, heaume ailé, longue barbe tressée, marteau aux
+  runes bleues, sur un grand bélier des montagnes aux cornes enroulées (comme les chevaucheurs de chèvre) ; b, le même sur
+  un ours de guerre caparaçonné ; choisi **a-1** (sa selle rouge passée au brun d'abord, pour que la rotation ne la garde
+  pas). Sud, nord-est et nord : la première rotation « Pro » de a-1. Sud-est : le sud-est du rôdeur en style, le nouveau sud
+  en modèle, du premier coup tourné vers nous (choisi le 4), agrandi de 44 à 46 pixels (la taille de la vue de face). **La
+  hampe** s'arrêtait à l'épaule du nain dans toutes les vues (remarque de l'utilisateur) : prolongée de 9 pixels sous la
+  main, par le code, avant les marches (qui la gardent). Marches : sud 2, sud-est 2, est 2, nord-est 2, nord 1 ; posées
+  au sol commun (rangée 45) avec le rebond ; les rouges hors du drapeau (barbe, selle) passés au brun dans chaque image.
+  L'image fixe est le sud-est. Pieds mesurés à la main, pas encore revus. Vu en jeu avec `--hero-walk`.
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans
@@ -1233,6 +1912,34 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
     fait un vrai pas. Carte p1-7.
   - Au passage, le **Géant** (Tour) retourné vers la droite (image fixe et feuilles, image par image) : il marchait à
     reculons. Pieds des sept petites images revus par l'utilisateur (le Ver plus léger, aucun sous le Tyran œil).
+- ✅ Créatures de l'Enfer (2026-11-15, branche `creatures-enfer`, PixelLab), une à la fois ; à chaque créature, une **vue
+  d'ensemble** de sa faction et de son niveau, animations jouées (`tools/art/apercu_faction.py`, demandée par
+  l'utilisateur pour juger le style) :
+  - **Succube** (84 px, L7-1, ailes noires, robe rouge vif) : attente queue-2, marche mm-pas-3, attaque mm-baiser-1 ; son
+    tir, le **baiser** de feu dessiné par le jeu (un cœur rouge, une lueur qui palpite, des braises). Carte p1-6.
+  - **Démon** (132 px, L10-1, gras et rouge, barbe noire, ailes orange, trident ; fond blanc retiré, gardé à sa taille
+    d'origine : plus net) : attente mm-rot-3 (il se frotte le ventre et rote), transformation ailes-1-envol (il
+    s'enveloppe de ses ailes, s'élance et redescend : la **téléportation**, déplacement invisible, `stepTime` 0,03 ; la
+    règle viendra de la session règles), attaque crache-2-r : il **crache le feu**, le feu de PixelLab retiré, le jeu
+    dessine le jet (`meleeProjectile` « flammes », `SpellEffects.FireJet` : les tons et la boule de feu de la Boule de feu ;
+    un premier jet fait de trois couches unies ne ressemblait pas à du feu). L'estoc au trident (mm-estoc-1) est remplacé.
+    Carte p1-5.
+  - **Diablotin** (44 px, L6-1, peau noire de suie) : attente lecher-8 (il se lèche la main comme un chien, ailes et
+    queue qui bougent), marche sauts-1 (par bonds), attaque bond-2 (bondit sur l'ennemi et revient) ; il vole à 0,3 s par
+    case (le vol par défaut, 0,09 s, était trop rapide). Carte p1-1.
+  - **Cultistes** (68 px, L1-3, robe rouge à capuche, dague rituelle) : priere-1, marche-3, coup-1 sans sa traînée.
+    Carte p1-2.
+  - **Limon de magma** (50 px, L1-1, masse de lave) : il bouillonne **sans pause** (bouillon-1, `idlePauseMax` 0 : un
+    fluide ne s'arrête jamais), rampe en **32 images** à 20 images/s (rampe32-2 : en 16 images, il glissait ou sautait),
+    s'écrase sur l'ennemi (ecrase-1). Carte p1-2.
+  - **Tourmenteur** (100 px, L2-1, wendigo au crâne de cerf) : attente guette-1, marche marche-1, attaque fauche-2-r
+    (griffe-3 écartée : le crochet remontait d'un coup), et le **crochet lancé** (état `throw`, lancer-1) : le jeu dessine
+    la chaîne avec **ses propres pixels** (un maillon et le crochet découpés de l'image, `-chain.png` et `-hook.png`,
+    `BattleEffects.DrawChain`), depuis la main à chaque image (`throwPoints`), sans trou entre les maillons ; le crochet
+    penché de 45°. Carte p1-1.
+  - **Moloch** (112 px, L8-1, idole de bronze à tête de taureau, fournaise dans le ventre : une statue animée, pas un être
+    vivant) : attente fournaise-2, marche pas-2, attaque poings-3 (ses poings rougissent et s'abattent). Carte p1-6.
+  - **Icône du bouton « Invoquer »** (`ui/icons/invoquer.png`, n° 2 : un diablotin qui sort d'un portail).
 - ✅ Combat à ×2 (2026-11-09, branche `combat-x2`). Question de l'utilisateur : un pixel d'art a-t-il la même taille au
   combat et sur la carte ? Non : 3 pixels de l'écran au combat, 2 sur la carte (zoom ×1 ; 3 au zoom ×1,5). Essai montré
   (page `echelle.html` : même combat à ×3 et à ×2, créatures 1,5 fois plus hautes) ; choix de l'utilisateur : ×2 partout

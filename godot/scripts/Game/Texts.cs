@@ -107,6 +107,7 @@ public static class Texts
         SeaChest => "Coffre de la mer",
         Whirlpool => "Tourbillon",
         Lighthouse lighthouse => lighthouse.Owner is { } owner ? $"Phare ({owner.Name})" : "Phare",
+        AbandonedShip => "Navire abandonné",
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
         Town town => town.Name,
@@ -119,6 +120,7 @@ public static class Texts
     {
         MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, battle.DefenderArmy.Sum(s => s.Count))),
         Town town => $"la garnison de {town.Name}",
+        AbandonedShip => "l'équipage d'un navire abandonné",
         HeroDefender defender => HeroWithColor(defender.Hero),
         var other => LowerFirst(ObjectName(other)),
     };
@@ -128,6 +130,7 @@ public static class Texts
     {
         MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, army.TotalCount)),
         Town town => $"la garnison de {town.Name}",
+        AbandonedShip => "l'équipage d'un navire abandonné",
         HeroDefender attacked => HeroWithColor(attacked.Hero),
         var other => LowerFirst(ObjectName(other)),
     };
@@ -274,6 +277,8 @@ public static class Texts
         ObservationTower tower when tower.Visitors.Contains(viewer.Id) => " (déjà visitée)",
         BlessingSite site when hero != null && site.AlreadyGiven(hero) => $" ({hero.Name} en a déjà la bénédiction)",
         Whirlpool => " (emporte le bateau, coûte quelques créatures)",
+        AbandonedShip { Crew.IsEmpty: false } ship => $" (gardé par un équipage de morts-vivants : {List(ship.Crew.Stacks.Select(s => s.Type.Plural).ToList())})",
+        AbandonedShip => " (son trésor attend)",
         _ => "",
     };
 
@@ -606,8 +611,12 @@ public static class Texts
     public static string NewGameTooltip => "Choisir la taille de la carte, la graine et les façons de gagner";
     public static string LoadGameButton => "Charger";
     public static string SettingsButton => "Réglages";
-    public static string SettingsTooltip => "Plein écran";
+    public static string SettingsTooltip => "Plein écran, volume du son";
     public static string SettingsText => "D'autres réglages viendront plus tard.";
+    public static string SoundTitle => "Son";
+    public static string MusicVolumeLabel => "Musique";
+    public static string EffectsVolumeLabel => "Effets";
+    public static string AmbienceVolumeLabel => "Ambiance";
     public static string MainMenuButton => "Menu principal";
     public static string MainMenuTooltip => "Revenir au menu principal";
     public static string MainMenuTitle => "Menu principal";
@@ -808,6 +817,7 @@ public static class Texts
         WhirlpoolCrossed w => $"Le tourbillon emporte le bateau de {w.Hero.Name} au loin.",
         LighthouseVisited { Captured: true } l => $"{l.Hero.Name} prend le phare : vos bateaux vont plus loin (+{Lighthouse.SeaMovementBonus} de mouvement en mer).",
         LighthouseVisited => "Le phare est déjà à vous.",
+        AbandonedShipLooted s => $"{s.Hero.Name} pille le navire abandonné : {s.Ship.Gold} or et {s.Ship.Amount} {Resource(s.Ship.Resource).ToLowerInvariant()}.",
         ObeliskVisited { FirstVisit: true } => "Un obélisque ! Un morceau de la carte au trésor apparaît.",
         ObeliskVisited => "Vous avez déjà lu cet obélisque.",
         NothingDug dug => $"{dug.Hero.Name} creuse… il n'y a rien ici.",
@@ -1061,9 +1071,15 @@ public static class Texts
     public static string LogEmpty => "Aucun message pour l'instant.";
 
     /// <summary>La ligne du terrain survolé : terrain, route, coût, et les jours de marche s'il est accessible.</summary>
-    public static string CellLine(TerrainType terrain, bool road, int? cost, int? days)
+    public static string CellLine(TerrainType terrain, bool road, int? cost, int? days, RiverKind river = RiverKind.None)
     {
-        string text = Terrain(terrain) + (road ? $", {WithRoad}" : "");
+        string text = river switch
+        {
+            RiverKind.River => "Rivière",
+            RiverKind.Bridge => "Pont",
+            RiverKind.Stream => Terrain(terrain) + ", ruisseau",
+            _ => Terrain(terrain),
+        } + (road && river != RiverKind.Bridge ? $", {WithRoad}" : "");
         text += cost is { } c ? $" · déplacement {c}" : " · infranchissable";
         if (days is { } d)
             text += d <= 1 ? " · atteint aujourd'hui" : $" · {d} jours de marche";

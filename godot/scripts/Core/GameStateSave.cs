@@ -21,7 +21,7 @@ public sealed partial class GameState
     /// Version 2 : les routes sont une couche à part (<see cref="MapData.Roads"/>). Une sauvegarde de la version 1
     /// (où la route était un terrain, le numéro 1) est encore lue : ses routes deviennent de l'herbe avec une route.
     /// </summary>
-    public const int SaveVersion = 7; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts ; 6 : temples et cercles des fées ; 7 : les lieux hauts sur 2 cases
+    public const int SaveVersion = 9; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts ; 6 : temples et cercles des fées ; 7 : les lieux hauts sur 2 cases ; 8 : les rivières ; 9 : les sortes de routes
 
     private static readonly JsonSerializerOptions SaveOptions = new()
     {
@@ -40,10 +40,12 @@ public sealed partial class GameState
 
     /// <summary>
     /// Le terrain : une ligne de chiffres par rangée de la carte (le numéro du terrain). Les routes : une ligne
-    /// par rangée, « 1 » pour une case avec une route, « 0 » sinon (absentes dans la version 1).
+    /// par rangée, la sorte de la route de chaque case (<see cref="RoadKind"/>, « 0 » sans route ; « 1 » avant la version 9 :
+    /// une route de terre ; absentes dans la version 1). Les rivières : une ligne
+    /// par rangée, le numéro de la rivière de chaque case (<see cref="RiverKind"/> ; absentes avant la version 8).
     /// </summary>
     private sealed record MapData(int Width, int Height, Cell Start, List<string> Terrain, List<ObjectData> Objects,
-        List<string>? Roads = null, Cell? Treasure = null);
+        List<string>? Roads = null, Cell? Treasure = null, List<string>? Rivers = null);
 
     /// <summary>Un objet de la carte. <paramref name="Kind"/> dit lequel ; seuls ses champs sont remplis.</summary>
     private sealed record ObjectData(
@@ -56,7 +58,8 @@ public sealed partial class GameState
         HeroStat? Stat = null, string? Spell = null, List<int>? Visitors = null, bool? Stocked = null, // les lieux (version 5)
         Blessing? Blessing = null, // temple ou cercle des fées (version 6)
         Cell? Spot = null, // la case d'eau d'un chantier naval de la côte, la sortie d'un tourbillon
-        int? Wood = null, bool? Sea = null); // une épave flottante ; une bouée ou des sirènes
+        int? Wood = null, bool? Sea = null, // une épave flottante ; une bouée ou des sirènes
+        int? Gold = null); // un navire abandonné (son équipage dans Garrison)
 
     private sealed record StackData(string Creature, int Count);
 
@@ -111,9 +114,12 @@ public sealed partial class GameState
             terrain.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => (char)('0' + (int)Map.GetTerrain(new Cell(x, y))))));
         var roads = new List<string>();
         for (int y = 0; y < Map.Height; y++)
-            roads.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => Map.HasRoad(new Cell(x, y)) ? '1' : '0')));
+            roads.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => (char)('0' + (int)Map.GetRoadKind(new Cell(x, y))))));
+        var rivers = new List<string>();
+        for (int y = 0; y < Map.Height; y++)
+            rivers.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => (char)('0' + (int)Map.GetRiver(new Cell(x, y))))));
         var objects = Map.Objects.OrderBy(o => o.Id).Select(SaveObject).ToList();
-        return new MapData(Map.Width, Map.Height, Map.Start, terrain, objects, roads, Map.Treasure);
+        return new MapData(Map.Width, Map.Height, Map.Start, terrain, objects, roads, Map.Treasure, rivers);
     }
 
     private static ObjectData SaveObject(MapObject obj) => obj switch
@@ -133,6 +139,8 @@ public sealed partial class GameState
         SeaChest seaChest => new ObjectData("sea-chest", obj.Id, obj.Position, Amount: seaChest.Gold),
         Whirlpool whirlpool => new ObjectData("whirlpool", obj.Id, obj.Position, Spot: whirlpool.Exit),
         Lighthouse lighthouse => new ObjectData("lighthouse", obj.Id, obj.Position, Owner: lighthouse.Owner?.Id),
+        AbandonedShip ship => new ObjectData("abandoned-ship", obj.Id, obj.Position, Resource: ship.Resource, Amount: ship.Amount,
+            Gold: ship.Gold, Garrison: Stacks(ship.Crew)),
         Mine mine => new ObjectData("mine", obj.Id, obj.Position, Resource: mine.Resource, Owner: mine.Owner?.Id, Small: mine.Large ? null : true),
         MonsterGuard guard => new ObjectData("guard", obj.Id, obj.Position, Creature: guard.Type.Id,
             InitialCount: guard.InitialCount, Amount: guard.Count),
@@ -161,7 +169,7 @@ public sealed partial class GameState
         try
         {
             if (JsonSerializer.Deserialize<SaveFile>(json, SaveOptions) is not { Map: not null, Players.Count: > 0 } save
-                || save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or SaveVersion))
+                || save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or SaveVersion))
                 return null;
             var hero = save.Heroes.Where(h => h.Owner == save.Players[0].Id)
                 .OrderByDescending(h => h.Id == save.CurrentHero).ThenByDescending(h => h.Level).FirstOrDefault();
@@ -187,7 +195,7 @@ public sealed partial class GameState
         }
         if (save == null)
             throw new FormatException("sauvegarde vide");
-        if (save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or SaveVersion))
+        if (save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or SaveVersion))
             throw new FormatException($"version de sauvegarde inconnue : {save.Version} (attendue : {SaveVersion})");
         try
         {
@@ -249,6 +257,7 @@ public sealed partial class GameState
                 "sea-chest" => new SeaChest(o.Position, o.Amount!.Value),
                 "whirlpool" => new Whirlpool(o.Position, o.Spot!.Value),
                 "lighthouse" => new Lighthouse(o.Position) { Owner = o.Owner is { } id ? Owner(id) : null },
+                "abandoned-ship" => WithCrew(new AbandonedShip(o.Position, o.Gold!.Value, o.Resource!.Value, o.Amount!.Value), o.Garrison, data),
                 // avant la version 3, une mine n'occupait qu'une case : ses voisines peuvent être prises
                 "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null, Large = save.Version >= 3 && o.Small != true },
                 "guard" => new MonsterGuard(o.Position, data.Creatures.Get(o.Creature!), o.InitialCount!.Value, o.Amount!.Value),
@@ -329,6 +338,13 @@ public sealed partial class GameState
         return state;
     }
 
+    private static AbandonedShip WithCrew(AbandonedShip ship, List<StackData>? crew, GameData data)
+    {
+        foreach (var stack in crew ?? new List<StackData>())
+            ship.Crew.Add(data.Creatures.Get(stack.Creature), stack.Count);
+        return ship;
+    }
+
     private static T WithVisitors<T>(T site, System.Func<T, HashSet<int>> visitors, List<int>? saved)
     {
         foreach (int id in saved ?? new List<int>())
@@ -346,6 +362,8 @@ public sealed partial class GameState
             throw new FormatException("terrain de taille incorrecte");
         if (m.Roads != null && (m.Roads.Count != m.Height || m.Roads.Any(row => row.Length != m.Width)))
             throw new FormatException("routes de taille incorrecte");
+        if (m.Rivers != null && (m.Rivers.Count != m.Height || m.Rivers.Any(row => row.Length != m.Width)))
+            throw new FormatException("rivières de taille incorrecte");
         for (int y = 0; y < m.Height; y++)
         for (int x = 0; x < m.Width; x++)
         {
@@ -362,12 +380,19 @@ public sealed partial class GameState
                 throw new FormatException($"terrain inconnu en ({x}, {y})");
             map.SetTerrain(cell, (TerrainType)terrain);
             if (m.Roads != null)
-                map.SetRoad(cell, m.Roads[y][x] switch
-                {
-                    '1' => true,
-                    '0' => false,
-                    _ => throw new FormatException($"route illisible en ({x}, {y})"),
-                });
+            {
+                int road = m.Roads[y][x] - '0';
+                if (!Enum.IsDefined(typeof(RoadKind), road))
+                    throw new FormatException($"route illisible en ({x}, {y})");
+                map.SetRoadKind(cell, (RoadKind)road);
+            }
+            if (m.Rivers != null)
+            {
+                int river = m.Rivers[y][x] - '0';
+                if (!Enum.IsDefined(typeof(RiverKind), river))
+                    throw new FormatException($"rivière inconnue en ({x}, {y})");
+                map.SetRiver(cell, (RiverKind)river);
+            }
         }
         return map;
     }

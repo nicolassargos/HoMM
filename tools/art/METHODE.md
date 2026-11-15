@@ -53,6 +53,9 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   avec `tools/art/pieds.py` (page `revue-pieds.html` : glisser les points, ajouter ou retirer un pied, régler l'étalement).
   Méthode de l'utilisateur : le bas du contour entre le pixel le plus à gauche et le plus à droite, fermé par un arc au-dessus,
   puis des bagues de plus en plus claires.
+- Les héros de la carte (2026-11-15) : seules les images fixes ont des pieds (la marche et l'ouest en miroir les
+  reprennent) ; `pieds.py page heroes/` ne montre qu'eux. Les 48 propositions étaient presque toutes justes ; le
+  nord-est demande souvent un second pied (le sabot avant, plus haut).
 - Ce que la revue a appris (les propositions corrigées) : les pieds proposés étaient trop larges (1 à 2 pixels de chaque côté)
   et un pixel trop haut (corrigé dans `proposer`) ; un sommet ne garde qu'une petite base au milieu ; le château a un
   second pied le long de la rangée de tours du fond ; une mine a un pied par objet (un arbre collé à la cabane, une souche,
@@ -64,6 +67,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - Forêts et montagnes : des arbres et des sommets seuls (`art/decor/`) semés par le jeu (`DecorLayer`) ; écarté : une
   image par case (trous réguliers).
 - Terrains : deux images par terrain (`grass-2.png`…), les bords sont calculés par le shader (pas d'images de bords).
+- Routes (2026-11-15) : une case de 32 px par sorte (`terrain/road.png` terre, `road-gravel.png`, `road-cobbles.png`),
+  Retro Diffusion `rd_tile__single_tile`, 4 candidats chacune (0,24 $) ; **les juger en jeu** (l'utilisateur ne choisit
+  pas sur la case seule : copier chaque jeu dans `godot/art/terrain/`, capturer, remettre). PixelLab : « tiles pro »
+  demande un abonnement Tier 1 ; ses jeux de transition (`pixellab.py tuiles`, environ 0,1 $) donnent une case qui se
+  répète sans couture, mais plate et terne pour la terre et le gravier (Retro Diffusion bien meilleur) ; leurs bords
+  d'herbe plaisaient à l'utilisateur (le liseré clair, l'ombre sur la route).
   Herbe (2026-11-09) : demander « natural mid green… not lime, not too saturated » ; Retro Diffusion ignore les petites
   fleurs d'une case : les fleurs, cailloux et plages de sable sont dessinés par le shader (`terrain.gdshader`), sans
   répétition et réglables (`--ground=`).
@@ -247,6 +256,27 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     le jeu dessine le tas et le sillon de mottes (une carte de hauteurs vue un peu d'en haut, pas de côté ni d'en haut)
     qui s'affaisse en s'effaçant ; les images de la transformation et de l'attaque calées pour que la terre touche le bas
     de la case.
+  - **La vue d'ensemble** (2026-11-15, demandée par l'utilisateur à chaque créature commencée ou finie) :
+    `python -I tools/art/apercu_faction.py <id>` écrit `art-candidats/en-cours/ensemble-<id>.html`, sa faction et les
+    créatures de son niveau, animations jouées : on juge le style de toute la faction, pas une image seule.
+  - **Des fonds de papier blanc** restent sur bien des candidats (« plenty of white pixels ») : remplir depuis le bord
+    et effacer aussi les taches blanches enfermées (par exemple entre un bras et le corps), en gardant l'original.
+  - **Une image nette** : une image fixe gardée à sa taille de génération (le Tourmenteur, le Démon) est bien plus nette
+    qu'une image réduite (la Succube, un peu floue) ; générer à la taille du jeu quand c'est possible.
+  - **Un fluide** (le Limon de magma) : son attente tourne sans pause (`idlePauseMax` 0), et un mouvement lent se fait en
+    **32 images** (`--images=32`, à 20 images/s, `moveFrames` 32) : en 16 images, il glissait ou on voyait les images
+    manquer.
+  - **Un objet lancé et ramené** (la chaîne du Tourmenteur) : l'animation `throw` (un état à part de l'attaque) ; le jeu
+    dessine la chaîne avec **les pixels de l'image** (un maillon et le crochet découpés, posés en `-chain.png` et
+    `-hook.png`) ; un point de départ par image (`throwPoints`), pris à l'intérieur de la chaîne dessinée, pour qu'il n'y
+    ait pas de trou ; nombre de maillons arrondi vers le haut. Une chaîne dessinée autrement que celle de l'image se
+    remarque tout de suite.
+  - **Le feu ou les traînées de PixelLab** (Démon, Tourmenteur, Cultistes) : les retirer des feuilles (les pixels très
+    rouges, r ≥ 235, puis les restes isolés) et laisser le jeu dessiner l'effet. Un jet de feu au corps à corps :
+    `meleeProjectile` (« flammes ») dans `animations.json` ; il reprend les outils du feu des sorts (`SpellEffects.FireJet` :
+    paliers de couleur de la Boule de feu, boule qui bouillonne, fumée, braises) : un jet fait de couches unies ne
+    ressemblait pas à du feu.
+  - Une créature qui vole trop vite (le Diablotin) : `stepTime` (0,3 s par case pour un petit volant).
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).
@@ -367,6 +397,18 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   le contour noir épais des villes de PixelLab s'adoucit avec `adoucir.py` (0,7, 60, 2 passes : le bord prend une teinte
   sombre de sa couleur), sans dépense. Le candidat aimé, donné comme modèle, garde la disposition d'un lot à l'autre.
 
+## Ponts de la carte (Retro Diffusion, 2026-11-15)
+- Les juger **en jeu, sur la rivière**, à ×2 : à leur taille, on ne voit rien. Les captures : `--center=bridge`,
+  `bridge:9` (avec une route ; seed 42), `ford` et `ford:2` (une route sur un ruisseau, dans les deux sens).
+- **Accorder les couleurs par rang de luminosité** : chaque pixel prend la couleur du modèle au même rang (pas la plus
+  proche, qui fond les planches en un seul ton) ; les joints et les bords restent lisibles. Gratuit, et chaque fois réussi.
+- L'**image de départ fixe la forme** (largeur, longueur, angle) : la ramener d'abord à la bonne longueur (`reduire.py`),
+  la recentrer sur ses pixels. Ce qui a raté : **tourner de 90° une vue de côté** (le pont de pierre d'ouest en est,
+  mince, devient une bande étroite de pierres) ; **partir d'une image de bois pour la pierre** (les rambardes de bois
+  restent). Ce qui a marché : partir de la forme juste repeinte aux couleurs voulues (le bois du nord au sud aux couleurs
+  de la pierre), force 0,8 ; les petits ponts à partir des grands réduits, force 0,5.
+- Retro Diffusion dessine la pierre presque de côté et grise froide : la réchauffer vers la pierre du temple (rouge × 1,2).
+
 ## Grands objets de la carte (mines…)
 - **Méthode** : des **pièces** séparées faites par Retro Diffusion (`assets.json`, groupe `pieces/` : cabane, chariot,
   chevalet, souches, entrée de mine, chariot sur rails…), **sans socle**, puis **assemblées** aux proportions de Heroes
@@ -406,6 +448,52 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (page à curseurs `en-cours/heros-elan.html` pour régler vitesse, élan et moment avec l'utilisateur).
 - Montrer une marche **jouée**, à la taille et à la vitesse du jeu, sur place et en avançant sur l'herbe : la planche
   d'images ne permet pas de juger les jambes.
+- **Les 8 directions** (2026-11-15) : `pixellab.py tourner image.png dossier --vue="high top-down" --description="…"`
+  (« Generate 8 rotations » Pro, 0,06 $ le lot ; l'ordre réel des images à l'écran est sud, sud-est, est, nord-est,
+  nord, nord-ouest, ouest, sud-ouest : la documentation le donne en miroir) ; la v3 garde mieux le dessin d'origine
+  mais rate des directions. Puis une marche par direction avec `animer --enrichir` sur l'image tournée (environ 0,02 $
+  l'essai : deux essais par direction suffisent) ; 5 directions suffisent, l'ouest en miroir. Les vues de face et de dos
+  bougent peu les jambes : c'est normal.
+- La recette d'une faction (le nécromancien, 2026-11-15, environ 0,50 $) : l'image fixe par `pro` à 48 avec le sud-est
+  du chevalier (`hero-chateau-se.png`) comme style, deux idées de 25 essais (garder un **étendard rouge** : le jeu le
+  peint de la couleur du joueur) ; puis `tourner` (deux lots Pro et un v3, à choisir), puis les marches. « Pro » rend
+  parfois un fond blanc opaque : `tourner` le retire.
+- **Ce que veut l'utilisateur** (le rôdeur, 2026-11-15) : **l'est vu de côté** et **le sud-est tourné vers le sud**. Les
+  rotations « Pro » donnent un est et un sud-est presque pareils (trois quarts) ; la caméra « side » n'y change rien.
+  L'est : `pro` à 48, « seen from the side, facing right, the horse in full profile with all four legs visible »,
+  l'est du chevalier (`hero-chateau-e.png`) comme style, l'image choisie comme modèle. Le sud-est : `pro` **sans style**
+  (« - », sinon les essais gardent l'angle du style), « front three-quarter view from above: the horse comes toward the
+  viewer, turned only a little to the right… », la vue de face, le profil et l'image choisie comme modèles ; un essai
+  tourné vers la gauche sert aussi, retourné. Vérifier ensuite que chaque vue est posée au même sol (rangée 45).
+  Si le sud-est reste de trois quarts (le nécromancien), prendre **le sud-est du rôdeur (`hero-foret-se.png`) comme
+  style** : c'est le style qui fixe l'angle. La vue de face en modèle tire vers le plein sud (et vers un fond blanc).
+  Mesurer la hauteur des essais (45 comme les autres vues ; l'utilisateur voit tout de suite un dessin plus petit) et
+  retirer les plus petits de la page. Écrire la couleur de la cape dans la description (sinon elle sort sombre).
+  Le sud-est du chef barbare n'a jamais été juste (six lots) : il garde l'ancien.
+- **Le magicien de la Tour** (2026-11-15) : nos vues de l'est (chevalier, rôdeur) ne sont **pas de vrais profils** ; une
+  image fixe de trois quarts en modèle tire aussi les essais vers le trois quarts. Pour un vrai est : **seulement les
+  cavaliers des images de combat** (`creatures/battle/cavalier.png`, `nomades.png`) comme modèles, sans style, « pure
+  side view like a side-scrolling game… we do not see its chest ». Le dessin change un peu : le corriger par le code
+  (chaque pixel à la couleur la plus proche de la palette de l'image fixe ; le drapeau et la hampe de l'image fixe à la
+  place des siens). Le sud-est vient à 40-42 pixels quoi qu'on fasse : l'agrandir au plus proche voisin (46). Vérifier
+  que le drapeau flotte vers l'arrière dans chaque vue (le nord-est le portait vers l'avant : retourné autour de la
+  hampe). Une marche trop lente : « walks briskly with long quick strides ». Regarder chaque lot soi-même et mesurer
+  les hauteurs **avant** de faire une page.
+- **Le démoniste de l'Enfer** (2026-11-15) : **partir de l'est** (vrai profil d'après les cavaliers des images de combat)
+  et faire tourner l'est (`tourner`, « Pro ») pour le sud, le nord-est et le nord : le cheval garde ses proportions (les
+  vues tirées d'une image fixe de trois quarts donnaient un poney à côté du grand cheval de l'est). Comparer **la taille
+  du corps** (sans drapeau ni hampe) d'une vue à l'autre, pas seulement la hauteur totale. **Pas de rouge hors du
+  drapeau** (le jeu le peint de la couleur du joueur) : un feu passe à l'orange par le code ; écrire « no red anywhere
+  except the banner » dans la description.
+- **Le Seigneur des abîmes du Donjon** (2026-11-15) : proposer les idées **directement de côté** (les cavaliers des images
+  de combat en modèles, sans style), puis tourner l'est choisi : une seule recette, le même cheval partout. Le sud-est
+  tourné vers le sud reste le point faible : le cheval y prend souvent un cou arqué tête basse (« un chameau ») ;
+  regarder le cou à ×6 avant de montrer une page. Une retouche (« Edit images ») d'un sud-est déjà réussi garde la pose
+  mais raccourcit les jambes.
+- **Le thane des Nains** (2026-11-15) : la même recette (idées de côté, rotation de l'est choisi, sud-est au style du
+  rôdeur) a marché du premier coup sur un bélier. Passer les rouges hors du drapeau au brun **avant** de tourner l'image
+  (sinon toutes les vues les gardent). Regarder la hampe du drapeau : PixelLab la coupe souvent à la main du cavalier ;
+  la prolonger par le code avant les marches.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

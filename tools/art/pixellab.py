@@ -27,10 +27,17 @@ La clé d'API est lue dans la variable d'environnement PIXELLAB_API_KEY (jamais 
     python -I tools/art/pixellab.py retoucher image.png dossier "changement" [graine]
         modifie une image d'après un texte (« Edit images », Pro), en gardant sa forme et sa pose ; coûte de l'argent ;
         option --fond : garder le fond (sinon ce que PixelLab prend pour le fond devient transparent)
+    python -I tools/art/pixellab.py tourner image.png dossier [graine]
+        les 8 directions d'un personnage d'après une image (« Generate 8 rotations ») : dossier/sud.png, sud-ouest.png…
+        et dossier/feuille.png ; options : --v3 (le modèle v3, sinon Pro « rotate_character »), --vue="high top-down"
+        (Pro : « low top-down » par défaut, ou « side »), --description="…" ; coûte de l'argent
     python -I tools/art/pixellab.py repeindre image.png sortie.png x y largeur hauteur "description" [graine]
         repeint seulement le rectangle donné (en pixels de l'image), le reste ne change pas (« Inpaint », Pro) ;
         coûte de l'argent
-
+    python -I tools/art/pixellab.py tuiles dossier taille "dessous" "dessus" [graine] [dessous.png]
+        des cases de sol vues de dessus (« Create tileset », standard : 16 cases de transition entre deux terrains) ;
+        la case toute « dessus » se répète sans couture : dossier/dessus.png ; <dessous.png> (une case du jeu) guide le
+        terrain du dessous ; écrit aussi dossier/1.png… et dossier/planche.png ; coûte de l'argent
 La première image rendue est l'image d'entrée elle-même. Seule la bibliothèque standard de Python est utilisée.
 """
 
@@ -328,12 +335,121 @@ def repeindre(image, sortie, x, y, largeur, hauteur, description, graine=None):
     print(f"{sortie} : {len(images)} image(s) (coût : {cout.get('usd')} $)")
 
 
+#: L'ordre des images rendues par « Generate 8 rotations » (Pro), vues à l'écran : la documentation dit sud, sud-ouest,
+#: ouest…, mais la deuxième image regarde vers le bas à droite de l'écran (vérifié sur le chevalier, 2026-11-14).
+DIRECTIONS = ["sud", "sud-est", "est", "nord-est", "nord", "nord-ouest", "ouest", "sud-ouest"]
+
+
+def retirer_fond_blanc(chemin):
+    """
+    Rend transparent le fond blanc opaque que « Generate 8 rotations » (Pro) rend parfois malgré « no_background »
+    (le nécromancien, 2026-11-15) : le blanc presque pur touché depuis les bords, puis les poches de la même couleur
+    enfermées (entre l'étendard et la tête) ; un cheval pâle n'est pas si blanc.
+    """
+    from reduire import ecrire, lire
+    w, h, px = lire(chemin)
+    blanc = lambda c: c[3] > 0 and c[0] >= 245 and c[1] >= 245 and c[2] >= 240
+    if sum(blanc(c) for r in px for c in r) < w * h // 4:
+        return  # pas de fond blanc
+    vus = set()
+    pile = [(x, y) for x in range(w) for y in (0, h - 1)] + [(x, y) for y in range(h) for x in (0, w - 1)]
+    while pile:
+        x, y = pile.pop()
+        if (x, y) in vus or not (0 <= x < w and 0 <= y < h) or not (px[y][x][3] == 0 or blanc(px[y][x])):
+            continue
+        vus.add((x, y))
+        px[y][x] = (0, 0, 0, 0)
+        pile += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+    for r in px:
+        for x, c in enumerate(r):
+            if c[3] and c[0] >= 250 and c[1] >= 250 and c[2] >= 246:
+                r[x] = (0, 0, 0, 0)
+    ecrire(chemin, px)
+
+
+def tourner(image, dossier, methode="pro", graine=None, vue="low top-down", description=None):
+    """Les 8 directions d'un personnage à partir d'une image : « pro » (Pro, rotate_character) ou « v3 »."""
+    w, h = taille_png(image)
+    if methode == "v3":
+        corps = {"first_frame": image_base64(image), "no_background": True, "seed": graine or 0}
+        if description:
+            corps["description"] = description
+        r = requete("POST", "/generate-8-rotations-v3", corps)
+    else:
+        corps = {"method": "rotate_character", "view": vue, "no_background": True,
+                 "reference_image": {"image": image_base64(image), "width": w, "height": h},
+                 "image_size": {"width": max(w, 32), "height": max(h, 32)}}
+        if graine is not None:
+            corps["seed"] = graine
+        if description:
+            corps["description"] = description
+        r = requete("POST", "/generate-8-rotations-v2", corps)
+    etat = attendre(r["background_job_id"])
+    reponse = etat["last_response"]
+    images = reponse.get("images") if isinstance(reponse, dict) else reponse
+    os.makedirs(dossier, exist_ok=True)
+    chemins = []
+    # v3 part de la direction de l'image donnée et tourne : ses images sont numérotées (1 : celle de l'image donnée)
+    noms = DIRECTIONS if methode != "v3" else [str(i) for i in range(1, 9)]
+    for nom, img in zip(noms, images):
+        chemin = os.path.join(dossier, f"{nom}.png")
+        with open(chemin, "wb") as f:
+            f.write(decoder(img))
+        retirer_fond_blanc(chemin)
+        chemins.append(chemin)
+    feuille(chemins, os.path.join(dossier, "feuille.png"))
+    cout = etat.get("usage") or r.get("usage") or {}
+    print(f"{dossier} : {len(chemins)} directions (coût : {cout.get('usd')} $ / {cout.get('generations')} générations)")
+
+
+def tuiles(dossier, taille, dessous, dessus, graine=None, modele=None):
+    """Un jeu de cases de transition (« Create tileset », standard) entre deux terrains ; la case toute « dessus » se
+    répète sans couture : dossier/dessus.png ; toutes les cases dans dossier/1.png… et dossier/planche.png."""
+    corps = {"lower_description": dessous, "upper_description": dessus, "tile_size": {"width": taille, "height": taille},
+             "mode": "standard", "transition_size": 0.0, "view": "high top-down"}
+    if graine is not None:
+        corps["seed"] = graine
+    if modele:
+        corps["lower_reference_image"] = image_base64(modele)
+    r = requete("POST", "/create-tileset", corps)
+    attendre(r["background_job_id"])
+    etat = requete("GET", f"/tilesets/{r['tileset_id']}")
+    os.makedirs(dossier, exist_ok=True)
+    chemins = []
+    for i, case in enumerate(etat["tileset"]["tiles"], start=1):
+        chemin = os.path.join(dossier, f"{i}.png")
+        with open(chemin, "wb") as f:
+            f.write(decoder(case["image"]))
+        chemins.append(chemin)
+        if all(v == "upper" for v in case.get("corners", {}).values()):
+            with open(os.path.join(dossier, "dessus.png"), "wb") as f:
+                f.write(decoder(case["image"]))
+    feuille(chemins, os.path.join(dossier, "planche.png"))
+    cout = etat.get("usage") or r.get("usage") or {}
+    print(f"{dossier} : {len(chemins)} case(s) (coût : {cout.get('usd')} $)")
+
+
 def main():
-    if len(sys.argv) < 2 or sys.argv[1] not in ("solde", "animer", "ui", "panneau", "creer", "pro", "retoucher", "repeindre"):
+    if len(sys.argv) < 2 or sys.argv[1] not in ("solde", "animer", "ui", "panneau", "creer", "pro", "retoucher", "repeindre",
+                                                "tourner", "tuiles"):
         sys.exit(__doc__)
     a = sys.argv
     if a[1] == "solde":
         solde()
+    elif a[1] == "tuiles":
+        if len(a) < 5:
+            sys.exit(__doc__)
+        if len(a) < 6:
+            sys.exit(__doc__)
+        tuiles(a[2], int(a[3]), a[4], a[5], int(a[6]) if len(a) > 6 else None, a[7] if len(a) > 7 else None)
+    elif a[1] == "tourner":
+        options = [x for x in a[2:] if x.startswith("--")]
+        a = [x for x in a[2:] if not x.startswith("--")]
+        if len(a) < 2:
+            sys.exit(__doc__)
+        vue = next((x.split("=", 1)[1] for x in options if x.startswith("--vue=")), "low top-down")
+        description = next((x.split("=", 1)[1] for x in options if x.startswith("--description=")), None)
+        tourner(a[0], a[1], "v3" if "--v3" in options else "pro", int(a[2]) if len(a) > 2 else None, vue, description)
     elif a[1] == "retoucher":
         fond = "--fond" in a
         a = [x for x in a if x != "--fond"]

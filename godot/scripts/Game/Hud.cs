@@ -621,10 +621,12 @@ public partial class Hud : CanvasLayer
         if (hovered is not { } cell || !Viewer.Fog.IsExplored(cell))
             return "";
         var terrain = _state.Map.GetTerrain(cell);
-        int? days = ShownHero != null && (TerrainInfo.IsPassable(terrain) || _state.Map.IsWater(cell)) ? _state.DaysTo(cell) : null;
+        var river = _state.Map.GetRiver(cell);
+        bool walkable = TerrainInfo.IsPassable(terrain) && river != RiverKind.River;
+        int? days = ShownHero != null && (walkable || _state.Map.IsWater(cell)) ? _state.DaysTo(cell) : null;
         // l'eau : on y va en bateau (seulement si le héros peut l'atteindre)
-        bool passable = TerrainInfo.IsPassable(terrain) || (_state.Map.IsWater(cell) && days != null);
-        string line = Texts.CellLine(terrain, _state.Map.HasRoad(cell), passable ? _state.Map.MoveCost(cell) : null, days);
+        bool passable = walkable || (_state.Map.IsWater(cell) && days != null);
+        string line = Texts.CellLine(terrain, _state.Map.HasRoad(cell), passable ? _state.Map.MoveCost(cell) : null, days, river);
         var obj = _state.Map.OccupantAt(cell);
         // un héros adverse sur la case : son nom, sa couleur et le danger de l'attaquer (son bonus compte)
         if (_state.EnemyHeroAt(cell, Viewer) is { } enemy)
@@ -791,7 +793,7 @@ public partial class Hud : CanvasLayer
 
     /// <summary>
     /// La fenêtre des options (bouton du panneau ou Échap) : sauvegarder, charger, plein écran, menu principal, quitter,
-    /// un bouton par ligne.
+    /// un bouton par ligne ; puis le volume du son.
     /// </summary>
     public void ShowOptions() => Enqueue(done =>
     {
@@ -828,6 +830,7 @@ public partial class Hud : CanvasLayer
             button.Pressed += () => Close(action);
             content.AddChild(button);
         }
+        content.AddChild(VolumeSliders.Make(320));
         var note = MakeLabel(Texts.OptionsText, 13, SoftTextColor);
         note.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         note.CustomMinimumSize = V(320, 0);

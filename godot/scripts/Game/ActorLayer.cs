@@ -17,9 +17,24 @@ public partial class ActorLayer : Node2D
     // Pixel art : les images agrandies restent nettes
     public override void _Ready() => TextureFilter = TextureFilterEnum.Nearest;
 
+    /// <summary>
+    /// Développement (« --hero-walk ») : le héros choisi fait sans cesse le tour d'un octogone, un pas dans chacune des
+    /// 8 directions (montré seulement : les règles ne le déplacent pas).
+    /// </summary>
+    public bool WalkPreview { get; set; }
+
+    private static readonly Cell[] Octagon = { new(0, -1), new(1, -1), new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1) };
+
     public override void _Process(double delta)
     {
         _time += delta;
+        if (WalkPreview && State.CurrentHero is { } walker)
+        {
+            var at = walker.Position;
+            for (int i = 0; i < (int)(_time / MapRenderer.HeroStepTime) % Octagon.Length; i++)
+                at = new Cell(at.X + Octagon[i].X, at.Y + Octagon[i].Y);
+            ShownAt[walker] = at;
+        }
         QueueRedraw();
     }
 
@@ -30,11 +45,11 @@ public partial class ActorLayer : Node2D
     public Dictionary<Hero, Cell> ShownAt { get; } = new();
 
     /// <summary>
-    /// Pour chaque héros, son dernier pas : d'où, vers où, quand il a commencé, s'il regarde vers la gauche, et le
+    /// Pour chaque héros, son dernier pas : d'où, vers où, quand il a commencé, où il regarde, et le
     /// nombre de pas de suite (la marche fait un cycle d'images en deux pas) ; <c>Ahead</c> : un pas commencé avant que
     /// les règles ne déplacent le héros (<see cref="BeginStep"/>).
     /// </summary>
-    private readonly Dictionary<Hero, (Cell From, Cell To, double Since, bool Left, int Steps, bool Ahead)> _motion = new();
+    private readonly Dictionary<Hero, (Cell From, Cell To, double Since, MapRenderer.HeroFacing Facing, int Steps, bool Ahead)> _motion = new();
 
     /// <summary>
     /// Le héros du joueur commence un pas vers <paramref name="to"/> : il y glisse pendant <see cref="MapRenderer.HeroStepTime"/>,
@@ -48,23 +63,23 @@ public partial class ActorLayer : Node2D
         if (_motion.TryGetValue(hero, out var motion))
         {
             from = motion.To;
-            left = motion.Left;
+            left = motion.Facing.Left;
             // une marche qui continue garde son cycle d'images
             steps = _time - motion.Since < MapRenderer.HeroStepTime * 1.5 ? motion.Steps + 1 : 0;
         }
         left = to.X < from.X || (to.X == from.X && left);
-        _motion[hero] = (from, to, _time, left, steps, ahead);
+        _motion[hero] = (from, to, _time, new(Math.Sign(to.X - from.X), Math.Sign(to.Y - from.Y), left), steps, ahead);
     }
 
     /// <summary>
-    /// Où montrer un héros (en pixels, le coin de sa case), et comment : tourné vers où il est allé en dernier (vers la
-    /// gauche ou la droite), et l'image de sa marche pendant un pas (-1 : l'image fixe).
+    /// Où montrer un héros (en pixels, le coin de sa case), et comment : tourné vers où il est allé en dernier, et
+    /// l'image de sa marche pendant un pas (-1 : l'image fixe).
     /// </summary>
-    public (Vector2 At, bool Left, int Frame) HeroPose(Hero hero)
+    public (Vector2 At, MapRenderer.HeroFacing Facing, int Frame) HeroPose(Hero hero)
     {
         var at = ShownAt.TryGetValue(hero, out var shown) ? shown : hero.Position;
         if (!_motion.TryGetValue(hero, out var motion))
-            motion = _motion[hero] = (at, at, double.NegativeInfinity, false, 0, false);
+            motion = _motion[hero] = (at, at, double.NegativeInfinity, default, 0, false);
         else if (motion.To != at && !(motion.Ahead && motion.From == at && _time - motion.Since < MapRenderer.HeroStepTime))
         {
             // un pas que les règles ont déjà fait (les adversaires rejoués), ou un pas commencé que les règles n'ont pas
@@ -73,19 +88,19 @@ public partial class ActorLayer : Node2D
             if (step && !(motion.Ahead && at == motion.From))
                 Step(hero, at, ahead: false);
             else
-                _motion[hero] = (at, at, double.NegativeInfinity, motion.Left, 0, false);
+                _motion[hero] = (at, at, double.NegativeInfinity, motion.Facing, 0, false);
             motion = _motion[hero];
         }
         double p = (_time - motion.Since) / MapRenderer.HeroStepTime;
         if (p >= 1)
-            return (ToPixels(motion.To), motion.Left, -1);
+            return (ToPixels(motion.To), motion.Facing, -1);
         var from = ToPixels(motion.From);
         var pixels = from + (ToPixels(motion.To) - from) * (float)MapRenderer.HeroStepShare(p);
         // sur la grille des pixels d'art (2 pixels de l'écran)
         pixels = (pixels / 2).Round() * 2;
-        int frames = MapRenderer.HeroWalkFrames(hero);
+        int frames = MapRenderer.HeroWalkFrames(hero, motion.Facing);
         int frame = frames > 0 ? (int)((motion.Steps + p) / 2 * frames) % frames : -1;
-        return (pixels, motion.Left, frame);
+        return (pixels, motion.Facing, frame);
     }
 
     public override void _Draw()
@@ -110,8 +125,8 @@ public partial class ActorLayer : Node2D
             MapRenderer.DrawSelection(this, HeroPose(selected).At + half + new Vector2(0, 14 * t / 48f), _time);
         foreach (var hero in State.AllHeroes)
         {
-            var (at, left, frame) = HeroPose(hero);
-            MapRenderer.DrawHero(this, at + half + new Vector2(0, 4), _time, hero, left, frame, hero.AtSea(State.Map));
+            var (at, facing, frame) = HeroPose(hero);
+            MapRenderer.DrawHero(this, at + half + new Vector2(0, 4), _time, hero, facing, frame, hero.AtSea(State.Map));
         }
         // (la case survolée n'est plus encadrée : le panneau la décrit, cela suffit)
     }

@@ -117,8 +117,8 @@ public partial class ShadowLayer : Node2D
                 draw(ci, art.Image, art.Rect);
         foreach (var hero in State.AllHeroes)
         {
-            var (at, left, frame) = Actors.HeroPose(hero);
-            if (MapRenderer.HeroArt(hero, at, left, frame) is { } art)
+            var (at, facing, frame) = Actors.HeroPose(hero);
+            if (MapRenderer.HeroArt(hero, at, facing, frame) is { } art)
                 draw(ci, art.Image, art.Rect);
         }
     }

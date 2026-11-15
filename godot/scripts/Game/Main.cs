@@ -77,7 +77,8 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
-        Settings.Load(); // les réglages du joueur (vitesse des projectiles…)
+        Settings.Load(); // les réglages du joueur (vitesse des projectiles, volumes…)
+        Audio.Start(GetTree()); // une seule fois : le son survit quand la scène est relancée
         // plein écran au lancement (l'écran de 1920 × 1080 passait sous la barre des tâches) ; pas pour une capture
         if (!_windowModeSet)
         {
@@ -107,6 +108,7 @@ public partial class Main : Node2D
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
+        Audio.PlayMusic("map");
         // Développement : « --rich » : le joueur a de quoi tout bâtir et tout recruter, remis au plein chaque jour (Enrich)
         Enrich();
         // Développement : « --boat » : un bateau amarré sur l'eau la plus proche du héros, au bord d'une rive
@@ -130,7 +132,8 @@ public partial class Main : Node2D
             PaintTerrainTest();
 
         AddChild(new TerrainLayer { Map = _state.Map });
-        _actors = new ActorLayer { State = _state };
+        AddChild(new BridgeLayer { Map = _state.Map });
+        _actors = new ActorLayer { State = _state, WalkPreview = OS.GetCmdlineUserArgs().Contains("--hero-walk") };
         AddChild(new ShadowLayer { State = _state, Actors = _actors }); // sous le décor et les objets
         AddChild(new DecorLayer { Map = _state.Map });
         AddChild(_actors);
@@ -270,6 +273,28 @@ public partial class Main : Node2D
             var kind = centerArg["--center=".Length..] is "sites" ? "tower" : centerArg["--center=".Length..];
             if (_state.Map.Objects.FirstOrDefault(o => SiteKind(o) == kind) is { } site)
                 _camera.CenterOn(site.Position);
+            // « --center=bridge » : le premier pont d'une rivière ; « stream » : un ruisseau ; « ford » : une route qui croise
+            // un ruisseau
+            // (« --center=road-change:3 » : le troisième endroit de ce genre)
+            int rank = kind.Split(':') is [_, var r] && int.TryParse(r, out int n) ? Math.Max(1, n) : 1;
+            kind = kind.Split(':')[0];
+            var map = _state.Map;
+            Func<Cell, bool>? wanted = kind switch
+            {
+                "bridge" => c => map.GetRiver(c) == RiverKind.Bridge,
+                "stream" => c => map.GetRiver(c) == RiverKind.Stream,
+                "ford" => c => map.GetRiver(c) == RiverKind.Stream && map.HasRoad(c),
+                // une route qui change de sorte (d'une zone à l'autre)
+                "road-change" => c => map.HasRoad(c) && new[] { c.Offset(1, 0), c.Offset(0, 1) }
+                    .Any(n => map.InBounds(n) && map.HasRoad(n) && map.GetRoadKind(n) != map.GetRoadKind(c)),
+                // une route sur le sable, sable aussi des deux côtés (« road-sand:2 » : la deuxième)
+                "road-sand" => c => map.HasRoad(c) && new[] { c, c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) }
+                    .All(n => !map.InBounds(n) || map.GetTerrain(n) == TerrainType.Sand),
+                _ => null,
+            };
+            if (wanted != null && Enumerable.Range(0, map.Width * map.Height).Select(i => new Cell(i % map.Width, i / map.Width))
+                    .Where(wanted).Skip(rank - 1).Take(1).ToList() is [var found])
+                _camera.CenterOn(found);
         }
         static string? SiteKind(MapObject o) => o switch
         {
@@ -286,6 +311,8 @@ public partial class Main : Node2D
             SeaChest => "sea-chest",
             Whirlpool => "whirlpool",
             Lighthouse => "lighthouse",
+            AbandonedShip => "abandoned-ship",
+            MonsterGuard { Type.Sea: true } => "pirates",
             _ => null,
         };
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
@@ -713,6 +740,7 @@ public partial class Main : Node2D
     private void ShowMainMenu()
     {
         _inMenu = true;
+        Audio.PlayMusic("menu");
         var menu = new MainMenu();
         AddChild(menu);
         menu.Build(GetViewportRect().Size);
@@ -985,6 +1013,7 @@ public partial class Main : Node2D
         {
             MonsterGuard guard => guard.Army,
             Town town => town.Garrison,
+            AbandonedShip ship => ship.Crew,
             HeroDefender defender => defender.Hero.Army,
             _ => new Army(),
         });
@@ -1058,6 +1087,7 @@ public partial class Main : Node2D
         {
             if (Texts.Message(e, viewer) is { } message)
                 _hud.AddMessage(message);
+            Audio.PlayFor(e, viewer);
 
             switch (e)
             {

@@ -24,6 +24,9 @@ public partial class BattleScreen : CanvasLayer
     private Vector2 _screen;
     private TacticalBattle? _battle;
     private Action? _finished;
+
+    /// <summary>La musique d'avant le combat (la carte, la ville), reprise à la fin.</summary>
+    private string? _musicBefore;
     private bool _auto;
     private double _wait;
     private string _opponent = "";
@@ -284,8 +287,8 @@ public partial class BattleScreen : CanvasLayer
     }
 
     /// <summary>
-    /// Les options du combat (comme Heroes 3) : pour l'instant, la vitesse des projectiles (lent, normal, rapide), gardée
-    /// d'une partie à l'autre (<see cref="Settings"/>).
+    /// Les options du combat (comme Heroes 3) : la vitesse des projectiles (lent, normal, rapide) et le volume du son,
+    /// gardés d'une partie à l'autre (<see cref="Settings"/>).
     /// </summary>
     public void OpenOptions()
     {
@@ -306,6 +309,7 @@ public partial class BattleScreen : CanvasLayer
             row.AddChild(button);
         }
         dialog.AddChild(row);
+        dialog.AddChild(VolumeSliders.Make(300));
         AddChild(dialog);
         dialog.PopupCentered();
     }
@@ -364,6 +368,8 @@ public partial class BattleScreen : CanvasLayer
         _message.Text = battle.IsPlacing && battle.PlacementSide == _playerSide && !auto ? Texts.BattlePlacementPrompt(battle.PlacementColumns) : "";
         _field.Start(battle, terrain);
         Visible = true;
+        _musicBefore = Audio.CurrentMusic;
+        Audio.PlayMusic("battle");
         Show(battle.TakeLog());
     }
 
@@ -821,6 +827,7 @@ public partial class BattleScreen : CanvasLayer
         _finished = null;
         Visible = false;
         MapCursor.Show(CursorKind.Pointer);
+        Audio.PlayMusic(_musicBefore ?? "map");
         finished?.Invoke();
     }
 }

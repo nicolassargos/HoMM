@@ -1208,6 +1208,21 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   long quick strides »), nord-est 3 ; posées au sol commun (rangée 45) avec le rebond. Pieds mesurés à la main, pas encore
   revus. Vu en jeu avec `--hero-walk` (l'herbe y paraît bleue sur `main` depuis les rivières, pour toutes les factions :
   signalé à l'utilisateur).
+- ✅ Le héros de l'Enfer sur la carte (2026-11-15, branche `heros-carte-enfer`, PixelLab, environ 1,70 $) : deux idées
+  (a : un démoniste aux petites cornes, robe noire à capuchon aux runes orange, bâton de feu ; b : au masque de crâne de
+  bouc), sur un cheval noir à la crinière de feu ; choisi **a-12**. **Le rouge** : le jeu peint les rouges saturés de la
+  couleur du joueur ; le bout des flammes y tombait : tout rouge hors du drapeau passé à l'orange par le code (le drapeau :
+  une grande tache rouge en haut de l'image ; une première règle qui demandait aussi un rouge sombre a pris le drapeau plus
+  clair d'une marche pour une flamme), et sous la toile du drapeau, dans chaque image des marches, plus aucun rouge (la
+  hampe). **L'est** vraiment de côté du premier coup, d'après les cavaliers des images de combat (choisi le 19) ;
+  l'utilisateur l'a adoré (« the horse looks like a horse ») et trouvait les autres vues, tirées de a-12, à poney : **toutes
+  les vues refaites d'après l'est** (une rotation « Pro » de l'est 19 donne sud, nord-est et nord au grand cheval ; une
+  seconde et une v3 ratées). Le sud-est : sans a-12 comme modèle, le nouveau sud et les sud-est déjà choisis en modèles, le
+  sud-est du rôdeur en style (choisi le 18 du lot 6), mis à la taille du corps de la vue de face. L'ensemble fait 42 à 43
+  pixels de haut ; agrandir tout d'un même facteur (45 ou 46) a été proposé, l'utilisateur le garde tel quel pour l'instant.
+  Marches (« walks briskly with long strides ») : sud 1, sud-est 2, est 1, nord-est 1, nord 2 ; posées au sol commun
+  (rangée 45) avec le rebond. L'image fixe `hero-enfer.png` est le sud-est (a-12 était l'ancien cheval). Pieds mesurés à la
+  main, pas encore revus. Vu en jeu avec `--hero-walk`.
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

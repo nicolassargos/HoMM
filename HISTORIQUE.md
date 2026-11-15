@@ -955,6 +955,16 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
   dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
   Tests : `MerTests`.
+- ✅ Les routes qui ne mènent nulle part (2026-11-15, branche `routes-sans-issue`, demandé par l'utilisateur) : une
+  route est tracée du centre de chaque zone à ses passages ; dans une zone sans ville au bout d'un seul passage, elle
+  finissait au milieu de rien (sur 16 cartes : 126 bouts sans rien, dont une centaine au centre d'une zone, et des
+  tronçons de quelques cases au départ de deux routes). Une fois la carte remplie, `RemoveDeadEndRoads` retire un à un
+  les bouts qui n'arrivent pas à une destination (porte d'une ville, entrée d'une mine, chantier naval, départ) ; le
+  terrain reste (l'herbe d'une route tracée dans une forêt ou une montagne). Le reste de la carte ne change pas (la même
+  graine donne la même carte, routes en moins). Mesuré (adversaires, six semaines, Normal, or d'armée ; avant → après) :
+  continent 46 000 → 47 600, des mers 48 300 → 46 200, îles 31 600 → 27 000, archipel 31 600 → 27 800 (les routes de
+  l'intérieur des îles vers le rivage sont retirées quand aucun chantier ne les attend). Test :
+  `Les_routes_ne_menent_pas_nulle_part`.
 - ✅ La mer, les objets de la mer, seconde partie (2026-11-15, branche `mer-pirates`, choix de l'utilisateur : les pirates,
   une seule créature neutre ; une faction « pirates et monstres de la mer » peut-être plus tard). Le **Pirate** (neutre,
   niveau 3, `"sea": true` dans `creatures.json`, `CreatureType.Sea` : il ne garde que la mer, jamais la terre) : attaque 9,

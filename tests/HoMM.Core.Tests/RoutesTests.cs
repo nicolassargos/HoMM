@@ -77,6 +77,41 @@ public class RoutesTests
         }
     }
 
+    /// <summary>
+    /// Chaque bout de route arrive quelque part (demandé par l'utilisateur, 2026-11-15) : à la porte d'une ville, à l'entrée
+    /// d'une mine, à un chantier naval ; aucune route ne s'arrête au milieu d'une zone vide.
+    /// </summary>
+    [Theory]
+    [InlineData(1, MapSize.Normal, MapType.Continent)]
+    [InlineData(2, MapSize.Normal, MapType.Islands)]
+    [InlineData(3, MapSize.Large, MapType.Continent)]
+    [InlineData(4, MapSize.Normal, MapType.Archipelago)]
+    public void Les_routes_ne_menent_pas_nulle_part(int seed, MapSize size, MapType type)
+    {
+        var map = new GameState(seed, TestData.Data, size, opponents: 1, mapType: type).Map;
+        bool Road(Cell c) => map.InBounds(c) && map.HasRoad(c);
+        var around = new[] { (-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1) };
+        var destinations = map.Objects.SelectMany(o => o switch
+        {
+            Town town => new[] { town.Approach },
+            Mine mine => new[] { mine.Approach },
+            Shipyard shipyard => around.Select(d => shipyard.Position.Offset(d.Item1, d.Item2)).ToArray(),
+            _ => System.Array.Empty<Cell>(),
+        }).ToHashSet();
+        for (int y = 0; y < map.Height; y++)
+        for (int x = 0; x < map.Width; x++)
+        {
+            var c = new Cell(x, y);
+            if (!Road(c) || destinations.Contains(c))
+                continue;
+            var near = around.Select(d => c.Offset(d.Item1, d.Item2)).Where(Road).ToList();
+            bool deadEnd = near.Count <= 1
+                           || near.Count == 2 && System.Math.Max(System.Math.Abs(near[0].X - near[1].X), System.Math.Abs(near[0].Y - near[1].Y)) == 1;
+            Assert.False(deadEnd, $"une route finit sans rien en {c}");
+        }
+        Assert.Contains(destinations, Road);
+    }
+
     [Fact]
     public void Les_routes_sont_sauvegardees()
     {

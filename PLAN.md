@@ -920,8 +920,9 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   défaut, **prendre toutes les villes**, comme Heroes 3 ; **les parties longues sont acceptées** (la simulation seule
   prend toutes les villes de la normale vers le jour 210).
   Puis (2026-11-14, remarques de l'utilisateur) : ✅ les tours d'observation à 15 cases des bords et à 30 cases l'une de
-  l'autre. **À revoir ensemble** : des routes qui ne mènent nulle part ; un problème du moulin (à en parler) ; **des
-  rivières et des ponts**.
+  l'autre. **À revoir ensemble** : un problème du moulin (à en parler) ; **des rivières et des ponts**.
+  ✅ Plus de routes qui ne mènent nulle part (2026-11-15, branche `routes-sans-issue`) : chaque route arrive à une ville,
+  une mine ou un chantier naval.
   ✅ **Plus de villes sur les grandes cartes** (2026-11-14, demandé par l'utilisateur) : 14 noms de villes les limitaient à
   14 ; avec 40 noms, une ville pour trois zones : grande carte 17 à 20 villes, très grande 30 à 33 (avec les châteaux).
 - **La mer** (conçue avec l'utilisateur, 2026-11-14, comme Heroes 3) :

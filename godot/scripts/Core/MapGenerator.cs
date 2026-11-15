@@ -178,7 +178,51 @@ public sealed class MapGenerator
         if (_data != null)
             PlaceGuards(_data.Creatures);
         RemoveUnreachableGuards();
+        RemoveDeadEndRoads();
         return _map;
+    }
+
+    /// <summary>
+    /// Retire les routes qui ne mènent nulle part (demandé par l'utilisateur, 2026-11-15) : une route est tracée du centre
+    /// de chaque zone à ses passages, même quand rien ne l'attend au centre. Une fois la carte remplie, on retire un à un
+    /// les bouts de route qui n'arrivent pas à une destination : la porte d'une ville (les châteaux de départ compris),
+    /// l'entrée d'une mine, un chantier naval, un départ. Il ne reste que les routes entre ces destinations. Le terrain
+    /// reste tel quel (une route tracée dans une montagne ou une forêt l'a changée en herbe : on y passe toujours).
+    /// </summary>
+    private void RemoveDeadEndRoads()
+    {
+        var destinations = new HashSet<Cell>(_map.Starts.SelectMany(s => new[] { s, s.Offset(0, 1) }));
+        foreach (var obj in _map.Objects)
+            switch (obj)
+            {
+                case Town town:
+                    destinations.Add(town.Approach);
+                    break;
+                case Mine mine:
+                    destinations.Add(mine.Approach);
+                    break;
+                case Shipyard shipyard:
+                    destinations.UnionWith(Neighbours(shipyard.Position));
+                    break;
+            }
+        bool Road(Cell c) => _map.InBounds(c) && _map.HasRoad(c);
+        // un bout : une case de route qui n'a qu'une voisine de route, ou deux voisines qui se touchent (la route tourne
+        // juste avant de finir) ; la retirer ne coupe jamais la route en deux
+        bool DeadEnd(Cell c)
+        {
+            var near = Neighbours(c).Where(Road).ToList();
+            return near.Count <= 1 || near.Count == 2 && Math.Max(Math.Abs(near[0].X - near[1].X), Math.Abs(near[0].Y - near[1].Y)) == 1;
+        }
+        var ends = new Queue<Cell>(AllCells().Where(c => Road(c) && !destinations.Contains(c) && DeadEnd(c)));
+        while (ends.Count > 0)
+        {
+            var c = ends.Dequeue();
+            if (!Road(c) || destinations.Contains(c) || !DeadEnd(c))
+                continue;
+            _map.SetRoad(c, false);
+            foreach (var n in Neighbours(c).Where(Road))
+                ends.Enqueue(n);
+        }
     }
 
     /// <summary>

@@ -65,8 +65,10 @@ public class RoutesTests
         Cell[] Around(Cell c) => new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1),
             c.Offset(1, 1), c.Offset(-1, 1), c.Offset(1, -1), c.Offset(-1, -1) };
 
-        // une petite route peut finir à l'entrée d'une mine qui touche les murs
-        var mines = map.Objects.OfType<Mine>().Select(m => m.Approach).ToHashSet();
+        // une petite route peut finir à l'entrée d'une mine qui touche les murs, ou à côté d'un lieu
+        var mines = map.Objects.OfType<Mine>().Select(m => m.Approach)
+            .Concat(map.Objects.Where(o => o is Shrine or SageHut or WeeklyProducer or ObservationTower or BlessingSite).SelectMany(o => Around(o.Position)))
+            .ToHashSet();
         foreach (var town in map.Objects.OfType<Town>())
         {
             var walls = town.Footprint.ToHashSet();
@@ -81,7 +83,7 @@ public class RoutesTests
 
     /// <summary>
     /// Chaque bout de route arrive quelque part (demandé par l'utilisateur, 2026-11-15) : à la porte d'une ville, à l'entrée
-    /// d'une mine, à un chantier naval, à un bateau amarré ; aucune route ne s'arrête au milieu d'une zone vide.
+    /// d'une mine, à un chantier naval, à un bateau amarré, à un lieu ; aucune route ne s'arrête au milieu d'une zone vide.
     /// </summary>
     [Theory]
     [InlineData(1, MapSize.Normal, MapType.Continent)]
@@ -97,7 +99,7 @@ public class RoutesTests
         {
             Town town => new[] { town.Approach },
             Mine mine => new[] { mine.Approach },
-            Shipyard shipyard => around.Select(d => shipyard.Position.Offset(d.Item1, d.Item2)).ToArray(),
+            Shipyard or Shrine or SageHut or WeeklyProducer or ObservationTower or BlessingSite => around.Select(d => o.Position.Offset(d.Item1, d.Item2)).ToArray(),
             // la case de terre d'où l'on monte dans un bateau amarré
             Boat boat => new[] { boat.Position.Offset(1, 0), boat.Position.Offset(-1, 0), boat.Position.Offset(0, 1), boat.Position.Offset(0, -1) },
             _ => System.Array.Empty<Cell>(),

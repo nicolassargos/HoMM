@@ -111,8 +111,14 @@ public sealed class MapGenerator
     public const int ZoneWidth = 18;
     public const int ZoneHeight = 13;
 
-    /// <summary>Chance d'ouvrir un passage de plus entre deux zones voisines (en plus de ceux qui relient tout).</summary>
-    public double ExtraPassageChance { get; init; } = 0.25;
+    /// <summary>
+    /// Chance d'ouvrir un passage de plus entre deux zones voisines (en plus de ceux qui relient tout, et de la deuxième
+    /// entrée des culs-de-sac), tant qu'elles en ont moins de <see cref="MaxPassages"/>.
+    /// </summary>
+    public double ExtraPassageChance { get; init; } = 0.4;
+
+    /// <summary>Le nombre de passages au-delà duquel une zone n'en reçoit plus au hasard.</summary>
+    private const int MaxPassages = 3;
 
     /// <summary>Carte de référence pour le nombre d'objets (coffres, tas, monstres errants) : 40 × 30 cases.</summary>
     private const int ReferenceArea = 40 * 30;
@@ -200,7 +206,22 @@ public sealed class MapGenerator
             RoadToNetwork(Neighbours(yard.Position).Where(c => _map.IsPassable(c) && _map.ObjectAt(c) == null).ToList());
         foreach (var landing in _boatLandings)
             RoadToNetwork(new[] { landing });
+        // des sentiers vers les lieux (demandé par l'utilisateur, 2026-11-15 : beaucoup de petites routes), quand une route
+        // passe assez près
+        foreach (var site in _map.Objects.Where(IsPathSite).OrderBy(o => o.Id).ToList())
+            RoadToNetwork(SiteDoorsteps(site), SitePathLength);
     }
+
+    /// <summary>Les lieux où mène un sentier : autels, cabanes du sage, moulins et roues à eau, tours, temples, cercles des fées.</summary>
+    private static bool IsPathSite(MapObject obj) =>
+        obj is Shrine or SageHut or WeeklyProducer or ObservationTower or BlessingSite { Sea: false };
+
+    /// <summary>Les cases libres à côté d'un lieu, d'où l'on y entre (le sentier finit sur l'une d'elles).</summary>
+    private List<Cell> SiteDoorsteps(MapObject site) =>
+        Neighbours(site.Position).Where(c => _map.IsPassable(c) && _map.ObjectAt(c) == null).ToList();
+
+    /// <summary>La longueur au plus d'un sentier vers un lieu (en cases, à peu près) : plus loin, le lieu reste sans route.</summary>
+    private const double SitePathLength = 12;
 
     /// <summary>Les cases de terre d'où l'on monte dans un bateau amarré (<see cref="PlaceMooredBoat"/>).</summary>
     private readonly List<Cell> _boatLandings = new();
@@ -209,7 +230,7 @@ public sealed class MapGenerator
     /// Une route d'une de ces cases jusqu'à la route la plus proche, par des cases libres et praticables (en diagonale sans
     /// couper de coin), qui serpente comme les autres (<see cref="WindingCost"/>).
     /// </summary>
-    private void RoadToNetwork(IReadOnlyCollection<Cell> from)
+    private void RoadToNetwork(IReadOnlyCollection<Cell> from, double maxLength = double.MaxValue)
     {
         if (from.Count == 0 || from.Any(_map.HasRoad))
             return;
@@ -228,6 +249,8 @@ public sealed class MapGenerator
         {
             if (known > cost[c])
                 continue;
+            if (known > maxLength)
+                break;
             if (_map.HasRoad(c))
             {
                 reached = c;
@@ -277,7 +300,7 @@ public sealed class MapGenerator
     /// Retire les routes qui ne mènent nulle part (demandé par l'utilisateur, 2026-11-15) : une route est tracée du centre
     /// de chaque zone à ses passages, même quand rien ne l'attend au centre. Une fois la carte remplie, on retire un à un
     /// les bouts de route qui n'arrivent pas à une destination : la porte d'une ville (les châteaux de départ compris),
-    /// l'entrée d'une mine, un chantier naval, un bateau amarré, un départ. Il ne reste que les routes entre ces destinations. Le terrain
+    /// l'entrée d'une mine, un chantier naval, un bateau amarré, un lieu (<see cref="IsPathSite"/>), un départ. Il ne reste que les routes entre ces destinations. Le terrain
     /// reste tel quel (une route tracée dans une montagne ou une forêt l'a changée en herbe : on y passe toujours).
     /// </summary>
     private void RemoveDeadEndRoads()
@@ -294,6 +317,9 @@ public sealed class MapGenerator
                     break;
                 case Shipyard shipyard:
                     destinations.UnionWith(Neighbours(shipyard.Position));
+                    break;
+                case var site when IsPathSite(site):
+                    destinations.UnionWith(Neighbours(site.Position));
                     break;
             }
         bool Road(Cell c) => _map.InBounds(c) && _map.HasRoad(c);
@@ -968,8 +994,20 @@ public sealed class MapGenerator
             connected.Add(link.A);
             connected.Add(link.B);
         }
+        // plus de passages (demandé par l'utilisateur, 2026-11-15) : une zone qui n'a qu'une entrée (un cul-de-sac) en
+        // reçoit une deuxième ; puis d'autres au hasard, sans dépasser trois passages par zone : plusieurs chemins mènent
+        // d'un bout à l'autre de la carte
+        int Count(int zone) => links.Count(l => l.Item1 == zone || l.Item2 == zone);
+        foreach (var zone in _zones.Where(z => !z.Sea).OrderBy(z => z.Index))
+        {
+            if (Count(zone.Index) >= 2)
+                continue;
+            var more = neighbours.Where(n => (n.A == zone.Index || n.B == zone.Index) && !links.Contains(n)).ToList();
+            if (more.Count > 0)
+                links.Add(more[_rng.Next(more.Count)]);
+        }
         foreach (var n in neighbours)
-            if (!links.Contains(n) && _rng.NextDouble() < ExtraPassageChance)
+            if (!links.Contains(n) && Count(n.A) < MaxPassages && Count(n.B) < MaxPassages && _rng.NextDouble() < ExtraPassageChance)
                 links.Add(n);
         return links;
     }
@@ -2342,6 +2380,9 @@ public sealed class MapGenerator
                 {
                     remaining.Remove(cell);
                     if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null)
+                        continue;
+                    // pas deux obélisques côte à côte (de part et d'autre d'un passage, deux zones se touchent)
+                    if (_map.Objects.OfType<Obelisk>().Any(o => SquaredDistance(o.Position, cell) < 4 * 4))
                         continue;
                     var obelisk = new Obelisk(cell);
                     _map.AddObject(obelisk);

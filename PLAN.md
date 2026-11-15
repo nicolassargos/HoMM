@@ -925,8 +925,8 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   plusieurs tours (une page de cartes entières, ses remarques, des retouches). Décidé : plus de route qui ne mène nulle
   part (chaque route arrive à une ville, une mine, un port) ; une petite route vers les mines proches des villes et vers
   les ports ; les routes serpentent ; les villes neutres bien réparties (chacune dans la zone la plus éloignée des
-  villes déjà posées, un peu au hasard parmi les meilleures). À faire : plus de petites routes et plus de passages entre
-  les zones (l'utilisateur veut les deux). À revoir : une route dans les zones sans ville ; les sortes de routes (terre,
+  villes déjà posées, un peu au hasard parmi les meilleures). Plus de passages entre les zones (chaque zone au moins deux,
+  d'autres au hasard jusqu'à trois) ; des sentiers vers les lieux proches d'une route. À revoir : une route dans les zones sans ville ; les sortes de routes (terre,
   gravier, pavés : après les sols de la carte) ; la quantité de routes.
   ✅ **Plus de villes sur les grandes cartes** (2026-11-14, demandé par l'utilisateur) : 14 noms de villes les limitaient à
   14 ; avec 40 noms, une ville pour trois zones : grande carte 17 à 20 villes, très grande 30 à 33 (avec les châteaux).

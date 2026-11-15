@@ -557,7 +557,8 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   sens, et un petit pont où une route croise un ruisseau. ✅ **Les rives** (2026-11-15, branche `rives`, choix de
   l'utilisateur, détail dans `HISTORIQUE.md`) : toutes les rives (lacs, mer, rivières) changent par tronçons (herbe
   jusqu'à l'eau bordée de terre mouillée, plages de sable plus larges, plages de galets), l'eau claire près du bord et
-  plus sombre au large, des roseaux sur les rives herbeuses, quelques rochers dans l'eau peu profonde. **À continuer**
+  plus sombre au large, des roseaux sur les rives herbeuses et un peu sur le sable, de petites plaques et des touffes d'herbe sur
+  les plages, quelques rochers dans l'eau peu profonde. **À continuer**
   (l'utilisateur) : les rives seront encore travaillées. **Revoir les routes ensuite**. **Plus tard** : redessiner le petit pont de bois d'ouest en est (des marques sur sa face avant) s'il gêne en
   jouant.
   ✅ **Les routes, premières règles (2026-11-15, branche `routes-sans-issue`, détail dans `HISTORIQUE.md`)** : leurs règles se définissent avec l'utilisateur, en

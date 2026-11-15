@@ -148,6 +148,14 @@ uniform vec3 deep_color = vec3(0.08, 0.2, 0.42);
 uniform float reeds = 0.6;
 uniform float reed_share = 0.45;
 uniform float reed_scale = 24.0;
+// sur les plages de sable (pas de galets), la part reed_sand des touffes de roseaux reste
+uniform float reed_sand = 0.3;
+// L'herbe sur les plages : de petites plaques d'herbe au milieu du sable, ni contre l'eau ni contre l'herbe (un bruit
+// doux de beach_patch_scale pixels ; plus beach_patches est grand, plus il y en a), et des touffes semées sur le sable
+// (la part beach_tufts des carrés de 6 pixels, plus côté terre ; deux touffes côte à côte)
+uniform float beach_patches = 0.3;
+uniform float beach_patch_scale = 5.0;
+uniform float beach_tufts = 0.25;
 uniform float rocks = 0.08;
 // Fleurs sur l'herbe : l'herbe est découpée en carrés de « flower_cell » pixels d'art ; une part « flower_density » de
 // ces carrés porte une fleur (un cœur, quatre pétales et un pixel d'ombre) ou, plus rarement, un petit caillou
@@ -457,7 +465,9 @@ int reed_at(vec2 p) {
 		if (hash(cell + vec2(5.7, 21.1)) >= reeds) continue;
 		vec2 base = cell * size + vec2(floor(hash(cell + vec2(2.2, 7.4)) * size), size - 1.0);
 		if (noise((base + 0.5) / reed_scale + vec2(33.0, 9.0)) < 1.0 - reed_share) continue;
-		if (bank_kind(base) > bank_grass + 0.15) continue;
+		float stretch = bank_kind(base);
+		if (stretch > bank_pebbles - 0.04) continue;
+		if (stretch > bank_grass + 0.15 && hash(cell + vec2(12.6, 3.3)) >= reed_sand) continue;
 		float side = shore_side(base);
 		if (side < -3.0 || side > 1.5) continue;
 		vec2 q = p - base;
@@ -687,7 +697,10 @@ void fragment() {
 		// la plage s'amincit jusqu'à disparaître là où l'herbe descend à l'eau, s'élargit un peu ailleurs
 		float width = (beach_width + (noise((p + 0.5) / 9.0 + vec2(5.0, 61.0)) * 2.0 - 1.0) * beach_wave)
 			* smoothstep(bank_grass - 0.06, bank_grass + 0.1, kind) * (0.7 + 0.6 * smoothstep(0.4, 0.8, kind));
-		if (width > 1.0 && sd < width + 1.0 && (sd < width - 1.0 || bayer(p) < (width + 1.0 - sd) / 2.0)) {
+		// de petites plaques d'herbe au milieu du sable
+		float patch = noise((p + 0.5) / beach_patch_scale + vec2(41.0, 7.0));
+		bool grassy = sd > wet_width + 2.5 && sd < width - 2.0 && patch > 1.0 - beach_patches;
+		if (width > 1.0 && !grassy && sd < width + 1.0 && (sd < width - 1.0 || bayer(p) < (width + 1.0 - sd) / 2.0)) {
 			vec3 beach = tile_color(sand, p);
 			if (sd < 1.5) beach *= 1.0 - outline;
 			else if (sd < wet_width + 1.5) beach *= 1.0 - wet;
@@ -701,6 +714,19 @@ void fragment() {
 				vec2 dim = hash(cell + vec2(9.9, 4.2)) < 0.5 ? vec2(1.0) : vec2(2.0, 1.0);
 				vec3 pebble;
 				if (stone_shape(p - spot, dim, cell, color, pebble)) color = pebble;
+			}
+			// des touffes d'herbe sur le sable, plus côté terre
+			vec2 tcell = floor(p / 6.0);
+			if (beach_tufts > 0.0 && sd >= wet_width + 1.5
+				&& hash(tcell + vec2(23.1, 5.6)) < beach_tufts * smoothstep(0.2, 0.9, sd / width)) {
+				vec2 spot = tcell * 6.0 + vec2(2.0, 2.0 + floor(hash(tcell + vec2(7.2, 2.5)) * 2.0));
+				vec2 twin = spot + vec2(1.0, 1.0);
+				int tuft = max(tuft_pixel(p - spot, tcell), tuft_pixel(p - twin, tcell + 7.0));
+				vec3 blade = tile_color(grass, p);
+				if (tuft == 1) color = blade * 0.7;
+				else if (tuft == 2) color = blade;
+				else if (tuft == 3) color = blade * 1.2;
+				else if (tuft_pixel(p + 1.0 - spot, tcell) > 0 || tuft_pixel(p + 1.0 - twin, tcell + 7.0) > 0) color *= 0.82;
 			}
 		} else if (sd < mud_width + 1.0 && kind < bank_grass + 0.1) {
 			// l'herbe jusqu'à l'eau : une ligne de terre mouillée, tramée vers l'herbe

@@ -1755,7 +1755,8 @@
         "fixe": "L6-1",
         "move": "sauts-1",
         "attack": "bond-2",
-        "idle": "lecher-8"
+        "idle": "lecher-8",
+        "carte": "p1-1"
       },
       "grande": "art-candidats/references/derives/diablotin-grand.png"
     }

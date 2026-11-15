@@ -791,12 +791,19 @@ public sealed class BattleEffects
     };
 
     /// <summary>
-    /// La chaîne du crochet du Tourmenteur, de sa main jusqu'au crochet : des maillons de fer rouillé, de face et de profil
-    /// tour à tour, qui pendent un peu (<paramref name="sag"/> : la flèche au milieu, en pixels de l'écran ; 0 : tendue),
-    /// et le crochet au bout.
+    /// La chaîne du crochet du Tourmenteur, de sa main jusqu'au crochet, qui pend un peu (<paramref name="sag"/> : la
+    /// flèche au milieu, en pixels de l'écran ; 0 : tendue), et le crochet au bout. Avec les images prises dans celles de
+    /// la créature (<paramref name="link"/> : un bout de sa chaîne, répété et tourné le long de la ligne ;
+    /// <paramref name="hook"/> : son crochet, attaché par le haut de sa tige à gauche), la chaîne ressemble à celle de
+    /// l'image ; sans elles, des maillons dessinés.
     /// </summary>
-    public static void DrawChain(CanvasItem canvas, Vector2 from, Vector2 to, float sag)
+    public static void DrawChain(CanvasItem canvas, Vector2 from, Vector2 to, float sag, Texture2D? link, Texture2D? hook)
     {
+        if (link != null && hook != null)
+        {
+            DrawChainImages(canvas, from, to, sag, link, hook);
+            return;
+        }
         // les couleurs de la chaîne de l'image du Tourmenteur
         var dark = new Color(0.22f, 0.09f, 0.07f);
         var rust = new Color(0.5f, 0.22f, 0.14f);
@@ -844,6 +851,27 @@ public sealed class BattleEffects
             float px = left ? -x : x;
             Dot(canvas, origin + new Vector2(px, y) * Pixel, y < 2 ? new Color(0.78f, 0.75f, 0.7f) : new Color(0.55f, 0.52f, 0.5f));
         }
+    }
+
+    private static void DrawChainImages(CanvasItem canvas, Vector2 from, Vector2 to, float sag, Texture2D link, Texture2D hook)
+    {
+        Vector2 At(float t) => from.Lerp(to, t) + new Vector2(0, sag * 4 * t * (1 - t));
+        var size = link.GetSize();
+        int links = Math.Max(1, (int)MathF.Round(from.DistanceTo(to) / (size.X * Pixel)));
+        for (int k = 0; k < links; k++)
+        {
+            float t = (k + 0.5f) / links;
+            var along = At(Math.Min(1, t + 0.01f)) - At(Math.Max(0, t - 0.01f));
+            // posée sur la grille des pixels d'art : une chaîne à plat reste nette
+            var at = (At(t) / Pixel).Round() * Pixel;
+            canvas.DrawSetTransform(at, along.Angle(), new Vector2(Pixel, Pixel));
+            canvas.DrawTexture(link, -size / 2);
+        }
+        // le crochet, la pointe vers l'avant (retourné quand la chaîne va vers la gauche), pendu par le haut de sa tige
+        bool left = to.X < from.X;
+        canvas.DrawSetTransform((to / Pixel).Round() * Pixel, 0, new Vector2(left ? -Pixel : Pixel, Pixel));
+        canvas.DrawTexture(hook, new Vector2(-2, -1));
+        canvas.DrawSetTransform(Vector2.Zero, 0, Vector2.One);
     }
 
     /// <summary>

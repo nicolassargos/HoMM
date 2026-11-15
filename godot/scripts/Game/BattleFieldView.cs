@@ -236,9 +236,9 @@ public partial class BattleFieldView : Control
     /// <summary>Les animations des sorts (ce qui part du héros, ce qui se joue sur une troupe).</summary>
     private readonly SpellEffects _spells = new();
 
-    /// <summary>La chaîne du crochet du Tourmenteur pendant qu'il la lance et la tire : sa main, le crochet, et combien elle
-    /// pend (en pixels de l'écran) ; null le reste du temps.</summary>
-    private (Vector2 Hand, Vector2 Hook, float Sag)? _chain;
+    /// <summary>La chaîne du crochet du Tourmenteur pendant qu'il la lance et la tire : le Tourmenteur, sa main, le
+    /// crochet, et combien elle pend (en pixels de l'écran) ; null le reste du temps.</summary>
+    private (BattleUnit Unit, Vector2 Hand, Vector2 Hook, float Sag)? _chain;
 
     /// <summary>D'où part le prochain arc d'une chaîne d'éclairs : le héros, puis chaque troupe touchée.</summary>
     private Vector2 _chainFrom;
@@ -1851,13 +1851,13 @@ public partial class BattleFieldView : Control
             {
                 // le crochet vole, la chaîne pend encore un peu
                 float k = (float)((age - release) / flight);
-                _chain = (hand, hand.Lerp(BodyCenter(targetUnit, target), k), Ui.Px(14) * k);
+                _chain = (hookerUnit, hand, hand.Lerp(BodyCenter(targetUnit, target), k), Ui.Px(14) * k);
                 return false;
             }
             // la chaîne se tend et ramène la cible
             float p = (float)Math.Min(1, (age - release - flight) / pull);
             target.Position = from.Lerp(to, p);
-            _chain = (hand, BodyCenter(targetUnit, target), Ui.Px(14) * (1 - p));
+            _chain = (hookerUnit, hand, BodyCenter(targetUnit, target), Ui.Px(14) * (1 - p));
             if (p < 1)
                 return false;
             _chain = null;
@@ -2101,7 +2101,8 @@ public partial class BattleFieldView : Control
             DrawAuras(unit, shown, false);
         }
         if (_chain is { } chain)
-            BattleEffects.DrawChain(this, chain.Hand, chain.Hook, chain.Sag);
+            BattleEffects.DrawChain(this, chain.Hand, chain.Hook, chain.Sag,
+                Art.Get($"creatures/battle/{chain.Unit.Type.Id}-chain"), Art.Get($"creatures/battle/{chain.Unit.Type.Id}-hook"));
         _effects.Draw(this);
         _spells.Draw(this);
 

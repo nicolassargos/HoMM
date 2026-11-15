@@ -1812,14 +1812,21 @@
       ],
       "notes": "Enfer, niveau 3 : l'essaim qui se divise (sans références ; deux styles proposés, 2026-11-15) : une masse de lave en fusion (L1, L2), un tas de roche noire et de lave avec une gueule (L3, L4).",
       "references": [],
-      "description": "a magma slime creature: a hunched mound of black volcanic rock and molten lava, a wide glowing orange mouth full of lava, two short stubby arms of dripping magma, glowing yellow cracks, two burning eyes, lava dripping and pooling at its base, menacing",
-      "sujet": "a hunched mound of black rock and molten lava with a wide glowing mouth and stubby magma arms, facing right",
+      "description": "a magma slime: a wide low blob of glowing orange molten lava with a dark cooling black crust cracked all over, bright yellow lava glowing through the cracks, thick drips of lava running down its sides and pooling at its base, two small glowing ember eyes, oozing and bubbling",
+      "sujet": "a wide low blob of glowing orange molten lava with a cracked black crust and two ember eyes, facing right",
       "lots": {
         "L1": "angle seul",
         "L2": "angle seul",
         "L3": "angle seul",
         "L4": "angle seul"
-      }
+      },
+      "choix": {
+        "fixe": "L1-1",
+        "idle": "bouillon-1",
+        "attack": "ecrase-1",
+        "move": "rampe32-2"
+      },
+      "grande": "art-candidats/references/derives/limon-magma-grand.png"
     }
   }
 }

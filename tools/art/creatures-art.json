@@ -1899,7 +1899,8 @@
       "choix": {
         "fixe": "L8-1",
         "move": "pas-2",
-        "idle": "fournaise-2"
+        "idle": "fournaise-2",
+        "attack": "poings-3"
       },
       "grande": "art-candidats/references/derives/moloch-grand.png"
     }

@@ -1335,14 +1335,23 @@ public sealed class MapGenerator
                     }
                 }
         }
-        // les autres, au milieu de leur zone
+        // les autres, au milieu de leur zone, bien réparties (demandé par l'utilisateur, 2026-11-15 : tirées au hasard, elles
+        // se serraient parfois toutes dans une moitié de la carte) : chaque fois, une des zones les plus éloignées de toutes
+        // les villes déjà posées (châteaux compris), un peu au hasard parmi les meilleures
         var far = _zones.Where(z => z.Level >= 2 && !z.Sea).OrderBy(z => z.Index).ToList();
-        Shuffle(far);
-        foreach (var zone in far)
+        while (placed < TownCount && placed < names.Count)
         {
-            if (placed == TownCount || placed == names.Count)
+            var towns = _map.Objects.OfType<Town>().Select(t => t.Position).ToList();
+            double Room(Zone z) => towns.Count == 0 ? 0 : towns.Min(t => Math.Sqrt(SquaredDistance(t, z.Center)));
+            var ranked = far.Where(IslandFree).OrderByDescending(Room).ThenBy(z => z.Index).ToList();
+            if (ranked.Count == 0)
                 break;
-            if (IslandFree(zone) && PlaceTownInZone(data, zone, names[placed]))
+            // parmi celles presque aussi loin que la meilleure (90 %), au plus trois
+            double best = Room(ranked[0]);
+            var near = ranked.TakeWhile(z => Room(z) >= 0.9 * best).Take(3).ToList();
+            var zone = near[_rng.Next(near.Count)];
+            far.Remove(zone);
+            if (PlaceTownInZone(data, zone, names[placed]))
             {
                 townIslands.Add(zone.Island);
                 placed++;

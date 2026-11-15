@@ -1179,6 +1179,19 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   que les autres vues ; posé 2 pixels plus haut, ramené au même sol). Une v3 tournée depuis la vue de face : dessin plus
   grand, d'un autre style, écartée. Marches : sud 1, sud-est 1, est 2, nord-est 1, nord 1. `hero-foret.png`,
   `hero-foret-{s,se,e,ne,n}.png` et `-move.png`. Pieds mesurés, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ L'est de côté et le sud-est vers le sud pour le nécromancien et le chef barbare (2026-11-15, branche
+  `heros-carte-profils`, PixelLab, environ 1,65 $ : dix-huit lots `pro` de 25, une retouche, six marches). **Nécromancien** :
+  l'est vu de côté (style l'est du chevalier, choisi le 4) ; le sud-est n'a marché qu'avec **le sud-est du rôdeur comme
+  style** (choisi le 8 du lot 6) : sans style, les essais restaient de trois quarts et souvent trop petits (28 à 41 pixels
+  au lieu de 45 : l'utilisateur l'a vu) ; avec la vue de face en modèle et « almost a front view », ils regardaient droit
+  vers le sud (et revenaient sur un fond blanc). **Chef barbare** : l'est avec le style et le modèle des profils du
+  rôdeur et du chevalier (le cheval enfin de profil ; choisi le 1), sa cape trop sombre éclaircie par une retouche
+  (« make the fur cloak pale cream white ») ; préciser « a pale cream white fur cloak » dans la description pour les
+  essais suivants. Son sud-est : six lots, jamais juste (trois quarts avec le style du rôdeur, plein sud avec la vue de
+  face en modèle, entre les deux rien de mieux) ; **l'utilisateur garde l'ancien** pour l'instant. Les essais trop petits
+  sont retirés de la page (hauteur mesurée), les fonds blancs nettoyés (bords, puis taches enfermées de blanc pur).
+  Marches : nécromancien est 2 et sud-est 2, chef barbare est 2, posées au sol commun (rangée 45) avec le rebond. Pieds
+  mesurés, pas encore revus. Vu en jeu avec `--hero-walk`.
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

@@ -906,8 +906,10 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   nécromancien encapuchonné de violet sur un cheval mort-vivant pâle). ✅ **Le chef des Barbares** (2026-11-15, branche
   `heros-carte-barbares` : casque à cornes, cape de fourrure, sur un cheval brun). ✅ **Le rôdeur de la Forêt**
   (2026-11-15, branche `heros-carte-foret` : cape verte, arc long, cheval alezan) ; l'utilisateur veut **l'est et l'ouest
-  vus de côté** et **le sud-est et le sud-ouest plus tournés vers le sud** (à refaire aussi pour le nécromancien et le
-  chef barbare, et pour les factions suivantes). Reste : les 4 autres factions, une image de combat par héros.
+  vus de côté** et **le sud-est et le sud-ouest plus tournés vers le sud** (pour les factions suivantes aussi). ✅ Refaits
+  ainsi (2026-11-15, branche `heros-carte-profils`) : l'est et le sud-est du nécromancien, l'est du chef barbare (cape
+  claire) ; **le sud-est du chef barbare reste tel quel** pour l'instant (aucun essai juste : trop de face ou pas assez,
+  choix de l'utilisateur). Reste : les 4 autres factions, une image de combat par héros.
   ✅ **Les diagonales partout sur la carte** (2026-11-14, branche `diagonales`, très important pour l'utilisateur) : les
   bords des terrains suivent les centres des cases (un escalier devient une ligne à 45°, un coin s'arrondit), les routes
   vont en diagonale, les murs entre zones serpentent. (Icônes des ressources : faites, 2026-11-07.)

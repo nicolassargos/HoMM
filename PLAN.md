@@ -286,7 +286,10 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
 3. Les images (session images) : les 7 créatures, l'icône du bouton « Invoquer ». **À faire (session règles, sur sa
    propre branche, choix de l'utilisateur, 2026-11-15)** : le Démon **se téléporte** (capacité `teleports` : il atteint
    toute case libre à sa portée, comme un volant, sans voler) ; son animation est déjà prête (il s'enveloppe de ses
-   ailes, s'élance vers le haut et redescend à l'arrivée). ✅ La ville sur la carte (2026-11-11,
+   ailes, s'élance vers le haut et redescend à l'arrivée). Puis (2026-11-15, idée de l'utilisateur) : le Démon **crache
+   le feu** (l'image et le jet de feu sont faits) et sa cible **brûle** : des dégâts du feu à chacun de ses tours
+   pendant quelques tours (comme le poison de l'Araignée), à concevoir avec la session règles ; à comparer d'abord avec
+   l'aura de chaleur du Moloch, pour que les deux ne fassent pas double emploi. ✅ La ville sur la carte (2026-11-11,
    branche `ville-enfer`, choix de l'utilisateur) : une citadelle de roche noire hérissée de pointes, des coulées de lave,
    une porte en tête de démon cornu au feu dans la gueule (`objects/town-enfer.png`, luminosité 51).
 

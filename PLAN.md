@@ -351,7 +351,15 @@ creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objec
    faction sombre attendent l'Enfer) ; `--faction=donjon`. Mesuré (un adversaire, Normal, six semaines, or d'armée) :
    **Donjon 29 100**, Château 27 300, morts-vivants 24 700, Barbares 29 200, Forêt 34 000, Tour 25 900 ; la simulation
    seule comme avant (jours 95, 88, 153). Tests : `VilleDonjonTests`.
-3. Les images (session images) : les 7 créatures, la ville sur la carte.
+3. Les images (session images) : ✅ les 7 créatures (2026-11-15, branche `creatures-donjon`, choix de l'utilisateur) :
+   Homme-lézard à la lance, Homme-grenouille frondeur, Minotaure mineur, Aberration à la chair pâle, Ver des profondeurs
+   qui creuse une galerie dessinée par le jeu, Tyran œil qui flotte et tire un rayon violet, Hydre verte à cinq têtes qui
+   mordent tout autour : images de combat, animations, petites images de la carte. Détail dans `HISTORIQUE.md`.
+   ✅ La ville sur la carte. **Plus tard** (choix de l'utilisateur,
+   2026-11-14) : revoir les animations du Ver des profondeurs (il devrait glisser vers sa cible en attaquant ; les
+   fissures devant lui quand il creuse sont à améliorer ; peut-être une animation où il avale une créature).
+   **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui frappe le sol avec sa colonne
+   pourrait toucher une zone (les cases autour de sa cible) : une règle à concevoir avec la session règles.
 
 #### La Tour de magie (en cours)
 Décidée avec l'utilisateur (2026-11-09).
@@ -834,6 +842,15 @@ choix de l'utilisateur) :
 ### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et
 croissance, prix, garde.
+
+### Les donjons à explorer (idée, plus tard)
+Idée de l'utilisateur (2026-11-11) : un **donjon** marqué sur la carte, comme un vrai donjon de D&D ; le héros y entre,
+le parcourt et en ressort avec une **grande récompense**. Façon préférée par l'utilisateur : **une petite carte à part**,
+comme le souterrain de Heroes 3, que le héros parcourt case par case (couloirs, salles, gardiens, coffres, pièges, une
+sortie). Écartées pour l'instant : une suite de salles dans une fenêtre (plus simple), un plan de donjon où l'on clique
+la salle suivante. À concevoir avec la session règles : sa génération (`MapGenerator`), sa sauvegarde et son
+brouillard, sortir et revenir ou non, les pertes d'une salle à l'autre, les récompenses (artefact, or, expérience,
+créature rare), le nombre par carte et la difficulté selon la zone ; les créatures du Donjon en gardiens.
 
 ## Étape 10 : finitions
 - Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,

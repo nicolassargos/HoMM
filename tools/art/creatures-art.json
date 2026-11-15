@@ -1716,7 +1716,8 @@
         "fixe": "L10-1",
         "idle": "mm-rot-3",
         "transform": "ailes-1-envol",
-        "move": "move-vide"
+        "move": "move-vide",
+        "attack": "mm-estoc-1-r2"
       },
       "grande": "art-candidats/references/derives/demon-grand.png"
     }

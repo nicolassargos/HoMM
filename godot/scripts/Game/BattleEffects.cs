@@ -251,11 +251,12 @@ public sealed class BattleEffects
         "hache" => 1200,
         "feuilles" => 1000,
         "pierre" => 1300,
+        "baiser" => 900,
         _ => 1500,
     };
 
     /// <summary>Hauteur de la courbe (en part de la distance) : une flèche monte puis redescend, une boule de feu va droit.</summary>
-    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, "feuilles" => 0.02f, "pierre" => 0.1f, _ => 0 };
+    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, "feuilles" => 0.02f, "pierre" => 0.1f, "baiser" => 0.05f, _ => 0 };
 
     /// <summary>L'impact joué à l'arrivée d'un projectile.</summary>
     public static string ImpactOf(string projectile) => projectile switch
@@ -268,6 +269,8 @@ public sealed class BattleEffects
         "hache" => "entaille",
         "feuilles" => "feuilles",
         "pierre" => "choc",
+        "baiser" => "feu",
+        "flammes" => "feu",
         _ => "choc",
     };
 
@@ -285,6 +288,13 @@ public sealed class BattleEffects
     /// </summary>
     public void Launch(string kind, Vector2 from, Vector2 to, Action arrived, Vector2? from2 = null)
     {
+        if (kind == "flammes")
+        {
+            // le feu craché : un jet qui coule de la bouche jusqu'au-delà de la cible ; le coup porte quand il l'atteint
+            _beams.Add(new Beam { Kind = kind, From = from, To = to, Seed = ++_seed });
+            _projectiles.Add(new Projectile { Kind = "", From = to, To = to, Duration = FlameReach * FlameTime, Arrived = arrived });
+            return;
+        }
         if (kind is "eclair" or "rayon")
         {
             // un éclair ou un rayon n'a pas de trajet : il frappe presque aussitôt (un projectile invisible porte le moment du coup)
@@ -348,7 +358,7 @@ public sealed class BattleEffects
         _impacts.RemoveAll(i => i.Age > ImpactTime(i.Kind));
         foreach (var b in _beams)
             b.Age += delta;
-        _beams.RemoveAll(b => b.Age > (b.Kind == "rayon" ? RayTime : BeamTime));
+        _beams.RemoveAll(b => b.Age > b.Kind switch { "rayon" => RayTime, "flammes" => FlameTime, _ => BeamTime });
         foreach (var w in _flows)
             w.Age += delta;
         _flows.RemoveAll(w => w.Age > FlowTime);
@@ -719,12 +729,159 @@ public sealed class BattleEffects
                 }
                 break;
             }
+            case "baiser":
+            {
+                // le baiser de feu de la Succube : un cœur rouge bordé de sombre, au reflet clair, dans une lueur qui
+                // palpite, et des braises qui montent derrière lui en s'éteignant
+                float pulse = 0.5f + 0.5f * MathF.Sin((float)p.Age * 30);
+                for (int k = 1; k <= 6; k++)
+                {
+                    float back = Math.Max(0, t - k * 0.035f);
+                    var rise = new Vector2(((k * 37) % 5 - 2) * Pixel, -k * k * 0.4f * U);
+                    Dot(canvas, At(back) + rise, k < 3 ? new Color(1, 0.6f, 0.2f, 1 - k * 0.14f) : new Color(0.9f, 0.25f, 0.15f, 0.9f - k * 0.13f));
+                }
+                Blob(canvas, here, 5, new Color(1, 0.35f, 0.2f, 0.18f + 0.12f * pulse));
+                Heart(canvas, here);
+                break;
+            }
             case "":
                 break; // le moment d'un coup, sans image (l'éclair)
             default:
                 Blob(canvas, here, 1, Colors.White);
                 break;
         }
+    }
+
+    /// <summary>La forme du cœur du baiser de feu (11 × 10 pixels d'art).</summary>
+    private static readonly string[] HeartShape =
+    {
+        "..XXX.XXX..",
+        ".XXXXXXXXX.",
+        "XXXXXXXXXXX",
+        "XXXXXXXXXXX",
+        "XXXXXXXXXXX",
+        ".XXXXXXXXX.",
+        "..XXXXXXX..",
+        "...XXXXX...",
+        "....XXX....",
+        ".....X.....",
+    };
+
+    /// <summary>Un cœur centré sur ce point : bord sombre, rouge plus clair en haut, un reflet en haut à gauche.</summary>
+    private static void Heart(CanvasItem canvas, Vector2 at)
+    {
+        int h = HeartShape.Length, w = HeartShape[0].Length;
+        bool Inside(int x, int y) => y >= 0 && y < h && x >= 0 && x < w && HeartShape[y][x] == 'X';
+        var origin = at - new Vector2(w / 2, h / 2) * Pixel;
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            if (!Inside(x, y))
+                continue;
+            bool edge = !Inside(x - 1, y) || !Inside(x + 1, y) || !Inside(x, y - 1) || !Inside(x, y + 1);
+            var color = edge ? new Color(0.42f, 0.04f, 0.08f)
+                : (x is 2 or 3) && (y is 2 or 3) ? new Color(1, 0.82f, 0.6f)
+                : y < 4 ? new Color(1, 0.3f, 0.22f) : new Color(0.85f, 0.1f, 0.12f);
+            Dot(canvas, origin + new Vector2(x, y) * Pixel, color);
+        }
+    }
+
+    // le crochet du Tourmenteur, la pointe vers la droite (retourné quand la chaîne va vers la gauche)
+    private static readonly string[] HookShape =
+    {
+        ".XX....",
+        "X..X...",
+        "...X...",
+        "...X...",
+        "...X..X",
+        "...X..X",
+        "....XX.",
+    };
+
+    /// <summary>
+    /// La chaîne du crochet du Tourmenteur, de sa main jusqu'au crochet, qui pend un peu (<paramref name="sag"/> : la
+    /// flèche au milieu, en pixels de l'écran ; 0 : tendue), et le crochet au bout. Avec les images prises dans celles de
+    /// la créature (<paramref name="link"/> : un bout de sa chaîne, répété et tourné le long de la ligne ;
+    /// <paramref name="hook"/> : son crochet, attaché par le haut de sa tige à gauche), la chaîne ressemble à celle de
+    /// l'image ; sans elles, des maillons dessinés.
+    /// </summary>
+    public static void DrawChain(CanvasItem canvas, Vector2 from, Vector2 to, float sag, Texture2D? link, Texture2D? hook)
+    {
+        if (link != null && hook != null)
+        {
+            DrawChainImages(canvas, from, to, sag, link, hook);
+            return;
+        }
+        // les couleurs de la chaîne de l'image du Tourmenteur
+        var dark = new Color(0.22f, 0.09f, 0.07f);
+        var rust = new Color(0.5f, 0.22f, 0.14f);
+        var light = new Color(0.68f, 0.36f, 0.24f);
+        Vector2 At(float t) => from.Lerp(to, t) + new Vector2(0, sag * 4 * t * (1 - t));
+        float length = from.DistanceTo(to);
+        int links = Math.Max(1, (int)(length / (5 * Pixel)));
+        for (int k = 0; k < links; k++)
+        {
+            float t = (k + 0.5f) / links;
+            var at = At(t);
+            var along = (At(Math.Min(1, t + 0.01f)) - At(Math.Max(0, t - 0.01f))).Normalized();
+            var across = new Vector2(-along.Y, along.X);
+            if (k % 2 == 0)
+            {
+                // un maillon de face : un anneau de deux rails (le haut éclairé), fermé aux deux bouts
+                for (int i = -2; i <= 2; i++)
+                {
+                    Dot(canvas, at + along * i * Pixel - across * 1.5f * Pixel, i == 0 ? light : rust);
+                    Dot(canvas, at + along * i * Pixel + across * 1.5f * Pixel, dark);
+                }
+                for (float j = -0.5f; j <= 0.5f; j++)
+                {
+                    Dot(canvas, at - along * 3 * Pixel + across * j * Pixel, dark);
+                    Dot(canvas, at + along * 3 * Pixel + across * j * Pixel, dark);
+                }
+            }
+            else
+                // un maillon de profil : un trait épais
+                for (int i = -2; i <= 2; i++)
+                {
+                    Dot(canvas, at + along * i * Pixel - across * 0.5f * Pixel, i is -1 or 0 ? light : rust);
+                    Dot(canvas, at + along * i * Pixel + across * 0.5f * Pixel, dark);
+                }
+        }
+        // le crochet, attaché par le haut au bout de la chaîne
+        bool left = to.X < from.X;
+        int w = HookShape[0].Length;
+        var origin = to - new Vector2(1.5f, 0) * Pixel;
+        for (int y = 0; y < HookShape.Length; y++)
+        for (int x = 0; x < w; x++)
+        {
+            if (HookShape[y][x] != 'X')
+                continue;
+            float px = left ? -x : x;
+            Dot(canvas, origin + new Vector2(px, y) * Pixel, y < 2 ? new Color(0.78f, 0.75f, 0.7f) : new Color(0.55f, 0.52f, 0.5f));
+        }
+    }
+
+    private static void DrawChainImages(CanvasItem canvas, Vector2 from, Vector2 to, float sag, Texture2D link, Texture2D hook)
+    {
+        Vector2 At(float t) => from.Lerp(to, t) + new Vector2(0, sag * 4 * t * (1 - t));
+        var size = link.GetSize();
+        // arrondi vers le haut : les bouts se touchent (ou mordent un peu l'un sur l'autre), sans trou entre eux
+        int links = Math.Max(1, (int)MathF.Ceiling(from.DistanceTo(to) / (size.X * Pixel)));
+        for (int k = 0; k < links; k++)
+        {
+            float t = (k + 0.5f) / links;
+            var along = At(Math.Min(1, t + 0.01f)) - At(Math.Max(0, t - 0.01f));
+            // posée sur la grille des pixels d'art : une chaîne à plat reste nette
+            var at = (At(t) / Pixel).Round() * Pixel;
+            canvas.DrawSetTransform(at, along.Angle(), new Vector2(Pixel, Pixel));
+            canvas.DrawTexture(link, -size / 2);
+        }
+        // le crochet, la pointe vers l'avant (retourné quand la chaîne va vers la gauche), pendu par le haut de sa tige et
+        // penché de 45° (choix de l'utilisateur)
+        bool left = to.X < from.X;
+        canvas.DrawSetTransform((to / Pixel).Round() * Pixel, left ? MathF.PI / 4 : -MathF.PI / 4, new Vector2(left ? -Pixel : Pixel, Pixel));
+        canvas.DrawTexture(hook, new Vector2(-2, -1));
+        canvas.DrawSetTransform(Vector2.Zero, 0, Vector2.One);
     }
 
     /// <summary>
@@ -736,6 +893,11 @@ public sealed class BattleEffects
         if (b.Kind == "rayon")
         {
             DrawRay(canvas, b);
+            return;
+        }
+        if (b.Kind == "flammes")
+        {
+            DrawFlames(canvas, b);
             return;
         }
         float fade = 1 - (float)(b.Age / BeamTime);
@@ -765,6 +927,21 @@ public sealed class BattleEffects
 
     /// <summary>Durée du rayon du Tyran œil à l'écran (il reste un peu plus qu'un éclair : on le voit sortir de l'œil).</summary>
     private const double RayTime = 0.45;
+
+    /// <summary>La durée du feu craché, et la part de cette durée qu'il met à atteindre la cible.</summary>
+    private const double FlameTime = 0.8, FlameReach = 0.4;
+
+    /// <summary>
+    /// Le feu craché du Démon : le jet de feu des sorts (<see cref="SpellEffects.FireJet"/>), qui va un peu au-delà de la
+    /// cible, brûle un instant puis s'éteint.
+    /// </summary>
+    private static void DrawFlames(CanvasItem canvas, Beam b)
+    {
+        // la bouche d'une grande créature est presque sur la case voisine : le jet passe la cible, au moins 160 pixels
+        float length = Math.Max(b.From.DistanceTo(b.To) * 1.3f, 160);
+        var end = b.From + (b.To - b.From).Normalized() * length;
+        SpellEffects.FireJet(canvas, b.From, end, (float)(b.Age / FlameTime), (float)b.Age, b.Seed);
+    }
 
     /// <summary>
     /// Le rayon du Tyran œil : un trait droit de son œil à la cible, un cœur pâle, un halo violet qui ondule (plus large

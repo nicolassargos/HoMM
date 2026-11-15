@@ -55,7 +55,7 @@ BATAILLE = "godot/art/creatures/battle"
 VITESSES = BATAILLE + "/animations.json"
 EN_COURS = "art-candidats/en-cours"
 GARDEES = "art-candidats/references/derives"
-ETATS = ("idle", "move", "attack", "transform")  # transform : facultatif, joué avant et après un déplacement
+ETATS = ("idle", "move", "attack", "transform", "throw")  # transform : facultatif, joué avant et après un déplacement ; throw : le lancer du crochet (Tourmenteur)
 
 
 def charger():
@@ -405,7 +405,7 @@ def cmd_choisir(ident, quoi, nom, fps=None):
     elif quoi in ETATS:
         choisir_anim(donnees, ident, quoi, nom, fps)
     else:
-        sys.exit("choisir <id> fixe|idle|move|attack <nom> [images/s]")
+        sys.exit("choisir <id> fixe|idle|move|attack|transform|throw <nom> [images/s]")
     enregistrer(donnees)
     cmd_page(ident)
 

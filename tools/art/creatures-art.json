@@ -1637,6 +1637,273 @@
         "carte": "p1-7"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png"
+    },
+    "succube": {
+      "nom": "Succube",
+      "gabarit": "humain",
+      "hauteur": 84,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "mage",
+        "archer"
+      ],
+      "notes": "Enfer, niveau 4 : la tireuse qui séduit (références de l'utilisateur, 2026-11-15). Deux styles : robe rouge (L1 à L3), robe noire (L4 à L6). Son tir, un baiser de feu, sera dessiné par le jeu. L3-1 et L1-1 aimées mais peu lisibles : L7 à L9 plus lisibles (ailes noires, robe rouge vif, 84 px).",
+      "references": [
+        "art-candidats/en-cours/candidats/succube/fixe/l3/1.png::earlier candidate liked by the user: keep this character, her face, hair, horns, gown and pose; make the shapes bolder and clearer, the wings black",
+        "art-candidats/en-cours/candidats/succube/fixe/l1/1.png::earlier candidate liked by the user: keep this character and her red gown"
+      ],
+      "description": "a demon succubus standing in three-quarter view facing right: pale white skin, long black hair, two curved black horns, large black bat wings spread behind her with a clear gap between the wings and her body, a thin black demon tail, a long bright red gown with a high slit, her right arm stretched forward to the right with an open hand, glowing red eyes; bold simple shapes, strong contrast between the black wings, the bright red gown and the pale skin, a clear readable silhouette, few small details",
+      "sujet": "a pale demon succubus with black horns, black bat wings and a bright red gown, one arm stretched forward, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références",
+        "L7": "références",
+        "L8": "angle seul",
+        "L9": "références"
+      },
+      "choix": {
+        "fixe": "L7-1",
+        "attack": "mm-baiser-1",
+        "idle": "queue-2",
+        "move": "mm-pas-3",
+        "carte": "p1-6"
+      },
+      "grande": "art-candidats/references/derives/succube-grand.png"
+    },
+    "demon": {
+      "nom": "Démon",
+      "gabarit": "grand",
+      "hauteur": 132,
+      "generation": [
+        160,
+        160
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "geant",
+        "archer"
+      ],
+      "notes": "Enfer, niveau 7 : le géant qui invoque des diablotins (références de l'utilisateur, 2026-11-15). Deux directions à essayer : décharné à tête de crâne, peau noire calcinée aux fissures de feu (L1 à L3) ; ailé et musclé, peau rouge sombre (L4 à L6). Il ne vole pas : ailes repliées ou à demi ouvertes. Nouvelle idée de l'utilisateur (2026-11-15, d'après une vieille référence) : un démon gras, surtout rouge, ailes, queue, sabots, barbe et crocs (L7 à L9). Choisi : L7-1 ; essai avec un trident (L10 et L11, idée de l'utilisateur). L10-1 choisi, fond blanc retiré (l10/1-avec-fond.png gardé), à sa taille d origine (132 px avec le trident : pas de réduction, plus net).",
+      "references": [
+        "art-candidats/en-cours/candidats/demon/fixe/l7/1.png::the chosen demon: keep exactly this character, its fat red body, black beard, horns, orange wings, tail and hooves; only add the trident"
+      ],
+      "description": "a huge fat demon standing on cloven black hooves, holding a long black iron trident upright in its right hand, the trident's three sharp prongs above its head: a big round heavy belly, thick arms, bright red skin with darker red shading, a broad face with a thick black beard, sharp white fangs, glowing yellow eyes, two short curved orange horns, big red bat wings half spread behind it with orange membranes, a long red tail with a pointed tip",
+      "sujet": "a huge fat red demon with a black beard, horns, red bat wings and a tail, holding a black trident, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références",
+        "L7": "références",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "références",
+        "L11": "angle seul"
+      },
+      "choix": {
+        "fixe": "L10-1",
+        "idle": "mm-rot-3",
+        "transform": "ailes-1-envol",
+        "move": "move-vide",
+        "attack": "crache-2-r",
+        "carte": "p1-5"
+      },
+      "grande": "art-candidats/references/derives/demon-grand.png"
+    },
+    "diablotin": {
+      "nom": "Diablotin",
+      "gabarit": "volant",
+      "hauteur": 44,
+      "generation": [
+        96,
+        96
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "succube",
+        "archer"
+      ],
+      "notes": "Enfer, niveau 1 : le voleur de points de sort, il vole (références de l'utilisateur, 2026-11-15). Deux styles : peau rouge (L1 à L3), peau noire de suie aux yeux de braise (L4 à L6).",
+      "references": [
+        "art-candidats/references/enfer/imp2.png::character reference (a skinny red imp with horns, a wide toothy grin, long clawed fingers and a thin tail): keep this design, its pose and its proportions",
+        "art-candidats/references/enfer/imp3.png::concept reference (a skinny hunched devil with horns, pointed ears, a wicked grin and long claws): keep the wicked grin and the hunched pose; ignore the ink style and the paper"
+      ],
+      "description": "a small skinny imp crouching and grinning: a tiny hunched devil with a big head, pointed ears, two small curved horns, a wide wicked grin full of sharp teeth, big glowing orange eyes, long thin arms with long clawed fingers, thin legs with clawed feet, small bat wings on its back, a long thin tail with an arrow tip, sooty black skin with glowing orange eyes and orange embers in the cracks of its skin, mischievous and sneaky",
+      "sujet": "a small skinny sooty black imp with glowing orange eyes, small horns, a wicked grin, bat wings and a thin tail, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      },
+      "choix": {
+        "fixe": "L6-1",
+        "move": "sauts-1",
+        "attack": "bond-2",
+        "idle": "lecher-8",
+        "carte": "p1-1"
+      },
+      "grande": "art-candidats/references/derives/diablotin-grand.png"
+    },
+    "cultiste": {
+      "nom": "Cultiste",
+      "gabarit": "humain",
+      "hauteur": 68,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "diablotin",
+        "archer"
+      ],
+      "notes": "Enfer, niveau 2 : des humains qui ont vendu leur âme ; sacrifice avant chaque attaque (références de l'utilisateur, 2026-11-15). Deux styles : robe rouge à capuche (L1, L2), prêtre du sang chauve et tatoué (L3, L4).",
+      "references": [
+        "art-candidats/references/enfer/occultist3.png::character reference (a cultist in a deep red hooded robe with gold trim, a grinning face with red eyes in the shadow of the hood): keep this design, the hood and the colours; ignore the copyright text and the background",
+        "art-candidats/references/enfer/occultist2.png::costume reference (a tall robed cultist with a red hood and a long dark red robe with gold bands): keep the long robe and the gold bands; ignore the grey background"
+      ],
+      "description": "a human cultist standing hunched: a deep red hooded robe with gold trim and wide sleeves, the face in the shadow of the hood with glowing red eyes and a wicked grin, a curved ritual dagger in one hand, a rope belt, dark boots, sinister and fanatical",
+      "sujet": "a human cultist in a deep red hooded robe with gold trim, holding a curved ritual dagger, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L1-3",
+        "idle": "priere-1",
+        "move": "marche-3",
+        "attack": "coup-1-r",
+        "carte": "p1-2"
+      },
+      "grande": "art-candidats/references/derives/cultiste-grand.png"
+    },
+    "limon-magma": {
+      "nom": "Limon de magma",
+      "gabarit": "quadrupede",
+      "hauteur": 50,
+      "generation": [
+        128,
+        104
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "cultiste",
+        "minotaure"
+      ],
+      "notes": "Enfer, niveau 3 : l'essaim qui se divise (sans références ; deux styles proposés, 2026-11-15) : une masse de lave en fusion (L1, L2), un tas de roche noire et de lave avec une gueule (L3, L4).",
+      "references": [],
+      "description": "a magma slime: a wide low blob of glowing orange molten lava with a dark cooling black crust cracked all over, bright yellow lava glowing through the cracks, thick drips of lava running down its sides and pooling at its base, two small glowing ember eyes, oozing and bubbling",
+      "sujet": "a wide low blob of glowing orange molten lava with a cracked black crust and two ember eyes, facing right",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L1-1",
+        "idle": "bouillon-1",
+        "attack": "ecrase-1",
+        "move": "rampe32-2",
+        "carte": "p1-2"
+      },
+      "grande": "art-candidats/references/derives/limon-magma-grand.png"
+    },
+    "tourmenteur": {
+      "nom": "Tourmenteur",
+      "gabarit": "humain",
+      "hauteur": 100,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "succube",
+        "demon"
+      ],
+      "notes": "Enfer, niveau 5 : le crochet ; un wendigo au crâne de cerf (références de l'utilisateur, 2026-11-15). Deux styles : os et cendre (L1, L2), rouge de l'Enfer (L3, L4).",
+      "references": [
+        "art-candidats/references/enfer/tormentor1.png::character reference (a hunched wendigo with a deer skull, big antlers, a shaggy mane, a gaunt body, long clawed arms and hooves): keep this design, its pose and its proportions; ignore the ink style, the hanging crosses and the white paper",
+        "art-candidats/references/enfer/tormentor2.png::concept reference (a wendigo with a deer skull, antlers, visible ribs, black fur and very long claws): keep the visible ribs, the black fur and the long claws; ignore the ink style, the text and the white paper"
+      ],
+      "description": "a tormentor demon, a tall gaunt hunched wendigo: a pale bone-white deer skull for a head with big branching antlers and sharp teeth, glowing red eyes in the sockets, a shaggy black mane on its neck and shoulders, sunken ashen grey skin with visible ribs, very long thin arms with long clawed fingers, digitigrade legs with black fur and hooves, a heavy rusty iron chain wrapped around one arm ending in a big sharp meat hook held in its claws, menacing",
+      "sujet": "a gaunt wendigo with a pale deer skull head and antlers, black fur, grey skin, long claws, holding a chain with a meat hook, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L2-1",
+        "move": "marche-1",
+        "idle": "guette-1",
+        "attack": "fauche-2-r",
+        "throw": "lancer-1",
+        "carte": "p1-1"
+      },
+      "grande": "art-candidats/references/derives/tourmenteur-grand.png"
+    },
+    "moloch": {
+      "nom": "Moloch",
+      "gabarit": "grand",
+      "hauteur": 112,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "tourmenteur",
+        "demon"
+      ],
+      "notes": "Enfer, niveau 6 : la fournaise ; une idole de bronze qui marche (choix de l'utilisateur, 2026-11-15, sans références). Puis (2026-11-15) : comme L1-1, mais plus encore une statue de bronze animée (L5 à L8).",
+      "references": [
+        "art-candidats/references/enfer/moloch-l1-1.png::character reference (a walking bronze idol with a bull head, horns and a furnace door in its belly): keep this design, its pose and its proportions, but make it look even more like a cast bronze statue"
+      ],
+      "description": "a moloch, an animated bronze statue that walks: clearly a lifeless idol of cast bronze, not a living creature; a bull head of solid metal with two great curved horns and hollow eye sockets glowing with fire, a blank rigid cast face, a body made of thick riveted bronze plates with visible seams and bolts, green-brown verdigris patina in the creases, stiff jointed limbs like a mechanical statue, no muscles, no skin, a round belly with an open iron furnace door and a roaring fire inside, fire glowing through the seams, thick pillar legs on a heavy base of hooves, arms held forward with open metal palms, smoke rising from its horns",
+      "sujet": "an animated bronze statue with a bull head and great horns, riveted metal plates with green patina, a furnace door in its belly with fire inside, facing right",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L8-1",
+        "move": "pas-2",
+        "idle": "fournaise-2",
+        "attack": "poings-3",
+        "carte": "p1-6"
+      },
+      "grande": "art-candidats/references/derives/moloch-grand.png"
     }
   }
 }

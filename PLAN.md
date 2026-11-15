@@ -168,9 +168,12 @@ ambulante). ✅ Créatures et capacités, ✅ ville, classe et héros, ✅ ville
 Le chaos et le feu : toutes ses créatures sont insensibles au feu. Marque : **le prix du sang** (chaque créature de
 l'Enfer tuée rend des points de sort au héros). Classe **Démoniste** (talent Pacte). Créatures : Diablotin, Cultistes,
 Limon de magma, Succube, Tourmenteur, Moloch, Démon (→ Archidémon). ✅ Créatures et capacités, ✅ ville, classe et héros,
-✅ ville et héros sur la carte.
-**Reste** : les images des 7 créatures et l'icône du bouton « Invoquer » (en cours, branche `creatures-enfer`) ; les noms
-des habitations, à revoir si l'utilisateur le souhaite.
+✅ ville et héros sur la carte, ✅ images des créatures et icône du bouton « Invoquer » (2026-11-15, branche
+`creatures-enfer`).
+**Reste** : les noms des habitations, à revoir si l'utilisateur le souhaite. **À faire (session règles, choix de
+l'utilisateur, 2026-11-15)** : le Démon **se téléporte** (capacité `teleports` : toute case libre à sa portée, comme un
+volant, sans voler ; son animation est prête) ; il **crache le feu** (le jet est fait) et sa cible **brûle** quelques
+tours (comme le poison de l'Araignée), à comparer d'abord avec l'aura de chaleur du Moloch.
 
 #### Le Donjon (jouable)
 Les seigneurs des abîmes : des élites fortes sur une base faible. Marque : **la Terreur** (chaque coup fait perdre 1 de

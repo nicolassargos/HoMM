@@ -1065,7 +1065,8 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
    nouvelle faction, gagnait par ses sorts). Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Enfer 30 800**, Château
    24 700, morts-vivants 25 900, Barbares 30 200, Forêt 32 500, Tour 24 800, Donjon 30 800 ; la simulation seule comme
    avant (jours 101, 86, 153). Tests : `VilleEnferTests`.
-3. Les images (session images) : les 7 créatures, l'icône du bouton « Invoquer ». ✅ La ville sur la carte (2026-11-11,
+3. Les images (session images) : ✅ les 7 créatures et l'icône du bouton « Invoquer » (2026-11-15, branche
+   `creatures-enfer` : voir « Créatures de l'Enfer » plus bas). ✅ La ville sur la carte (2026-11-11,
    branche `ville-enfer`, choix de l'utilisateur) : une citadelle de roche noire hérissée de pointes, des coulées de lave,
    une porte en tête de démon cornu au feu dans la gueule (`objects/town-enfer.png`, luminosité 51).
 
@@ -1911,6 +1912,34 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
     fait un vrai pas. Carte p1-7.
   - Au passage, le **Géant** (Tour) retourné vers la droite (image fixe et feuilles, image par image) : il marchait à
     reculons. Pieds des sept petites images revus par l'utilisateur (le Ver plus léger, aucun sous le Tyran œil).
+- ✅ Créatures de l'Enfer (2026-11-15, branche `creatures-enfer`, PixelLab), une à la fois ; à chaque créature, une **vue
+  d'ensemble** de sa faction et de son niveau, animations jouées (`tools/art/apercu_faction.py`, demandée par
+  l'utilisateur pour juger le style) :
+  - **Succube** (84 px, L7-1, ailes noires, robe rouge vif) : attente queue-2, marche mm-pas-3, attaque mm-baiser-1 ; son
+    tir, le **baiser** de feu dessiné par le jeu (un cœur rouge, une lueur qui palpite, des braises). Carte p1-6.
+  - **Démon** (132 px, L10-1, gras et rouge, barbe noire, ailes orange, trident ; fond blanc retiré, gardé à sa taille
+    d'origine : plus net) : attente mm-rot-3 (il se frotte le ventre et rote), transformation ailes-1-envol (il
+    s'enveloppe de ses ailes, s'élance et redescend : la **téléportation**, déplacement invisible, `stepTime` 0,03 ; la
+    règle viendra de la session règles), attaque crache-2-r : il **crache le feu**, le feu de PixelLab retiré, le jeu
+    dessine le jet (`meleeProjectile` « flammes », `SpellEffects.FireJet` : les tons et la boule de feu de la Boule de feu ;
+    un premier jet fait de trois couches unies ne ressemblait pas à du feu). L'estoc au trident (mm-estoc-1) est remplacé.
+    Carte p1-5.
+  - **Diablotin** (44 px, L6-1, peau noire de suie) : attente lecher-8 (il se lèche la main comme un chien, ailes et
+    queue qui bougent), marche sauts-1 (par bonds), attaque bond-2 (bondit sur l'ennemi et revient) ; il vole à 0,3 s par
+    case (le vol par défaut, 0,09 s, était trop rapide). Carte p1-1.
+  - **Cultistes** (68 px, L1-3, robe rouge à capuche, dague rituelle) : priere-1, marche-3, coup-1 sans sa traînée.
+    Carte p1-2.
+  - **Limon de magma** (50 px, L1-1, masse de lave) : il bouillonne **sans pause** (bouillon-1, `idlePauseMax` 0 : un
+    fluide ne s'arrête jamais), rampe en **32 images** à 20 images/s (rampe32-2 : en 16 images, il glissait ou sautait),
+    s'écrase sur l'ennemi (ecrase-1). Carte p1-2.
+  - **Tourmenteur** (100 px, L2-1, wendigo au crâne de cerf) : attente guette-1, marche marche-1, attaque fauche-2-r
+    (griffe-3 écartée : le crochet remontait d'un coup), et le **crochet lancé** (état `throw`, lancer-1) : le jeu dessine
+    la chaîne avec **ses propres pixels** (un maillon et le crochet découpés de l'image, `-chain.png` et `-hook.png`,
+    `BattleEffects.DrawChain`), depuis la main à chaque image (`throwPoints`), sans trou entre les maillons ; le crochet
+    penché de 45°. Carte p1-1.
+  - **Moloch** (112 px, L8-1, idole de bronze à tête de taureau, fournaise dans le ventre : une statue animée, pas un être
+    vivant) : attente fournaise-2, marche pas-2, attaque poings-3 (ses poings rougissent et s'abattent). Carte p1-6.
+  - **Icône du bouton « Invoquer »** (`ui/icons/invoquer.png`, n° 2 : un diablotin qui sort d'un portail).
 - ✅ Combat à ×2 (2026-11-09, branche `combat-x2`). Question de l'utilisateur : un pixel d'art a-t-il la même taille au
   combat et sur la carte ? Non : 3 pixels de l'écran au combat, 2 sur la carte (zoom ×1 ; 3 au zoom ×1,5). Essai montré
   (page `echelle.html` : même combat à ×3 et à ×2, créatures 1,5 fois plus hautes) ; choix de l'utilisateur : ×2 partout

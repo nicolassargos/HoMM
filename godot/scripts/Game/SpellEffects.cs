@@ -711,6 +711,66 @@ public sealed class SpellEffects
     }
 
     /// <summary>
+    /// Un jet de feu craché (le Démon) de <paramref name="from"/> vers <paramref name="to"/>, au moment
+    /// <paramref name="t"/> de sa vie (0 à 1) : les tons et les flammes de la boule de feu. Il jaillit de la bouche, mince,
+    /// s'élargit et monte un peu en s'éloignant ; des bandes de flamme y filent vers la cible ; sa tête est une boule de feu
+    /// qui bouillonne ; à la fin il quitte la bouche et s'éteint en fumée.
+    /// </summary>
+    internal static void FireJet(CanvasItem canvas, Vector2 from, Vector2 to, float t, float time, int seed)
+    {
+        float length = Math.Max(1, from.DistanceTo(to));
+        var dir = (to - from) / length;
+        var side = new Vector2(-dir.Y, dir.X);
+        float front = length * Math.Min(1, t / 0.4f);
+        float back = t < 0.7f ? 0 : length * (t - 0.7f) / 0.3f;
+        float fade = t < 0.75f ? 1 : (1 - t) / 0.25f;
+        int frame = (int)(time * 18);
+        // le feu monte : le jet se courbe un peu vers le haut en s'éloignant
+        Vector2 Axis(float u) => from + dir * u + new Vector2(0, -(u / length) * (u / length) * 10 * U);
+        float Half(float u) => (1.5f + 11 * MathF.Pow(u / length, 0.7f)) * U;
+        Glow(canvas, Axis((front + back) / 2), length * 0.5f, 16 * U, FireOrange, 0.25f * fade);
+        for (float u = back; u < front; u += Pixel)
+        {
+            float f = u / length;
+            // la tête et la queue s'arrondissent
+            float ends = Math.Min(1, Math.Min((front - u) / (6 * U), back > 0 ? (u - back) / (4 * U) : 1));
+            float half = Half(u) * (1 + 0.18f * MathF.Sin(u * 0.09f - time * 26 + seed)) * MathF.Sqrt(Math.Max(0, ends));
+            var at = Axis(u);
+            for (float v = -half - Pixel; v <= half + Pixel; v += Pixel)
+            {
+                float g = MathF.Abs(v) / Math.Max(half, 1);
+                // des bandes de flamme qui filent vers la cible, et un bord qui crépite
+                float band = MathF.Sin(u / (5 * U) - time * 40 + MathF.Sin(v / (3 * U) + seed) * 1.2f);
+                float heat = 1.05f - g * 0.9f - f * 0.35f + band * 0.14f + (Noise(seed + frame, (int)(u * 7 + v)) - 0.5f) * 0.2f;
+                if (heat < 0.08f)
+                    continue;
+                Dot(canvas, at + side * v, A(Heat(FireColors, heat), fade * Math.Min(1, heat * 4)));
+            }
+        }
+        if (front > back + 4 * U && t < 0.85f)
+            Blaze(canvas, Axis(front - 4 * U), Half(front) * 1.1f, dir, 0.8f, seed, time, fade, FireColors);
+        // la fumée qui monte du jet, puis de là où il s'est éteint
+        for (int n = 0; n < 6; n++)
+        {
+            float life = (time * 1.6f + Noise(seed, n)) % 1;
+            float u = front * (0.35f + 0.65f * Noise(seed, n + 20));
+            var p = Axis(u) + new Vector2((Noise(seed, n + 30) - 0.5f) * 10 * U, -Half(u) - life * 20 * U);
+            Puff(canvas, p, (2 + 3 * life) * U, Smoke, 0.45f * (1 - life) * Math.Min(1, t * 4) * fade, seed + n + (int)(time * 4));
+        }
+        // des braises qui s'échappent et montent
+        for (int n = 0; n < 14; n++)
+        {
+            float life = (time * 2.2f + Noise(seed, n + 40)) % 1;
+            float u = back + (front - back) * Noise(seed, n + 50);
+            var p = Axis(u) + side * (Noise(seed, n + 60) - 0.5f) * 2 * Half(u) + new Vector2(0, -life * 22 * U);
+            Disc(canvas, p, n % 5 == 0 ? 1 : 0, A(Heat(FireColors, 0.95f - life * 0.8f), (1 - life) * fade));
+        }
+        // la bouche : une lueur claire tant que le feu en sort
+        if (back <= 0)
+            Glow(canvas, from, 5 * U, 4 * U, FireCore, 0.8f * fade);
+    }
+
+    /// <summary>
     /// Une sphère de feu : des bandes en spirale qui tournent (<paramref name="spin"/>), un bord rouge sombre, un reflet
     /// clair en haut à gauche ; le bord frémit un peu.
     /// </summary>

@@ -256,6 +256,27 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     le jeu dessine le tas et le sillon de mottes (une carte de hauteurs vue un peu d'en haut, pas de côté ni d'en haut)
     qui s'affaisse en s'effaçant ; les images de la transformation et de l'attaque calées pour que la terre touche le bas
     de la case.
+  - **La vue d'ensemble** (2026-11-15, demandée par l'utilisateur à chaque créature commencée ou finie) :
+    `python -I tools/art/apercu_faction.py <id>` écrit `art-candidats/en-cours/ensemble-<id>.html`, sa faction et les
+    créatures de son niveau, animations jouées : on juge le style de toute la faction, pas une image seule.
+  - **Des fonds de papier blanc** restent sur bien des candidats (« plenty of white pixels ») : remplir depuis le bord
+    et effacer aussi les taches blanches enfermées (par exemple entre un bras et le corps), en gardant l'original.
+  - **Une image nette** : une image fixe gardée à sa taille de génération (le Tourmenteur, le Démon) est bien plus nette
+    qu'une image réduite (la Succube, un peu floue) ; générer à la taille du jeu quand c'est possible.
+  - **Un fluide** (le Limon de magma) : son attente tourne sans pause (`idlePauseMax` 0), et un mouvement lent se fait en
+    **32 images** (`--images=32`, à 20 images/s, `moveFrames` 32) : en 16 images, il glissait ou on voyait les images
+    manquer.
+  - **Un objet lancé et ramené** (la chaîne du Tourmenteur) : l'animation `throw` (un état à part de l'attaque) ; le jeu
+    dessine la chaîne avec **les pixels de l'image** (un maillon et le crochet découpés, posés en `-chain.png` et
+    `-hook.png`) ; un point de départ par image (`throwPoints`), pris à l'intérieur de la chaîne dessinée, pour qu'il n'y
+    ait pas de trou ; nombre de maillons arrondi vers le haut. Une chaîne dessinée autrement que celle de l'image se
+    remarque tout de suite.
+  - **Le feu ou les traînées de PixelLab** (Démon, Tourmenteur, Cultistes) : les retirer des feuilles (les pixels très
+    rouges, r ≥ 235, puis les restes isolés) et laisser le jeu dessiner l'effet. Un jet de feu au corps à corps :
+    `meleeProjectile` (« flammes ») dans `animations.json` ; il reprend les outils du feu des sorts (`SpellEffects.FireJet` :
+    paliers de couleur de la Boule de feu, boule qui bouillonne, fumée, braises) : un jet fait de couches unies ne
+    ressemblait pas à du feu.
+  - Une créature qui vole trop vite (le Diablotin) : `stepTime` (0,3 s par case pour un petit volant).
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).

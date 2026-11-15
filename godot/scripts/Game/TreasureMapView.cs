@@ -60,7 +60,9 @@ public partial class TreasureMapView : Control
             var terrain = map.GetTerrain(cell);
             var ground = terrain is TerrainType.Forest or TerrainType.Mountain ? TerrainType.Grass : terrain;
             DrawRect(new Rect2(o, CellSize, CellSize), Faded(MapRenderer.TerrainColor(ground)));
-            if (map.HasRoad(cell))
+            if (map.GetRiver(cell) is RiverKind.River or RiverKind.Stream)
+                DrawRect(new Rect2(o + new Vector2(8, 8), 16, 16), Faded(MapRenderer.TerrainColor(TerrainType.Water)));
+            if (map.HasRoad(cell) || map.GetRiver(cell) == RiverKind.Bridge)
                 DrawRect(new Rect2(o + new Vector2(11, 11), 10, 10), Faded(MapRenderer.RoadColor));
             if (terrain == TerrainType.Forest)
                 for (int i = 0; i < 2; i++)

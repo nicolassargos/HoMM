@@ -98,6 +98,52 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Les rivières de chaque type de carte (carte normale) : leur part de la terre (Heroes 3 : 2,3 % en médiane, de 0 à
+    /// 7 %), les cases de rivière entre les zones, les ponts, les ruisseaux et leurs cases, les routes qui croisent un
+    /// ruisseau.
+    /// </summary>
+    [Mesure]
+    public void Rivieres_par_type_de_carte()
+    {
+        foreach (var type in Enum.GetValues<MapType>())
+        {
+            var shares = new List<int>();
+            int rivers = 0, bridges = 0, streams = 0, streamCells = 0, fords = 0;
+            foreach (int seed in Seeds)
+            {
+                var map = new GameState(seed, TestData.Data, MapSize.Normal, access: ZoneAccess.Normal, mapType: type).Map;
+                var cells = Enumerable.Range(0, map.Height).SelectMany(y => Enumerable.Range(0, map.Width).Select(x => new Cell(x, y))).ToList();
+                int land = cells.Count(c => !map.IsWater(c));
+                var kinds = cells.Select(map.GetRiver).ToList();
+                shares.Add((int)Math.Round(1000.0 * kinds.Count(k => k != RiverKind.None) / land));
+                rivers += kinds.Count(k => k == RiverKind.River);
+                bridges += kinds.Count(k => k == RiverKind.Bridge) / 2;
+                var stream = cells.Where(c => map.GetRiver(c) == RiverKind.Stream).ToHashSet();
+                streamCells += stream.Count;
+                fords += stream.Count(map.HasRoad);
+                // un ruisseau : une suite de cases reliées par leurs côtés
+                var seen = new HashSet<Cell>();
+                foreach (var start in stream.Where(seen.Add))
+                {
+                    streams++;
+                    var queue = new Queue<Cell>(new[] { start });
+                    while (queue.Count > 0)
+                    {
+                        var c = queue.Dequeue();
+                        foreach (var next in new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) })
+                            if (stream.Contains(next) && seen.Add(next))
+                                queue.Enqueue(next);
+                    }
+                }
+            }
+            int n = Seeds.Length;
+            output.WriteLine($"{type} : rivières et ruisseaux {Range(shares)} ‰ de la terre ; par carte : {rivers / (double)n:0} cases de rivière, "
+                             + $"{bridges / (double)n:0.0} ponts, {streams / (double)n:0.0} ruisseaux ({streamCells / (double)n:0} cases), "
+                             + $"{fords / (double)n:0.0} routes qui croisent un ruisseau");
+        }
+    }
+
+    /// <summary>
     /// Un adversaire (Normal) sur chaque type de carte, six semaines : s'il prend la mer (bateaux pris, débarquements),
     /// ses villes, son armée. Sur les îles, il doit quitter la sienne.
     /// </summary>

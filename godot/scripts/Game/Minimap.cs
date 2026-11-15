@@ -42,7 +42,13 @@ public partial class Minimap : Control
             Color color = MapRenderer.FogColor;
             if (State.Players[0].Fog.IsExplored(cell))
             {
-                color = map.HasRoad(cell) ? MapRenderer.RoadColor : MapRenderer.TerrainColor(map.GetTerrain(cell));
+                color = map.GetRiver(cell) switch
+                {
+                    RiverKind.River or RiverKind.Stream => MapRenderer.TerrainColor(TerrainType.Water),
+                    _ when map.HasRoad(cell) => MapRenderer.RoadColor,
+                    RiverKind.Bridge => MapRenderer.RoadColor,
+                    _ => MapRenderer.TerrainColor(map.GetTerrain(cell)),
+                };
                 if (map.ObjectAt(cell) is Mine mine)
                     color = mine.Owner != null ? MapRenderer.ColorOf(mine.Owner) : MapRenderer.Rgb(230, 230, 230);
                 else if (map.OccupantAt(cell) is Town town)

@@ -1067,9 +1067,15 @@ public static class Texts
     public static string LogEmpty => "Aucun message pour l'instant.";
 
     /// <summary>La ligne du terrain survolé : terrain, route, coût, et les jours de marche s'il est accessible.</summary>
-    public static string CellLine(TerrainType terrain, bool road, int? cost, int? days)
+    public static string CellLine(TerrainType terrain, bool road, int? cost, int? days, RiverKind river = RiverKind.None)
     {
-        string text = Terrain(terrain) + (road ? $", {WithRoad}" : "");
+        string text = river switch
+        {
+            RiverKind.River => "Rivière",
+            RiverKind.Bridge => "Pont",
+            RiverKind.Stream => Terrain(terrain) + ", ruisseau",
+            _ => Terrain(terrain),
+        } + (road && river != RiverKind.Bridge ? $", {WithRoad}" : "");
         text += cost is { } c ? $" · déplacement {c}" : " · infranchissable";
         if (days is { } d)
             text += d <= 1 ? " · atteint aujourd'hui" : $" · {d} jours de marche";

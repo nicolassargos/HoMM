@@ -927,7 +927,13 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   défaut, **prendre toutes les villes**, comme Heroes 3 ; **les parties longues sont acceptées** (la simulation seule
   prend toutes les villes de la normale vers le jour 210).
   Puis (2026-11-14, remarques de l'utilisateur) : ✅ les tours d'observation à 15 cases des bords et à 30 cases l'une de
-  l'autre. **À revoir ensemble** : un problème du moulin (à en parler) ; **des rivières et des ponts**.
+  l'autre. **À revoir ensemble** : un problème du moulin (à en parler).
+  ✅ **Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, détail dans `HISTORIQUE.md`)**, en deux tours
+  avec l'utilisateur : **deux sortes**, une couche posée sur le terrain comme la route (`RiverKind`). **Les rivières**
+  bloquent : chacune va d'un bord de la carte à un autre (ou jusqu'à la mer) en suivant les frontières des zones ; on ne
+  les passe que sur un **pont** gardé. **Les ruisseaux**, dans une zone, se traversent (un décor). Dessinés par le
+  shader en courbes douces, avec la plage des lacs. **À faire** (choix de l'utilisateur) : **les ponts en images**
+  (session images : ceux du shader ne convainquent pas) ; revoir les rives plus tard ; **revoir les routes ensuite**.
   ✅ **Les routes, premières règles (2026-11-15, branche `routes-sans-issue`, détail dans `HISTORIQUE.md`)** : leurs règles se définissent avec l'utilisateur, en
   plusieurs tours (une page de cartes entières, ses remarques, des retouches). Décidé : plus de route qui ne mène nulle
   part (chaque route arrive à une ville, une mine, un port) ; une petite route vers les mines proches des villes et vers

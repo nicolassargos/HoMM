@@ -437,6 +437,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   que le drapeau flotte vers l'arrière dans chaque vue (le nord-est le portait vers l'avant : retourné autour de la
   hampe). Une marche trop lente : « walks briskly with long quick strides ». Regarder chaque lot soi-même et mesurer
   les hauteurs **avant** de faire une page.
+- **Le démoniste de l'Enfer** (2026-11-15) : **partir de l'est** (vrai profil d'après les cavaliers des images de combat)
+  et faire tourner l'est (`tourner`, « Pro ») pour le sud, le nord-est et le nord : le cheval garde ses proportions (les
+  vues tirées d'une image fixe de trois quarts donnaient un poney à côté du grand cheval de l'est). Comparer **la taille
+  du corps** (sans drapeau ni hampe) d'une vue à l'autre, pas seulement la hauteur totale. **Pas de rouge hors du
+  drapeau** (le jeu le peint de la couleur du joueur) : un feu passe à l'orange par le code ; écrire « no red anywhere
+  except the banner » dans la description.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

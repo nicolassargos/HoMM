@@ -1245,6 +1245,16 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   (trois quarts, le même cheval que les autres vues) pour l'instant, comme le chef barbare. Marches : sud 1, sud-est 1,
   est 2, nord-est 2, nord 1 ; posées au sol commun (rangée 45) avec le rebond. L'image fixe est le sud-est. Pieds mesurés
   à la main, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ Le héros des Nains sur la carte (2026-11-15, branche `heros-carte-nains`, PixelLab, environ 0,75 $) : les idées
+  dessinées de côté d'emblée : a, un thane nain en armure d'acier et d'or, heaume ailé, longue barbe tressée, marteau aux
+  runes bleues, sur un grand bélier des montagnes aux cornes enroulées (comme les chevaucheurs de chèvre) ; b, le même sur
+  un ours de guerre caparaçonné ; choisi **a-1** (sa selle rouge passée au brun d'abord, pour que la rotation ne la garde
+  pas). Sud, nord-est et nord : la première rotation « Pro » de a-1. Sud-est : le sud-est du rôdeur en style, le nouveau sud
+  en modèle, du premier coup tourné vers nous (choisi le 4), agrandi de 44 à 46 pixels (la taille de la vue de face). **La
+  hampe** s'arrêtait à l'épaule du nain dans toutes les vues (remarque de l'utilisateur) : prolongée de 9 pixels sous la
+  main, par le code, avant les marches (qui la gardent). Marches : sud 2, sud-est 2, est 2, nord-est 2, nord 1 ; posées
+  au sol commun (rangée 45) avec le rebond ; les rouges hors du drapeau (barbe, selle) passés au brun dans chaque image.
+  L'image fixe est le sud-est. Pieds mesurés à la main, pas encore revus. Vu en jeu avec `--hero-walk`.
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

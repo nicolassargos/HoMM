@@ -184,9 +184,9 @@ public sealed class MapGenerator
         if (_data != null)
             PlaceGuards(_data.Creatures);
         RemoveUnreachableGuards();
-        RemoveDeadEndRoads();
+        KeepMainNetwork();
         ConnectToRoads();
-        RemoveDeadEndRoads();
+        RemoveDeadEndRoads(mainOnly: false);
         return _map;
     }
 
@@ -194,7 +194,8 @@ public sealed class MapGenerator
     /// Les petites routes (choix de l'utilisateur, 2026-11-15) : de l'entrée de chaque mine proche d'une ville (celles de la
     /// zone de départ, la scierie et la mine de minerai de chaque ville) et de chaque port (un chantier naval de la côte, la
     /// case d'où l'on monte dans un bateau amarré) jusqu'à la route la plus proche. Elles ne passent que sur des cases
-    /// libres et praticables (rien ne bouge sur la carte déjà remplie) ; sans route à joindre, rien.
+    /// libres et praticables (rien ne bouge sur la carte déjà remplie) ; sans route à joindre, rien. Puis, quand une route
+    /// passe assez près, un sentier vers les autres mines et vers les lieux.
     /// </summary>
     private void ConnectToRoads()
     {
@@ -206,11 +207,16 @@ public sealed class MapGenerator
             RoadToNetwork(Neighbours(yard.Position).Where(c => _map.IsPassable(c) && _map.ObjectAt(c) == null).ToList());
         foreach (var landing in _boatLandings)
             RoadToNetwork(new[] { landing });
-        // des sentiers vers les lieux (demandé par l'utilisateur, 2026-11-15 : beaucoup de petites routes), quand une route
-        // passe assez près
+        // des sentiers vers les autres mines et les lieux (demandé par l'utilisateur, 2026-11-15 : beaucoup de petites
+        // routes), quand une route passe assez près
+        foreach (var mine in _map.Objects.OfType<Mine>().Where(m => !_townMines.Contains(m) && !_startZoneMines.Contains(m)).OrderBy(m => m.Id).ToList())
+            RoadToNetwork(new[] { mine.Approach }, MinePathLength);
         foreach (var site in _map.Objects.Where(IsPathSite).OrderBy(o => o.Id).ToList())
             RoadToNetwork(SiteDoorsteps(site), SitePathLength);
     }
+
+    /// <summary>La longueur au plus d'un sentier vers une mine loin des villes (en cases, à peu près).</summary>
+    private const double MinePathLength = 5;
 
     /// <summary>Les lieux où mène un sentier : autels, cabanes du sage, moulins et roues à eau, tours, temples, cercles des fées.</summary>
     private static bool IsPathSite(MapObject obj) =>
@@ -221,7 +227,7 @@ public sealed class MapGenerator
         Neighbours(site.Position).Where(c => _map.IsPassable(c) && _map.ObjectAt(c) == null).ToList();
 
     /// <summary>La longueur au plus d'un sentier vers un lieu (en cases, à peu près) : plus loin, le lieu reste sans route.</summary>
-    private const double SitePathLength = 12;
+    private const double SitePathLength = 3;
 
     /// <summary>Les cases de terre d'où l'on monte dans un bateau amarré (<see cref="PlaceMooredBoat"/>).</summary>
     private readonly List<Cell> _boatLandings = new();
@@ -297,13 +303,96 @@ public sealed class MapGenerator
     private const int RoadWindingStep = 5;
 
     /// <summary>
+    /// Le réseau principal des routes, un arbre (2026-11-15, d'après les cartes de Heroes 2 et 3 : leurs routes couvrent 3
+    /// à 9 % de la terre, les nôtres 13 %, faites de boucles entre les passages) : depuis le premier départ, on ajoute tour à
+    /// tour le plus court chemin, par les routes tracées, vers la destination la plus proche qui n'y est pas encore (une
+    /// ville, un départ, une mine d'une ville, un port) ; les routes hors de cet arbre sont retirées. Une île sans
+    /// destination reliée commence son propre arbre.
+    /// </summary>
+    private void KeepMainNetwork()
+    {
+        RemoveDeadEndRoads(mainOnly: true);
+        var destinations = new HashSet<Cell>(_map.Starts.Select(s => s.Offset(0, 1)).Concat(_boatLandings)
+            .Concat(_map.Objects.OfType<Town>().Select(t => t.Approach))
+            .Concat(_townMines.Concat(_startZoneMines).OfType<Mine>().Select(m => m.Approach))
+            .Concat(_map.Objects.OfType<Shipyard>().SelectMany(y => Neighbours(y.Position)))
+            .Where(_map.HasRoad));
+        if (destinations.Count == 0)
+            return;
+        var kept = new HashSet<Cell>();
+        var left = destinations.OrderBy(c => c.Y).ThenBy(c => c.X).ToList();
+        while (left.Count > 0)
+        {
+            // une nouvelle composante (une autre île) : sa première destination
+            if (kept.Count == 0 || !left.Any(c => kept.Contains(c)) && ShortestRoadTo(kept, left) is null)
+            {
+                var seed = _map.Starts.Select(s => s.Offset(0, 1)).Where(left.Contains).Cast<Cell?>().FirstOrDefault() ?? left[0];
+                kept.Add(seed);
+                left.Remove(seed);
+                continue;
+            }
+            left.RemoveAll(kept.Contains);
+            if (left.Count == 0)
+                break;
+            if (ShortestRoadTo(kept, left) is not { } path)
+                continue; // (traité plus haut au tour suivant)
+            kept.UnionWith(path);
+            left.RemoveAll(kept.Contains);
+        }
+        foreach (var c in AllCells().Where(c => _map.HasRoad(c) && !kept.Contains(c)).ToList())
+            _map.SetRoad(c, false);
+    }
+
+    /// <summary>
+    /// Le plus court chemin par les routes tracées, des cases déjà gardées à la plus proche de ces destinations (ses cases,
+    /// destination comprise), ou null si aucune n'est reliée par la route.
+    /// </summary>
+    private List<Cell>? ShortestRoadTo(HashSet<Cell> from, List<Cell> targets)
+    {
+        var wanted = targets.ToHashSet();
+        var previous = new Dictionary<Cell, Cell>();
+        var cost = new Dictionary<Cell, double>();
+        var queue = new PriorityQueue<Cell, double>();
+        foreach (var c in from.OrderBy(c => c.Y).ThenBy(c => c.X))
+        {
+            previous[c] = c;
+            cost[c] = 0;
+            queue.Enqueue(c, 0);
+        }
+        while (queue.TryDequeue(out var c, out double known))
+        {
+            if (known > cost[c])
+                continue;
+            if (wanted.Contains(c))
+            {
+                var path = new List<Cell>();
+                for (var p = c; !from.Contains(p); p = previous[p])
+                    path.Add(p);
+                return path;
+            }
+            foreach (var next in Neighbours(c))
+            {
+                if (!_map.InBounds(next) || !_map.HasRoad(next))
+                    continue;
+                double total = known + (next.X != c.X && next.Y != c.Y ? Math.Sqrt(2) : 1);
+                if (cost.TryGetValue(next, out double old) && old <= total)
+                    continue;
+                cost[next] = total;
+                previous[next] = c;
+                queue.Enqueue(next, total);
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
     /// Retire les routes qui ne mènent nulle part (demandé par l'utilisateur, 2026-11-15) : une route est tracée du centre
     /// de chaque zone à ses passages, même quand rien ne l'attend au centre. Une fois la carte remplie, on retire un à un
     /// les bouts de route qui n'arrivent pas à une destination : la porte d'une ville (les châteaux de départ compris),
     /// l'entrée d'une mine, un chantier naval, un bateau amarré, un lieu (<see cref="IsPathSite"/>), un départ. Il ne reste que les routes entre ces destinations. Le terrain
     /// reste tel quel (une route tracée dans une montagne ou une forêt l'a changée en herbe : on y passe toujours).
     /// </summary>
-    private void RemoveDeadEndRoads()
+    private void RemoveDeadEndRoads(bool mainOnly)
     {
         var destinations = new HashSet<Cell>(_map.Starts.SelectMany(s => new[] { s, s.Offset(0, 1) }).Concat(_boatLandings));
         foreach (var obj in _map.Objects)
@@ -312,13 +401,14 @@ public sealed class MapGenerator
                 case Town town:
                     destinations.Add(town.Approach);
                     break;
-                case Mine mine:
+                // le réseau principal ne garde que les mines des villes ; les autres ont leur sentier ensuite
+                case Mine mine when !mainOnly || _townMines.Contains(mine) || _startZoneMines.Contains(mine):
                     destinations.Add(mine.Approach);
                     break;
                 case Shipyard shipyard:
                     destinations.UnionWith(Neighbours(shipyard.Position));
                     break;
-                case var site when IsPathSite(site):
+                case var site when !mainOnly && IsPathSite(site):
                     destinations.UnionWith(Neighbours(site.Position));
                     break;
             }
@@ -1306,8 +1396,18 @@ public sealed class MapGenerator
 
     // ------------------------------------------------------------------ villes
 
-    /// <summary>Une ville pour trois zones, et au moins une par joueur.</summary>
-    private int TownCount => Math.Max(_map.Starts.Count, LandZones / 3);
+    /// <summary>
+    /// Le nombre de villes neutres : une pour trois zones, sans dépasser <see cref="TownsPerLand"/> villes (châteaux
+    /// compris) pour 1000 cases de terre ; et au moins une par joueur (sa ville voisine).
+    /// </summary>
+    private int TownCount => Math.Max(_map.Starts.Count,
+        Math.Min(LandZones / 3, (int)Math.Round(TownsPerLand * _landArea / 1000) - _map.Starts.Count));
+
+    /// <summary>
+    /// Les villes pour 1000 cases de terre, châteaux compris : comme les cartes de Heroes 2 et 3 (mesuré sur 160 cartes,
+    /// 2026-11-15 : 1,5 et 1,3 en moyenne ; les îles en avaient deux fois plus).
+    /// </summary>
+    private const double TownsPerLand = 1.5;
 
     /// <summary>
     /// Des villes neutres du Château : la première dans une zone voisine du départ, les autres plus loin,

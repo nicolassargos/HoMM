@@ -63,5 +63,6 @@ Décision de l'utilisateur, valable pour toutes les sessions :
 - Tests : `dotnet test` (à la racine)
 - Mesures de l'équilibre (simulation seule, adversaires à chaque niveau, courbe du Château ; toujours les mêmes graines, pour comparer avant et après un changement) : `HOMM_MESURES=1 dotnet test --filter Category=Mesures --logger "console;verbosity=detailed"` (`tests/HoMM.Core.Tests/MesuresTests.cs` ; ignorées par un `dotnet test` ordinaire). Y ajouter une mesure plutôt qu'écrire un test jetable.
 - Captures de tous les écrans (avant une PR d'interface, puis les regarder) : `python -I tools/captures.py` (ou `… ville` pour une partie), dans `art-candidats/en-cours/revue/`
+- Lire des cartes de Heroes 2 et 3 (dans `maps references/`, non suivi) pour en tirer des règles : `tools/cartes/` (voir son `LISEZMOI.md`)
 - Compiler : `dotnet build` (dans `godot/`)
 - Lancer : `godot\lancer.bat` (Godot attendu dans `C:\Godot\`) : le menu principal ; toute option (ou `-- --play`) entre directement dans une partie ; plein écran (F11 ou Alt+Entrée : fenêtre agrandie ; `-- --windowed` pour démarrer en fenêtre), option `-- --seed=42` pour une carte fixe, `-- --load` pour reprendre la dernière sauvegarde

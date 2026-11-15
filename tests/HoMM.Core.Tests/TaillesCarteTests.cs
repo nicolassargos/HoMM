@@ -97,14 +97,15 @@ public class TaillesCarteTests(ITestOutputHelper output)
 
     /// <summary>
     /// Les villes sont bien réparties (demandé par l'utilisateur, 2026-11-15 : tirées au hasard, elles se serraient parfois
-    /// dans une moitié de la carte) : chaque quart d'une carte normale a au moins une ville.
+    /// dans une moitié de la carte) : chaque quart d'un continent normal a au moins une ville (avec des mers, la terre est
+    /// plus petite et les villes moins nombreuses, 1,5 pour 1000 cases de terre : un quart peut rester sans ville).
     /// </summary>
     [Theory]
     [InlineData(5, MapType.Continent)]
     [InlineData(42, MapType.Continent)]
-    [InlineData(11, MapType.Seas)]
+    [InlineData(11, MapType.Continent)]
     [InlineData(3, MapType.Continent)]
-    [InlineData(8, MapType.Seas)]
+    [InlineData(8, MapType.Continent)]
     public void Les_villes_sont_reparties_sur_toute_la_carte(int seed, MapType type)
     {
         var map = new GameState(seed, TestData.Data, MapSize.Normal, opponents: 1, mapType: type).Map;

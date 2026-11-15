@@ -14,6 +14,8 @@ namespace HoMM.Game;
 /// floutée : son bord, là où elle vaut 0,5, suit des courbes douces au lieu des escaliers de cases.
 /// Vert : la distance au milieu du ruisseau le plus proche, en pixels d'art, le long d'une ligne lissée qui passe par les
 /// centres de ses cases (des virages arrondis au lieu d'angles droits).
+/// Bleu : dans l'eau des lacs, de la mer et des rivières, la distance à la terre la plus proche, en pixels d'art (de
+/// quoi foncer l'eau loin des rives ; 0 sur la terre, <see cref="Deep"/> au plus).
 /// </summary>
 public static class RiverField
 {
@@ -21,6 +23,11 @@ public static class RiverField
 
     /// <summary>La distance la plus grande gardée pour les ruisseaux (pixels d'art) : au-delà, « loin ».</summary>
     private const float Far = 32f;
+
+    /// <summary>La distance à la terre la plus grande gardée (pixels d'art) : au-delà, l'eau est aussi profonde.</summary>
+    public const float Deep = 96f;
+
+    private const int Channels = 3;
 
     /// <summary>Le flou de la bande des rivières, en cases : plus il est fort, plus les virages sont larges.</summary>
     private const double Blur = 0.8;
@@ -45,15 +52,16 @@ public static class RiverField
         bool In(Cell c) => c.X >= 0 && c.Y >= 0 && c.X < width && c.Y < height;
         bool Band(Cell c) => In(c) && river[c.X, c.Y] is RiverKind.River or RiverKind.Bridge;
 
-        var data = new float[sw * sh * 2];
+        var data = new float[sw * sh * Channels];
         Bank(data, sw, sh, width, height, terrain, Band);
         Streams(data, sw, sh, art, c => In(c) && river[c.X, c.Y] == RiverKind.Stream,
             c => In(c) && (terrain[c.X, c.Y] == TerrainType.Water || Band(c)));
+        Depth(data, sw, sh, art, (x, y) => terrain[x, y] == TerrainType.Water || Band(new Cell(x, y)));
 
         var halves = new Half[data.Length];
         for (int i = 0; i < data.Length; i++)
             halves[i] = (Half)data[i];
-        return Image.CreateFromData(sw, sh, false, Image.Format.Rgh, MemoryMarshal.AsBytes(halves.AsSpan()).ToArray());
+        return Image.CreateFromData(sw, sh, false, Image.Format.Rgbh, MemoryMarshal.AsBytes(halves.AsSpan()).ToArray());
     }
 
     /// <summary>La bande des rivières, floutée (rouge) : un flou gaussien en deux passes, d'abord par rangée de cases.</summary>
@@ -112,7 +120,7 @@ public static class RiverField
                 float sum = 0;
                 for (int k = -radius; k <= radius; k++)
                     sum += kernel[k + radius] * rows[Math.Clamp(sy + k, 0, sh - 1) / PerCell, sx];
-                data[(sy * sw + sx) * 2] = sum;
+                data[(sy * sw + sx) * Channels] = sum;
             }
         }
     }
@@ -123,7 +131,7 @@ public static class RiverField
     /// </summary>
     private static void Streams(float[] data, int sw, int sh, float art, Func<Cell, bool> stream, Func<Cell, bool> sink)
     {
-        for (int i = 1; i < data.Length; i += 2)
+        for (int i = 1; i < data.Length; i += Channels)
             data[i] = Far;
         var cells = new List<Cell>();
         for (int y = 0; y < sh / PerCell; y++)
@@ -180,6 +188,32 @@ public static class RiverField
         }
     }
 
+    /// <summary>
+    /// La distance à la terre (bleu), pour chaque point dans l'eau : deux passes sur la grille des points (en avant puis en
+    /// arrière, pas droits et en biais), assez juste pour une eau qui fonce en douceur.
+    /// </summary>
+    private static void Depth(float[] data, int sw, int sh, float art, Func<int, int, bool> wet)
+    {
+        float step = art / PerCell, diagonal = step * MathF.Sqrt(2);
+        var d = new float[sw * sh];
+        for (int sy = 0; sy < sh; sy++)
+        for (int sx = 0; sx < sw; sx++)
+            d[sy * sw + sx] = wet(sx / PerCell, sy / PerCell) ? Deep : 0;
+        float At(int x, int y) => x < 0 || y < 0 || x >= sw || y >= sh ? Deep : d[y * sw + x];
+        for (int sy = 0; sy < sh; sy++)
+        for (int sx = 0; sx < sw; sx++)
+            if (d[sy * sw + sx] > 0)
+                d[sy * sw + sx] = Math.Min(d[sy * sw + sx], Math.Min(Math.Min(At(sx - 1, sy) + step, At(sx, sy - 1) + step),
+                    Math.Min(At(sx - 1, sy - 1) + diagonal, At(sx + 1, sy - 1) + diagonal)));
+        for (int sy = sh - 1; sy >= 0; sy--)
+        for (int sx = sw - 1; sx >= 0; sx--)
+            if (d[sy * sw + sx] > 0)
+                d[sy * sw + sx] = Math.Min(d[sy * sw + sx], Math.Min(Math.Min(At(sx + 1, sy) + step, At(sx, sy + 1) + step),
+                    Math.Min(At(sx + 1, sy + 1) + diagonal, At(sx - 1, sy + 1) + diagonal)));
+        for (int i = 0; i < d.Length; i++)
+            data[i * Channels + 2] = d[i];
+    }
+
     /// <summary>Une ligne aux coins coupés (Chaikin) : chaque segment garde son premier et son dernier quart, les bouts restent.</summary>
     private static List<Vector2> Chaikin(List<Vector2> points)
     {
@@ -212,7 +246,7 @@ public static class RiverField
             var q = new Vector2((sx + 0.5f) * step, (sy + 0.5f) * step);
             float t = Math.Clamp((q - a).Dot(ab) / length2, 0, 1);
             float d = (q - (a + ab * t)).Length() - grow;
-            int i = (sy * sw + sx) * 2 + 1;
+            int i = (sy * sw + sx) * Channels + 1;
             if (d < data[i])
                 data[i] = d;
         }

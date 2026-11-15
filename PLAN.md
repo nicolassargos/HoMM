@@ -283,7 +283,10 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
    nouvelle faction, gagnait par ses sorts). Mesuré (un adversaire, Normal, six semaines, or d'armée) : **Enfer 30 800**, Château
    24 700, morts-vivants 25 900, Barbares 30 200, Forêt 32 500, Tour 24 800, Donjon 30 800 ; la simulation seule comme
    avant (jours 101, 86, 153). Tests : `VilleEnferTests`.
-3. Les images (session images) : les 7 créatures, l'icône du bouton « Invoquer ». ✅ La ville sur la carte (2026-11-11,
+3. Les images (session images) : les 7 créatures, l'icône du bouton « Invoquer ». **À faire (session règles, sur sa
+   propre branche, choix de l'utilisateur, 2026-11-15)** : le Démon **se téléporte** (capacité `teleports` : il atteint
+   toute case libre à sa portée, comme un volant, sans voler) ; son animation est déjà prête (il s'enveloppe de ses
+   ailes, s'élance vers le haut et redescend à l'arrivée). ✅ La ville sur la carte (2026-11-11,
    branche `ville-enfer`, choix de l'utilisateur) : une citadelle de roche noire hérissée de pointes, des coulées de lave,
    une porte en tête de démon cornu au feu dans la gueule (`objects/town-enfer.png`, luminosité 51).
 

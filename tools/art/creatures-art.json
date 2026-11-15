@@ -1759,6 +1759,33 @@
         "carte": "p1-1"
       },
       "grande": "art-candidats/references/derives/diablotin-grand.png"
+    },
+    "cultiste": {
+      "nom": "Cultiste",
+      "gabarit": "humain",
+      "hauteur": 68,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "diablotin",
+        "archer"
+      ],
+      "notes": "Enfer, niveau 2 : des humains qui ont vendu leur âme ; sacrifice avant chaque attaque (références de l'utilisateur, 2026-11-15). Deux styles : robe rouge à capuche (L1, L2), prêtre du sang chauve et tatoué (L3, L4).",
+      "references": [
+        "art-candidats/references/enfer/occultist4.png::character reference (a bald bearded blood priest with a rune tattooed on his forehead, a dark red sleeveless robe, a belt full of knives, bare feet): keep this design, his face, his robe and his knives; ignore the white background"
+      ],
+      "description": "a human cultist standing: a bald man with a black beard and a demonic rune tattooed on his forehead, gold earrings, a dark red sleeveless robe, a leather belt with many sacrificial knives, a curved ritual dagger in one hand, bare feet, bare muscular arms with leather bracers, fanatical",
+      "sujet": "a bald bearded human cultist in a dark red sleeveless robe, holding a curved ritual dagger, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
     }
   }
 }

@@ -384,6 +384,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (page à curseurs `en-cours/heros-elan.html` pour régler vitesse, élan et moment avec l'utilisateur).
 - Montrer une marche **jouée**, à la taille et à la vitesse du jeu, sur place et en avançant sur l'herbe : la planche
   d'images ne permet pas de juger les jambes.
+- **Les 8 directions** (2026-11-15) : `pixellab.py tourner image.png dossier --vue="high top-down" --description="…"`
+  (« Generate 8 rotations » Pro, 0,06 $ le lot ; l'ordre réel des images à l'écran est sud, sud-est, est, nord-est,
+  nord, nord-ouest, ouest, sud-ouest : la documentation le donne en miroir) ; la v3 garde mieux le dessin d'origine
+  mais rate des directions. Puis une marche par direction avec `animer --enrichir` sur l'image tournée (environ 0,02 $
+  l'essai : deux essais par direction suffisent) ; 5 directions suffisent, l'ouest en miroir. Les vues de face et de dos
+  bougent peu les jambes : c'est normal.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

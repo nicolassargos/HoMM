@@ -1025,6 +1025,18 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   montré avant que les règles ne le fassent (`ActorLayer.BeginStep`, `Main.NextStep` : une rencontre arrive quand il est
   sur la case) ; les adversaires rejoués glissent de même. Au combat, l'image de la carte ×2 en attendant la sienne.
   Pieds revus par l'utilisateur.
+- ✅ La marche du chevalier dans les 8 directions (2026-11-15, branche `heros-carte-factions`, PixelLab, 0,44 $) : l'image
+  du chevalier tournée par PixelLab (`pixellab.py tourner`) en trois lots : « Pro » vue basse, « Pro » vue plus haute,
+  v3 (qui garde notre dessin pour sa direction, mais d'autres floues ou mal tournées) ; choisi **la vue plus haute**
+  (« high top-down », un chevalier un peu plus mince que le nôtre). Puis deux marches par direction (`animer
+  --enrichir`, 8 images), pour le sud, le sud-est, l'est, le nord-est et le nord : choisies sud 1, les autres 2 ; posées
+  au sol et le même rebond que la première marche (images 2, 3, 6 et 7). Images `heroes/hero-chateau-{s,se,e,ne,n}.png`
+  et `-move.png` ; l'ouest, le nord-ouest et le sud-ouest sont le miroir de l'est, du nord-est et du sud-est. Le héros
+  regarde vers son dernier pas (`MapRenderer.HeroFacing`, la direction et le côté gauche ou droit pour une faction qui
+  n'a pas encore ses directions) ; avant tout pas, vers le sud-est (comme l'ancienne image). Au combat, l'image du
+  sud-est. Pieds des 5 images mesurés (pas encore revus par l'utilisateur ; les images de marche prennent ceux de leur
+  image fixe). Voir la marche en jeu : `--hero-walk` (le héros choisi fait sans cesse le tour d'un octogone, montré
+  seulement).
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

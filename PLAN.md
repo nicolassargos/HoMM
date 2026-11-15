@@ -951,9 +951,11 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   morts-vivants, Donjon, Enfer ; terre : Barbares, Forêt), sinon terre ou gravier au hasard. Images Retro Diffusion
   choisies en jeu (terre 3, gravier 2, pavés 1 ; Retro Diffusion bien meilleur que PixelLab pour ces cases). Le dessin :
   des routes plus fines (de 7 à 9 pixels d'art, une largeur qui change vite), un bord éparpillé (la route et l'herbe se
-  mêlent pixel par pixel), une ombre douce du côté du soleil et un liseré de soleil sur l'herbe d'en face (légers).
+  mêlent pixel par pixel), une ombre douce du côté du soleil et un liseré de soleil sur l'herbe d'en face (légers). De
+  petits cailloux de tailles variées le long des bords (peu), quelques-uns sur la route, et d'autres semés sur le sol,
+  loin des routes ; leur ombre suit la lumière de la carte (comme les petits cailloux de l'herbe, corrigés).
   Écartés : le cadre de terre sombre de Heroes 3 (« pas naturel »), la terre battue posée ou multipliée (des taches,
-  pas des formes ; le code reste, éteint). **Ensuite** : de petits cailloux le long du bord ; l'herbe qui déborde sur la
+  pas des formes ; le code reste, éteint). **Ensuite** : l'herbe qui déborde sur la
   route (**en option**, à essayer) ; le bord sur le sable ; une revue de six cartes. **Plus tard** (idées) : une route
   enneigée (avec un sol de neige) ; un coût de marche par sorte comme Heroes 3 (pavés 50 %, gravier 65 %, terre 75 %) ;
   une entrée pavée devant chaque ville (Heroes 2) ; des ornières ou des flaques dessinées sur la terre ; **le shader de

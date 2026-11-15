@@ -139,6 +139,7 @@ public partial class SmoothGround : ColorRect
             material.SetShaderParameter("shade_scale", 45f * (float)material.GetShaderParameter("ART") / 24f);
             material.SetShaderParameter("flower_density", 0.22f);
             material.SetShaderParameter("pebble_share", 0.35f);
+            material.SetShaderParameter("ground_stones", 0f); // le champ a ses propres pierres (BattleFieldView)
             ApplyDevelopmentSettings(material);
         }
         return result;

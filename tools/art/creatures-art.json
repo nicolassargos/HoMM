@@ -1693,20 +1693,22 @@
         "geant",
         "archer"
       ],
-      "notes": "Enfer, niveau 7 : le géant qui invoque des diablotins (références de l'utilisateur, 2026-11-15). Deux directions à essayer : décharné à tête de crâne, peau noire calcinée aux fissures de feu (L1 à L3) ; ailé et musclé, peau rouge sombre (L4 à L6). Il ne vole pas : ailes repliées ou à demi ouvertes.",
+      "notes": "Enfer, niveau 7 : le géant qui invoque des diablotins (références de l'utilisateur, 2026-11-15). Deux directions à essayer : décharné à tête de crâne, peau noire calcinée aux fissures de feu (L1 à L3) ; ailé et musclé, peau rouge sombre (L4 à L6). Il ne vole pas : ailes repliées ou à demi ouvertes. Nouvelle idée de l'utilisateur (2026-11-15, d'après une vieille référence) : un démon gras, surtout rouge, ailes, queue, sabots, barbe et crocs (L7 à L9).",
       "references": [
-        "art-candidats/references/enfer/demon2.png::concept reference (a lean muscular demon with ram horns, big bat wings and a long spiked tail): keep this design; ignore the pencil style, the watermark and the logo",
-        "art-candidats/references/enfer/demon3.png::concept reference (a horned demon with bat wings, swirling markings on its skin and a long coiling tail): keep the wings, the horns, the markings and the tail; ignore the pencil style, the watermark and the logo"
+        "art-candidats/references/enfer/Demon4.png::concept reference (a big fat red demon with bat wings, horns, a black beard and a tail): keep the idea of a fat round red demon with wings and a beard; do not copy its blocky low resolution pixels or its flat front view"
       ],
-      "description": "a huge demon standing on clawed feet: a lean muscular body with deep dark red skin covered in black swirling markings, a fierce face with pointed ears and glowing yellow eyes, large black curled ram horns, big black bat wings half folded behind its back, a long spiked black tail, clawed hands raised, menacing",
-      "sujet": "a huge dark red muscular demon with black ram horns, half-folded black bat wings and a long spiked tail, facing right",
+      "description": "a huge fat demon standing on cloven black hooves: a big round heavy belly, thick arms with clawed hands, bright red skin with darker red shading, a broad face with a thick black beard, sharp white fangs, glowing yellow eyes, two short curved orange horns, big red bat wings half spread behind it with orange membranes, a long red tail with a pointed tip, menacing and powerful",
+      "sujet": "a huge fat red demon with a black beard, fangs, short horns, red bat wings, a tail and black hooves, facing right",
       "lots": {
         "L1": "références",
         "L2": "angle seul",
         "L3": "références",
         "L4": "références",
         "L5": "angle seul",
-        "L6": "références"
+        "L6": "références",
+        "L7": "références",
+        "L8": "angle seul",
+        "L9": "références"
       }
     }
   }

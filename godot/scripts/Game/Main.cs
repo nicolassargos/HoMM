@@ -130,7 +130,7 @@ public partial class Main : Node2D
             PaintTerrainTest();
 
         AddChild(new TerrainLayer { Map = _state.Map });
-        _actors = new ActorLayer { State = _state };
+        _actors = new ActorLayer { State = _state, WalkPreview = OS.GetCmdlineUserArgs().Contains("--hero-walk") };
         AddChild(new ShadowLayer { State = _state, Actors = _actors }); // sous le décor et les objets
         AddChild(new DecorLayer { Map = _state.Map });
         AddChild(_actors);

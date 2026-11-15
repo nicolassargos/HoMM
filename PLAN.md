@@ -899,8 +899,10 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   marais (même recette), peut-être des rochers dans les collines et quelques nuages. Détail dans `HISTORIQUE.md`.
 - Le héros sur la carte et au combat ; cadres des portraits, bandeau de la date. ✅ **Le héros du Château sur la
   carte** (2026-11-14, branche `heros-carte`, choix de l'utilisateur) : une image par faction, 48 × 48, gauche et droite,
-  une marche de 8 images avec un rebond, un pas de 3 cases par seconde avec un élan par case. Reste : les 7 autres
-  factions, la marche dans les **8 directions** (essayer d'abord sur le chevalier), une image de combat par héros.
+  une marche de 8 images avec un rebond, un pas de 3 cases par seconde avec un élan par case. ✅ **La marche dans les
+  8 directions** pour le chevalier (2026-11-15, branche `heros-carte-factions`, choix de l'utilisateur) : 5 directions
+  dessinées (sud, sud-est, est, nord-est, nord), l'ouest en miroir ; le héros regarde vers son dernier pas. Reste : les
+  7 autres factions (même recette), une image de combat par héros.
   ✅ **Les diagonales partout sur la carte** (2026-11-14, branche `diagonales`, très important pour l'utilisateur) : les
   bords des terrains suivent les centres des cases (un escalier devient une ligne à 45°, un coin s'arrondit), les routes
   vont en diagonale, les murs entre zones serpentent. (Icônes des ressources : faites, 2026-11-07.)

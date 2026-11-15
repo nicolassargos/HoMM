@@ -1713,7 +1713,8 @@
         "L11": "angle seul"
       },
       "choix": {
-        "fixe": "L10-1"
+        "fixe": "L10-1",
+        "idle": "mm-rot-3"
       },
       "grande": "art-candidats/references/derives/demon-grand.png"
     }

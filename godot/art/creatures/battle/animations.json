@@ -33,7 +33,7 @@
   "tyran-oeil": {"projectile": "rayon", "launchFrame": 4, "launchPoint": [86, 61], "move": 6, "stepTime": 0.18, "idle": 7, "idlePauseMin": 1, "idlePauseMax": 3},
   "hydre": {"move": 6},
   "succube": {"projectile": "baiser", "launchFrame": 5, "launchPoint": [106, 68]},
-  "demon": {"transformFrames": 12, "transform": 12, "stepTime": 0.03},
+  "demon": {"transformFrames": 12, "transform": 12, "stepTime": 0.03, "meleeProjectile": "flammes", "launchFrame": 1, "launchPoint": [168, 125]},
   "limon-magma": {"idlePauseMax": 0, "moveFrames": 32, "move": 20},
   "tourmenteur": {"throwFrame": 4, "throwPoint": [143, 101], "throwPoints": [[150, 101], [150, 101], [150, 101], [150, 101], [150, 99], [150, 101.5], [150, 104], [150, 104]]}
 }

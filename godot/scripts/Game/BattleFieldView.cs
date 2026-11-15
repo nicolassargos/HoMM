@@ -1166,8 +1166,9 @@ public partial class BattleFieldView : Control
                     double age = 0, wind = 0, boltAge = -1;
                     bool hit = false, launched = false, landed = false;
                     // un tir avec un projectile (flèche, boule de feu) : il part à l'image du lâcher et le coup porte à son
-                    // arrivée ; sinon le coup porte au moment habituel du geste
-                    string? shot = struck.Ranged ? TextSetting(struck.Attacker, "projectile") : null;
+                    // arrivée ; sinon le coup porte au moment habituel du geste. Un coup au corps à corps peut aussi
+                    // lancer quelque chose (« meleeProjectile » : le feu que crache le Démon)
+                    string? shot = TextSetting(struck.Attacker, struck.Ranged ? "projectile" : "meleeProjectile");
                     // un coup joué sur la case de la cible (la foudre de l'Oiseau-tonnerre) : l'effet part un peu avant le
                     // coup, pour toucher le sol au moment où il porte
                     bool onHex = shot == null && BattleEffects.PlaysOnHex(TextSetting(struck.Attacker, "impact"));
@@ -1792,13 +1793,32 @@ public partial class BattleFieldView : Control
         if (!BattleEffects.PlaysOnHex(parts[0]))
         {
             // un tir (« eclair ») : de la première troupe de gauche vers la première de droite, relancé sans cesse pour
-            // rester visible sur une capture
+            // rester visible sur une capture. Si cette troupe le lance elle-même (« projectile » ou « meleeProjectile »),
+            // elle joue son attaque toutes les deux secondes et le tir part à son image du lâcher.
+            var from = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Attacker);
+            var to = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Defender);
+            if (from.Key != null && to.Key != null && Sheet(from.Key, AttackState) != null
+                && (TextSetting(from.Key, "projectile") == parts[0] || TextSetting(from.Key, "meleeProjectile") == parts[0]))
+            {
+                double before = _previewClock;
+                _previewClock = _previewClock < 0 || _previewClock > 2 ? 0 : _previewClock + delta;
+                if (_previewClock == 0)
+                    from.Value.Play(AttackState);
+                double release = (Setting(from.Key, "launchFrame") ?? 3) / Fps(from.Key, AttackState);
+                // un coup au corps à corps vise la case voisine (là où serait l'ennemi)
+                var aim = TextSetting(from.Key, "meleeProjectile") == parts[0]
+                    ? BodyCenter(from.Key, from.Value) + new Vector2(HexWidth, 0)
+                    : BodyCenter(to.Key, to.Value);
+                if (before < release && _previewClock >= release)
+                    _effects.Launch(parts[0], LaunchPoint(from.Key, from.Value), aim, () => { });
+                if (_previewClock > 1.2 && from.Value.State == AttackState)
+                    from.Value.Play(Idle);
+                return;
+            }
             _previewClock = _previewClock < 0 ? 0 : _previewClock + delta;
             if (_previewClock > 0 && _previewClock < 0.2)
                 return;
             _previewClock = 1e-6;
-            var from = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Attacker);
-            var to = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Defender);
             if (from.Key != null && to.Key != null)
                 _effects.Launch(parts[0], LaunchPoint(from.Key, from.Value), BodyCenter(to.Key, to.Value), () => { },
                     LaunchPoint(from.Key, from.Value, "launchPoint2"));

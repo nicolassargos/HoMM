@@ -1717,7 +1717,7 @@
         "idle": "mm-rot-3",
         "transform": "ailes-1-envol",
         "move": "move-vide",
-        "attack": "mm-estoc-1-r2",
+        "attack": "crache-2-r",
         "carte": "p1-5"
       },
       "grande": "art-candidats/references/derives/demon-grand.png"
@@ -1860,11 +1860,36 @@
         "fixe": "L2-1",
         "move": "marche-1",
         "idle": "guette-1",
-        "attack": "griffe-3-r",
+        "attack": "fauche-2-r",
         "throw": "lancer-1",
         "carte": "p1-1"
       },
       "grande": "art-candidats/references/derives/tourmenteur-grand.png"
+    },
+    "moloch": {
+      "nom": "Moloch",
+      "gabarit": "grand",
+      "hauteur": 112,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "tourmenteur",
+        "demon"
+      ],
+      "notes": "Enfer, niveau 6 : la fournaise ; une idole de bronze qui marche (choix de l'utilisateur, 2026-11-15, sans références).",
+      "references": [],
+      "description": "a moloch, a massive walking bronze idol: a huge statue of dark polished bronze with a bull head and two great curved horns, glowing fiery eyes, a broad chest and a round belly with an open furnace door showing a roaring fire inside, glowing orange seams between the bronze plates, thick heavy legs with hooves, two great arms reaching forward with open palms, wisps of smoke rising from its horns and nostrils, ancient and menacing",
+      "sujet": "a massive walking bronze idol with a bull head and great horns, an open furnace door in its belly with fire inside, glowing seams, facing right",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul"
+      }
     }
   }
 }

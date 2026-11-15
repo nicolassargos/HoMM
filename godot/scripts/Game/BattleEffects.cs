@@ -270,6 +270,7 @@ public sealed class BattleEffects
         "feuilles" => "feuilles",
         "pierre" => "choc",
         "baiser" => "feu",
+        "flammes" => "feu",
         _ => "choc",
     };
 
@@ -287,6 +288,13 @@ public sealed class BattleEffects
     /// </summary>
     public void Launch(string kind, Vector2 from, Vector2 to, Action arrived, Vector2? from2 = null)
     {
+        if (kind == "flammes")
+        {
+            // le feu craché : un jet qui coule de la bouche jusqu'au-delà de la cible ; le coup porte quand il l'atteint
+            _beams.Add(new Beam { Kind = kind, From = from, To = to, Seed = ++_seed });
+            _projectiles.Add(new Projectile { Kind = "", From = to, To = to, Duration = FlameReach * FlameTime, Arrived = arrived });
+            return;
+        }
         if (kind is "eclair" or "rayon")
         {
             // un éclair ou un rayon n'a pas de trajet : il frappe presque aussitôt (un projectile invisible porte le moment du coup)
@@ -350,7 +358,7 @@ public sealed class BattleEffects
         _impacts.RemoveAll(i => i.Age > ImpactTime(i.Kind));
         foreach (var b in _beams)
             b.Age += delta;
-        _beams.RemoveAll(b => b.Age > (b.Kind == "rayon" ? RayTime : BeamTime));
+        _beams.RemoveAll(b => b.Age > b.Kind switch { "rayon" => RayTime, "flammes" => FlameTime, _ => BeamTime });
         foreach (var w in _flows)
             w.Age += delta;
         _flows.RemoveAll(w => w.Age > FlowTime);
@@ -887,6 +895,11 @@ public sealed class BattleEffects
             DrawRay(canvas, b);
             return;
         }
+        if (b.Kind == "flammes")
+        {
+            DrawFlames(canvas, b);
+            return;
+        }
         float fade = 1 - (float)(b.Age / BeamTime);
         int flicker = (int)(b.Age / 0.05);
         int seed = b.Seed + flicker * 31;
@@ -914,6 +927,52 @@ public sealed class BattleEffects
 
     /// <summary>Durée du rayon du Tyran œil à l'écran (il reste un peu plus qu'un éclair : on le voit sortir de l'œil).</summary>
     private const double RayTime = 0.45;
+
+    /// <summary>La durée du feu craché, et la part de cette durée qu'il met à atteindre la cible.</summary>
+    private const double FlameTime = 0.6, FlameReach = 0.3;
+
+    /// <summary>
+    /// Le feu craché du Démon : un jet qui coule de la bouche et s'élargit en s'éloignant, rouge sombre au bord, orange,
+    /// puis un cœur jaune pâle ; il ondule et crépite, va un peu au-delà de la cible, brûle un instant puis s'éteint en
+    /// se retirant vers sa pointe.
+    /// </summary>
+    private static void DrawFlames(CanvasItem canvas, Beam b)
+    {
+        float t = (float)(b.Age / FlameTime);
+        float reach = Math.Min(1, t / (float)FlameReach);
+        float tail = t < 0.7f ? 0 : (t - 0.7f) / 0.3f; // la fin : le jet quitte la bouche
+        // la bouche d'une grande créature est presque sur la case voisine : le jet passe la cible, au moins 160 pixels
+        float length = Math.Max(b.From.DistanceTo(b.To) * 1.3f, 160);
+        var end = b.From + (b.To - b.From).Normalized() * length;
+        var dir = (end - b.From).Normalized();
+        var across = new Vector2(-dir.Y, dir.X);
+        int samples = Math.Max(3, (int)(b.From.DistanceTo(end) / (U * 2)));
+        int flicker = (int)(b.Age / 0.05);
+        // trois passes (le bord sombre, l'orange, le cœur pâle) : chaque couche couvre la précédente d'un seul tenant,
+        // sans anneaux ; la taille de chaque bout change à chaque battement (des langues de feu)
+        var layers = new[] { (Extra: 1, Share: 1f, Color: new Color(0.75f, 0.12f, 0.05f, 0.85f)),
+            (Extra: 0, Share: 1f, Color: new Color(1, 0.45f, 0.08f)), (Extra: 0, Share: 0.45f, Color: new Color(1, 0.88f, 0.45f)) };
+        foreach (var layer in layers)
+            for (int i = 0; i <= samples; i++)
+            {
+                float s = (float)i / samples;
+                if (s > reach || s < tail)
+                    continue;
+                float wave = MathF.Sin((float)b.Age * 30 + i * 1.3f) * s * 2;
+                var at = b.From.Lerp(end, s) + across * wave * U;
+                float jitter = 0.75f + 0.5f * Noise(b.Seed + i * 7, flicker);
+                int width = (int)((1 + s * 6) * jitter * layer.Share) + layer.Extra;
+                if (width > 0 || layer.Extra > 0)
+                    Blob(canvas, at, width, layer.Color);
+            }
+        // des braises qui s'échappent du jet et montent
+        for (int k = 0; k < 6; k++)
+        {
+            float s = Math.Clamp(reach - 0.15f * k, tail, 1);
+            var at = b.From.Lerp(end, s) + new Vector2(((b.Seed + k * 13) % 7 - 3) * U, -t * (8 + k * 3) * U);
+            Dot(canvas, at, new Color(1, 0.7f, 0.2f, 1 - t));
+        }
+    }
 
     /// <summary>
     /// Le rayon du Tyran œil : un trait droit de son œil à la cible, un cœur pâle, un halo violet qui ondule (plus large

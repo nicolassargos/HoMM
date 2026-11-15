@@ -412,6 +412,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   mais rate des directions. Puis une marche par direction avec `animer --enrichir` sur l'image tournée (environ 0,02 $
   l'essai : deux essais par direction suffisent) ; 5 directions suffisent, l'ouest en miroir. Les vues de face et de dos
   bougent peu les jambes : c'est normal.
+- La recette d'une faction (le nécromancien, 2026-11-15, environ 0,50 $) : l'image fixe par `pro` à 48 avec le sud-est
+  du chevalier (`hero-chateau-se.png`) comme style, deux idées de 25 essais (garder un **étendard rouge** : le jeu le
+  peint de la couleur du joueur) ; puis `tourner` (deux lots Pro et un v3, à choisir), puis les marches. « Pro » rend
+  parfois un fond blanc opaque : `tourner` le retire.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

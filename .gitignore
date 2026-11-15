@@ -22,3 +22,7 @@ art-candidats/
 
 # Copies de travail des agents de Claude Code
 .claude/
+
+# Clés des services (ElevenLabs : écrite par « npx @elevenlabs/cli onboard »)
+.env
+.env.local

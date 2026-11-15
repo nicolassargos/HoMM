@@ -66,10 +66,29 @@ def existant(source, ident):
 
 
 def cle(nom):
-    valeur = os.environ.get(nom) or cle_windows(nom)
+    valeur = trouver_cle(nom)
     if not valeur:
         sys.exit(f"La variable {nom} n'est pas définie.")
     return valeur
+
+
+def trouver_cle(nom):
+    """La clé : variable d'environnement, fichier .env.local du dossier de travail (non suivi), ou variable Windows."""
+    return os.environ.get(nom) or cle_fichier(nom) or cle_windows(nom)
+
+
+def cle_fichier(nom):
+    """La clé dans .env.local, à la racine du dossier de travail git (écrit par « elevenlabs onboard »), ou None."""
+    haut = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=ICI, capture_output=True, text=True).stdout.strip()
+    try:
+        with open(os.path.join(haut, ".env.local"), encoding="utf-8") as f:
+            for ligne in f:
+                k, _, v = ligne.strip().partition("=")
+                if k.strip() == nom and v.strip():
+                    return v.strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return None
 
 
 def cle_windows(nom):
@@ -116,10 +135,11 @@ def elevenlabs(elements):
             continue
         if e["genre"] == "son":
             url = "https://api.elevenlabs.io/v1/sound-generation?output_format=mp3_44100_128"
-            corps = {"text": e["texte"], "duration_seconds": max(0.5, e["duree"]), "prompt_influence": 0.5}
+            corps = {"text": e["texte"], "model_id": "eleven_text_to_sound_v3", "duration_seconds": max(0.5, e["duree"]), "prompt_influence": 0.5}
         else:
             url = "https://api.elevenlabs.io/v1/music?output_format=mp3_44100_128"
-            corps = {"prompt": e["texte"], "music_length_ms": int(e["duree"] * 1000), "force_instrumental": True}
+            corps = {"prompt": e["texte"], "music_length_ms": int(e["duree"] * 1000), "model_id": "music_v2_5",
+                     "force_instrumental": True}
         try:
             _, audio, _ = requete(url, json.dumps(corps).encode(), {"xi-api-key": cle_api, "Content-Type": "application/json"}, "POST")
             ecrire("elevenlabs", e["id"], ".mp3", audio)
@@ -281,7 +301,7 @@ def main():
     choisis = [e for e in elements if not ids or e["id"] in ids]
     if commande == "solde":
         for f, var in ((eleven_solde, "ELEVENLABS_API_KEY"), (stability_solde, "STABILITY_API_KEY")):
-            print(f() if os.environ.get(var) or cle_windows(var) else f"{var} : non définie")
+            print(f() if trouver_cle(var) else f"{var} : non définie")
     elif commande == "cout":
         cout(choisis)
     elif commande == "elevenlabs":

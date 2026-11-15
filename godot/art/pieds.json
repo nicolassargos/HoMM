@@ -100,6 +100,7 @@
   "creatures/mage": {"pieds": [[[10, 29], [23, 29]]], "verifie": true},
   "creatures/minotaure": {"pieds": [[[10, 31], [27, 31]]], "verifie": true},
   "creatures/moine": {"pieds": [[[10, 28], [22, 28]]], "verifie": true},
+  "creatures/moloch": {"pieds": [[[8, 31], [23, 30]]], "verifie": false},
   "creatures/naga": {"pieds": [[[7, 29], [22, 29]]], "verifie": true},
   "creatures/nomades": {"pieds": [[[11, 30], [26, 28]]], "verifie": true},
   "creatures/ogre": {"pieds": [[[8, 28], [23, 28]]], "verifie": true},

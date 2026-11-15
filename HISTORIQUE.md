@@ -1223,6 +1223,17 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   Marches (« walks briskly with long strides ») : sud 1, sud-est 2, est 1, nord-est 1, nord 2 ; posées au sol commun
   (rangée 45) avec le rebond. L'image fixe `hero-enfer.png` est le sud-est (a-12 était l'ancien cheval). Pieds mesurés à la
   main, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ Le héros du Donjon sur la carte (2026-11-15, branche `heros-carte-donjon`, PixelLab, environ 1,30 $) : les idées
+  dessinées **tout de suite de côté** (l'est), d'après les cavaliers des images de combat : a, un seigneur sorcier en
+  armure noire hérissée, cape violette, heaume d'argent à cornes, bâton à l'orbe violet, sur un grand cheval gris sombre ;
+  b, le même sur un lézard des cavernes ; choisi **a-16**. Sa rotation « Pro » donne le sud, le nord-est, le nord (et un
+  sud-est de trois quarts) au même cheval ; le premier lot avait perdu l'étendard au sud, le second gardé. **Le sud-est
+  tourné vers le sud** : deux lots, puis deux autres d'après le sud-est du démoniste : le cheval y a un cou arqué, la tête
+  basse (l'utilisateur : « looks like a camel ») ; trois retouches du sud-est du démoniste (on ne change que le cavalier et
+  les couleurs) gardent la pose mais raccourcissent les jambes : refusées. **L'utilisateur garde le sud-est de la rotation**
+  (trois quarts, le même cheval que les autres vues) pour l'instant, comme le chef barbare. Marches : sud 1, sud-est 1,
+  est 2, nord-est 2, nord 1 ; posées au sol commun (rangée 45) avec le rebond. L'image fixe est le sud-est. Pieds mesurés
+  à la main, pas encore revus. Vu en jeu avec `--hero-walk`.
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

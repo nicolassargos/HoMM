@@ -921,7 +921,7 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   prend toutes les villes de la normale vers le jour 210).
   Puis (2026-11-14, remarques de l'utilisateur) : ✅ les tours d'observation à 15 cases des bords et à 30 cases l'une de
   l'autre. **À revoir ensemble** : un problème du moulin (à en parler) ; **des rivières et des ponts**.
-  **Les routes (en cours, 2026-11-15, branche `routes-sans-issue`)** : leurs règles se définissent avec l'utilisateur, en
+  ✅ **Les routes, premières règles (2026-11-15, branche `routes-sans-issue`, détail dans `HISTORIQUE.md`)** : leurs règles se définissent avec l'utilisateur, en
   plusieurs tours (une page de cartes entières, ses remarques, des retouches). Décidé : plus de route qui ne mène nulle
   part (chaque route arrive à une ville, une mine, un port) ; une petite route vers les mines proches des villes et vers
   les ports ; les routes serpentent ; les villes neutres bien réparties (chacune dans la zone la plus éloignée des

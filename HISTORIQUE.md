@@ -955,16 +955,28 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
   dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
   Tests : `MerTests`.
-- ✅ Les routes qui ne mènent nulle part (2026-11-15, branche `routes-sans-issue`, demandé par l'utilisateur) : une
-  route est tracée du centre de chaque zone à ses passages ; dans une zone sans ville au bout d'un seul passage, elle
-  finissait au milieu de rien (sur 16 cartes : 126 bouts sans rien, dont une centaine au centre d'une zone, et des
-  tronçons de quelques cases au départ de deux routes). Une fois la carte remplie, `RemoveDeadEndRoads` retire un à un
-  les bouts qui n'arrivent pas à une destination (porte d'une ville, entrée d'une mine, chantier naval, départ) ; le
-  terrain reste (l'herbe d'une route tracée dans une forêt ou une montagne). Le reste de la carte ne change pas (la même
-  graine donne la même carte, routes en moins). Mesuré (adversaires, six semaines, Normal, or d'armée ; avant → après) :
-  continent 46 000 → 47 600, des mers 48 300 → 46 200, îles 31 600 → 27 000, archipel 31 600 → 27 800 (les routes de
-  l'intérieur des îles vers le rivage sont retirées quand aucun chantier ne les attend). Test :
-  `Les_routes_ne_menent_pas_nulle_part`.
+- ✅ Les routes, premières règles (2026-11-15, branche `routes-sans-issue`, en quatre tours avec l'utilisateur sur une page
+  de six cartes entières, `art-candidats/archives/2026-11-15-routes/`) :
+  1. **Plus de route qui ne mène nulle part** : une route était tracée du centre de chaque zone à ses passages ; dans une
+     zone sans ville, elle finissait au milieu de rien (126 bouts sans rien sur 16 cartes). `RemoveDeadEndRoads` retire
+     les bouts qui n'arrivent à aucune destination ; le terrain reste. **Les routes serpentent** (`WindingCost`, un bruit
+     doux). **Des petites routes** vers les mines des villes et les ports (`ConnectToRoads`, `RoadToNetwork`).
+  2. **Les villes bien réparties** (remarque de l'utilisateur : six villes en haut de la carte, aucune en bas) : les zones
+     étaient déjà une grille régulière, mais les villes neutres prenaient des zones au hasard ; chacune va maintenant dans
+     l'une des zones les plus éloignées des villes déjà posées.
+  3. **Plus de passages** : chaque zone en a au moins deux (plus de cul-de-sac), d'autres au hasard jusqu'à trois
+     (`ExtraPassageChance` 0,4, `MaxPassages`) ; des sentiers vers les lieux. Deux obélisques ne se posent plus côte à
+     côte de part et d'autre d'un passage ; le test des gardiens demande deux tiers des mines et coffres gardés (trois
+     quarts avant : les passages gardent plus de cases libres).
+  4. **D'après 160 cartes de Heroes 2 et 3** (`tools/cartes/` ; la route y couvre 3 à 9 % de la terre, la nôtre 13 %,
+     faite de boucles entre les passages ; 1,3 à 1,5 villes pour 1000 cases de terre ; les routes finissent surtout aux
+     villes, aux mines, aux habitations, aux monstres et aux tas) : le réseau principal est un arbre (`KeepMainNetwork`)
+     entre les villes, les mines des villes et les ports ; de courts sentiers vers les autres mines (5 cases) et les lieux
+     (3 cases) ; au plus 1,5 villes pour 1000 cases de terre (`TownsPerLand` ; chaque joueur garde sa ville voisine).
+  Mesuré : routes 7,5 % de la terre (normale), 8,4 % (grande), 5,2 % (îles), 4,2 % (archipel), 11,6 % (petite : quatre
+  villes sur peu de terre) ; villes pour 1000 cases de terre 1,7 (continent), 1,8 (îles, 3 avant). Adversaires (six
+  semaines, Normal, or d'armée) : continent 55 000, des mers 52 100, îles 32 200, archipel 31 700. Tests :
+  `Les_routes_ne_menent_pas_nulle_part`, `Les_villes_sont_reparties_sur_toute_la_carte`.
 - ✅ La mer, les objets de la mer, seconde partie (2026-11-15, branche `mer-pirates`, choix de l'utilisateur : les pirates,
   une seule créature neutre ; une faction « pirates et monstres de la mer » peut-être plus tard). Le **Pirate** (neutre,
   niveau 3, `"sea": true` dans `creatures.json`, `CreatureType.Sea` : il ne garde que la mer, jamais la terre) : attaque 9,

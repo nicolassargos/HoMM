@@ -1192,6 +1192,22 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sont retirés de la page (hauteur mesurée), les fonds blancs nettoyés (bords, puis taches enfermées de blanc pur).
   Marches : nécromancien est 2 et sud-est 2, chef barbare est 2, posées au sol commun (rangée 45) avec le rebond. Pieds
   mesurés, pas encore revus. Vu en jeu avec `--hero-walk`.
+- ✅ Le héros de la Tour sur la carte (2026-11-15, branche `heros-carte-tour`, PixelLab, environ 2 $) : deux idées (a : un
+  magicien à longue barbe blanche, robe bleue et or au capuchon pointu, bâton au cristal bleu ; b : un mage enturbanné),
+  sur un cheval blanc caparaçonné de bleu et d'or ; choisi **a-6**. Sud, nord-est et nord : le lot « Pro » tourné A.
+  **L'est** : les essais faits d'après nos propres vues de l'est (chevalier, rôdeur) et d'après a-6 restaient un peu
+  tournés vers le sud (l'utilisateur : « always slightly oriented south ») ; seuls les cavaliers des images de combat
+  (`creatures/battle/cavalier.png`, `nomades.png`) comme modèles, sans style ni a-6, donnent un vrai profil (choisi le 2
+  du lot 4). Ses couleurs plus vives et son drapeau d'une autre forme corrigés par le code : chaque pixel ramené à la
+  couleur la plus proche de la palette de a-6, le drapeau et le haut de la hampe de a-6 à la place des siens.
+  **Le sud-est** : le style du rôdeur donne l'angle, mais PixelLab dessine le cheval qui vient vers nous à 40-42 pixels
+  quels que soient les modèles (six lots ; une toile de 54 n'agrandit pas le dessin) : le 6 du lot 8, agrandi au plus
+  proche voisin à 46 pixels (des rangées et colonnes répétées, sans flou), une ligne blanche entre les jambes avant
+  retirée. **Le nord-est** : le drapeau flottait vers l'avant ; retourné autour de la hampe (derrière le bâton).
+  Marches : sud 1, nord 1, puis (après des remarques : foulées trop lentes à l'est) sud-est 3, est 4 (« walks briskly with
+  long quick strides »), nord-est 3 ; posées au sol commun (rangée 45) avec le rebond. Pieds mesurés à la main, pas encore
+  revus. Vu en jeu avec `--hero-walk` (l'herbe y paraît bleue sur `main` depuis les rivières, pour toutes les factions :
+  signalé à l'utilisateur).
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

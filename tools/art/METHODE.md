@@ -428,6 +428,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   Mesurer la hauteur des essais (45 comme les autres vues ; l'utilisateur voit tout de suite un dessin plus petit) et
   retirer les plus petits de la page. Écrire la couleur de la cape dans la description (sinon elle sort sombre).
   Le sud-est du chef barbare n'a jamais été juste (six lots) : il garde l'ancien.
+- **Le magicien de la Tour** (2026-11-15) : nos vues de l'est (chevalier, rôdeur) ne sont **pas de vrais profils** ; une
+  image fixe de trois quarts en modèle tire aussi les essais vers le trois quarts. Pour un vrai est : **seulement les
+  cavaliers des images de combat** (`creatures/battle/cavalier.png`, `nomades.png`) comme modèles, sans style, « pure
+  side view like a side-scrolling game… we do not see its chest ». Le dessin change un peu : le corriger par le code
+  (chaque pixel à la couleur la plus proche de la palette de l'image fixe ; le drapeau et la hampe de l'image fixe à la
+  place des siens). Le sud-est vient à 40-42 pixels quoi qu'on fasse : l'agrandir au plus proche voisin (46). Vérifier
+  que le drapeau flotte vers l'arrière dans chaque vue (le nord-est le portait vers l'avant : retourné autour de la
+  hampe). Une marche trop lente : « walks briskly with long quick strides ». Regarder chaque lot soi-même et mesurer
+  les hauteurs **avant** de faire une page.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

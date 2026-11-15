@@ -909,7 +909,9 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   vus de côté** et **le sud-est et le sud-ouest plus tournés vers le sud** (pour les factions suivantes aussi). ✅ Refaits
   ainsi (2026-11-15, branche `heros-carte-profils`) : l'est et le sud-est du nécromancien, l'est du chef barbare (cape
   claire) ; **le sud-est du chef barbare reste tel quel** pour l'instant (aucun essai juste : trop de face ou pas assez,
-  choix de l'utilisateur). Reste : les 4 autres factions, une image de combat par héros.
+  choix de l'utilisateur). ✅ **Le magicien de la Tour** (2026-11-15, branche `heros-carte-tour` : longue barbe blanche,
+  robe bleue et or au capuchon pointu, bâton au cristal bleu, cheval blanc). Reste : les 3 autres factions, une image de
+  combat par héros.
   ✅ **Les diagonales partout sur la carte** (2026-11-14, branche `diagonales`, très important pour l'utilisateur) : les
   bords des terrains suivent les centres des cases (un escalier devient une ligne à 45°, un coin s'arrondit), les routes
   vont en diagonale, les murs entre zones serpentent. (Icônes des ressources : faites, 2026-11-07.)

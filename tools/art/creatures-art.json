@@ -1721,6 +1721,36 @@
         "carte": "p1-5"
       },
       "grande": "art-candidats/references/derives/demon-grand.png"
+    },
+    "diablotin": {
+      "nom": "Diablotin",
+      "gabarit": "volant",
+      "hauteur": 44,
+      "generation": [
+        96,
+        96
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "succube",
+        "archer"
+      ],
+      "notes": "Enfer, niveau 1 : le voleur de points de sort, il vole (références de l'utilisateur, 2026-11-15). Deux styles : peau rouge (L1 à L3), peau noire de suie aux yeux de braise (L4 à L6).",
+      "references": [
+        "art-candidats/references/enfer/imp2.png::character reference (a skinny red imp with horns, a wide toothy grin, long clawed fingers and a thin tail): keep this design, its pose and its proportions",
+        "art-candidats/references/enfer/imp3.png::concept reference (a skinny hunched devil with horns, pointed ears, a wicked grin and long claws): keep the wicked grin and the hunched pose; ignore the ink style and the paper"
+      ],
+      "description": "a small skinny imp crouching and grinning: a tiny hunched devil with a big head, pointed ears, two small curved horns, a wide wicked grin full of sharp teeth, big glowing orange eyes, long thin arms with long clawed fingers, thin legs with clawed feet, small bat wings on its back, a long thin tail with an arrow tip, sooty black skin with glowing orange eyes and orange embers in the cracks of its skin, mischievous and sneaky",
+      "sujet": "a small skinny sooty black imp with glowing orange eyes, small horns, a wicked grin, bat wings and a thin tail, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      }
     }
   }
 }

@@ -66,6 +66,7 @@ public partial class SmoothGround : ColorRect
         ("edge_bias", 2.0f), ("edge_wave", 5.5f), ("wave_scale", 13.0f), ("blend", 3.5f), ("grain_scale", 3.0f),
         ("variant_scale", 30.0f), ("road_width", 4.5f), ("road_wave", 1.5f), ("road_wave_scale", 7.0f),
         ("road_blend", 1.0f), ("shade_scale", 70.0f), ("beach_width", 6.0f), ("beach_wave", 1.5f), ("flower_cell", 7.0f),
+        ("stream_width", 3.5f), ("stream_wave", 1.0f), ("river_bank", 7.0f), ("river_wave", 2.5f), ("bridge_width", 4.5f), ("stream_bend", 4.5f),
     };
 
     /// <summary>
@@ -77,7 +78,7 @@ public partial class SmoothGround : ColorRect
         {
             // les forêts et les montagnes ont un sol d'herbe (leur décor est dessiné à part)
             var terrain = map.GetTerrain(cell);
-            return (DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain, map.HasRoad(cell));
+            return (DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain, map.HasRoad(cell), map.GetRiver(cell));
         });
 
     /// <summary>
@@ -105,7 +106,7 @@ public partial class SmoothGround : ColorRect
             }
         }
         var dirt = Art.GetImage("terrain/road");
-        var result = Create(width, height, cell => (worn.Contains(cell) ? DirtId : ground, false), dirt);
+        var result = Create(width, height, cell => (worn.Contains(cell) ? DirtId : ground, false, RiverKind.None), dirt);
         if (result?.Material is ShaderMaterial material)
         {
             // des ombres plus discrètes sur le sable clair (remarque de l'utilisateur)
@@ -125,10 +126,10 @@ public partial class SmoothGround : ColorRect
     private const TerrainType DirtId = (TerrainType)1;
 
     /// <summary>
-    /// Le sol de <paramref name="width"/> × <paramref name="height"/> cases, chaque case : son terrain et sa route ;
+    /// Le sol de <paramref name="width"/> × <paramref name="height"/> cases, chaque case : son terrain, sa route et sa rivière ;
     /// <paramref name="dirt"/> : l'image de la terre battue (DirtId), s'il y en a.
     /// </summary>
-    private static SmoothGround? Create(int width, int height, Func<Cell, (TerrainType Terrain, bool Road)> cellAt, Image? dirt = null)
+    private static SmoothGround? Create(int width, int height, Func<Cell, (TerrainType Terrain, bool Road, RiverKind River)> cellAt, Image? dirt = null)
     {
         if (!Godot.FileAccess.FileExists(ShaderPath))
             return null;
@@ -176,17 +177,24 @@ public partial class SmoothGround : ColorRect
         var tileArray = new Texture2DArray();
         tileArray.CreateFromImages(tiles);
 
-        // Le terrain de chaque case, et sa route
-        var cells = Image.CreateEmpty(width, height, false, Image.Format.Rg8);
+        // Le terrain de chaque case, sa route et sa rivière (le numéro × 64 dans le bleu)
+        var cells = Image.CreateEmpty(width, height, false, Image.Format.Rgb8);
         for (int y = 0; y < height; y++)
         for (int x = 0; x < width; x++)
         {
-            var (ground, road) = cellAt(new Cell(x, y));
-            cells.SetPixel(x, y, new Color((int)ground / 255f, road ? 1 : 0, 0));
+            var (ground, road, river) = cellAt(new Cell(x, y));
+            cells.SetPixel(x, y, new Color((int)ground / 255f, road ? 1 : 0, (int)river * 64 / 255f));
         }
 
         var material = new ShaderMaterial { Shader = new Shader { Code = Godot.FileAccess.GetFileAsString(ShaderPath) } };
         material.SetShaderParameter("terrain_map", ImageTexture.CreateFromImage(cells));
+        // les formes douces des rivières et des ruisseaux
+        var field = RiverField.Build(width, height, cell =>
+        {
+            var (ground, _, river) = cellAt(cell);
+            return (ground, river);
+        }, size.X);
+        material.SetShaderParameter("water_field", ImageTexture.CreateFromImage(field));
         material.SetShaderParameter("tiles", tileArray);
         material.SetShaderParameter("road_tile", RoadTile(size));
         material.SetShaderParameter("variants", Variants);

@@ -8,6 +8,7 @@ public sealed class AdventureMap
 {
     private readonly TerrainType[,] _terrain;
     private readonly bool[,] _road;
+    private readonly RiverKind[,] _river;
     private readonly Dictionary<Cell, MapObject> _objects = new();   // par case de visite
     private readonly Dictionary<int, MapObject> _byId = new();
     private int _nextObjectId = 1;
@@ -19,6 +20,7 @@ public sealed class AdventureMap
         Height = height;
         _terrain = new TerrainType[width, height];
         _road = new bool[width, height];
+        _river = new RiverKind[width, height];
     }
 
     public int Width { get; }
@@ -55,15 +57,19 @@ public sealed class AdventureMap
     public bool HasRoad(Cell c) => _road[c.X, c.Y];
     public void SetRoad(Cell c, bool road) => _road[c.X, c.Y] = road;
 
+    /// <summary>La rivière de cette case (posée sur le terrain, comme la route).</summary>
+    public RiverKind GetRiver(Cell c) => _river[c.X, c.Y];
+    public void SetRiver(Cell c, RiverKind river) => _river[c.X, c.Y] = river;
+
     /// <summary>Coût pour quitter cette case : celui de la route s'il y en a une, sinon celui du terrain.</summary>
     public int MoveCost(Cell c) => HasRoad(c) ? TerrainInfo.RoadCost : TerrainInfo.MoveCost(GetTerrain(c));
 
     /// <summary>
-    /// Peut-on marcher sur cette case ? Non pour l'eau, la montagne, et les cases occupées
+    /// Peut-on marcher sur cette case ? Non pour l'eau, la montagne, une rivière (hors des ponts), et les cases occupées
     /// par un grand objet en dehors de son entrée (les murs d'une ville).
     /// </summary>
     public bool IsPassable(Cell c) =>
-        InBounds(c) && TerrainInfo.IsPassable(GetTerrain(c))
+        InBounds(c) && TerrainInfo.IsPassable(GetTerrain(c)) && _river[c.X, c.Y] != RiverKind.River
         && !(OccupantAt(c) is { } occupant && occupant.Position != c);
 
     /// <summary>L'objet qu'on visite sur cette case (la case d'entrée, pour une ville).</summary>

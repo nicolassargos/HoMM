@@ -180,6 +180,7 @@ public sealed class MapGenerator
         ClearStartArea();
         if (_data != null)
             PlaceTowns(_data);
+        PlaceStreams();
         PlaceObjects();
         if (_data != null)
             PlaceGuards(_data.Creatures);
@@ -268,7 +269,9 @@ public sealed class MapGenerator
                 if (!_map.InBounds(next) || !Free(next) && !_map.HasRoad(next)
                     || diagonal && !(_map.IsPassable(new Cell(next.X, c.Y)) && _map.IsPassable(new Cell(c.X, next.Y))))
                     continue;
-                double total = known + (diagonal ? Math.Sqrt(2) : 1) * WindingCost(next);
+                // un ruisseau se traverse sur un pont : la route ne le longe pas
+                double total = known + (diagonal ? Math.Sqrt(2) : 1) * WindingCost(next)
+                    + (_map.GetRiver(next) == RiverKind.Stream ? StreamRoadCost : 0);
                 if (cost.TryGetValue(next, out double old) && old <= total)
                     continue;
                 cost[next] = total;
@@ -492,7 +495,12 @@ public sealed class MapGenerator
     /// <summary>Un passage entre deux zones. <see cref="Gate"/> : la case du gardien, du côté de la zone la plus lointaine.</summary>
     private sealed record Passage(int A, int B, Cell SideA, Cell SideB)
     {
-        public Cell Gate { get; init; }
+        public Cell Gate { get; set; }
+        /// <summary>
+        /// Sur un pont : les autres cases où le gardien peut se tenir (autour du bout du pont), si la première fermait un
+        /// chemin.
+        /// </summary>
+        public List<Cell> OtherGates { get; init; } = new();
     }
 
     private readonly List<Zone> _zones = new();
@@ -1122,16 +1130,20 @@ public sealed class MapGenerator
         }
     }
 
-    /// <summary>Chaque frontière entre deux zones est faite de montagnes ou d'une rivière.</summary>
-    private void PaintWalls(IEnumerable<(int A, int B)> neighbours)
+    /// <summary>Le mur entre deux zones voisines (la plus petite d'abord) : montagne, forêt, ou eau (une rivière).</summary>
+    private Dictionary<(int A, int B), TerrainType> _wallOf = new();
+
+    /// <summary>
+    /// Chaque frontière entre deux zones est faite de montagnes, de forêt ou d'une rivière. La rivière (2026-11-15, choix
+    /// de l'utilisateur) est une couche posée sur le terrain, comme la route : la bande du mur reste un sol (de l'herbe là
+    /// où il y avait une montagne ou une forêt), la rivière bloque le passage ; un lac qu'elle traverse reste un lac.
+    /// </summary>
+    private void PaintWalls(ICollection<(int A, int B)> neighbours)
     {
-        // des murs de montagne, de forêt ou d'eau (moins de montagnes depuis que la forêt bloque aussi)
-        var wallOf = neighbours.ToDictionary(n => n, _ => _rng.NextDouble() switch
-        {
-            < 0.35 => TerrainType.Mountain,
-            < 0.7 => TerrainType.Forest,
-            _ => TerrainType.Water,
-        });
+        // des murs de montagne ou de forêt, et des rivières qui traversent la carte
+        var wallOf = _wallOf = neighbours.ToDictionary(n => n, _ => _rng.Next(2) == 0 ? TerrainType.Mountain : TerrainType.Forest);
+        foreach (var pair in ChooseRivers(neighbours))
+            wallOf[pair] = TerrainType.Water;
         for (int y = 0; y < _map.Height; y++)
         for (int x = 0; x < _map.Width; x++)
         {
@@ -1142,9 +1154,110 @@ public sealed class MapGenerator
                 continue; // la mer est déjà peinte
             int own = _zoneOf[x, y];
             int other = Orthogonal(cell).Where(_map.InBounds).Select(n => _zoneOf[n.X, n.Y]).Where(z => z != own).Min();
-            _map.SetTerrain(cell, wallOf[(Math.Min(own, other), Math.Max(own, other))]);
+            var wall = _riverCells.Contains(cell) ? TerrainType.Water : wallOf[(Math.Min(own, other), Math.Max(own, other))];
+            if (wall != TerrainType.Water)
+                _map.SetTerrain(cell, wall);
+            else if (_map.GetTerrain(cell) != TerrainType.Water)
+            {
+                if (!TerrainInfo.IsPassable(_map.GetTerrain(cell)))
+                    _map.SetTerrain(cell, TerrainType.Grass);
+                _map.SetRiver(cell, RiverKind.River);
+            }
         }
     }
+
+    /// <summary>Une rivière pour tant de cases de côté de la carte (au moins une).</summary>
+    private const double RiverEvery = 48;
+
+    /// <summary>
+    /// Les frontières qui deviennent des rivières. Une rivière va d'un bord de la carte à un autre (ou jusqu'à la mer), de
+    /// frontière en frontière (choix de l'utilisateur, 2026-11-15 : pas de petits bouts de rivière isolés) : un plus court
+    /// chemin par les cases des murs, d'un bout à un autre bord, chaque frontière avec un poids au hasard pour que le tracé
+    /// varie ; les frontières qu'il longe (4 cases au moins, pas un simple carrefour) deviennent la rivière.
+    /// </summary>
+    private HashSet<(int A, int B)> ChooseRivers(ICollection<(int A, int B)> neighbours)
+    {
+        var rivers = new HashSet<(int A, int B)>();
+        var path = new List<Cell>();
+        (int A, int B) PairOf(Cell c)
+        {
+            int own = _zoneOf[c.X, c.Y];
+            int other = Orthogonal(c).Where(_map.InBounds).Select(n => _zoneOf[n.X, n.Y]).Where(z => z != own).Min();
+            return (Math.Min(own, other), Math.Max(own, other));
+        }
+        bool Wall(Cell c) => _map.InBounds(c) && _border[c.X, c.Y] && !IsSea(c);
+        // les bords de la carte que touche une case (un bit par bord)
+        int Edges(Cell c) => (c.X == 0 ? 1 : 0) | (c.Y == 0 ? 2 : 0) | (c.X == _map.Width - 1 ? 4 : 0) | (c.Y == _map.Height - 1 ? 8 : 0);
+        bool End(Cell c) => Wall(c) && (Edges(c) != 0 || Orthogonal(c).Any(IsSea));
+        var ends = AllCells().Where(End).ToList();
+        var weight = neighbours.ToDictionary(n => n, _ => _rng.NextDouble() * 3);
+        int side = Math.Max(_map.Width, _map.Height);
+        int wanted = Math.Max(1, (int)Math.Round(side / RiverEvery));
+        int made = 0;
+        for (int attempt = 0; made < wanted && attempt < wanted * 5 && ends.Count > 0; attempt++)
+        {
+            var start = ends[_rng.Next(ends.Count)];
+            // l'autre bout : loin, et pas sur le même bord (la rivière traverse la carte, elle ne fait pas une boucle) ; moins
+            // loin quand elle se jette dans la mer (la terre y est plus petite)
+            bool Goal(Cell c) => End(c) && (Edges(c) & Edges(start)) == 0
+                && Math.Abs(c.X - start.X) + Math.Abs(c.Y - start.Y) >= (Edges(c) != 0 && Edges(start) != 0 ? side / 2 : side / 4);
+            var cost = new Dictionary<Cell, double> { [start] = 0 };
+            var from = new Dictionary<Cell, Cell>();
+            var queue = new PriorityQueue<Cell, double>();
+            queue.Enqueue(start, 0);
+            Cell? goal = null;
+            while (queue.TryDequeue(out var cell, out var d))
+            {
+                if (d > cost[cell])
+                    continue;
+                if (Goal(cell))
+                {
+                    goal = cell;
+                    break;
+                }
+                foreach (var n in Orthogonal(cell).Where(Wall))
+                {
+                    var pair = PairOf(n);
+                    // une rivière ne suit pas une autre
+                    double next = d + 1 + weight.GetValueOrDefault(pair) + (rivers.Contains(pair) ? 6 : 0);
+                    if (next < cost.GetValueOrDefault(n, double.MaxValue))
+                    {
+                        cost[n] = next;
+                        from[n] = cell;
+                        queue.Enqueue(n, next);
+                    }
+                }
+            }
+            if (goal is not { } last)
+                continue;
+            made++;
+            var along = new Dictionary<(int A, int B), int>();
+            for (var cell = last; ; cell = from[cell])
+            {
+                var pair = PairOf(cell);
+                along[pair] = along.GetValueOrDefault(pair) + 1;
+                if (cell == start)
+                    break;
+            }
+            foreach (var (pair, count) in along)
+                if (count >= 4)
+                    rivers.Add(pair);
+            for (var cell = last; ; cell = from[cell])
+            {
+                path.Add(cell);
+                if (cell == start)
+                    break;
+            }
+        }
+        // là où elle passe d'une frontière à l'autre, la rivière coupe quelques cases d'un autre mur : elles deviennent la
+        // rivière aussi, avec leurs voisines du mur (sinon la rivière s'arrêterait là, un trou de forêt ou de montagne)
+        _riverCells = path.Where(c => !rivers.Contains(PairOf(c)))
+            .SelectMany(c => Orthogonal(c).Where(Wall).Append(c)).ToHashSet();
+        return rivers;
+    }
+
+    /// <summary>Les cases des murs qui sont la rivière en plus des frontières entières (là où elle passe d'une frontière à l'autre).</summary>
+    private HashSet<Cell> _riverCells = new();
 
     /// <summary>
     /// Ouvre un passage dans le mur entre deux zones, au plus près du milieu de leurs centres, loin des
@@ -1153,30 +1266,79 @@ public sealed class MapGenerator
     /// </summary>
     private void OpenPassage(int a, int b, List<(Cell P, Cell Q)> candidates, HashSet<Cell> carved)
     {
+        bool river = _wallOf.GetValueOrDefault((Math.Min(a, b), Math.Max(a, b))) == TerrainType.Water;
+        // Sur une rivière, le pont la traverse là où sa bande va tout droit, en travers du pont (sur une marche de la
+        // frontière, il longerait la rivière au lieu de la traverser)
+        Func<(Cell P, Cell Q), bool> Straight(int reach) => c =>
+        {
+            int px = c.Q.Y - c.P.Y, py = c.Q.X - c.P.X; // le long du mur
+            return Enumerable.Range(1, reach).SelectMany(k => new[]
+                {
+                    c.P.Offset(k * px, k * py), c.P.Offset(-k * px, -k * py), c.Q.Offset(k * px, k * py), c.Q.Offset(-k * px, -k * py),
+                })
+                .All(n => _map.InBounds(n) && _border[n.X, n.Y] && !IsSea(n));
+        };
+        if (river)
+            foreach (int reach in new[] { 2, 1 })
+                if (PassageCandidates(a, b, Straight(reach)) is { Count: > 0 } straight)
+                {
+                    candidates = straight;
+                    break;
+                }
+        candidates = candidates.Take(3).ToList();
         var (sideA, sideB) = candidates[_rng.Next(candidates.Count)];
 
         // Le gardien se place du côté de la zone la plus lointaine. On ouvre, sur trois cases de large, les
         // deux cases du mur et la case derrière le gardien : toutes touchent sa case, on ne passe donc pas
         // sans combattre. La case devant le mur, de l'autre côté, est seulement dégagée (pas un mur).
+        // Sur une rivière, le passage est un pont d'une case de large, le gardien à son bout (on ne le contourne pas : les
+        // cases à côté du pont restent la rivière).
         var (gate, other) = _zones[a].Level > _zones[b].Level ? (sideA, sideB) : (sideB, sideA);
         int dx = gate.X - other.X, dy = gate.Y - other.Y;
         int px = dy, py = dx; // le long du mur
-        void Open(Cell c)
+        void Open(Cell c, bool middle)
         {
             if (!_map.InBounds(c) || (_zoneOf[c.X, c.Y] != a && _zoneOf[c.X, c.Y] != b))
                 return;
+            if (river && _border[c.X, c.Y])
+            {
+                if (!middle)
+                    return;
+                _map.SetRiver(c, RiverKind.Bridge);
+            }
+            else if (_map.GetRiver(c) == RiverKind.River)
+                _map.SetRiver(c, RiverKind.None); // un bout de rivière au passage d'une autre frontière : le passage l'ouvre
             _map.SetTerrain(c, TerrainType.Grass);
             carved.Add(c);
         }
         foreach (var cell in new[] { other, gate, gate.Offset(dx, dy) })
-            foreach (var opened in new[] { cell, cell.Offset(px, py), cell.Offset(-px, -py) })
-                Open(opened);
+        {
+            Open(cell, true);
+            Open(cell.Offset(px, py), false);
+            Open(cell.Offset(-px, -py), false);
+        }
         var front = other.Offset(-dx, -dy);
         if (_map.InBounds(front) && !_border[front.X, front.Y])
-            Open(front);
+            Open(front, true);
         foreach (var cell in Around(sideA, 2).Concat(Around(sideB, 2)))
             _reserved.Add(cell);
 
+        // Sur un pont, le gardien se tient à côté de son bout (sur le pont, il couperait le seul chemin) : on ne descend du
+        // pont que sur une case qui le touche, on ne passe donc pas sans combattre
+        if (river)
+        {
+            var exit = gate.Offset(dx, dy);
+            var sides = new[] { exit.Offset(px, py), exit.Offset(-px, -py) };
+            if (_rng.Next(2) == 1)
+                sides = sides.Reverse().ToArray();
+            // d'abord à côté du bout du pont, puis toute case autour de son bout (on descend du pont sur cette case : le
+            // gardien la touche)
+            var spots = sides.Concat(Neighbours(exit).Where(c => c != gate && !sides.Contains(c)))
+                .Where(c => _map.InBounds(c) && _map.GetRiver(c) == RiverKind.None).ToList();
+            var open = spots.Where(c => carved.Contains(c) && _map.IsPassable(c)).ToList();
+            _passages.Add(new Passage(a, b, sideA, sideB) { Gate = open.Count > 0 ? open[0] : gate, OtherGates = spots.Except(open.Take(1)).ToList() });
+            return;
+        }
         _passages.Add(new Passage(a, b, sideA, sideB) { Gate = gate });
     }
 
@@ -1185,7 +1347,7 @@ public sealed class MapGenerator
     /// et Q (mur de B) côte à côte, avec l'intérieur de A derrière P et celui de B derrière Q, et une
     /// ouverture de trois cases de large qui ne touche aucune autre zone. Au plus près du milieu des centres.
     /// </summary>
-    private List<(Cell P, Cell Q)> PassageCandidates(int a, int b)
+    private List<(Cell P, Cell Q)> PassageCandidates(int a, int b, Func<(Cell P, Cell Q), bool>? only = null)
     {
         var middle = new Cell((_zones[a].Center.X + _zones[b].Center.X) / 2, (_zones[a].Center.Y + _zones[b].Center.Y) / 2);
         bool InZones(Cell c) => _map.InBounds(c) && (_zoneOf[c.X, c.Y] == a || _zoneOf[c.X, c.Y] == b) && !IsSea(c);
@@ -1209,7 +1371,7 @@ public sealed class MapGenerator
             if (_zoneOf[x, y] != a || !_border[x, y])
                 continue;
             foreach (var q in Orthogonal(p))
-                if (InZones(q) && _zoneOf[q.X, q.Y] == b && Valid(p, q))
+                if (InZones(q) && _zoneOf[q.X, q.Y] == b && Valid(p, q) && (only == null || only((p, q))))
                     pairs.Add((p, q));
         }
         var clean = pairs.Where(c => Clean(c.P) && Clean(c.Q)).ToList();
@@ -1764,6 +1926,119 @@ public sealed class MapGenerator
         }
     }
 
+    /// <summary>
+    /// Les ruisseaux pour 1000 cases de terre (2026-11-15, d'après les cartes de Heroes 3 : 0,6 rivière pour 1000 cases
+    /// de terre, longues de 20 cases à peu près).
+    /// </summary>
+    public double StreamsPerThousand { get; init; } = 0.6;
+
+    /// <summary>La longueur d'un ruisseau, en cases.</summary>
+    private const int StreamMinLength = 8, StreamMaxLength = 30;
+
+    /// <summary>Le surcoût d'une case de ruisseau pour une petite route (elle le traverse, sans le longer).</summary>
+    private const double StreamRoadCost = 4;
+
+    /// <summary>
+    /// Les ruisseaux (2026-11-15, choix de l'utilisateur) : à l'intérieur d'une zone, un simple décor qu'on traverse à
+    /// pied, comme les rivières de Heroes 3. Chacun part d'une source et serpente jusqu'à une rivière, un lac ou la mer
+    /// de sa zone (ou, s'il n'y en a pas, jusqu'à une autre source). Il croise une route tout droit (un pont y est
+    /// dessiné), ne touche ni un autre ruisseau, ni une ville, ni un objet ; rien n'est posé dessus ensuite.
+    /// </summary>
+    private void PlaceStreams()
+    {
+        int land = AllCells().Count(c => !IsSea(c) && !_map.IsWater(c));
+        int wanted = (int)Math.Round(land * StreamsPerThousand / 1000);
+        var approaches = _map.Objects.OfType<Mine>().Select(m => m.Approach)
+            .Concat(_map.Objects.OfType<Town>().Select(t => t.Approach)).ToHashSet();
+        bool Free(Cell c) => _map.InBounds(c) && !_border[c.X, c.Y] && !IsSea(c) && _map.IsPassable(c)
+            && _map.GetRiver(c) == RiverKind.None && _map.OccupantAt(c) == null && !_reserved.Contains(c)
+            && !_roadCorners.Contains(c) && !approaches.Contains(c) && !InStartingTown(c) && DistanceToNearestTown(c) > 1
+            && _map.Starts.All(s => Math.Abs(c.X - s.X) + Math.Abs(c.Y - s.Y) > 3)
+            && Orthogonal(c).Where(_map.InBounds).All(n => _map.GetRiver(n) != RiverKind.Stream);
+        // où un ruisseau se jette : une rivière, un lac, la mer
+        bool Mouth(Cell c) => Orthogonal(c).Any(n => _map.InBounds(n) && (_map.IsWater(n) || _map.GetRiver(n) == RiverKind.River));
+        var sources = AllCells().Where(c => Free(c) && !_map.HasRoad(c) && !Mouth(c)).ToList();
+        Shuffle(sources);
+        int made = 0;
+        foreach (var source in sources)
+        {
+            if (made >= wanted)
+                break;
+            if (!Free(source))
+                continue;
+            if (StreamFrom(source, _zoneOf[source.X, source.Y], Free, Mouth) is not { } path)
+                continue;
+            foreach (var c in path)
+                _map.SetRiver(c, RiverKind.Stream);
+            made++;
+        }
+    }
+
+    /// <summary>
+    /// Le chemin d'un ruisseau depuis sa source, ou null s'il n'en trouve pas de la bonne longueur. Une marche au hasard
+    /// par les côtés des cases, qui tourne souvent (jamais plus de trois cases tout droit) et penche vers l'embouchure la
+    /// plus proche de sa zone (une rivière, un lac, la mer) ; sans embouchure, il finit où il peut, dans une mare.
+    /// </summary>
+    private List<Cell>? StreamFrom(Cell source, int zone, Func<Cell, bool> free, Func<Cell, bool> mouth)
+    {
+        bool Inside(Cell c) => free(c) && _zoneOf[c.X, c.Y] == zone;
+        var target = AllCells().Where(c => Inside(c) && mouth(c) && Math.Abs(c.X - source.X) + Math.Abs(c.Y - source.Y) is
+                >= StreamMinLength / 2 and <= StreamMaxLength * 2 / 3)
+            .OrderBy(c => SquaredDistance(c, source)).ThenBy(c => c.Y).ThenBy(c => c.X).Cast<Cell?>().FirstOrDefault();
+        int Distance(Cell c) => target is { } t ? Math.Abs(c.X - t.X) + Math.Abs(c.Y - t.Y) : 0;
+        var directions = new[] { (1, 0), (0, 1), (-1, 0), (0, -1) };
+        for (int attempt = 0; attempt < 4; attempt++)
+        {
+            var path = new List<Cell> { source };
+            var taken = new HashSet<Cell> { source };
+            int heading = _rng.Next(4), run = 0;
+            while (path.Count < StreamMaxLength)
+            {
+                var c = path[^1];
+                if (target != null && path.Count >= StreamMinLength && mouth(c) && !_map.HasRoad(c))
+                    return path;
+                var options = new List<(int Heading, double Weight)>();
+                foreach (int turn in new[] { 0, 1, 3 })
+                {
+                    int h = (heading + turn) % 4;
+                    var next = c.Offset(directions[h].Item1, directions[h].Item2);
+                    if (!Inside(next) || taken.Contains(next) || Orthogonal(next).Any(n => n != c && taken.Contains(n)))
+                        continue;
+                    // une route se croise tout droit, une case à la fois
+                    if (_map.HasRoad(c) && turn != 0)
+                        continue;
+                    var beyond = next.Offset(directions[h].Item1, directions[h].Item2);
+                    if (_map.HasRoad(next) && (_map.HasRoad(c) || !Inside(beyond) || _map.HasRoad(beyond)))
+                        continue;
+                    double weight = turn == 0 ? (run < 2 ? 2 : run < 3 ? 0.6 : 0) : 1;
+                    if (target != null)
+                        weight *= (Distance(next) - Distance(c)) switch { < 0 => 3, 0 => 1, _ => 0.25 };
+                    if (weight > 0)
+                        options.Add((h, weight));
+                }
+                if (options.Count == 0)
+                    break;
+                double pick = _rng.NextDouble() * options.Sum(o => o.Weight);
+                var chosen = options[^1].Heading;
+                foreach (var (h, w) in options)
+                    if ((pick -= w) < 0)
+                    {
+                        chosen = h;
+                        break;
+                    }
+                run = chosen == heading ? run + 1 : 0;
+                heading = chosen;
+                var step = c.Offset(directions[heading].Item1, directions[heading].Item2);
+                path.Add(step);
+                taken.Add(step);
+            }
+            // sans embouchure : une mare au bout, assez loin de la source
+            if (target == null && path.Count >= StreamMinLength && !_map.HasRoad(path[^1]))
+                return path;
+        }
+        return null;
+    }
+
     private void ClearStartArea()
     {
         // de l'herbe autour du départ, et au-dessus pour le château (4 cases de haut, l'entrée sur le départ)
@@ -1804,7 +2079,7 @@ public sealed class MapGenerator
         var free = ReachableCells()
             .Where(_map.IsPassable) // pas sur l'eau
             .Where(c => _map.Starts.All(s => Math.Abs(c.X - s.X) + Math.Abs(c.Y - s.Y) > 2))
-            .Where(c => !_map.HasRoad(c))
+            .Where(c => !_map.HasRoad(c) && _map.GetRiver(c) == RiverKind.None) // ni sur une route, ni sur un ruisseau
             .Where(c => _map.ObjectAt(c) == null && DistanceToNearestTown(c) > 1) // l'entrée de la ville reste libre
             .Where(c => !_reserved.Contains(c) && !_roadCorners.Contains(c)) // les passages et les coins des routes restent libres
             .OrderBy(c => c.Y).ThenBy(c => c.X) // ordre stable avant le mélange
@@ -2388,7 +2663,7 @@ public sealed class MapGenerator
             if (cells.Any(_overhang.Contains))
                 return false;
             // la case au-dessus de la porte : un terrain où l'on marche, sans route ni objet
-            if (!cells.Where(c => c != obj.Position).All(c => _map.IsPassable(c) && !_map.HasRoad(c)
+            if (!cells.Where(c => c != obj.Position).All(c => _map.IsPassable(c) && !_map.HasRoad(c) && _map.GetRiver(c) == RiverKind.None
                     && _map.OccupantAt(c) == null && !_mineCells.Contains(c) && c != _map.Treasure && !_keptFree.Contains(c)
                     && !_landings.Contains(c)))
                 return false;
@@ -2512,6 +2787,23 @@ public sealed class MapGenerator
         // d'une armée de quelques semaines (normaux, fermés : on ne prend pas trop tôt la zone voisine)
         double others = Access == ZoneAccess.Closed ? 2 * PassageGuardFactor : PassageGuardFactor;
         foreach (var passage in _passages)
+        {
+            // au bout d'un pont, le gardien prend l'autre côté s'il fermait un chemin (un creux entre la rivière et les montagnes)
+            if (passage.OtherGates.Count > 0 && _map.ObjectAt(passage.Gate) == null)
+            {
+                bool Keeps(Cell c)
+                {
+                    if (!_map.IsPassable(c) || _map.OccupantAt(c) != null)
+                        return false;
+                    var test = new MonsterGuard(c, creatures.All.First(), 1);
+                    _map.AddObject(test);
+                    bool keeps = AllObjectsReachable();
+                    _map.RemoveObject(test);
+                    return keeps;
+                }
+                if (!Keeps(passage.Gate) && passage.OtherGates.FirstOrDefault(Keeps) is var spot && Keeps(spot))
+                    passage.Gate = spot;
+            }
             if (_map.ObjectAt(passage.Gate) == null)
             {
                 bool leavesStart = _zones[passage.A].Level == 0 || _zones[passage.B].Level == 0;
@@ -2519,6 +2811,7 @@ public sealed class MapGenerator
                 if (leavesStart && guard != null && (Access != ZoneAccess.Open || _map.Starts.Count > 1))
                     FitToStartingArmy(creatures, guard, StartExitArmies(Access));
             }
+        }
 
         // les mines de la zone de départ ne sont pas gardées (comme dans Heroes 3) : elles assurent à chacun de quoi bâtir,
         // sans combat risqué dès les premiers jours
@@ -2573,6 +2866,7 @@ public sealed class MapGenerator
     private bool CanPlaceGuard(Cell c)
     {
         if (!_map.IsPassable(c) || _map.OccupantAt(c) != null || _reserved.Contains(c) || c == _map.Treasure || _mineCells.Contains(c)
+            || _map.GetRiver(c) != RiverKind.None
             || _overhang.Contains(c) || _landings.Contains(c))
             return false;
         if (StepsToStart(c) < 4)

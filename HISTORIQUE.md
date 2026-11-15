@@ -977,6 +977,32 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   villes sur peu de terre) ; villes pour 1000 cases de terre 1,7 (continent), 1,8 (îles, 3 avant). Adversaires (six
   semaines, Normal, or d'armée) : continent 55 000, des mers 52 100, îles 32 200, archipel 31 700. Tests :
   `Les_routes_ne_menent_pas_nulle_part`, `Les_villes_sont_reparties_sur_toute_la_carte`.
+- ✅ Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, en deux tours avec l'utilisateur sur une page de
+  six cartes entières, `art-candidats/archives/2026-11-15-rivieres/`). D'après 50 cartes de Heroes 3
+  (`tools/cartes/rivieres_h3.py`) : 40 en ont, 2,3 % de la terre en médiane, 0,6 rivière pour 1000 cases de terre, longue
+  de 20 cases, un décor qu'on traverse. Décidé avec l'utilisateur : **deux sortes**, une couche sur le terrain comme la
+  route (`RiverKind` : `River`, `Stream`, `Bridge` ; `AdventureMap.GetRiver`, sauvegarde version 8).
+  1. **Les rivières** remplacent les murs d'eau entre les zones et bloquent (`AdventureMap.IsPassable`). Premier tour :
+     30 % des frontières au hasard, de petits bouts isolés ; puis (remarque de l'utilisateur) **d'un bord de la carte à
+     un autre** (`ChooseRivers` : un plus court chemin par les cases des murs, d'un bout du bord à un autre bord, ou à la
+     mer, un poids au hasard par frontière ; une rivière pour 48 cases de côté) ; là où elle passe d'une frontière à
+     l'autre, les cases d'un troisième mur deviennent la rivière aussi (sinon elle s'arrêtait). Le passage d'une
+     rivière est un **pont** d'une case de large, choisi là où la bande va tout droit ; son gardien se tient à côté de son
+     bout, sur une case qui garde tout atteignable (`Passage.OtherGates`, essayées dans `PlaceGuards`).
+  2. **Les ruisseaux** (`PlaceStreams`, `StreamsPerThousand` 0,6) : une marche au hasard guidée d'une source vers une
+     rivière, un lac ou la mer (8 à 30 cases), qui croise une route tout droit (un petit pont) ; rien n'y est posé.
+  3. **Le dessin** (shader) : premier tour, des bords par cases (des escaliers) et une rive fine à part, qui jurait avec
+     la plage des lacs ; puis `RiverField` (une image de 8 points par case, calculée une fois) : la bande des rivières
+     floutée (son bord suit des courbes douces) et la distance aux ruisseaux, dont la ligne passe par les centres des
+     cases, arrondie (Chaikin) ; les rivières ont **la plage des lacs et de la mer** ; un ruisseau ne se dessine plus sur
+     l'eau où il se jette. Les ponts en planches dessinés par le jeu, en attendant des images (l'utilisateur : pas
+     convaincants). La mini-carte, la carte au trésor et le texte du survol (« Rivière », « Pont », « …, ruisseau »).
+     Développement : `--center=bridge`, `stream`, `ford`.
+  Mesuré (`Rivieres_par_type_de_carte`, six cartes normales) : rivières et ruisseaux 4,6 % de la terre d'un continent,
+  6 ponts et 3 ruisseaux par carte ; des mers 3,3 % ; îles 2,4 % (pas de rivière : îles trop petites). Adversaires (six
+  semaines, Normal, or d'armée ; avant → après) : continent 54 900 → 63 400, des mers 52 100 → 36 700, îles 32 200 →
+  30 900, archipel 31 700 → 22 500 (sans rivière : l'archipel montre combien ces chiffres changent avec les cartes ; les
+  mers sont à surveiller). Tests : `RivieresTests`.
 - ✅ La mer, les objets de la mer, seconde partie (2026-11-15, branche `mer-pirates`, choix de l'utilisateur : les pirates,
   une seule créature neutre ; une faction « pirates et monstres de la mer » peut-être plus tard). Le **Pirate** (neutre,
   niveau 3, `"sea": true` dans `creatures.json`, `CreatureType.Sea` : il ne garde que la mer, jamais la terre) : attaque 9,

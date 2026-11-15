@@ -6,6 +6,7 @@ cartes elles-mêmes sont dans `maps references/` (non suivi par git) ; on n'en c
 - `h3m.py` : une carte de Heroes 3 (`.h3m`, HotA compris) : taille, terrain, routes, rivières, modèles d'objets, objets
   (trouvés par leur motif, sans décoder tout l'en-tête). `python -I h3m.py dossier` : un résumé par carte.
 - `routes_h3.py dossier` : les routes (part de la terre, bouts de route, villes reliées, sortes, rivières).
+- `rivieres_h3.py dossier` : les rivières (part de la terre, nombre, longueur, où elles finissent, routes qui les croisent).
 - `road_h2.py` : une carte de Heroes 2 (`.mp2`) ; une route est une image du fond de la série ROAD (30), comme fheroes2.
 - `routes_h2.py dossier` : les mêmes mesures pour Heroes 2.
 

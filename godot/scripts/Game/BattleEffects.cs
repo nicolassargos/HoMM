@@ -251,11 +251,12 @@ public sealed class BattleEffects
         "hache" => 1200,
         "feuilles" => 1000,
         "pierre" => 1300,
+        "baiser" => 900,
         _ => 1500,
     };
 
     /// <summary>Hauteur de la courbe (en part de la distance) : une flèche monte puis redescend, une boule de feu va droit.</summary>
-    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, "feuilles" => 0.02f, "pierre" => 0.1f, _ => 0 };
+    private static float Arc(string kind) => kind switch { "fleche" => 0.12f, "hache" => 0.08f, "feuilles" => 0.02f, "pierre" => 0.1f, "baiser" => 0.05f, _ => 0 };
 
     /// <summary>L'impact joué à l'arrivée d'un projectile.</summary>
     public static string ImpactOf(string projectile) => projectile switch
@@ -268,6 +269,7 @@ public sealed class BattleEffects
         "hache" => "entaille",
         "feuilles" => "feuilles",
         "pierre" => "choc",
+        "baiser" => "feu",
         _ => "choc",
     };
 
@@ -719,11 +721,60 @@ public sealed class BattleEffects
                 }
                 break;
             }
+            case "baiser":
+            {
+                // le baiser de feu de la Succube : un cœur rouge bordé de sombre, au reflet clair, dans une lueur qui
+                // palpite, et des braises qui montent derrière lui en s'éteignant
+                float pulse = 0.5f + 0.5f * MathF.Sin((float)p.Age * 30);
+                for (int k = 1; k <= 6; k++)
+                {
+                    float back = Math.Max(0, t - k * 0.035f);
+                    var rise = new Vector2(((k * 37) % 5 - 2) * Pixel, -k * k * 0.4f * U);
+                    Dot(canvas, At(back) + rise, k < 3 ? new Color(1, 0.6f, 0.2f, 1 - k * 0.14f) : new Color(0.9f, 0.25f, 0.15f, 0.9f - k * 0.13f));
+                }
+                Blob(canvas, here, 5, new Color(1, 0.35f, 0.2f, 0.18f + 0.12f * pulse));
+                Heart(canvas, here);
+                break;
+            }
             case "":
                 break; // le moment d'un coup, sans image (l'éclair)
             default:
                 Blob(canvas, here, 1, Colors.White);
                 break;
+        }
+    }
+
+    /// <summary>La forme du cœur du baiser de feu (11 × 10 pixels d'art).</summary>
+    private static readonly string[] HeartShape =
+    {
+        "..XXX.XXX..",
+        ".XXXXXXXXX.",
+        "XXXXXXXXXXX",
+        "XXXXXXXXXXX",
+        "XXXXXXXXXXX",
+        ".XXXXXXXXX.",
+        "..XXXXXXX..",
+        "...XXXXX...",
+        "....XXX....",
+        ".....X.....",
+    };
+
+    /// <summary>Un cœur centré sur ce point : bord sombre, rouge plus clair en haut, un reflet en haut à gauche.</summary>
+    private static void Heart(CanvasItem canvas, Vector2 at)
+    {
+        int h = HeartShape.Length, w = HeartShape[0].Length;
+        bool Inside(int x, int y) => y >= 0 && y < h && x >= 0 && x < w && HeartShape[y][x] == 'X';
+        var origin = at - new Vector2(w / 2, h / 2) * Pixel;
+        for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            if (!Inside(x, y))
+                continue;
+            bool edge = !Inside(x - 1, y) || !Inside(x + 1, y) || !Inside(x, y - 1) || !Inside(x, y + 1);
+            var color = edge ? new Color(0.42f, 0.04f, 0.08f)
+                : (x is 2 or 3) && (y is 2 or 3) ? new Color(1, 0.82f, 0.6f)
+                : y < 4 ? new Color(1, 0.3f, 0.22f) : new Color(0.85f, 0.1f, 0.12f);
+            Dot(canvas, origin + new Vector2(x, y) * Pixel, color);
         }
     }
 

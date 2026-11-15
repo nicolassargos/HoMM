@@ -988,6 +988,18 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   d'art donne des tronçons sans herbe (sous 0,32) et d'autres envahis (au-dessus de 0,68 : 1,6 fois plus). Écarté :
   3 pixels partout (les routes de 7 à 9 pixels paraissaient étouffées). Avec `--ground=road_grass:0,road_tufts:0,
   road_tufts_middle:0`, rien. Attention : `--zoom` montre la carte à ×1,5, pas à la taille du jeu.
+- ✅ Le bord des routes sur le sable (2026-11-15, branche `routes-sable`, choisi par l'utilisateur parmi huit versions
+  sur une page de comparaison, `art-candidats/archives/2026-11-15-routes-sable/`). Avant, le bord sur le sable était
+  celui de l'herbe (net, cranté) : la route semblait posée sur le sable, la terre s'y perdait. Dans le shader, là où le
+  sol est du sable : la route et le sable se mêlent sur plus de pixels (`road_sand_scatter` 4 au lieu de 2,5) ; **le
+  sable porté par le vent recouvre le bord** en dunes douces (`road_sand_drift` 3,5 pixels d'art au plus,
+  `road_sand_drift_share` 0,6 du bord, dunes de `road_sand_drift_scale` 14 pixels, selon le tronçon comme l'herbe),
+  tramé à son bout ; **un bourrelet de sable repoussé**, plus clair (`road_sand_berm` +8 % sur 3 pixels), le long du
+  bord **qui reste visible** : le sable posé sur la route et celui d'à côté ont la même lumière (remarque de
+  l'utilisateur : ils ne s'accordaient pas), et rien là où le sable couvre toute la largeur ; le liseré au soleil de
+  l'herbe (`road_rim`) n'est pas dessiné sur le sable. Écartés : 4,5 et 6 pixels (une route trop enterrée). Vu au
+  passage : les grandes zones claires et sombres du sol (`shade`) font parfois une bande le long d'une route, sans
+  rapport avec elle. Développement : `--center=road-sand` (une route sur le sable).
 - ✅ Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, en deux tours avec l'utilisateur sur une page de
   six cartes entières, `art-candidats/archives/2026-11-15-rivieres/`). D'après 50 cartes de Heroes 3
   (`tools/cartes/rivieres_h3.py`) : 40 en ont, 2,3 % de la terre en médiane, 0,6 rivière pour 1000 cases de terre, longue

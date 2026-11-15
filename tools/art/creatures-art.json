@@ -1880,15 +1880,21 @@
         "tourmenteur",
         "demon"
       ],
-      "notes": "Enfer, niveau 6 : la fournaise ; une idole de bronze qui marche (choix de l'utilisateur, 2026-11-15, sans références).",
-      "references": [],
-      "description": "a moloch, a massive walking bronze idol: a huge statue of dark polished bronze with a bull head and two great curved horns, glowing fiery eyes, a broad chest and a round belly with an open furnace door showing a roaring fire inside, glowing orange seams between the bronze plates, thick heavy legs with hooves, two great arms reaching forward with open palms, wisps of smoke rising from its horns and nostrils, ancient and menacing",
-      "sujet": "a massive walking bronze idol with a bull head and great horns, an open furnace door in its belly with fire inside, glowing seams, facing right",
+      "notes": "Enfer, niveau 6 : la fournaise ; une idole de bronze qui marche (choix de l'utilisateur, 2026-11-15, sans références). Puis (2026-11-15) : comme L1-1, mais plus encore une statue de bronze animée (L5 à L8).",
+      "references": [
+        "art-candidats/references/enfer/moloch-l1-1.png::character reference (a walking bronze idol with a bull head, horns and a furnace door in its belly): keep this design, its pose and its proportions, but make it look even more like a cast bronze statue"
+      ],
+      "description": "a moloch, an animated bronze statue that walks: clearly a lifeless idol of cast bronze, not a living creature; a bull head of solid metal with two great curved horns and hollow eye sockets glowing with fire, a blank rigid cast face, a body made of thick riveted bronze plates with visible seams and bolts, green-brown verdigris patina in the creases, stiff jointed limbs like a mechanical statue, no muscles, no skin, a round belly with an open iron furnace door and a roaring fire inside, fire glowing through the seams, thick pillar legs on a heavy base of hooves, arms held forward with open metal palms, smoke rising from its horns",
+      "sujet": "an animated bronze statue with a bull head and great horns, riveted metal plates with green patina, a furnace door in its belly with fire inside, facing right",
       "lots": {
         "L1": "angle seul",
         "L2": "angle seul",
         "L3": "angle seul",
-        "L4": "angle seul"
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul"
       }
     }
   }

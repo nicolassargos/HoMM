@@ -286,6 +286,8 @@ public partial class Main : Node2D
             SeaChest => "sea-chest",
             Whirlpool => "whirlpool",
             Lighthouse => "lighthouse",
+            AbandonedShip => "abandoned-ship",
+            MonsterGuard { Type.Sea: true } => "pirates",
             _ => null,
         };
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
@@ -985,6 +987,7 @@ public partial class Main : Node2D
         {
             MonsterGuard guard => guard.Army,
             Town town => town.Garrison,
+            AbandonedShip ship => ship.Crew,
             HeroDefender defender => defender.Hero.Army,
             _ => new Army(),
         });

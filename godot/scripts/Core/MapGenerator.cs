@@ -207,7 +207,9 @@ public sealed class MapGenerator
                 queue.Enqueue(next);
             }
         }
-        foreach (var guard in _map.Objects.OfType<MonsterGuard>().Where(g => !seen.Contains(g.Position)).ToList())
+        // avec quelques mers, le parcours reste à terre : un gardien de la mer s'atteint en bateau
+        foreach (var guard in _map.Objects.OfType<MonsterGuard>()
+                     .Where(g => !seen.Contains(g.Position) && !(Type == MapType.Seas && _map.IsWater(g.Position))).ToList())
             _map.RemoveObject(guard);
     }
 
@@ -1811,6 +1813,15 @@ public sealed class MapGenerator
         LighthousesPerSea = 0.7;
 
     /// <summary>
+    /// Pour 1000 cases de haute mer (étape 3b de la mer, 2026-11-15 ; chiffres à régler en jouant) : navires abandonnés,
+    /// pirates errants ; et la part des coffres de la mer qu'une bande de pirates garde.
+    /// </summary>
+    private const double AbandonedShipsPerSea = 0.7, PiratesPerSea = 1, GuardedSeaChests = 0.5;
+
+    /// <summary>Un gardien de la mer ne se pose pas plus près d'un départ (en cases) : le premier bateau sort sans combat.</summary>
+    private const int SeaGuardStartDistance = 10;
+
+    /// <summary>
     /// Les objets de la mer, sur la haute mer, loin de la côte (leurs 8 cases voisines sont de l'eau : ils ne gênent ni
     /// l'embarquement ni le débarquement) et à 3 cases au moins de tout autre objet ; les deux tourbillons d'une paire à
     /// 20 cases au moins l'un de l'autre. Les phares sur la côte, hors des zones de départ.
@@ -1858,6 +1869,8 @@ public sealed class MapGenerator
             OnWater(c => new Flotsam(c, _rng));
         for (int i = 0; i < Count(SeaChestsPerSea); i++)
             OnWater(c => new SeaChest(c, _rng));
+        for (int i = 0; i < Count(AbandonedShipsPerSea) && _data != null; i++)
+            OnWater(c => AbandonedShip(_data.Creatures, c));
         for (int i = 0; i < Count(BuoysPerSea); i++)
             OnWater(c => new BlessingSite(c, Blessing.Morale) { Sea = true });
         for (int i = 0; i < Count(MermaidsPerSea); i++)
@@ -1873,6 +1886,36 @@ public sealed class MapGenerator
                 continue;
             if (!Placed(new Whirlpool(b, a)))
                 _map.RemoveObject(first);
+        }
+
+        // les pirates : une bande à côté de certains coffres de la mer, et d'autres qui errent
+        var pirate = _data?.Creatures.All.FirstOrDefault(c => c.Sea);
+        if (pirate != null)
+        {
+            bool SeaGuardSpot(Cell c) => Open(c) && _map.ObjectAt(c) == null && _map.OccupantAt(c) == null
+                && StepsToStart(c) >= SeaGuardStartDistance && !Around(c, 2).Any(n => _map.InBounds(n) && _map.ObjectAt(n) is MonsterGuard);
+            bool Guard(Cell c, double size)
+            {
+                if (!SeaGuardSpot(c))
+                    return false;
+                return Placed(SeaGuard(_data!.Creatures, pirate, c, size));
+            }
+            foreach (var chest in _map.Objects.OfType<SeaChest>().OrderBy(o => o.Position.Y).ThenBy(o => o.Position.X).ToList())
+            {
+                if (_rng.NextDouble() >= GuardedSeaChests || _map.IsGuarded(chest.Position))
+                    continue;
+                var around = Neighbours(chest.Position).ToList();
+                Shuffle(around);
+                around.FirstOrDefault(c => Guard(c, 1), new Cell(-1, -1));
+            }
+            int wandering = 0;
+            foreach (var cell in spots.Where(c => Clear(c)).ToList())
+            {
+                if (wandering >= Count(PiratesPerSea))
+                    break;
+                if (Clear(cell) && Guard(cell, 1))
+                    wandering++;
+            }
         }
 
         // les phares, sur la côte (un lieu haut : la case au-dessus de la porte est de la terre, libre)
@@ -1891,6 +1934,50 @@ public sealed class MapGenerator
             }
             _overhang.UnionWith(TallSite.FootprintAt(placed).SelectMany(c => new[] { c.Offset(-1, 0), c.Offset(1, 0) }));
         }
+    }
+
+    /// <summary>
+    /// Le danger d'une case de la mer, de 0,2 à 1, selon sa distance au départ le plus proche : les zones de mer n'ont pas
+    /// de niveau (on n'y entre pas par un passage).
+    /// </summary>
+    private double SeaDanger(Cell cell) =>
+        Math.Clamp(StepsToStart(cell) / (0.6 * Math.Max(_map.Width, _map.Height)), 0.2, 1);
+
+    /// <summary>Une bande de pirates (ou d'une autre créature de la mer) sur l'eau, aussi forte qu'un gardien de la terre à ce danger.</summary>
+    private MonsterGuard SeaGuard(CreatureCatalog creatures, CreatureType type, Cell cell, double sizeFactor)
+    {
+        double danger = SeaDanger(cell);
+        int tier = Math.Clamp(1 + (int)(danger * 6), 1, MaxGuardTier);
+        int count = _rng.Next(GuardBaseCount[tier], 2 * GuardBaseCount[tier] + 1);
+        count = (int)Math.Round(count * (1 + GuardSizeGrowth * danger) * sizeFactor);
+        (type, count) = SizeGuard(creatures, type, tier, count);
+        return new MonsterGuard(cell, type, count);
+    }
+
+    /// <summary>La part de plus qu'un équipage de navire abandonné a sur un gardien du même danger (il garde un trésor).</summary>
+    private const double ShipCrewFactor = 1.5;
+
+    /// <summary>
+    /// Un navire abandonné : son équipage de morts-vivants (une troupe du niveau du danger, une autre du niveau en dessous à
+    /// moitié de sa force), aussi fort qu'un gardien de ce danger, et une moitié de plus ; son trésor grandit avec le danger.
+    /// </summary>
+    private AbandonedShip AbandonedShip(CreatureCatalog creatures, Cell cell)
+    {
+        double danger = SeaDanger(cell);
+        int gold = 1500 + 500 * _rng.Next(3) + 500 * (int)(danger * 4);
+        var rare = new[] { ResourceType.Mercury, ResourceType.Crystal, ResourceType.Sulfur, ResourceType.Gems };
+        var ship = new AbandonedShip(cell, gold, rare[_rng.Next(rare.Length)], 2 + (int)(danger * 3) + _rng.Next(2));
+        int tier = Math.Clamp(1 + (int)(danger * 6), 2, 6);
+        foreach (var (stackTier, share) in new[] { (tier, ShipCrewFactor * 2 / 3), (tier - 1, ShipCrewFactor / 3) })
+        {
+            if (creatures.All.FirstOrDefault(c => c.Faction == "morts-vivants" && c.Tier == stackTier) is not { } type)
+                continue;
+            int count = (int)Math.Round(_rng.Next(GuardBaseCount[tier], 2 * GuardBaseCount[tier] + 1) * (1 + GuardSizeGrowth * danger) * share);
+            // la force d'un gardien neutre du niveau du danger, portée par une créature de ce niveau-ci
+            int sized = Math.Max(1, (int)Math.Round(count * ReferenceStrength(creatures, tier) / CreatureStrength.GoldToBeat(type, creatures)));
+            ship.Crew.Add(type, sized);
+        }
+        return ship;
     }
 
     /// <summary>La haute mer : l'eau d'un seul tenant d'au moins 30 cases (un bateau sur un petit lac ne mène nulle part).</summary>
@@ -2385,7 +2472,7 @@ public sealed class MapGenerator
         int tier = Math.Clamp(1 + (int)(danger * 6), 1, MaxGuardTier);
 
         // S'il n'y a pas de monstre de ce niveau, on prend le niveau inférieur le plus proche
-        var monsters = creatures.All.Where(c => MonsterFactions.Contains(c.Faction) && c.Tier <= tier).ToList();
+        var monsters = creatures.All.Where(c => MonsterFactions.Contains(c.Faction) && !c.Sea && c.Tier <= tier).ToList();
         if (monsters.Count == 0)
             return null;
         tier = monsters.Max(c => c.Tier);
@@ -2427,7 +2514,8 @@ public sealed class MapGenerator
 
     internal static double StrengthFactor(CreatureCatalog creatures, CreatureType type, int tier)
     {
-        if (type.Faction == "neutre")
+        // les neutres d'avant les factions gardent leurs tailles (pas le Pirate, venu après)
+        if (type.Faction == "neutre" && !type.Sea)
             return 1;
         return ReferenceStrength(creatures, tier) / CreatureStrength.GoldToBeat(type, creatures);
     }

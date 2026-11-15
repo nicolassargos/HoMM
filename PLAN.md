@@ -927,7 +927,9 @@ croissance, prix, garde.
     ordinaire en attendant un pont de navire avec les images ; un tourbillon coûte quelques créatures ; la Navigation donne
     du mouvement en mer et des bateaux moins chers ; les pirates sont des créatures neutres) : 3a. ✅ épaves flottantes,
     coffres de la mer, bouées, sirènes, tourbillons, phares, la compétence Navigation (2026-11-14, branche `objets-mer`) ;
-    3b. les navires abandonnés (un équipage de morts-vivants), les pirates, les gardiens de la mer ; 4. les images
+    3b. ✅ les navires abandonnés (un équipage de morts-vivants), les pirates (une seule créature neutre pour l'instant ;
+    une faction « pirates et monstres de la mer » peut-être plus tard : choix de l'utilisateur, 2026-11-15), les gardiens
+    de la mer (2026-11-15, branche `mer-pirates`) ; 4. les images
     (session images). À voir en chemin : la compétence
     **Navigation** et les **combats en mer** (un pont de navire comme champ de bataille).
 - **La carte passe en cases de 32 px** (décidé avec l'utilisateur, 2026-11-07, après un essai 24 / 32 px) : zooms ×2 et

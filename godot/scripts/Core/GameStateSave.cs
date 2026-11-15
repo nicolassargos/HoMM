@@ -56,7 +56,8 @@ public sealed partial class GameState
         HeroStat? Stat = null, string? Spell = null, List<int>? Visitors = null, bool? Stocked = null, // les lieux (version 5)
         Blessing? Blessing = null, // temple ou cercle des fées (version 6)
         Cell? Spot = null, // la case d'eau d'un chantier naval de la côte, la sortie d'un tourbillon
-        int? Wood = null, bool? Sea = null); // une épave flottante ; une bouée ou des sirènes
+        int? Wood = null, bool? Sea = null, // une épave flottante ; une bouée ou des sirènes
+        int? Gold = null); // un navire abandonné (son équipage dans Garrison)
 
     private sealed record StackData(string Creature, int Count);
 
@@ -133,6 +134,8 @@ public sealed partial class GameState
         SeaChest seaChest => new ObjectData("sea-chest", obj.Id, obj.Position, Amount: seaChest.Gold),
         Whirlpool whirlpool => new ObjectData("whirlpool", obj.Id, obj.Position, Spot: whirlpool.Exit),
         Lighthouse lighthouse => new ObjectData("lighthouse", obj.Id, obj.Position, Owner: lighthouse.Owner?.Id),
+        AbandonedShip ship => new ObjectData("abandoned-ship", obj.Id, obj.Position, Resource: ship.Resource, Amount: ship.Amount,
+            Gold: ship.Gold, Garrison: Stacks(ship.Crew)),
         Mine mine => new ObjectData("mine", obj.Id, obj.Position, Resource: mine.Resource, Owner: mine.Owner?.Id, Small: mine.Large ? null : true),
         MonsterGuard guard => new ObjectData("guard", obj.Id, obj.Position, Creature: guard.Type.Id,
             InitialCount: guard.InitialCount, Amount: guard.Count),
@@ -249,6 +252,7 @@ public sealed partial class GameState
                 "sea-chest" => new SeaChest(o.Position, o.Amount!.Value),
                 "whirlpool" => new Whirlpool(o.Position, o.Spot!.Value),
                 "lighthouse" => new Lighthouse(o.Position) { Owner = o.Owner is { } id ? Owner(id) : null },
+                "abandoned-ship" => WithCrew(new AbandonedShip(o.Position, o.Gold!.Value, o.Resource!.Value, o.Amount!.Value), o.Garrison, data),
                 // avant la version 3, une mine n'occupait qu'une case : ses voisines peuvent être prises
                 "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null, Large = save.Version >= 3 && o.Small != true },
                 "guard" => new MonsterGuard(o.Position, data.Creatures.Get(o.Creature!), o.InitialCount!.Value, o.Amount!.Value),
@@ -327,6 +331,13 @@ public sealed partial class GameState
             state.Emit(chest);
         }
         return state;
+    }
+
+    private static AbandonedShip WithCrew(AbandonedShip ship, List<StackData>? crew, GameData data)
+    {
+        foreach (var stack in crew ?? new List<StackData>())
+            ship.Crew.Add(data.Creatures.Get(stack.Creature), stack.Count);
+        return ship;
     }
 
     private static T WithVisitors<T>(T site, System.Func<T, HashSet<int>> visitors, List<int>? saved)

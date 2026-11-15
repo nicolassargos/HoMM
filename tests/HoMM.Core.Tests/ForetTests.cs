@@ -38,7 +38,7 @@ public class ForetTests
         Assert.Equal(new[] { "farfadet", "sanglier", "archer-elfe", "cerf", "druide", "treant", "troll" }, forest.Select(c => c.Id));
         Assert.All(forest, c => Assert.Contains(Ability.NatureRegeneration, c.Abilities));
         Assert.Contains(Forest, MapGenerator.MonsterFactions);
-        Assert.Equal(new[] { "dragon" }, TestData.Creatures.All.Where(c => c.Faction == "neutre").Select(c => c.Id));
+        Assert.Equal(new[] { "dragon", "pirate" }, TestData.Creatures.All.Where(c => c.Faction == "neutre").Select(c => c.Id));
     }
 
     [Fact]

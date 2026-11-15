@@ -955,6 +955,22 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
   dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
   Tests : `MerTests`.
+- ✅ La mer, les objets de la mer, seconde partie (2026-11-15, branche `mer-pirates`, choix de l'utilisateur : les pirates,
+  une seule créature neutre ; une faction « pirates et monstres de la mer » peut-être plus tard). Le **Pirate** (neutre,
+  niveau 3, `"sea": true` dans `creatures.json`, `CreatureType.Sea` : il ne garde que la mer, jamais la terre) : attaque 9,
+  défense 6, dégâts 3-5, 22 PV, vitesse 6, 55 or, frappe deux fois ; `Duels_a_prix_egal` (qui compte maintenant les
+  neutres) : 77 victoires sur 160 dans son niveau (il bat Fantômes, Orcs, Chevaucheurs de chèvre ; égal contre les
+  Archers elfes ; perd contre Griffons, Golems, Minotaures, Limons). Les **gardiens de la mer** : une bande de pirates à
+  côté d'un coffre de la mer sur deux, et 1 bande errante pour 1000 cases de haute mer, à 10 cases au moins d'un départ ;
+  leur force, celle d'un gardien de la terre au même danger (`SeaDanger` : la distance au départ le plus proche, de 0,2 à
+  1 ; les zones de mer n'ont pas de niveau). Ils attaquent un bateau qui passe à côté (`GuardsAround` ne prenait déjà que
+  les gardiens de l'eau en mer). Le **navire abandonné** (`AbandonedShip`, 0,7 pour 1000 cases de haute mer) : un
+  équipage de morts-vivants (une troupe du niveau du danger, une du niveau en dessous ; une fois et demie un gardien),
+  combattu en montant à bord, comme une garnison ; vaincu, de l'or (1500 à 4500) et 2 à 6 d'une ressource rare
+  (`AbandonedShipLooted`), puis le navire disparaît. L'IA y va si l'équipage se bat sans trop de pertes. Mesuré
+  (adversaires, six semaines, Normal, or d'armée) : continent 46 000, des mers 48 300, îles 31 600, archipel 31 600
+  (comme avant). Dessinés par le jeu en attendant leurs images ; `--center=abandoned-ship`, `pirates`. Tests :
+  `ObjetsMerTests`.
 - ✅ La mer, les objets de la mer, première partie (2026-11-14, branche `objets-mer`, choix de l'utilisateur) : sur l'eau,
   l'**épave flottante** (`Flotsam`, comme Heroes 3 : rien, 5 bois, 5 bois et 200 or, ou 10 bois et 500 or), le **coffre
   de la mer** (`SeaChest` : vide une fois sur cinq, sinon 1000 ou 1500 or ; un artefact plus tard), la **bouée** (+1 moral)

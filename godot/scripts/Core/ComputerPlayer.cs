@@ -412,6 +412,8 @@ public static class ComputerPlayer
             {
                 ResourcePile or TreasureChest or Flotsam or SeaChest => 1,
                 Lighthouse lighthouse when lighthouse.Owner != player => 0.8,
+                // un navire abandonné : son trésor vaut le combat, si l'équipage se bat sans trop de pertes
+                AbandonedShip ship when ship.Crew.IsEmpty || WorthFighting(state, hero, ship.Crew, stuck: stuck) => 0.6,
                 Mine mine when mine.Owner != player => 0.5,
                 Obelisk obelisk when !player.Obelisks.Contains(obelisk.Id) => 1.5,
                 // les lieux : seulement ce qu'ils donnent encore à ce héros ou à son joueur

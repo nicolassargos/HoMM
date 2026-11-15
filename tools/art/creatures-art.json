@@ -1637,6 +1637,36 @@
         "carte": "p1-7"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png"
+    },
+    "succube": {
+      "nom": "Succube",
+      "gabarit": "humain",
+      "hauteur": 78,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "mage",
+        "archer"
+      ],
+      "notes": "Enfer, niveau 4 : la tireuse qui séduit (références de l'utilisateur, 2026-11-15). Deux styles : robe rouge (L1 à L3), robe noire (L4 à L6). Son tir, un baiser de feu, sera dessiné par le jeu.",
+      "references": [
+        "art-candidats/references/enfer/succubus1.png::character reference (a succubus with horns, bat wings, a tail and a long red gown): keep this design, the horns, the wings, the gown and the colours",
+        "art-candidats/references/enfer/succubus2.png::costume reference (a succubus in a long black gown with big horns and bat wings): keep the elegant gown and the horns; ignore the red background and the particles"
+      ],
+      "description": "a demon succubus standing: a woman with pale skin, long black hair, two large curved black horns, large black bat wings with red membranes folded half open behind her, a thin red demon tail, a long flowing black gown with a high slit, long black gloves, a black lace collar with a red jewel, red glowing eyes, one hand raised forward with long black nails, elegant and menacing",
+      "sujet": "a pale demon succubus with curved horns, bat wings and a long black gown, one hand raised, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "références",
+        "L5": "angle seul",
+        "L6": "références"
+      }
     }
   }
 }

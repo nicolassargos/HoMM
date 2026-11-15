@@ -7,7 +7,7 @@ namespace HoMM.Core;
 public sealed class AdventureMap
 {
     private readonly TerrainType[,] _terrain;
-    private readonly bool[,] _road;
+    private readonly RoadKind[,] _road;
     private readonly RiverKind[,] _river;
     private readonly Dictionary<Cell, MapObject> _objects = new();   // par case de visite
     private readonly Dictionary<int, MapObject> _byId = new();
@@ -19,7 +19,7 @@ public sealed class AdventureMap
         Width = width;
         Height = height;
         _terrain = new TerrainType[width, height];
-        _road = new bool[width, height];
+        _road = new RoadKind[width, height];
         _river = new RiverKind[width, height];
     }
 
@@ -54,8 +54,12 @@ public sealed class AdventureMap
     public void SetTerrain(Cell c, TerrainType terrain) => _terrain[c.X, c.Y] = terrain;
 
     /// <summary>Une route passe-t-elle sur cette case ? La route est posée sur le terrain, sans le remplacer.</summary>
-    public bool HasRoad(Cell c) => _road[c.X, c.Y];
-    public void SetRoad(Cell c, bool road) => _road[c.X, c.Y] = road;
+    public bool HasRoad(Cell c) => _road[c.X, c.Y] != RoadKind.None;
+    /// <summary>Pose une route (de terre, si la case n'en avait pas) ou l'enlève.</summary>
+    public void SetRoad(Cell c, bool road) =>
+        _road[c.X, c.Y] = !road ? RoadKind.None : _road[c.X, c.Y] == RoadKind.None ? RoadKind.Dirt : _road[c.X, c.Y];
+    public RoadKind GetRoadKind(Cell c) => _road[c.X, c.Y];
+    public void SetRoadKind(Cell c, RoadKind kind) => _road[c.X, c.Y] = kind;
 
     /// <summary>La rivière de cette case (posée sur le terrain, comme la route).</summary>
     public RiverKind GetRiver(Cell c) => _river[c.X, c.Y];

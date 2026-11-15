@@ -64,6 +64,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - Forêts et montagnes : des arbres et des sommets seuls (`art/decor/`) semés par le jeu (`DecorLayer`) ; écarté : une
   image par case (trous réguliers).
 - Terrains : deux images par terrain (`grass-2.png`…), les bords sont calculés par le shader (pas d'images de bords).
+- Routes (2026-11-15) : une case de 32 px par sorte (`terrain/road.png` terre, `road-gravel.png`, `road-cobbles.png`),
+  Retro Diffusion `rd_tile__single_tile`, 4 candidats chacune (0,24 $) ; **les juger en jeu** (l'utilisateur ne choisit
+  pas sur la case seule : copier chaque jeu dans `godot/art/terrain/`, capturer, remettre). PixelLab : « tiles pro »
+  demande un abonnement Tier 1 ; ses jeux de transition (`pixellab.py tuiles`, environ 0,1 $) donnent une case qui se
+  répète sans couture, mais plate et terne pour la terre et le gravier (Retro Diffusion bien meilleur) ; leurs bords
+  d'herbe plaisaient à l'utilisateur (le liseré clair, l'ombre sur la route).
   Herbe (2026-11-09) : demander « natural mid green… not lime, not too saturated » ; Retro Diffusion ignore les petites
   fleurs d'une case : les fleurs, cailloux et plages de sable sont dessinés par le shader (`terrain.gdshader`), sans
   répétition et réglables (`--ground=`).

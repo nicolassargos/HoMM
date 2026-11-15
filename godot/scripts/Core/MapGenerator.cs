@@ -188,7 +188,32 @@ public sealed class MapGenerator
         KeepMainNetwork();
         ConnectToRoads();
         RemoveDeadEndRoads(mainOnly: false);
+        ChooseRoadKinds();
         return _map;
+    }
+
+    /// <summary>La sorte des routes d'une zone qui a une ville de cette faction (les autres : <see cref="ChooseRoadKinds"/>).</summary>
+    private static RoadKind RoadKindOf(string faction) => faction switch
+    {
+        "chateau" or "tour" or "nains" => RoadKind.Cobbles,
+        "morts-vivants" or "donjon" or "enfer" => RoadKind.Gravel,
+        _ => RoadKind.Dirt, // barbares, forêt
+    };
+
+    /// <summary>
+    /// La sorte des routes, une par zone (2026-11-15, choix de l'utilisateur ; comme les cartes de Heroes 3, faites de longs
+    /// morceaux d'une même sorte) : celle de la faction de sa ville, sinon de la terre ou du gravier au hasard. Une route
+    /// change donc de sorte en passant d'une zone à l'autre.
+    /// </summary>
+    private void ChooseRoadKinds()
+    {
+        if (_zones.Count == 0 || _zoneOf == null)
+            return;
+        var kinds = _zones.Select(_ => _rng.Next(2) == 0 ? RoadKind.Dirt : RoadKind.Gravel).ToArray();
+        foreach (var town in _map.Objects.OfType<Town>().OrderBy(t => t.Id))
+            kinds[_zoneOf[town.Position.X, town.Position.Y]] = RoadKindOf(town.Faction);
+        foreach (var cell in AllCells().Where(_map.HasRoad))
+            _map.SetRoadKind(cell, kinds[_zoneOf[cell.X, cell.Y]]);
     }
 
     /// <summary>

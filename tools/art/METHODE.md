@@ -454,6 +454,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   tourné vers le sud reste le point faible : le cheval y prend souvent un cou arqué tête basse (« un chameau ») ;
   regarder le cou à ×6 avant de montrer une page. Une retouche (« Edit images ») d'un sud-est déjà réussi garde la pose
   mais raccourcit les jambes.
+- **Le thane des Nains** (2026-11-15) : la même recette (idées de côté, rotation de l'est choisi, sud-est au style du
+  rôdeur) a marché du premier coup sur un bélier. Passer les rouges hors du drapeau au brun **avant** de tourner l'image
+  (sinon toutes les vues les gardent). Regarder la hampe du drapeau : PixelLab la coupe souvent à la main du cavalier ;
+  la prolonger par le code avant les marches.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

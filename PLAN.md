@@ -914,8 +914,10 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   branche `heros-carte-enfer` : petites cornes, robe noire aux runes orange, bâton de feu, grand cheval noir à la crinière
   de feu ; le feu orange, seul l'étendard rouge). ✅ **Le Seigneur des abîmes du Donjon** (2026-11-15, branche
   `heros-carte-donjon` : armure noire hérissée, cape violette, heaume d'argent à cornes, bâton à l'orbe violet, grand cheval
-  gris sombre ; son sud-est reste de trois quarts pour l'instant, choix de l'utilisateur). Reste : les Nains, une image de
-  combat par héros.
+  gris sombre ; son sud-est reste de trois quarts pour l'instant, choix de l'utilisateur). ✅ **Le thane des Nains**
+  (2026-11-15, branche `heros-carte-nains` : armure d'acier et d'or, heaume ailé, barbe tressée, marteau aux runes bleues,
+  sur un grand bélier des montagnes). Les 8 factions ont leur héros. Reste : refaire le sud-est du chef barbare et du
+  Seigneur des abîmes (tournés vers le sud), revoir les pieds de tous, une image de combat par héros.
   ✅ **Les diagonales partout sur la carte** (2026-11-14, branche `diagonales`, très important pour l'utilisateur) : les
   bords des terrains suivent les centres des cases (un escalier devient une ligne à 45°, un coin s'arrondit), les routes
   vont en diagonale, les murs entre zones serpentent. (Icônes des ressources : faites, 2026-11-07.)

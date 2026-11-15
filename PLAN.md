@@ -912,7 +912,10 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   choix de l'utilisateur). ✅ **Le magicien de la Tour** (2026-11-15, branche `heros-carte-tour` : longue barbe blanche,
   robe bleue et or au capuchon pointu, bâton au cristal bleu, cheval blanc). ✅ **Le démoniste de l'Enfer** (2026-11-15,
   branche `heros-carte-enfer` : petites cornes, robe noire aux runes orange, bâton de feu, grand cheval noir à la crinière
-  de feu ; le feu orange, seul l'étendard rouge). Reste : le Donjon et les Nains, une image de combat par héros.
+  de feu ; le feu orange, seul l'étendard rouge). ✅ **Le Seigneur des abîmes du Donjon** (2026-11-15, branche
+  `heros-carte-donjon` : armure noire hérissée, cape violette, heaume d'argent à cornes, bâton à l'orbe violet, grand cheval
+  gris sombre ; son sud-est reste de trois quarts pour l'instant, choix de l'utilisateur). Reste : les Nains, une image de
+  combat par héros.
   ✅ **Les diagonales partout sur la carte** (2026-11-14, branche `diagonales`, très important pour l'utilisateur) : les
   bords des terrains suivent les centres des cases (un escalier devient une ligne à 45°, un coin s'arrondit), les routes
   vont en diagonale, les murs entre zones serpentent. (Icônes des ressources : faites, 2026-11-07.)

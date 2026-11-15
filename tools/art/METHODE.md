@@ -449,6 +449,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   du corps** (sans drapeau ni hampe) d'une vue à l'autre, pas seulement la hauteur totale. **Pas de rouge hors du
   drapeau** (le jeu le peint de la couleur du joueur) : un feu passe à l'orange par le code ; écrire « no red anywhere
   except the banner » dans la description.
+- **Le Seigneur des abîmes du Donjon** (2026-11-15) : proposer les idées **directement de côté** (les cavaliers des images
+  de combat en modèles, sans style), puis tourner l'est choisi : une seule recette, le même cheval partout. Le sud-est
+  tourné vers le sud reste le point faible : le cheval y prend souvent un cou arqué tête basse (« un chameau ») ;
+  regarder le cou à ×6 avant de montrer une page. Une retouche (« Edit images ») d'un sud-est déjà réussi garde la pose
+  mais raccourcit les jambes.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

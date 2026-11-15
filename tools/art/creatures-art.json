@@ -1750,7 +1750,14 @@
         "L4": "références",
         "L5": "angle seul",
         "L6": "références"
-      }
+      },
+      "choix": {
+        "fixe": "L6-1",
+        "move": "sauts-1",
+        "attack": "bond-2",
+        "idle": "lecher-8"
+      },
+      "grande": "art-candidats/references/derives/diablotin-grand.png"
     }
   }
 }

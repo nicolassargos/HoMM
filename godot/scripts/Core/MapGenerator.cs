@@ -179,19 +179,110 @@ public sealed class MapGenerator
             PlaceGuards(_data.Creatures);
         RemoveUnreachableGuards();
         RemoveDeadEndRoads();
+        ConnectToRoads();
+        RemoveDeadEndRoads();
         return _map;
     }
+
+    /// <summary>
+    /// Les petites routes (choix de l'utilisateur, 2026-11-15) : de l'entrée de chaque mine proche d'une ville (celles de la
+    /// zone de départ, la scierie et la mine de minerai de chaque ville) et de chaque port (un chantier naval de la côte, la
+    /// case d'où l'on monte dans un bateau amarré) jusqu'à la route la plus proche. Elles ne passent que sur des cases
+    /// libres et praticables (rien ne bouge sur la carte déjà remplie) ; sans route à joindre, rien.
+    /// </summary>
+    private void ConnectToRoads()
+    {
+        if (!AllCells().Any(_map.HasRoad))
+            return;
+        foreach (var mine in _townMines.Concat(_startZoneMines).OfType<Mine>().Distinct().OrderBy(m => m.Id))
+            RoadToNetwork(new[] { mine.Approach });
+        foreach (var yard in _map.Objects.OfType<Shipyard>().OrderBy(y => y.Id))
+            RoadToNetwork(Neighbours(yard.Position).Where(c => _map.IsPassable(c) && _map.ObjectAt(c) == null).ToList());
+        foreach (var landing in _boatLandings)
+            RoadToNetwork(new[] { landing });
+    }
+
+    /// <summary>Les cases de terre d'où l'on monte dans un bateau amarré (<see cref="PlaceMooredBoat"/>).</summary>
+    private readonly List<Cell> _boatLandings = new();
+
+    /// <summary>
+    /// Une route d'une de ces cases jusqu'à la route la plus proche, par des cases libres et praticables (en diagonale sans
+    /// couper de coin), qui serpente comme les autres (<see cref="WindingCost"/>).
+    /// </summary>
+    private void RoadToNetwork(IReadOnlyCollection<Cell> from)
+    {
+        if (from.Count == 0 || from.Any(_map.HasRoad))
+            return;
+        bool Free(Cell c) => _map.IsPassable(c) && (_map.ObjectAt(c) == null || from.Contains(c)) && _map.OccupantAt(c) == null;
+        var previous = new Dictionary<Cell, Cell>();
+        var cost = new Dictionary<Cell, double>();
+        var queue = new PriorityQueue<Cell, double>();
+        foreach (var c in from)
+        {
+            previous[c] = c;
+            cost[c] = 0;
+            queue.Enqueue(c, 0);
+        }
+        Cell? reached = null;
+        while (queue.TryDequeue(out var c, out double known))
+        {
+            if (known > cost[c])
+                continue;
+            if (_map.HasRoad(c))
+            {
+                reached = c;
+                break;
+            }
+            foreach (var next in Neighbours(c))
+            {
+                bool diagonal = next.X != c.X && next.Y != c.Y;
+                if (!_map.InBounds(next) || !Free(next) && !_map.HasRoad(next)
+                    || diagonal && !(_map.IsPassable(new Cell(next.X, c.Y)) && _map.IsPassable(new Cell(c.X, next.Y))))
+                    continue;
+                double total = known + (diagonal ? Math.Sqrt(2) : 1) * WindingCost(next);
+                if (cost.TryGetValue(next, out double old) && old <= total)
+                    continue;
+                cost[next] = total;
+                previous[next] = c;
+                queue.Enqueue(next, total);
+            }
+        }
+        if (reached is not { } end)
+            return;
+        for (var c = previous[end]; ; c = previous[c])
+        {
+            _map.SetRoad(c, true);
+            if (previous[c] == c)
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Les routes serpentent (choix de l'utilisateur, 2026-11-15) : chaque case coûte plus ou moins selon un bruit doux, et
+    /// la route contourne les cases chères, comme un chemin suit les creux du terrain.
+    /// </summary>
+    private double WindingCost(Cell c)
+    {
+        _roadNoise ??= SmoothNoise(RoadWindingStep);
+        return 1 + RoadWinding * _roadNoise(c.X, c.Y);
+    }
+
+    private Func<int, int, double>? _roadNoise;
+
+    /// <summary>La force des détours des routes (de 0 : tout droit, à presque 1), et la taille des creux qu'elles suivent.</summary>
+    private const double RoadWinding = 0.6;
+    private const int RoadWindingStep = 5;
 
     /// <summary>
     /// Retire les routes qui ne mènent nulle part (demandé par l'utilisateur, 2026-11-15) : une route est tracée du centre
     /// de chaque zone à ses passages, même quand rien ne l'attend au centre. Une fois la carte remplie, on retire un à un
     /// les bouts de route qui n'arrivent pas à une destination : la porte d'une ville (les châteaux de départ compris),
-    /// l'entrée d'une mine, un chantier naval, un départ. Il ne reste que les routes entre ces destinations. Le terrain
+    /// l'entrée d'une mine, un chantier naval, un bateau amarré, un départ. Il ne reste que les routes entre ces destinations. Le terrain
     /// reste tel quel (une route tracée dans une montagne ou une forêt l'a changée en herbe : on y passe toujours).
     /// </summary>
     private void RemoveDeadEndRoads()
     {
-        var destinations = new HashSet<Cell>(_map.Starts.SelectMany(s => new[] { s, s.Offset(0, 1) }));
+        var destinations = new HashSet<Cell>(_map.Starts.SelectMany(s => new[] { s, s.Offset(0, 1) }).Concat(_boatLandings));
         foreach (var obj in _map.Objects)
             switch (obj)
             {
@@ -1051,7 +1142,7 @@ public sealed class MapGenerator
                     continue;
                 // suivre une route déjà tracée coûte moins, longer une route à côté coûte plus : les routes se rejoignent au
                 // lieu de courir côte à côte (deux routes voisines faisaient une « échelle »)
-                double step = (diagonal ? Math.Sqrt(2) : 1) * (_map.HasRoad(next) ? 0.6 : NextToRoad(next) ? 1.6 : 1);
+                double step = (diagonal ? Math.Sqrt(2) : 1) * (_map.HasRoad(next) ? 0.6 : NextToRoad(next) ? 1.6 : WindingCost(next));
                 double total = known + step + 0.05 * OffLine(next);
                 if (cost.TryGetValue(next, out double old) && old <= total)
                     continue;
@@ -2114,6 +2205,7 @@ public sealed class MapGenerator
                     continue;
                 }
                 _landings.Add(landing);
+                _boatLandings.Add(landing);
                 KeepHarbour(landing, null, free, freeSet);
                 return;
             }

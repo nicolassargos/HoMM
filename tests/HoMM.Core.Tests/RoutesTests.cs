@@ -65,21 +65,23 @@ public class RoutesTests
         Cell[] Around(Cell c) => new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1),
             c.Offset(1, 1), c.Offset(-1, 1), c.Offset(1, -1), c.Offset(-1, -1) };
 
+        // une petite route peut finir à l'entrée d'une mine qui touche les murs
+        var mines = map.Objects.OfType<Mine>().Select(m => m.Approach).ToHashSet();
         foreach (var town in map.Objects.OfType<Town>())
         {
             var walls = town.Footprint.ToHashSet();
             Assert.True(Road(town.Approach), $"pas de route devant la porte de {town.Name} ({town.Position})");
             foreach (var wall in walls.Where(w => w != town.Position))
                 Assert.False(Road(wall), $"route sous les murs de {town.Name} en {wall}");
-            // une route qui finit (une seule voisine) contre la ville ne peut finir que devant la porte
-            foreach (var end in walls.SelectMany(Around).Where(c => !walls.Contains(c) && c != town.Approach).Distinct())
+            // une route qui finit (une seule voisine) contre la ville ne peut finir que devant la porte (ou une mine)
+            foreach (var end in walls.SelectMany(Around).Where(c => !walls.Contains(c) && c != town.Approach && !mines.Contains(c)).Distinct())
                 Assert.False(Road(end) && Around(end).Count(Road) <= 1, $"route en cul-de-sac contre {town.Name} en {end}");
         }
     }
 
     /// <summary>
     /// Chaque bout de route arrive quelque part (demandé par l'utilisateur, 2026-11-15) : à la porte d'une ville, à l'entrée
-    /// d'une mine, à un chantier naval ; aucune route ne s'arrête au milieu d'une zone vide.
+    /// d'une mine, à un chantier naval, à un bateau amarré ; aucune route ne s'arrête au milieu d'une zone vide.
     /// </summary>
     [Theory]
     [InlineData(1, MapSize.Normal, MapType.Continent)]
@@ -96,6 +98,8 @@ public class RoutesTests
             Town town => new[] { town.Approach },
             Mine mine => new[] { mine.Approach },
             Shipyard shipyard => around.Select(d => shipyard.Position.Offset(d.Item1, d.Item2)).ToArray(),
+            // la case de terre d'où l'on monte dans un bateau amarré
+            Boat boat => new[] { boat.Position.Offset(1, 0), boat.Position.Offset(-1, 0), boat.Position.Offset(0, 1), boat.Position.Offset(0, -1) },
             _ => System.Array.Empty<Cell>(),
         }).ToHashSet();
         for (int y = 0; y < map.Height; y++)

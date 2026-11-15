@@ -1791,7 +1791,8 @@
         "fixe": "L1-3",
         "idle": "priere-1",
         "move": "marche-3",
-        "attack": "coup-1-r"
+        "attack": "coup-1-r",
+        "carte": "p1-2"
       },
       "grande": "art-candidats/references/derives/cultiste-grand.png"
     }

@@ -76,6 +76,7 @@
   "creatures/cavalier": {"pieds": [[[9, 28], [24, 27]]], "verifie": true},
   "creatures/cerf": {"pieds": [[[12, 30], [27, 29]]], "verifie": true},
   "creatures/colosse-os": {"pieds": [[[8, 30], [23, 28]]], "verifie": true},
+  "creatures/cultiste": {"pieds": [[[9, 30], [22, 29]]], "verifie": false},
   "creatures/demon": {"pieds": [[[2, 28], [26, 29]]], "verifie": false},
   "creatures/diablotin": {"pieds": [[[11, 30], [20, 29]]], "verifie": false},
   "creatures/djinn": {"pieds": [[[11, 30], [20, 31]]], "verifie": true, "etalement": 2, "opacite": 0.9},

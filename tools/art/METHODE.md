@@ -215,6 +215,28 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     « dark grey steel blades » ;
   - plusieurs points de départ d'un tir : `launchPoint2` (la seconde main) dans `animations.json`, mesurés sur l'image
     où le tir part ; `--effect-preview=eclair` montre l'éclair sans cesse pour une capture.
+- **Leçons du Donjon** (2026-11-14) :
+  - **Animer directement** (`pixellab.py animer depart.png dossier "action" 8 graine --retour`, sans le « sujet » ni la
+    fin de texte du gabarit) : bien plus propre que `creature.py animer` (qui faisait venir éclats, fumée, autres
+    personnages), environ 0,02 $ l'essai. Les images de départ : `creature.departs` ; les feuilles : `traiter_feuille`,
+    puis retirer les morceaux détachés du corps (sauf à 2 pixels : un bout de tentacule coupé par la réduction).
+  - **Un quadrupède qui marche, des cous qui bougent (l'Hydre)** : le premier modèle ne bouge presque pas les pattes,
+    même avec « walk cycle… lifts its legs high » ; le second (`--minimax`, avec le « sujet » de la fiche, vue de côté) fait
+    un vrai pas et des cous qui s'étirent, sans éclat (« … ; no effects »), environ 0,015 $. Le premier ajoute des éclairs
+    quand on décrit des têtes qui frappent « in all directions ». Le solde se met à jour en retard : le relire plus tard.
+  - Une marche qui semble courir : la ralentir (`"move": 6` dans `animations.json`, un cycle par case). Des cous qui
+    vont trop loin : « the heads stay close to the body, the necks bend and lunge a short distance » ; une tête qui
+    mord vers le haut devient un cou de girafe.
+  - **Une créature qui flotte** (le Tyran œil) : le jeu ne soulève pas une créature qui vole ; « flotte » dans la fiche
+    (pixels vides sous elle, image fixe et feuilles) ; pas de pied pour l'ombre de la carte.
+  - **Une créature tournée vers la gauche** (le Géant, qui marchait à reculons) : retourner l'image fixe et chaque
+    feuille, image par image ; vérifier le sens de toute créature avant ses animations.
+  - Un rayon, un éclair : dessinés par le jeu (`projectile` : `rayon`, violet, droit, plus épais au milieu, une lueur sur
+    l'œil) ; `launchPoint` mesuré sur l'œil dans l'image du lâcher.
+  - Un **fouisseur** (le Ver) : la transformation le montre s'enfoncer derrière son tas de terre, puis le tas s'effondre ;
+    le jeu dessine le tas et le sillon de mottes (une carte de hauteurs vue un peu d'en haut, pas de côté ni d'en haut)
+    qui s'affaisse en s'effaçant ; les images de la transformation et de l'attaque calées pour que la terre touche le bas
+    de la case.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).

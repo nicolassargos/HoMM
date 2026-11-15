@@ -262,7 +262,11 @@ creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objec
    faction sombre attendent l'Enfer) ; `--faction=donjon`. Mesuré (un adversaire, Normal, six semaines, or d'armée) :
    **Donjon 29 100**, Château 27 300, morts-vivants 24 700, Barbares 29 200, Forêt 34 000, Tour 25 900 ; la simulation
    seule comme avant (jours 95, 88, 153). Tests : `VilleDonjonTests`.
-3. Les images (session images) : les 7 créatures, la ville sur la carte. **Plus tard** (choix de l'utilisateur,
+3. Les images (session images) : ✅ les 7 créatures (2026-11-15, branche `creatures-donjon`, choix de l'utilisateur) :
+   Homme-lézard à la lance, Homme-grenouille frondeur, Minotaure mineur, Aberration à la chair pâle, Ver des profondeurs
+   qui creuse une galerie dessinée par le jeu, Tyran œil qui flotte et tire un rayon violet, Hydre verte à cinq têtes qui
+   mordent tout autour : images de combat, animations, petites images de la carte. Détail dans `HISTORIQUE.md`.
+   ✅ La ville sur la carte. **Plus tard** (choix de l'utilisateur,
    2026-11-14) : revoir les animations du Ver des profondeurs (il devrait glisser vers sa cible en attaquant ; les
    fissures devant lui quand il creuse sont à améliorer ; peut-être une animation où il avale une créature).
    **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui frappe le sol avec sa colonne

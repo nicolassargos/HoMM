@@ -1003,6 +1003,31 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
     bouge pas les pieds), transform-1 (pose la colonne sur l'épaule ; jouée à l'envers à l'arrivée), marche move-5 (depuis
     la colonne sur l'épaule), attaque attack-5-r (frappe le sol). Carte p1-12.
   - Outils : « marge_bas » dans la fiche (un pied qui descend en marchant n'est plus coupé), `--effect-preview=eclair`.
+- ✅ Créatures du Donjon (2026-11-11 à 15, branche `creatures-donjon`, PixelLab), une à la fois, d'après les références
+  à l'encre de l'utilisateur (couleurs proposées par Claude, deux styles par créature) :
+  - **Homme-lézard** (46 px, L6-1, lézard des cavernes à la lance) : idle-3, move-5-r, attack-2-r. Carte p1-7.
+  - **Homme-grenouille** (48 px, L4-3) : idle-5, move-1, attack-5 ; sa pierre de fronde dessinée par le jeu. Carte p1-1.
+  - **Minotaure** (84 px, L5-4, mineur noir) : idle-2, move-1, attack-2-r. Carte p1-4.
+  - **Aberration** (80 px, L3-2, chair pâle, retournée vers la droite) : idle-5, move-5, attack-5 nettoyée. Carte p1-6.
+  - **Ver des profondeurs** (90 px, L6-1) : idle-2, attaque attack-12-c ; il **creuse** : la transformation
+    (`transform-terre`, refaite à la main) le montre s'enfoncer derrière ses gravats qui s'émiettent ; le jeu dessine le
+    tas de terre au départ et à l'arrivée et la **galerie** (`BattleEffects.DrawTrail` : une carte de hauteurs faite de
+    mottes, vue un peu d'en haut, dessus éclairé selon la pente, flanc à l'ombre, pierres, racines, herbe arrachée, miettes ;
+    elle s'affaisse en s'effaçant). Essayés et écartés : des buttes soulevées en chemin, un bourrelet continu vu d'en haut
+    (« liquide »), la galerie vue de côté. Images d'attaque et de transformation descendues pour que la terre touche le bas
+    de la case. Carte p1-3. **Plus tard** : glisser vers sa cible en attaquant, de meilleures fissures, peut-être avaler.
+  - **Tyran œil** (64 px, L2-1, peau marbrée violet-brun) : il **flotte** (« flotte » : 14 pixels vides sous lui) ;
+    attente calme-2, vol vent-4 (ses tentacules ondulent ; 6 images/s, 0,18 s par case ; attente 7 images/s, pause de 1 à
+    3 s), attaque regard-3 (son œil s'ouvre tout grand). Son tir : le **rayon** du jeu (`rayon`, violet, droit, plus épais,
+    une lueur sur l'œil ; `launchFrame` 4, `launchPoint` [86, 61]). Animé directement par `pixellab.py animer` (le
+    « sujet » et les consignes de `creature.py animer` faisaient venir éclats et autres personnages). Carte p1-13, sans
+    pied (il flotte).
+  - **Hydre** (100 px, L3-4, écailles vert sombre, ventre jaune pâle, cinq têtes de dragon) : attente mm-calme-3, marche
+    mm-marche-1 (ralentie à 6 images/s : à 10, elle courait), attaque mm-proche-6 (les têtes mordent tout autour d'elle sans
+    s'éloigner). Le premier modèle ne bougeait pas ses pattes et couvrait les attaques d'éclairs ; le second (`--minimax`)
+    fait un vrai pas. Carte p1-7.
+  - Au passage, le **Géant** (Tour) retourné vers la droite (image fixe et feuilles, image par image) : il marchait à
+    reculons. Pieds des sept petites images revus par l'utilisateur (le Ver plus léger, aucun sous le Tyran œil).
 - ✅ Combat à ×2 (2026-11-09, branche `combat-x2`). Question de l'utilisateur : un pixel d'art a-t-il la même taille au
   combat et sur la carte ? Non : 3 pixels de l'écran au combat, 2 sur la carte (zoom ×1 ; 3 au zoom ×1,5). Essai montré
   (page `echelle.html` : même combat à ×3 et à ×2, créatures 1,5 fois plus hautes) ; choix de l'utilisateur : ×2 partout

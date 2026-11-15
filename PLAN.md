@@ -1065,7 +1065,11 @@ Commencé avec l'utilisateur (2026-11-15) : le jeu n'a encore ni son ni musique.
   données (`godot/data/sounds.json` : un événement, ou une créature et son action, vers un ou plusieurs fichiers, tirés au
   hasard pour ne pas répéter) ; la musique passe en fondu entre carte, ville et combat. Les outils dans `tools/audio/`
   (comme `tools/art/` : générer, une page d'écoute pour choisir, mettre au même volume).
-- **Dans l'ordre** (proposé) : 1. la base technique avec quelques sons libres d'attente (rien à dépenser) ; 2. un essai :
+- **Dans l'ordre** (proposé) : 1. ✅ la base technique (2026-11-15, branche `sons`) : `Game/Audio.cs` (musique en fondu
+  et en boucle, qui survit au changement de scène ; un clic pour chaque bouton ; les sons des événements de la carte :
+  ramasser, coffre, prendre une mine ou une ville, construire, niveau, nouvelle semaine, victoire, défaite), les volumes
+  dans les trois fenêtres d'options, `data/sounds.json`, des sons et musiques d'attente synthétisés par
+  `tools/audio/attente.py` (`godot/audio/attente/`, à remplacer ; test `SonsTests`) ; 2. un essai :
   les sons d'un combat (les créatures d'une faction, quelques sorts) et une musique de combat, de 2 ou 3 sources côte à
   côte sur une page d'écoute, l'utilisateur choisit à l'oreille ; 3. le reste partie par partie, comme les images.
 

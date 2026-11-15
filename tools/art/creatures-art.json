@@ -1861,7 +1861,8 @@
         "move": "marche-1",
         "idle": "guette-1",
         "attack": "griffe-3-r",
-        "throw": "lancer-1"
+        "throw": "lancer-1",
+        "carte": "p1-1"
       },
       "grande": "art-candidats/references/derives/tourmenteur-grand.png"
     }

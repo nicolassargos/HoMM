@@ -857,7 +857,8 @@ public sealed class BattleEffects
     {
         Vector2 At(float t) => from.Lerp(to, t) + new Vector2(0, sag * 4 * t * (1 - t));
         var size = link.GetSize();
-        int links = Math.Max(1, (int)MathF.Round(from.DistanceTo(to) / (size.X * Pixel)));
+        // arrondi vers le haut : les bouts se touchent (ou mordent un peu l'un sur l'autre), sans trou entre eux
+        int links = Math.Max(1, (int)MathF.Ceiling(from.DistanceTo(to) / (size.X * Pixel)));
         for (int k = 0; k < links; k++)
         {
             float t = (k + 0.5f) / links;

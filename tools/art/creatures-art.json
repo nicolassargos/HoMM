@@ -1671,7 +1671,8 @@
         "L9": "références"
       },
       "choix": {
-        "fixe": "L7-1"
+        "fixe": "L7-1",
+        "attack": "mm-baiser-1"
       },
       "grande": "art-candidats/references/derives/succube-grand.png"
     }

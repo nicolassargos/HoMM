@@ -56,8 +56,14 @@ public partial class KingdomScreen : ScreenWindow
             // 7 ressources : l'icône suffit (le nom est dans l'info-bulle) ; le revenu à côté de l'icône
             var counts = At(MakeLabel("", 13, SoftTextColor), 10, 34);
             counts.MouseFilter = Control.MouseFilterEnum.Ignore;
+            // chaque ligne coupée au bord de la case (« … »)
+            counts.ClipText = true;
+            counts.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+            counts.Size = new Vector2(column - Px(8) - Px(14), Px(22));
             box.AddChild(counts);
             var income = At(MakeLabel("", 15, TextColor), 34, 6);
+            income.ClipText = true;
+            income.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
             income.Size = new Vector2(column - Px(8) - Px(40), Px(22));
             income.MouseFilter = Control.MouseFilterEnum.Ignore;
             box.AddChild(income);
@@ -139,7 +145,7 @@ public partial class KingdomScreen : ScreenWindow
             tile.AddChild(new ColorRect { Position = V(10, 120), Size = V(80, 8), Color = MapRenderer.Rgb(20, 16, 12), MouseFilter = Control.MouseFilterEnum.Ignore });
             tile.AddChild(new ColorRect
             {
-                Position = V(10, 120), Size = new Vector2(Px(80) * hero.Movement / Math.Max(1, hero.MaxMovement), Px(8)),
+                Position = V(10, 120), Size = new Vector2(Px(80) * hero.Movement / Math.Max(1, hero.DayMovement), Px(8)),
                 Color = MovementColor, MouseFilter = Control.MouseFilterEnum.Ignore,
             });
             _heroes.AddChild(tile);

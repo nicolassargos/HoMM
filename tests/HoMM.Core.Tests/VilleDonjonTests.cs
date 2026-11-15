@@ -86,7 +86,7 @@ public class VilleDonjonTests
     [Fact]
     public void Un_adversaire_du_donjon_batit_ses_habitations()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, opponents: 1, opponentFactions: new[] { Dungeon });
+        var state = new GameState(7, TestData.Data, 54, 40, opponents: 1, opponentFactions: new[] { Dungeon });
         state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
         state.Players[0].Heroes[0].Army.Add(Creature("ange"), 50);
         for (int day = 0; day < 14; day++)

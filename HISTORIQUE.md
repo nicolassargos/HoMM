@@ -751,8 +751,43 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   - **Le livre de sorts en image** : un vrai livre ouvert, une page par niveau, avec une **animation de page qui
     tourne** pour passer d'un niveau à l'autre.
   - **Une image par sort** (icône dans le livre et la guilde).
-  - **Une animation par sort** sur le champ de bataille (projectile, éclair, explosion…), et un **effet visible sur
-    les troupes** touchées (lueur, aura tant qu'un sort dure, créature ralentie…).
+  - ✅ **Une animation par sort** sur le champ de bataille, et un **effet visible sur les troupes** (2026-11-14,
+    branche `sorts-animations`). Tout est dessiné par le jeu (`Game/SpellEffects.cs`, avec les outils de
+    `BattleEffects` : pixels d'art de 2 pixels, unité `U`), sans dépense. Revu avec l'utilisateur en quatre passages sur
+    une page (`revue-sorts.html` : chaque sort joué en boucle, « Bien » ou « À revoir » et un commentaire) ; ses
+    remarques : « des formes trop simples » (des points, des anneaux), les effets passaient devant le corps, la boule
+    de feu pas assez impressionnante ; il a donné deux planches d'effets en pixel art comme modèle (formes franches, 3 à
+    4 tons chauds, flammes larges à plusieurs pointes, boules à bandes en spirale). Ce qui est fait :
+    - **La profondeur** : ce qui tourne autour d'une troupe (volutes, pierres, vent, fumée, âmes…) a une profondeur `z` ;
+      la part de derrière se dessine juste avant la troupe (`SpellEffects.DrawBehind`, une entrée de plus dans la liste
+      triée des troupes de `BattleFieldView`), son corps la cache ; de même pour les auras (`DrawLasting(…, behind)`).
+    - **La troupe change** pendant le sort (`SpellEffects.Look` : une teinte multipliée, au-delà de 1 elle éclaire ;
+      une opacité ; des images fantômes) : violette (malédiction), terne (faiblesse), couleur de pierre (peau de
+      pierre), rouge à deux battements (soif de sang), verte (soins), dorée (résurrection), sable (lenteur), un éclair
+      blanc (aveuglement, dissipation), deux images fantômes bleutées en arrière (hâte), effacée puis rendue
+      (téléportation).
+    - **Les formes** : lueurs en dégradé par paliers (`Glow`), anneaux, rubans qui s'amincissent (`Ribbon`), étincelles
+      (`Star`), traînées, bouffées de fumée bosselées (`Puff`), boules de feu qui bouillonnent (`Blaze`), sphère à bandes
+      en spirale (`SwirlBall`), traîne de comète en bandes (`CometTail`), langues de flamme et flammes larges à trois
+      pointes (`Tongue`, `FlameBush`), pierres ombrées et fissurées de lave (`Rock`), sablier ouvragé (`Hourglass`),
+      bouclier en treillis d'hexagones (`Shield`, `HexEdge`).
+    - **Chaque sort** : flèche magique (un fer et une hampe de lumière violette, un sillage, elle se brise en éclats) ;
+      éclair (la foudre de l'Oiseau-tonnerre, `foudre` : « foudre-forte » était trop épaisse) ; chaîne d'éclairs (13
+      pixels d'art de large pour le premier arc, 9 pour les sauts suivants, des fourches) ; boule de feu (une boule en
+      feu qui file droit, une explosion avec onde au sol, de grandes flammes qui brûlent 1,45 s, braises, fumée) ; pluie
+      de météores (deux par case, roches fissurées dans une traîne de feu, éclats, poussière, cratères qui refroidissent,
+      trois grandes flammes par impact) ; bénédiction (gardée de la première version) ; malédiction ; peau de pierre (des
+      pierres arrivent en spirale et se fondent dans la peau) ; soif de sang (flammes rouges de rage, gouttes) ; hâte ;
+      lenteur (un sablier au-dessus de la tête, un cadran au sol) ; faiblesse (une lueur chaude qui s'éteint, des
+      coulées pâles qui descendent en tournant ; des flèches vers le bas ont été écartées) ; aveuglement ; bouclier
+      contre les tirs ; soins ; résurrection ; téléportation ; dissipation (un cercle de runes, des éclats de couleur).
+    - **Règle** : la chaîne d'éclairs ne saute qu'à `SpellType.ChainReach` (3) cases au plus de la troupe précédente
+      (choix de l'utilisateur : elle sautait d'un bout à l'autre du champ). Test : `MagieTests`.
+    - Outils de développement : `--spell-preview=id` (avec `--spells` : le sort lancé sans cesse par le héros de gauche,
+      sur la troupe ennemie ou amie la plus proche, sans changer le combat ; la chaîne suit la règle du jeu, à essayer
+      avec `--creature-preview=orc,gobelin,loup` pour des troupes côte à côte), `--record=dossier` (25 images WebP par
+      seconde, avec `--fixed-fps 25` ; `--record-delay`, `--record-time`, `--record-rect`) ; un enregistrement ne montre
+      pas la fenêtre des conditions de la partie.
   - Le reste au fil des idées (sons, sorts de la carte…).
 - **Factions** (demandé par l'utilisateur) : à terme **6 factions + 1 faction neutre**, chacune avec ses créatures
   (le Château et les neutres existent déjà). À concevoir ensemble : thème, 7 niveaux de créatures, rôle de chacune.
@@ -870,6 +905,11 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sorts de l'IA) ; `Talents.BloodPriceCap` et le talent `Pact` (prêt pour la classe). À l'écran, une troupe qui apparaît
   en cours de combat est ajoutée cachée quand l'événement arrive, puis montrée par son animation
   (`BattleFieldView.AddShown`, `Appear`, `Announce`). Réglage en trois passes de `Duels_a_prix_egal`.
+- ✅ **Les Nains jouables** (2026-11-12, branche `nains-ville`) : une classe de faction `nains` suffit
+  (`PlayableFactions`). `Talents.Obstinacy` et `StubbornShare` (0,2 + 0,01 × niveau, 0,5 au plus), appliqué dans
+  `TacticalBattle.RollDamage` à la place de la part fixe ; `Texts.TalentText`. `Art.Slug` écrit « œ » et « æ » en deux
+  lettres (le portrait de Kalla Œil-de-Braise : `kalla-oeil-de-braise.png`). Portraits : quatre essais avant le bon
+  (voir `tools/art/METHODE.md`).
 - ✅ **L'Enfer jouable** (2026-11-11, branche `enfer`, faite pendant une coupure de GitHub, à la suite de l'étape 1) :
   comme le Donjon, une classe de faction `enfer` suffit (`PlayableFactions`). `Texts.TalentText` pour le Pacte ; les
   quatre héros « sombres » qui restaient passent à l'Enfer, `DataValidation.PlannedFactions` est vide.
@@ -879,7 +919,172 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   (`PlayableFactions`). `Talents.Dread` et `DreadMorale` (1 + niveau / 8), appliqué par `TacticalBattle.Dread` juste
   après le moral de chaque camp et avant le brave (ceux que rien n'effraie gardent leur moral) ; `Texts.TalentText`.
   Cinq héros de la faction « sombre » passent au Donjon ; « tour » retiré des factions prévues (`DataValidation`).
+- ✅ **Les gardiens justes et les revenus doublés** (2026-11-11, branche `gardiens`). Diagnostic : les deux petites cartes
+  lentes (graines 3 et 77, jours 164 et 136) avaient 16 et 11 gardiens d'une seule créature du niveau 7 (Hydres, Démons,
+  Colosses) ; la plus rapide (60), deux Trolls. La taille d'un gardien est arrondie à une créature au moins, et une
+  seule créature du niveau 7 vaut plusieurs fois la force voulue. Mesure `Gardiens_par_creature` (l'armée du Château la
+  plus petite qui bat un gardien moyen en perdant au plus 30 %) : avant, Hydre ×1,45, Loups ×1,30, et les tireurs
+  bien trop faciles (Hommes-grenouilles ×0,37, Druides ×0,39, Tyran œil ×0,29) ; après, 0,76 à 1,12. Code :
+  `CreatureStrength.GoldToBeat` (armée de mesure : paysans, archers, griffons, épéistes, nombreux, par petits pas ;
+  troupe mesurée d'environ 3000 or), `CreatureStrength.Prepare` (toutes les créatures en parallèle avant une carte :
+  2 s en série), `MapGenerator.SizeGuard`, `ReferenceStrength`, `GuardReferenceCreature`, `SmallestGuard` (0,75). Puis
+  l'économie : la simulation finissait chaque semaine avec 450 à 600 or (tout dépensé) ; comparée à Heroes 3 (archer
+  100 or, hôtel de ville 1000 par jour), elle était trois fois plus serrée. Villes 300 / 600 / 1200, mines d'or 500.
+  Les cartes normales ne vont pas plus vite (la simulation y livre un combat tous les deux jours, c'est sa limite).
 ### 10. Finitions : apparence et détails
+- ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
+  à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),
+  sage 8, roue à eau 13, moulin 12, tour 16, temple 8, cercle des fées 12. L'utilisateur trouvait les lieux petits : comme
+  Heroes 2 et 3, les lieux hauts prennent 2 cases (`TallSite.FootprintAt` : la porte, `Position`, et la case au-dessus,
+  qui bloque ; `Large`, faux pour les sauvegardes d'avant la version 7). Une empreinte de 2 × 2 aurait mis la porte à
+  côté du héros (largeur paire) : une colonne de 2 cases et une image qui déborde d'une demi-case de chaque côté, comme
+  Heroes. Générateur : `PlaceSites` vérifie la case du toit (terrain où l'on marche, sans route ni objet) et les cases
+  sous l'image (`_overhang`, que `CanPlaceGuard` évite aussi : des monstres errants s'y posaient). Pieds revus par
+  l'utilisateur. Tests : `CarteObjetsTests` (lieux hauts, générateur sur quatre cartes, sauvegarde).
+- ✅ La mer, les règles (2026-11-14, branche `mer`, conçue avec l'utilisateur comme Heroes 3) : un bateau (`Boat`, objet
+  de la carte sur l'eau) ; **un héros sur l'eau est dans son bateau** (rien de plus dans la sauvegarde des héros). Le
+  `Pathfinder` sait les pas : à terre vers l'eau seulement sur un bateau (on y monte, le chemin continue en mer), en mer
+  sur l'eau (pas dans un autre bateau), débarquer sur une case de terre libre ; monter à bord ou débarquer prend tout le
+  mouvement qui reste (`Hero.StepTo`, `PathReachability`, `DaysTo`) et coûte une journée pour choisir un chemin
+  (`BoardingPenalty`) ; l'eau coûte comme l'herbe. Monter à bord retire le bateau de la carte, débarquer le laisse sur la
+  case d'eau quittée (`BoatBoarded`, `BoatLeft`). Un monstre de la terre n'attaque pas un bateau (`GuardsAround`). Le
+  **chantier naval** : un bâtiment commun (2000 or, 20 bois), seulement dans une ville dont les murs touchent l'eau
+  (`Town.BoatSpot`, calculé d'après la carte, `BuildResult.NotCoastal`) ; un bateau coûte 1000 or et 10 bois
+  (`GameState.BuildBoat`), apparaît sur cette case si elle est libre ; un **chantier de la côte** (`Shipyard`, lieu de la
+  carte) vend de même (`BuyBoat`, une fenêtre à la visite) ; le générateur les posera avec les types de cartes. L'IA
+  sait monter dans un bateau amarré (`SafeCosts` suit les règles du `Pathfinder`). En attendant les images : un bateau
+  dessiné (coque, mât, voile aux couleurs du héros qui le mène) et une cabane au ponton. Développement : `--boat`.
+  Tests : `MerTests`.
+- ✅ La mer, les objets de la mer, première partie (2026-11-14, branche `objets-mer`, choix de l'utilisateur) : sur l'eau,
+  l'**épave flottante** (`Flotsam`, comme Heroes 3 : rien, 5 bois, 5 bois et 200 or, ou 10 bois et 500 or), le **coffre
+  de la mer** (`SeaChest` : vide une fois sur cinq, sinon 1000 ou 1500 or ; un artefact plus tard), la **bouée** (+1 moral)
+  et les **sirènes** (+1 chance), jusqu'au prochain combat (`BlessingSite` avec `Sea`), le **tourbillon** (`Whirlpool`, par
+  paires : le bateau ressort par l'autre, la troupe la plus faible perd un dixième de ses créatures, au moins une, jamais
+  la dernière de l'armée ; `WhirlpoolCrossed`) ; sur la côte, le **phare** (`Lighthouse`, un lieu haut qu'on prend en y
+  passant : +500 de mouvement par phare à chaque journée commencée en mer). La compétence **Navigation** (Aventure,
+  rangée 2) : +50 / 100 / 150 % de mouvement en mer, bateaux 20 / 40 / 60 % moins chers (la baisse du meilleur marin du
+  joueur, `GameState.BoatCost`). Le mouvement d'une journée commencée en mer : `Hero.SeaMovement`,
+  `GameState.DayMovement` ; les barres de mouvement montrent celui du matin (`Hero.DayMovement`). Le générateur, sur les
+  cartes où l'on navigue seulement, pour 1000 cases de haute mer : 4 épaves, 2 coffres, 1 bouée, 1 sirènes, une demi-paire
+  de tourbillons (à 20 cases au moins l'un de l'autre), 0,7 phare (hors des zones de départ, à 20 cases l'un de l'autre) ;
+  loin de la côte (leurs 8 voisines sont de l'eau) et à 3 cases de tout autre objet. Carte normale : 5 à 7 épaves avec des
+  mers, 11 ou 12 sur les îles et l'archipel. L'IA ramasse épaves et coffres, prend les phares, apprend la Navigation en
+  dernier. Dessinés par le jeu en attendant leurs images. Développement : `--center=flotsam`, `sea-chest`, `buoy`,
+  `mermaids`, `whirlpool`, `lighthouse`. Tests : `ObjetsMerTests`.
+- ✅ La mer, les types de cartes (2026-11-14, branche `types-cartes`, choix de l'utilisateur) : une option de la nouvelle
+  partie (`MapType`, liste « Carte » à côté de la graine, continent par défaut ; `--map-type=`). Le générateur part des
+  zones : avec **des mers**, 20 % des zones (jamais un départ) sont toutes de mer, la terre restant d'un seul tenant ;
+  avec les **îles**, 15 % de zones de mer, puis l'île de chaque joueur (sa zone et deux voisines, qui grandissent à tour
+  de rôle) et des îles neutres de trois zones ; l'**archipel**, 15 % de zones de mer, une île de deux zones par joueur et
+  une zone par île neutre. La mer : les zones de mer, et une **côte** de 1 à 3 cases (1 à 2 dans l'archipel, un bruit
+  doux) le long de chaque rivage entre deux îles ou contre une zone de mer, et le long des bords de la carte (îles et
+  archipel ; pas près des départs) ; chaque zone ne garde que son plus grand morceau de terre (celui du départ s'il y en
+  a un). La côte coupe parfois toutes les places d'un passage : avec des mers, la dernière zone de mer redevient de la
+  terre ; sinon le morceau devient une île à part (`IslandsWhole`, on recommence). D'une île à l'autre, une **traversée**
+  compte comme un passage pour le niveau des zones (`Crossings`). Une zone sans passage (une petite île) a une route de
+  son centre au rivage. Une ville sur deux préfère le bord de la mer (sa case tout autour peut être de l'eau : un port),
+  si sa porte mène par la terre au centre de la zone. **Les ports** (`PlaceHarbours`) : sur l'île de chaque joueur, un
+  chantier naval de la côte et un bateau amarré à côté, hors de sa zone de départ si l'île en a une autre (on prend la
+  mer après la sortie de sa zone, comme on entre dans la zone voisine), que le joueur doit atteindre à pied
+  (`_harbourChecks`, vérifié à chaque objet posé) ; un chantier sur une île neutre sur deux (une sur trois dans
+  l'archipel) ; avec des mers, un chantier et un bateau au bord de chaque mer, hors des zones de départ. Le générateur
+  compte l'eau comme un chemin sur les îles et l'archipel (chaque joueur a son bateau), pas avec des mers (tout s'atteint
+  à pied). Le nombre d'objets suit la surface de terre ; les mines et les villes, le nombre de zones de terre. Mesuré
+  (cartes normales) : 12 % d'eau sur un continent, 31 à 38 % avec des mers, 55 à 57 % sur les îles et l'archipel ;
+  vérifié sur 138 cartes à quatre joueurs (30 graines par type, et 8 grandes cartes). **L'IA** prend les bateaux amarrés ;
+  quand elle n'a plus rien à faire à pied et pas de bateau à portée, elle en construit un dans une ville qui a un
+  chantier naval, sinon va en acheter un au chantier de la côte le plus proche (`ComputerPlayer.GetBoat`, en gardant
+  1000 or pour recruter) ; elle ne bâtit pas encore le chantier naval de ses villes. Mesuré (un adversaire, Normal, six
+  semaines, `Adversaires_par_type_de_carte`) : continent 48 200 or d'armée, 2,7 villes ; des mers 44 100, 3,0 villes ;
+  îles 29 800, 2,5 villes, 10 embarquements par partie ; archipel 28 900, 3,2 villes, 12 embarquements (moins de terre,
+  donc moins de gardiens à battre et d'armée). Les cartes du continent ne changent pas (aucun tirage de plus). Tests :
+  `TypesCartesTests`, `MerTests`. Puis, remarques de l'utilisateur : sur les îles et l'archipel, **une ville au plus par
+  île** (l'île d'un joueur n'a que son château ; sa ville voisine est sur une île proche) ; les **tours d'observation** à
+  15 cases des bords au moins (`TowerEdgeMargin`, le quart de la carte au plus) et à 30 cases l'une de l'autre
+  (`TowerSpacing`, une fois et demie ce qu'elles dévoilent) ; une tour sans place n'empêche plus les autres lieux. Les
+  cartes du continent changent un peu (les tours, puis les lieux posés après elles).
+- ✅ Plus de villes sur les grandes cartes (2026-11-14, branche `plus-de-villes`, demandé par l'utilisateur : une grande
+  carte doit pouvoir contenir au moins 8 villes) : le générateur vise une ville pour trois zones, mais s'arrêtait aux 14
+  noms de `TownNames`. 26 noms de plus (`MoreTownNames`), mêlés par un hasard à part (d'après la graine) et ajoutés après
+  les premiers : les cartes qui avaient assez de noms ne changent pas. Mesuré (deux graines ; seul, puis à quatre) :
+  normale 7 et 10 villes (comme avant), grande 17 et 20 (14 avant), très grande 30 et 33 (14 avant). Générer une très
+  grande carte prend 7 à 8 s (4 avant : les mines et leurs gardiens près de chaque ville). Test : `TaillesCarteTests`.
+- ✅ Les zones de la carte (2026-11-14, branche `carte-zones`, demandé par l'utilisateur) :
+  - **Les passages entre les zones**, une option de la nouvelle partie (`ZoneAccess`, liste « Passages » à côté de la
+    taille, normaux par défaut ; `--access=`) : ouverts (comme avant), normaux (le gardien de la sortie de la zone de
+    départ prend la plus grande taille que **deux fois** l'armée de départ bat en perdant au plus 35 %, par recherche
+    dichotomique sur le combat rapide), fermés (quatre fois, et les autres passages deux fois plus gardés). Mesuré (54 ×
+    40) : sortie de 132 or (ouverts), 504 or (normaux), 1056 or (fermés) pour une armée de départ de 520 or. Les
+    adversaires s'en sortent (passages normaux, six semaines : 48 900 or d'armée, 2,8 villes). Le code garde « ouverts »
+    par défaut (tests et mesures inchangés). Test : `La_sortie_de_la_zone_de_depart_demande_l_armee_voulue`
+    (`MapGenerator.StartExitGates`).
+  - **Une scierie et une mine de minerai près de chaque ville neutre**, chacune avec une petite armée (moitié d'un
+    gardien de sa zone, `TownMineGuardFactor`) **posée aussitôt** (posé à la fin avec les autres gardiens, il bouchait
+    souvent un passage étroit et était refusé), sur un abord dégagé de préférence (les deux places du gardien et la case
+    sous l'entrée restent libres, `_keptFree`) ; à 11 pas de la porte de préférence, 18 au plus. Les villes se posent de
+    préférence à 12 cases d'une autre (deux villes serrées au bord de la carte n'avaient plus la place). 160 mines sur
+    160 sur 20 cartes. La ville de départ garde ses mines sans gardien. Une ville par zone : c'était déjà la règle.
+  - **Les tours d'observation à 10 cases des bords** au moins (`TowerEdgeMargin`, le quart de la carte au plus) ; les
+    cases trop près restent aux autres lieux.
+  - **Les tailles de Heroes 3** : 36, 72, 108, 144 cases de côté (et 36 × 27 pour les tests) ; jusqu'à 3 adversaires dès
+    la normale. Le générateur, 20 s pour 144 × 144, en prend 3,8 (la distance aux villes calculée une fois par ville
+    posée, `TownDistances` ; le parcours depuis le départ dans des tableaux, `WalkableGrid`). La carte réduite ne dépasse
+    plus 240 pixels de haut (les cartes carrées poussaient « Fin du tour » hors de l'écran). Les tests qui ne parlent pas
+    de taille gardent leurs cartes (`GameState(seed, data, 54, 40)`, et 72 × 53 pour l'ancienne grande) ; deux tests
+    vérifient l'accès par un seul parcours au lieu d'un chemin par objet (la suite était passée de 39 s à 4 min 44,
+    elle fait 36 s). Mesuré : la simulation seule gagne la petite carte vers le jour 62, la normale (72 × 72) vers le
+    jour 198 (5 fois sur 6), jamais la grande en 200 jours ; un adversaire après six semaines (Normal, or d'armée) :
+    Château 50 000, morts-vivants 47 400, Barbares 51 700, Forêt 57 000, Tour 47 500, Donjon 52 700, Enfer 50 100,
+    Nains 49 700 ; Facile 29 100, Normal 48 200, Difficile 73 400.
+  - **Les routes se rejoignent** : suivre une route coûte moins, la longer à côté coûte plus (plus d'« échelles »).
+  - **La victoire** (choix de l'utilisateur) : « vaincre tous les monstres » retiré (sur la carte normale de 72 × 72, la
+    simulation ne gagnait plus qu'au jour 198) ; par défaut, prendre toutes les villes ; les parties longues sont
+    acceptées, comme Heroes 3. Une ancienne sauvegarde qui l'avait prend « prendre toutes les villes »
+    (`GameRules.Updated`). La simulation gagne en prenant toutes les villes, en 400 jours au plus (200 avant) : petite
+    carte vers le jour 15 (elle n'a que deux villes), normale vers le jour 210, grande pas en 400 jours (ses villes
+    lointaines sont trop gardées pour un seul héros qui ne voyage pas).
+- ✅ Les diagonales sur la carte (2026-11-14, branche `diagonales`) : tout était fait de rectangles (zones posées en
+  grille, routes en angles droits, bords des terrains le long des cases). **Le dessin** (`terrain.gdshader`) : la part
+  d'un terrain autour d'un pixel mêle les quatre centres de cases voisins (« marching squares », `part_of`) ; la ligne
+  passe à 0,5 : un bord droit reste au milieu, un escalier devient une ligne à 45°, un coin s'arrondit ; les ondulations,
+  les rangs, les rives, les plages et l'écume suivent (`shore_distance` en découle). **Les routes**
+  (`MapGenerator.Road`) : le plus court chemin dans les 8 directions (diagonale 1,41, et un petit coût d'écart à la ligne
+  droite) ; un pas en diagonale ne passe pas entre deux coins interdits, et ses deux coins restent de l'herbe sans objet
+  (`_roadCorners` ; un monstre peut s'y tenir, comme sur la route) ; une ville posée sur un coin fait de l'autre une route
+  (`KeepRoadsAround`) ; les bouts de route et la route coupée par une ville comptent les 8 voisines. **Les zones** : chaque
+  case est déplacée par un bruit doux (`SmoothNoise`, 3 cases au plus, méandres de 7) avant de chercher le centre le plus
+  proche, sauf près des départs (rien à moins de 9 cases, tout à partir de 15 : avec 6, une zone de départ trop serrée
+  éloignait sa mine) ; un morceau de zone détaché rejoint la zone qui l'entoure (`JoinZoneIslands`). Avec 4 cases, les
+  zones étroites serraient les objets et leurs gardiens (3 cartes sur 14 sous les trois quarts de mines et coffres
+  gardés) ; les gardiens se posent maintenant d'abord autour de l'objet le plus à l'étroit. Corrigé au passage : un
+  monstre pouvait en enfermer un autre (`AllObjectsReachable` ne vérifiait pas les monstres) ; deux tests de l'IA
+  laissaient les lieux de la carte (un autel proche attirait l'adversaire). Mesuré (22 cartes) : 81 % des mines et des
+  coffres gardés (82 % avant). `Mesures` : la simulation seule gagne aux jours 63, 89, 147 (68, 86, 147 avant) ; un
+  adversaire après six semaines (Normal, or d'armée, les cartes ont changé) : Château 48 100, morts-vivants 46 000,
+  Barbares 49 800, Forêt 68 100, Tour 47 800, Donjon 56 700, Enfer 49 000, Nains 48 000 (environ 15 % de moins, à
+  surveiller) ; Facile 32 400, Normal 47 000, Difficile 66 000. Développement : `--zoom=0.4`, toute la carte d'un coup.
+- ✅ Le héros du Château sur la carte (2026-11-14, branche `heros-carte`, PixelLab, environ 1,30 $) : **une image par
+  faction** (`heroes/hero-{faction}.png`, sinon `heroes/hero.png`), **48 × 48** (choisie en jeu après 48, 56 et 64 ;
+  l'ancienne faisait 32), tournée vers la gauche ou la droite (miroir, `Art.MirrorSuffix` ; ses pieds retournés pour
+  l'ombre), aux couleurs du joueur (les rouges de l'étendard et de la selle). Le chevalier : d'abord générés à 96 et
+  réduits (b-1 : cheval caparaçonné, choisi pour l'allure mais peu lisible), puis de profil (d à g : écartés), puis
+  **générés à 48 directement avec b-1 comme style** (« pro », 25 candidats) : choisi **i-21** (« bold simple
+  silhouette, few colours, strong contrast, dark outline… »). **La marche** (`hero-chateau-move.png`, 8 images de
+  48 × 48, 4 × 2) : 8 essais d'`animer` (a à h ; écartés : PixMiniMax, le trot, 16 images…) ; choisie **d**
+  (`--enrichir`), puis **posée au sol** (le cheval flottait de 1 à 2 pixels : on aurait dit qu'il glissait) et un
+  **rebond** (le haut du dessin descend d'un pixel pendant deux images, deux fois par cycle : « d3 »). **Le pas** : le
+  héros glisse de case en case (il sautait d'une case à l'autre toutes les 0,09 s), **3 cases par seconde**
+  (`MapRenderer.HeroStepTime`), avec **un élan par case** (vitesse 1 − 0,1 × cos(2π (p + 0,8)), `HeroStepShare`),
+  réglés par l'utilisateur sur une page à curseurs ; un cycle d'images en deux cases. Le pas du héros du joueur est
+  montré avant que les règles ne le fassent (`ActorLayer.BeginStep`, `Main.NextStep` : une rencontre arrive quand il est
+  sur la case) ; les adversaires rejoués glissent de même. Au combat, l'image de la carte ×2 en attendant la sienne.
+  Pieds revus par l'utilisateur.
+- ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
+  (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
+  tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans
+  la roche) ; choisie **a-1**. Trois retouches essayées (montagne plus sombre, forteresse plus sombre, les deux ; bannières
+  rouges et bleues, cuivre, runes d'or) et vues en jeu : l'utilisateur garde a-1 telle quelle (luminosité 98). Pieds
+  revus par l'utilisateur (deux segments, opacité 0,8).
 - ✅ Ville de l'Enfer sur la carte (2026-11-11, branche `ville-enfer`, PixelLab, 1,31 $) : trois idées (a : citadelle noire,
   b : cité du portail, c : temple de Moloch) ; choisie a-2, trop sombre (luminosité 32, contours durs) : les deux
   retouches de la méthode (ombrage doux, puis détails) l'ont rendue lisible (f-1, luminosité 51, gardée telle quelle).
@@ -1137,6 +1342,46 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   plus grands) ; fiche du héros sans débordement (artefacts à côté du charisme) ; lignes des listes à l'intérieur du
   biseau ; cases à cocher espacées de leur texte ; un bouton choisi est plus sombre (enfoncé), plus clair avant.
   Gardé tel quel pour l'instant : les sections vides (artefacts, magie, villes), qui se rempliront.
+- **Harmoniser l'interface : les tailles communes** (2026-11-11, branche `interface-harmonie`). Constaté après le passage
+  à ×2 : deux échelles mêlées (les écrans écrits dans les unités de l'ancien écran 1280 × 720, ×1,5, les images ×2),
+  donc des cadres, écarts et boutons hors de la grille des pixels d'art ; 14 tailles de texte (7 à 44) et 6 pour les
+  boutons, toujours lissées (la police nette n'était jamais choisie) ; des boutons de 30 à 70 de haut.
+  - **La police.** VT323 est dessinée sur une grille de 80 unités pour 1000 (mesuré dans le fichier) : 12,5 pixels par
+    taille, nette seulement à 25 (trop petite, a jugé l'utilisateur) ou 50 (trop grande). Six essais comparés sur les
+    mêmes écrans (page archivée dans `art-candidats/archives/2026-11-11-polices/`) : VT323 à 25 ; Pixel Operator fin à
+    32 ; en trait épais (HB) à 32 (aimé, mais trop grand) ; fin et épais mêlés ; fin avec des titres en Jersey 10 ;
+    **Pixel Operator HB 8 à 16, choisi** (licence CC0 ; 8 pixels par taille : un pixel de police = un pixel d'art ;
+    capitales de 14 pixels, en gras). Les titres en Pixel Operator HB à 32, le nom du jeu à 48. `Ui.TextSize` ramène
+    les anciennes tailles à trois : moins de 18 → 16, 18 à 39 → 32, 40 et plus → 48. La police laissait deux pixels
+    entre les lettres et presque rien entre les lignes : `FontVariation` retire un pixel d'art entre les lettres (un
+    huitième moins large) et en ajoute un au-dessus et au-dessous de chaque ligne.
+  - Les textes qui ne tiennent plus finissent par « … » dans leur case, le texte entier au survol (carte de
+    construction, case des mines du royaume, sauvegardes, nom d'une ville dans la colonne), ou passent à la ligne sans
+    couper un mot ; le dernier message s'arrête avant « Journal ».
+  - `Ui.Px` arrondit à la grille (2 pixels) ; `Ui.Snap`, `SnapDown`, `ArtPx` (pixels d'art) ; les bords des boîtes en
+    pixels d'art entiers. Tailles communes : `SmallButtonHeight` 32, `ButtonHeight` 44, `LargeButtonHeight` 60,
+    `IconButtonSide` 80 (l'icône de 32 ×2 et 4 pixels d'art de pierre), `CloseButtonWidth` 128, `WindowMargin` 24,
+    `ButtonGap` 8 ; `Ui.Sized` les donne. `MakeButton` a au moins la hauteur commune ; les boutons des petites
+    fenêtres la prennent par le thème (`buttons_min_width`, `buttons_min_height` : Godot écrase sinon leur taille).
+  - Les icônes des boutons centrées sur la grille ; le groupe de droite du combat sortait de l'écran (sa largeur se
+    calcule maintenant d'après les tailles communes, `BattleScreen.GroupWidth`).
+  - « Fermer » : même taille, en haut à droite, avec le titre sur la même ligne (grandes fenêtres et fenêtres de la
+    ville) ; les petites fenêtres gardent leurs boutons en bas.
+  - Les petites fenêtres (`GameDialog`) assombrissent l'écran derrière elles, comme les grandes.
+  - Ajustés au passage : les noms des places d'équipement en info-bulle (écrits dedans, ils ne tenaient qu'en taille 7),
+    les nombres des caractéristiques au bout de la ligne de leur nom, les cartes de recrutement (trois lignes de
+    caractéristiques), la description d'un sort de la guilde sur deux lignes au plus (le reste au survol), la taverne
+    et le champ du nom d'une sauvegarde, « Max » dans `Texts`.
+  - **Écran par écran** (branche `interface-ecrans`) : les listes des héros et des villes de la colonne de la carte comme
+    Heroes 2, des portraits sans nom, deux par rangée (six visibles au lieu de trois ; les flèches font défiler une
+    rangée), le détail au survol (points de sort ajoutés au héros, `Texts.TownDetails` pour la ville) ; à côté d'un
+    héros, deux barres qui se vident vers le bas (mouvement vert, points de sort bleus) ; à côté d'une ville, une marque
+    verte si l'on peut encore y construire. La fiche du héros plus aérée. Les cartes de recrutement : les textes dans
+    une colonne (`VBoxContainer`), les boutons calés en bas. Le choix de niveau et les barres du combat n'avaient plus
+    besoin de changer. Les images des villes de la liste restent un morceau de 64 pixels ×1 (×2, on n'en verrait que la
+    porte).
+  - Gardé : les petites images de l'armée dans la colonne de la carte restent ×1 (choix de l'utilisateur du
+    2026-11-08, entières plutôt que ×2 coupées), à revoir avec la colonne.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

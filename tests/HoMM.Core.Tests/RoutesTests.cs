@@ -61,7 +61,9 @@ public class RoutesTests
     {
         var map = new MapGenerator(seed, TestData.Data) { Players = players }.Generate(width, height);
         bool Road(Cell c) => map.InBounds(c) && map.HasRoad(c);
-        Cell[] Around(Cell c) => new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) };
+        // les 8 voisines : les routes vont aussi en diagonale
+        Cell[] Around(Cell c) => new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1),
+            c.Offset(1, 1), c.Offset(-1, 1), c.Offset(1, -1), c.Offset(-1, -1) };
 
         foreach (var town in map.Objects.OfType<Town>())
         {

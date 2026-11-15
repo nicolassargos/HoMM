@@ -98,6 +98,49 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Un adversaire (Normal) sur chaque type de carte, six semaines : s'il prend la mer (bateaux pris, débarquements),
+    /// ses villes, son armée. Sur les îles, il doit quitter la sienne.
+    /// </summary>
+    [Mesure]
+    public void Adversaires_par_type_de_carte()
+    {
+        foreach (var type in Enum.GetValues<MapType>())
+        {
+            var values = new List<int>();
+            int towns = 0, boardings = 0, landings = 0, bought = 0, defeated = 0;
+            foreach (int seed in Seeds)
+            {
+                var state = new GameState(seed, TestData.Data, MapSize.Normal, opponents: 1, mapType: type);
+                state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
+                state.Players[0].Heroes[0].Army.Add(TestData.Creatures.Get("ange"), 50);
+                var rival = state.Players[1];
+                for (int day = 0; day < 42 && state.Outcome == GameOutcome.Playing; day++)
+                {
+                    state.EndTurn();
+                    while (state.CurrentPlayer.IsComputer && state.Outcome == GameOutcome.Playing)
+                    {
+                        ComputerPlayer.PlayTurn(state);
+                        foreach (var e in state.TakeEvents())
+                        {
+                            boardings += e is BoatBoarded b && b.Hero.Owner == rival ? 1 : 0;
+                            landings += e is BoatLeft l && l.Hero.Owner == rival ? 1 : 0;
+                            bought += e is BoatBuilt built && built.Player == rival ? 1 : 0;
+                        }
+                        state.EndTurn();
+                    }
+                }
+                values.Add(rival.Heroes.Sum(h => Battle.ExperienceFor(h.Army.Stacks)) + rival.Towns.Sum(t => Battle.ExperienceFor(t.Garrison.Stacks)));
+                towns += rival.Towns.Count;
+                defeated += rival.IsDefeated ? 1 : 0;
+            }
+            int n = Seeds.Length;
+            output.WriteLine($"{type} : armée {Range(values)} ; par partie : {towns / (double)n:0.0} villes, "
+                             + $"{boardings / (double)n:0.0} embarquements, {landings / (double)n:0.0} débarquements, "
+                             + $"{bought / (double)n:0.0} bateaux achetés ; éliminé {defeated} fois");
+        }
+    }
+
+    /// <summary>
     /// Un adversaire de chaque faction (Normal), six semaines, sur les mêmes cartes : les factions doivent se valoir.
     /// </summary>
     [Mesure]
@@ -129,6 +172,59 @@ public class MesuresTests(ITestOutputHelper output)
     /// La courbe de chaque faction : combien de paysans (sans héros) pour vaincre une unité de chaque créature. Deux
     /// créatures du même niveau devraient en demander à peu près autant.
     /// </summary>
+    /// <summary>
+    /// La difficulté de chaque gardien possible de la carte pour la simulation : un gardien moyen de son niveau (taille de
+    /// <see cref="MapGenerator"/>, force ramenée à celle du gardien de référence), et la plus petite armée du Château
+    /// (Paysans, Archers, Griffons, Épéistes, dans les proportions de leur croissance) qui le bat en perdant au plus 30 % de ses points de vie, la règle de
+    /// la simulation. Écrit l'or de cette armée : dans un niveau, des gardiens justes demandent à peu près autant.
+    /// </summary>
+    [Mesure]
+    public void Gardiens_par_creature()
+    {
+        var growth = new[] { ("paysan", 30), ("archer", 18), ("griffon", 14), ("epeiste", 8), ("moine", 6), ("cavalier", 4), ("ange", 2) };
+        foreach (var group in TestData.Creatures.All.Where(c => MapGenerator.MonsterFactions.Contains(c.Faction)).GroupBy(c => c.Tier).OrderBy(g => g.Key))
+        {
+            int tier = group.Key;
+            var lines = new List<(double Gold, string Text)>();
+            foreach (var type in group)
+            {
+                double danger = (tier - 0.5) / 6;
+                var (guardType, count) = MapGenerator.SizeGuard(TestData.Creatures, type, tier,
+                    (int)Math.Round(MapGenerator.GuardBaseCount[tier] * 1.5 * (1 + danger)));
+                // des troupes nombreuses des quatre premiers niveaux du Château : l'armée grandit par petits pas
+                var mix = growth.Take(4).ToList();
+                double Gold(double k) => mix.Sum(m => (int)Math.Round(m.Item2 * k) * TestData.Creatures.Get(m.Item1).Cost.GetValueOrDefault(ResourceType.Gold));
+                bool Beats(double k)
+                {
+                    var army = new Army();
+                    foreach (var (id, n) in mix.Where(m => (int)Math.Round(m.Item2 * k) > 0))
+                        army.Add(TestData.Creatures.Get(id), (int)Math.Round(n * k));
+                    if (army.Stacks.Count == 0)
+                        return false;
+                    double hp = army.Stacks.Sum(s => s.Count * s.Type.HitPoints);
+                    var guard = new Army();
+                    guard.Add(guardType, count);
+                    var report = Battle.Resolve(army, guard);
+                    return report.AttackerWon && report.AttackerLosses.Sum(s => s.Count * s.Type.HitPoints) <= 0.3 * hp;
+                }
+                double high = 0.02;
+                while (!Beats(high) && high < 2000)
+                    high *= 1.5;
+                double low = high / 1.5;
+                for (int i = 0; i < 12; i++)
+                {
+                    double middle = (low + high) / 2;
+                    if (Beats(middle)) high = middle; else low = middle;
+                }
+                lines.Add((Gold(high), $"{count} {guardType.Plural} ({type.Faction}{(guardType != type ? $", à la place de {type.Plural}" : "")}) : {Gold(high):0} or"));
+            }
+            double median = lines.Select(l => l.Gold).OrderBy(g => g).ElementAt(lines.Count / 2);
+            output.WriteLine($"Niveau {tier} (médiane {median:0} or) :");
+            foreach (var (gold, text) in lines.OrderByDescending(l => l.Gold))
+                output.WriteLine($"   {text}  ×{gold / median:0.00}");
+        }
+    }
+
     [Mesure]
     public void Courbe_du_chateau()
     {
@@ -183,7 +279,7 @@ public class MesuresTests(ITestOutputHelper output)
     public void Duels_a_prix_egal()
     {
         const int gold = 3000;
-        var factions = new[] { "chateau", "morts-vivants", "barbares", "foret", "tour", "donjon", "enfer" };
+        var factions = new[] { "chateau", "morts-vivants", "barbares", "foret", "tour", "donjon", "enfer", "nains" };
         for (int tier = 1; tier <= 7; tier++)
         {
             var creatures = factions.Select(f => TestData.Creatures.All.FirstOrDefault(c => c.Faction == f && c.Tier == tier))

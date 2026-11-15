@@ -21,10 +21,10 @@ public static class ResourceInfo
 
     public static bool IsRare(ResourceType resource) => Array.IndexOf(Rare, resource) >= 0;
 
-    /// <summary>Ce qu'une mine produit chaque jour : 250 or, 2 bois ou minerai, 1 d'une ressource rare.</summary>
+    /// <summary>Ce qu'une mine produit chaque jour : 500 or (250 avant le 2026-11-11), 2 bois ou minerai, 1 d'une ressource rare.</summary>
     public static int MineProduction(ResourceType resource) => resource switch
     {
-        ResourceType.Gold => 250,
+        ResourceType.Gold => 500,
         _ when IsRare(resource) => 1,
         _ => 2,
     };
@@ -42,7 +42,8 @@ public abstract class MapObject
     public Cell Position { get; }
 
     /// <summary>
-    /// Toutes les cases occupées par l'objet. Par défaut, seulement sa case ; une ville en occupe 5 × 4, une mine 3 × 2.
+    /// Toutes les cases occupées par l'objet. Par défaut, seulement sa case ; une ville en occupe 5 × 4, une mine 3 × 2,
+    /// un lieu haut 2 (<see cref="TallSite"/>).
     /// Les cases autres que <see cref="Position"/> sont infranchissables.
     /// </summary>
     public virtual IEnumerable<Cell> Footprint

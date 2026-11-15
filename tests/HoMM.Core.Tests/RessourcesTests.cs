@@ -19,8 +19,8 @@ public class RessourcesTests
         Assert.Equal(7, ResourceInfo.All.Length);
         Assert.Equal(new[] { ResourceType.Mercury, ResourceType.Crystal, ResourceType.Sulfur, ResourceType.Gems }, ResourceInfo.Rare);
         Assert.False(ResourceInfo.IsRare(ResourceType.Wood));
-        // une mine : 250 or, 2 bois ou minerai, 1 d'une ressource rare
-        Assert.Equal(250, new Mine(new Cell(0, 0), ResourceType.Gold).DailyProduction);
+        // une mine : 500 or, 2 bois ou minerai, 1 d'une ressource rare
+        Assert.Equal(500, new Mine(new Cell(0, 0), ResourceType.Gold).DailyProduction);
         Assert.Equal(2, new Mine(new Cell(0, 0), ResourceType.Ore).DailyProduction);
         Assert.All(ResourceInfo.Rare, r => Assert.Equal(1, new Mine(new Cell(0, 0), r).DailyProduction));
         // un tas de ressource rare : 3 à 6
@@ -88,6 +88,24 @@ public class RessourcesTests
                         && Math.Max(Math.Abs(m.Position.X - start.X), Math.Abs(m.Position.Y - start.Y)) <= 15);
             }
         }
+    }
+
+    /// <summary>Une scierie et une mine de minerai près de chaque ville neutre, gardées (choix de l'utilisateur, 2026-11-14).</summary>
+    [Theory]
+    [InlineData(1, MapSize.Normal, 1)]
+    [InlineData(42, MapSize.Normal, 2)]
+    [InlineData(7, MapSize.Large, 3)]
+    public void Chaque_ville_neutre_a_sa_scierie_et_sa_mine_de_minerai_gardees(int seed, MapSize size, int opponents)
+    {
+        var state = new GameState(seed, TestData.Data, size, opponents);
+        var map = state.Map;
+        var mines = map.Objects.OfType<Mine>().ToList();
+        var towns = map.Objects.OfType<Town>().Where(t => !map.Starts.Contains(t.Position)).ToList();
+        Assert.NotEmpty(towns);
+        foreach (var town in towns)
+            foreach (var resource in new[] { ResourceType.Wood, ResourceType.Ore })
+                Assert.Contains(mines, m => m.Resource == resource && map.IsGuarded(m.Position)
+                    && Math.Max(Math.Abs(m.Position.X - town.Approach.X), Math.Abs(m.Position.Y - town.Approach.Y)) <= 18);
     }
 
     [Fact]

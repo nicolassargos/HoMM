@@ -80,7 +80,7 @@ public class VilleBarbaresTests
     {
         Assert.Contains(Barbarians, TestData.Data.Classes.PlayableFactions);
         var all = Enumerable.Range(1, 6)
-            .SelectMany(seed => new GameState(seed, TestData.Data, MapSize.Large, opponents: 3).Map.Objects.OfType<Town>())
+            .SelectMany(seed => new GameState(seed, TestData.Data, 72, 53, opponents: 3).Map.Objects.OfType<Town>())
             .Select(t => t.Faction).ToHashSet();
         Assert.Contains(Barbarians, all);
     }
@@ -88,7 +88,7 @@ public class VilleBarbaresTests
     [Fact]
     public void Un_adversaire_barbare_batit_ses_habitations()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, opponents: 1, opponentFactions: new[] { Barbarians });
+        var state = new GameState(7, TestData.Data, 54, 40, opponents: 1, opponentFactions: new[] { Barbarians });
         state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
         state.Players[0].Heroes[0].Army.Add(TestData.Creatures.Get("ange"), 50);
         for (int day = 0; day < 14; day++)

@@ -5,6 +5,22 @@ namespace HoMM.Core;
 // Les lieux de la carte qu'un héros visite et qui restent (choix de l'utilisateur, 2026-11-08, comme Heroes 2 et 3) :
 // autels des caractéristiques, cabane du sage, moulin et roue à eau, tour d'observation.
 
+/// <summary>
+/// Les lieux hauts (cabane du sage, moulin, roue à eau, tour d'observation, temple ; choix de l'utilisateur,
+/// 2026-11-12, comme Heroes 2 et 3) : le héros entre par leur porte (<see cref="MapObject.Position"/>) et la case
+/// au-dessus bloque le passage. Leur image (64 pixels d'art de large) déborde d'une demi-case de chaque côté, sans
+/// bloquer. Ceux des sauvegardes d'avant (version 6) gardent une seule case.
+/// </summary>
+public static class TallSite
+{
+    /// <summary>Les 2 cases d'un lieu haut dont la porte serait en <paramref name="entrance"/>.</summary>
+    public static IEnumerable<Cell> FootprintAt(Cell entrance)
+    {
+        yield return entrance;
+        yield return entrance.Offset(0, -1);
+    }
+}
+
 /// <summary>Le héros a visité un autel. <paramref name="Gained"/> : faux s'il l'avait déjà visité.</summary>
 public sealed record ShrineVisited(Hero Hero, Shrine Shrine, bool Gained) : ObjectVisited(Hero, Shrine);
 
@@ -45,6 +61,11 @@ public sealed class SageHut : MapObject
 
     public SpellType Spell { get; }
 
+    /// <summary>Sur 2 cases (la porte et la case au-dessus), sinon une seule (sauvegardes d'avant).</summary>
+    public bool Large { get; init; } = true;
+
+    public override IEnumerable<Cell> Footprint => Large ? TallSite.FootprintAt(Position) : base.Footprint;
+
     public override bool RemovedOnVisit => false;
 
     public override ObjectVisited Visit(Hero hero) => new SageVisited(hero, this, hero.Learn(Spell));
@@ -64,6 +85,11 @@ public sealed class WeeklyProducer : MapObject
     public WeeklyProducer(Cell position, ResourceType resource) : base(position) => Resource = resource;
 
     public ResourceType Resource { get; }
+
+    /// <summary>Sur 2 cases (la porte et la case au-dessus), sinon une seule (sauvegardes d'avant).</summary>
+    public bool Large { get; init; } = true;
+
+    public override IEnumerable<Cell> Footprint => Large ? TallSite.FootprintAt(Position) : base.Footprint;
 
     /// <summary>Une roue à eau (de l'or), sinon un moulin.</summary>
     public bool IsWaterWheel => Resource == ResourceType.Gold;
@@ -96,7 +122,7 @@ public sealed record BlessingVisited(Hero Hero, BlessingSite Site, bool Gained) 
 
 /// <summary>
 /// Un temple (+1 moral) ou un cercle des fées (+1 chance) : le bonus dure jusqu'au prochain combat du héros. On peut y
-/// revenir après un combat.
+/// revenir après un combat. Sur l'eau (<see cref="Sea"/>, 2026-11-14) : une bouée (moral) ou des sirènes (chance).
 /// </summary>
 public sealed class BlessingSite : MapObject
 {
@@ -105,6 +131,16 @@ public sealed class BlessingSite : MapObject
     public BlessingSite(Cell position, Blessing blessing) : base(position) => Blessing = blessing;
 
     public Blessing Blessing { get; }
+
+    /// <summary>Un temple sur 2 cases (la porte et la case au-dessus), sinon une seule (sauvegardes d'avant).</summary>
+    public bool Large { get; init; } = true;
+
+    /// <summary>Sur l'eau : une bouée (moral) ou des sirènes (chance), sur une case.</summary>
+    public bool Sea { get; init; }
+
+    /// <summary>Le temple est haut ; le cercle des fées, plat, reste sur sa case (le héros se tient dans le cercle).</summary>
+    public override IEnumerable<Cell> Footprint =>
+        Large && !Sea && Blessing == Blessing.Morale ? TallSite.FootprintAt(Position) : base.Footprint;
 
     public override bool RemovedOnVisit => false;
 
@@ -130,6 +166,11 @@ public sealed record TowerVisited(Hero Hero, ObservationTower Tower) : ObjectVis
 public sealed class ObservationTower : MapObject
 {
     public const int Radius = 20;
+
+    /// <summary>Sur 2 cases (la porte et la case au-dessus), sinon une seule (sauvegardes d'avant).</summary>
+    public bool Large { get; init; } = true;
+
+    public override IEnumerable<Cell> Footprint => Large ? TallSite.FootprintAt(Position) : base.Footprint;
 
     public ObservationTower(Cell position) : base(position)
     {

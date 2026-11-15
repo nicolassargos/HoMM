@@ -13,7 +13,7 @@ public class PauseCombatTests
     /// <summary>Une partie où un monstre attend à deux cases du héros, et un coffre juste à côté du monstre.</summary>
     private static (GameState State, MonsterGuard Guard, Cell Next) GameWithGuard(int count = 10, string creature = "gobelin")
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false) { QuickBattles = false };
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false) { QuickBattles = false };
         var start = state.CurrentHero!.Position;
         var guard = new MonsterGuard(start.Offset(2, 0), TestData.Creatures.Get(creature), count);
         state.Map.AddObject(guard);

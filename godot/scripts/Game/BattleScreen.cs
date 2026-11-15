@@ -80,15 +80,15 @@ public partial class BattleScreen : CanvasLayer
         HBoxContainer Group()
         {
             var group = new HBoxContainer();
-            group.AddThemeConstantOverride("separation", (int)Px(6));
+            group.AddThemeConstantOverride("separation", (int)ButtonGap);
             return group;
         }
         var left = Group();
         AddButton(left, "options", Texts.BattleOptionsButton, "O", OpenOptions);
         _fleeButton = AddButton(left, "fuir", Texts.BattleFlee, "F", () => Player(b => b.Flee()));
         _autoButton = AddButton(left, "auto", Texts.BattleAuto, "A", () => _auto = true);
-        left.Position = new Vector2(Px(16), barY + (OrderHeight - Px(ButtonSize)) / 2f);
-        left.Size = new Vector2(left.GetCombinedMinimumSize().X, Px(ButtonSize));
+        left.Position = new Vector2(Px(16), barY + SnapDown((OrderHeight - IconButtonSide) / 2f));
+        left.Size = new Vector2(GroupWidth(left), IconButtonSide);
         root.AddChild(left);
 
         var buttons = Group();
@@ -107,9 +107,9 @@ public partial class BattleScreen : CanvasLayer
         _spellButton = AddButton(buttons, "livre", Texts.SpellBookButton, "S", OpenSpellBook);
         _waitButton = AddButton(buttons, "sablier", Texts.BattleWait, "W", () => Player(b => b.Wait()));
         _defendButton = AddButton(buttons, "bouclier", Texts.BattleDefend, "D", () => Player(b => b.Defend()));
-        float buttonsWidth = buttons.GetCombinedMinimumSize().X;
-        buttons.Position = new Vector2(screenSize.X - Px(16) - buttonsWidth, barY + (OrderHeight - Px(ButtonSize)) / 2f);
-        buttons.Size = new Vector2(buttonsWidth, Px(ButtonSize));
+        float buttonsWidth = GroupWidth(buttons);
+        buttons.Position = new Vector2(Snap(screenSize.X - Px(16) - buttonsWidth), barY + SnapDown((OrderHeight - IconButtonSide) / 2f));
+        buttons.Size = new Vector2(buttonsWidth, IconButtonSide);
         root.AddChild(buttons);
 
         _title = MakeLabel("", 16, TextColor);
@@ -138,9 +138,10 @@ public partial class BattleScreen : CanvasLayer
         // sous la ligne de la dernière action
         _field = new BattleFieldView();
         var size = BattleFieldView.FieldSize;
-        float bandHeight = Px(40), bandGap = Px(6);
+        // la ligne : un bouton ordinaire et deux pixels d'art de biseau autour
+        float bandHeight = ButtonHeight + ArtPx(4), bandGap = Px(6);
         float top = Px(10) + bandHeight + bandGap;
-        _field.Position = new Vector2((screenSize.X - size.X) / 2, top + (barY - Px(8) - top - size.Y) / 2);
+        _field.Position = new Vector2(SnapDown((screenSize.X - size.X) / 2), top + SnapDown((barY - Px(8) - top - size.Y) / 2));
         _field.Clicked += OnClicked;
         root.AddChild(_field);
 
@@ -161,8 +162,8 @@ public partial class BattleScreen : CanvasLayer
         // le journal du combat, au bout de la ligne
         // un bouton de taille fixe (un bouton ordinaire grandit à la hauteur de son texte et dépassait de la ligne),
         // à l'intérieur du biseau
-        var log = FixedButton(Texts.BattleLogButton, 13, new Vector2(Px(94), bandHeight - Px(10)));
-        log.Position = band.Position + new Vector2(band.Size.X - Px(100), Px(5));
+        var log = FixedButton(Texts.BattleLogButton, 13, new Vector2(Px(94), ButtonHeight));
+        log.Position = band.Position + new Vector2(band.Size.X - ArtPx(2) - log.Size.X, ArtPx(2));
         log.Pressed += ShowLog;
         root.AddChild(log);
 
@@ -300,7 +301,7 @@ public partial class BattleScreen : CanvasLayer
             button.ToggleMode = true;
             button.ButtonGroup = group;
             button.ButtonPressed = Math.Abs(Settings.ProjectileSpeed - speed) < 0.01;
-            button.CustomMinimumSize = V(120, 40);
+            Sized(button, ArtPx(56), ButtonHeight);
             button.Pressed += () => Settings.ProjectileSpeed = speed;
             row.AddChild(button);
         }
@@ -319,13 +320,17 @@ public partial class BattleScreen : CanvasLayer
     /// <summary>Largeur de « Round 2 », au début de la ligne du bas.</summary>
     private const float RoundWidth = 144; // en pixels
 
-    /// <summary>Le côté d'un bouton du bas (en unités) : l'icône (sa partie visible, ×2) y tient.</summary>
-    private const float ButtonSize = 58; // presque la hauteur de la barre (96 pixels) : l'icône ×2 y respire
+    /// <summary>La largeur d'un groupe de boutons à icône (tous, même ceux qui se cachent ensuite : « Commencer »).</summary>
+    private static float GroupWidth(Control group)
+    {
+        int count = group.GetChildCount();
+        return count * IconButtonSide + Math.Max(0, count - 1) * ButtonGap;
+    }
 
     /// <summary>Un bouton carré de pierre à icône (<see cref="IconButtons"/>) dans la barre du bas.</summary>
     private static Button AddButton(Control parent, string icon, string text, string key, Action pressed)
     {
-        var button = IconButtons.Make(icon, text, key, Px(ButtonSize), pressed);
+        var button = IconButtons.Make(icon, text, key, pressed);
         parent.AddChild(button);
         return button;
     }

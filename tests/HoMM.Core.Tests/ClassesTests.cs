@@ -26,7 +26,7 @@ public class ClassesTests
     [Fact]
     public void Le_joueur_choisit_son_heros_et_les_adversaires_prennent_le_dernier_de_leur_faction()
     {
-        var state = new GameState(5, TestData.Data, MapSize.Normal, opponents: 2, heroName: "Sire Yvain",
+        var state = new GameState(5, TestData.Data, 54, 40, opponents: 2, heroName: "Sire Yvain",
             opponentFactions: new[] { Chateau, Undead });
 
         Assert.Equal("Sire Yvain", state.Players[0].Heroes[0].Name);

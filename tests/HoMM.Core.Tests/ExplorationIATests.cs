@@ -28,8 +28,8 @@ public class ExplorationIATests
     public void L_adversaire_ramasse_un_tas_proche()
     {
         var (state, rival) = RivalTurn();
-        // seul ce tas l'intéresse (pas une ville, un monstre ou un autre objet de la carte)
-        foreach (var obj in state.Map.Objects.Where(o => o is ResourcePile or TreasureChest or Mine or Obelisk or MonsterGuard or Town).ToList())
+        // seul ce tas l'intéresse (pas une ville, un monstre, un lieu ni un autre objet de la carte)
+        foreach (var obj in state.Map.Objects.ToList())
             state.Map.RemoveObject(obj);
         var cell = FreeCellNear(state, rival);
         var pile = new ResourcePile(cell, ResourceType.Gold, 700);
@@ -83,7 +83,7 @@ public class ExplorationIATests
     [Fact]
     public void Trois_semaines_avec_deux_adversaires_sans_accroc()
     {
-        var state = new GameState(11, TestData.Data, MapSize.Normal, opponents: 2);
+        var state = new GameState(11, TestData.Data, 54, 40, opponents: 2);
         // en Facile, les adversaires laissent le joueur (qui ne bouge pas) tranquille les trois premières semaines
         state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents, Difficulty: Difficulty.Easy));
         var startGold = state.Opponents.Select(p => p.Resources[ResourceType.Gold]).ToList();

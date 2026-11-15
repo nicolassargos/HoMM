@@ -21,7 +21,7 @@ public sealed partial class GameState
     /// Version 2 : les routes sont une couche à part (<see cref="MapData.Roads"/>). Une sauvegarde de la version 1
     /// (où la route était un terrain, le numéro 1) est encore lue : ses routes deviennent de l'herbe avec une route.
     /// </summary>
-    public const int SaveVersion = 6; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts ; 6 : temples et cercles des fées
+    public const int SaveVersion = 7; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts ; 6 : temples et cercles des fées ; 7 : les lieux hauts sur 2 cases
 
     private static readonly JsonSerializerOptions SaveOptions = new()
     {
@@ -52,9 +52,11 @@ public sealed partial class GameState
         string? Creature = null, int? InitialCount = null,
         string? Name = null, string? Faction = null, List<string>? Buildings = null, bool BuiltToday = false,
         Dictionary<string, int>? Available = null, List<StackData>? Garrison = null, List<string>? GuildSpells = null,
-        bool? Small = null, // une mine sur une case, une ville sur 3 × 3 (venues d'une sauvegarde d'avant)
+        bool? Small = null, // une mine ou un lieu haut sur une case, une ville sur 3 × 3 (venus d'une sauvegarde d'avant)
         HeroStat? Stat = null, string? Spell = null, List<int>? Visitors = null, bool? Stocked = null, // les lieux (version 5)
-        Blessing? Blessing = null); // temple ou cercle des fées (version 6)
+        Blessing? Blessing = null, // temple ou cercle des fées (version 6)
+        Cell? Spot = null, // la case d'eau d'un chantier naval de la côte, la sortie d'un tourbillon
+        int? Wood = null, bool? Sea = null); // une épave flottante ; une bouée ou des sirènes
 
     private sealed record StackData(string Creature, int Count);
 
@@ -119,11 +121,18 @@ public sealed partial class GameState
         ResourcePile pile => new ObjectData("pile", obj.Id, obj.Position, Resource: pile.Resource, Amount: pile.Amount),
         TreasureChest chest => new ObjectData("chest", obj.Id, obj.Position, Amount: chest.Gold),
         Obelisk => new ObjectData("obelisk", obj.Id, obj.Position),
+        Boat => new ObjectData("boat", obj.Id, obj.Position),
+        Shipyard shipyard => new ObjectData("shipyard", obj.Id, obj.Position, Spot: shipyard.BoatSpot),
         Shrine shrine => new ObjectData("shrine", obj.Id, obj.Position, Stat: shrine.Stat, Visitors: shrine.Visitors.Order().ToList()),
-        SageHut hut => new ObjectData("sage", obj.Id, obj.Position, Spell: hut.Spell.Id),
-        WeeklyProducer producer => new ObjectData("producer", obj.Id, obj.Position, Resource: producer.Resource, Stocked: producer.Stocked),
-        ObservationTower tower => new ObjectData("tower", obj.Id, obj.Position, Visitors: tower.Visitors.Order().ToList()),
-        BlessingSite site => new ObjectData("blessing", obj.Id, obj.Position, Blessing: site.Blessing),
+        SageHut hut => new ObjectData("sage", obj.Id, obj.Position, Spell: hut.Spell.Id, Small: hut.Large ? null : true),
+        WeeklyProducer producer => new ObjectData("producer", obj.Id, obj.Position, Resource: producer.Resource, Stocked: producer.Stocked, Small: producer.Large ? null : true),
+        ObservationTower tower => new ObjectData("tower", obj.Id, obj.Position, Visitors: tower.Visitors.Order().ToList(), Small: tower.Large ? null : true),
+        BlessingSite site => new ObjectData("blessing", obj.Id, obj.Position, Blessing: site.Blessing, Small: site.Large ? null : true,
+            Sea: site.Sea ? true : null),
+        Flotsam flotsam => new ObjectData("flotsam", obj.Id, obj.Position, Amount: flotsam.Gold, Wood: flotsam.Wood),
+        SeaChest seaChest => new ObjectData("sea-chest", obj.Id, obj.Position, Amount: seaChest.Gold),
+        Whirlpool whirlpool => new ObjectData("whirlpool", obj.Id, obj.Position, Spot: whirlpool.Exit),
+        Lighthouse lighthouse => new ObjectData("lighthouse", obj.Id, obj.Position, Owner: lighthouse.Owner?.Id),
         Mine mine => new ObjectData("mine", obj.Id, obj.Position, Resource: mine.Resource, Owner: mine.Owner?.Id, Small: mine.Large ? null : true),
         MonsterGuard guard => new ObjectData("guard", obj.Id, obj.Position, Creature: guard.Type.Id,
             InitialCount: guard.InitialCount, Amount: guard.Count),
@@ -152,7 +161,7 @@ public sealed partial class GameState
         try
         {
             if (JsonSerializer.Deserialize<SaveFile>(json, SaveOptions) is not { Map: not null, Players.Count: > 0 } save
-                || save.Version is not (1 or 2 or 3 or 4 or 5 or SaveVersion))
+                || save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or SaveVersion))
                 return null;
             var hero = save.Heroes.Where(h => h.Owner == save.Players[0].Id)
                 .OrderByDescending(h => h.Id == save.CurrentHero).ThenByDescending(h => h.Level).FirstOrDefault();
@@ -178,7 +187,7 @@ public sealed partial class GameState
         }
         if (save == null)
             throw new FormatException("sauvegarde vide");
-        if (save.Version is not (1 or 2 or 3 or 4 or 5 or SaveVersion))
+        if (save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or SaveVersion))
             throw new FormatException($"version de sauvegarde inconnue : {save.Version} (attendue : {SaveVersion})");
         try
         {
@@ -197,7 +206,7 @@ public sealed partial class GameState
         {
             Day = save.Day,
             Outcome = save.Outcome,
-            Rules = save.Rules,
+            Rules = save.Rules.Updated(),
             _currentPlayer = save.CurrentPlayer,
             _nextPlayerId = save.NextPlayerId,
             _nextHeroId = save.NextHeroId,
@@ -219,6 +228,8 @@ public sealed partial class GameState
             state.Players.Add(player);
         }
         Player Owner(int id) => state.PlayerById(id) ?? throw new KeyNotFoundException($"joueur inconnu : {id}");
+        // un lieu haut d'une sauvegarde d'avant la version 7 garde une seule case
+        bool Tall(ObjectData o) => save.Version >= 7 && o.Small != true;
 
         foreach (var o in save.Map.Objects)
         {
@@ -227,11 +238,17 @@ public sealed partial class GameState
                 "pile" => new ResourcePile(o.Position, o.Resource!.Value, o.Amount!.Value),
                 "chest" => new TreasureChest(o.Position, o.Amount!.Value),
                 "obelisk" => new Obelisk(o.Position),
+                "boat" => new Boat(o.Position),
+                "shipyard" => new Shipyard(o.Position, o.Spot!.Value),
                 "shrine" => WithVisitors(new Shrine(o.Position, o.Stat!.Value), s => s.Visitors, o.Visitors),
-                "sage" => new SageHut(o.Position, data.Spells.Get(o.Spell!)),
-                "producer" => new WeeklyProducer(o.Position, o.Resource!.Value) { Stocked = o.Stocked != false },
-                "tower" => WithVisitors(new ObservationTower(o.Position), t => t.Visitors, o.Visitors),
-                "blessing" => new BlessingSite(o.Position, o.Blessing!.Value),
+                "sage" => new SageHut(o.Position, data.Spells.Get(o.Spell!)) { Large = Tall(o) },
+                "producer" => new WeeklyProducer(o.Position, o.Resource!.Value) { Stocked = o.Stocked != false, Large = Tall(o) },
+                "tower" => WithVisitors(new ObservationTower(o.Position) { Large = Tall(o) }, t => t.Visitors, o.Visitors),
+                "blessing" => new BlessingSite(o.Position, o.Blessing!.Value) { Large = Tall(o), Sea = o.Sea == true },
+                "flotsam" => new Flotsam(o.Position, o.Wood!.Value, o.Amount!.Value),
+                "sea-chest" => new SeaChest(o.Position, o.Amount!.Value),
+                "whirlpool" => new Whirlpool(o.Position, o.Spot!.Value),
+                "lighthouse" => new Lighthouse(o.Position) { Owner = o.Owner is { } id ? Owner(id) : null },
                 // avant la version 3, une mine n'occupait qu'une case : ses voisines peuvent être prises
                 "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null, Large = save.Version >= 3 && o.Small != true },
                 "guard" => new MonsterGuard(o.Position, data.Creatures.Get(o.Creature!), o.InitialCount!.Value, o.Amount!.Value),
@@ -279,6 +296,8 @@ public sealed partial class GameState
                 hero.Learn(data.Spells.Get(id));
             foreach (var (id, rank) in h.Skills ?? new Dictionary<string, int>())
                 hero.AddSkillRank(data.Skills.Get(id), rank);
+            // le mouvement du matin (plus grand en mer) n'est pas sauvegardé : au moins celui qui reste
+            hero.DayMovement = Math.Max(hero.MaxMovement, hero.Movement);
             foreach (var s in h.Army)
                 hero.Army.AddStack(data.Creatures.Get(s.Creature), s.Count);
             // ses caractéristiques comptent déjà leurs bonus
@@ -291,6 +310,7 @@ public sealed partial class GameState
         foreach (var p in save.Players)
             Owner(p.Id).Fog.Import(p.Fog);
 
+        state.UpdateBoatSpots();
         state.CurrentHero = save.CurrentHero is { } heroId ? state.HeroById(heroId) : null;
         foreach (var c in save.Choices)
         {

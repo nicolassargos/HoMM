@@ -44,6 +44,12 @@ public static class Art
     /// <summary>Donne un nom à une image faite par le jeu (le héros aux couleurs d'un joueur porte celui de son image).</summary>
     public static void Alias(Texture2D texture, string name) => Names[texture] = name;
 
+    /// <summary>
+    /// Ajouté au nom d'une image retournée de gauche à droite par le jeu (le héros qui va vers la gauche) : elle garde les
+    /// pieds de son image, retournés.
+    /// </summary>
+    public const string MirrorSuffix = "|miroir";
+
     private static Texture2D? Load(string path) => LoadImageFile(path) is { } image ? ImageTexture.CreateFromImage(image) : null;
 
     /// <summary>L'image <c>art/{name}.png</c> elle-même (pour la retoucher avant de l'afficher), ou null.</summary>
@@ -79,7 +85,8 @@ public static class Art
         {
             if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.NonSpacingMark)
                 continue;
-            plain.Append(char.IsLetterOrDigit(c) ? c : '-');
+            // les ligatures s'écrivent en deux lettres (« Œil » : oeil)
+            plain.Append(c switch { 'œ' => "oe", 'æ' => "ae", _ => char.IsLetterOrDigit(c) ? c.ToString() : "-" });
         }
         return string.Join('-', plain.ToString().Split('-', StringSplitOptions.RemoveEmptyEntries));
     }

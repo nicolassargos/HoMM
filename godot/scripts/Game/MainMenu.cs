@@ -40,7 +40,7 @@ public partial class MainMenu : CanvasLayer
         {
             var button = MakeButton(text, 18);
             button.Position = new Vector2((size.X - Px(320)) / 2, y);
-            button.Size = V(320, 50);
+            Sized(button, Px(320), LargeButtonHeight);
             button.TooltipText = tooltip;
             button.Disabled = disabled;
             button.Pressed += pressed;

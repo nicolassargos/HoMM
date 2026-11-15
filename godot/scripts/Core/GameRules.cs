@@ -4,12 +4,16 @@ namespace HoMM.Core;
 
 /// <summary>
 /// Ce qu'il faut accomplir pour gagner la partie. On peut en choisir plusieurs : le premier accompli donne la victoire.
-/// (Dans une sauvegarde : « ClearGuards, FindTreasure ».)
+/// (Dans une sauvegarde : « CaptureTowns, FindTreasure ».)
 /// </summary>
 [System.Flags]
 public enum VictoryCondition
 {
     None = 0,
+    /// <summary>
+    /// Vaincre tous les monstres : retiré (choix de l'utilisateur, 2026-11-14 : sur les grandes cartes de Heroes 3, il n'a
+    /// plus de sens). Gardé pour lire les anciennes sauvegardes, où il devient « prendre toutes les villes ».
+    /// </summary>
     ClearGuards = 1,
     CaptureTowns = 2,
     FindTreasure = 4,
@@ -20,7 +24,7 @@ public enum VictoryCondition
 
 /// <summary>Pourquoi la partie est finie (l'affichage choisit le texte).</summary>
 /// <summary>Pourquoi la partie s'arrête. <c>Eliminated</c> : la dernière ville du joueur est prise alors qu'il n'avait plus de héros.</summary>
-public enum GameEndReason { GuardsCleared, TownsCaptured, HeroesLost, TimeOut, TreasureFound, OpponentsDefeated, Eliminated }
+public enum GameEndReason { TownsCaptured, HeroesLost, TimeOut, TreasureFound, OpponentsDefeated, Eliminated }
 
 /// <summary>La force des adversaires joués par l'ordinateur (voir <see cref="ComputerProfile"/>).</summary>
 public enum Difficulty { Easy, Normal, Hard }
@@ -60,9 +64,15 @@ public sealed record GameRules(VictoryCondition Victory, int? DayLimit = null, D
 
     /// <summary>Les façons de gagner proposées au lancement, dans l'ordre de la fenêtre.</summary>
     public static readonly IReadOnlyList<VictoryCondition> Choices =
-        new[] { VictoryCondition.ClearGuards, VictoryCondition.CaptureTowns, VictoryCondition.FindTreasure, VictoryCondition.DefeatOpponents };
+        new[] { VictoryCondition.CaptureTowns, VictoryCondition.FindTreasure, VictoryCondition.DefeatOpponents };
 
-    public static GameRules Default => new(VictoryCondition.ClearGuards);
+    /// <summary>Prendre toutes les villes, comme Heroes 3 (« vaincre tous les monstres » avant le 2026-11-14).</summary>
+    public static GameRules Default => new(VictoryCondition.CaptureTowns);
+
+    /// <summary>Les règles d'une ancienne sauvegarde : « vaincre tous les monstres » devient « prendre toutes les villes ».</summary>
+    public GameRules Updated() => Has(VictoryCondition.ClearGuards)
+        ? this with { Victory = (Victory & ~VictoryCondition.ClearGuards) | VictoryCondition.CaptureTowns }
+        : this;
 
     /// <summary>Cette façon de gagner fait-elle partie des conditions ?</summary>
     public bool Has(VictoryCondition condition) => (Victory & condition) != 0;

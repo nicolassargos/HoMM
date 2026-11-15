@@ -200,6 +200,7 @@ public static class MapRenderer
         WeeklyProducer { IsWaterWheel: true } => Art.Get("objects/water-wheel"),
         WeeklyProducer => Art.Get("objects/windmill"),
         ObservationTower => Art.Get("objects/tower"),
+        BlessingSite { Sea: true } => null, // en attendant leurs images : dessinées plus bas
         BlessingSite { Blessing: Blessing.Morale } => Art.Get("objects/temple"),
         BlessingSite => Art.Get("objects/fairy-ring"),
         Mine mine => Art.Get($"objects/mine-{Art.Name(mine.Resource)}"),
@@ -242,8 +243,23 @@ public static class MapRenderer
                     ci.DrawCircle(c + V(10, -13), 2, Rgb(255, 255, 200));
                 break;
 
+            case BlessingSite { Sea: true } or Flotsam or SeaChest or Whirlpool or Lighthouse:
+                DrawSeaObject(ci, obj, c, time);
+                break;
+
             case Shrine or SageHut or WeeklyProducer or ObservationTower or BlessingSite:
                 DrawSite(ci, obj, c, time);
+                break;
+
+            case Boat:
+                DrawBoat(ci, c, time, null);
+                break;
+
+            case Shipyard:
+                // en attendant son image : une cabane de bois et un ponton vers l'eau
+                ci.DrawRect(new Rect2(c + V(-14, -10), 22, 18), Rgb(120, 80, 40));
+                Triangle(ci, c + V(-17, -10), c + V(-3, -22), c + V(11, -10), Rgb(150, 60, 40));
+                ci.DrawRect(new Rect2(c + V(8, 4), 18, 4), Rgb(150, 105, 55));
                 break;
 
             case Obelisk:
@@ -281,6 +297,70 @@ public static class MapRenderer
         }
     }
 
+    /// <summary>
+    /// Les objets de la mer, dessinés par le jeu en attendant leurs images (étape 4 de la mer) : une bouée rouge et blanche,
+    /// des sirènes sur un rocher, une épave de planches, un coffre qui flotte, un tourbillon qui tourne, un phare.
+    /// </summary>
+    private static void DrawSeaObject(CanvasItem ci, MapObject obj, Vector2 c, double time)
+    {
+        float bob = (float)Math.Sin(time * 2.5) * 1.5f; // ce qui flotte se balance
+        switch (obj)
+        {
+            case BlessingSite { Blessing: Blessing.Morale }:
+                Ellipse(ci, new Rect2(c + V(-10, 6 + bob), 20, 8), Rgb(200, 40, 40));
+                ci.DrawRect(new Rect2(c + V(-3, -14 + bob), 6, 22), Rgb(230, 230, 230));
+                ci.DrawRect(new Rect2(c + V(-3, -6 + bob), 6, 5), Rgb(200, 40, 40));
+                if ((int)(time * 2) % 2 == 0)
+                    ci.DrawCircle(c + V(0, -17 + bob), 3, Rgb(255, 230, 120));
+                break;
+            case BlessingSite:
+                Ellipse(ci, new Rect2(c + V(-16, 2), 32, 14), Rgb(110, 105, 100));
+                foreach (var (dx, tail) in new[] { (-7, Rgb(60, 160, 140)), (7, Rgb(90, 120, 190)) })
+                {
+                    Triangle(ci, c + V(dx - 4, 4), c + V(dx + 4, 4), c + V(dx + 6, 12), tail);
+                    ci.DrawRect(new Rect2(c + V(dx - 3, -8), 6, 12), Rgb(235, 195, 160));
+                    ci.DrawCircle(c + V(dx, -11), 4, Rgb(235, 195, 160));
+                    ci.DrawRect(new Rect2(c + V(dx - 4, -15), 8, 4), Rgb(230, 190, 70));
+                }
+                break;
+            case Flotsam:
+                ci.DrawRect(new Rect2(c + V(-14, -2 + bob), 22, 5), Rgb(130, 90, 50));
+                ci.DrawRect(new Rect2(c + V(-6, 4 + bob), 20, 5), Rgb(110, 75, 40));
+                ci.DrawRect(new Rect2(c + V(-10, -9 + bob), 5, 16), Rgb(150, 105, 60));
+                break;
+            case SeaChest:
+                ci.DrawRect(new Rect2(c + V(-11, -5 + bob), 22, 14), Rgb(100, 65, 30));
+                ci.DrawRect(new Rect2(c + V(-11, -10 + bob), 22, 6), Rgb(140, 95, 45));
+                ci.DrawRect(new Rect2(c + V(-2, -4 + bob), 4, 6), Rgb(230, 190, 60));
+                Ellipse(ci, new Rect2(c + V(-15, 8), 30, 5), Rgb(200, 230, 245));
+                break;
+            case Whirlpool:
+                for (int ring = 0; ring < 3; ring++)
+                {
+                    float radius = 6 + ring * 6;
+                    double turn = time * 3 + ring * 1.3;
+                    for (int i = 0; i < 10; i++)
+                    {
+                        double a = turn + i * Math.Tau / 10;
+                        ci.DrawCircle(c + V((float)(Math.Cos(a) * radius), (float)(Math.Sin(a) * radius * 0.6)), 2, Rgb(200 - ring * 30, 225 - ring * 20, 245));
+                    }
+                }
+                ci.DrawCircle(c, 4, Rgb(20, 50, 90));
+                break;
+            case Lighthouse lighthouse:
+                // la porte en bas, la tour monte sur la case du dessus
+                ci.DrawColoredPolygon(new[] { c + V(-9, 14), c + V(9, 14), c + V(5, -50), c + V(-5, -50) }, Rgb(235, 230, 220));
+                ci.DrawRect(new Rect2(c + V(-7, -12), 14, 6), Rgb(200, 50, 45));
+                ci.DrawRect(new Rect2(c + V(-6, -36), 12, 6), Rgb(200, 50, 45));
+                ci.DrawRect(new Rect2(c + V(-7, -60), 14, 10), Rgb(60, 60, 70));
+                if ((int)(time * 1.5) % 2 == 0)
+                    ci.DrawCircle(c + V(0, -55), 4, Rgb(255, 240, 150));
+                ci.DrawRect(new Rect2(c + V(-4, 4), 8, 10), Rgb(70, 50, 35));
+                DrawFlag(ci, c + V(10, -60), ColorOf(lighthouse.Owner), time);
+                break;
+        }
+    }
+
     /// <summary>La surface d'un objet dont l'image se pose en bas (voir <see cref="DrawArt"/>), l'entrée étant en <paramref name="o"/>.</summary>
     private static Rect2 ObjectArea(MapObject obj, Vector2 o)
     {
@@ -300,8 +380,8 @@ public static class MapRenderer
         ObjectImage(obj) is { } image ? (image, ArtRect(image, ObjectArea(obj, o))) : null;
 
     /// <summary>L'image du héros posé sur la case <paramref name="o"/> et l'endroit où elle est dessinée (pour son ombre).</summary>
-    public static (Texture2D Image, Rect2 Rect)? HeroArt(Player? owner, Vector2 o) =>
-        HeroImage(owner) is { } image ? (image, ArtRect(image, HeroArea(o + V(T / 2f, T / 2f + 4)))) : null;
+    public static (Texture2D Image, Rect2 Rect)? HeroArt(Hero hero, Vector2 o, bool left = false, int frame = -1) =>
+        HeroImage(hero, left, frame) is { } image ? (image, ArtRect(image, HeroArea(o + V(T / 2f, T / 2f + 4)))) : null;
 
     /// <summary>La case où se pose l'image du héros, <paramref name="c"/> étant le point où il est dessiné.</summary>
     private static Rect2 HeroArea(Vector2 c) => new(c - V(T / 2f, T / 2f + 4), T, T);
@@ -512,43 +592,108 @@ public static class MapRenderer
 
     // --------------------------------------------------------------------- héros
 
-    private static readonly Dictionary<int, Texture2D?> HeroImages = new();
+    private static readonly Dictionary<(string Name, int Owner, bool Left, int Frame), Texture2D?> HeroImages = new();
 
     /// <summary>
-    /// L'image du héros aux couleurs de son joueur : son étendard rouge (et les rouges de sa selle) prend la teinte du
-    /// joueur ; le joueur rouge garde l'image telle quelle.
+    /// Le temps d'un pas d'une case (3 cases par seconde, choix de l'utilisateur, 2026-11-14). Les images de marche
+    /// (heroes/hero-{faction}-move.png : une rangée d'images de sa taille, ou plusieurs) font un cycle en deux cases.
     /// </summary>
-    public static Texture2D? HeroImage(Player? owner)
+    public const double HeroStepTime = 1 / 3.0;
+
+    /// <summary>
+    /// L'élan du cheval : un appui par case, il repart vite et ralentit avant le suivant (0 : une vitesse égale). Sa
+    /// vitesse est 1 − élan × cos(2π (p + moment)), p l'avancée dans la case (réglé par l'utilisateur, 2026-11-14).
+    /// </summary>
+    private const double HeroPush = 0.1, HeroPushPhase = 0.8;
+
+    /// <summary>La part de la case parcourue quand le pas est avancé de <paramref name="p"/> (de 0 à 1), avec l'élan.</summary>
+    public static double HeroStepShare(double p) =>
+        p - HeroPush * (Math.Sin(2 * Math.PI * (p + HeroPushPhase)) - Math.Sin(2 * Math.PI * HeroPushPhase)) / (2 * Math.PI);
+
+    /// <summary>Le nom de l'image d'un héros sur la carte : celle de la faction de sa classe (heroes/hero-{faction}), sinon le cavalier commun.</summary>
+    private static string HeroArtName(Hero? hero) =>
+        hero?.Class?.Faction is { Length: > 0 } faction && Art.Get($"heroes/hero-{faction}") != null ? $"heroes/hero-{faction}" : "heroes/hero";
+
+    /// <summary>Le nombre d'images de marche d'un héros (0 : il n'en a pas, l'image fixe glisse de case en case).</summary>
+    public static int HeroWalkFrames(Hero? hero)
     {
-        int id = owner?.Id ?? 1;
-        if (HeroImages.TryGetValue(id, out var cached))
+        var name = HeroArtName(hero);
+        if (Art.Get(name) is not { } still || Art.Get(name + "-move") is not { } sheet)
+            return 0;
+        return (int)(sheet.GetWidth() / still.GetWidth()) * (int)(sheet.GetHeight() / still.GetHeight());
+    }
+
+    /// <summary>
+    /// L'image du héros sur la carte, aux couleurs de son joueur (son étendard rouge, et les rouges de sa selle, prennent
+    /// la teinte du joueur ; le joueur rouge garde l'image telle quelle), tournée vers la gauche si <paramref name="left"/>,
+    /// et l'image <paramref name="frame"/> de sa marche (-1 : l'image fixe). Une image tournée garde ses pieds (retournés)
+    /// pour l'ombre de contact.
+    /// </summary>
+    public static Texture2D? HeroImage(Hero? hero, bool left = false, int frame = -1)
+    {
+        var name = HeroArtName(hero);
+        int id = hero?.Owner.Id ?? 1;
+        if (frame >= HeroWalkFrames(hero))
+            frame = -1;
+        var key = (name, id, left, frame);
+        if (HeroImages.TryGetValue(key, out var cached))
             return cached;
         Texture2D? texture = null;
-        if (id == 1 || owner == null)
-            texture = Art.Get("heroes/hero");
-        else if (Art.GetImage("heroes/hero") is { } source)
+        if (Art.GetImage(name) is { } still)
         {
-            var image = (Image)source.Duplicate();
-            image.Convert(Image.Format.Rgba8);
-            float hue = ColorOf(owner).H;
-            for (int y = 0; y < image.GetHeight(); y++)
-            for (int x = 0; x < image.GetWidth(); x++)
+            var image = (Image)still.Duplicate();
+            if (frame >= 0 && Art.GetImage(name + "-move") is { } sheet)
             {
-                var p = image.GetPixel(x, y);
-                if (p.A > 0.5f && p.S > 0.45f && (p.H < 0.05f || p.H > 0.93f))
-                    image.SetPixel(x, y, Color.FromHsv(hue, p.S, p.V, p.A));
+                int w = still.GetWidth(), h = still.GetHeight(), columns = sheet.GetWidth() / w;
+                image = sheet.GetRegion(new Rect2I(frame % columns * w, frame / columns * h, w, h));
             }
+            image.Convert(Image.Format.Rgba8);
+            if (id != 1 && hero != null)
+            {
+                float hue = ColorOf(hero.Owner).H;
+                for (int y = 0; y < image.GetHeight(); y++)
+                for (int x = 0; x < image.GetWidth(); x++)
+                {
+                    var p = image.GetPixel(x, y);
+                    if (p.A > 0.5f && p.S > 0.45f && (p.H < 0.05f || p.H > 0.93f))
+                        image.SetPixel(x, y, Color.FromHsv(hue, p.S, p.V, p.A));
+                }
+            }
+            if (left)
+                image.FlipX();
             texture = ImageTexture.CreateFromImage(image);
-            Art.Alias(texture, "heroes/hero");
+            // les images de marche gardent les pieds de l'image fixe
+            Art.Alias(texture, left ? name + Art.MirrorSuffix : name);
         }
-        HeroImages[id] = texture;
+        HeroImages[key] = texture;
         return texture;
     }
 
-    /// <summary>Un cavalier très stylisé avec son étendard, aux couleurs de son joueur.</summary>
-    public static void DrawHero(CanvasItem ci, Vector2 c, double time, Player? owner = null)
+    /// <summary>
+    /// Le héros sur la carte (son image, tournée et à l'image <paramref name="frame"/> de sa marche ; sans image, un
+    /// cavalier très stylisé avec son étendard, aux couleurs de son joueur).
+    /// </summary>
+    /// <summary>
+    /// Un bateau dessiné (en attendant son image) : une coque de bois, un mât, une voile (aux couleurs de son héros quand
+    /// il en porte un, <paramref name="sail"/>), qui tangue un peu.
+    /// </summary>
+    public static void DrawBoat(CanvasItem ci, Vector2 c, double time, Color? sail)
     {
-        if (HeroImage(owner) is { } image)
+        float roll = (int)(time * 2) % 2 == 0 ? 0 : 1; // il tangue
+        var hull = c + V(0, 6 + roll);
+        ci.DrawColoredPolygon(new[] { hull + V(-26, -4), hull + V(26, -4), hull + V(18, 8), hull + V(-18, 8) }, Rgb(110, 70, 35));
+        ci.DrawRect(new Rect2(hull + V(-26, -6), 52, 3), Rgb(150, 100, 50));
+        ci.DrawLine(hull + V(-2, -6), hull + V(-2, -40), Rgb(80, 50, 20), 2);
+        ci.DrawColoredPolygon(new[] { hull + V(-1, -38), hull + V(16, -24), hull + V(-1, -10) }, sail ?? Rgb(235, 228, 205));
+    }
+
+    /// <summary>Le héros sur la carte ; en mer (<paramref name="atSea"/>), sur son bateau.</summary>
+    public static void DrawHero(CanvasItem ci, Vector2 c, double time, Hero hero, bool left = false, int frame = -1, bool atSea = false)
+    {
+        var owner = hero.Owner;
+        if (atSea)
+            DrawBoat(ci, c, time, ColorOf(owner));
+        if (HeroImage(hero, left, frame) is { } image)
         {
             DrawArt(ci, image, HeroArea(c));
             return;

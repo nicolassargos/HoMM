@@ -11,7 +11,7 @@ public class TownTests
     /// <summary>Une partie avec une ville de test juste à côté du héros (deux cases à droite).</summary>
     private static (GameState State, Town Town) GameWithTownNearby(int garrisonPaysans = 0, string garrisonId = "paysan")
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false);
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var cell = state.CurrentHero!.Position.Offset(2, 0);
         var town = new Town(cell, "Testville", "chateau", TestData.Data);
         town.AddBuilding(B("salle-village"));
@@ -192,7 +192,7 @@ public class TownTests
 
         state.EndTurn();
 
-        Assert.Equal(gold + 150, player.Resources[ResourceType.Gold]);
+        Assert.Equal(gold + 300, player.Resources[ResourceType.Gold]);
     }
 
     [Fact]
@@ -235,10 +235,10 @@ public class TownTests
     public void L_hotel_de_ville_remplace_la_salle_du_village()
     {
         var (_, town) = GameWithTownNearby();
-        Assert.Equal(150, town.DailyGold);
+        Assert.Equal(300, town.DailyGold);
         town.AddBuilding(B("taverne"));
         town.AddBuilding(B("hotel-ville"));
-        Assert.Equal(300, town.DailyGold);
+        Assert.Equal(600, town.DailyGold);
     }
 
     [Fact]

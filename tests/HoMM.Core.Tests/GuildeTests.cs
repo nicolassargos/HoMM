@@ -147,7 +147,7 @@ public class GuildeTests
         int withSpells = 0, withGuild = 0;
         foreach (int seed in new[] { 3, 7, 11 })
         {
-            var state = new GameState(seed, TestData.Data, MapSize.Normal, opponents: 1);
+            var state = new GameState(seed, TestData.Data, 54, 40, opponents: 1);
             state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
             state.Players[0].Heroes[0].Army.Add(TestData.Creatures.Get("ange"), 50); // le joueur ne se fait pas prendre
             for (int day = 0; day < 28 && state.Outcome == GameOutcome.Playing; day++)

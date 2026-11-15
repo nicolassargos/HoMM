@@ -20,6 +20,9 @@
       "army": [ { "creature": "homme-lezard", "count": 15 }, { "creature": "homme-grenouille", "count": 7 }, { "creature": "minotaure", "count": 2 } ] },
     { "id": "demoniste", "name": "Démoniste", "faction": "enfer",
       "attack": 1, "defense": 1, "power": 3, "knowledge": 2, "charisma": 9, "spells": ["soif-de-sang", "malediction"], "skill": "ecole-feu", "talent": "pact", "mainResource": "Mercury", "secondaryResource": "Sulfur",
-      "army": [ { "creature": "diablotin", "count": 15 }, { "creature": "cultiste", "count": 7 }, { "creature": "limon-magma", "count": 3 } ] }
+      "army": [ { "creature": "diablotin", "count": 15 }, { "creature": "cultiste", "count": 7 }, { "creature": "limon-magma", "count": 3 } ] },
+    { "id": "thane", "name": "Thane", "faction": "nains",
+      "attack": 1, "defense": 3, "power": 1, "knowledge": 2, "charisma": 11, "spells": ["peau-de-pierre"], "skill": "ecole-terre", "talent": "obstinacy", "mainResource": "Crystal", "secondaryResource": "Sulfur",
+      "army": [ { "creature": "porte-bouclier", "count": 14 }, { "creature": "arbaletrier", "count": 5 }, { "creature": "chevaucheur-chevre", "count": 2 } ] }
   ]
 }

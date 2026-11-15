@@ -101,11 +101,16 @@ public sealed class AdventureMap
     /// </summary>
     public IEnumerable<MonsterGuard> GuardsAround(Cell c)
     {
+        // un monstre de la terre ne s'en prend pas à un bateau (en mer, seuls ceux de l'eau comptent)
+        bool water = IsWater(c);
         for (int dy = -1; dy <= 1; dy++)
         for (int dx = -1; dx <= 1; dx++)
-            if ((dx != 0 || dy != 0) && ObjectAt(c.Offset(dx, dy)) is MonsterGuard guard)
+            if ((dx != 0 || dy != 0) && ObjectAt(c.Offset(dx, dy)) is MonsterGuard guard && (!water || IsWater(guard.Position)))
                 yield return guard;
     }
+
+    /// <summary>Une case d'eau : on n'y va qu'en bateau (un héros sur l'eau est dans son bateau).</summary>
+    public bool IsWater(Cell c) => InBounds(c) && GetTerrain(c) == TerrainType.Water;
 
     public bool IsGuarded(Cell c) => GuardsAround(c).Any();
 }

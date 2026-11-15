@@ -14,7 +14,7 @@ public sealed class Hero
         Name = name;
         Owner = owner;
         Position = position;
-        Movement = MaxMovement;
+        Movement = DayMovement = MaxMovement;
         owner.Heroes.Add(this);
         owner.Fog.Reveal(position, VisionRadius);
     }
@@ -32,6 +32,19 @@ public sealed class Hero
     public int MaxMovement => BaseMovement * (100 + SkillValue(HoMM.Core.Skills.Logistics)) / 100;
 
     public int Movement { get; internal set; }
+
+    /// <summary>
+    /// Le mouvement reçu au début de la journée (pour les barres de mouvement) : <see cref="MaxMovement"/> à terre, plus en
+    /// mer (<see cref="SeaMovement"/>).
+    /// </summary>
+    public int DayMovement { get; internal set; }
+
+    /// <summary>
+    /// Le mouvement d'une journée commencée en mer : la Navigation en ajoute (en pourcentage), et chaque phare de son joueur
+    /// <see cref="Lighthouse.SeaMovementBonus"/>.
+    /// </summary>
+    public int SeaMovement(int lighthouses) =>
+        MaxMovement * (100 + SkillValue(HoMM.Core.Skills.Navigation)) / 100 + lighthouses * Lighthouse.SeaMovementBonus;
 
     /// <summary>La vue, sans compétence (celle de la sauvegarde).</summary>
     public int BaseVisionRadius { get; set; } = 5;
@@ -53,6 +66,9 @@ public sealed class Hero
     public int SkillRank(string id) => _skills.FirstOrDefault(p => p.Key.Id == id).Value;
 
     /// <summary>L'effet de cette compétence à son rang (0 sans elle).</summary>
+    /// <summary>Le second chiffre d'une compétence à son rang (la Navigation : la baisse du prix des bateaux).</summary>
+    public int SkillValue2(string id) => _skills.FirstOrDefault(p => p.Key.Id == id) is { Key: { } skill, Value: var rank } ? skill.Value2At(rank) : 0;
+
     public int SkillValue(string id) => _skills.FirstOrDefault(p => p.Key.Id == id) is { Key: { } skill, Value: var rank } ? skill.ValueAt(rank) : 0;
 
     /// <summary>Les points dépensés dans un arbre (la somme des rangs) : ils ouvrent ses rangées.</summary>
@@ -211,15 +227,20 @@ public sealed class Hero
     public static int ExperienceForLevel(int level) => ExperienceStep * (level - 1) * level / 2;
 
     /// <summary>Un nouveau jour : tout le mouvement, et un point de sort de plus (plus avec le Mysticisme).</summary>
-    public void NewDay()
+    /// <param name="movement">Le mouvement de la journée (en mer, voir <see cref="SeaMovement"/>) ; sans : <see cref="MaxMovement"/>.</param>
+    public void NewDay(int? movement = null)
     {
-        Movement = MaxMovement;
+        Movement = DayMovement = movement ?? MaxMovement;
         if (SpellPoints < MaxSpellPoints)
             SpellPoints = System.Math.Min(MaxSpellPoints, SpellPoints + 1 + SkillValue(HoMM.Core.Skills.Mysticism));
     }
 
-    public bool CanStepTo(AdventureMap map, Cell next) =>
-        Pathfinder.StepCost(map, Position, next, RoughTerrainReduction) <= Movement;
+    public bool CanStepTo(AdventureMap map, Cell next) => Pathfinder.Boards(map, Position, next)
+        ? Movement > 0
+        : Pathfinder.StepCost(map, Position, next, RoughTerrainReduction) <= Movement;
+
+    /// <summary>Le héros est en mer (dans son bateau) : sur une case d'eau.</summary>
+    public bool AtSea(AdventureMap map) => map.IsWater(Position);
 
     /// <summary>L'Orientation : le surcoût des terrains difficiles baisse d'autant (en pourcentage).</summary>
     public int RoughTerrainReduction => SkillValue(HoMM.Core.Skills.Pathfinding);
@@ -228,7 +249,8 @@ public sealed class Hero
 
     public void StepTo(AdventureMap map, Cell next)
     {
-        SpendMovement(Pathfinder.StepCost(map, Position, next, RoughTerrainReduction));
+        // monter à bord ou débarquer : tout le mouvement qui reste
+        SpendMovement(Pathfinder.Boards(map, Position, next) ? Movement : Pathfinder.StepCost(map, Position, next, RoughTerrainReduction));
         Position = next;
         Owner.Fog.Reveal(Position, VisionRadius);
     }

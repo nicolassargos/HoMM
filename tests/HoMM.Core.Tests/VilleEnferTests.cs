@@ -70,7 +70,7 @@ public class VilleEnferTests
     [Fact]
     public void Un_adversaire_de_l_enfer_batit_ses_habitations()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, opponents: 1, opponentFactions: new[] { Inferno });
+        var state = new GameState(7, TestData.Data, 54, 40, opponents: 1, opponentFactions: new[] { Inferno });
         state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
         state.Players[0].Heroes[0].Army.Add(Creature("ange"), 50);
         for (int day = 0; day < 14; day++)

@@ -102,7 +102,8 @@ public sealed partial class TacticalBattle
     /// <summary>
     /// Les troupes que toucherait ce sort, chacune avec sa force : la même pour toutes, sauf la chaîne d'éclairs (la
     /// troupe visée, puis la plus proche de la précédente qui n'a pas encore été touchée, amie comprise, à force moitié
-    /// chaque fois, <see cref="SpellType.ChainTargets"/> au plus).
+    /// chaque fois, <see cref="SpellType.ChainTargets"/> au plus, à <see cref="SpellType.ChainReach"/> cases au plus de la
+    /// précédente).
     /// </summary>
     public IReadOnlyList<(BattleUnit Unit, int Strength)> SpellHits(SpellType spell, Hex target, BattleSide side)
     {
@@ -121,7 +122,7 @@ public sealed partial class TacticalBattle
         while (hits.Count < SpellType.ChainTargets && strength > 1)
         {
             strength /= 2;
-            var next = _units.Where(u => u.IsAlive && hits.All(h => h.Item1 != u))
+            var next = _units.Where(u => u.IsAlive && hits.All(h => h.Item1 != u) && Distance(current, u) <= SpellType.ChainReach)
                 .OrderBy(u => Distance(current, u)).ThenBy(u => u.Id).FirstOrDefault();
             if (next == null)
                 break;

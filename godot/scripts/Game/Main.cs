@@ -28,8 +28,6 @@ namespace HoMM.Game;
 /// </summary>
 public partial class Main : Node2D
 {
-    private const double StepDuration = 0.09; // secondes par case pendant la marche
-
     private GameState _state = null!;
     private ActorLayer _actors = null!;
     private MapCamera _camera = null!;
@@ -49,6 +47,9 @@ public partial class Main : Node2D
 
     private bool _walking;
     private double _stepTimer;
+
+    /// <summary>Un pas est montré (le héros glisse vers la case suivante) ; les règles l'y mettront à la fin.</summary>
+    private bool _stepping;
 
     /// <summary>Ville à ouvrir dès que les fenêtres (compte rendu de combat…) sont fermées.</summary>
     private Town? _townToOpen;
@@ -100,11 +101,26 @@ public partial class Main : Node2D
         var setup = _setup;
         _setup = null;
         _state = loaded ?? (setup != null
-            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents, heroName: setup.HeroName, faction: setup.Faction)
-            : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents(), faction: ReadFaction()));
+            ? new GameState(setup.Seed, data, setup.Size, setup.Opponents, heroName: setup.HeroName, faction: setup.Faction, access: setup.Access,
+                mapType: setup.MapType)
+            : new GameState(ReadSeed(), data, ReadSize(), ReadOpponents(), faction: ReadFaction(), access: ReadAccess(), mapType: ReadMapType()));
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
+        // Développement : « --rich » : le joueur a de quoi tout bâtir et tout recruter, remis au plein chaque jour (Enrich)
+        Enrich();
+        // Développement : « --boat » : un bateau amarré sur l'eau la plus proche du héros, au bord d'une rive
+        if (loaded == null && OS.GetCmdlineUserArgs().Contains("--boat") && _state.CurrentHero is { } sailor)
+        {
+            var map = _state.Map;
+            var shore = Enumerable.Range(0, map.Width).SelectMany(x => Enumerable.Range(0, map.Height).Select(y => new Cell(x, y)))
+                .Where(c => map.IsWater(c) && map.ObjectAt(c) == null
+                    && new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) }.Any(n => map.IsPassable(n) && map.ObjectAt(n) == null))
+                .OrderBy(c => Math.Abs(c.X - sailor.Position.X) + Math.Abs(c.Y - sailor.Position.Y))
+                .Cast<Cell?>().FirstOrDefault();
+            if (shore is { } boatCell)
+                map.AddObject(new Boat(boatCell));
+        }
         // Option de développement : « -- --reveal » retire le brouillard
         if (OS.GetCmdlineUserArgs().Contains("--reveal"))
             _state.CurrentPlayer.Fog.Reveal(new Cell(_state.Map.Width / 2, _state.Map.Height / 2), _state.Map.Width + _state.Map.Height);
@@ -199,10 +215,15 @@ public partial class Main : Node2D
         }
         else if (setup != null)
             _state.ChooseRules(setup.Rules);
-        else if (_capturePath == null || OS.GetCmdlineUserArgs().Contains("--rules")) // une capture montre la carte, sauf avec --rules
+        // une capture (ou un enregistrement) montre la carte, sauf avec --rules
+        else if ((_capturePath == null && !OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--record="))) || OS.GetCmdlineUserArgs().Contains("--rules"))
             _hud.ShowRulesChoice(rules => _state.ChooseRules(rules with { Difficulty = ReadDifficulty() }));
         if (OS.GetCmdlineUserArgs().Contains("--zoom")) // développement : partir zoomé
             _camera.ZoomBy(+1);
+        // développement : « --zoom=0.4 », un zoom libre (toute la carte d'un coup, pour une capture)
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--zoom=")) is { } devZoom
+            && float.TryParse(devZoom["--zoom=".Length..], System.Globalization.CultureInfo.InvariantCulture, out float zoom))
+            _camera.SetDevZoom(zoom);
         if (_capturePath != null && OS.GetCmdlineUserArgs().Contains("--town"))
             ShowTownForCapture();
         CenterOnHero();
@@ -228,7 +249,7 @@ public partial class Main : Node2D
             _hud.ShowOptions();
         // « --open=end » : la fenêtre de fin de partie (une victoire, sans rien changer)
         if (OS.GetCmdlineUserArgs().Contains("--open=end"))
-            _hud.ShowGameOver(new GameEnded(GameOutcome.Victory, GameEndReason.GuardsCleared), () => { });
+            _hud.ShowGameOver(new GameEnded(GameOutcome.Victory, GameEndReason.TownsCaptured), () => { });
         // « --open=level » : la fenêtre d'un choix de niveau (sans rien changer)
         if (OS.GetCmdlineUserArgs().Contains("--open=level") && _state.CurrentHero is { } leveling)
             _hud.ShowLevelChoice(new HeroLevelChoice(leveling, 2, new[] { HeroStat.Attack, HeroStat.Defense, HeroStat.Power }), _ => { });
@@ -242,9 +263,31 @@ public partial class Main : Node2D
         // Développement : « --center=treasure » centre la vue sur le trésor (pour une capture d'écran)
         if (OS.GetCmdlineUserArgs().Contains("--center=treasure") && _state.Map.Treasure is { } hidden)
             _camera.CenterOn(hidden);
-        // « --center=sites » : la vue sur la tour d'observation (les lieux de la carte, pour une capture)
-        if (OS.GetCmdlineUserArgs().Contains("--center=sites") && _state.Map.Objects.OfType<ObservationTower>().FirstOrDefault() is { } tower)
-            _camera.CenterOn(tower.Position);
+        // « --center=sites » : la vue sur la tour d'observation ; « --center=windmill » (ou shrine, sage, water-wheel, tower,
+        // temple, fairy-ring) : sur le premier lieu de ce genre (pour une capture)
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--center=")) is { } centerArg)
+        {
+            var kind = centerArg["--center=".Length..] is "sites" ? "tower" : centerArg["--center=".Length..];
+            if (_state.Map.Objects.FirstOrDefault(o => SiteKind(o) == kind) is { } site)
+                _camera.CenterOn(site.Position);
+        }
+        static string? SiteKind(MapObject o) => o switch
+        {
+            Shrine => "shrine",
+            SageHut => "sage",
+            WeeklyProducer { IsWaterWheel: true } => "water-wheel",
+            WeeklyProducer => "windmill",
+            ObservationTower => "tower",
+            BlessingSite { Sea: true, Blessing: Blessing.Morale } => "buoy",
+            BlessingSite { Sea: true } => "mermaids",
+            BlessingSite { Blessing: Blessing.Morale } => "temple",
+            BlessingSite => "fairy-ring",
+            Flotsam => "flotsam",
+            SeaChest => "sea-chest",
+            Whirlpool => "whirlpool",
+            Lighthouse => "lighthouse",
+            _ => null,
+        };
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
             _camera.CenterOn(firstObelisk.Position);
         // « --turns=5 » : joue 5 jours dès le lancement (adversaires compris), pour voir où ils en sont
@@ -372,7 +415,8 @@ public partial class Main : Node2D
         town.SetOwner(player);
         var data = _state.Data; // les créatures de la partie (une autre copie des données ne fusionnerait pas les troupes)
         // tous les bâtiments de sa faction sauf les trois derniers, pour voir aussi des cartes « à construire »
-        foreach (var building in town.Buildings.ToList().SkipLast(3))
+        // (pas le chantier naval d'une ville loin de l'eau)
+        foreach (var building in town.Buildings.ToList().SkipLast(3).Where(b => !b.Shipyard || town.BoatSpot != null))
             if (!town.Has(building.Id))
                 _state.AddFreeBuilding(town, building);
         foreach (var creature in data.Creatures.All.Where(c => c.Faction == town.Faction).OrderBy(c => c.Tier).Take(4))
@@ -451,6 +495,20 @@ public partial class Main : Node2D
     {
         var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--opponents="));
         return arg != null && int.TryParse(arg["--opponents=".Length..], out int count) ? count : 0;
+    }
+
+    /// <summary>Développement : « --map-type=continent|seas|islands|archipelago », le type de la carte (un continent sans l'option).</summary>
+    private static MapType ReadMapType()
+    {
+        var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--map-type="));
+        return arg != null && Enum.TryParse(arg["--map-type=".Length..], ignoreCase: true, out MapType type) ? type : MapType.Continent;
+    }
+
+    /// <summary>Développement : « --access=open|normal|closed », les passages entre les zones (normaux sans l'option).</summary>
+    private static ZoneAccess ReadAccess()
+    {
+        var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--access="));
+        return arg != null && Enum.TryParse(arg["--access=".Length..], ignoreCase: true, out ZoneAccess access) ? access : ZoneAccess.Normal;
     }
 
     private static MapSize ReadSize()
@@ -534,7 +592,7 @@ public partial class Main : Node2D
         _rivalTimer -= delta;
         if (_rivalTimer > 0)
             return;
-        _rivalTimer = StepDuration * 1.5;
+        _rivalTimer = MapRenderer.HeroStepTime;
         var move = _rivalMoves.Dequeue();
         _actors.ShownAt[move.Hero] = move.To;
         _camera.Follow(move.To);
@@ -579,9 +637,27 @@ public partial class Main : Node2D
         }
         if (_state.CurrentPlayer.IsComputer)
             return;
+        Enrich();
         // la sauvegarde automatique, au début de chaque tour (une seule, remplacée à chaque fois)
         if (_state.Outcome == GameOutcome.Playing && _state.CurrentBattle == null && _capturePath == null)
             SaveFiles.Write(SaveFiles.AutoName, _state);
+    }
+
+    /// <summary>Développement (« --rich ») : ce qu'a le joueur au début de chacun de ses tours, au moins.</summary>
+    private const int RichGold = 999_999, RichResource = 999;
+
+    /// <summary>
+    /// Développement : avec « --rich », le joueur humain retrouve au début de chacun de ses tours de l'or et des ressources
+    /// sans fin (pour essayer les bâtiments, les recrues, le marché…).
+    /// </summary>
+    private void Enrich()
+    {
+        if (!OS.GetCmdlineUserArgs().Contains("--rich"))
+            return;
+        foreach (var player in _state.Players.Where(p => !p.IsComputer))
+            foreach (var resource in Enum.GetValues<ResourceType>())
+                player.Resources[resource] = Math.Max(player.Resources.GetValueOrDefault(resource),
+                    resource == ResourceType.Gold ? RichGold : RichResource);
     }
 
     /// <summary>F5 : la sauvegarde rapide (sur la carte, hors marche).</summary>
@@ -727,6 +803,18 @@ public partial class Main : Node2D
         _townScreen.Open(town);
     }
 
+    /// <summary>La case où le héros va vraiment entrer au prochain pas (pas un monstre ni un héros à attaquer, ni un des siens qui barre le chemin), sinon null.</summary>
+    private Cell? NextStep()
+    {
+        if (!_state.CanStartWalking)
+            return null;
+        var hero = _state.CurrentHero!;
+        var next = _state.Path![0];
+        if (_state.Map.ObjectAt(next) is MonsterGuard || _state.AllHeroes.Any(h => h != hero && h.Position == next))
+            return null;
+        return next;
+    }
+
     private void StartWalking()
     {
         if (!CanAct)
@@ -840,9 +928,25 @@ public partial class Main : Node2D
             _stepTimer -= delta;
             if (_stepTimer <= 0)
             {
-                _stepTimer = StepDuration;
-                if (!_state.StepAlongPath() || _state.Path == null)
+                // le pas montré est fini : les règles y mettent le héros (une rencontre arrive quand il y est)
+                if (_stepping)
+                {
+                    _stepping = false;
+                    if (!_state.StepAlongPath() || _state.Path == null)
+                        _walking = false;
+                }
+                if (_walking && NextStep() is { } next)
+                {
+                    _actors.BeginStep(_state.CurrentHero!, next);
+                    _stepping = true;
+                    _stepTimer = MapRenderer.HeroStepTime;
+                }
+                else if (_walking)
+                {
+                    // rien à montrer (un monstre ou un héros sur la case suivante, plus de mouvement) : les règles décident
+                    _state.StepAlongPath();
                     _walking = false;
+                }
             }
         }
 
@@ -993,6 +1097,14 @@ public partial class Main : Node2D
                     break;
                 case ChestOpened chest when chest.Hero.Owner == viewer:
                     _hud.ShowChestChoice(chest, gold => _state.ChooseChest(chest, gold));
+                    break;
+                case ShipyardVisited yard when yard.Hero.Owner == viewer:
+                    _walking = false;
+                    _hud.ShowShipyard(_state.CanBuyBoat(yard.Shipyard), _state.BoatCost(yard.Hero.Owner), () =>
+                    {
+                        _state.BuyBoat(yard.Shipyard);
+                        HandleEvents();
+                    });
                     break;
                 case GuardEncounter encounter when encounter.Hero.Owner == viewer:
                     _walking = false;

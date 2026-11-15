@@ -102,7 +102,7 @@ public class VilleMortsVivantsTests
     {
         string Factions(int seed)
         {
-            var state = new GameState(seed, TestData.Data, MapSize.Large, opponents: 3);
+            var state = new GameState(seed, TestData.Data, 72, 53, opponents: 3);
             return string.Join(",", state.Map.Objects.OfType<Town>().OrderBy(t => t.Id).Select(t => t.Faction));
         }
         Assert.Equal(Factions(4), Factions(4));
@@ -118,7 +118,7 @@ public class VilleMortsVivantsTests
     [Fact]
     public void Un_adversaire_mort_vivant_batit_ses_habitations()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, opponents: 1, opponentFactions: new[] { Undead });
+        var state = new GameState(7, TestData.Data, 54, 40, opponents: 1, opponentFactions: new[] { Undead });
         state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
         state.Players[0].Heroes[0].Army.Add(TestData.Creatures.Get("ange"), 50);
         for (int day = 0; day < 14; day++)

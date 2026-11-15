@@ -27,10 +27,13 @@ public class AdversairesTests
             Assert.Equal(opponents + 1, map.Starts.Distinct().Count());
             for (int i = 0; i < state.Players.Count; i++)
                 Assert.Equal(map.Starts[i], Assert.Single(state.Players[i].Heroes).Position);
-            // tout reste atteignable depuis chaque départ
+            // tout reste atteignable depuis chaque départ (un seul parcours par départ, comme le Pathfinder)
             foreach (var start in map.Starts)
+            {
+                var reachable = TaillesCarteTests.Reachable(map, start);
                 foreach (var obj in map.Objects.Where(o => o.Position != start)) // sauf son château
-                    Assert.NotNull(Pathfinder.FindPath(map, start, obj.Position));
+                    Assert.True(reachable.Contains(obj.Position), $"{obj.GetType().Name} hors d'atteinte de {start} en {obj.Position}");
+            }
             // chaque départ a une ville plus proche de lui que de tout autre départ
             var towns = map.Objects.OfType<Town>().Where(t => !map.Starts.Contains(t.Position)).ToList(); // les villes neutres
             foreach (var start in map.Starts)
@@ -48,13 +51,13 @@ public class AdversairesTests
     public void Le_nombre_d_adversaires_depend_de_la_taille_de_la_carte()
     {
         Assert.Equal(2, new GameState(5, TestData.Data, MapSize.Tiny, opponents: 3).Players.Count);
-        Assert.Single(new GameState(5, TestData.Data, MapSize.Normal).Players);
+        Assert.Single(new GameState(5, TestData.Data, 54, 40).Players);
     }
 
     [Fact]
     public void Les_tours_passent_aux_adversaires_puis_un_nouveau_jour_commence()
     {
-        var state = new GameState(3, TestData.Data, MapSize.Normal, opponents: 2);
+        var state = new GameState(3, TestData.Data, 54, 40, opponents: 2);
         state.EndTurn();
         Assert.Equal(state.Players[1], state.CurrentPlayer);
         Assert.Equal(0, state.Day);
@@ -69,7 +72,7 @@ public class AdversairesTests
     [Fact]
     public void Vaincre_tous_les_adversaires_fait_gagner()
     {
-        var state = new GameState(3, TestData.Data, MapSize.Normal, opponents: 1, startingTowns: false);
+        var state = new GameState(3, TestData.Data, 54, 40, opponents: 1, startingTowns: false);
         Assert.True(state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents)));
         state.Players[1].Heroes.Clear(); // l'adversaire n'a ni héros ni ville
         state.EndTurn();
@@ -80,7 +83,7 @@ public class AdversairesTests
     [Fact]
     public void La_sauvegarde_garde_les_adversaires()
     {
-        var state = new GameState(3, TestData.Data, MapSize.Large, opponents: 3);
+        var state = new GameState(3, TestData.Data, 72, 53, opponents: 3);
         state.EndTurn();
         var loaded = GameState.Load(state.Save(), TestData.Data);
         Assert.Equal(state.Players.Select(p => (p.Name, p.IsComputer)), loaded.Players.Select(p => (p.Name, p.IsComputer)));

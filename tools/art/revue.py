@@ -7,7 +7,7 @@
 
 Un lot est une série de candidats (LOTS) : « 32px » (le premier passage, par défaut), « v2 » (les images refaites
 d'après la revue du 2026-11-08 ; candidats dans les dossiers <nom>@v2), « v3 » (la mine de soufre),
-« villes » (les villes de 5 × 4 cases, tools/art/villes.py), « pro » (squelette et colosse d'os, PixelLab).
+« villes » (les villes de 5 × 4 cases, tools/art/villes.py), « pro » (squelette et colosse d'os, PixelLab), « nains » (les portraits des héros nains).
 
 Sur la page : un clic sur un candidat le choisit, « Garder » ou « À refaire » donne l'avis, et chaque image a sa zone de
 commentaire. Les réponses restent dans le navigateur (on peut fermer la page et revenir) ; « Télécharger » les écrit dans
@@ -73,6 +73,28 @@ LOTS = {
                             ["objects/town", "objects/town-morts-vivants"])]},
     "v3": {"titre": "Mine de soufre (2026-11-08) : ton choix", "captures": [],
            "groupes": [("Mine de soufre (entrée plus grande, tas de soufre)", ["objects/mine-sulfur"])]},
+    "nains": {"titre": "Héros nains (2026-11-11) : ton choix", "captures": [],
+              "groupes": [("Portraits des héros nains (Retro Diffusion, 3 candidats chacun)",
+                           ["heroes/portraits/brokk-marteau-noir", "heroes/portraits/hulda-pierre-lune",
+                            "heroes/portraits/gunnar-fend-la-roche", "heroes/portraits/ingrid-vapeur-d-airain",
+                            "heroes/portraits/bardur-le-tetu", "heroes/portraits/kalla-oeil-de-braise"])]},
+    "nains-h2": {"titre": "Héros nains à la Heroes 2 (essai) : ton avis", "captures": [],
+                 "groupes": [("Style « retro » de Retro Diffusion", ["heroes/portraits/brokk-marteau-noir@h2", "heroes/portraits/hulda-pierre-lune@h2",
+                                                               "heroes/portraits/gunnar-fend-la-roche@h2", "heroes/portraits/ingrid-vapeur-d-airain@h2",
+                                                               "heroes/portraits/bardur-le-tetu@h2", "heroes/portraits/kalla-oeil-de-braise@h2"]),
+                             ("Style « classic » de Retro Diffusion", ["heroes/portraits/brokk-marteau-noir@h2c", "heroes/portraits/hulda-pierre-lune@h2c"])]},
+    "nains-h2d": {"titre": "Héros nains, plus proches de Heroes 2 : ton avis", "captures": [],
+                  "groupes": [("De face, fond de paysage, sans clichés", [
+                      "heroes/portraits/brokk-marteau-noir@h2d", "heroes/portraits/hulda-pierre-lune@h2d",
+                      "heroes/portraits/gunnar-fend-la-roche@h2d", "heroes/portraits/ingrid-vapeur-d-airain@h2d",
+                      "heroes/portraits/bardur-le-tetu@h2d", "heroes/portraits/kalla-oeil-de-braise@h2d"])]},
+    "nains-h2n": {"titre": "Héros nains, plus nains : ton avis", "captures": [],
+                  "groupes": [("Les hommes : visage large, gros nez, épaules massives, longue barbe", [
+                      "heroes/portraits/brokk-marteau-noir@h2n", "heroes/portraits/gunnar-fend-la-roche@h2n",
+                      "heroes/portraits/bardur-le-tetu@h2n"]),
+                              ("Les femmes : robustes et en armure, sans barbe", [
+                      "heroes/portraits/hulda-pierre-lune@h2f", "heroes/portraits/ingrid-vapeur-d-airain@h2f",
+                      "heroes/portraits/kalla-oeil-de-braise@h2f"])]},
 }
 LOT = "32px"
 
@@ -100,7 +122,9 @@ def dossier_candidats(nom):
         d = os.path.join(CANDIDATS, *essai.split("/")) + f"@{LOT}"
         if os.path.isdir(d):
             return d
-    return None
+    # une image nouvelle : ses candidats sont dans son propre dossier, sans lot
+    d = os.path.join(CANDIDATS, *nom.split("/"))
+    return d if os.path.isdir(d) else None
 
 
 def batiment_de(mine):
@@ -143,7 +167,8 @@ def options(nom):
             ecrire(sortie, assembler.assembler(mine_avec(mine, n, LOT)))
             res.append((f"mine:{LOT}:{n}", os.path.relpath(sortie, EN_COURS).replace("\\", "/"), f"{piece} {LOT} {n}", False))
         return res
-    res.append(("installee", rel_installee, "★ installée", True))
+    if octets:  # une image nouvelle n'a pas encore d'image installée
+        res.append(("installee", rel_installee, "★ installée", True))
     d = dossier_candidats(nom)
     if d:
         numeros = [f for f in glob.glob(os.path.join(d, "*.png")) if os.path.basename(f)[:-4].isdigit()]

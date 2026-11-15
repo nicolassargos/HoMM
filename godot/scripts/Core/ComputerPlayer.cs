@@ -325,7 +325,7 @@ public static class ComputerPlayer
     {
         Skills.Logistics, Skills.Estates, Skills.Leadership, Skills.Morale, Skills.Discipline, Skills.Recruiter, Skills.Inspiration, Skills.Luck,
         Skills.Diplomacy, Skills.Tactics,
-        Skills.Mysticism, "ecole-terre", "ecole-feu", "ecole-eau", "ecole-air", Skills.Scouting, Skills.Pathfinding,
+        Skills.Mysticism, "ecole-terre", "ecole-feu", "ecole-eau", "ecole-air", Skills.Scouting, Skills.Pathfinding, Skills.Navigation,
     };
 
     /// <summary>L'IA dépense les points de compétence du héros, dans l'ordre de <see cref="SkillOrder"/>.</summary>
@@ -343,7 +343,12 @@ public static class ComputerPlayer
         for (int attempt = 0; attempt < MaxMovesPerHero && hero.Movement > 0; attempt++)
         {
             if (ChooseTarget(state, hero) is not { } target)
+            {
+                // plus rien à faire là où il marche : un bateau, pour aller plus loin
+                if (GetBoat(state, hero) && state.CurrentBattle == null && hero.Owner.Heroes.Contains(hero))
+                    continue;
                 return;
+            }
             state.SetDestination(target);
             // le chemin de la partie doit rester sûr, pour ce que le joueur sait : seule la dernière case peut être dans la
             // zone d'un monstre connu, et d'un seul (celui que le héros va attaquer)
@@ -405,7 +410,8 @@ public static class ComputerPlayer
         {
             double weight = obj switch
             {
-                ResourcePile or TreasureChest => 1,
+                ResourcePile or TreasureChest or Flotsam or SeaChest => 1,
+                Lighthouse lighthouse when lighthouse.Owner != player => 0.8,
                 Mine mine when mine.Owner != player => 0.5,
                 Obelisk obelisk when !player.Obelisks.Contains(obelisk.Id) => 1.5,
                 // les lieux : seulement ce qu'ils donnent encore à ce héros ou à son joueur
@@ -480,8 +486,47 @@ public static class ComputerPlayer
     }
 
     /// <summary>
+    /// Plus rien à faire là où il marche (sur une carte d'îles) : un bateau pour aller plus loin, s'il n'en a pas déjà un
+    /// à portée et qu'il lui reste de quoi recruter. D'abord une de ses villes qui a un chantier naval (le bateau apparaît
+    /// sur l'eau à côté) ; sinon le chantier naval de la côte le plus proche, où il va, puis l'achète. Vrai s'il a un
+    /// bateau à prendre.
+    /// </summary>
+    private static bool GetBoat(GameState state, Hero hero)
+    {
+        var map = state.Map;
+        var player = hero.Owner;
+        var cost = state.BoatCost(player);
+        if (hero.AtSea(map) || player.Resources[ResourceType.Gold] < cost[ResourceType.Gold] + RecruitReserve
+            || !player.CanAfford(cost))
+            return false;
+        var costs = SafeCosts(state, hero);
+        bool AtHand(Cell water) => Neighbours(water).Any(c => costs.ContainsKey(c) && !map.IsWater(c));
+        if (map.Objects.OfType<Boat>().Any(b => AtHand(b.Position)))
+            return false; // il en a déjà un : la mer ne lui offre rien non plus
+        foreach (var town in player.Towns.OrderBy(t => t.Id))
+            if (town.BoatSpot is { } spot && state.CanBuildBoat(town) == BoatResult.Ok && AtHand(spot))
+                return state.BuildBoat(town);
+        var yard = map.Objects.OfType<Shipyard>()
+            .Where(y => player.Fog.IsExplored(y.Position) && costs.ContainsKey(y.Position) && state.CanBuyBoat(y) == BoatResult.Ok)
+            .OrderBy(y => costs[y.Position]).ThenBy(y => y.Id).FirstOrDefault();
+        if (yard == null)
+            return false;
+        if (hero.Position != yard.Position)
+        {
+            state.SetDestination(yard.Position);
+            while (state.Path is { Count: > 0 } && state.StepAlongPath())
+            {
+            }
+            if (hero.Position != yard.Position)
+                return false; // il y arrivera un autre jour
+        }
+        return state.BuyBoat(yard);
+    }
+
+    /// <summary>
     /// Le coût du chemin le plus court jusqu'à chaque case qu'on peut atteindre sans combat, par les cases que le joueur
-    /// connaît : ni zone de monstre, ni objet à traverser (on peut seulement s'y arrêter), ni autre héros.
+    /// connaît : ni zone de monstre, ni objet à traverser (on peut seulement s'y arrêter ; un bateau : on y monte, et l'on
+    /// continue en mer), ni autre héros. Les règles des pas sont celles du <see cref="Pathfinder"/>.
     /// </summary>
     private static Dictionary<Cell, int> SafeCosts(GameState state, Hero hero)
     {
@@ -496,18 +541,20 @@ public static class ComputerPlayer
         {
             if (cost > costs[cell])
                 continue;
-            if (cell != hero.Position && (map.ObjectAt(cell) != null || enemies.Contains(cell)))
+            if (cell != hero.Position && (map.ObjectAt(cell) is not (null or Boat) || enemies.Contains(cell)))
                 continue; // on visite un objet (on attaque un héros ennemi), on ne le traverse pas
             foreach (var next in Neighbours(cell))
             {
-                if (!map.IsPassable(next) || !fog.IsExplored(next) || heroes.Contains(next) || KnownGuards(state, hero, next).Any())
+                if (!map.InBounds(next) || !Pathfinder.CanEnter(map, cell, next) || !fog.IsExplored(next) || heroes.Contains(next)
+                    || KnownGuards(state, hero, next).Any())
                     continue;
                 if (map.ObjectAt(next) is MonsterGuard)
                     continue;
                 int dx = next.X - cell.X, dy = next.Y - cell.Y;
-                if (dx != 0 && dy != 0 && !(map.IsPassable(cell.Offset(dx, 0)) && map.IsPassable(cell.Offset(0, dy))))
+                if (dx != 0 && dy != 0 && !Pathfinder.CornersOpen(map, cell, next))
                     continue;
-                int nextCost = cost + Pathfinder.StepCost(map, cell, next, hero.RoughTerrainReduction);
+                int nextCost = cost + Pathfinder.StepCost(map, cell, next, hero.RoughTerrainReduction)
+                    + (Pathfinder.Boards(map, cell, next) ? Pathfinder.BoardingPenalty : 0);
                 if (nextCost < costs.GetValueOrDefault(next, int.MaxValue))
                 {
                     costs[next] = nextCost;

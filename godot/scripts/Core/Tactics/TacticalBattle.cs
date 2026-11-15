@@ -156,6 +156,15 @@ public sealed partial class TacticalBattle
     /// <summary>Le Démon : créatures invoquées par Démon.</summary>
     public const int SummonPerCreature = 10;
 
+    /// <summary>L'obstination des Nains : la part des dégâts évitée par une troupe qui ne s'est pas déplacée dans le round.</summary>
+    public const double StubbornShare = 0.2;
+
+    /// <summary>L'Arbalétrier : la part de la défense que ses carreaux ignorent.</summary>
+    public const double PiercingShare = 0.3;
+
+    /// <summary>Le Porte-étendard : la défense en plus des troupes amies voisines.</summary>
+    public const int BannerDefense = 2;
+
     /// <summary>La régénération de la nature : la part des points de vie de la créature de tête retrouvée à chaque tour.</summary>
     public const double NatureRegenerationShare = 0.25;
 
@@ -447,6 +456,7 @@ public sealed partial class TacticalBattle
             unit.HasWaited = false;
             unit.HasCheered = false;
             unit.HasSplit = false;
+            unit.HasMoved = false;
         }
         _queue.Clear();
         _waiting.Clear();
@@ -761,9 +771,19 @@ public sealed partial class TacticalBattle
             BloodPrice(unit, sacrificed);
             _sacrificing = unit;
         }
-        Melee(unit, target, moved);
+        bool Retaliates() => target.IsAlive && unit.IsAlive && !blinded && !target.IsSeduced && target.RetaliationsLeft > 0
+                             && !unit.Has(Ability.NoRetaliation);
+        // le pied sûr : le Chevaucheur de chèvre riposte avant le coup
+        bool first = target.Has(Ability.SureFooted) && Retaliates();
+        if (first)
+        {
+            target.RetaliationsLeft--;
+            Strike(target, unit, ranged: false, retaliation: true);
+        }
+        if (unit.IsAlive)
+            Melee(unit, target, moved);
         _sacrificing = null;
-        if (target.IsAlive && unit.IsAlive && !blinded && !target.IsSeduced && target.RetaliationsLeft > 0 && !unit.Has(Ability.NoRetaliation))
+        if (!first && Retaliates())
         {
             target.RetaliationsLeft--;
             Strike(target, unit, ranged: false, retaliation: true);
@@ -781,6 +801,7 @@ public sealed partial class TacticalBattle
         Strike(unit, target, ranged: false, retaliation: false, moved);
         if (unit.Has(Ability.Breath) && behind is { } hex && UnitAt(hex) is { } second && second != unit && second != target)
             Strike(unit, second, ranged: false, retaliation: false, moved, splash: true);
+        Blast(unit, target, ranged: false, moved);
         // le balayage : tous les autres ennemis voisins (seule la cible riposte)
         if (unit.Has(Ability.Sweep))
             foreach (var other in Neighbours(unit).Where(o => o != target && AreEnemies(unit, o)).ToList())
@@ -823,8 +844,22 @@ public sealed partial class TacticalBattle
         // le nuage de mort : les troupes autour de la cible (amies comprises), sauf les morts-vivants
         foreach (var other in around.Where(o => o.IsAlive))
             Strike(unit, other, ranged: true, retaliation: false, splash: true);
+        Blast(unit, target, ranged: true);
         EndTurn(acted: true);
         return true;
+    }
+
+    /// <summary>
+    /// L'explosion (la bombe du Gyrocoptère, l'obus de la Machine de guerre) : les ennemis autour de la cible sont touchés
+    /// aussi (sans riposte).
+    /// </summary>
+    private void Blast(BattleUnit unit, BattleUnit target, bool ranged, int moved = 0)
+    {
+        if (!unit.Has(Ability.Blast) || !unit.IsAlive)
+            return;
+        foreach (var other in target.Hexes.SelectMany(h => h.Neighbours()).Select(UnitAt).OfType<BattleUnit>()
+                     .Where(o => o != target && AreEnemies(unit, o)).Distinct().ToList())
+            Strike(unit, other, ranged, retaliation: false, moved, splash: true);
     }
 
     /// <summary>La troupe active peut-elle attendre (une fois par round, pas pendant le tour que donne le moral) ?</summary>
@@ -889,6 +924,7 @@ public sealed partial class TacticalBattle
         if (path.Count == 0)
             return;
         unit.Position = path[^1];
+        unit.HasMoved = true;
         _log.Add(new UnitMoved(unit, path));
     }
 
@@ -1041,13 +1077,20 @@ public sealed partial class TacticalBattle
             sum += from.Type.MinDamage + Next(from.Type.MaxDamage - from.Type.MinDamage + 1);
         double damage = from.Count <= 10 ? sum : sum * (double)from.Count / 10;
         // un coup écrasant ignore une partie de la défense
-        double ignored = ranged ? 0 : from.Has(Ability.Rending) ? RendingShare : from.Has(Ability.Crushing) ? CrushingShare : 0;
-        int defense = (int)Math.Round(to.Defense * (1 - ignored));
+        double ignored = ranged ? from.Has(Ability.Piercing) ? PiercingShare : 0
+            : from.Has(Ability.Rending) ? RendingShare : from.Has(Ability.Crushing) ? CrushingShare : 0;
+        int defense = (int)Math.Round((to.Defense + BannerBonus(to)) * (1 - ignored));
         damage *= Battle.DamageModifier(from.Attack, defense);
         if (ranged && IsLongShot(from, to))
             damage *= 0.5;
         if (ranged && to.Has(Ability.RangedResistance))
             damage *= 0.5;
+        // le mur de boucliers : un tireur à côté d'un Porte-bouclier ami
+        if (ranged && to.CanShoot && Neighbours(to).Any(u => u.Side == to.Side && u.Has(Ability.ShieldWall)))
+            damage *= 0.5;
+        // l'obstination des Nains : la troupe n'a pas bougé depuis le début du round (plus, avec le talent de son héros)
+        if (to.Has(Ability.Stubborn) && !to.HasMoved)
+            damage *= 1 - Talents.StubbornShare(to.IsRebel ? null : HeroOf(to.Side), StubbornShare);
         // les sorts : bénédiction et malédiction (en pourcentage), bouclier contre les tirs
         damage *= 1 + (from.SpellAmount(SpellEffect.Bless) - from.SpellAmount(SpellEffect.Curse)) / 100.0;
         // les talents de la classe du héros : le Croisé contre les morts-vivants, le Chasseur pour ses tirs
@@ -1062,6 +1105,10 @@ public sealed partial class TacticalBattle
             damage *= 1 + SacrificeBonus;
         return Math.Max(1, (int)Math.Round(damage));
     }
+
+    /// <summary>La défense que donne un Porte-étendard ami voisin (<see cref="Ability.Banner"/>), une seule fois.</summary>
+    public int BannerBonus(BattleUnit unit) =>
+        Neighbours(unit).Any(u => u.Side == unit.Side && u.Has(Ability.Banner)) ? BannerDefense : 0;
 
     // ------------------------------------------------------------------ l'Enfer
 
@@ -1134,7 +1181,7 @@ public sealed partial class TacticalBattle
     /// </summary>
     public bool CanHook(BattleUnit unit, BattleUnit target) =>
         unit == Active && unit.Has(Ability.Hook) && !IsRetreating && AreEnemies(unit, target) && !target.IsLarge
-        && target.Type.Tier < 7 && Distance(unit, target) is > 1 and <= HookRange && FreeHexNextTo(unit, target.Position) != null;
+        && target.Type.Tier < 7 && !target.Has(Ability.SureFooted) && Distance(unit, target) is > 1 and <= HookRange && FreeHexNextTo(unit, target.Position) != null;
 
     /// <summary>
     /// La troupe active (le Tourmenteur) tire la cible contre elle avec son crochet, puis la frappe (la cible riposte

@@ -16,14 +16,16 @@ public class BalanceTests
 {
     private static readonly int[] Seeds = { 1, 7, 42, 99, 2026 };
 
+    // sur la petite carte (36 × 36, rapide à simuler) : la victoire est de prendre toutes les villes depuis le 2026-11-14 ;
+    // elle n'en a que deux (la sienne et une neutre), prises vers le jour 15 (la normale, 72 × 72 : vers le jour 210)
     [Fact]
-    public void La_victoire_est_possible_en_un_a_cinq_mois()
+    public void La_victoire_est_possible_sur_la_petite_carte()
     {
         foreach (int seed in Seeds)
         {
-            var result = BalanceSimulation.Play(seed);
+            var result = BalanceSimulation.Play(seed, MapSize.Small);
             Assert.True(result.TownTaken, $"graine {seed} : aucune ville prise");
-            Assert.True(result.VictoryDay is >= 20 and <= 150, $"graine {seed} : victoire au jour {result.VictoryDay}");
+            Assert.True(result.VictoryDay is >= 5 and <= 60, $"graine {seed} : victoire au jour {result.VictoryDay}");
         }
     }
 
@@ -81,7 +83,7 @@ internal static class BalanceSimulation
 
     private const int FightEveryDays = 2;      // un combat tous les deux jours (le temps d'y aller)
     private const double MaxLossRatio = 0.3;    // on n'attaque pas si on perd plus de 30 % de son armée
-    private const int MaxDays = 200;
+    private const int MaxDays = 400;
 
     public static Army StartingArmy()
     {
@@ -144,7 +146,8 @@ internal static class BalanceSimulation
 
             if (day % FightEveryDays != 0)
                 continue;
-            if (!map.Objects.OfType<MonsterGuard>().Any())
+            // la victoire : toutes les villes (« vaincre tous les monstres » jusqu'au 2026-11-14)
+            if (map.Objects.OfType<Town>().All(t => t.Owner == player))
                 return new Result(player.Towns.Count > 0, day, goldByWeek, hero.Level, spellsCast);
             spellsCast += FightSafest(map, hero, style);
         }

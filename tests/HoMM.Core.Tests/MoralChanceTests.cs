@@ -222,7 +222,7 @@ public class MoralChanceTests
     [Fact]
     public void Apres_un_combat_les_bonus_des_lieux_sont_epuises()
     {
-        var state = new GameState(7, TestData.Data, MapSize.Normal, startingTowns: false) { QuickBattles = false };
+        var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false) { QuickBattles = false };
         var hero = state.CurrentHero!;
         state.Map.AddObject(new MonsterGuard(hero.Position.Offset(2, 0), Creature("gobelin"), 10)); // assez pour ne pas s'enfuir
         hero.SiteMorale = hero.SiteLuck = 1;
@@ -257,7 +257,7 @@ public class MoralChanceTests
     [Fact]
     public void La_carte_a_des_temples_et_des_cercles_des_fees()
     {
-        var state = new GameState(42, TestData.Data, MapSize.Normal);
+        var state = new GameState(42, TestData.Data, 54, 40);
         Assert.Contains(state.Map.Objects, o => o is BlessingSite { Blessing: Blessing.Morale });
         Assert.Contains(state.Map.Objects, o => o is BlessingSite { Blessing: Blessing.Luck });
     }

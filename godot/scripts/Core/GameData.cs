@@ -108,6 +108,9 @@ public sealed record BuildingType
     /// <summary>Le marché : on y échange des ressources (<see cref="Core.Market"/>) ; chaque marché améliore les taux.</summary>
     public bool Market { get; init; }
 
+    /// <summary>Le chantier naval : il construit des bateaux (seulement dans une ville au bord de l'eau, <see cref="Town.BoatSpot"/>).</summary>
+    public bool Shipyard { get; init; }
+
     /// <summary>
     /// Le bâtiment que celui-ci remplace (l'hôtel de ville remplace la salle du village) : à l'écran, seul le plus récent
     /// est dessiné, à la même place.

@@ -24,7 +24,7 @@ public class ConditionsTests
     public void Une_limite_de_jours_fait_perdre_la_partie()
     {
         var state = new GameState(42, TestData.Data);
-        state.ChooseRules(new GameRules(VictoryCondition.ClearGuards, DayLimit: 2));
+        state.ChooseRules(new GameRules(VictoryCondition.CaptureTowns, DayLimit: 2));
 
         state.EndTurn(); // jour 1
         state.EndTurn(); // jour 2 : encore possible

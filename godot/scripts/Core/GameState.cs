@@ -21,7 +21,13 @@ public sealed partial class GameState
     private int _nextPlayerId = 1;
     private int _nextHeroId = 1;
 
-    public GameState(int seed, GameData data) : this(seed, data, MapSize.Normal) { }
+    /// <summary>
+    /// Une partie seule sur une carte de la taille par défaut du générateur (54 × 40 : la carte « normale » d'avant les
+    /// tailles de Heroes 3, sur laquelle les tests ont été écrits).
+    /// </summary>
+    public GameState(int seed, GameData data)
+        : this(seed, data, new MapGenerator(seed, data) { PlayerFactions = Factions(seed, data, 1, null, null) }.Generate())
+        => AddPlayers(Map.Starts.Count, null, Factions(seed, data, Map.Starts.Count, null, null));
 
     /// <summary>
     /// Une nouvelle partie sur une carte générée de cette taille, avec <paramref name="opponents"/> adversaires joués par
@@ -31,18 +37,34 @@ public sealed partial class GameState
     /// <param name="heroName">Le héros choisi par le joueur (data/heroes.json) ; sans choix, le premier de la liste.</param>
     /// <param name="faction">La faction du joueur (sans choix : le Château).</param>
     /// <param name="opponentFactions">Celles des adversaires (sans choix : au hasard, d'après la graine).</param>
+    /// <param name="access">La force des gardiens des passages entre les zones (sans choix : ouverts, comme avant l'option).</param>
+    /// <param name="mapType">Le type de la carte : la part de la mer (sans choix : un continent, comme avant l'option).</param>
     public GameState(int seed, GameData data, MapSize size, int opponents = 0, bool startingTowns = true, string? heroName = null,
-        string? faction = null, IReadOnlyList<string>? opponentFactions = null)
-        : this(seed, data, Generate(seed, data, size, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns,
-            Factions(seed, data, Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)) + 1, faction, opponentFactions)))
+        string? faction = null, IReadOnlyList<string>? opponentFactions = null, ZoneAccess access = ZoneAccess.Open,
+        MapType mapType = MapType.Continent)
+        : this(seed, data, MapSizes.Dimensions(size).Width, MapSizes.Dimensions(size).Height,
+            Math.Clamp(opponents, 0, MapSizes.MaxOpponents(size)), startingTowns, heroName, faction, opponentFactions, access, mapType)
+    {
+    }
+
+    /// <summary>
+    /// Une nouvelle partie sur une carte générée de ces dimensions (au plus 3 adversaires) : pour les tests, qui gardent
+    /// les cartes sur lesquelles ils ont été écrits (54 × 40, 72 × 53 : les tailles d'avant celles de Heroes 3).
+    /// </summary>
+    public GameState(int seed, GameData data, int width, int height, int opponents = 0, bool startingTowns = true, string? heroName = null,
+        string? faction = null, IReadOnlyList<string>? opponentFactions = null, ZoneAccess access = ZoneAccess.Open,
+        MapType mapType = MapType.Continent)
+        : this(seed, data, Generate(seed, data, width, height, Math.Clamp(opponents, 0, 3), startingTowns,
+            Factions(seed, data, Math.Clamp(opponents, 0, 3) + 1, faction, opponentFactions), access, mapType))
         => AddPlayers(Map.Starts.Count, heroName, Factions(seed, data, Map.Starts.Count, faction, opponentFactions));
 
-    private static AdventureMap Generate(int seed, GameData data, MapSize size, int opponents, bool startingTowns, IReadOnlyList<string> factions)
-    {
-        var (width, height) = MapSizes.Dimensions(size);
-        return new MapGenerator(seed, data) { Players = opponents + 1, StartingTowns = startingTowns, PlayerFactions = factions }
+    private static AdventureMap Generate(int seed, GameData data, int width, int height, int opponents, bool startingTowns,
+        IReadOnlyList<string> factions, ZoneAccess access, MapType mapType) =>
+        new MapGenerator(seed, data)
+            {
+                Players = opponents + 1, StartingTowns = startingTowns, PlayerFactions = factions, Access = access, Type = mapType,
+            }
             .Generate(width, height);
-    }
 
     /// <summary>
     /// La faction de chaque joueur : celle choisie par le joueur (sinon le Château), puis celles des adversaires, choisies
@@ -133,6 +155,75 @@ public sealed partial class GameState
         Data = data;
         _rng = new GameRandom(seed);
         Map = map;
+        UpdateBoatSpots();
+    }
+
+    /// <summary>Où les chantiers navals des villes mettent leurs bateaux (d'après la carte ; après une partie chargée aussi).</summary>
+    internal void UpdateBoatSpots()
+    {
+        foreach (var town in Towns)
+            town.BoatSpot = Boats.SpotFor(Map, town);
+    }
+
+    // ------------------------------------------------------------------ bateaux
+
+    /// <summary>
+    /// Le prix d'un bateau pour ce joueur : moins cher avec la Navigation (la baisse de son meilleur marin, choix de
+    /// l'utilisateur, 2026-11-14).
+    /// </summary>
+    public IReadOnlyDictionary<ResourceType, int> BoatCost(Player player) =>
+        Boats.CostWith(player.Heroes.Select(h => h.SkillValue2(Skills.Navigation)).DefaultIfEmpty(0).Max());
+
+    /// <summary>Le mouvement d'une journée de ce héros : en mer, avec la Navigation et les phares de son joueur.</summary>
+    public int DayMovement(Hero hero, bool atSea) =>
+        atSea ? hero.SeaMovement(Map.Objects.OfType<Lighthouse>().Count(l => l.Owner == hero.Owner)) : hero.MaxMovement;
+
+    /// <summary>La case est-elle libre pour un nouveau bateau (ni objet, ni héros) ?</summary>
+    private bool BoatSpotFree(Cell spot) => Map.ObjectAt(spot) == null && Map.OccupantAt(spot) == null && AllHeroes.All(h => h.Position != spot);
+
+    /// <summary>Le chantier naval de cette ville peut-il construire un bateau pour son propriétaire ?</summary>
+    public BoatResult CanBuildBoat(Town town)
+    {
+        if (town.Owner != CurrentPlayer)
+            return BoatResult.NotOwner;
+        if (town.BoatSpot is not { } spot || !town.Buildings.Any(b => b.Shipyard && town.Has(b.Id)))
+            return BoatResult.NoShipyard;
+        if (!BoatSpotFree(spot))
+            return BoatResult.SpotTaken;
+        return CurrentPlayer.CanAfford(BoatCost(CurrentPlayer)) ? BoatResult.Ok : BoatResult.NotEnoughResources;
+    }
+
+    /// <summary>Le chantier naval de la ville construit un bateau (événement <see cref="BoatBuilt"/>).</summary>
+    public bool BuildBoat(Town town)
+    {
+        if (CanBuildBoat(town) != BoatResult.Ok)
+            return false;
+        PlaceBoat(town.BoatSpot!.Value);
+        return true;
+    }
+
+    /// <summary>Le joueur courant peut-il acheter un bateau à ce chantier de la côte ?</summary>
+    public BoatResult CanBuyBoat(Shipyard shipyard)
+    {
+        if (!BoatSpotFree(shipyard.BoatSpot))
+            return BoatResult.SpotTaken;
+        return CurrentPlayer.CanAfford(BoatCost(CurrentPlayer)) ? BoatResult.Ok : BoatResult.NotEnoughResources;
+    }
+
+    /// <summary>Achète un bateau au chantier de la côte (événement <see cref="BoatBuilt"/>).</summary>
+    public bool BuyBoat(Shipyard shipyard)
+    {
+        if (CanBuyBoat(shipyard) != BoatResult.Ok)
+            return false;
+        PlaceBoat(shipyard.BoatSpot);
+        return true;
+    }
+
+    private void PlaceBoat(Cell spot)
+    {
+        CurrentPlayer.Pay(BoatCost(CurrentPlayer));
+        Map.AddObject(new Boat(spot));
+        Emit(new BoatBuilt(CurrentPlayer, spot));
     }
 
     public int Seed { get; }
@@ -285,8 +376,6 @@ public sealed partial class GameState
             reason = GameEndReason.TreasureFound;
         else if (Rules.Has(VictoryCondition.CaptureTowns) && Towns.Any() && Towns.All(t => t.Owner == Players[0]))
             reason = GameEndReason.TownsCaptured;
-        else if (Rules.Has(VictoryCondition.ClearGuards) && !Map.Objects.OfType<MonsterGuard>().Any())
-            reason = GameEndReason.GuardsCleared;
         else if (Rules.Has(VictoryCondition.DefeatOpponents) && Opponents.Any() && Opponents.All(p => p.IsDefeated))
             reason = GameEndReason.OpponentsDefeated;
         if (reason is { } won)
@@ -335,7 +424,7 @@ public sealed partial class GameState
         Day++;
         foreach (var hero in AllHeroes)
         {
-            hero.NewDay();
+            hero.NewDay(DayMovement(hero, hero.AtSea(Map)));
             // une journée commencée dans une ville qui a une guilde des mages : tous les points de sort
             if (Map.ObjectAt(hero.Position) is Town { MageGuildLevel: > 0 } town && town.Position == hero.Position && town.Owner == hero.Owner)
                 hero.SpellPoints = Math.Max(hero.SpellPoints, hero.MaxSpellPoints);
@@ -453,8 +542,23 @@ public sealed partial class GameState
 
         Path.RemoveAt(0);
         var from = hero.Position;
+        // monter à bord : le bateau quitte la carte, il porte le héros ; débarquer : il reste amarré sur l'eau
+        bool boarding = !Map.IsWater(from) && Map.ObjectAt(next) is Boat;
+        bool landing = Map.IsWater(from) && !Map.IsWater(next);
+        if (boarding)
+            Map.RemoveObject(Map.ObjectAt(next)!);
         hero.StepTo(Map, next);
         Emit(new HeroMoved(hero, from, next));
+        if (boarding)
+        {
+            Emit(new BoatBoarded(hero, next));
+            return true;
+        }
+        if (landing)
+        {
+            Map.AddObject(new Boat(from));
+            Emit(new BoatLeft(hero, from));
+        }
 
         // Les monstres autour attaquent, puis la garnison d'une ville ennemie ou neutre ; ensuite seulement, la visite
         var opponents = Map.GuardsAround(next).Select(g => ((MapObject)g, g.Army)).ToList();
@@ -491,6 +595,18 @@ public sealed partial class GameState
                 Map.RemoveObject(obj);
             if (visit is ChestOpened chest)
                 _pendingChests.Add(chest);
+            // un tourbillon : le bateau ressort par l'autre (s'il n'y a personne), le chemin prévu ne vaut plus
+            if (visit is WhirlpoolCrossed { Exit: { } exit } crossed)
+            {
+                if (AllHeroes.Any(h => h != hero && h.Position == exit))
+                    visit = crossed with { Exit = null };
+                else
+                {
+                    hero.Position = exit;
+                    hero.Owner.Fog.Reveal(exit, hero.VisionRadius);
+                }
+                Path = null;
+            }
             Emit(visit);
             if (obj is Town town)
                 VisitGuild(hero, town);
@@ -847,13 +963,15 @@ public sealed partial class GameState
         var previous = hero.Position;
         foreach (var cell in path)
         {
-            int cost = Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
+            // monter à bord ou débarquer : possible avec un peu de mouvement, puis la journée est finie
+            bool boards = Pathfinder.Boards(Map, previous, cell);
+            int cost = boards ? 1 : Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
             if (cost > movement)
             {
                 days++;
-                movement = hero.MaxMovement;
+                movement = DayMovement(hero, Map.IsWater(previous));
             }
-            movement -= cost;
+            movement = boards ? 0 : movement - cost;
             previous = cell;
         }
         return days;
@@ -868,8 +986,17 @@ public sealed partial class GameState
         var previous = hero.Position;
         foreach (var cell in Path)
         {
-            movement -= Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
-            result.Add(movement >= 0);
+            // monter à bord ou débarquer : possible avec un peu de mouvement, et il n'en reste plus
+            if (Pathfinder.Boards(Map, previous, cell))
+            {
+                result.Add(movement > 0);
+                movement = movement > 0 ? 0 : -1;
+            }
+            else
+            {
+                movement -= Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
+                result.Add(movement >= 0);
+            }
             previous = cell;
         }
         return result;

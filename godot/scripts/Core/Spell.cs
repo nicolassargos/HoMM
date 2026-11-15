@@ -80,6 +80,12 @@ public sealed record SpellType
 
     /// <summary>Combien de troupes touche au plus une chaîne d'éclairs (la force est divisée par deux à chaque saut).</summary>
     public const int ChainTargets = 4;
+
+    /// <summary>
+    /// Jusqu'où saute une chaîne d'éclairs (en cases, d'une troupe touchée à la suivante) : sans troupe à cette distance,
+    /// elle s'arrête (choix de l'utilisateur : elle ne saute pas vers une troupe lointaine).
+    /// </summary>
+    public const int ChainReach = 3;
 }
 
 /// <summary>Tous les sorts du jeu.</summary>

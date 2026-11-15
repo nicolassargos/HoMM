@@ -43,12 +43,13 @@ public partial class ScreenWindow : CanvasLayer
         frame.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         AddChild(frame);
         Window = frame;
-        _title = At(MakeLabel("", 20, TextColor), 24, 18);
+        // le titre et « Fermer » sur une même ligne, à la marge commune des fenêtres
+        _title = MakeLabel("", 20, TextColor);
+        _title.Position = new Vector2(WindowMargin, WindowMargin + (ButtonHeight - TitleText) / 2);
         frame.AddChild(_title);
-        var close = MakeButton(Texts.CloseButton, 14);
+        var close = Sized(MakeButton(Texts.CloseButton, 14), CloseButtonWidth, ButtonHeight);
         close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
-        close.Position = new Vector2(window.Size.X - Px(22 + 150), Px(18));
-        close.Size = V(150, 32);
+        close.Position = new Vector2(window.Size.X - WindowMargin - CloseButtonWidth, WindowMargin);
         close.Pressed += Close;
         frame.AddChild(close);
     }

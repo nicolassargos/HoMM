@@ -92,13 +92,21 @@ public static class Texts
         ResourcePile pile => $"Tas de {Resource(pile.Resource)}",
         TreasureChest => "Coffre au trésor",
         Obelisk => "Obélisque",
+        Boat => "Bateau",
+        Shipyard => "Chantier naval",
         Shrine shrine => $"Autel {OfStat(shrine.Stat)}",
         SageHut hut => $"Cabane du sage ({hut.Spell.Name})",
         WeeklyProducer { IsWaterWheel: true } => "Roue à eau",
         WeeklyProducer producer => $"Moulin ({Resource(producer.Resource)})",
         ObservationTower => "Tour d'observation",
+        BlessingSite { Sea: true, Blessing: Blessing.Morale } => "Bouée",
+        BlessingSite { Sea: true } => "Sirènes",
         BlessingSite { Blessing: Blessing.Morale } => "Temple",
         BlessingSite => "Cercle des fées",
+        Flotsam => "Épave flottante",
+        SeaChest => "Coffre de la mer",
+        Whirlpool => "Tourbillon",
+        Lighthouse lighthouse => lighthouse.Owner is { } owner ? $"Phare ({owner.Name})" : "Phare",
         Mine mine => MineName(mine),
         MonsterGuard guard => MonsterGroup(guard.Type, guard.Count),
         Town town => town.Name,
@@ -265,6 +273,7 @@ public static class Texts
         WeeklyProducer { Stocked: false } => " (vide cette semaine)",
         ObservationTower tower when tower.Visitors.Contains(viewer.Id) => " (déjà visitée)",
         BlessingSite site when hero != null && site.AlreadyGiven(hero) => $" ({hero.Name} en a déjà la bénédiction)",
+        Whirlpool => " (emporte le bateau, coûte quelques créatures)",
         _ => "",
     };
 
@@ -409,7 +418,23 @@ public static class Texts
                 .SelectMany(choices => town.Buildings.Where(b => choices.Contains(b.Id)).Take(1)).Select(b => b.Name)),
         BuildResult.NotEnoughResources => "Ressources insuffisantes",
         BuildResult.NotOwner => "Ville ennemie",
+        BuildResult.NotCoastal => "Pas au bord de l'eau",
         _ => result.ToString(),
+    };
+
+    public static string ShipyardTitle => "Chantier naval";
+    public static string ShipyardText(IReadOnlyDictionary<ResourceType, int> cost) => $"Un bateau coûte {Cost(cost)}. Il apparaît sur "
+        + "l'eau, à côté du chantier ; monter à bord ou débarquer prend tout le mouvement qui reste au héros.";
+    public static string BuildBoatButton => "Construire un bateau";
+
+    /// <summary>Pourquoi le chantier ne peut pas construire de bateau (rien quand il le peut).</summary>
+    public static string BoatStatus(BoatResult result) => result switch
+    {
+        BoatResult.NoShipyard => "Il faut d'abord bâtir le chantier naval.",
+        BoatResult.NotOwner => "Ce chantier n'est pas à vous.",
+        BoatResult.SpotTaken => "Un bateau, ou un héros, occupe déjà la place devant le chantier.",
+        BoatResult.NotEnoughResources => "Ressources insuffisantes.",
+        _ => "",
     };
 
     /// <summary>Ce qu'apporte un bâtiment, en une ligne.</summary>
@@ -486,7 +511,6 @@ public static class Texts
 
     public static string GameOverText(GameEnded end) => end.Reason switch
     {
-        GameEndReason.GuardsCleared => "Tous les monstres ont été vaincus. La région est à vous !",
         GameEndReason.OpponentsDefeated => "Vos adversaires sont vaincus. La région est à vous !",
         GameEndReason.TownsCaptured => "Toutes les villes sont à vous. La région est à vous !",
         GameEndReason.HeroesLost => "Votre dernier héros est tombé. La partie est perdue.",
@@ -506,7 +530,6 @@ public static class Texts
     /// <summary>Une façon de gagner, telle qu'on la coche au début de la partie.</summary>
     public static string Goal(VictoryCondition condition) => condition switch
     {
-        VictoryCondition.ClearGuards => "Vaincre tous les monstres",
         VictoryCondition.CaptureTowns => "Prendre toutes les villes",
         VictoryCondition.DefeatOpponents => "Vaincre tous les adversaires",
         _ => "Trouver le trésor enfoui",
@@ -610,6 +633,35 @@ public static class Texts
     public static string GoalsLabel => "Comment gagner";
     public static string OpponentsLabel => "Adversaires";
     public static string DifficultyLabel => "Difficulté";
+    public static string ZoneAccessLabel => "Passages";
+    public static string ZoneAccessHelp =>
+        "Les passages entre les zones de la carte, gardés par des monstres :\n"
+        + "ouverts : l'armée de départ sort de sa zone ;\n"
+        + "normaux : il faut environ une semaine d'armée ;\n"
+        + "fermés : deux à trois semaines, et les autres passages sont deux fois plus gardés.";
+
+    public static string MapTypeLabel => "Carte";
+    public static string MapTypeHelp =>
+        "La part de la mer :\n"
+        + "continent : la terre partout, quelques lacs ;\n"
+        + "des mers : quelques mers, mais tout s'atteint aussi à pied ;\n"
+        + "îles : chaque joueur sur son île, des îles à prendre en bateau ;\n"
+        + "archipel : beaucoup de petites îles, tout en bateau.";
+
+    public static string MapTypeName(MapType type) => type switch
+    {
+        MapType.Seas => "Des mers",
+        MapType.Islands => "Îles",
+        MapType.Archipelago => "Archipel",
+        _ => "Continent",
+    };
+
+    public static string ZoneAccessName(ZoneAccess access) => access switch
+    {
+        ZoneAccess.Open => "Ouverts",
+        ZoneAccess.Closed => "Fermés",
+        _ => "Normaux",
+    };
 
     public static string DifficultyName(Difficulty difficulty) => difficulty switch
     {
@@ -735,17 +787,31 @@ public static class Texts
         ShrineVisited shrine => $"{shrine.Hero.Name} a déjà prié à cet autel.",
         SageVisited { Learned: true } sage => $"Le sage enseigne {sage.Hut.Spell.Name} à {sage.Hero.Name}.",
         SageVisited sage => $"{sage.Hero.Name} connaît déjà le sort du sage ({sage.Hut.Spell.Name}).",
+        BlessingVisited { Gained: true, Site: { Sea: true, Blessing: Blessing.Morale } } b => $"La bouée guide le bateau de {b.Hero.Name} : +1 moral jusqu'au prochain combat.",
+        BlessingVisited { Gained: true, Site.Sea: true } b => $"Les sirènes chantent pour {b.Hero.Name} : +1 chance jusqu'au prochain combat.",
         BlessingVisited { Gained: true, Site.Blessing: Blessing.Morale } b => $"{b.Hero.Name} se recueille au temple : +1 moral jusqu'au prochain combat.",
         BlessingVisited { Gained: true } b => $"{b.Hero.Name} danse avec les fées : +1 chance jusqu'au prochain combat.",
         BlessingVisited b => $"{b.Hero.Name} a déjà cette bénédiction (elle dure jusqu'au prochain combat).",
         ProducerVisited { Amount: > 0 } producer => $"{ObjectName(producer.Producer)} : +{producer.Amount} {Resource(producer.Producer.Resource)}.",
         ProducerVisited producer => $"{ObjectName(producer.Producer)} : rien à prendre avant la semaine prochaine.",
         TowerVisited tower => $"Du haut de la tour, {tower.Hero.Name} découvre les environs.",
+        BoatBoarded boarded => $"{boarded.Hero.Name} monte à bord.",
+        BoatLeft left => $"{left.Hero.Name} débarque ; le bateau reste amarré.",
+        BoatBuilt => "Un bateau neuf attend sur l'eau, à côté du chantier naval.",
+        FlotsamFound { Flotsam: { Wood: 0, Gold: 0 } } f => $"{f.Hero.Name} repêche une épave : il n'y a rien à garder.",
+        FlotsamFound { Flotsam.Gold: 0 } f => $"{f.Hero.Name} repêche une épave : {f.Flotsam.Wood} bois.",
+        FlotsamFound f => $"{f.Hero.Name} repêche une épave : {f.Flotsam.Wood} bois et {f.Flotsam.Gold} or.",
+        SeaChestOpened { Gold: 0 } chest => $"{chest.Hero.Name} ouvre un coffre de la mer : il est vide.",
+        SeaChestOpened chest => $"{chest.Hero.Name} ouvre un coffre de la mer : {chest.Gold} or.",
+        WhirlpoolCrossed { Exit: null } w => $"Le tourbillon ne peut emporter le bateau de {w.Hero.Name} : un autre bateau est à la sortie.",
+        WhirlpoolCrossed { LostType: { } type } w => $"Le tourbillon emporte le bateau de {w.Hero.Name} au loin ; {w.Lost} {(w.Lost > 1 ? type.Plural : type.Name)} passent par-dessus bord.",
+        WhirlpoolCrossed w => $"Le tourbillon emporte le bateau de {w.Hero.Name} au loin.",
+        LighthouseVisited { Captured: true } l => $"{l.Hero.Name} prend le phare : vos bateaux vont plus loin (+{Lighthouse.SeaMovementBonus} de mouvement en mer).",
+        LighthouseVisited => "Le phare est déjà à vous.",
         ObeliskVisited { FirstVisit: true } => "Un obélisque ! Un morceau de la carte au trésor apparaît.",
         ObeliskVisited => "Vous avez déjà lu cet obélisque.",
         NothingDug dug => $"{dug.Hero.Name} creuse… il n'y a rien ici.",
         TreasureDug dug => $"{dug.Hero.Name} déterre le {dug.Artifact.Name} ! {Bonus(dug.Artifact)}.",
-        GameEnded { Reason: GameEndReason.GuardsCleared } => "La région est libérée de ses monstres. Victoire !",
         GameEnded { Reason: GameEndReason.OpponentsDefeated } => "Tous vos adversaires sont vaincus. Victoire !",
         GameEnded { Reason: GameEndReason.TownsCaptured } => "Toutes les villes sont à vous. Victoire !",
         GameEnded { Reason: GameEndReason.HeroesLost } => "Vous n'avez plus de héros. Défaite...",
@@ -785,8 +851,6 @@ public static class Texts
     public static string GoalTooltip(GameState state, Player viewer)
     {
         var lines = new List<string> { $"Objectif : {Objective(state.Rules)}." };
-        if (state.Rules.Has(VictoryCondition.ClearGuards))
-            lines.Add($"Monstres restants : {state.Map.Objects.OfType<MonsterGuard>().Count()}");
         if (state.Rules.Has(VictoryCondition.CaptureTowns))
             lines.Add($"Villes à vous : {viewer.Towns.Count} / {state.Towns.Count()}");
         if (state.Rules.Has(VictoryCondition.FindTreasure))
@@ -814,7 +878,8 @@ public static class Texts
 
     /// <summary>L'info-bulle d'un héros de la liste.</summary>
     public static string HeroTooltip(Hero hero) =>
-        $"{hero.Name} · niveau {hero.Level}\nMouvement {hero.Movement} / {hero.MaxMovement}\n"
+        $"{hero.Name} · niveau {hero.Level}\nMouvement {hero.Movement} / {hero.DayMovement}\n"
+        + $"Points de sort {hero.SpellPoints} / {hero.MaxSpellPoints}\n"
         + string.Join(", ", hero.Army.Stacks.Select(Stack));
 
     /// <summary>Abréviation d'une caractéristique, pour la fiche du héros (« Att »).</summary>
@@ -968,6 +1033,12 @@ public static class Texts
         Ability.HeatAura => "aura de chaleur (brûle les ennemis voisins)",
         Ability.Feeds => "se nourrit des morts de l'Enfer (+1 attaque)",
         Ability.Summons => "invoque des diablotins (une fois par combat)",
+        Ability.Stubborn => "obstiné (20 % de dégâts en moins tant qu'il n'a pas bougé dans le round)",
+        Ability.ShieldWall => "mur de boucliers (les tireurs amis voisins prennent moitié des dégâts des tirs)",
+        Ability.Piercing => "carreaux perçants (ignorent 30 % de la défense)",
+        Ability.SureFooted => "pied sûr (riposte avant le coup, rien ne le déplace)",
+        Ability.Banner => "bannière (+2 défense aux troupes amies voisines)",
+        Ability.Blast => "explosion (touche aussi les ennemis autour de la cible)",
         _ => ability,
     };
 
@@ -1105,6 +1176,7 @@ public static class Texts
             HoMM.Core.Skills.Logistics => $"+{v} % de mouvement sur la carte",
             HoMM.Core.Skills.Scouting => $"voit {v} cases plus loin",
             HoMM.Core.Skills.Pathfinding => $"le surcoût des terrains difficiles baisse de {v} %",
+            HoMM.Core.Skills.Navigation => $"+{v} % de mouvement en mer, bateaux {v2} % moins chers",
             HoMM.Core.Skills.Estates => $"+{v} or par jour",
             HoMM.Core.Skills.Leadership => $"+{v} % de points de commandement par troupe",
             HoMM.Core.Skills.Discipline => $"révoltes {v} % moins probables",
@@ -1167,7 +1239,7 @@ public static class Texts
     public static string HeroDetails(Hero hero) =>
         $"{hero.Name} · niveau {hero.Level}\n"
         + $"Attaque {hero.Attack} · défense {hero.Defense} · puissance {hero.Power} · savoir {hero.Knowledge} · charisme {hero.Charisma}\n"
-        + $"Mouvement {hero.Movement} / {hero.MaxMovement}\n"
+        + $"Mouvement {hero.Movement} / {hero.DayMovement}\n"
         + $"Armée : {(hero.Army.IsEmpty ? "aucune" : string.Join(", ", hero.Army.Stacks.Select(Stack)))}";
 
     /// <summary>Le détail d'une ville au survol, dans le royaume.</summary>
@@ -1294,6 +1366,7 @@ public static class Texts
         Talents.Scholar => $"Talent : érudit (+{Talents.ScholarPercentPerLevel} % de force des sorts par niveau)",
         Talents.Pact => $"Talent : pacte (le prix du sang peut rendre {Talents.PactPerLevel} point de sort de plus par niveau dans un combat)",
         Talents.Dread => $"Talent : effroi (l'armée ennemie commence le combat à −1 de moral, −1 de plus tous les {Talents.DreadLevels} niveaux)",
+        Talents.Obstinacy => $"Talent : obstination (les troupes qui n'ont pas bougé prennent {Talents.ObstinacyPerLevel:P0} de dégâts en moins de plus par niveau)",
         _ => null,
     };
 
@@ -1317,10 +1390,12 @@ public static class Texts
     public static string GuildButton => "Guilde";
     public static string GuildTitle(Town town) => $"Guilde des mages de {town.Name}";
     public static string GuildText =>
-        "Un héros qui entre dans la ville apprend tous les sorts de la guilde et retrouve tous ses points de sort.";
+        "Un héros qui entre dans la ville apprend tous les sorts de la guilde et retrouve ses points de sort.";
     public static string GuildLevel(int level) => $"Niveau {level}";
     public static string GuildLevelMissing => "pas encore construit";
-    public static string SpellKnown => "connu";
+
+    /// <summary>La ligne sous le grimoire de la guilde.</summary>
+    public static string GuildNotice(Town town) => $"{GuildTitle(town)} · {(town.MageGuildLevel > 0 ? GuildText : NoGuild)}";
     public static string NoGuild => "Cette ville n'a pas encore de guilde des mages.";
     /// <summary>« 5 points » : ce que coûte le sort, à ce héros s'il est donné (son école de magie le rend moins cher).</summary>
     public static string SpellCost(SpellType spell, Hero? hero = null) => $"{hero?.SpellCost(spell) ?? spell.Cost} points";
@@ -1337,7 +1412,7 @@ public static class Texts
         {
             SpellEffect.Damage when spell.Target == SpellTarget.Area => $"{strength} dégâts sur une case et ses 6 voisines (amis compris)",
             SpellEffect.Damage when spell.Target == SpellTarget.Chain =>
-                $"{strength} dégâts à une troupe ennemie, puis moitié moins à chaque saut vers la troupe la plus proche ({SpellType.ChainTargets} au plus, amis compris)",
+                $"{strength} dégâts à une troupe ennemie, puis moitié moins à chaque saut vers la troupe la plus proche, à {SpellType.ChainReach} cases au plus ({SpellType.ChainTargets} troupes au plus, amis compris)",
             SpellEffect.Damage => $"{strength} dégâts à une troupe ennemie",
             SpellEffect.Bless => $"+{spell.Amount} % de dégâts à une troupe amie",
             SpellEffect.Curse => $"−{spell.Amount} % de dégâts à une troupe ennemie",
@@ -1419,6 +1494,38 @@ public static class Texts
     public static string SpellBookTooltip => "Livre de sorts du héros";
     public static string NotEnoughSpellPoints => "pas assez de points";
     public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";
+    public static string NoSpellOfSchool => "Aucun sort de cette école.";
+    public static string OpenSpellBookHint => "Ouvrir le livre de sorts";
+    public static string OpenGuildBookHint => "Ouvrir le grimoire de la guilde";
+    public static string SpellsKnownCount(int count) => count switch
+    {
+        0 => "Aucun sort dans le livre",
+        1 => "1 sort dans le livre",
+        _ => $"{count} sorts dans le livre",
+    };
+    public static string PreviousPage => "Page précédente";
+    public static string NextPage => "Page suivante";
+
+    /// <summary>L'info-bulle d'un onglet du livre de sorts.</summary>
+    public static string SchoolTabTooltip(string? school) =>
+        school == null ? "Tous les sorts" : $"Les sorts {SchoolName(school)}";
+
+    /// <summary>Le nom d'un onglet du livre de sorts : une école, ou tous les sorts (null).</summary>
+    public static string SchoolTab(string? school) => school switch
+    {
+        null => "Tous",
+        "eau" => "Eau",
+        "feu" => "Feu",
+        "terre" => "Terre",
+        "air" => "Air",
+        _ => school,
+    };
+
+    /// <summary>Le détail d'un sort au survol, dans le livre : son nom, son niveau et son école, son coût, ce qu'il fait.</summary>
+    public static string SpellTooltip(SpellType spell, Hero hero, int points) =>
+        $"{spell.Name} · niveau {spell.Level}{(spell.School is { } school ? $" · école {SchoolName(school)}" : "")}\n"
+        + $"{SpellCost(spell, hero)}{(hero.SpellCost(spell) > points ? $" · {NotEnoughSpellPoints}" : "")}\n"
+        + SpellEffectText(spell, hero);
     public static string SpellTargetPrompt(SpellType spell) => spell.Target switch
     {
         SpellTarget.Any => $"{spell.Name} : choisissez une troupe (clic droit ou Échap : annuler).",

@@ -59,12 +59,10 @@ public static class IconButtons
         return result;
     }
 
-    /// <summary>Un bouton carré de pierre de ce côté (en pixels), avec son icône.</summary>
-    public static Button Make(string icon, string text, string key, float side, Action pressed)
+    /// <summary>Un bouton carré de pierre (<see cref="Ui.IconButtonSide"/>), avec son icône.</summary>
+    public static Button Make(string icon, string text, string key, Action pressed)
     {
-        var button = MakeButton("", 14);
-        button.CustomMinimumSize = new Vector2(side, side);
-        button.Size = button.CustomMinimumSize;
+        var button = Sized(MakeButton("", 14), IconButtonSide, IconButtonSide);
         button.Pressed += pressed;
         SetIcon(button, icon, text, key);
         return button;
@@ -85,7 +83,9 @@ public static class IconButtons
         if (Icon(icon) is { } image)
         {
             var size = image.GetSize() * 2;
-            button.AddChild(Picture(image, ((button.CustomMinimumSize - size) / 2).Floor(), size));
+            // centrée sur la grille des pixels d'art : l'argent tombe sur les mêmes pixels que la pierre
+            var offset = (button.CustomMinimumSize - size) / 2;
+            button.AddChild(Picture(image, new Vector2(SnapDown(offset.X), SnapDown(offset.Y)), size));
             button.Text = "";
         }
         else

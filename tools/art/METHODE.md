@@ -416,6 +416,13 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   du chevalier (`hero-chateau-se.png`) comme style, deux idées de 25 essais (garder un **étendard rouge** : le jeu le
   peint de la couleur du joueur) ; puis `tourner` (deux lots Pro et un v3, à choisir), puis les marches. « Pro » rend
   parfois un fond blanc opaque : `tourner` le retire.
+- **Ce que veut l'utilisateur** (le rôdeur, 2026-11-15) : **l'est vu de côté** et **le sud-est tourné vers le sud**. Les
+  rotations « Pro » donnent un est et un sud-est presque pareils (trois quarts) ; la caméra « side » n'y change rien.
+  L'est : `pro` à 48, « seen from the side, facing right, the horse in full profile with all four legs visible »,
+  l'est du chevalier (`hero-chateau-e.png`) comme style, l'image choisie comme modèle. Le sud-est : `pro` **sans style**
+  (« - », sinon les essais gardent l'angle du style), « front three-quarter view from above: the horse comes toward the
+  viewer, turned only a little to the right… », la vue de face, le profil et l'image choisie comme modèles ; un essai
+  tourné vers la gauche sert aussi, retourné. Vérifier ensuite que chaque vue est posée au même sol (rangée 45).
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

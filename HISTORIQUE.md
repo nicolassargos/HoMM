@@ -1121,6 +1121,16 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   vue plus haute, sans fond blanc cette fois, et une v3) : choisi le second « Pro » ; marches toutes l'essai 2.
   `hero-barbares.png`, `hero-barbares-{s,se,e,ne,n}.png` et `-move.png`. Pieds mesurés, pas encore revus. Vu en jeu
   avec `--hero-walk`.
+- ✅ Le héros de la Forêt sur la carte (2026-11-15, branche `heros-carte-foret`, PixelLab, environ 0,90 $) : deux idées
+  (a : un rôdeur encapuchonné à la cape verte et à l'arc long sur un cheval alezan ; b : le même sur un grand cerf) ;
+  choisi **a-10**. Deux lots « Pro » tournés (sans v3) : choisi le second. **L'utilisateur veut l'est vu de côté** (dans
+  chaque lot, l'est ressemblait au sud-est) : une rotation avec la caméra « side » ne change rien ; 25 essais `pro` vus
+  de côté, avec l'est du chevalier comme style et a-10 comme modèle, donnent de vrais profils : choisi le 25. **Et le
+  sud-est plus tourné vers le sud** : avec le sud-est du chevalier comme style, les essais restent à son angle ; sans
+  style, avec la vue de face, le profil et a-10 comme modèles, ils viennent vers nous : choisi le 2 (un peu plus petit
+  que les autres vues ; posé 2 pixels plus haut, ramené au même sol). Une v3 tournée depuis la vue de face : dessin plus
+  grand, d'un autre style, écartée. Marches : sud 1, sud-est 1, est 2, nord-est 1, nord 1. `hero-foret.png`,
+  `hero-foret-{s,se,e,ne,n}.png` et `-move.png`. Pieds mesurés, pas encore revus. Vu en jeu avec `--hero-walk`.
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

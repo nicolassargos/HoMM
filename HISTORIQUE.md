@@ -977,6 +977,17 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   villes sur peu de terre) ; villes pour 1000 cases de terre 1,7 (continent), 1,8 (îles, 3 avant). Adversaires (six
   semaines, Normal, or d'armée) : continent 55 000, des mers 52 100, îles 32 200, archipel 31 700. Tests :
   `Les_routes_ne_menent_pas_nulle_part`, `Les_villes_sont_reparties_sur_toute_la_carte`.
+- ✅ L'herbe qui déborde sur les routes (2026-11-15, branche `routes-herbe`, choisie par l'utilisateur sur une page qui
+  compare cinq forces, à la taille du jeu et ×2, `art-candidats/archives/2026-11-15-herbe-routes/`). Dessinée par le
+  shader (`terrain.gdshader`), seulement là où le sol est de l'herbe : par plaques le long du bord (`road_grass_share`
+  0,45 du bord, plaques de `road_grass_scale` 10 pixels d'art), l'herbe avance sur la route de `road_grass` 2,2 pixels
+  d'art au plus, en brins de longueurs inégales (chaque colonne de pixels, par bouts de trois), le bout des brins un peu
+  plus clair ; de petites touffes de trois brins sur la route (pied sombre, pointe claire ; `road_tufts` 0,3 des carrés
+  de 7 pixels près du bord, `road_tufts_middle` 0,04 au milieu) ; une petite ombre de l'herbe vers le haut et la gauche
+  (`road_grass_shadow`). **Selon le tronçon** (idée de l'utilisateur) : un bruit doux de `road_grass_stretch` 70 pixels
+  d'art donne des tronçons sans herbe (sous 0,32) et d'autres envahis (au-dessus de 0,68 : 1,6 fois plus). Écarté :
+  3 pixels partout (les routes de 7 à 9 pixels paraissaient étouffées). Avec `--ground=road_grass:0,road_tufts:0,
+  road_tufts_middle:0`, rien. Attention : `--zoom` montre la carte à ×1,5, pas à la taille du jeu.
 - ✅ Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, en deux tours avec l'utilisateur sur une page de
   six cartes entières, `art-candidats/archives/2026-11-15-rivieres/`). D'après 50 cartes de Heroes 3
   (`tools/cartes/rivieres_h3.py`) : 40 en ont, 2,3 % de la terre en médiane, 0,6 rivière pour 1000 cases de terre, longue

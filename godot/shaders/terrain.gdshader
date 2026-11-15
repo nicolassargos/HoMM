@@ -86,6 +86,23 @@ uniform float road_stones_inside = 0.08;
 uniform float ground_stones = 0.08;
 uniform float ground_stone_cell = 11.0;
 uniform float road_stone_cell = 6.0;
+// l'herbe qui déborde sur la route (à l'essai, 0 : rien) : par plaques le long du bord (road_grass_share du bord, plaques
+// d'environ road_grass_scale pixels d'art), l'herbe avance de road_grass pixels d'art au plus, en brins de longueurs
+// inégales ; de petites touffes posées sur la route (la part road_tufts des carrés de road_tuft_cell pixels d'art près du
+// bord, road_tufts_middle au milieu) ; l'herbe jette une petite ombre vers le haut et la gauche (road_grass_shadow)
+uniform float road_grass = 2.2;
+uniform float road_grass_share = 0.45;
+uniform float road_grass_scale = 10.0;
+uniform float road_tufts = 0.3;
+uniform float road_tufts_middle = 0.04;
+uniform float road_tuft_cell = 7.0;
+uniform float road_grass_shadow = 0.18;
+// l'herbe change le long des routes, par tronçons d'environ road_grass_stretch pixels d'art : sous road_grass_bare (un
+// bruit doux de 0 à 1), aucune herbe ; au-dessus de road_grass_lush, une route plus envahie (road_grass_more fois plus)
+uniform float road_grass_stretch = 70.0;
+uniform float road_grass_bare = 0.32;
+uniform float road_grass_lush = 0.68;
+uniform float road_grass_more = 1.6;
 // la route s'élargit et se rétrécit doucement le long de son chemin : de combien (pixels d'art), sur quelle longueur
 uniform float road_vary = 0.5;
 uniform float road_vary_scale = 12.0;
@@ -447,6 +464,57 @@ bool ground_stone_at(vec2 p, vec3 under, out vec3 stone) {
 	return stone_shape(p - spot, stone_size(cell + vec2(0.5)), cell, under, stone);
 }
 
+// Combien d'herbe sur ce tronçon de route, autour du pixel d'art p : 0 aucune, 1 l'ordinaire, road_grass_more envahie
+float grass_amount(vec2 p) {
+	float n = noise((p + 0.5) / road_grass_stretch + vec2(61.0, 29.0));
+	return smoothstep(road_grass_bare - 0.04, road_grass_bare + 0.04, n)
+		* mix(1.0, road_grass_more, smoothstep(road_grass_lush - 0.04, road_grass_lush + 0.04, n));
+}
+
+// De combien de pixels d'art l'herbe avance sur la route au pixel d'art p : par plaques le long du bord, en brins (chaque
+// colonne de pixels, par bouts de trois, prend une longueur au hasard)
+float grass_reach(vec2 p) {
+	float amount = grass_amount(p);
+	if (amount <= 0.0) return 0.0;
+	float share = min(road_grass_share * min(amount, 1.35), 0.9);
+	float clump = smoothstep(1.0 - share - 0.1, 1.0 - share + 0.25,
+		noise((p + 0.5) / road_grass_scale + vec2(17.0, 53.0)));
+	float row = floor((p.y + floor(hash(vec2(p.x, 7.0)) * 3.0)) / 3.0);
+	return road_grass * amount * clump * (0.35 + 0.65 * hash(vec2(p.x, row) + vec2(3.1, 9.7)));
+}
+
+// Le pixel q (depuis le pied d'une touffe) dans cette touffe : 0 dehors, 1 le pied, 2 un brin, 3 une pointe. Trois brins,
+// celui du milieu plus haut, ceux des côtés penchés vers l'extérieur
+int tuft_pixel(vec2 q, vec2 cell) {
+	if (q.y > 0.0 || q.y < -2.0 || abs(q.x) > 2.0) return 0;
+	for (int i = -1; i <= 1; i++) {
+		float b = float(i);
+		float h = i == 0 ? 2.0 + floor(hash(cell + vec2(1.3, 5.1)) * 2.0) : 1.0 + floor(hash(cell + vec2(b * 2.7, 8.3)) * 2.0);
+		for (float r = 0.0; r < 3.0; r += 1.0) {
+			if (r >= h) break;
+			if (q == vec2(b + (r >= 2.0 ? b : 0.0), -r))
+				return r == 0.0 ? 1 : (r == h - 1.0 ? 3 : 2);
+		}
+	}
+	return 0;
+}
+
+// Une petite touffe d'herbe sur la route près du pixel d'art p : 0 rien, 1 à 3 la touffe (tuft_pixel), 4 son ombre
+int road_tuft_at(vec2 p) {
+	float size = floor(max(road_tuft_cell, 6.0));
+	vec2 cell = floor(p / size);
+	float chance = hash(cell + vec2(29.3, 61.7)) / max(grass_amount(cell * size), 0.001);
+	if (chance >= max(road_tufts, road_tufts_middle)) return 0;
+	vec2 spot = cell * size + vec2(3.0 + floor(hash(cell + vec2(4.4, 1.2)) * (size - 5.0)),
+		3.0 + floor(hash(cell + vec2(7.7, 3.9)) * (size - 3.0)));
+	int kind;
+	float edge = road_inside(spot, kind);
+	if (!(edge > 0.5 && edge <= 3.0 && chance < road_tufts) && !(edge > 3.0 && chance < road_tufts_middle)) return 0;
+	int part = tuft_pixel(p - spot, cell);
+	if (part > 0) return part;
+	return tuft_pixel(p + 1.0 - spot, cell) > 0 ? 4 : 0;
+}
+
 void fragment() {
 	vec2 p = floor(UV * vec2(map_cells) * ART);
 	int a;
@@ -531,7 +599,10 @@ void fragment() {
 	// le talus d'en face, au soleil : un liseré plus clair sur l'herbe
 	if (road_rim > 0.0 && inside < 0.0 && inside > -2.0 && road_inside(p - sun * 2.0, other_kind) > 0.0)
 		color *= 1.0 + road_rim;
+	vec3 ground = color; // le sol sous la route
+	bool paved = false;
 	if (inside > -spread * 0.5 && hash(p + vec2(0.37, 0.71)) < clamp(inside / spread + 0.5, 0.0, 1.0)) {
+		paved = true;
 		vec3 road = texelFetch(road_tiles, ivec3(ivec2(mod(p, ART)), max(road_kind, 1) - 1), 0).rgb;
 		if (inside < 1.5)
 			road *= 1.0 - road_shade;
@@ -549,6 +620,26 @@ void fragment() {
 			road *= 1.0 - road_shadow * shadow;
 		}
 		color = road;
+	}
+	// l'herbe qui déborde sur la route, et ses touffes (seulement là où le sol est de l'herbe)
+	if (paved && t == grass && !in_water && (road_grass > 0.0 || road_tufts > 0.0 || road_tufts_middle > 0.0)) {
+		float reach = road_grass > 0.0 ? grass_reach(p) : 0.0;
+		if (inside < reach) {
+			color = ground;
+			if (inside >= reach - 1.0) color *= 1.1; // le bout des brins, au soleil
+		} else {
+			int tuft = road_tufts > 0.0 || road_tufts_middle > 0.0 ? road_tuft_at(p) : 0;
+			vec3 blade = tile_color(grass, p);
+			if (tuft == 1) color = blade * 0.7;
+			else if (tuft == 2) color = blade;
+			else if (tuft == 3) color = blade * 1.2;
+			else if (tuft == 4) color *= 1.0 - road_grass_shadow;
+			else if (road_grass > 0.0 && road_grass_shadow > 0.0) {
+				// l'ombre de l'herbe en bas à droite, sur la route
+				float below = road_inside(p + 1.0, other_kind);
+				if (below > 0.0 && below < grass_reach(p + 1.0)) color *= 1.0 - road_grass_shadow;
+			}
+		}
 	}
 	// la terre battue, par endroits, à cheval sur le bord : son épaisseur change le long de la route, on voit au travers
 	float frame = road_frame * smoothstep(1.0 - road_frame_share - 0.1, 1.0 - road_frame_share + 0.15,

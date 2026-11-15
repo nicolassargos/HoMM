@@ -107,7 +107,8 @@ public class TypesCartesTests(ITestOutputHelper output)
         {
             var map = new GameState(seed, TestData.Data, MapSize.Normal, opponents: 1, mapType: MapType.Seas).Map;
             var onFoot = Reach(map, map.Start, sail: false, throughGuards: true);
-            foreach (var obj in map.Objects.Where(o => o is not Boat && o.Position != map.Start))
+            // (sauf ce qui flotte : les objets de la mer s'atteignent en bateau)
+            foreach (var obj in map.Objects.Where(o => !map.IsWater(o.Position) && o.Position != map.Start))
                 Assert.True(onFoot.Contains(obj.Position), $"graine {seed} : {obj.GetType().Name} en {obj.Position} seulement en bateau");
         }
     }
@@ -179,7 +180,7 @@ public class TypesCartesTests(ITestOutputHelper output)
                 if (!map.Objects.Any(o => o is Shipyard && onFoot.Contains(o.Position)))
                     problems.Add($"graine {seed} : pas de chantier pour {start}");
                 if (type == MapType.Seas)
-                    problems.AddRange(map.Objects.Where(o => o is not Boat && o.Position != start && !onFoot.Contains(o.Position))
+                    problems.AddRange(map.Objects.Where(o => !map.IsWater(o.Position) && o.Position != start && !onFoot.Contains(o.Position))
                         .Select(o => $"graine {seed} : {o.GetType().Name} en {o.Position} seulement en bateau"));
             }
         }

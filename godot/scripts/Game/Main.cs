@@ -278,8 +278,14 @@ public partial class Main : Node2D
             WeeklyProducer { IsWaterWheel: true } => "water-wheel",
             WeeklyProducer => "windmill",
             ObservationTower => "tower",
+            BlessingSite { Sea: true, Blessing: Blessing.Morale } => "buoy",
+            BlessingSite { Sea: true } => "mermaids",
             BlessingSite { Blessing: Blessing.Morale } => "temple",
             BlessingSite => "fairy-ring",
+            Flotsam => "flotsam",
+            SeaChest => "sea-chest",
+            Whirlpool => "whirlpool",
+            Lighthouse => "lighthouse",
             _ => null,
         };
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
@@ -1094,7 +1100,7 @@ public partial class Main : Node2D
                     break;
                 case ShipyardVisited yard when yard.Hero.Owner == viewer:
                     _walking = false;
-                    _hud.ShowShipyard(_state.CanBuyBoat(yard.Shipyard), () =>
+                    _hud.ShowShipyard(_state.CanBuyBoat(yard.Shipyard), _state.BoatCost(yard.Hero.Owner), () =>
                     {
                         _state.BuyBoat(yard.Shipyard);
                         HandleEvents();

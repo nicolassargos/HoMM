@@ -325,7 +325,7 @@ public static class ComputerPlayer
     {
         Skills.Logistics, Skills.Estates, Skills.Leadership, Skills.Morale, Skills.Discipline, Skills.Recruiter, Skills.Inspiration, Skills.Luck,
         Skills.Diplomacy, Skills.Tactics,
-        Skills.Mysticism, "ecole-terre", "ecole-feu", "ecole-eau", "ecole-air", Skills.Scouting, Skills.Pathfinding,
+        Skills.Mysticism, "ecole-terre", "ecole-feu", "ecole-eau", "ecole-air", Skills.Scouting, Skills.Pathfinding, Skills.Navigation,
     };
 
     /// <summary>L'IA dépense les points de compétence du héros, dans l'ordre de <see cref="SkillOrder"/>.</summary>
@@ -410,7 +410,8 @@ public static class ComputerPlayer
         {
             double weight = obj switch
             {
-                ResourcePile or TreasureChest => 1,
+                ResourcePile or TreasureChest or Flotsam or SeaChest => 1,
+                Lighthouse lighthouse when lighthouse.Owner != player => 0.8,
                 Mine mine when mine.Owner != player => 0.5,
                 Obelisk obelisk when !player.Obelisks.Contains(obelisk.Id) => 1.5,
                 // les lieux : seulement ce qu'ils donnent encore à ce héros ou à son joueur
@@ -494,8 +495,9 @@ public static class ComputerPlayer
     {
         var map = state.Map;
         var player = hero.Owner;
-        if (hero.AtSea(map) || player.Resources[ResourceType.Gold] < Boats.Cost[ResourceType.Gold] + RecruitReserve
-            || !player.CanAfford(Boats.Cost))
+        var cost = state.BoatCost(player);
+        if (hero.AtSea(map) || player.Resources[ResourceType.Gold] < cost[ResourceType.Gold] + RecruitReserve
+            || !player.CanAfford(cost))
             return false;
         var costs = SafeCosts(state, hero);
         bool AtHand(Cell water) => Neighbours(water).Any(c => costs.ContainsKey(c) && !map.IsWater(c));

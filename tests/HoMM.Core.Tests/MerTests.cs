@@ -11,7 +11,7 @@ public class MerTests
     /// Une partie dont le héros, en (4, 4), est sur une rive : de la terre jusqu'à x = 6, la mer de x = 7 à 12 sur toute
     /// la hauteur de la carte, l'autre rive à partir de x = 13 ; un bateau amarré en (7, 4). Rien d'autre autour.
     /// </summary>
-    private static (GameState State, Hero Hero) GameByTheSea()
+    internal static (GameState State, Hero Hero) GameByTheSea()
     {
         var state = new GameState(7, TestData.Data, 54, 40, startingTowns: false);
         var map = state.Map;
@@ -30,7 +30,7 @@ public class MerTests
         return (state, hero);
     }
 
-    private static void Walk(GameState state, Cell target)
+    internal static void Walk(GameState state, Cell target)
     {
         state.SetDestination(target);
         while (state.StepAlongPath()) { }

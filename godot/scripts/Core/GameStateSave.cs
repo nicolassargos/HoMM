@@ -55,7 +55,8 @@ public sealed partial class GameState
         bool? Small = null, // une mine ou un lieu haut sur une case, une ville sur 3 × 3 (venus d'une sauvegarde d'avant)
         HeroStat? Stat = null, string? Spell = null, List<int>? Visitors = null, bool? Stocked = null, // les lieux (version 5)
         Blessing? Blessing = null, // temple ou cercle des fées (version 6)
-        Cell? Spot = null); // la case d'eau d'un chantier naval de la côte
+        Cell? Spot = null, // la case d'eau d'un chantier naval de la côte, la sortie d'un tourbillon
+        int? Wood = null, bool? Sea = null); // une épave flottante ; une bouée ou des sirènes
 
     private sealed record StackData(string Creature, int Count);
 
@@ -126,7 +127,12 @@ public sealed partial class GameState
         SageHut hut => new ObjectData("sage", obj.Id, obj.Position, Spell: hut.Spell.Id, Small: hut.Large ? null : true),
         WeeklyProducer producer => new ObjectData("producer", obj.Id, obj.Position, Resource: producer.Resource, Stocked: producer.Stocked, Small: producer.Large ? null : true),
         ObservationTower tower => new ObjectData("tower", obj.Id, obj.Position, Visitors: tower.Visitors.Order().ToList(), Small: tower.Large ? null : true),
-        BlessingSite site => new ObjectData("blessing", obj.Id, obj.Position, Blessing: site.Blessing, Small: site.Large ? null : true),
+        BlessingSite site => new ObjectData("blessing", obj.Id, obj.Position, Blessing: site.Blessing, Small: site.Large ? null : true,
+            Sea: site.Sea ? true : null),
+        Flotsam flotsam => new ObjectData("flotsam", obj.Id, obj.Position, Amount: flotsam.Gold, Wood: flotsam.Wood),
+        SeaChest seaChest => new ObjectData("sea-chest", obj.Id, obj.Position, Amount: seaChest.Gold),
+        Whirlpool whirlpool => new ObjectData("whirlpool", obj.Id, obj.Position, Spot: whirlpool.Exit),
+        Lighthouse lighthouse => new ObjectData("lighthouse", obj.Id, obj.Position, Owner: lighthouse.Owner?.Id),
         Mine mine => new ObjectData("mine", obj.Id, obj.Position, Resource: mine.Resource, Owner: mine.Owner?.Id, Small: mine.Large ? null : true),
         MonsterGuard guard => new ObjectData("guard", obj.Id, obj.Position, Creature: guard.Type.Id,
             InitialCount: guard.InitialCount, Amount: guard.Count),
@@ -238,7 +244,11 @@ public sealed partial class GameState
                 "sage" => new SageHut(o.Position, data.Spells.Get(o.Spell!)) { Large = Tall(o) },
                 "producer" => new WeeklyProducer(o.Position, o.Resource!.Value) { Stocked = o.Stocked != false, Large = Tall(o) },
                 "tower" => WithVisitors(new ObservationTower(o.Position) { Large = Tall(o) }, t => t.Visitors, o.Visitors),
-                "blessing" => new BlessingSite(o.Position, o.Blessing!.Value) { Large = Tall(o) },
+                "blessing" => new BlessingSite(o.Position, o.Blessing!.Value) { Large = Tall(o), Sea = o.Sea == true },
+                "flotsam" => new Flotsam(o.Position, o.Wood!.Value, o.Amount!.Value),
+                "sea-chest" => new SeaChest(o.Position, o.Amount!.Value),
+                "whirlpool" => new Whirlpool(o.Position, o.Spot!.Value),
+                "lighthouse" => new Lighthouse(o.Position) { Owner = o.Owner is { } id ? Owner(id) : null },
                 // avant la version 3, une mine n'occupait qu'une case : ses voisines peuvent être prises
                 "mine" => new Mine(o.Position, o.Resource!.Value) { Owner = o.Owner is { } id ? Owner(id) : null, Large = save.Version >= 3 && o.Small != true },
                 "guard" => new MonsterGuard(o.Position, data.Creatures.Get(o.Creature!), o.InitialCount!.Value, o.Amount!.Value),
@@ -286,6 +296,8 @@ public sealed partial class GameState
                 hero.Learn(data.Spells.Get(id));
             foreach (var (id, rank) in h.Skills ?? new Dictionary<string, int>())
                 hero.AddSkillRank(data.Skills.Get(id), rank);
+            // le mouvement du matin (plus grand en mer) n'est pas sauvegardé : au moins celui qui reste
+            hero.DayMovement = Math.Max(hero.MaxMovement, hero.Movement);
             foreach (var s in h.Army)
                 hero.Army.AddStack(data.Creatures.Get(s.Creature), s.Count);
             // ses caractéristiques comptent déjà leurs bonus

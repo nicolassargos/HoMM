@@ -200,6 +200,7 @@ public static class MapRenderer
         WeeklyProducer { IsWaterWheel: true } => Art.Get("objects/water-wheel"),
         WeeklyProducer => Art.Get("objects/windmill"),
         ObservationTower => Art.Get("objects/tower"),
+        BlessingSite { Sea: true } => null, // en attendant leurs images : dessinées plus bas
         BlessingSite { Blessing: Blessing.Morale } => Art.Get("objects/temple"),
         BlessingSite => Art.Get("objects/fairy-ring"),
         Mine mine => Art.Get($"objects/mine-{Art.Name(mine.Resource)}"),
@@ -240,6 +241,10 @@ public static class MapRenderer
                 ci.DrawRect(new Rect2(c + V(-3, -4), 6, 7), Rgb(230, 190, 60));
                 if ((int)(time * 2) % 2 == 0) // petit scintillement
                     ci.DrawCircle(c + V(10, -13), 2, Rgb(255, 255, 200));
+                break;
+
+            case BlessingSite { Sea: true } or Flotsam or SeaChest or Whirlpool or Lighthouse:
+                DrawSeaObject(ci, obj, c, time);
                 break;
 
             case Shrine or SageHut or WeeklyProducer or ObservationTower or BlessingSite:
@@ -288,6 +293,70 @@ public static class MapRenderer
             case Town town:
                 // sans image : un château de 3×3 cases, posé en bas de la ville, sur l'entrée (o, au milieu de la rangée du bas)
                 DrawTown(ci, town, o + V(T / 2f, -T / 2f), time);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Les objets de la mer, dessinés par le jeu en attendant leurs images (étape 4 de la mer) : une bouée rouge et blanche,
+    /// des sirènes sur un rocher, une épave de planches, un coffre qui flotte, un tourbillon qui tourne, un phare.
+    /// </summary>
+    private static void DrawSeaObject(CanvasItem ci, MapObject obj, Vector2 c, double time)
+    {
+        float bob = (float)Math.Sin(time * 2.5) * 1.5f; // ce qui flotte se balance
+        switch (obj)
+        {
+            case BlessingSite { Blessing: Blessing.Morale }:
+                Ellipse(ci, new Rect2(c + V(-10, 6 + bob), 20, 8), Rgb(200, 40, 40));
+                ci.DrawRect(new Rect2(c + V(-3, -14 + bob), 6, 22), Rgb(230, 230, 230));
+                ci.DrawRect(new Rect2(c + V(-3, -6 + bob), 6, 5), Rgb(200, 40, 40));
+                if ((int)(time * 2) % 2 == 0)
+                    ci.DrawCircle(c + V(0, -17 + bob), 3, Rgb(255, 230, 120));
+                break;
+            case BlessingSite:
+                Ellipse(ci, new Rect2(c + V(-16, 2), 32, 14), Rgb(110, 105, 100));
+                foreach (var (dx, tail) in new[] { (-7, Rgb(60, 160, 140)), (7, Rgb(90, 120, 190)) })
+                {
+                    Triangle(ci, c + V(dx - 4, 4), c + V(dx + 4, 4), c + V(dx + 6, 12), tail);
+                    ci.DrawRect(new Rect2(c + V(dx - 3, -8), 6, 12), Rgb(235, 195, 160));
+                    ci.DrawCircle(c + V(dx, -11), 4, Rgb(235, 195, 160));
+                    ci.DrawRect(new Rect2(c + V(dx - 4, -15), 8, 4), Rgb(230, 190, 70));
+                }
+                break;
+            case Flotsam:
+                ci.DrawRect(new Rect2(c + V(-14, -2 + bob), 22, 5), Rgb(130, 90, 50));
+                ci.DrawRect(new Rect2(c + V(-6, 4 + bob), 20, 5), Rgb(110, 75, 40));
+                ci.DrawRect(new Rect2(c + V(-10, -9 + bob), 5, 16), Rgb(150, 105, 60));
+                break;
+            case SeaChest:
+                ci.DrawRect(new Rect2(c + V(-11, -5 + bob), 22, 14), Rgb(100, 65, 30));
+                ci.DrawRect(new Rect2(c + V(-11, -10 + bob), 22, 6), Rgb(140, 95, 45));
+                ci.DrawRect(new Rect2(c + V(-2, -4 + bob), 4, 6), Rgb(230, 190, 60));
+                Ellipse(ci, new Rect2(c + V(-15, 8), 30, 5), Rgb(200, 230, 245));
+                break;
+            case Whirlpool:
+                for (int ring = 0; ring < 3; ring++)
+                {
+                    float radius = 6 + ring * 6;
+                    double turn = time * 3 + ring * 1.3;
+                    for (int i = 0; i < 10; i++)
+                    {
+                        double a = turn + i * Math.Tau / 10;
+                        ci.DrawCircle(c + V((float)(Math.Cos(a) * radius), (float)(Math.Sin(a) * radius * 0.6)), 2, Rgb(200 - ring * 30, 225 - ring * 20, 245));
+                    }
+                }
+                ci.DrawCircle(c, 4, Rgb(20, 50, 90));
+                break;
+            case Lighthouse lighthouse:
+                // la porte en bas, la tour monte sur la case du dessus
+                ci.DrawColoredPolygon(new[] { c + V(-9, 14), c + V(9, 14), c + V(5, -50), c + V(-5, -50) }, Rgb(235, 230, 220));
+                ci.DrawRect(new Rect2(c + V(-7, -12), 14, 6), Rgb(200, 50, 45));
+                ci.DrawRect(new Rect2(c + V(-6, -36), 12, 6), Rgb(200, 50, 45));
+                ci.DrawRect(new Rect2(c + V(-7, -60), 14, 10), Rgb(60, 60, 70));
+                if ((int)(time * 1.5) % 2 == 0)
+                    ci.DrawCircle(c + V(0, -55), 4, Rgb(255, 240, 150));
+                ci.DrawRect(new Rect2(c + V(-4, 4), 8, 10), Rgb(70, 50, 35));
+                DrawFlag(ci, c + V(10, -60), ColorOf(lighthouse.Owner), time);
                 break;
         }
     }

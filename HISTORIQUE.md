@@ -1107,6 +1107,14 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
   sud-est. Pieds des 5 images mesurés (pas encore revus par l'utilisateur ; les images de marche prennent ceux de leur
   image fixe). Voir la marche en jeu : `--hero-walk` (le héros choisi fait sans cesse le tour d'un octogone, montré
   seulement).
+- ✅ Le héros des morts-vivants sur la carte (2026-11-15, branche `heros-carte-morts-vivants`, PixelLab, environ 0,50 $) :
+  deux idées, 25 essais chacune (« pro » à 48, le sud-est du chevalier comme style) : a, un chevalier noir sur un cheval
+  squelette ; b, un nécromancien encapuchonné de violet sur un cheval mort-vivant pâle, au bâton à crâne et à l'étendard
+  rouge (la couleur du joueur) ; choisi **b-1** (`heroes/hero-morts-vivants.png`). Tourné en trois lots (deux « Pro »
+  vue plus haute, une v3) : les « Pro » sont revenus sur un **fond blanc opaque** (retiré, et désormais par `tourner`
+  lui-même) ; choisi le premier (son nord-ouest regardait du mauvais côté, sans importance : le miroir du nord-est le
+  remplace ; son est ressemble presque à son sud-est). Marches : sud 1, les autres 2, posées au sol avec le rebond
+  (`hero-morts-vivants-{s,se,e,ne,n}.png` et `-move.png`). Pieds mesurés, pas encore revus. Vu en jeu avec `--hero-walk`.
 - ✅ Ville des Nains sur la carte (2026-11-12, branche `creatures-nains`, PixelLab, 0,64 $) : trois idées en lots de quatre
   (a : hall de la montagne, b : forteresse au pied d'une colline aux toits de cuivre, c : cité des forges, engrenages et
   tuyaux de bronze), le Château comme style et modèle (a : le Donjon comme second modèle, pour la forteresse creusée dans

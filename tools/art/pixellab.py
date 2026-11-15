@@ -337,6 +337,33 @@ def repeindre(image, sortie, x, y, largeur, hauteur, description, graine=None):
 DIRECTIONS = ["sud", "sud-est", "est", "nord-est", "nord", "nord-ouest", "ouest", "sud-ouest"]
 
 
+def retirer_fond_blanc(chemin):
+    """
+    Rend transparent le fond blanc opaque que « Generate 8 rotations » (Pro) rend parfois malgré « no_background »
+    (le nécromancien, 2026-11-15) : le blanc presque pur touché depuis les bords, puis les poches de la même couleur
+    enfermées (entre l'étendard et la tête) ; un cheval pâle n'est pas si blanc.
+    """
+    from reduire import ecrire, lire
+    w, h, px = lire(chemin)
+    blanc = lambda c: c[3] > 0 and c[0] >= 245 and c[1] >= 245 and c[2] >= 240
+    if sum(blanc(c) for r in px for c in r) < w * h // 4:
+        return  # pas de fond blanc
+    vus = set()
+    pile = [(x, y) for x in range(w) for y in (0, h - 1)] + [(x, y) for y in range(h) for x in (0, w - 1)]
+    while pile:
+        x, y = pile.pop()
+        if (x, y) in vus or not (0 <= x < w and 0 <= y < h) or not (px[y][x][3] == 0 or blanc(px[y][x])):
+            continue
+        vus.add((x, y))
+        px[y][x] = (0, 0, 0, 0)
+        pile += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+    for r in px:
+        for x, c in enumerate(r):
+            if c[3] and c[0] >= 250 and c[1] >= 250 and c[2] >= 246:
+                r[x] = (0, 0, 0, 0)
+    ecrire(chemin, px)
+
+
 def tourner(image, dossier, methode="pro", graine=None, vue="low top-down", description=None):
     """Les 8 directions d'un personnage à partir d'une image : « pro » (Pro, rotate_character) ou « v3 »."""
     w, h = taille_png(image)
@@ -365,6 +392,7 @@ def tourner(image, dossier, methode="pro", graine=None, vue="low top-down", desc
         chemin = os.path.join(dossier, f"{nom}.png")
         with open(chemin, "wb") as f:
             f.write(decoder(img))
+        retirer_fond_blanc(chemin)
         chemins.append(chemin)
     feuille(chemins, os.path.join(dossier, "feuille.png"))
     cout = etat.get("usage") or r.get("usage") or {}

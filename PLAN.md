@@ -552,8 +552,11 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   avec l'utilisateur : **deux sortes**, une couche posée sur le terrain comme la route (`RiverKind`). **Les rivières**
   bloquent : chacune va d'un bord de la carte à un autre (ou jusqu'à la mer) en suivant les frontières des zones ; on ne
   les passe que sur un **pont** gardé. **Les ruisseaux**, dans une zone, se traversent (un décor). Dessinés par le
-  shader en courbes douces, avec la plage des lacs. **À faire** (choix de l'utilisateur) : **les ponts en images**
-  (session images : ceux du shader ne convainquent pas) ; revoir les rives plus tard ; **revoir les routes ensuite**.
+  shader en courbes douces, avec la plage des lacs. ✅ **Les ponts en images** (2026-11-15, branche `ponts`, détail dans
+  `HISTORIQUE.md`) : de bois ou de pierre selon les routes de la zone (pierre là où elles sont pavées), dans les deux
+  sens, et un petit pont où une route croise un ruisseau. **À faire** : revoir les rives plus tard ; **revoir les routes
+  ensuite**. **Plus tard** : redessiner le petit pont de bois d'ouest en est (des marques sur sa face avant) s'il gêne en
+  jouant.
   ✅ **Les routes, premières règles (2026-11-15, branche `routes-sans-issue`, détail dans `HISTORIQUE.md`)** : leurs règles se définissent avec l'utilisateur, en
   plusieurs tours (une page de cartes entières, ses remarques, des retouches). Décidé : plus de route qui ne mène nulle
   part (chaque route arrive à une ville, une mine, un port) ; une petite route vers les mines proches des villes et vers

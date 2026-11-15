@@ -143,6 +143,9 @@ uniform float river_wave = 3.3;
 uniform float bridge_width = 6.0;
 uniform float stream_bend = 6.0;
 uniform vec3 bridge_color = vec3(0.56, 0.4, 0.24);
+// Les ponts dessinés en images par le jeu (BridgeLayer), où le shader ne dessine plus de planches : rivières 1 d'ouest en
+// est, 2 du nord au sud ; ruisseaux 4 et 8
+uniform int bridge_art = 0;
 
 // La taille d'une case en pixels d'art (32 ; réglée par le jeu : MapRenderer.ArtTile)
 uniform float ART = 32.0;
@@ -709,6 +712,8 @@ void fragment() {
 		deck = true;
 		across_y = river_at(here + ivec2(1, 0)) == 1 || river_at(here + ivec2(-1, 0)) == 1;
 	}
+	// un pont qui a son image : rien à dessiner ici
+	if (deck && (bridge_art & ((across_y ? 2 : 1) * (r == 1 ? 4 : 1))) != 0) deck = false;
 	if (deck) {
 		vec2 off = p + 0.5 - (vec2(here) + 0.5) * ART;
 		float side = abs(across_y ? off.x : off.y);

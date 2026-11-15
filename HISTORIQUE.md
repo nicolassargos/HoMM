@@ -1485,6 +1485,19 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   semaines, Normal, or d'armée ; avant → après) : continent 54 900 → 63 400, des mers 52 100 → 36 700, îles 32 200 →
   30 900, archipel 31 700 → 22 500 (sans rivière : l'archipel montre combien ces chiffres changent avec les cartes ; les
   mers sont à surveiller). Tests : `RivieresTests`.
+- ✅ Les ponts en images (2026-11-15, branche `ponts`, choisis avec l'utilisateur, puis par la session de coordination à
+  qui il a laissé les choix) : huit images Retro Diffusion (`rd_tile__tile_object`), **2,64 $ en tout, 11 lots de 4**.
+  `BridgeLayer` les pose sur le sol, sous les ombres et les objets, centrées sur les deux cases du pont ; le shader ne
+  dessine plus de planches là où un pont a son image (`bridge_art`). **Pierre là où la route du pont ou de ses abords est
+  pavée** (Château, Tour, Nains : comme les sortes de routes), bois ailleurs ; sans image d'une sorte, l'autre la remplace.
+  Ponts de rivière (96 × 48 et 48 × 96) : bois d'ouest en est, le 3 du premier lot (rambardes des deux côtés, d'une berge
+  à l'autre) ; pierre d'ouest en est, au troisième lot (le 1 en ruine, le 2 trop dessin animé, le 3 avec des buissons ;
+  partir du bois donnait des rambardes de bois ; parti du 4, raccourci à la longueur du bois, puis réchauffé vers la
+  pierre du temple) ; du nord au sud, partis du pont d'ouest en est tourné : bois réussi (le 2, aux couleurs du bois
+  d'ouest en est), pierre ratée (une bande étroite : le pont d'ouest en est est vu de côté), puis réussie en partant du
+  bois du nord au sud repeint aux couleurs de la pierre (le 3). Petits ponts des ruisseaux (48 × 24 et 24 × 48), partis
+  des grands réduits : bois 4 et 4, pierre 1 (d'ouest en est) et 3. Chaque image prend la palette du pont d'ouest en est
+  de sa sorte, par rang de luminosité. Développement : `--center=bridge:9` (un pont et une route), `ford`, `ford:2`.
 - ✅ La mer, les objets de la mer, seconde partie (2026-11-15, branche `mer-pirates`, choix de l'utilisateur : les pirates,
   une seule créature neutre ; une faction « pirates et monstres de la mer » peut-être plus tard). Le **Pirate** (neutre,
   niveau 3, `"sea": true` dans `creatures.json`, `CreatureType.Sea` : il ne garde que la mer, jamais la terre) : attaque 9,

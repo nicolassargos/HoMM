@@ -34,5 +34,6 @@
   "hydre": {"move": 6},
   "succube": {"projectile": "baiser", "launchFrame": 5, "launchPoint": [106, 68]},
   "demon": {"transformFrames": 12, "transform": 12, "stepTime": 0.03},
-  "limon-magma": {"idlePauseMax": 0, "moveFrames": 32, "move": 20}
+  "limon-magma": {"idlePauseMax": 0, "moveFrames": 32, "move": 20},
+  "tourmenteur": {"throwFrame": 4, "throwPoint": [154, 101]}
 }

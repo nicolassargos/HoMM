@@ -778,6 +778,74 @@ public sealed class BattleEffects
         }
     }
 
+    // le crochet du Tourmenteur, la pointe vers la droite (retourné quand la chaîne va vers la gauche)
+    private static readonly string[] HookShape =
+    {
+        ".XX....",
+        "X..X...",
+        "...X...",
+        "...X...",
+        "...X..X",
+        "...X..X",
+        "....XX.",
+    };
+
+    /// <summary>
+    /// La chaîne du crochet du Tourmenteur, de sa main jusqu'au crochet : des maillons de fer rouillé, de face et de profil
+    /// tour à tour, qui pendent un peu (<paramref name="sag"/> : la flèche au milieu, en pixels de l'écran ; 0 : tendue),
+    /// et le crochet au bout.
+    /// </summary>
+    public static void DrawChain(CanvasItem canvas, Vector2 from, Vector2 to, float sag)
+    {
+        // les couleurs de la chaîne de l'image du Tourmenteur
+        var dark = new Color(0.22f, 0.09f, 0.07f);
+        var rust = new Color(0.5f, 0.22f, 0.14f);
+        var light = new Color(0.68f, 0.36f, 0.24f);
+        Vector2 At(float t) => from.Lerp(to, t) + new Vector2(0, sag * 4 * t * (1 - t));
+        float length = from.DistanceTo(to);
+        int links = Math.Max(1, (int)(length / (5 * Pixel)));
+        for (int k = 0; k < links; k++)
+        {
+            float t = (k + 0.5f) / links;
+            var at = At(t);
+            var along = (At(Math.Min(1, t + 0.01f)) - At(Math.Max(0, t - 0.01f))).Normalized();
+            var across = new Vector2(-along.Y, along.X);
+            if (k % 2 == 0)
+            {
+                // un maillon de face : un anneau de deux rails (le haut éclairé), fermé aux deux bouts
+                for (int i = -2; i <= 2; i++)
+                {
+                    Dot(canvas, at + along * i * Pixel - across * 1.5f * Pixel, i == 0 ? light : rust);
+                    Dot(canvas, at + along * i * Pixel + across * 1.5f * Pixel, dark);
+                }
+                for (float j = -0.5f; j <= 0.5f; j++)
+                {
+                    Dot(canvas, at - along * 3 * Pixel + across * j * Pixel, dark);
+                    Dot(canvas, at + along * 3 * Pixel + across * j * Pixel, dark);
+                }
+            }
+            else
+                // un maillon de profil : un trait épais
+                for (int i = -2; i <= 2; i++)
+                {
+                    Dot(canvas, at + along * i * Pixel - across * 0.5f * Pixel, i is -1 or 0 ? light : rust);
+                    Dot(canvas, at + along * i * Pixel + across * 0.5f * Pixel, dark);
+                }
+        }
+        // le crochet, attaché par le haut au bout de la chaîne
+        bool left = to.X < from.X;
+        int w = HookShape[0].Length;
+        var origin = to - new Vector2(1.5f, 0) * Pixel;
+        for (int y = 0; y < HookShape.Length; y++)
+        for (int x = 0; x < w; x++)
+        {
+            if (HookShape[y][x] != 'X')
+                continue;
+            float px = left ? -x : x;
+            Dot(canvas, origin + new Vector2(px, y) * Pixel, y < 2 ? new Color(0.78f, 0.75f, 0.7f) : new Color(0.55f, 0.52f, 0.5f));
+        }
+    }
+
     /// <summary>
     /// Un éclair : une ligne brisée de pixels d'art, redessinée plusieurs fois par seconde (elle crépite), un cœur
     /// blanc bleuté et un halo bleu (comme la foudre de l'Oiseau-tonnerre), qui s'éteint. Le tir du Mage de la Tour.

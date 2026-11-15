@@ -147,7 +147,8 @@ public partial class BattleFieldView : Control
 
     /// <summary>« transform » (facultatif) : jouée avant un déplacement (le Vampire devient chauve-souris), et à
     /// l'envers à l'arrivée.</summary>
-    private const string Idle = "idle", Move = "move", AttackState = "attack", Transform = "transform";
+    // « throw » : le lancer du crochet (le Tourmenteur), joué une fois, sa feuille facultative
+    private const string Idle = "idle", Move = "move", AttackState = "attack", Transform = "transform", Throw = "throw";
 
     /// <summary>
     /// La place de chaque côté de la grille (étape 7) : le sol continue, pour les héros (et plus tard les machines de
@@ -234,6 +235,10 @@ public partial class BattleFieldView : Control
 
     /// <summary>Les animations des sorts (ce qui part du héros, ce qui se joue sur une troupe).</summary>
     private readonly SpellEffects _spells = new();
+
+    /// <summary>La chaîne du crochet du Tourmenteur pendant qu'il la lance et la tire : sa main, le crochet, et combien elle
+    /// pend (en pixels de l'écran) ; null le reste du temps.</summary>
+    private (Vector2 Hand, Vector2 Hook, float Sag)? _chain;
 
     /// <summary>D'où part le prochain arc d'une chaîne d'éclairs : le héros, puis chaque troupe touchée.</summary>
     private Vector2 _chainFrom;
@@ -1474,22 +1479,7 @@ public partial class BattleFieldView : Control
                     }, 0.35);
                     break;
                 case UnitHooked hooked:
-                    double pull = 0;
-                    Vector2 from = default;
-                    var to = UnitCenter(hooked.Target, hooked.To);
-                    _animations.Enqueue(delta =>
-                    {
-                        // la cible glisse jusqu'au Tourmenteur, au bout de la chaîne
-                        if (pull == 0)
-                        {
-                            from = _shown[hooked.Target].Position;
-                            _floating.Add(("Crochet !", _shown[hooked.Hooker].Position + Ui.V(0, -70), 0, MapRenderer.Rgb(200, 200, 210)));
-                        }
-                        pull += Math.Max(delta, 1e-6);
-                        float k = (float)Math.Min(1, pull / 0.3);
-                        _shown[hooked.Target].Position = from.Lerp(to, k);
-                        return k >= 1;
-                    });
+                    ShowHook(hooked.Hooker, hooked.Target, UnitCenter(hooked.Target, hooked.To));
                     break;
                 case UnitSeduced seduced:
                     Announce(seduced.Unit, "Séduit", MapRenderer.Rgb(255, 120, 200));
@@ -1661,7 +1651,8 @@ public partial class BattleFieldView : Control
     /// Développement : « --effect-preview=foudre » joue cet effet sur la case d'une troupe après l'autre, toutes les deux
     /// secondes ; « --effect-preview=foudre:0.2 » le fige à cet instant (0,2 seconde après son départ) sur la dernière troupe
     /// du camp de droite (la plus basse : l'éclair le plus long), pour les captures. Un tir (« --effect-preview=eclair ») part
-    /// sans cesse de la première troupe de gauche vers la première de droite.
+    /// sans cesse de la première troupe de gauche vers la première de droite. « --effect-preview=crochet » : le crochet du
+    /// Tourmenteur (<see cref="PreviewHook"/>).
     /// </summary>
     private static readonly string? EffectPreviewArg = OS.GetCmdlineUserArgs()
         .FirstOrDefault(a => a.StartsWith("--effect-preview="))?["--effect-preview=".Length..];
@@ -1793,6 +1784,11 @@ public partial class BattleFieldView : Control
         if (EffectPreviewArg is not { } arg || Battle == null)
             return;
         var parts = arg.Split(':');
+        if (parts[0] == "crochet")
+        {
+            PreviewHook();
+            return;
+        }
         if (!BattleEffects.PlaysOnHex(parts[0]))
         {
             // un tir (« eclair ») : de la première troupe de gauche vers la première de droite, relancé sans cesse pour
@@ -1821,6 +1817,82 @@ public partial class BattleFieldView : Control
             targets = new() { frozen != null ? targets[^1] : targets[_previewTurn++ % targets.Count] };
         foreach (var shown in targets)
             _effects.OnHex(parts[0], Ground(shown), frozen);
+    }
+
+    /// <summary>
+    /// Le crochet du Tourmenteur : il le lance (sa feuille « throw », s'il en a une) ; le crochet part de sa main
+    /// (« throwPoint ») à l'image « throwFrame », vole jusqu'à la cible au bout de sa chaîne, puis la tire jusqu'à
+    /// <paramref name="to"/>, contre lui.
+    /// </summary>
+    private void ShowHook(BattleUnit hookerUnit, BattleUnit targetUnit, Vector2 to)
+    {
+        double age = 0;
+        Vector2 from = default;
+        _animations.Enqueue(delta =>
+        {
+            var hooker = _shown[hookerUnit];
+            var target = _shown[targetUnit];
+            bool throws = Sheet(hookerUnit, Throw) != null;
+            if (age == 0)
+            {
+                from = target.Position;
+                hooker.FacesLeft = from.X < hooker.Position.X;
+                if (throws)
+                    hooker.Play(Throw);
+                _floating.Add(("Crochet !", hooker.Position + Ui.V(0, -70), 0, MapRenderer.Rgb(200, 200, 210)));
+            }
+            age += Math.Max(delta, 1e-6);
+            double release = throws ? (Setting(hookerUnit, "throwFrame") ?? 3) / Fps(hookerUnit, Throw) : 0;
+            const double flight = 0.25, pull = 0.35;
+            var hand = SheetPoint(hookerUnit, hooker, "throwPoint", Throw) ?? BodyCenter(hookerUnit, hooker);
+            if (age < release)
+                return false;
+            if (age < release + flight)
+            {
+                // le crochet vole, la chaîne pend encore un peu
+                float k = (float)((age - release) / flight);
+                _chain = (hand, hand.Lerp(BodyCenter(targetUnit, target), k), Ui.Px(14) * k);
+                return false;
+            }
+            // la chaîne se tend et ramène la cible
+            float p = (float)Math.Min(1, (age - release - flight) / pull);
+            target.Position = from.Lerp(to, p);
+            _chain = (hand, BodyCenter(targetUnit, target), Ui.Px(14) * (1 - p));
+            if (p < 1)
+                return false;
+            _chain = null;
+            hooker.Play(Idle);
+            return true;
+        });
+    }
+
+    /// <summary>
+    /// Développement (« --effect-preview=crochet ») : le premier Tourmenteur de gauche lance son crochet sur la troupe de
+    /// droite la plus proche, la tire contre lui, puis elle revient à sa place ; sans cesse.
+    /// </summary>
+    private void PreviewHook()
+    {
+        if (_animations.Count > 0)
+            return;
+        var hooker = _shown.Keys.FirstOrDefault(u => u.Side == BattleSide.Attacker && u.Has(Ability.Hook) && !_shown[u].Gone);
+        if (hooker == null)
+            return;
+        var start = _shown[hooker].Position;
+        var target = _shown.Keys.Where(u => u.Side == BattleSide.Defender && !_shown[u].Gone)
+            .OrderBy(u => _shown[u].Position.DistanceTo(start)).FirstOrDefault();
+        if (target == null)
+            return;
+        var home = _shown[target].Position;
+        ShowHook(hooker, target, start + (home - start).Normalized() * HexWidth);
+        double wait = 0;
+        _animations.Enqueue(delta =>
+        {
+            wait += delta;
+            if (wait < 1.2)
+                return false;
+            _shown[target].Position = home;
+            return true;
+        });
     }
 
     /// <summary>Une troupe qui apparaît en cours de combat : cachée jusqu'à son animation (<see cref="Appear"/>).</summary>
@@ -2028,6 +2100,8 @@ public partial class BattleFieldView : Control
             // chaque sort qui dure a son aura (la Bénédiction : des grains d'or qui montent…)
             DrawAuras(unit, shown, false);
         }
+        if (_chain is { } chain)
+            BattleEffects.DrawChain(this, chain.Hand, chain.Hook, chain.Sag);
         _effects.Draw(this);
         _spells.Draw(this);
 
@@ -2087,8 +2161,8 @@ public partial class BattleFieldView : Control
         int index = shown.State == Idle && IdlePause(unit) is var (least, most)
             ? IdleFrameWithPauses(time, Fps(unit, Idle), least, most, shown.Phase, frames)
             : (int)(time * Fps(unit, state));
-        // l'attaque et la transformation sont jouées une fois (la transformation parfois à l'envers)
-        index = state is AttackState or Transform ? Math.Min(index, frames - 1) : index % frames;
+        // l'attaque, le lancer et la transformation sont joués une fois (la transformation parfois à l'envers)
+        index = state is AttackState or Transform or Throw ? Math.Min(index, frames - 1) : index % frames;
         if (state == Transform && shown.Backwards)
             index = frames - 1 - index;
         int rows = (frames + AnimationColumns - 1) / AnimationColumns;
@@ -2154,12 +2228,19 @@ public partial class BattleFieldView : Control
     /// Le point <paramref name="setting"/> (« launchPoint », ou « launchPoint2 » : la seconde main du Mage, d'où part un
     /// second éclair) de l'image d'attaque, à l'écran ; null si la créature ne l'a pas.
     /// </summary>
-    private static Vector2? LaunchPoint(BattleUnit unit, Shown shown, string setting)
+    private static Vector2? LaunchPoint(BattleUnit unit, Shown shown, string setting) =>
+        SheetPoint(unit, shown, setting, AttackState);
+
+    /// <summary>
+    /// Le point <paramref name="setting"/> d'une image de la feuille <paramref name="state"/> (« throwPoint » : la main
+    /// qui lance le crochet), à l'écran ; null si la créature n'a pas ce point ou cette feuille.
+    /// </summary>
+    private static Vector2? SheetPoint(BattleUnit unit, Shown shown, string setting, string state)
     {
-        if (PointSetting(unit, setting) is not { } point || Sheet(unit, AttackState) is not { } sheet)
+        if (PointSetting(unit, setting) is not { } point || Sheet(unit, state) is not { } sheet)
             return null;
         var foot = shown.Position + new Vector2(0, HexHeight / 2 - Ui.Px(10));
-        int rows = (Frames(unit, AttackState) + AnimationColumns - 1) / AnimationColumns;
+        int rows = (Frames(unit, state) + AnimationColumns - 1) / AnimationColumns;
         var cell = new Vector2(sheet.GetWidth() / AnimationColumns, sheet.GetHeight() / rows);
         float x = (point.X - cell.X / 2) * BattleSpriteScale;
         if (shown.FacesLeft ?? unit.Side == BattleSide.Defender)

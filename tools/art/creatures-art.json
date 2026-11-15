@@ -1828,6 +1828,34 @@
         "carte": "p1-2"
       },
       "grande": "art-candidats/references/derives/limon-magma-grand.png"
+    },
+    "tourmenteur": {
+      "nom": "Tourmenteur",
+      "gabarit": "humain",
+      "hauteur": 100,
+      "generation": [
+        128,
+        128
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "succube",
+        "demon"
+      ],
+      "notes": "Enfer, niveau 5 : le crochet ; un wendigo au crâne de cerf (références de l'utilisateur, 2026-11-15). Deux styles : os et cendre (L1, L2), rouge de l'Enfer (L3, L4).",
+      "references": [
+        "art-candidats/references/enfer/tormentor1.png::character reference (a hunched wendigo with a deer skull, big antlers, a shaggy mane, a gaunt body, long clawed arms and hooves): keep this design, its pose and its proportions; ignore the ink style, the hanging crosses and the white paper",
+        "art-candidats/references/enfer/tormentor2.png::concept reference (a wendigo with a deer skull, antlers, visible ribs, black fur and very long claws): keep the visible ribs, the black fur and the long claws; ignore the ink style, the text and the white paper"
+      ],
+      "description": "a tormentor demon, a tall gaunt hunched wendigo: a blood-stained deer skull for a head with big branching antlers and sharp teeth, glowing red eyes in the sockets, a shaggy black mane on its neck and shoulders, sinewy dark red skin with visible ribs, very long thin arms with long clawed fingers, digitigrade legs with black fur and hooves, a heavy rusty iron chain wrapped around one arm ending in a big sharp meat hook held in its claws, menacing",
+      "sujet": "a gaunt wendigo with a blood-stained deer skull head and antlers, black fur, dark red skin, long claws, holding a chain with a meat hook, facing right",
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
     }
   }
 }

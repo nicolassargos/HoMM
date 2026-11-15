@@ -65,7 +65,7 @@ public partial class MainMenu : CanvasLayer
         _saves.LoadChosen += entry => LoadChosen?.Invoke(entry);
     }
 
-    /// <summary>Les réglages : pour l'instant, le plein écran.</summary>
+    /// <summary>Les réglages : le plein écran et le volume du son.</summary>
     private void ShowSettings()
     {
         var dialog = new GameDialog
@@ -76,6 +76,7 @@ public partial class MainMenu : CanvasLayer
         dialog.AddButton(Texts.FullscreenButton, false, "fullscreen").TooltipText =
             Texts.KeyTooltip(Texts.FullscreenTooltip, "F11 ou Alt+Entrée");
         dialog.CustomAction += _ => Main.ToggleFullscreen();
+        dialog.AddChild(VolumeSliders.Make(400));
         dialog.Confirmed += () => dialog.QueueFree();
         dialog.Canceled += () => dialog.QueueFree();
         AddChild(dialog);

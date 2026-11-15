@@ -611,8 +611,12 @@ public static class Texts
     public static string NewGameTooltip => "Choisir la taille de la carte, la graine et les façons de gagner";
     public static string LoadGameButton => "Charger";
     public static string SettingsButton => "Réglages";
-    public static string SettingsTooltip => "Plein écran";
+    public static string SettingsTooltip => "Plein écran, volume du son";
     public static string SettingsText => "D'autres réglages viendront plus tard.";
+    public static string SoundTitle => "Son";
+    public static string MusicVolumeLabel => "Musique";
+    public static string EffectsVolumeLabel => "Effets";
+    public static string AmbienceVolumeLabel => "Ambiance";
     public static string MainMenuButton => "Menu principal";
     public static string MainMenuTooltip => "Revenir au menu principal";
     public static string MainMenuTitle => "Menu principal";

@@ -33,7 +33,7 @@ termine, et ne garder ici qu'une ligne. La méthode des images est dans `tools/a
    difficulté, un château au départ pour chaque joueur. **Plus tard (étape 10)** : entraîner les profils de difficulté
    par des parties entre IA, jouées sans affichage.
 9. **Contenu (en cours)** : la magie d'abord, puis les factions, les héros, les habitations sur la carte (ci-dessous).
-10. Finitions : apparence et détails (ci-dessous).
+10. Finitions : apparence et détails, **les sons et la musique** (ci-dessous).
 
 ## Étape 9 : contenu
 
@@ -1048,6 +1048,32 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).
 - Entraîner les profils de difficulté par des parties entre IA.
 - Petits détails et équilibrage fin.
+
+### Les sons et la musique (à concevoir)
+Commencé avec l'utilisateur (2026-11-15) : le jeu n'a encore ni son ni musique. Une première liste, à revoir ensemble.
+- **Les musiques** (longues, 1 à 3 minutes, qui bouclent ; 20 à 30 en tout) : le menu ; la carte, une par terrain (4 à
+  8) ; **une par ville, donc par faction** (8 : comme Heroes, chaque ville a son humeur) ; le combat (2 ou 3) ; de
+  courts airs (5 à 10 secondes) pour la victoire, la défaite, un niveau gagné, une nouvelle semaine.
+- **Les sons** (courts, moins de 2 secondes ; 150 à 250) : l'interface (clic, survol, fenêtres, page qui tourne,
+  construire, recruter, l'or) ; la carte (pas du héros, ramasser, prendre une mine, monter en bateau) ; **chaque créature
+  au combat** (attaque, coup reçu, mort, et pour certaines marche ou tir : le plus gros du travail) ; chaque sort (18).
+- **Les ambiances** (longues boucles discrètes) : le vent, la mer, les oiseaux de la forêt, la lave de l'Enfer…
+- **D'où les prendre** (à essayer et comparer avant de produire en nombre) : des bibliothèques libres (Freesound CC0,
+  Kenney, OpenGameArt, les lots Sonniss de la GDC) pour l'interface, les pas et les ambiances ; des sons générés (IA)
+  pour les créatures et les sorts ; de la musique générée (IA) si elle plaît, ou des lots payants. **Noter la licence de
+  chaque fichier.**
+- **Dans le jeu** : les sons suivent les **événements** des règles (`TakeEvents()`), comme les animations ; une classe
+  `Audio` dans `Game/` (bus Musique, Effets, Ambiance ; volumes dans les Options, gardés dans `Settings`) ; un fichier de
+  données (`godot/data/sounds.json` : un événement, ou une créature et son action, vers un ou plusieurs fichiers, tirés au
+  hasard pour ne pas répéter) ; la musique passe en fondu entre carte, ville et combat. Les outils dans `tools/audio/`
+  (comme `tools/art/` : générer, une page d'écoute pour choisir, mettre au même volume).
+- **Dans l'ordre** (proposé) : 1. ✅ la base technique (2026-11-15, branche `sons`) : `Game/Audio.cs` (musique en fondu
+  et en boucle, qui survit au changement de scène ; un clic pour chaque bouton ; les sons des événements de la carte :
+  ramasser, coffre, prendre une mine ou une ville, construire, niveau, nouvelle semaine, victoire, défaite), les volumes
+  dans les trois fenêtres d'options, `data/sounds.json`, des sons et musiques d'attente synthétisés par
+  `tools/audio/attente.py` (`godot/audio/attente/`, à remplacer ; test `SonsTests`) ; 2. un essai :
+  les sons d'un combat (les créatures d'une faction, quelques sorts) et une musique de combat, de 2 ou 3 sources côte à
+  côte sur une page d'écoute, l'utilisateur choisit à l'oreille ; 3. le reste partie par partie, comme les images.
 
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à 700 × (n−1) × n / 2 d'expérience (1000 avant les prix barbares, 2026-11-09 : la simulation gagne

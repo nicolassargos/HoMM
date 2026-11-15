@@ -566,7 +566,7 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   route y couvre 3 à 9 % de la terre, 13 % chez nous ; 1,3 à 1,5 villes pour 1000 cases de terre) : le réseau principal
   est un arbre entre les villes, les mines des villes et les ports, de courts sentiers mènent aux autres mines (5 cases)
   et aux lieux (3 cases) ; au plus 1,5 villes pour 1000 cases de terre (chaque joueur garde sa ville voisine). Mesuré :
-  routes 7,5 % de la terre (normale), 8,4 % (grande), 5 % (îles), 11,6 % (petite : 4 villes sur peu de terre). À revoir : une route dans les zones sans ville ; la quantité de routes.
+  routes 7,5 % de la terre (normale), 8,4 % (grande), 5 % (îles), 11,6 % (petite : 4 villes sur peu de terre). Une route dans les zones sans ville et la quantité de routes : à revoir avec des zones plus variées.
   **Les sortes et le dessin des routes (en cours, 2026-11-15, branche `routes-suite`)**, avec l'utilisateur. D'après 43
   cartes de Heroes 3 (`tools/cartes/sortes_routes_h3.py` : terre 37 %, gravier 31 %, pavés 33 % ; une carte emploie
   surtout une sorte, en longs morceaux ; la sorte dépend peu de ce que la route relie) : **une sorte par zone**
@@ -581,7 +581,9 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   pas des formes ; le code reste, éteint). ✅ L'herbe qui déborde sur la
   route (2026-11-15, branche `routes-herbe`, choix de l'utilisateur) : par plaques et en touffes, sans herbe sur
   certains tronçons, envahie sur d'autres. ✅ Le bord sur le sable (2026-11-15, branche `routes-sable`, choix de l'utilisateur) : le sable
-  recouvre un peu le bord, un bourrelet clair à côté. **Ensuite** : une revue de six cartes. **Plus tard** (idées) : une route
+  recouvre un peu le bord, un bourrelet clair à côté. ✅ Une revue de six cartes (2026-11-15,
+  `art-candidats/archives/2026-11-15-routes-revue/`) : les routes vont bien ainsi (choix de l'utilisateur) ; elles seront
+  revues quand les zones seront plus variées. **Plus tard** (idées) : une route
   enneigée (avec un sol de neige) ; un coût de marche par sorte comme Heroes 3 (pavés 50 %, gravier 65 %, terre 75 %) ;
   une entrée pavée devant chaque ville (Heroes 2) ; des ornières ou des flaques dessinées sur la terre ; **le shader de
   l'herbe sera revu par l'utilisateur** (le bord des routes prend la couleur du sol, il suivra).

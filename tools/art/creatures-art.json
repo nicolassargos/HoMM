@@ -1776,16 +1776,24 @@
       ],
       "notes": "Enfer, niveau 2 : des humains qui ont vendu leur âme ; sacrifice avant chaque attaque (références de l'utilisateur, 2026-11-15). Deux styles : robe rouge à capuche (L1, L2), prêtre du sang chauve et tatoué (L3, L4).",
       "references": [
-        "art-candidats/references/enfer/occultist4.png::character reference (a bald bearded blood priest with a rune tattooed on his forehead, a dark red sleeveless robe, a belt full of knives, bare feet): keep this design, his face, his robe and his knives; ignore the white background"
+        "art-candidats/references/enfer/occultist3.png::character reference (a cultist in a deep red hooded robe with gold trim, a grinning face with red eyes in the shadow of the hood): keep this design, the hood and the colours; ignore the copyright text and the background",
+        "art-candidats/references/enfer/occultist2.png::costume reference (a tall robed cultist with a red hood and a long dark red robe with gold bands): keep the long robe and the gold bands; ignore the grey background"
       ],
-      "description": "a human cultist standing: a bald man with a black beard and a demonic rune tattooed on his forehead, gold earrings, a dark red sleeveless robe, a leather belt with many sacrificial knives, a curved ritual dagger in one hand, bare feet, bare muscular arms with leather bracers, fanatical",
-      "sujet": "a bald bearded human cultist in a dark red sleeveless robe, holding a curved ritual dagger, facing right",
+      "description": "a human cultist standing hunched: a deep red hooded robe with gold trim and wide sleeves, the face in the shadow of the hood with glowing red eyes and a wicked grin, a curved ritual dagger in one hand, a rope belt, dark boots, sinister and fanatical",
+      "sujet": "a human cultist in a deep red hooded robe with gold trim, holding a curved ritual dagger, facing right",
       "lots": {
         "L1": "références",
         "L2": "angle seul",
         "L3": "références",
         "L4": "angle seul"
-      }
+      },
+      "choix": {
+        "fixe": "L1-3",
+        "idle": "priere-1",
+        "move": "marche-3",
+        "attack": "coup-1-r"
+      },
+      "grande": "art-candidats/references/derives/cultiste-grand.png"
     }
   }
 }

@@ -423,6 +423,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (« - », sinon les essais gardent l'angle du style), « front three-quarter view from above: the horse comes toward the
   viewer, turned only a little to the right… », la vue de face, le profil et l'image choisie comme modèles ; un essai
   tourné vers la gauche sert aussi, retourné. Vérifier ensuite que chaque vue est posée au même sol (rangée 45).
+  Si le sud-est reste de trois quarts (le nécromancien), prendre **le sud-est du rôdeur (`hero-foret-se.png`) comme
+  style** : c'est le style qui fixe l'angle. La vue de face en modèle tire vers le plein sud (et vers un fond blanc).
+  Mesurer la hauteur des essais (45 comme les autres vues ; l'utilisateur voit tout de suite un dessin plus petit) et
+  retirer les plus petits de la page. Écrire la couleur de la cape dans la description (sinon elle sort sombre).
+  Le sud-est du chef barbare n'a jamais été juste (six lots) : il garde l'ancien.
 
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans

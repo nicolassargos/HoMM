@@ -312,6 +312,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   tall » (64 × 48) donne de grosses souches, à réduire ensuite (`reduire.py`, 80 %) pour tenir dans une case. Le bois
   d'une souche moussue réutilisé dans le désert : `blanchir.py`. Les arbres du désert reposent sur une tache de sable :
   `sans_socle.py --sable` (le sable clair seul est retiré dans les colonnes du tronc, sinon un tronc brun clair disparaît).
+- Marais (2026-11-16) : `edge-swamp` (cyprès, arbres morts, saules), `trunk-swamp`, `bush-swamp`, `mid-swamp` (bouleaux,
+  petits saules), `far-swamp`, `side-swamp` (roseaux, fougères), `obstacle-swamp`, `detail-swamp` ; descriptions
+  « damp swamp, muted dark greens and browns » et « no water under it ». Un saule : « long thin drooping branches
+  hanging down like a curtain almost to the ground » ; demandé gros (« very thick short trunk, broad full crown »), il
+  devient une boule : garder les candidats où les branches pendent encore. Les arbres obstacles à 64 × 80 (comme le
+  chêne de l'herbe) : à 48 de large, ils paraissaient grêles. Mousse et bois gris : `sans_socle.py` prend un tronc gris
+  pour une ombre (il efface les racines) et les mousses vertes pour de l'herbe : `--buisson` pour les souches, rochers et
+  troncs moussus ; un tronc gris : ne retirer que le vert. L'eau sous un arbre (anneau bleu-vert) n'est pas retirée.
 - Des troncs : demander « the lower part of a very tall tree » donne de jeunes arbres à petite couronne ; posés au fond,
   leur couronne sort du cadre et l'on ne voit que les troncs.
 

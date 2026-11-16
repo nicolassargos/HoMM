@@ -71,8 +71,20 @@ public class CombatTactiqueTests
         Assert.Equal(3, battle.Alive(BattleSide.Attacker).Select(u => u.Position).Distinct().Count());
         // quelques obstacles au milieu, jamais sur une troupe
         Assert.InRange(battle.Field.Obstacles.Count, TacticalBattle.MinObstacles, TacticalBattle.MaxObstacles);
-        Assert.All(battle.Field.Obstacles, o => Assert.InRange(o.Col, 2, Battlefield.Columns - 3));
+        Assert.All(battle.Field.Obstacles, o => Assert.InRange(o.Col, 3, Battlefield.Columns - 4));
         Assert.All(battle.Units, u => Assert.DoesNotContain(u.Position, battle.Field.Obstacles));
+    }
+
+    [Fact]
+    public void Les_obstacles_sont_plutot_au_milieu_du_champ()
+    {
+        var columns = new int[Battlefield.Columns];
+        for (int seed = 0; seed < 200; seed++)
+            foreach (var o in new TacticalBattle(ArmyOf(("paysan", 30)), ArmyOf(("loup", 10)), new GameRandom(seed)).Field.Obstacles)
+                columns[o.Col]++;
+        // la colonne du milieu plus souvent que ses voisines, et elles plus souvent que les colonnes 3 et 7
+        Assert.True(columns[5] > columns[4] && columns[5] > columns[6]);
+        Assert.True(columns[4] > columns[3] && columns[6] > columns[7]);
     }
 
     [Fact]

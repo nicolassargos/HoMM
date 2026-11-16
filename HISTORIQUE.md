@@ -1841,6 +1841,32 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   changé en dôme d'or en bulbe (`retoucher`, h-1 ; l'utilisateur aime l'air oriental, accordé aux Naga et Djinn).
   Luminosité ramenée de 156 à 125, celle du Château (`tools/art/luminosite.py`, nouvel outil) ; pieds revus par
   l'utilisateur (trois segments, opacité 0,9).
+- ✅ Champ de bataille du marais (2026-11-16, branche `champ-marais`). Choix de l'utilisateur : **les deux à la fois**, un
+  bayou à la lisière (cyprès à mousse espagnole, arbres morts, saules pleureurs, grands troncs, buissons) et une tourbière
+  au paysage ouvert (bouleaux, petits arbres lointains) ; **des flaques où l'on marche** (pas des obstacles). Palette
+  `SwampPalette` (ciel couvert gris-vert, collines basses bleu-gris, pré de la couleur du sol mesurée en jeu,
+  0,40 / 0,32 / 0,20). Flaques (`BuildPuddles`, drapeau `Puddles`) : une dizaine, de 1 à 3 ronds aplatis au bord déformé
+  par un bruit doux, une rive de boue mouillée en paliers de 25 et 50 %, quelques taches de boue sans eau ; l'eau olive
+  (bleutée, elle jurait avec la boue brune), d'après la distance à la rive du haut : la rive reflétée (sombre), une
+  **bande de ciel étroite** qui se défait en traits (large et pâle, elle faisait des rochers gris), puis l'eau trouble ;
+  des rides, des nénuphars, des joncs sur les bords et sur la rive du haut avec leur reflet renversé. Pas de terre battue.
+  **Moins de taches vertes** sur le sol (`SmoothGround.FewerSpecks`, au combat seulement) : l'image du marais a des
+  touffes vertes qui se répétaient trop sur un grand champ ; les petites (4 pixels au plus) restent, les grandes
+  (6 à 28 pixels) prennent la boue d'à côté (essayé : en enlever deux sur trois, puis garder une grande sur trois : trop).
+  Paysage ouvert : bouleaux fondus dans une brume plus sombre (leurs feuilles presque blanches restaient claires avec
+  la brume ordinaire), des mares lointaines dans le pré, à moitié de la couleur des collines (plus pâles, trop voyantes).
+  Images Retro Diffusion (5,04 $ : 16 sujets puis les saules, puis des arbres obstacles plus gros à 64 × 80, comme le
+  chêne de l'herbe, demandés « plus gros ou plus épais » par l'utilisateur) ; deux retouches à la main : un arbre au
+  tronc gris (pris pour une ombre par `sans_socle.py` : seule l'herbe retirée) et un saule posé sur un anneau d'eau
+  bleu-vert. **Le raccord du pré et du sol** des paysages ouverts (herbe, désert, marais) : une ligne nette coupait la
+  scène en deux (remarque de l'utilisateur) ; le pré se fond maintenant sur 8 rangées, en paliers mêlés d'un pixel à
+  l'autre, depuis un bord qui ondule, et la brume commence au pied des collines et culmine sur le raccord (elle
+  commençait juste au raccord et doublait la ligne). **Les obstacles plutôt au milieu** (règle, tous terrains) :
+  colonnes 3 à 7 seulement (jamais la première devant chaque camp), la colonne du milieu le plus souvent (1, 2, 3, 2, 1
+  sur 9), les rangées du milieu un peu plus souvent ; test `Les_obstacles_sont_plutot_au_milieu_du_champ`. Les tirages
+  du combat changent : deux tests revus (le prix du sang du Démoniste compté avec le vol du Diablotin ; l'adversaire
+  sans ville n'attaque qu'avec au plus 10 % de pertes prévues : 200 paysans contre 40 au lieu de 60, qui était à la
+  limite).
 - ✅ Champ de bataille du désert (2026-11-11, branche `champ-sable`). Une palette par terrain pour le paysage
   (`ScenePalette` : ciel, chaînes, pré, brumes, ombre ; `FlatTops` pour des mesas, `Dunes` pour des dunes une à une, face
   raide à l'ombre au bord en biais et incurvé), `--battle-terrain=sand`. Écartés : les cactus (un désert américain), les
@@ -2631,8 +2657,9 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   désert américain : choix de l'utilisateur) : toujours le paysage ouvert (ciel pâle, mesas, dunes une à une dont la face
   à l'ombre a un bord en biais), des dunes en relief sur le champ, un sol de marques légères d'après des références de
   l'utilisateur (rides de vent, traînées de points, fissures, touffes, cailloux de couleurs mêlées, en taches irrégulières
-  aux couleurs nuancées), grès, grosses souches et troncs blanchis, arbustes, buissons épineux, palmiers. Reste : le
-  marais (même recette), peut-être des rochers dans les collines et quelques nuages. Détail dans `HISTORIQUE.md`.
+  aux couleurs nuancées), grès, grosses souches et troncs blanchis, arbustes, buissons épineux, palmiers. ✅ **Le
+  marais** (2026-11-16, branche `champ-marais`) : un bayou à la lisière, une tourbière au loin, des flaques où l'on
+  marche. Reste : peut-être des rochers dans les collines et quelques nuages.
 - Le héros sur la carte et au combat ; cadres des portraits, bandeau de la date. ✅ **Le héros du Château sur la
   carte** (2026-11-14, branche `heros-carte`, choix de l'utilisateur) : une image par faction, 48 × 48, gauche et droite,
   une marche de 8 images avec un rebond, un pas de 3 cases par seconde avec un élan par case. ✅ **La marche dans les

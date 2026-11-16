@@ -1502,6 +1502,19 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
     embouchure (`RiverField`).
   Au passage : le commit des roseaux sur le sable et de l'herbe des plages, poussé après la fusion de `rives`, est repris
   ici.
+- ✅ Le delta des ruisseaux et des rives arrondies (2026-11-16, branche `delta`, choisis par l'utilisateur sur une page
+  de comparaison en trois tours, `art-candidats/archives/2026-11-16-delta/`) :
+  - **de vrais bras** (`RiverField.Delta`) : à l'embouchure, le sens du ruisseau (sa dernière case vers la case d'eau)
+    donne un ou deux bras plus étroits (`Arm` 1,5 pixel de moins) qui quittent le ruisseau une case avant la rive et
+    s'ouvrent en éventail vers l'eau ; à gauche, à droite ou les deux selon un tirage par embouchure ; pas de bras du
+    côté d'où vient le ruisseau (il le recouvrirait), ni s'il ne finit pas dans l'eau. La terre entre les bras devient
+    des îlots de sable. Le ruisseau s'élargit moins (`stream_delta` 4 → 2).
+  - **des rives arrondies** (l'utilisateur trouvait trop d'angles durs) : la rive des lacs et de la mer suivait les
+    cases (droite le long d'une rangée, à 45° le long d'un escalier) ; `water_part` la mêle à une courbe douce sur les
+    neuf cases autour (B-spline quadratique, `shore_round` 0,8). Écarté : toute en courbes et plus ondulée
+    (`shore_round` 1, `shore_wave` 1,4), qui pince certaines rives. Les cases où l'on marche ne changent pas.
+  - **l'embouchure fondue** : l'écume de la rive barrait l'entrée du ruisseau (l'eau du ruisseau compte maintenant
+    pour l'écume, `water_at`), et le ruisseau prend peu à peu la teinte claire de l'eau où il se jette.
 - ✅ Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, en deux tours avec l'utilisateur sur une page de
   six cartes entières, `art-candidats/archives/2026-11-15-rivieres/`). D'après 50 cartes de Heroes 3
   (`tools/cartes/rivieres_h3.py`) : 40 en ont, 2,3 % de la terre en médiane, 0,6 rivière pour 1000 cases de terre, longue

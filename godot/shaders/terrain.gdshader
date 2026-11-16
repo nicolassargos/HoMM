@@ -34,6 +34,10 @@ uniform float edge_bias = 2.0;
 uniform float edge_wave = 5.5;
 uniform float wave_scale = 13.0;
 uniform float wave_detail = 0.4;
+// La rive des lacs et de la mer : arrondie (0 : elle suit les cases, en biais à 45° ; 1 : toute en courbes), et son
+// ondulation en plus de edge_wave
+uniform float shore_round = 0.8;
+uniform float shore_wave = 1.0;
 // Mélange entre deux terres : demi-largeur (pixels d'art), grain qui rend le mélange irrégulier,
 // et nombre de paliers (0 = mélange continu ; 4 = 0, 25, 50, 75, 100 %, plus « pixel art »)
 uniform float blend = 3.5;
@@ -191,7 +195,7 @@ uniform float stream_reeds = 0.25;
 uniform float stream_mouth = 9.0;
 // à son embouchure, le ruisseau s'élargit (stream_delta pixels d'art de plus) et se partage autour d'îlots de sable
 // (stream_islets : leur part), et une eau claire en éventail dans l'eau où il se jette
-uniform float stream_delta = 4.0;
+uniform float stream_delta = 2.0;
 uniform float stream_islets = 0.5;
 uniform vec3 bridge_color = vec3(0.56, 0.4, 0.24);
 // Les ponts dessinés en images par le jeu (BridgeLayer), où le shader ne dessine plus de planches : rivières 1 d'ouest en
@@ -371,6 +375,24 @@ float part_of(int t, vec2 p) {
 		mix(float(terrain_at(c0 + ivec2(0, 1)) == t), float(terrain_at(c0 + ivec2(1, 1)) == t), f.x), f.y);
 }
 
+// La part de l'eau autour du pixel d'art p : celle de part_of, mêlée (shore_round) à une courbe douce sur les neuf
+// cases autour (B-spline quadratique), qui arrondit les coins et les biais de l'escalier des cases. Le bord d'une
+// rangée droite de cases reste au milieu entre leurs centres.
+float water_part(vec2 p) {
+	float flat_part = part_of(water, p);
+	if (shore_round <= 0.0) return flat_part;
+	vec2 g = (p + 0.5) / ART - 0.5;
+	ivec2 c = ivec2(round(g));
+	vec2 t = g - vec2(c);
+	vec3 wx = vec3(0.5 * (0.5 - t.x) * (0.5 - t.x), 0.75 - t.x * t.x, 0.5 * (0.5 + t.x) * (0.5 + t.x));
+	vec3 wy = vec3(0.5 * (0.5 - t.y) * (0.5 - t.y), 0.75 - t.y * t.y, 0.5 * (0.5 + t.y) * (0.5 + t.y));
+	float smooth_part = 0.0;
+	for (int y = -1; y <= 1; y++)
+		for (int x = -1; x <= 1; x++)
+			smooth_part += wx[x + 1] * wy[y + 1] * float(terrain_at(c + ivec2(x, y)) == water);
+	return mix(flat_part, smooth_part, shore_round);
+}
+
 // Le mélange au pixel d'art p : terrain de la case (a), autre terrain proche (b), et la part de b (0 à 1).
 // La part de b vaut 0,5 sur la ligne ; la ligne d'un même couple de terrains est la même vue des deux
 // cases, si bien que le mélange se raccorde sans couture.
@@ -391,13 +413,15 @@ void mixture(vec2 p, out int a, out int b, out float share) {
 		for (int j = 0; j < i; j++) seen = seen || around[j] == t;
 		if (seen) continue;
 		// « distance » du pixel au terrain t (pixels d'art ; négative dedans)
-		float d = (0.5 - part_of(t, p)) * ART;
+		// (la rive : la part de l'eau arrondie, vue des deux côtés)
+		bool shore = t == water || a == water;
+		float d = (shore ? (t == water ? 0.5 - water_part(p) : water_part(p) - 0.5) : 0.5 - part_of(t, p)) * ART;
 		// la ligne avance dans cette case si le voisin est au-dessus, recule sinon
 		float side = priority[t] > priority[a] ? 1.0 : -1.0;
-		float line = side * (edge_bias + w * edge_wave);
+		float line = side * (edge_bias + w * edge_wave * (shore ? shore_wave : 1.0));
 		float gap = d - line;
 		float s;
-		if (t == water || a == water) {
+		if (shore) {
 			s = gap < 0.0 ? 1.0 : 0.0; // rive : nette
 		} else {
 			float grain = (noise(center / grain_scale + vec2(float(min(t, a) * 7 + max(t, a)) * 3.1)) - 0.5) * blend_grain;
@@ -422,9 +446,9 @@ int owner(vec2 p) {
 // Distance du pixel d'art p (qui appartient à la terre) à la rive, en pixels d'art (très grande loin de l'eau). La rive
 // est la même ligne que dans mixture() : du côté de l'eau, à edge_bias + ondulation pixels de la ligne du milieu.
 float shore_distance(vec2 p) {
-	float part = part_of(water, p);
+	float part = water_part(p);
 	if (part <= 0.0) return 1e5;
-	return (0.5 - part) * ART + edge_bias + wave(p + 0.5) * edge_wave;
+	return (0.5 - part) * ART + edge_bias + wave(p + 0.5) * edge_wave * shore_wave;
 }
 
 // La sorte de rive autour du pixel d'art p : un bruit doux de 0 à 1 (voir bank_grass, bank_pebbles)
@@ -436,7 +460,7 @@ float bank_kind(vec2 p) {
 // lacs, de la mer et des rivières) ; plus loin, l'image des distances (water_field, bleu), plus grossière
 float water_depth(vec2 p, float river) {
 	float d = max(river, 0.0);
-	if (part_of(water, p) > 0.0) {
+	if (water_part(p) > 0.0) {
 		float lake = -shore_distance(p);
 		if (lake > shallow_width + 3.0)
 			lake = max(lake, texture(water_field, (p + 0.5) / (vec2(map_cells) * ART)).b);
@@ -447,7 +471,7 @@ float water_depth(vec2 p, float river) {
 
 // L'eau au pixel d'art p : un lac, la mer ou une rivière
 bool water_at(vec2 p) {
-	return owner(p) == water || river_depth(p) > 0.0;
+	return owner(p) == water || river_depth(p) > 0.0 || stream_depth(p) > 0.0;
 }
 
 // La taille d'un caillou, tirée pour son carré : 1 × 1, 2 × 1, 2 × 2, 3 × 2 ou 3 × 3 pixels d'art
@@ -848,6 +872,12 @@ void fragment() {
 			float middle = depth - (stream_width - 1.2);
 			if (stream_deep > 0.0 && (middle > 1.0 || (middle > 0.0 && bayer(p) < 0.5)))
 				color = mix(color, deep_color, stream_deep);
+			// à l'embouchure, l'eau prend peu à peu la teinte de l'eau où il se jette (claire contre la rive, et
+			// l'éventail clair du delta)
+			if (mouth > 0.0) {
+				vec3 joined = mix(mix(tile_color(water, p), shallow_color, shallow), shallow_color, stream_shallow * 1.5);
+				color = mix(color, joined, clamp(floor(mouth * 4.0 + bayer(p)) / 4.0, 0.0, 1.0));
+			}
 			vec3 stone;
 			if (stream_stones > 0.0 && stream_stone_at(p, color, stone)) color = stone;
 		}

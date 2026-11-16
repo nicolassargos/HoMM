@@ -162,7 +162,11 @@ Marque : **l'obstination** (une troupe qui ne s'est pas déplacée du round pren
 sont façonnées (résistent à la magie). Classe **Thane** (talent Obstination). Créatures : Porte-bouclier, Arbalétrier,
 Chevaucheur de chèvre, Porte-étendard des ancêtres, Lance-flammes, Gyrocoptère, Machine de guerre (→ Forteresse
 ambulante). ✅ Créatures et capacités, ✅ ville, classe et héros, ✅ ville et héros sur la carte.
-**Reste** : les images des 7 créatures (session images).
+**Reste** : les images des 7 créatures (session images ; des nains caricaturés, chacun le sien, loin des clichés :
+choix de l'utilisateur, 2026-11-16). Le Gyrocoptère devient un nain aux ailes de cuir, de bois et de métal, debout au
+repos, qui s'envole pour se déplacer et lâche ses bombes (idée de l'utilisateur ; son nom sera peut-être à changer).
+**À revoir** (l'utilisateur, 2026-11-16) : l'idée du Lance-flammes et de la Machine de guerre ne lui plaît pas ; à
+repenser ensemble une fois les autres images choisies.
 
 #### L'Enfer (jouable)
 Le chaos et le feu : toutes ses créatures sont insensibles au feu. Marque : **le prix du sang** (chaque créature de

@@ -2079,19 +2079,19 @@
     },
     "gyrocoptere": {
       "nom": "Gyrocoptère",
-      "gabarit": "volant",
-      "hauteur": 72,
+      "gabarit": "humain",
+      "hauteur": 66,
       "generation": [
-        128,
-        128
+        120,
+        120
       ],
       "comparer": [
         "porte-bouclier",
         "gargouille"
       ],
-      "notes": "Nains, niveau 6 : la machine volante (façonnée) ; elle lâche une bombe. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants). Troisième passage (2026-11-16) : plus fou, une baignoire volante à deux nains (L9 et suivants).",
-      "description": "a ridiculous dwarven flying machine hovering: a big dented copper bathtub hanging under a spinning rotor made of four battle axes tied together, a fat sweating dwarf with a huge braided grey beard pedalling a squeaky bicycle crank as fast as he can to turn the rotor, his cheeks red and puffed; in the front of the tub a tiny skinny dwarf bombardier wearing a helmet far too big for him that covers his eyes, holding a lit round bomb, a wicker basket full of bombs, patched sails, a leaking pipe puffing smoke, ropes and planks everywhere, side view, hovering, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd and funny, full of character",
-      "sujet": "a ridiculous dwarven flying copper bathtub under a rotor made of four axes, a fat dwarf pedalling furiously and a tiny dwarf with a too big helmet holding a bomb, side view, facing right",
+      "notes": "Nains, niveau 6 : la machine volante (façonnée) ; elle lâche une bombe. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants). Quatrième passage (2026-11-16, idée de l'utilisateur) : un nain aux ailes de cuir, de bois et de métal, debout au repos, qui s'envole pour se déplacer et lâche ses bombes (L13 et suivants).",
+      "description": "a reckless dwarf inventor standing on the ground with home-made mechanical wings on his back: two big bat-like wings of patched brown leather stretched over wooden ribs, joined by iron hinges, springs and brass gears, half folded behind him, strapped on with a leather harness; the dwarf is short and round, an enormous bushy orange beard tucked into the harness, buck teeth, a crazy eager grin, one eye bigger than the other behind cracked aviator goggles, a dented cooking pot as a helmet, bandages and plasters all over from past crashes, one arm in a sling made of rope, a bandolier of round black bombs across his chest and a bomb held in his free hand, unlit, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd and funny, full of character",
+      "sujet": "a bandaged dwarf inventor with a huge orange beard, cracked goggles and a pot helmet, home-made bat wings of leather, wood and iron on his back, a bandolier of bombs, standing, facing right",
       "style": "godot/art/creatures/battle/moine.png",
       "angle": "godot/art/creatures/battle/troll.png",
       "references": [
@@ -2105,7 +2105,11 @@
         "L9": "références",
         "L10": "angle seul",
         "L11": "références",
-        "L12": "angle seul"
+        "L12": "angle seul",
+        "L13": "références",
+        "L14": "angle seul",
+        "L15": "références",
+        "L16": "angle seul"
       }
     },
     "machine-guerre": {

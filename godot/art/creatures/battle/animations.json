@@ -36,5 +36,8 @@
   "demon": {"transformFrames": 12, "transform": 12, "stepTime": 0.03, "meleeProjectile": "flammes", "launchFrame": 1, "launchPoint": [168, 125]},
   "limon-magma": {"idlePauseMax": 0, "moveFrames": 32, "move": 20},
   "tourmenteur": {"throwFrame": 4, "throwPoint": [143, 101], "throwPoints": [[150, 101], [150, 101], [150, 101], [150, 101], [150, 99], [150, 101.5], [150, 104], [150, 104]]},
-  "diablotin": {"stepTime": 0.3}
+  "diablotin": {"stepTime": 0.3},
+  "arbaletrier": {"projectile": "fleche", "launchFrame": 4, "launchPoint": [79, 40]},
+  "gyrocoptere": {"meleeProjectile": "bombe", "launchFrame": 5, "launchPoint": [141, 61], "stepTime": 0.25},
+  "chevaucheur-chevre": {"move": 14, "stepTime": 0.45}
 }

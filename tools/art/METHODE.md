@@ -279,6 +279,27 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     paliers de couleur de la Boule de feu, boule qui bouillonne, fumée, braises) : un jet fait de couches unies ne
     ressemblait pas à du feu.
   - Une créature qui vole trop vite (le Diablotin) : `stepTime` (0,3 s par case pour un petit volant).
+- **Leçons des Nains** (2026-11-16) :
+  - **Pas de clichés** (choix de l'utilisateur) : chaque créature a sa silhouette, son âge, son visage, des traits
+    exagérés (« a grotesque caricature in the style of a fantasy board game miniature, exaggerated features ») ; une
+    créature de la faction sert de modèle **de rendu seulement** (« completely different face, body shape, hair and
+    gear ») : avec le même croquis pour toutes, les sept nains avaient la même barbe. Oser plus fou.
+  - **Une image fixe immobile** : une monture décrite « charging » galope sur toutes les images ; écrire « stands still
+    on all four hooves, not leaping » et donner l'image choisie comme modèle d'allure.
+  - **Un envol** (le nain ailé) : transformation `--sans-retour` qui finit en l'air, puis le vol animé depuis sa dernière
+    image (`--depart=…/9.png`) : l'envol, le vol et l'atterrissage (l'envol à l'envers) se suivent.
+  - **Le nettoyage du cyan** efface aussi ce qui est cyan pour de vrai (les yeux de la tête de pierre, le cristal du Roi
+    de cristal : 300 à 400 pixels par image) : `"garder_cyan": true` dans la fiche, ou remettre les pixels après coup.
+  - **Les trous** d'une feuille (pixels vides enfermés) : ne boucher que les petits (une douzaine de pixels au plus) ;
+    les grands sont de vrais jours (entre une corne et le cou, un bras et le corps).
+  - **Une traînée ou un éclair collé au corps** : si l'image d'après a la même pose sans l'effet, la copier par-dessus
+    (le marteau du Roi de cristal) ; sinon effacer l'effet et reboucher la forme rangée par rangée (la tête de pierre du
+    Porte-étendard).
+  - **Un objet lancé au corps à corps** (la bombe) : effacer l'objet qui part dans la feuille et le faire dessiner par le
+    jeu (`meleeProjectile`, `launchFrame`, `launchPoint` : là où l'objet quitte la main) ; une explosion de zone joue une
+    fois, les autres troupes touchées n'ont pas de nouveau geste (`UnitStruck.Splash`).
+  - **Une image de la carte au contour trop fort** (la chèvre) : un autre modèle de style plus doux (`cerf.png`) et « thin
+    dark brown outline only » ; l'utilisateur a pourtant gardé un candidat du premier lot.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).

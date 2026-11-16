@@ -1403,13 +1403,18 @@ public partial class BattleFieldView : Control
                     // un coup joué sur la case de la cible (la foudre de l'Oiseau-tonnerre) : l'effet part un peu avant le
                     // coup, pour toucher le sol au moment où il porte
                     bool onHex = shot == null && BattleEffects.PlaysOnHex(TextSetting(struck.Attacker, "impact"));
+                    // la bombe (le Gyrocoptère) explose sur la cible et les cases autour : les troupes voisines touchées
+                    // ensuite le sont par la même explosion, sans nouveau geste
+                    bool bomb = shot == "bombe", blasted = bomb && struck.Splash;
+                    if (blasted)
+                        shot = null;
                     _animations.Enqueue(delta =>
                     {
                         // l'attaquant fait son geste (s'il a une animation d'attaque) ; le coup porte vers la fin
                         var striker = _shown[struck.Attacker];
                         if (boltAge >= 0)
                             boltAge += delta;
-                        if (wind == 0)
+                        if (wind == 0 && !blasted)
                         {
                             // l'attaquant se tourne vers sa cible, et la cible vers lui
                             var struckShown = _shown[struck.Target];
@@ -1442,7 +1447,15 @@ public partial class BattleFieldView : Control
                         wind = Math.Max(wind, 1e-6);
                         if (onHex && boltAge < BattleEffects.LightningHitTime)
                             return false;
-                        if (shot != null && !launched)
+                        if (shot != null && !launched && bomb)
+                        {
+                            launched = true;
+                            var ground = Ground(_shown[struck.Target]);
+                            var area = struck.Target.Hexes.Concat(struck.Target.Hexes.SelectMany(h => h.Neighbours())).Distinct()
+                                .Where(Battlefield.InBounds).Select(h => Center(h) + new Vector2(0, HexHeight / 2 - Ui.Px(10))).ToArray();
+                            _spells.Launch("bombe", LaunchPoint(struck.Attacker, striker), ground - Ui.V(0, 20), ground, area, () => landed = true);
+                        }
+                        else if (shot != null && !launched)
                         {
                             launched = true;
                             _effects.Launch(shot, LaunchPoint(struck.Attacker, striker), BodyCenter(struck.Target, _shown[struck.Target]),
@@ -1461,7 +1474,7 @@ public partial class BattleFieldView : Control
                             target.Recoil = 1;
                             target.RecoilDirection = direction;
                             string impact = shot != null ? BattleEffects.ImpactOf(shot) : TextSetting(struck.Attacker, "impact") ?? "choc";
-                            if (!onHex)
+                            if (!onHex && !bomb)
                                 _effects.Hit(impact, BodyCenter(struck.Target, target), direction);
                             Audio.PlayCreature(struck.Attacker.Type, struck.Ranged ? "shot-impact" : "impact");
                             if (struck.Killed > 0)

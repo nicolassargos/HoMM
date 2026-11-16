@@ -66,11 +66,14 @@ public sealed class SpellEffects
     /// </summary>
     public void Launch(string kind, Vector2 from, Vector2 to, Vector2 ground, Vector2[] area, Action hit)
     {
-        float speed = kind == "boule-de-feu" ? FireballSpeed : BoltSpeed;
-        double flight = Math.Max(0.15, from.DistanceTo(to) / speed);
+        float speed = kind switch { "boule-de-feu" => FireballSpeed, "bombe" => BombSpeed, _ => BoltSpeed };
+        double flight = Math.Max(kind == "bombe" ? 0.35 : 0.15, from.DistanceTo(to) / speed);
         _effects.Add(new Effect { Kind = kind, From = from, To = to, Ground = ground, Area = area, Duration = flight, HitTime = flight,
-            Hit = () => { hit(); Burst(kind == "boule-de-feu" ? "explosion" : "eclat-magique", from, to, ground, area); }, Seed = ++_seed });
+            Hit = () => { hit(); Burst(kind == "fleche-magique" ? "eclat-magique" : "explosion", from, to, ground, area); }, Seed = ++_seed });
     }
+
+    /// <summary>Vitesse de la bombe du Gyrocoptère, lancée à la main : plus lente, en cloche.</summary>
+    private const float BombSpeed = 700;
 
     /// <summary>La pluie de météores : un météore par case, l'un après l'autre ; <paramref name="hit"/> quand le dernier tombe.</summary>
     public void Meteors(Vector2[] area, Action hit)
@@ -239,6 +242,7 @@ public sealed class SpellEffects
             {
                 case "fleche-magique": if (!e.HitDone) DrawMagicBolt(canvas, e); break;
                 case "boule-de-feu": if (!e.HitDone) DrawFireball(canvas, e); break;
+                case "bombe": if (!e.HitDone) DrawBomb(canvas, e); break;
                 case "eclat-magique": DrawMagicBurst(canvas, e, t); break;
                 case "explosion": DrawExplosion(canvas, e, t); break;
                 case "meteores": DrawMeteors(canvas, e); break;
@@ -557,9 +561,12 @@ public sealed class SpellEffects
 
     // ------------------------------------------------------------------ ce qui file du héros à la cible
 
-    /// <summary>Le point du vol au moment <paramref name="k"/> : la flèche magique monte un peu en arc, la boule de feu file droit.</summary>
+    /// <summary>
+    /// Le point du vol au moment <paramref name="k"/> : la flèche magique monte un peu en arc, la boule de feu file droit, la
+    /// bombe monte en cloche.
+    /// </summary>
     private static Vector2 Flight(Effect e, float k) => e.Kind == "boule-de-feu" ? e.From.Lerp(e.To, k)
-        : e.From.Lerp(e.To, k) - new Vector2(0, 0.08f * e.From.DistanceTo(e.To) * 4 * k * (1 - k));
+        : e.From.Lerp(e.To, k) - new Vector2(0, (e.Kind == "bombe" ? 0.3f : 0.08f) * e.From.DistanceTo(e.To) * 4 * k * (1 - k));
 
     private static Vector2 Heading(Effect e, float k) =>
         (Flight(e, Math.Min(1, k + 0.01f)) - Flight(e, Math.Max(0, k - 0.01f))).Normalized();
@@ -682,6 +689,36 @@ public sealed class SpellEffects
         // une seule boule en feu : des flammes l'enveloppent et lèchent un peu vers l'arrière, la sphère brûle au milieu
         Blaze(canvas, here, radius * 1.3f, dir, 0.9f, e.Seed, time, 1, FireColors);
         SwirlBall(canvas, here + dir * 1.5f * U, radius * 0.8f, time * 9, e.Seed, time);
+    }
+
+    /// <summary>
+    /// La bombe du Gyrocoptère en vol : une boule de fonte noire (un reflet en haut), sa mèche qui tourne avec elle et
+    /// crépite d'une étincelle au bout, un filet de fumée derrière.
+    /// </summary>
+    private static void DrawBomb(CanvasItem canvas, Effect e)
+    {
+        float k = (float)Math.Clamp(e.Age / e.Duration, 0, 1);
+        float time = (float)e.Age;
+        var here = Flight(e, k);
+        for (int n = 5; n >= 1; n--)
+        {
+            float back = k - n * 0.05f;
+            if (back > 0)
+                Puff(canvas, Flight(e, back) - new Vector2(0, n * 1.5f * U), (1.5f + n * 0.5f) * U, Smoke, 0.35f * (1 - n / 6f), e.Seed + n);
+        }
+        // la boule (rayons en pixels d'art), cernée de noir
+        Disc(canvas, here, 4.5f, new Color(0.05f, 0.05f, 0.06f));
+        Disc(canvas, here, 3.5f, new Color(0.16f, 0.16f, 0.19f));
+        Disc(canvas, here + new Vector2(-1.5f, -1.5f) * Pixel, 1, new Color(0.45f, 0.45f, 0.5f));
+        // la mèche tourne avec la bombe
+        float spin = time * 9;
+        var dir = new Vector2(MathF.Cos(spin), MathF.Sin(spin));
+        float radius = 4.5f * Pixel;
+        var tip = here + dir * (radius + 3 * Pixel);
+        for (int s = 0; s <= 3; s++)
+            Dot(canvas, here + dir * (radius + s * Pixel), new Color(0.55f, 0.4f, 0.22f));
+        Glow(canvas, tip, 5 * U, 5 * U, FireOrange, 0.5f);
+        Star(canvas, tip, (int)(2 + Noise(e.Seed, (int)(time * 30)) * 2), FireCore, 1);
     }
 
     /// <summary>

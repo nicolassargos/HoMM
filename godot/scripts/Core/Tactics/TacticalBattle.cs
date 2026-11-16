@@ -21,10 +21,11 @@ public sealed record UnitMoved(BattleUnit Unit, IReadOnlyList<Hex> Path) : Battl
 
 /// <summary>
 /// Un coup : <paramref name="Damage"/> points de dégâts, <paramref name="Killed"/> créatures tuées.
-/// <paramref name="Ranged"/> : un tir ; <paramref name="Retaliation"/> : une riposte.
+/// <paramref name="Ranged"/> : un tir ; <paramref name="Retaliation"/> : une riposte ; <paramref name="Splash"/> : une
+/// troupe touchée en plus de la cible (souffle, balayage, explosion), juste après le coup sur la cible.
 /// </summary>
 public sealed record UnitStruck(BattleUnit Attacker, BattleUnit Target, int Damage, int Killed, bool Ranged, bool Retaliation,
-    int Luck = 0) : BattleAction;
+    int Luck = 0, bool Splash = false) : BattleAction;
 
 public sealed record UnitWaited(BattleUnit Unit) : BattleAction;
 
@@ -982,7 +983,7 @@ public sealed partial class TacticalBattle
         int lost = Math.Min(damage, to.TotalHitPoints); // les points de vie vraiment ôtés
         int killed = to.TakeDamage(damage);
         to.Wake();
-        _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation, luck));
+        _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation, luck, splash));
         BloodPrice(to, killed);
         Split(to);
         if (to.Has(Ability.Rage) && to.Enrage(RagePerHit, Talents.RageMax(to.IsRebel ? null : HeroOf(to.Side), RageMax)))

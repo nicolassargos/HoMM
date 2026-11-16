@@ -61,12 +61,23 @@ dans `HISTORIQUE.md` (« Les factions : conception et chiffres »).
 | **Tour de magie** | façonnés, bibliothèque des arcanes | Magicien (Érudit) | Géant → Titan | gemmes | mercure |
 | **Enfer** | le feu, le prix du sang | Démoniste (Pacte) | Démon → Archidémon | mercure | soufre |
 | **Donjon** | la Terreur | Seigneur des abîmes (Effroi) | Hydre → (à choisir) | soufre | mercure |
-| **Nains** | l'obstination, les machines | Thane (Obstination) | Machine de guerre → Forteresse ambulante | cristal | soufre |
+| **Nains** | l'obstination, les runes et le cristal | Thane (Obstination) | Roi de cristal → Roi des ancêtres | cristal | soufre |
 
 ✅ Toutes jouables : créatures et capacités, ville, classe et héros, ville et héros sur la carte ; images des créatures
-(sauf les Nains). La faction neutre garde les monstres de la carte (le Dragon rouge, les pirates).
+(les Nains : 2026-11-16, branche `creatures-nains-images`, des nains caricaturés, chacun le sien, loin des clichés : choix
+de l'utilisateur ; détail dans `HISTORIQUE.md`). La faction neutre garde les monstres de la carte (le Dragon rouge, les
+pirates).
 **Reste** :
-- **Images** : les 7 créatures des Nains (session images).
+- **Nains, deux créatures remplacées** (choix de l'utilisateur, 2026-11-16) : le **Sapeur** (niveau 5, à la place du
+  Lance-flammes : un mineur qui creuse sous le champ, ressort à côté d'un ennemi et frappe le premier, capacité
+  `burrows` du Ver des profondeurs) et le **Roi de cristal → Roi des ancêtres** (niveau 7, à la place de la Machine de
+  guerre : un très vieux roi nain scellé dans le cristal, réveillé pour la guerre ; vivant, pas « façonné » ; le Roi des
+  ancêtres portera une couronne de cristal qui luit). ✅ Leurs données (PR #167 : `sapeur`, `roi-de-cristal`, habitations
+  `galeries-sapeurs` et `caveau-rois` ; le déplacement sous terre du Sapeur marche) et leurs images. **À faire (session
+  règles)** : les deux capacités du Roi (son cristal renvoie les sorts néfastes sur la troupe du lanceur ; tant qu'il ne
+  s'est pas déplacé, toutes les troupes naines gardent l'obstination même après avoir bougé) ; le **Gyrocoptère**, devenu
+  un nain aux ailes de cuir, de bois et de fer (idée de l'utilisateur), n'est plus une machine : sa capacité « façonné »
+  et peut-être son nom.
 - **Noms** : l'Hydre améliorée ; les habitations de l'Enfer, si l'utilisateur le souhaite.
 - **Règles (session règles)** : le **Démon se téléporte** (toute case libre à sa portée, sans voler ; l'animation est
   prête) et sa cible **brûle** quelques tours (à comparer d'abord avec l'aura du Moloch) ; l'**attaque du Géant**

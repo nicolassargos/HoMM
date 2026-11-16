@@ -163,12 +163,29 @@ uniform float beach_tufts = 0.25;
 uniform float rocks = 0.08;
 // Fleurs sur l'herbe : l'herbe est découpée en carrés de « flower_cell » pixels d'art ; une part « flower_density » de
 // ces carrés porte une fleur (un cœur, quatre pétales et un pixel d'ombre) ou, plus rarement, un petit caillou
-uniform float flower_density = 0.1;
+uniform float flower_density = 0.05;
 uniform float flower_cell = 9.0;
 uniform float pebble_share = 0.2;
 // Grandes zones un peu plus claires ou plus sombres : force et taille (pixels d'art)
 uniform float shade = 0.08;
 uniform float shade_scale = 70.0;
+// L'herbe (2026-11-16, choisie par l'utilisateur) : la teinte de base (grass_depth : < 1 plus foncée) ; des taches de couleur
+// d'environ grass_tint_scale pixels d'art, herbe sèche (grass_dry, multiplie la couleur) et herbe drue (grass_lush),
+// de force grass_tint ; des touffes (une part grass_clumps des carrés de grass_clump_cell pixels), éclairées d'en bas à
+// droite, une ombre à gauche ; des bouquets de fleurs (une part flower_patches des carrés de 22 pixels, 3 à 7 fleurs
+// d'une couleur)
+uniform float grass_depth = 0.92;
+uniform float grass_tint = 0.6;
+uniform float grass_tint_scale = 40.0;
+uniform vec3 grass_dry = vec3(1.28, 1.06, 0.78);
+uniform vec3 grass_lush = vec3(0.72, 0.86, 0.78);
+uniform float grass_clumps = 0.2;
+uniform float grass_clump_cell = 7.0;
+// les touffes se rassemblent (0 : partout pareil ; 1 : par endroits, d'environ grass_clump_gather_scale pixels d'art,
+// aucune ailleurs)
+uniform float grass_clump_gather = 0.0;
+uniform float grass_clump_gather_scale = 28.0;
+uniform float flower_patches = 0.1;
 
 // Rivières (2026-11-15) : le bleu de chaque case dit sa rivière (× 64 : 0 rien, 1 ruisseau, 2 rivière, 3 pont).
 // Un ruisseau suit le milieu des cases, comme une route (demi-largeur et ondulation) ; une rivière remplit la bande de
@@ -614,6 +631,18 @@ vec3 tile_color(int t, vec2 p) {
 		float level = clamp(floor(s * 1.5 + bayer(p)), -1.0, 1.0);
 		color *= 1.0 + level * shade;
 	}
+	if (t == grass) {
+		color *= grass_depth;
+		if (grass_tint > 0.0) {
+			// deux bruits doux : le sec et le dru ne se recouvrent pas ; deux niveaux, au bord tramé
+			float dry = smoothstep(0.55, 0.75, noise((p + 0.5) / grass_tint_scale + vec2(23.0, 71.0)));
+			float lush = smoothstep(0.55, 0.75, noise((p + 0.5) / (grass_tint_scale * 0.8) + vec2(88.0, 14.0))) * (1.0 - dry);
+			dry = floor(dry * 2.0 + bayer(p)) / 2.0;
+			lush = floor(lush * 2.0 + bayer(p + 2.0)) / 2.0;
+			color = mix(color, color * grass_dry, dry * grass_tint);
+			color = mix(color, color * grass_lush, lush * grass_tint);
+		}
+	}
 	return color;
 }
 
@@ -689,6 +718,59 @@ int tuft_pixel(vec2 q, vec2 cell) {
 		}
 	}
 	return 0;
+}
+
+// Une touffe dans l'herbe au pixel d'art p, s'il y en a une : sa couleur dans « tuft », et vrai. Ses brins (tuft_pixel),
+// sombres au pied et clairs au bout, parfois doublés ; l'ombre à leur gauche
+bool grass_clump_at(vec2 p, vec3 under, out vec3 tuft) {
+	tuft = under;
+	if (grass_clumps <= 0.0) return false;
+	float size = floor(max(grass_clump_cell, 6.0));
+	vec2 cell = floor(p / size);
+	float gather = mix(1.0, 2.0 * smoothstep(0.4, 0.7, noise((cell * size + 0.5) / grass_clump_gather_scale + vec2(6.0, 44.0))),
+		grass_clump_gather);
+	if (hash(cell + vec2(31.7, 4.9)) >= grass_clumps * gather) return false;
+	vec2 spot = cell * size + vec2(2.0 + floor(hash(cell + vec2(5.3, 2.2)) * (size - 4.0)),
+		3.0 + floor(hash(cell + vec2(9.1, 6.4)) * (size - 3.0)));
+	vec2 twin = spot + vec2(2.0, 1.0);
+	// trois formes : un brin seul (le brin du milieu), une touffe, une touffe doublée
+	float shape = hash(cell + vec2(2.6, 8.8));
+	bool lone = shape < 0.35;
+	bool two = shape > 0.75;
+	vec2 q = p - spot;
+	int blade = max(lone && q.x != 0.0 ? 0 : tuft_pixel(q, cell), two ? tuft_pixel(p - twin, cell + 3.0) : 0);
+	if (blade == 1) { tuft = under * 0.68; return true; }
+	if (blade == 2) { tuft = under * 0.86; return true; }
+	if (blade == 3) { tuft = under * vec3(1.22, 1.2, 1.0); return true; }
+	if ((tuft_pixel(p + vec2(1.0, 0.0) - spot, cell) > 0 && (!lone || q.x == -1.0)) || (two && tuft_pixel(p + vec2(1.0, 0.0) - twin, cell + 3.0) > 0)) {
+		tuft = under * 0.84;
+		return true;
+	}
+	return false;
+}
+
+// Un bouquet de fleurs au pixel d'art p, s'il y en a un : de 3 à 7 fleurs d'une couleur, serrées dans le carré
+bool flower_patch_at(vec2 p, vec3 under, out vec3 flower) {
+	flower = under;
+	if (flower_patches <= 0.0) return false;
+	float size = 22.0;
+	vec2 cell = floor(p / size);
+	if (hash(cell + vec2(51.3, 17.9)) >= flower_patches) return false;
+	vec2 center = cell * size + 7.0 + floor(vec2(hash(cell + vec2(1.9, 6.6)), hash(cell + vec2(4.2, 3.1))) * (size - 14.0));
+	float k = hash(cell + vec2(7.4, 2.8));
+	vec3 petal = k < 0.35 ? vec3(0.96, 0.95, 0.9) : (k < 0.65 ? vec3(0.95, 0.82, 0.28) : (k < 0.85 ? vec3(0.68, 0.5, 0.8) : vec3(0.9, 0.42, 0.38)));
+	int count = 3 + int(floor(hash(cell + vec2(8.3, 0.7)) * 5.0));
+	for (int i = 0; i < 7; i++) {
+		if (i >= count) break;
+		vec2 at = center + floor(vec2(hash(cell + vec2(float(i) * 3.7, 1.1)), hash(cell + vec2(2.3, float(i) * 5.3))) * vec2(9.0, 7.0)) - vec2(4.0, 3.0);
+		vec2 d = p - at;
+		// une fleur sur deux d'un seul pixel, les autres en croix ; un pixel d'ombre dessous
+		bool small = hash(cell + vec2(float(i), 9.9)) < 0.5;
+		if (d == vec2(0.0)) { flower = small ? petal : petal * 0.85 + 0.12; return true; }
+		if (!small && abs(d.x) + abs(d.y) == 1.0 && d.y <= 0.0) { flower = petal; return true; }
+		if (d == vec2(-1.0, 1.0)) { flower = under * 0.75; return true; }
+	}
+	return false;
 }
 
 // Une petite touffe d'herbe sur la route près du pixel d'art p : 0 rien, 1 à 3 la touffe (tuft_pixel), 4 son ombre
@@ -815,7 +897,9 @@ void fragment() {
 	// Fleurs et cailloux, sur l'herbe franche (pas dans les mélanges)
 	if (t == grass && !in_water && (share <= 0.0 || share >= 1.0)) {
 		vec3 flower;
-		if (flower_at(p, color, flower)) color = flower;
+		if (grass_clump_at(p, color, flower)) color = flower;
+		if (flower_patch_at(p, color, flower)) color = flower;
+		else if (flower_at(p, color, flower)) color = flower;
 	}
 	// Les rochers dans l'eau peu profonde, puis les roseaux du bord (dans l'eau et sur la rive)
 	// le delta d'un ruisseau : une eau claire qui s'ouvre en éventail dans l'eau où il se jette

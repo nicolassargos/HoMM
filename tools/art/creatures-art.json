@@ -1904,6 +1904,39 @@
         "carte": "p1-6"
       },
       "grande": "art-candidats/references/derives/moloch-grand.png"
+    },
+    "porte-bouclier": {
+      "nom": "Porte-bouclier",
+      "gabarit": "humain",
+      "hauteur": 56,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "archer",
+        "cultiste"
+      ],
+      "references": [],
+      "notes": "Nains, niveau 1 : le mur ; protège les tireurs voisins (sans références : deux styles proposés, 2026-11-15). Acier et or, barbe tressée (L1, L2) ; fer sombre et cuir, runes orange (L3, L4) ; trop d'armure pour un niveau 1 (avis de l'utilisateur) : plus légers, gambison, cuir et bouclier de bois (L5, L6 ; L7, L8).",
+      "description": "a stocky dwarf warrior standing firm: short and broad, a thick black beard tied with iron rings, a simple dark iron cap, a brown leather jerkin over a grey wool tunic, no plate armour, bare forearms with leather bracers, a big round wooden shield with an iron boss and a few orange runes, a short war hammer in the other hand, simple boots, a humble militia soldier, grim and stubborn",
+      "sujet": "a stocky dwarf warrior with a black beard, simple iron cap and leather jerkin, holding a big round wooden shield with orange runes and a war hammer, facing right",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L7-4"
+      },
+      "grande": "art-candidats/references/derives/porte-bouclier-grand.png"
     }
   }
 }

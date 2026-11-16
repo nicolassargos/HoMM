@@ -38,6 +38,9 @@ public static class RiverField
     /// <summary>La mare d'une source : de combien elle dépasse la largeur du ruisseau (pixels d'art).</summary>
     private const float Pond = 3f;
 
+    /// <summary>Les bras du delta : de combien ils sont plus étroits que le ruisseau (pixels d'art).</summary>
+    private const float Arm = 1.5f;
+
     private static readonly Cell[] Sides = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
     /// <summary>L'image du champ pour <paramref name="width"/> × <paramref name="height"/> cases de <paramref name="art"/> pixels d'art.</summary>
@@ -171,6 +174,8 @@ public static class RiverField
                         points.Insert(0, Center(mouth));
                     else
                         points.Add(Center(mouth));
+                    var before = line.Count > 1 ? (head ? line[1] : line[^2]) : end;
+                    Delta(data, sw, sh, art, Center(before), Center(end), mouth, sink);
                 }
                 else
                     ponds.Add(Center(end));
@@ -185,6 +190,41 @@ public static class RiverField
                 Stamp(data, sw, sh, art, points[0], points[0], 0);
             foreach (var pond in ponds)
                 Stamp(data, sw, sh, art, pond, pond, Pond);
+        }
+    }
+
+    /// <summary>
+    /// Le delta d'un ruisseau : un ou deux bras plus étroits quittent le ruisseau avant la rive et s'ouvrent en éventail
+    /// jusqu'à l'eau où il se jette, de part et d'autre de son embouchure (seulement là où l'eau les attend).
+    /// </summary>
+    private static void Delta(float[] data, int sw, int sh, float art, Vector2 before, Vector2 end, Cell mouth, Func<Cell, bool> sink)
+    {
+        var target = new Vector2((mouth.X + 0.5f) * art, (mouth.Y + 0.5f) * art);
+        var dir = (target - end).Normalized();
+        var side = new Vector2(-dir.Y, dir.X);
+        var start = before.Lerp(end, 0.15f);
+        var shore = end + dir * art * 0.5f;
+        uint seed = (uint)(mouth.X * 73856093) ^ (uint)(mouth.Y * 19349663);
+        // un bras d'un côté, de l'autre, ou des deux
+        int pick = (int)(seed % 3);
+        foreach (float sign in new[] { -1f, 1f })
+        {
+            if (pick == 0 && sign > 0 || pick == 1 && sign < 0)
+                continue;
+            // pas du côté d'où vient un ruisseau qui tourne : le bras se confondrait avec lui
+            if ((before - end).Dot(side * sign) > art * 0.3f)
+                continue;
+            float spread = art * (0.55f + (seed >> 4) % 5 * 0.04f);
+            var tip = shore + dir * art * 0.35f + side * sign * spread;
+            var cell = new Cell((int)MathF.Floor(tip.X / art), (int)MathF.Floor(tip.Y / art));
+            if (!sink(cell))
+                continue;
+            var bend = start.Lerp(tip, 0.45f) - side * sign * art * 0.1f;
+            var arm = new List<Vector2> { start, bend, tip };
+            for (int pass = 0; pass < 2; pass++)
+                arm = Chaikin(arm);
+            for (int i = 0; i + 1 < arm.Count; i++)
+                Stamp(data, sw, sh, art, arm[i], arm[i + 1], -Arm);
         }
     }
 

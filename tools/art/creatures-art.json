@@ -2161,6 +2161,48 @@
         "L3": "références",
         "L4": "angle seul"
       }
+    },
+    "sapeur": {
+      "nom": "Sapeur",
+      "gabarit": "humain",
+      "hauteur": 60,
+      "generation": [
+        104,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "arbaletrier"
+      ],
+      "notes": "Nains, niveau 5 : creuse sous le champ, ressort à côté d'un ennemi et frappe le premier. Nains : nouvelle créature (choix de l'utilisateur, 2026-11-16), id provisoire en attendant la session règles.",
+      "description": "a hunched dwarf sapper who has lived underground too long, like a mole: tiny squinting pink eyes almost blind, a huge pale bulbous nose, very long arms with enormous dirty hands and long black nails, a beard caked with mud, pebbles and a few earthworms, a dented miner's helmet with a lit candle-lantern on top, patched leather clothes grey with dust, knee pads, a huge iron pick held in both hands, a coil of rope and small sacks on his belt, a toothless grin, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd, full of character",
+      "sujet": "a hunched mole-like dwarf miner with tiny eyes, a huge pale nose, a muddy beard and a lantern helmet, holding a big iron pick, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+      ]
+    },
+    "roi-de-cristal": {
+      "nom": "Roi de cristal",
+      "gabarit": "grand",
+      "hauteur": 100,
+      "generation": [
+        120,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "behemoth"
+      ],
+      "notes": "Nains, niveau 7 (→ Roi des ancêtres, la couronne de cristal qui luit) : renvoie les sorts néfastes ; l'obstination de toute l'armée. Nains : nouvelle créature (choix de l'utilisateur, 2026-11-16), id provisoire en attendant la session règles.",
+      "description": "a colossal ancient dwarf king woken from a thousand years sealed in crystal under the mountain: a huge stooped broad body, skin grey like old stone and cracked, one arm turned entirely into clear pale blue crystal, his enormous long beard grown into hanging crystal stalactites, big crystal shards jutting out of his shoulders, back and old dented bronze armour, dust and cobwebs still on him, deep-set glowing pale blue eyes under heavy brows, a tarnished old crown, holding a giant warhammer with a head of raw crystal, slow and terrifying, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd, full of character",
+      "sujet": "a colossal ancient dwarf king of cracked grey stone, his beard and one arm grown into pale blue crystal, crystal shards on his old bronze armour, holding a giant crystal warhammer, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+      ]
     }
   }
 }

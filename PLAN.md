@@ -61,16 +61,30 @@ dans `HISTORIQUE.md` (« Les factions : conception et chiffres »).
 | **Tour de magie** | façonnés, bibliothèque des arcanes | Magicien (Érudit) | Géant → Titan | gemmes | mercure |
 | **Enfer** | le feu, le prix du sang | Démoniste (Pacte) | Démon → Archidémon | mercure | soufre |
 | **Donjon** | la Terreur | Seigneur des abîmes (Effroi) | Hydre → (à choisir) | soufre | mercure |
-| **Nains** | l'obstination, les machines | Thane (Obstination) | Machine de guerre → Forteresse ambulante | cristal | soufre |
+| **Nains** | l'obstination, les runes et le cristal | Thane (Obstination) | Roi de cristal → Roi des ancêtres | cristal | soufre |
 
 ✅ Toutes jouables : créatures et capacités, ville, classe et héros, ville et héros sur la carte ; images des créatures
 (sauf les Nains). La faction neutre garde les monstres de la carte (le Dragon rouge, les pirates).
 **Reste** :
 - **Images** : les 7 créatures des Nains (session images, en cours, branche `creatures-nains-images` ; des nains
-  caricaturés, chacun le sien, loin des clichés : choix de l'utilisateur, 2026-11-16). Le Gyrocoptère devient un nain
-  aux ailes de cuir, de bois et de métal, debout au repos, qui s'envole pour se déplacer et lance sa bombe (idée de
-  l'utilisateur) : sa capacité « façonné » et son nom sont à revoir (session règles). **À repenser ensemble** une fois
-  les autres images choisies : le Lance-flammes et la Machine de guerre (leur idée ne plaît pas à l'utilisateur).
+  caricaturés, chacun le sien, loin des clichés : choix de l'utilisateur, 2026-11-16). Faits : Porte-bouclier,
+  Arbalétrier, Chevaucheur de chèvre, Porte-étendard, Gyrocoptère (images de combat et animations).
+- **Nains, deux créatures remplacées** (choix de l'utilisateur, 2026-11-16 ; images sous les nouveaux identifiants
+  `sapeur` et `roi-de-cristal` ; **à faire (session règles)** : les données, `creatures.json`, les habitations
+  « forge-flammes » et « grande-fonderie », `NainsTests`) :
+  - **Sapeur** (niveau 5, à la place du Lance-flammes ; le soufre reste la ressource du niveau 5) : un mineur trapu,
+    pioche et lanterne au casque, cuir, poussière et fer. Capacité : il creuse sous le champ, disparaît un tour, puis
+    sort à côté de n'importe quel ennemi et frappe le premier ; le sol se fend là où il part et là où il sort
+    (animations : attente, marche, coup de pioche, et si possible creuser et sortir, ou des fissures dessinées par le jeu).
+  - **Roi de cristal → Roi des ancêtres** (niveau 7, à la place de la Machine de guerre → Forteresse ambulante ; le
+    cristal reste la ressource du niveau 7) : un très vieux roi nain scellé dans le cristal sous la montagne, réveillé
+    pour la guerre ; immense, lent, un marteau de cristal, des éclats de cristal poussés sur l'armure et la barbe ; le
+    Roi des ancêtres porte une couronne de cristal qui luit. Capacités : son cristal renvoie les sorts néfastes sur la
+    troupe du lanceur ; tant qu'il ne s'est pas déplacé, toutes les troupes naines gardent l'obstination même après
+    avoir bougé. Vivant, pas « façonné ».
+  - **Le Gyrocoptère** est devenu un nain aux ailes de cuir, de bois et de métal (idée de l'utilisateur), debout au repos,
+    qui s'envole pour se déplacer et lance sa bombe : sa capacité « façonné » et peut-être son nom sont à revoir (session
+    règles).
 - **Noms** : l'Hydre améliorée ; les habitations de l'Enfer, si l'utilisateur le souhaite.
 - **Règles (session règles)** : le **Démon se téléporte** (toute case libre à sa portée, sans voler ; l'animation est
   prête) et sa cible **brûle** quelques tours (à comparer d'abord avec l'aura du Moloch) ; l'**attaque du Géant**

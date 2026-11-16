@@ -2014,7 +2014,10 @@
         "L12": "angle seul"
       },
       "choix": {
-        "fixe": "L10-2"
+        "fixe": "L10-2",
+        "idle": "mgarde-2-r1",
+        "move": "mmarche-1-r1",
+        "attack": "mcoup-1-r1"
       },
       "grande": "art-candidats/references/derives/chevaucheur-chevre-grand.png"
     },

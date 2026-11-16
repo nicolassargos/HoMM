@@ -1515,6 +1515,19 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
     (`shore_round` 1, `shore_wave` 1,4), qui pince certaines rives. Les cases où l'on marche ne changent pas.
   - **l'embouchure fondue** : l'écume de la rive barrait l'entrée du ruisseau (l'eau du ruisseau compte maintenant
     pour l'écume, `water_at`), et le ruisseau prend peu à peu la teinte claire de l'eau où il se jette.
+- ✅ L'herbe (2026-11-16, branche `herbe`, choisie par l'utilisateur sur une page de comparaison en deux tours,
+  `art-candidats/archives/2026-11-16-herbe/`). Comparée à Heroes 2 (peinte, des touffes et des creux, des fleurs en
+  bouquets) et Heroes 3 (vert olive plus foncé, grandes taches claires et sombres, beaucoup d'objets de décor), la
+  nôtre n'avait qu'un grain très fin et un ombrage très large : une surface plate. Dans le shader du sol :
+  - **un vert un peu plus profond** (`grass_depth` 0,92) ;
+  - **des taches d'herbe sèche (plus jaune) et drue (plus verte)**, d'environ 40 pixels d'art, à deux niveaux tramés
+    (`grass_tint` 0,6, `grass_dry`, `grass_lush`) ;
+  - **des touffes** dans 2 carrés de 7 pixels sur 10 (`grass_clumps` 0,2, `grass_clump_at`) : un brin seul, une touffe
+    ou une touffe doublée, sombres au pied, claires au bout, une ombre à gauche ;
+  - **des bouquets de fleurs** (`flower_patches` 0,1 des carrés de 22 pixels : 3 à 7 fleurs d'une couleur), moins de
+    fleurs seules (`flower_density` 0,1 → 0,05). À embellir plus tard (l'utilisateur).
+  Écartés : façon Heroes 2 (touffes partout), façon Heroes 3 (grandes taches, plus foncé : des plaques), des touffes
+  rassemblées par endroits (`grass_clump_gather`, gardé à 0) ; au premier tour, trop de touffes (0,35).
 - ✅ Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, en deux tours avec l'utilisateur sur une page de
   six cartes entières, `art-candidats/archives/2026-11-15-rivieres/`). D'après 50 cartes de Heroes 3
   (`tools/cartes/rivieres_h3.py`) : 40 en ont, 2,3 % de la terre en médiane, 0,6 rivière pour 1000 cases de terre, longue

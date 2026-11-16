@@ -125,13 +125,13 @@ tour d'observation, temple, cercle des fées), gardiens justes, les tailles de H
 une option, une ville au plus par zone, une scierie et une mine de minerai gardées près de chaque ville, victoire par
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
-roseaux, un delta à bras) ; des rives arrondies ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
+roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
 dessin).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
-- **Le shader de l'herbe**, revu par l'utilisateur (le bord des routes suivra).
+- **L'herbe** : embellir les fleurs (l'utilisateur, plus tard) ; le bord des routes suivra.
 - **Plus tard** : un style de sol par zone de faction (herbe fleurie du Château, sèche des Barbares, morte des
   morts-vivants…) ; une route enneigée ; un coût de marche par sorte de route (pavés 50 %, gravier 65 %, terre 75 %) ;
   une entrée pavée devant chaque ville ; des ornières ou des flaques ; redessiner le petit pont de bois d'ouest en est

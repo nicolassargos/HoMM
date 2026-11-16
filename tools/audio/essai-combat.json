@@ -17,7 +17,7 @@
       "id": "griffon-attaque",
       "nom": "Griffon : attaque",
       "duree": 1.5,
-      "texte": "fantasy griffin attack, fierce eagle screech with heavy wing flap and claw slash, no music"
+      "texte": "loud fierce eagle scream of a giant griffin, the animal cry clearly in front, then a powerful wing beat and talons tearing, no music"
     },
     {
       "id": "griffon-mort",
@@ -41,13 +41,25 @@
       "id": "ange-attaque",
       "nom": "Ange : attaque",
       "duree": 1.2,
-      "texte": "holy angel sword swing, bright metallic slash with a soft heavenly choir shimmer, no music"
+      "texte": "a powerful open hand slap across a face, sharp loud skin smack, with a short bright holy shimmer after it, no music"
     },
     {
       "id": "ange-mort",
       "nom": "Ange : mort",
       "duree": 2.0,
-      "texte": "angel dying, heavenly choir chord fading away, soft feathers, gentle wind, no drums"
+      "texte": "angel dying in battle: a soft wounded cry, then a bright heavenly choir chord rises with church bells chiming and a holy light shimmer, fading upward into silence, no drums"
+    },
+    {
+      "id": "ange-attaque-b",
+      "nom": "Ange : attaque (autre essai)",
+      "duree": 1.2,
+      "texte": "mighty divine slap: whoosh of a swinging hand, a big crisp face slap impact, and a faint angelic choir sting, fantasy game, no music"
+    },
+    {
+      "id": "ange-mort-b",
+      "nom": "Ange : mort (autre essai)",
+      "duree": 2.5,
+      "texte": "a holy being dies: a single deep temple bell toll, a sacred choir sighing 'aah' that rises and dissolves into sparkling light, gentle wind of wings, no drums"
     },
     {
       "id": "coup-epee",

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using HoMM.Core;
@@ -119,8 +120,9 @@ public partial class SmoothGround : ColorRect
         // la terre battue : quelques taches de 2 à 4 cases voisines, loin des bords
         var worn = new System.Collections.Generic.HashSet<Cell>();
         var random = new Random(seed);
-        // le désert n'a pas de terre battue : son sol de pierres est dessiné à part (BattleFieldView.BuildStones)
-        int patches = ground == TerrainType.Sand ? 0 : 3 + random.Next(3);
+        // le désert n'a pas de terre battue : son sol de pierres est dessiné à part (BattleFieldView.BuildStones) ; le marais
+        // non plus : ses flaques le sont (BattleFieldView.BuildPuddles)
+        int patches = ground is TerrainType.Sand or TerrainType.Swamp ? 0 : 3 + random.Next(3);
         for (int i = 0; i < patches; i++)
         {
             var cell = new Cell(2 + random.Next(Math.Max(1, width - 4)), 3 + random.Next(Math.Max(1, height - 4)));
@@ -131,7 +133,8 @@ public partial class SmoothGround : ColorRect
             }
         }
         var dirt = Art.GetImage("terrain/road");
-        var result = Create(width, height, cell => (worn.Contains(cell) ? DirtId : ground, RoadKind.None, RiverKind.None), dirt);
+        var result = Create(width, height, cell => (worn.Contains(cell) ? DirtId : ground, RoadKind.None, RiverKind.None), dirt,
+            ground == TerrainType.Swamp ? FewerSpecks : null);
         if (result?.Material is ShaderMaterial material)
         {
             // des ombres plus discrètes sur le sable clair (remarque de l'utilisateur)
@@ -146,6 +149,64 @@ public partial class SmoothGround : ColorRect
     }
 
     /// <summary>
+    /// Moins de taches vertes sur le sol du marais au combat (remarque de l'utilisateur, 2026-11-16 : le motif de l'image se
+    /// voyait trop, sur un grand champ sans décor de la carte par-dessus) : les touffes vertes de l'image (le vert l'emporte
+    /// sur le rouge, avec leur contour olive sombre) sont reconnues une à une ; les petites (4 pixels au plus) restent, les
+    /// grandes sont remplacées par la boue d'à côté (choix de l'utilisateur : en garder une sur trois en laissait trop). La
+    /// carte garde son image.
+    /// </summary>
+    private static void FewerSpecks(Image image)
+    {
+        int w = image.GetWidth(), h = image.GetHeight();
+        bool Speck(Color c) => c.G >= c.R * 0.9f && c.B < c.G * 0.6f;
+        var seen = new bool[w, h];
+        for (int y0 = 0; y0 < h; y0++)
+        for (int x0 = 0; x0 < w; x0++)
+        {
+            if (seen[x0, y0] || !Speck(image.GetPixel(x0, y0)))
+                continue;
+            // la touffe : les pixels verts voisins (l'image se répète : les bords se rejoignent)
+            var cluster = new List<(int X, int Y)>();
+            var stack = new Stack<(int X, int Y)>();
+            stack.Push((x0, y0));
+            seen[x0, y0] = true;
+            while (stack.Count > 0)
+            {
+                var (x, y) = stack.Pop();
+                cluster.Add((x, y));
+                foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
+                {
+                    int nx = (x + dx + w) % w, ny = (y + dy + h) % h;
+                    if (!seen[nx, ny] && Speck(image.GetPixel(nx, ny)))
+                    {
+                        seen[nx, ny] = true;
+                        stack.Push((nx, ny));
+                    }
+                }
+            }
+            if (cluster.Count <= 4)
+                continue; // gardée
+            // la boue d'à côté : le premier pixel qui n'est pas vert, en s'éloignant vers le haut, puis la gauche
+            foreach (var (x, y) in cluster)
+                for (int d = 1; d < Math.Max(w, h); d++)
+                {
+                    var c = image.GetPixel(x, (y - d + h * d) % h);
+                    if (!Speck(c))
+                    {
+                        image.SetPixel(x, y, c);
+                        break;
+                    }
+                    c = image.GetPixel((x - d + w * d) % w, y);
+                    if (!Speck(c))
+                    {
+                        image.SetPixel(x, y, c);
+                        break;
+                    }
+                }
+        }
+    }
+
+    /// <summary>
     /// Le numéro de la terre battue du champ de bataille : la place libre du shader (le 1, l'ancienne route), avec l'image
     /// de la route, sous l'herbe (ses bords ondulés sont ceux de l'herbe, comme le sable sur la carte).
     /// </summary>
@@ -155,7 +216,8 @@ public partial class SmoothGround : ColorRect
     /// Le sol de <paramref name="width"/> × <paramref name="height"/> cases, chaque case : son terrain, sa route et sa rivière ;
     /// <paramref name="dirt"/> : l'image de la terre battue (DirtId), s'il y en a.
     /// </summary>
-    private static SmoothGround? Create(int width, int height, Func<Cell, (TerrainType Terrain, RoadKind Road, RiverKind River)> cellAt, Image? dirt = null)
+    private static SmoothGround? Create(int width, int height, Func<Cell, (TerrainType Terrain, RoadKind Road, RiverKind River)> cellAt, Image? dirt = null,
+        Action<Image>? retouch = null)
     {
         if (!Godot.FileAccess.FileExists(ShaderPath))
             return null;
@@ -193,11 +255,17 @@ public partial class SmoothGround : ColorRect
                 image.Fill(MapRenderer.TerrainColor(terrain));
             }
             image.Convert(Image.Format.Rgba8);
-            tiles.Add(image);
             var variant = Art.GetImage($"terrain/{Art.Name(terrain)}-2");
             if (variant == null || variant.GetSize() != size)
                 variant = image;
             variant.Convert(Image.Format.Rgba8);
+            if (retouch != null && terrain != TerrainType.Grass)
+            {
+                retouch(image);
+                if (variant != image)
+                    retouch(variant);
+            }
+            tiles.Add(image);
             tiles.Add(variant);
         }
         var tileArray = new Texture2DArray();

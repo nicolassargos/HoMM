@@ -411,13 +411,21 @@ public sealed partial class TacticalBattle
         }
     }
 
-    /// <summary>Quelques obstacles entre les deux camps, sans jamais couper le champ en deux.</summary>
+    /// <summary>
+    /// Quelques obstacles entre les deux camps, sans jamais couper le champ en deux. Plutôt au milieu du champ (choix de
+    /// l'utilisateur, 2026-11-16) : jamais sur la première colonne devant chaque camp (colonnes 3 à 7 seulement), le plus
+    /// souvent sur la colonne du milieu ; les rangées du milieu un peu plus souvent que celles du bord.
+    /// </summary>
     private void PlaceObstacles()
     {
         int count = MinObstacles + Next(MaxObstacles - MinObstacles + 1);
         for (int tries = 0; Field.Obstacles.Count < count && tries < 100; tries++)
         {
-            var hex = new Hex(2 + Next(Battlefield.Columns - 4), Next(Battlefield.Rows));
+            // deux tirages ajoutés : une chance en pointe au milieu (colonnes 3 à 7 : 1, 2, 3, 2, 1 sur 9) ; pour la rangée,
+            // la moitié des fois un tirage simple, l'autre moitié deux tirages ajoutés (milieu un peu plus souvent)
+            int col = 3 + Next(3) + Next(3);
+            int row = Next(2) == 0 ? Next(Battlefield.Rows) : Next(Battlefield.Rows / 2 + 1) + Next(Battlefield.Rows - Battlefield.Rows / 2);
+            var hex = new Hex(col, row);
             if (Field.Obstacles.Contains(hex))
                 continue;
             Field.Obstacles.Add(hex);

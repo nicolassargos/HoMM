@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using HoMM.Core;
 using Xunit;
@@ -287,5 +288,23 @@ public class TownTests
         // 7 habitations par faction jouable
         foreach (var faction in TestData.Data.Classes.PlayableFactions)
             Assert.Equal(7, TestData.Data.Buildings.All.Count(b => b.Dwelling != null && b.Faction == faction));
+    }
+    [Fact]
+    public void La_demonstration_construit_toute_la_ville_de_chaque_faction()
+    {
+        foreach (var faction in TestData.Data.Classes.PlayableFactions)
+        {
+            var state = new GameState(5, TestData.Data, MapSize.Small, 0, faction: faction);
+            var town = state.Players[0].Towns.Single();
+            state.AddAllBuildings(town);
+
+            // tout, sauf le chantier naval d'une ville loin de l'eau
+            var missing = town.Buildings.Where(b => !town.Has(b.Id)).ToList();
+            Assert.All(missing, b => Assert.True(b.Shipyard && town.BoatSpot == null, $"{faction} : {b.Id}"));
+            // les sept habitations offrent leurs créatures, la guilde a ses sorts, et le héros dans la ville les apprend
+            Assert.All(Enumerable.Range(1, 7), t => Assert.True(town.Available.GetValueOrDefault(town.DwellingCreature(town.DwellingOfTier(t)!)!) > 0));
+            Assert.Equal(4, town.MageGuildLevel);
+            Assert.Equal(Enumerable.Range(1, 4).Sum(town.GuildSpellsAt), town.GuildSpells.Count);
+        }
     }
 }

@@ -61,10 +61,17 @@ public partial class Main : Node2D
 
     /// <summary>
     /// Montrer le menu principal au prochain lancement de la scène : au démarrage du jeu sans option (« --windowed »
-    /// n'en est pas une pour cela), puis quand le joueur y revient.
+    /// n'en est pas une pour cela, ni « --demo »), puis quand le joueur y revient.
     /// </summary>
-    private static bool _goToMenu = OS.GetCmdlineUserArgs().All(a => a == "--windowed")
+    private static bool _goToMenu = OS.GetCmdlineUserArgs().All(a => a == "--windowed" || a == "--demo")
         || OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--menu"));
+
+    /// <summary>
+    /// « --demo » : pour montrer le jeu sans y passer des heures. Le menu principal s'ouvre (on choisit sa faction et
+    /// son héros dans Nouvelle partie) ; la partie commence avec de l'or et des ressources sans fin (comme « --rich »),
+    /// tous les bâtiments dans les villes du joueur et sans brouillard.
+    /// </summary>
+    private static readonly bool Demo = OS.GetCmdlineUserArgs().Contains("--demo");
 
     /// <summary>La scène ne montre que le menu principal (pas de partie).</summary>
     private bool _inMenu;
@@ -111,6 +118,10 @@ public partial class Main : Node2D
         Audio.PlayMusic("map");
         // Développement : « --rich » : le joueur a de quoi tout bâtir et tout recruter, remis au plein chaque jour (Enrich)
         Enrich();
+        // « --demo » : les villes du joueur toutes construites
+        if (loaded == null && Demo)
+            foreach (var town in _state.Players.Where(p => !p.IsComputer).SelectMany(p => p.Towns))
+                _state.AddAllBuildings(town);
         // Développement : « --boat » : un bateau amarré sur l'eau la plus proche du héros, au bord d'une rive
         if (loaded == null && OS.GetCmdlineUserArgs().Contains("--boat") && _state.CurrentHero is { } sailor)
         {
@@ -123,8 +134,8 @@ public partial class Main : Node2D
             if (shore is { } boatCell)
                 map.AddObject(new Boat(boatCell));
         }
-        // Option de développement : « -- --reveal » retire le brouillard
-        if (OS.GetCmdlineUserArgs().Contains("--reveal"))
+        // Option de développement : « -- --reveal » retire le brouillard (de même « --demo »)
+        if (OS.GetCmdlineUserArgs().Contains("--reveal") || Demo)
             _state.CurrentPlayer.Fog.Reveal(new Cell(_state.Map.Width / 2, _state.Map.Height / 2), _state.Map.Width + _state.Map.Height);
 
         var screen = GetViewportRect().Size;
@@ -679,7 +690,7 @@ public partial class Main : Node2D
     /// </summary>
     private void Enrich()
     {
-        if (!OS.GetCmdlineUserArgs().Contains("--rich"))
+        if (!OS.GetCmdlineUserArgs().Contains("--rich") && !Demo)
             return;
         foreach (var player in _state.Players.Where(p => !p.IsComputer))
             foreach (var resource in Enum.GetValues<ResourceType>())

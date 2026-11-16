@@ -2115,9 +2115,16 @@
         "L16": "angle seul"
       },
       "choix": {
-        "fixe": "L13-4"
+        "fixe": "L13-4",
+        "idle": "garde-1",
+        "transform": "menvol-1",
+        "move": "move-4",
+        "attack": "attack-2-r1"
       },
-      "grande": "art-candidats/references/derives/gyrocoptere-grand.png"
+      "grande": "art-candidats/references/derives/gyrocoptere-grand.png",
+      "consignes": {
+        "attack": "the dwarf swings his round black bomb back and lobs it forward underarm towards the front, his wings flare open, the bomb leaves his hand and he returns to the starting pose; only the body moves, no explosion, no fire, no smoke, no spark"
+      }
     },
     "machine-guerre": {
       "nom": "Machine de guerre",

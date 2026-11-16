@@ -2230,7 +2230,8 @@
       "choix": {
         "fixe": "L5-1"
       },
-      "grande": "art-candidats/references/derives/roi-de-cristal-grand.png"
+      "grande": "art-candidats/references/derives/roi-de-cristal-grand.png",
+      "garder_cyan": true
     }
   }
 }

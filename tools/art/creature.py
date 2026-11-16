@@ -213,7 +213,8 @@ def traiter_feuille(dossier_images, facteur, f, etat):
     grandes = [lire(os.path.join(dossier_images, f"{i}.png"))[2] for i in range(2, nombre_images(dossier_images) + 2)]
     images = []
     for g in grandes:
-        q = n.adoucir_image(n.reduire_traits(n.retirer_cyan(g), facteur), f.get("contour"))
+        # « garder_cyan » : une créature cyan elle-même (le cristal du Roi de cristal) garde ses pixels cyan
+        q = n.adoucir_image(n.reduire_traits(g if f.get("garder_cyan") else n.retirer_cyan(g), facteur), f.get("contour"))
         n.retirer_etincelles(q)
         if f.get("corde") and etat != "attack":
             n.corde_droite(q)

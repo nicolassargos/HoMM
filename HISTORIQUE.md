@@ -1990,6 +1990,33 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   - **Moloch** (112 px, L8-1, idole de bronze à tête de taureau, fournaise dans le ventre : une statue animée, pas un être
     vivant) : attente fournaise-2, marche pas-2, attaque poings-3 (ses poings rougissent et s'abattent). Carte p1-6.
   - **Icône du bouton « Invoquer »** (`ui/icons/invoquer.png`, n° 2 : un diablotin qui sort d'un portail).
+- ✅ Créatures des Nains (2026-11-16, branche `creatures-nains-images`, PixelLab). Choix de l'utilisateur : **des nains
+  caricaturés, chacun le sien, loin des clichés** (« ils se ressemblent tous, tellement stéréotypés ! ») ; un premier lot
+  d'après le Porte-bouclier, le héros nain et un croquis de l'utilisateur donnait sept fois la même barbe et le même cuir ;
+  le second, des caricatures de figurines (« grotesque caricature… exaggerated features »), le seul Porte-bouclier comme
+  modèle de rendu, a plu (« va encore plus loin »).
+  - **Porte-bouclier** (L7-4, barbe noire, cuir, bouclier rond de bois ; moins d'armure : un niveau 1) : garde-1,
+    mmarche-1, mcoup-2 (les trous du bouclier bouchés). Carte p1-3.
+  - **Arbalétrier** (L6-3, chauve, ventru, gros nez rouge, monocle, manteau vert) : garde-1, mmarche-1, mtir-1 (le
+    carreau dessiné par PixelLab effacé ; le jeu tire la flèche de l'Archer depuis le bout de l'arbalète, image 5). Carte p1-2.
+  - **Chevaucheur de chèvre** (L10-2, nain sauvage aux cheveux blancs et peinture bleue, chèvre pie hirsute ; les
+    premières images galopaient : refaites **immobiles**, d'après L8-1) : mgarde-2, mmarche-1, mcoup-1 ; un trot vif
+    (0,45 s par case). Carte p1-2.
+  - **Porte-étendard** (L8-3, vieux nain voûté encapuchonné, tête d'ancêtre de pierre au bout de la hampe) : mgarde-2,
+    mmarche-1 (les yeux bleus de la tête, effacés par le nettoyage du cyan, remis), attaque attack-2 refaite **à deux
+    mains** (l'éclair de l'impact effacé, la tête de pierre réparée). Carte p1-2.
+  - **Gyrocoptère** : un **nain aux ailes de cuir, de bois et de fer** (idée de l'utilisateur, après des tonneaux et une
+    baignoire volante), L13-4, bandé de partout, casque-casserole, barbe orange. Attente garde-1, **envol** (transformation
+    menvol-1) puis vol move-4 depuis sa dernière image, lancer de bombe attack-2 (la bombe qui part effacée). Le jeu
+    lance la **bombe** (`meleeProjectile` « bombe », `SpellEffects.DrawBomb` : fonte noire, mèche qui crépite, en cloche)
+    qui **explose** sur la cible et les cases autour (l'explosion de la Boule de feu) ; les troupes voisines touchées par
+    l'explosion le sont sans nouveau geste (`UnitStruck.Splash`). Carte p1-2.
+  - **Sapeur** (remplace le Lance-flammes, choix de l'utilisateur ; L3-2, mineur voûté au gros nez pâle, bougie au
+    casque) : garde-2, mmarche-2, mcoup-1. Carte p1-6.
+  - **Roi de cristal** (remplace la Machine de guerre ; L5-1, un **esprit pâle** demandé par l'utilisateur, cristal et
+    brume, 136 px) : mgarde-1, mmarche-2, mcoup-2 (la traînée du marteau retirée). Le nettoyage effaçait son cristal
+    cyan : `garder_cyan` dans la fiche. Carte p1-1.
+  - Les pieds des 7 images de la carte revus par l'utilisateur.
 - ✅ Combat à ×2 (2026-11-09, branche `combat-x2`). Question de l'utilisateur : un pixel d'art a-t-il la même taille au
   combat et sur la carte ? Non : 3 pixels de l'écran au combat, 2 sur la carte (zoom ×1 ; 3 au zoom ×1,5). Essai montré
   (page `echelle.html` : même combat à ×3 et à ×2, créatures 1,5 fois plus hautes) ; choix de l'utilisateur : ×2 partout

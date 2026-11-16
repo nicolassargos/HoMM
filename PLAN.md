@@ -201,9 +201,14 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   Sonniss) pour l'interface, les pas et les ambiances ; sons générés (IA) pour les créatures et les sorts ; musique
   générée si elle plaît, ou des lots payants. **Noter la licence de chaque fichier.**
 - **Dans l'ordre** : 1. ✅ la base technique (2026-11-15 : `Game/Audio.cs`, `data/sounds.json`, les volumes dans les
-  options, des sons d'attente de `tools/audio/attente.py`) ; 2. un essai : les sons d'un combat (une faction, quelques
-  sorts) et une musique de combat, 2 ou 3 sources côte à côte sur une page d'écoute, l'utilisateur choisit à
-  l'oreille ; 3. le reste partie par partie, comme les images.
+  options, des sons d'attente de `tools/audio/attente.py`) ; 2. ✅ un essai (2026-11-16, branche `sons-combat`,
+  `tools/audio/essai.py`) : les sons d'un combat du Château et une musique de combat, trois sources côte à côte sur une
+  page d'écoute. **Choix de l'utilisateur** : les effets chez **ElevenLabs** (choisi 13 fois sur 15 ; sa musique
+  demande un abonnement payant), les bibliothèques libres là où elles sonnent mieux (le galop, la flèche magique) ; la
+  musique d'abord des **bibliothèques libres**, **Stable Audio** plus tard (« plus années 90 »). Dans le jeu, chaque
+  créature a ses sons (geste, tir, coup qui porte, tir qui touche, mort ; sinon ceux de tout le combat) et chaque sort
+  le sien (`Audio.PlayCreature`, `spell-<id>`) ; l'Ange gifle (comme son animation), sa première mort essayée sert à la
+  Résurrection. Licences : `godot/audio/LICENCES.md` ; 3. le reste partie par partie, comme les images.
 
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à

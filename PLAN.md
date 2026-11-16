@@ -558,7 +558,10 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   l'utilisateur, détail dans `HISTORIQUE.md`) : toutes les rives (lacs, mer, rivières) changent par tronçons (herbe
   jusqu'à l'eau bordée de terre mouillée, plages de sable plus larges, plages de galets), l'eau claire près du bord et
   plus sombre au large, des roseaux sur les rives herbeuses et un peu sur le sable, de petites plaques et des touffes d'herbe sur
-  les plages, quelques rochers dans l'eau peu profonde. **À continuer**
+  les plages, quelques rochers dans l'eau peu profonde. ✅ **Les ruisseaux** (2026-11-16, branche `ruisseaux`, choix de
+  l'utilisateur) : l'eau claire au bord et sombre au milieu, des mares, une rive de terre mouillée, des bancs de sable,
+  des pierres et des roseaux, un petit delta où ils se jettent ; **le delta sera amélioré plus tard** (des bras qui se
+  partagent sur un éventail de sable : le sens du ruisseau à son embouchure, calculé par le jeu). **À continuer**
   (l'utilisateur) : les rives seront encore travaillées. **Revoir les routes ensuite**. **Plus tard** : redessiner le petit pont de bois d'ouest en est (des marques sur sa face avant) s'il gêne en
   jouant.
   ✅ **Les routes, premières règles (2026-11-15, branche `routes-sans-issue`, détail dans `HISTORIQUE.md`)** : leurs règles se définissent avec l'utilisateur, en

@@ -2019,7 +2019,8 @@
         "fixe": "L10-2",
         "idle": "mgarde-2-r1",
         "move": "mmarche-1-r1",
-        "attack": "mcoup-1-r1"
+        "attack": "mcoup-1-r1",
+        "carte": "p1-2"
       },
       "grande": "art-candidats/references/derives/chevaucheur-chevre-grand.png"
     },
@@ -2231,7 +2232,10 @@
         "L8": "angle seul"
       },
       "choix": {
-        "fixe": "L5-1"
+        "fixe": "L5-1",
+        "idle": "mgarde-1",
+        "move": "mmarche-2",
+        "attack": "mcoup-2-r1"
       },
       "grande": "art-candidats/references/derives/roi-de-cristal-grand.png",
       "garder_cyan": true

@@ -1970,7 +1970,11 @@
         "L6": "angle seul",
         "L7": "références",
         "L8": "angle seul"
-      }
+      },
+      "choix": {
+        "fixe": "L6-3"
+      },
+      "grande": "art-candidats/references/derives/arbaletrier-grand.png"
     },
     "chevaucheur-chevre": {
       "nom": "Chevaucheur de chèvre",

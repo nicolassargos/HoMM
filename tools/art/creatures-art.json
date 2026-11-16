@@ -2193,7 +2193,10 @@
         "L4": "angle seul"
       },
       "choix": {
-        "fixe": "L3-2"
+        "fixe": "L3-2",
+        "idle": "garde-2-r1",
+        "move": "mmarche-2-r1",
+        "attack": "mcoup-1-r2"
       },
       "grande": "art-candidats/references/derives/sapeur-grand.png"
     },

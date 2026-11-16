@@ -1937,6 +1937,174 @@
         "fixe": "L7-4"
       },
       "grande": "art-candidats/references/derives/porte-bouclier-grand.png"
+    },
+    "arbaletrier": {
+      "nom": "Arbalétrier",
+      "gabarit": "humain",
+      "hauteur": 56,
+      "generation": [
+        104,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "archer"
+      ],
+      "notes": "Nains, niveau 2 : le tireur ; ses carreaux percent la défense. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16).",
+      "description": "a stocky dwarf crossbowman standing: short and broad, a thick brown beard tied with iron rings, a simple dark iron cap, a brown leather jerkin over a short mail shirt, leather bracers, a heavy steel crossbow held at the hip pointing forward, a quiver of bolts on the belt, simple boots, calm and precise",
+      "sujet": "a stocky dwarf crossbowman with a brown beard, iron cap and leather jerkin, holding a heavy crossbow, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::faction style reference (a dwarf shield-bearer of the same army): keep the same stocky dwarf proportions, the earthy brown leather, dark iron and wood, the black beard and the colours; the new character is a different unit",
+        "art-candidats/references/nains/porte-bouclier.jpg::proportion reference (an ink sketch of a dwarf): keep the very stocky body, the huge beard, the big hands; ignore the paper and the sepia colour"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
+    },
+    "chevaucheur-chevre": {
+      "nom": "Chevaucheur de chèvre",
+      "gabarit": "quadrupede",
+      "hauteur": 70,
+      "generation": [
+        128,
+        104
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "sanglier"
+      ],
+      "notes": "Nains, niveau 3 : la cavalerie de montagne, la seule troupe rapide ; pied sûr (comme la monture du héros nain). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16).",
+      "description": "a dwarf warrior riding a big grey mountain goat with long curved horns: the goat has shaggy grey fur and strong legs with hooves; the dwarf has a black beard, a dark iron helmet with small horns, a short mail shirt under a brown leather jerkin, a short spear held forward and a small round wooden shield, a red cloth saddle, both charging, side view",
+      "sujet": "a dwarf warrior with a spear riding a big grey mountain goat with curved horns, side view, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::faction style reference (a dwarf shield-bearer of the same army): keep the same stocky dwarf proportions, the earthy brown leather, dark iron and wood, the black beard and the colours; the new character is a different unit",
+        "art-candidats/references/nains/porte-bouclier.jpg::proportion reference (an ink sketch of a dwarf): keep the very stocky body, the huge beard, the big hands; ignore the paper and the sepia colour"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
+    },
+    "porte-etendard": {
+      "nom": "Porte-étendard des ancêtres",
+      "gabarit": "humain",
+      "hauteur": 72,
+      "generation": [
+        104,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "moine"
+      ],
+      "notes": "Nains, niveau 4 : la bannière des ancêtres (aura de défense) ; l'étendard rouge du héros nain. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16).",
+      "description": "an old veteran dwarf standard-bearer standing proudly: very stocky, a long white braided beard, a steel helmet with small horns and a bronze rim, steel and bronze armour over a brown tunic, a heavy hammer at the belt, both hands holding a tall pole with a long red banner showing a gold carved face of a dwarf ancestor, solemn and unshakable",
+      "sujet": "an old dwarf with a white beard and steel and bronze armour, holding a tall red banner with a gold ancestor face, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::faction style reference (a dwarf shield-bearer of the same army): keep the same stocky dwarf proportions, the earthy brown leather, dark iron and wood, the black beard and the colours; the new character is a different unit",
+        "art-candidats/references/nains/porte-bouclier.jpg::proportion reference (an ink sketch of a dwarf): keep the very stocky body, the huge beard, the big hands; ignore the paper and the sepia colour"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
+    },
+    "lance-flammes": {
+      "nom": "Lance-flammes",
+      "gabarit": "humain",
+      "hauteur": 60,
+      "generation": [
+        104,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "porte-etendard"
+      ],
+      "notes": "Nains, niveau 5 : le feu de près (le jeu dessine la flamme). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16).",
+      "description": "a stocky dwarf flamethrower: a red beard singed at the tips, brass goggles on a leather cap, a thick leather apron and leather gloves, a big riveted brass tank of fuel on his back with pipes, holding a brass flame lance with a nozzle pointing forward, a small pilot light at the nozzle tip, no flame, no fire, heavy boots, soot on his face",
+      "sujet": "a stocky dwarf with goggles and a leather apron, a brass fuel tank on his back, holding a brass flame lance, no fire, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::faction style reference (a dwarf shield-bearer of the same army): keep the same stocky dwarf proportions, the earthy brown leather, dark iron and wood, the black beard and the colours; the new character is a different unit",
+        "art-candidats/references/nains/porte-bouclier.jpg::proportion reference (an ink sketch of a dwarf): keep the very stocky body, the huge beard, the big hands; ignore the paper and the sepia colour"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
+    },
+    "gyrocoptere": {
+      "nom": "Gyrocoptère",
+      "gabarit": "volant",
+      "hauteur": 72,
+      "generation": [
+        128,
+        128
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "gargouille"
+      ],
+      "notes": "Nains, niveau 6 : la machine volante (façonnée) ; elle lâche une bombe. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16).",
+      "description": "a small dwarven gyrocopter flying: a riveted brass and dark iron body like a barrel with a seat, a big wooden two-blade rotor on top, a small tail rotor, a little smoking chimney, two round bombs hanging under it; a dwarf pilot with a black beard, a leather cap and brass goggles sits at the controls, side view, hovering",
+      "sujet": "a small brass and iron dwarven gyrocopter with a wooden rotor on top, a bearded dwarf pilot with goggles, bombs under it, side view, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::faction style reference (a dwarf shield-bearer of the same army): keep the same stocky dwarf proportions, the earthy brown leather, dark iron and wood, the black beard and the colours; the new character is a different unit",
+        "art-candidats/references/nains/porte-bouclier.jpg::proportion reference (an ink sketch of a dwarf): keep the very stocky body, the huge beard, the big hands; ignore the paper and the sepia colour"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
+    },
+    "machine-guerre": {
+      "nom": "Machine de guerre",
+      "gabarit": "grand",
+      "hauteur": 100,
+      "generation": [
+        120,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "behemoth"
+      ],
+      "notes": "Nains, niveau 7 : le canon à vapeur (tire, façonné ; plus tard la Forteresse ambulante). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16).",
+      "description": "a heavy dwarven steam war machine: a squat riveted dark iron and brass hull on big iron wheels with spikes, a large bronze cannon in front, a tall chimney with smoke, pipes and pressure gauges, small rune plates glowing orange, a dwarf gunner with a black beard and goggles in a hatch on top, massive and menacing, side view",
+      "sujet": "a heavy dwarven steam war machine on iron wheels with a big bronze cannon, a chimney with smoke, a dwarf in a hatch, side view, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::faction style reference (a dwarf shield-bearer of the same army): keep the same stocky dwarf proportions, the earthy brown leather, dark iron and wood, the black beard and the colours; the new character is a different unit",
+        "art-candidats/references/nains/porte-bouclier.jpg::proportion reference (an ink sketch of a dwarf): keep the very stocky body, the huge beard, the big hands; ignore the paper and the sepia colour"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
     }
   }
 }

@@ -124,11 +124,13 @@ qui grossissent, Loups qui frappent deux fois) : elle perd parfois son héros da
 tour d'observation, temple, cercle des fées), gardiens justes, les tailles de Heroes 3, les passages entre zones selon
 une option, une ville au plus par zone, une scierie et une mine de minerai gardées près de chaque ville, victoire par
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
-rives par tronçons ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
+rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
+roseaux, un petit delta) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
 dessin).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
-- **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
+- **Les rives** : l'utilisateur les travaillera encore ; **le delta des ruisseaux**, à améliorer (de vrais bras qui se
+  partagent sur un éventail de sable : le sens du ruisseau à son embouchure, calculé par le jeu) ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
 - **Le shader de l'herbe**, revu par l'utilisateur (le bord des routes suivra).
 - **Plus tard** : un style de sol par zone de faction (herbe fleurie du Château, sèche des Barbares, morte des

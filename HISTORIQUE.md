@@ -1478,6 +1478,30 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
     les `reed_scale` 24 pixels), quelques-uns à massette brune ; **des rochers** (`rock_at`) dans l'eau peu profonde,
     entourés d'écume (`rocks` 0,08).
   Écartés au premier tour : une version plus légère et une plus forte (plus de profondeur, de roseaux et de rochers).
+  **Troisième tour** (demandé par l'utilisateur : des roseaux sur le sable, de l'herbe sur les plages, même page,
+  `art-candidats/archives/2026-11-15-rives-herbe/`) : une part `reed_sand` 0,3 des touffes de roseaux pousse aussi sur
+  les plages de sable (pas sur les galets) ; **de petites plaques d'herbe au milieu du sable**, ni contre l'eau ni contre
+  l'herbe (`beach_patches` 0,3, un bruit de `beach_patch_scale` 5 pixels) ; **des touffes d'herbe doubles** semées sur
+  le sable, plus côté terre (`beach_tufts` 0,25 des carrés de 6 pixels). Écartés : une herbe qui gagne sur le sable
+  depuis la terre (la plage s'amincissait, alors que l'utilisateur voulait plus de sable), une version plus légère et
+  une plus forte.
+- ✅ Les ruisseaux (2026-11-16, branche `ruisseaux`, choisis par l'utilisateur sur une page de comparaison en deux
+  tours, `art-candidats/archives/2026-11-16-ruisseaux/`). Ils n'avaient pas changé avec les rives. Dans le shader du sol
+  (`stream_depth` : la profondeur du ruisseau, avec ses mares) :
+  - **des mares** où il s'élargit (`stream_pools` 2,5 pixels d'art de plus, un bruit de 34 pixels) ;
+  - **l'eau claire contre le bord** (`stream_shallow` 0,3) **et plus sombre au milieu** (`stream_deep` 0,25) ;
+  - **une rive de terre mouillée** (`stream_mud` 0,5 sur `mud_width` pixels) ; **des bancs de sable** par endroits, qui
+    mangent le bord de l'eau (`stream_bars` 0,3) ; **des pierres** dans l'eau avec de l'écume (`stream_stones` 0,12 des
+    carrés de 8 pixels, `stream_stone_at`) ; **des roseaux**, plus rares que sur les lacs (`stream_reeds` 0,25 ;
+    `reed_at` sert aux deux) ;
+  - **l'embouchure** (deuxième tour, l'utilisateur voulait un delta plutôt qu'une coupure nette) : un éventail de sable
+    sur la rive où il se jette (`stream_mouth` 9 pixels), le ruisseau qui s'élargit (`stream_delta` 4) autour de petits
+    îlots de sable (`stream_islets` 0,5), des rives de sable mouillé sans contour, une eau claire en éventail dans le
+    lac, la mer ou la rivière. Écartés : des îlots de sable avancés dans l'eau (des taches), un delta plus fort.
+    **À améliorer plus tard** (l'utilisateur) : de vrais bras qui se partagent, ce qui demande le sens du ruisseau à son
+    embouchure (`RiverField`).
+  Au passage : le commit des roseaux sur le sable et de l'herbe des plages, poussé après la fusion de `rives`, est repris
+  ici.
 - ✅ Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, en deux tours avec l'utilisateur sur une page de
   six cartes entières, `art-candidats/archives/2026-11-15-rivieres/`). D'après 50 cartes de Heroes 3
   (`tools/cartes/rivieres_h3.py`) : 40 en ont, 2,3 % de la terre en médiane, 0,6 rivière pour 1000 cases de terre, longue

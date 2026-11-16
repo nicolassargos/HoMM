@@ -140,7 +140,14 @@ public sealed class BuildingCatalog
     public IReadOnlyCollection<BuildingType> All => _all;
 
     public BuildingType Get(string id) =>
-        _byId.TryGetValue(id, out var b) ? b : throw new KeyNotFoundException($"Bâtiment inconnu : {id}");
+        _byId.TryGetValue(Renamed.GetValueOrDefault(id, id), out var b) ? b : throw new KeyNotFoundException($"Bâtiment inconnu : {id}");
+
+    /// <summary>Les bâtiments remplacés, retrouvés sous leur nouvel identifiant (les sauvegardes d'avant).</summary>
+    private static readonly Dictionary<string, string> Renamed = new()
+    {
+        ["forge-flammes"] = "galeries-sapeurs", // 2026-11-16, avec leurs créatures
+        ["grande-fonderie"] = "caveau-rois",
+    };
 
     /// <summary>Les bâtiments d'une ville de cette faction : les siens, et les bâtiments communs.</summary>
     public IEnumerable<BuildingType> OfFaction(string faction) =>

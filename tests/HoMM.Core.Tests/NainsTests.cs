@@ -45,13 +45,15 @@ public class NainsTests
     public void Les_sept_creatures_des_nains_une_par_niveau_toutes_obstinees()
     {
         var dwarves = TestData.Creatures.All.Where(c => c.Faction == "nains").OrderBy(c => c.Tier).ToList();
-        Assert.Equal(new[] { "porte-bouclier", "arbaletrier", "chevaucheur-chevre", "porte-etendard", "lance-flammes", "gyrocoptere", "machine-guerre" },
+        Assert.Equal(new[] { "porte-bouclier", "arbaletrier", "chevaucheur-chevre", "porte-etendard", "sapeur", "gyrocoptere", "roi-de-cristal" },
             dwarves.Select(c => c.Id));
         Assert.Equal(Enumerable.Range(1, 7), dwarves.Select(c => c.Tier));
         Assert.All(dwarves, c => Assert.Contains(Ability.Stubborn, c.Abilities));
         Assert.Contains(Ability.Made, Creature("gyrocoptere").Abilities);
-        Assert.Contains(Ability.Made, Creature("machine-guerre").Abilities);
-        Assert.Equal(1, Creature("machine-guerre").Cost[ResourceType.Crystal]);
+        // le Sapeur creuse sous le champ ; le Roi de cristal est vivant (pas façonné)
+        Assert.Contains(Ability.Burrows, Creature("sapeur").Abilities);
+        Assert.DoesNotContain(Ability.Made, Creature("roi-de-cristal").Abilities);
+        Assert.Equal(1, Creature("roi-de-cristal").Cost[ResourceType.Crystal]);
         Assert.Contains("nains", MapGenerator.MonsterFactions);
     }
 
@@ -175,18 +177,11 @@ public class NainsTests
     }
 
     [Fact]
-    public void L_obus_de_la_machine_de_guerre_touche_une_zone()
+    public void Les_sauvegardes_d_avant_retrouvent_le_sapeur_et_le_roi_de_cristal()
     {
-        var battle = Battle(Army(("machine-guerre", 1)), Army(("gobelin", 30), ("loup", 20)));
-        var machine = Unit(battle, "machine-guerre");
-        var goblins = Unit(battle, "gobelin");
-        var wolves = Unit(battle, "loup");
-        goblins.Position = new Hex(8, 4);
-        wolves.Position = goblins.Position.Neighbours().First(Battlefield.InBounds);
-        battle.ForceTurn(machine, new Hex(1, 4));
-        Assert.True(battle.Shoot(goblins));
-        var hits = battle.TakeLog().OfType<UnitStruck>().Where(s => s.Attacker == machine).ToList();
-        Assert.Contains(hits, h => h.Target == goblins && h.Ranged);
-        Assert.Contains(hits, h => h.Target == wolves && h.Ranged);
+        Assert.Equal("sapeur", TestData.Creatures.Get("lance-flammes").Id);
+        Assert.Equal("roi-de-cristal", TestData.Creatures.Get("machine-guerre").Id);
+        Assert.Equal("galeries-sapeurs", TestData.Data.Buildings.Get("forge-flammes").Id);
+        Assert.Equal("caveau-rois", TestData.Data.Buildings.Get("grande-fonderie").Id);
     }
 }

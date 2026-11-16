@@ -1972,7 +1972,10 @@
         "L8": "angle seul"
       },
       "choix": {
-        "fixe": "L6-3"
+        "fixe": "L6-3",
+        "idle": "garde-1",
+        "move": "mmarche-1",
+        "attack": "mtir-1-r1"
       },
       "grande": "art-candidats/references/derives/arbaletrier-grand.png"
     },

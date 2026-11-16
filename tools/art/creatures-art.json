@@ -2054,7 +2054,8 @@
       "choix": {
         "fixe": "L8-3",
         "idle": "mgarde-2-r1",
-        "move": "mmarche-1-r1"
+        "move": "mmarche-1-r1",
+        "attack": "attack-2-r2"
       },
       "grande": "art-candidats/references/derives/porte-etendard-grand.png",
       "consignes": {

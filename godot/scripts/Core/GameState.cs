@@ -1259,6 +1259,29 @@ public sealed partial class GameState
     }
 
     /// <summary>
+    /// Démonstration : tous les bâtiments de la ville, sans les payer, dans l'ordre de leurs prérequis (le chantier naval
+    /// seulement au bord de l'eau) ; un héros du joueur dans la ville apprend les sorts de la guilde.
+    /// </summary>
+    public void AddAllBuildings(Town town)
+    {
+        bool added = true;
+        while (added)
+        {
+            added = false;
+            foreach (var building in town.Buildings.ToList())
+            {
+                if (town.Has(building.Id) || (building.Shipyard && town.BoatSpot == null)
+                    || building.RequirementChoices.Any(choices => !choices.Any(town.Has)))
+                    continue;
+                AddFreeBuilding(town, building);
+                added = true;
+            }
+        }
+        if (town.MageGuildLevel > 0 && VisitingHero(town) is { } hero && hero.Owner == town.Owner)
+            VisitGuild(hero, town);
+    }
+
+    /// <summary>
     /// Un héros dans une ville de son joueur qui a une guilde des mages : il apprend les sorts qu'il ne connaît pas encore
     /// et retrouve tous ses points de sort.
     /// </summary>

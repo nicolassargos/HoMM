@@ -2226,7 +2226,11 @@
         "L6": "angle seul",
         "L7": "références",
         "L8": "angle seul"
-      }
+      },
+      "choix": {
+        "fixe": "L5-1"
+      },
+      "grande": "art-candidats/references/derives/roi-de-cristal-grand.png"
     }
   }
 }

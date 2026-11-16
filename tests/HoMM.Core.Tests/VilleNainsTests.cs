@@ -44,12 +44,12 @@ public class VilleNainsTests
     public void La_ville_naine_a_ses_sept_habitations()
     {
         var castle = DwarfGame().Players[0].Towns.Single();
-        Assert.Equal(new[] { "salle-boucliers", "atelier-arbaletriers", "enclos-chevres", "salle-ancetres", "forge-flammes", "hangar-gyrocopteres", "grande-fonderie" },
+        Assert.Equal(new[] { "salle-boucliers", "atelier-arbaletriers", "enclos-chevres", "salle-ancetres", "galeries-sapeurs", "hangar-gyrocopteres", "caveau-rois" },
             Enumerable.Range(1, 7).Select(t => castle.DwellingOfTier(t)!.Id));
         var b = TestData.Data.Buildings;
-        Assert.Equal(2, b.Get("forge-flammes").Cost[ResourceType.Sulfur]);
+        Assert.Equal(2, b.Get("galeries-sapeurs").Cost[ResourceType.Sulfur]);
         Assert.Equal(2, b.Get("hangar-gyrocopteres").Cost[ResourceType.Sulfur]);
-        Assert.Equal(5, b.Get("grande-fonderie").Cost[ResourceType.Crystal]);
+        Assert.Equal(5, b.Get("caveau-rois").Cost[ResourceType.Crystal]);
         Assert.Contains(b.Get("grand-hotel-ville").Requires, r => r.Split('|').Contains("salle-ancetres"));
     }
 

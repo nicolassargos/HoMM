@@ -80,8 +80,8 @@
     { "id": "atelier-arbaletriers", "name": "Atelier des arbalétriers", "faction": "nains", "cost": { "Gold": 1000, "Wood": 5, "Ore": 5 }, "requires": ["salle-boucliers"], "dwelling": "arbaletrier", "view": [250, 200, 90, 150] },
     { "id": "enclos-chevres", "name": "Enclos des chèvres", "faction": "nains", "cost": { "Gold": 1000, "Ore": 5 }, "requires": ["atelier-arbaletriers"], "dwelling": "chevaucheur-chevre", "view": [770, 150, 110, 150] },
     { "id": "salle-ancetres", "name": "Salle des ancêtres", "faction": "nains", "cost": { "Gold": 2000, "Wood": 5 }, "requires": ["atelier-arbaletriers"], "dwelling": "porte-etendard", "view": [910, 240, 170, 100] },
-    { "id": "forge-flammes", "name": "Forge des flammes", "faction": "nains", "cost": { "Gold": 3000, "Wood": 5, "Ore": 5, "Sulfur": 2 }, "requires": ["salle-ancetres"], "dwelling": "lance-flammes", "view": [1110, 110, 130, 130] },
+    { "id": "galeries-sapeurs", "name": "Galeries des sapeurs", "faction": "nains", "cost": { "Gold": 3000, "Wood": 5, "Ore": 5, "Sulfur": 2 }, "requires": ["salle-ancetres"], "dwelling": "sapeur", "view": [1110, 110, 130, 130] },
     { "id": "hangar-gyrocopteres", "name": "Hangar des gyrocoptères", "faction": "nains", "cost": { "Gold": 2000, "Wood": 10, "Sulfur": 2 }, "requires": ["enclos-chevres", "salle-ancetres"], "dwelling": "gyrocoptere", "view": [380, 280, 190, 90] },
-    { "id": "grande-fonderie", "name": "Grande fonderie", "faction": "nains", "cost": { "Gold": 10000, "Crystal": 5 }, "requires": ["forge-flammes", "hangar-gyrocopteres"], "dwelling": "machine-guerre", "view": [610, 230, 110, 150] }
+    { "id": "caveau-rois", "name": "Caveau des rois", "faction": "nains", "cost": { "Gold": 10000, "Crystal": 5 }, "requires": ["galeries-sapeurs", "hangar-gyrocopteres"], "dwelling": "roi-de-cristal", "view": [610, 230, 110, 150] }
   ]
 }

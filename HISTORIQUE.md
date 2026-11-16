@@ -998,6 +998,17 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
 3. Les images (session images) : les 7 créatures. ✅ La ville sur la carte (2026-11-12, branche `creatures-nains`, choix
    de l'utilisateur) : une forteresse taillée dans une montagne grise, une porte gravée de runes d'or entre deux statues
    de rois nains, une cheminée de forge (`objects/town-nains.png`, luminosité 98, gardée telle quelle).
+4. ✅ **Le Sapeur et le Roi de cristal** remplacent le Lance-flammes et la Machine de guerre (2026-11-16, branche
+   `nains-sapeur-roi`, choix de l'utilisateur, qui n'aimait ni la grosse machine ni le lance-flammes). Le **Sapeur**
+   (niveau 5, soufre) : un mineur à la pioche et à la lanterne, qui **se déplace sous terre** (`burrows`, comme le Ver
+   des profondeurs), mêmes chiffres que le Lance-flammes ; habitation `galeries-sapeurs` (Galeries des sapeurs). Le **Roi
+   de cristal** (→ Roi des ancêtres ; niveau 7, cristal) : un ancien roi scellé dans le cristal, vivant (plus façonné),
+   au corps à corps ; habitation `caveau-rois` (Caveau des rois). Chiffres réglés par `Duels_a_prix_egal` (la Machine
+   de guerre, sans son canon, gagnait tous ses duels) : attaque 24, défense 25, dégâts 76-96, 1400 PV, vitesse 4 ;
+   victoires dans son niveau 56 % (Sapeur 56 %). Les anciens identifiants restent lus (sauvegardes d'avant :
+   `CreatureCatalog`, `BuildingCatalog`). **À faire (session règles)** : ses deux capacités prévues, renvoyer les
+   sorts néfastes sur la troupe du lanceur, et l'obstination gardée par toute l'armée tant qu'il ne bouge pas ;
+   peut-être un Sapeur qui surgit n'importe où (aujourd'hui, sa vitesse limite où il ressort).
 
 #### L'Enfer
 Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).

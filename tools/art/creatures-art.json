@@ -1988,13 +1988,13 @@
         "porte-bouclier",
         "sanglier"
       ],
-      "notes": "Nains, niveau 3 : la cavalerie de montagne, la seule troupe rapide ; pied sûr (comme la monture du héros nain). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
-      "description": "a wiry wild dwarf riding a huge ugly shaggy black-and-white mountain goat: the goat has one broken horn and one long twisted horn, a scruffy beard, mad yellow eyes with slit pupils, its tongue hanging out, iron bells on its collar; the dwarf is skinny for a dwarf, wild white hair sticking up, blue war paint, a gap-toothed grin, a long blond beard tied in two braids flying behind, a fur vest, a short throwing axe raised, riding bareback with a rope bridle, charging, side view, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
-      "sujet": "a wild grinning dwarf with white hair and blue war paint riding a huge shaggy black-and-white goat with one broken horn, side view, facing right",
+      "notes": "Nains, niveau 3 : la cavalerie de montagne, la seule troupe rapide ; pied sûr (comme la monture du héros nain). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants). Troisième passage (2026-11-16) : la même allure que L8-1, debout et immobile (L9 et suivants).",
+      "description": "a wiry wild dwarf sitting on a huge ugly shaggy black-and-white mountain goat that stands still: the goat stands calmly on all four hooves planted on the ground, legs straight, not jumping, not running; it has one broken horn and one long twisted horn, a scruffy beard, mad yellow eyes with slit pupils, its tongue hanging out, iron bells on its collar; the dwarf sits upright, skinny for a dwarf, wild white hair sticking up, blue war paint, a gap-toothed grin, a long blond beard in two braids, a fur vest, a short throwing axe resting on his shoulder, riding bareback with a rope bridle, idle standing pose, side view, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "a wild grinning dwarf with white hair and blue war paint sitting on a huge shaggy black-and-white goat standing still on four hooves, idle pose, side view, facing right",
       "style": "godot/art/creatures/battle/moine.png",
       "angle": "godot/art/creatures/battle/troll.png",
       "references": [
-        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+        "art-candidats/references/derives/chevaucheur-chevre-L8-1.png::look reference (the same rider and goat, chosen design): keep exactly this dwarf and this goat, their colours and the pixel art rendering; but the goat now stands still on all four hooves, not leaping"
       ],
       "lots": {
         "L1": "références",
@@ -2004,7 +2004,11 @@
         "L5": "références",
         "L6": "angle seul",
         "L7": "références",
-        "L8": "angle seul"
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul",
+        "L11": "références",
+        "L12": "angle seul"
       }
     },
     "porte-etendard": {
@@ -2036,7 +2040,11 @@
         "L6": "angle seul",
         "L7": "références",
         "L8": "angle seul"
-      }
+      },
+      "choix": {
+        "fixe": "L8-3"
+      },
+      "grande": "art-candidats/references/derives/porte-etendard-grand.png"
     },
     "lance-flammes": {
       "nom": "Lance-flammes",
@@ -2077,19 +2085,23 @@
         "porte-bouclier",
         "gargouille"
       ],
-      "notes": "Nains, niveau 6 : la machine volante (façonnée) ; elle lâche une bombe. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
-      "description": "a rickety dwarven gyrocopter flying: a patched wooden barrel body with mismatched copper and iron plates, a cooking pot used as an engine, a spinning wooden rotor made of two planks, a sputtering chimney with black smoke, a bundle of round bombs hanging from ropes; the pilot is a crazy dwarf with a tall orange crest of hair, a huge waxed handlebar moustache, big round green-lensed goggles, a leather scarf flying behind, laughing like a maniac, side view, hovering, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
-      "sujet": "a rickety patched barrel gyrocopter with a plank rotor and smoking pot engine, a crazy dwarf pilot with an orange crest and a huge moustache, bombs on ropes, side view, facing right",
+      "notes": "Nains, niveau 6 : la machine volante (façonnée) ; elle lâche une bombe. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants). Troisième passage (2026-11-16) : plus fou, une baignoire volante à deux nains (L9 et suivants).",
+      "description": "a ridiculous dwarven flying machine hovering: a big dented copper bathtub hanging under a spinning rotor made of four battle axes tied together, a fat sweating dwarf with a huge braided grey beard pedalling a squeaky bicycle crank as fast as he can to turn the rotor, his cheeks red and puffed; in the front of the tub a tiny skinny dwarf bombardier wearing a helmet far too big for him that covers his eyes, holding a lit round bomb, a wicker basket full of bombs, patched sails, a leaking pipe puffing smoke, ropes and planks everywhere, side view, hovering, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd and funny, full of character",
+      "sujet": "a ridiculous dwarven flying copper bathtub under a rotor made of four axes, a fat dwarf pedalling furiously and a tiny dwarf with a too big helmet holding a bomb, side view, facing right",
       "style": "godot/art/creatures/battle/moine.png",
       "angle": "godot/art/creatures/battle/troll.png",
       "references": [
-        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new machine and characters are completely different"
       ],
       "lots": {
         "L1": "références",
         "L2": "angle seul",
         "L3": "références",
-        "L4": "angle seul"
+        "L4": "angle seul",
+        "L9": "références",
+        "L10": "angle seul",
+        "L11": "références",
+        "L12": "angle seul"
       }
     },
     "machine-guerre": {

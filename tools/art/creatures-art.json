@@ -2052,9 +2052,14 @@
         "L8": "angle seul"
       },
       "choix": {
-        "fixe": "L8-3"
+        "fixe": "L8-3",
+        "idle": "mgarde-2-r1",
+        "move": "mmarche-1-r1"
       },
-      "grande": "art-candidats/references/derives/porte-etendard-grand.png"
+      "grande": "art-candidats/references/derives/porte-etendard-grand.png",
+      "consignes": {
+        "attack": "the old dwarf grips the banner pole firmly with both hands, lifts it high above his head, then swings it down with both hands so the carved stone head comes down in front of him, then he returns to the starting pose leaning on the pole; only the body and the pole move"
+      }
     },
     "lance-flammes": {
       "nom": "Lance-flammes",

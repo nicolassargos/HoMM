@@ -3,7 +3,7 @@
     "menu": ["attente/musique-menu.wav"],
     "map": ["attente/musique-carte.wav"],
     "town": ["attente/musique-ville.wav"],
-    "battle": ["attente/musique-combat.wav"]
+    "battle": ["musique/combat-poursuite.wav"]
   },
   "sounds": {
     "click": ["attente/clic.wav"],
@@ -14,7 +14,27 @@
     "level-up": ["attente/niveau.wav"],
     "new-week": ["attente/nouvelle-semaine.wav"],
     "victory": ["attente/victoire.wav"],
-    "defeat": ["attente/defaite.wav"]
+    "defeat": ["attente/defaite.wav"],
+
+    "battle-impact": ["combat/coup-sourd.mp3"],
+    "battle-death": ["combat/mort-soldat.mp3"],
+    "archer-shoot": ["combat/archer-tir.mp3"],
+    "archer-shot-impact": ["combat/fleche-impact.mp3"],
+    "griffon-attack": ["combat/griffon-attaque.mp3"],
+    "griffon-death": ["combat/griffon-mort.mp3"],
+    "epeiste-impact": ["combat/coup-epee.mp3"],
+    "cavalier-attack": ["combat/cavalier-galop.ogg"],
+    "cavalier-impact": ["combat/coup-epee.mp3"],
+    "cavalier-death": ["combat/cavalier-mort.mp3"],
+    "ange-impact": ["combat/ange-gifle.mp3"],
+    "ange-death": ["combat/ange-mort-1.mp3", "combat/ange-mort-2.mp3"],
+    "spell-fleche-magique": ["combat/sort-fleche-magique.ogg"],
+    "spell-boule-de-feu": ["combat/sort-boule-de-feu.mp3"],
+    "spell-eclair": ["combat/sort-eclair.mp3"],
+    "spell-resurrection": ["combat/sort-resurrection.mp3"]
+  },
+  "lengths": {
+    "cavalier-attack": 1.4
   },
   "ambience": {}
 }

@@ -12,8 +12,11 @@ namespace HoMM.Game;
 /// ne s'arrête pas entre le menu et la partie). Les fichiers sont décrits dans <c>data/sounds.json</c> :
 ///   « music »    : les musiques (« menu », « map », « town », « town-chateau », « battle »…), qui bouclent ;
 ///   « sounds »   : les sons courts (« click », « build », « victory »…) ;
-///   « ambience » : les ambiances, de longues boucles discrètes.
-/// Chaque nom donne un ou plusieurs fichiers de <c>audio/</c> (.ogg ou .wav), tirés au hasard pour ne pas répéter.
+///   « ambience » : les ambiances, de longues boucles discrètes ;
+///   « lengths »  : la durée où couper un son court trop long (en secondes, il s'efface à la fin).
+/// Chaque nom donne un ou plusieurs fichiers de <c>audio/</c> (.ogg, .wav ou .mp3), tirés au hasard pour ne pas répéter.
+/// Au combat, une créature a ses sons : « archer-shoot », « griffon-attack », « ange-impact », « ange-death »… (son id
+/// et son action, <see cref="PlayCreature"/>) ; les sorts, « spell-boule-de-feu »….
 /// Les fichiers sont lus directement (pas besoin de les importer avec l'éditeur Godot), comme les images (<see cref="Art"/>).
 /// Trois bus : Musique, Effets, Ambiance, dont les volumes viennent des réglages (<see cref="Settings"/>).
 /// </summary>
@@ -35,6 +38,7 @@ public partial class Audio : Node
     private readonly Dictionary<string, string[]> _music = new();
     private readonly Dictionary<string, string[]> _sounds = new();
     private readonly Dictionary<string, string[]> _ambiences = new();
+    private readonly Dictionary<string, double> _lengths = new();
     private readonly Dictionary<string, AudioStream?> _cache = new();
     private readonly Random _rng = new();
 
@@ -50,6 +54,12 @@ public partial class Audio : Node
 
     /// <summary>Les lecteurs des sons courts (plusieurs peuvent jouer en même temps).</summary>
     private readonly List<AudioStreamPlayer> _effects = new();
+
+    /// <summary>L'effacement d'un son coupé, par lecteur (un lecteur repris ne doit pas être coupé par l'ancien).</summary>
+    private readonly Dictionary<AudioStreamPlayer, Tween> _cuts = new();
+
+    /// <summary>Le temps où un son coupé s'efface, en secondes.</summary>
+    private const double CutFade = 0.3;
 
     private const int EffectPlayers = 8;
 
@@ -136,6 +146,9 @@ public partial class Audio : Node
             foreach (var entry in entries.EnumerateObject())
                 table[entry.Name] = entry.Value.EnumerateArray().Select(f => f.GetString() ?? "").Where(f => f != "").ToArray();
         }
+        if (document.RootElement.TryGetProperty("lengths", out var lengths))
+            foreach (var entry in lengths.EnumerateObject())
+                _lengths[entry.Name] = entry.Value.GetDouble();
     }
 
     /// <summary>
@@ -149,9 +162,37 @@ public partial class Audio : Node
         var player = audio._effects.FirstOrDefault(p => !p.Playing) ?? audio._effects[0];
         audio._effects.Remove(player);
         audio._effects.Add(player); // le plus ancien sera repris en premier si tous jouent
+        if (audio._cuts.Remove(player, out var cut))
+            cut.Kill();
         player.Stream = stream;
+        player.VolumeDb = 0;
         player.PitchScale = 1 + (float)(audio._rng.NextDouble() - 0.5) * 0.04f;
         player.Play();
+        if (audio._lengths.TryGetValue(id, out double length))
+        {
+            var fade = audio._cuts[player] = audio.CreateTween();
+            fade.TweenInterval(Math.Max(0, length - CutFade));
+            fade.TweenProperty(player, "volume_db", Silent, CutFade);
+            fade.TweenCallback(Callable.From(() =>
+            {
+                player.Stop();
+                audio._cuts.Remove(player);
+            }));
+        }
+    }
+
+    /// <summary>
+    /// Le son d'une créature au combat : « attack » (au début de son geste), « shoot » (un tir), « impact » (quand son
+    /// coup porte), « shot-impact » (quand son tir touche), « death » (des créatures de la troupe meurent). Sans son
+    /// propre son, une créature prend celui de tout le combat (« battle-impact », aussi pour un tir, « battle-death ») ;
+    /// il n'y en a pas pour le geste ni le tir.
+    /// </summary>
+    public static void PlayCreature(CreatureType creature, string action)
+    {
+        if (_instance is not { } audio)
+            return;
+        string id = $"{creature.Id}-{action}";
+        Play(audio._sounds.ContainsKey(id) ? id : action == "shot-impact" ? "battle-impact" : $"battle-{action}");
     }
 
     /// <summary>
@@ -255,8 +296,10 @@ public partial class Audio : Node
             stream = AudioStreamOggVorbis.LoadFromFile(path);
         else if (file.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
             stream = AudioStreamWav.LoadFromFile(path);
+        else if (file.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+            stream = AudioStreamMP3.LoadFromFile(path);
         else
-            GD.PrintErr($"Son illisible (ni .ogg ni .wav) : {path}");
+            GD.PrintErr($"Son illisible (ni .ogg, ni .wav, ni .mp3) : {path}");
         _cache[file] = stream;
         return stream;
     }

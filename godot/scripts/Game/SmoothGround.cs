@@ -98,13 +98,20 @@ public partial class SmoothGround : ColorRect
     /// Le sol de la carte, ou null s'il manque le shader ou les images des terrains
     /// (le sol est alors dessiné case par case, sans bords).
     /// </summary>
-    public static SmoothGround? Create(AdventureMap map) =>
-        Create(map.Width, map.Height, cell =>
+    public static SmoothGround? Create(AdventureMap map)
+    {
+        var ground = Create(map.Width, map.Height, cell =>
         {
             // les forêts et les montagnes ont un sol d'herbe (leur décor est dessiné à part)
             var terrain = map.GetTerrain(cell);
             return (DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain, map.GetRoadKind(cell), map.GetRiver(cell));
         });
+        // le pied des montagnes
+        if (ground?.Material is ShaderMaterial material)
+            material.SetShaderParameter("mountain_field", ImageTexture.CreateFromImage(
+                MountainField.Build(map.Width, map.Height, cell => map.GetTerrain(cell) == TerrainType.Mountain)));
+        return ground;
+    }
 
     /// <summary>
     /// Le sol du champ de bataille : un seul terrain, qui couvre au moins la taille donnée en pixels de l'écran (des cases

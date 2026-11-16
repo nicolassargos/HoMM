@@ -79,10 +79,17 @@ public partial class DecorLayer : Node2D
                     break;
 
                 case TerrainType.Mountain when peaks.Length > 0:
-                    // un sommet derrière, sur un côté, puis le grand devant, qui déborde sur les cases voisines
+                    // un sommet derrière, sur un côté ; au milieu d'une chaîne (et une fois sur deux ailleurs), un second
+                    // grand sommet derrière, décalé, qui bouche le creux entre les rangées ; puis le grand devant, qui
+                    // déborde sur les cases voisines
+                    bool Rock(int dx, int dy) => map.InBounds(new Cell(x + dx, y + dy)) && map.GetTerrain(new Cell(x + dx, y + dy)) == TerrainType.Mountain;
+                    bool inner = Rock(1, 0) && Rock(-1, 0) && Rock(0, 1) && Rock(0, -1);
                     sprites.Add((o + new Vector2((rng.Next(2) == 0 ? 12 : 36) * k, 26 * k + R(-3, 4, rng)),
                         smallPeaks[rng.Next(smallPeaks.Length)]));
-                    sprites.Add((o + new Vector2(t / 2 + R(-6, 7, rng), t - 2 * k + R(-2, 3, rng)), peaks[rng.Next(peaks.Length)]));
+                    if (inner || rng.Next(2) == 0)
+                        sprites.Add((o + new Vector2(t / 2 + (rng.Next(2) == 0 ? -1 : 1) * R(12, 18, rng), t / 2 + R(0, 6, rng)),
+                            peaks[rng.Next(peaks.Length)]));
+                    sprites.Add((o + new Vector2(t / 2 + R(-10, 11, rng), t + R(-2, 3, rng)), peaks[rng.Next(peaks.Length)]));
                     break;
             }
         }

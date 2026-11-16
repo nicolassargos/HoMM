@@ -1937,7 +1937,8 @@
         "fixe": "L7-4",
         "idle": "garde-1",
         "move": "mmarche-1",
-        "attack": "mcoup-2-r1"
+        "attack": "mcoup-2-r1",
+        "carte": "p1-3"
       },
       "grande": "art-candidats/references/derives/porte-bouclier-grand.png"
     },
@@ -1975,7 +1976,8 @@
         "fixe": "L6-3",
         "idle": "garde-1",
         "move": "mmarche-1",
-        "attack": "mtir-1-r1"
+        "attack": "mtir-1-r1",
+        "carte": "p1-2"
       },
       "grande": "art-candidats/references/derives/arbaletrier-grand.png"
     },
@@ -2055,7 +2057,8 @@
         "fixe": "L8-3",
         "idle": "mgarde-2-r1",
         "move": "mmarche-1-r1",
-        "attack": "attack-2-r2"
+        "attack": "attack-2-r2",
+        "carte": "p1-2"
       },
       "grande": "art-candidats/references/derives/porte-etendard-grand.png",
       "consignes": {
@@ -2128,7 +2131,8 @@
         "idle": "garde-1",
         "transform": "menvol-1",
         "move": "move-4",
-        "attack": "attack-2-r1"
+        "attack": "attack-2-r1",
+        "carte": "p1-2"
       },
       "grande": "art-candidats/references/derives/gyrocoptere-grand.png",
       "consignes": {
@@ -2181,7 +2185,17 @@
       "angle": "godot/art/creatures/battle/troll.png",
       "references": [
         "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
-      ]
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L3-2"
+      },
+      "grande": "art-candidats/references/derives/sapeur-grand.png"
     },
     "roi-de-cristal": {
       "nom": "Roi de cristal",
@@ -2195,14 +2209,24 @@
         "porte-bouclier",
         "behemoth"
       ],
-      "notes": "Nains, niveau 7 (→ Roi des ancêtres, la couronne de cristal qui luit) : renvoie les sorts néfastes ; l'obstination de toute l'armée. Nains : nouvelle créature (choix de l'utilisateur, 2026-11-16), id provisoire en attendant la session règles.",
-      "description": "a colossal ancient dwarf king woken from a thousand years sealed in crystal under the mountain: a huge stooped broad body, skin grey like old stone and cracked, one arm turned entirely into clear pale blue crystal, his enormous long beard grown into hanging crystal stalactites, big crystal shards jutting out of his shoulders, back and old dented bronze armour, dust and cobwebs still on him, deep-set glowing pale blue eyes under heavy brows, a tarnished old crown, holding a giant warhammer with a head of raw crystal, slow and terrifying, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd, full of character",
-      "sujet": "a colossal ancient dwarf king of cracked grey stone, his beard and one arm grown into pale blue crystal, crystal shards on his old bronze armour, holding a giant crystal warhammer, facing right",
+      "notes": "Nains, niveau 7 (→ Roi des ancêtres, la couronne de cristal qui luit) : renvoie les sorts néfastes ; l'obstination de toute l'armée. Nains : nouvelle créature (choix de l'utilisateur, 2026-11-16), id provisoire en attendant la session règles. Deuxième passage (2026-11-16) : plus fantomatique, à la demande de l'utilisateur (L5 et suivants).",
+      "description": "the ghost of a colossal ancient dwarf king bound to crystal, woken from a thousand years under the mountain: his huge stooped body is pale and luminous, ghostly white-blue and slightly see-through like a spirit, glowing softly from inside, wisps of pale mist trailing from his robe and his long beard, his beard and one arm grown into clear pale blue crystal, crystal shards jutting from his shoulders and his old faded bronze armour, hollow glowing white eyes, a tarnished ancient crown, holding a giant warhammer with a head of raw glowing crystal, eerie, cold and terrifying, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "the pale glowing ghost of a colossal ancient dwarf king, mist trailing from his beard and robe, crystal shards on his old armour, hollow glowing eyes, holding a giant crystal warhammer, facing right",
       "style": "godot/art/creatures/battle/moine.png",
       "angle": "godot/art/creatures/battle/troll.png",
       "references": [
         "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
-      ]
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul"
+      }
     }
   }
 }

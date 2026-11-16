@@ -80,7 +80,9 @@ public partial class ActorLayer : Node2D
         var at = ShownAt.TryGetValue(hero, out var shown) ? shown : hero.Position;
         if (!_motion.TryGetValue(hero, out var motion))
             motion = _motion[hero] = (at, at, double.NegativeInfinity, default, 0, false);
-        else if (motion.To != at && !(motion.Ahead && motion.From == at && _time - motion.Since < MapRenderer.HeroStepTime))
+        // un pas commencé attend les règles un peu plus que sa durée : elles y mettent le héros une image plus tard (sinon le
+        // pas était oublié, et le suivant, partant de la case d'avant, se jouait à l'envers)
+        else if (motion.To != at && !(motion.Ahead && motion.From == at && _time - motion.Since < MapRenderer.HeroStepTime * 1.5))
         {
             // un pas que les règles ont déjà fait (les adversaires rejoués), ou un pas commencé que les règles n'ont pas
             // fait (le héros reste) ; un saut de plus d'une case (chargement, nouveau tour) n'est pas une marche

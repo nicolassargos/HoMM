@@ -34,6 +34,10 @@ uniform float edge_bias = 2.0;
 uniform float edge_wave = 5.5;
 uniform float wave_scale = 13.0;
 uniform float wave_detail = 0.4;
+// La rive des lacs et de la mer : arrondie (0 : elle suit les cases, en biais à 45° ; 1 : toute en courbes), et son
+// ondulation en plus de edge_wave
+uniform float shore_round = 0.8;
+uniform float shore_wave = 1.0;
 // Mélange entre deux terres : demi-largeur (pixels d'art), grain qui rend le mélange irrégulier,
 // et nombre de paliers (0 = mélange continu ; 4 = 0, 25, 50, 75, 100 %, plus « pixel art »)
 uniform float blend = 3.5;
@@ -148,15 +152,40 @@ uniform vec3 deep_color = vec3(0.08, 0.2, 0.42);
 uniform float reeds = 0.6;
 uniform float reed_share = 0.45;
 uniform float reed_scale = 24.0;
+// sur les plages de sable (pas de galets), la part reed_sand des touffes de roseaux reste
+uniform float reed_sand = 0.3;
+// L'herbe sur les plages : de petites plaques d'herbe au milieu du sable, ni contre l'eau ni contre l'herbe (un bruit
+// doux de beach_patch_scale pixels ; plus beach_patches est grand, plus il y en a), et des touffes semées sur le sable
+// (la part beach_tufts des carrés de 6 pixels, plus côté terre ; deux touffes côte à côte)
+uniform float beach_patches = 0.3;
+uniform float beach_patch_scale = 5.0;
+uniform float beach_tufts = 0.25;
 uniform float rocks = 0.08;
 // Fleurs sur l'herbe : l'herbe est découpée en carrés de « flower_cell » pixels d'art ; une part « flower_density » de
 // ces carrés porte une fleur (un cœur, quatre pétales et un pixel d'ombre) ou, plus rarement, un petit caillou
-uniform float flower_density = 0.1;
+uniform float flower_density = 0.05;
 uniform float flower_cell = 9.0;
 uniform float pebble_share = 0.2;
 // Grandes zones un peu plus claires ou plus sombres : force et taille (pixels d'art)
 uniform float shade = 0.08;
 uniform float shade_scale = 70.0;
+// L'herbe (2026-11-16, choisie par l'utilisateur) : la teinte de base (grass_depth : < 1 plus foncée) ; des taches de couleur
+// d'environ grass_tint_scale pixels d'art, herbe sèche (grass_dry, multiplie la couleur) et herbe drue (grass_lush),
+// de force grass_tint ; des touffes (une part grass_clumps des carrés de grass_clump_cell pixels), éclairées d'en bas à
+// droite, une ombre à gauche ; des bouquets de fleurs (une part flower_patches des carrés de 22 pixels, 3 à 7 fleurs
+// d'une couleur)
+uniform float grass_depth = 0.92;
+uniform float grass_tint = 0.6;
+uniform float grass_tint_scale = 40.0;
+uniform vec3 grass_dry = vec3(1.28, 1.06, 0.78);
+uniform vec3 grass_lush = vec3(0.72, 0.86, 0.78);
+uniform float grass_clumps = 0.2;
+uniform float grass_clump_cell = 7.0;
+// les touffes se rassemblent (0 : partout pareil ; 1 : par endroits, d'environ grass_clump_gather_scale pixels d'art,
+// aucune ailleurs)
+uniform float grass_clump_gather = 0.0;
+uniform float grass_clump_gather_scale = 28.0;
+uniform float flower_patches = 0.1;
 
 // Rivières (2026-11-15) : le bleu de chaque case dit sa rivière (× 64 : 0 rien, 1 ruisseau, 2 rivière, 3 pont).
 // Un ruisseau suit le milieu des cases, comme une route (demi-largeur et ondulation) ; une rivière remplit la bande de
@@ -168,6 +197,23 @@ uniform float river_bank = 9.3;
 uniform float river_wave = 3.3;
 uniform float bridge_width = 6.0;
 uniform float stream_bend = 6.0;
+// Les ruisseaux : des mares où ils s'élargissent (stream_pools pixels d'art de plus), une eau claire contre le bord
+// (stream_shallow) et plus sombre au milieu (stream_deep), une rive de terre mouillée (stream_mud, sur mud_width pixels),
+// des bancs de sable par endroits (stream_bars : leur part), des pierres dans l'eau avec de l'écume (stream_stones : la
+// part des carrés de 8 pixels), des roseaux (stream_reeds : la part des carrés de 5 pixels du bord), et un éventail de
+// sable où ils se jettent dans un lac, la mer ou une rivière (stream_mouth : sa largeur en pixels)
+uniform float stream_pools = 2.5;
+uniform float stream_shallow = 0.3;
+uniform float stream_deep = 0.25;
+uniform float stream_mud = 0.5;
+uniform float stream_bars = 0.3;
+uniform float stream_stones = 0.12;
+uniform float stream_reeds = 0.25;
+uniform float stream_mouth = 9.0;
+// à son embouchure, le ruisseau s'élargit (stream_delta pixels d'art de plus) et se partage autour d'îlots de sable
+// (stream_islets : leur part), et une eau claire en éventail dans l'eau où il se jette
+uniform float stream_delta = 2.0;
+uniform float stream_islets = 0.5;
 uniform vec3 bridge_color = vec3(0.56, 0.4, 0.24);
 // Les ponts dessinés en images par le jeu (BridgeLayer), où le shader ne dessine plus de planches : rivières 1 d'ouest en
 // est, 2 du nord au sud ; ruisseaux 4 et 8
@@ -313,6 +359,13 @@ float stream_distance(vec2 p) {
 	return texture(water_field, (q + 0.5) / (vec2(map_cells) * ART)).g;
 }
 
+// De combien de pixels d'art le pixel p est dans un ruisseau (négatif : sur la rive), avec ses mares
+float stream_depth(vec2 p) {
+	float pool = stream_pools * smoothstep(0.62, 0.8, noise((p + 0.5) / 34.0 + vec2(17.0, 29.0)));
+	return stream_width + pool + (noise((p + 0.5) / 7.0 + vec2(5.0, 91.0)) * 2.0 - 1.0) * stream_wave
+		- stream_distance(p);
+}
+
 // Trame 4 × 4 (Bayer), entre 0 et 1
 float bayer(vec2 p) {
 	int x = int(mod(p.x, 4.0));
@@ -339,6 +392,24 @@ float part_of(int t, vec2 p) {
 		mix(float(terrain_at(c0 + ivec2(0, 1)) == t), float(terrain_at(c0 + ivec2(1, 1)) == t), f.x), f.y);
 }
 
+// La part de l'eau autour du pixel d'art p : celle de part_of, mêlée (shore_round) à une courbe douce sur les neuf
+// cases autour (B-spline quadratique), qui arrondit les coins et les biais de l'escalier des cases. Le bord d'une
+// rangée droite de cases reste au milieu entre leurs centres.
+float water_part(vec2 p) {
+	float flat_part = part_of(water, p);
+	if (shore_round <= 0.0) return flat_part;
+	vec2 g = (p + 0.5) / ART - 0.5;
+	ivec2 c = ivec2(round(g));
+	vec2 t = g - vec2(c);
+	vec3 wx = vec3(0.5 * (0.5 - t.x) * (0.5 - t.x), 0.75 - t.x * t.x, 0.5 * (0.5 + t.x) * (0.5 + t.x));
+	vec3 wy = vec3(0.5 * (0.5 - t.y) * (0.5 - t.y), 0.75 - t.y * t.y, 0.5 * (0.5 + t.y) * (0.5 + t.y));
+	float smooth_part = 0.0;
+	for (int y = -1; y <= 1; y++)
+		for (int x = -1; x <= 1; x++)
+			smooth_part += wx[x + 1] * wy[y + 1] * float(terrain_at(c + ivec2(x, y)) == water);
+	return mix(flat_part, smooth_part, shore_round);
+}
+
 // Le mélange au pixel d'art p : terrain de la case (a), autre terrain proche (b), et la part de b (0 à 1).
 // La part de b vaut 0,5 sur la ligne ; la ligne d'un même couple de terrains est la même vue des deux
 // cases, si bien que le mélange se raccorde sans couture.
@@ -359,13 +430,15 @@ void mixture(vec2 p, out int a, out int b, out float share) {
 		for (int j = 0; j < i; j++) seen = seen || around[j] == t;
 		if (seen) continue;
 		// « distance » du pixel au terrain t (pixels d'art ; négative dedans)
-		float d = (0.5 - part_of(t, p)) * ART;
+		// (la rive : la part de l'eau arrondie, vue des deux côtés)
+		bool shore = t == water || a == water;
+		float d = (shore ? (t == water ? 0.5 - water_part(p) : water_part(p) - 0.5) : 0.5 - part_of(t, p)) * ART;
 		// la ligne avance dans cette case si le voisin est au-dessus, recule sinon
 		float side = priority[t] > priority[a] ? 1.0 : -1.0;
-		float line = side * (edge_bias + w * edge_wave);
+		float line = side * (edge_bias + w * edge_wave * (shore ? shore_wave : 1.0));
 		float gap = d - line;
 		float s;
-		if (t == water || a == water) {
+		if (shore) {
 			s = gap < 0.0 ? 1.0 : 0.0; // rive : nette
 		} else {
 			float grain = (noise(center / grain_scale + vec2(float(min(t, a) * 7 + max(t, a)) * 3.1)) - 0.5) * blend_grain;
@@ -390,9 +463,9 @@ int owner(vec2 p) {
 // Distance du pixel d'art p (qui appartient à la terre) à la rive, en pixels d'art (très grande loin de l'eau). La rive
 // est la même ligne que dans mixture() : du côté de l'eau, à edge_bias + ondulation pixels de la ligne du milieu.
 float shore_distance(vec2 p) {
-	float part = part_of(water, p);
+	float part = water_part(p);
 	if (part <= 0.0) return 1e5;
-	return (0.5 - part) * ART + edge_bias + wave(p + 0.5) * edge_wave;
+	return (0.5 - part) * ART + edge_bias + wave(p + 0.5) * edge_wave * shore_wave;
 }
 
 // La sorte de rive autour du pixel d'art p : un bruit doux de 0 à 1 (voir bank_grass, bank_pebbles)
@@ -404,7 +477,7 @@ float bank_kind(vec2 p) {
 // lacs, de la mer et des rivières) ; plus loin, l'image des distances (water_field, bleu), plus grossière
 float water_depth(vec2 p, float river) {
 	float d = max(river, 0.0);
-	if (part_of(water, p) > 0.0) {
+	if (water_part(p) > 0.0) {
 		float lake = -shore_distance(p);
 		if (lake > shallow_width + 3.0)
 			lake = max(lake, texture(water_field, (p + 0.5) / (vec2(map_cells) * ART)).b);
@@ -415,7 +488,7 @@ float water_depth(vec2 p, float river) {
 
 // L'eau au pixel d'art p : un lac, la mer ou une rivière
 bool water_at(vec2 p) {
-	return owner(p) == water || river_depth(p) > 0.0;
+	return owner(p) == water || river_depth(p) > 0.0 || stream_depth(p) > 0.0;
 }
 
 // La taille d'un caillou, tirée pour son carré : 1 × 1, 2 × 1, 2 × 2, 3 × 2 ou 3 × 3 pixels d'art
@@ -450,15 +523,22 @@ float shore_side(vec2 p) {
 
 // Des roseaux au pixel d'art p : 0 rien, 1 le pied (sombre), 2 la tige, 3 la pointe (claire), 4 un épi brun. Chaque carré
 // de 5 pixels peut avoir une touffe, son pied sur la ligne de la rive ; ses trois à quatre tiges montent de 4 à 7 pixels
-int reed_at(vec2 p) {
+// (stream : au bord des ruisseaux, la part stream_reeds des carrés, au lieu des lacs, de la mer et des rivières)
+int reed_at(vec2 p, bool stream) {
 	float size = 5.0;
 	for (float row = 0.0; row < 3.0; row += 1.0) {
 		vec2 cell = floor(p / size) + vec2(0.0, row);
-		if (hash(cell + vec2(5.7, 21.1)) >= reeds) continue;
+		if (hash(cell + vec2(5.7, 21.1)) >= (stream ? stream_reeds : reeds)) continue;
 		vec2 base = cell * size + vec2(floor(hash(cell + vec2(2.2, 7.4)) * size), size - 1.0);
 		if (noise((base + 0.5) / reed_scale + vec2(33.0, 9.0)) < 1.0 - reed_share) continue;
-		if (bank_kind(base) > bank_grass + 0.15) continue;
-		float side = shore_side(base);
+		float side;
+		if (stream) side = -stream_depth(base);
+		else {
+			float stretch = bank_kind(base);
+			if (stretch > bank_pebbles - 0.04) continue;
+			if (stretch > bank_grass + 0.15 && hash(cell + vec2(12.6, 3.3)) >= reed_sand) continue;
+			side = shore_side(base);
+		}
 		if (side < -3.0 || side > 1.5) continue;
 		vec2 q = p - base;
 		if (q.y > 0.0 || q.y < -7.0) continue;
@@ -490,6 +570,24 @@ bool rock_at(vec2 p, vec3 under, out vec3 rock) {
 	// l'écume autour du rocher, sur l'eau
 	if (d.x >= -1.0 && d.x <= dim.x && d.y >= -1.0 && d.y <= dim.y) {
 		rock = mix(under, foam_color, foam * 0.8);
+		return true;
+	}
+	return false;
+}
+
+// Une pierre dans un ruisseau au pixel d'art p : sa couleur dans « stone » (et l'écume autour), et vrai
+bool stream_stone_at(vec2 p, vec3 under, out vec3 stone) {
+	stone = under;
+	float size = 8.0;
+	vec2 cell = floor(p / size);
+	if (hash(cell + vec2(37.1, 15.2)) >= stream_stones) return false;
+	vec2 spot = cell * size + 2.0 + floor(vec2(hash(cell + vec2(8.1, 2.7)), hash(cell + vec2(5.5, 9.3))) * 4.0);
+	if (stream_depth(spot) < 2.0) return false;
+	vec2 dim = hash(cell + vec2(2.6, 6.2)) < 0.5 ? vec2(2.0, 1.0) : vec2(1.0);
+	if (stone_shape(p - spot, dim, cell, under, stone)) return true;
+	vec2 d = p - spot;
+	if (d.x >= -1.0 && d.x <= dim.x && d.y >= -1.0 && d.y <= dim.y) {
+		stone = mix(under, foam_color, foam);
 		return true;
 	}
 	return false;
@@ -532,6 +630,18 @@ vec3 tile_color(int t, vec2 p) {
 		float s = noise((p + 0.5) / shade_scale + vec2(float(t) * 31.0)) * 2.0 - 1.0;
 		float level = clamp(floor(s * 1.5 + bayer(p)), -1.0, 1.0);
 		color *= 1.0 + level * shade;
+	}
+	if (t == grass) {
+		color *= grass_depth;
+		if (grass_tint > 0.0) {
+			// deux bruits doux : le sec et le dru ne se recouvrent pas ; deux niveaux, au bord tramé
+			float dry = smoothstep(0.55, 0.75, noise((p + 0.5) / grass_tint_scale + vec2(23.0, 71.0)));
+			float lush = smoothstep(0.55, 0.75, noise((p + 0.5) / (grass_tint_scale * 0.8) + vec2(88.0, 14.0))) * (1.0 - dry);
+			dry = floor(dry * 2.0 + bayer(p)) / 2.0;
+			lush = floor(lush * 2.0 + bayer(p + 2.0)) / 2.0;
+			color = mix(color, color * grass_dry, dry * grass_tint);
+			color = mix(color, color * grass_lush, lush * grass_tint);
+		}
 	}
 	return color;
 }
@@ -608,6 +718,59 @@ int tuft_pixel(vec2 q, vec2 cell) {
 		}
 	}
 	return 0;
+}
+
+// Une touffe dans l'herbe au pixel d'art p, s'il y en a une : sa couleur dans « tuft », et vrai. Ses brins (tuft_pixel),
+// sombres au pied et clairs au bout, parfois doublés ; l'ombre à leur gauche
+bool grass_clump_at(vec2 p, vec3 under, out vec3 tuft) {
+	tuft = under;
+	if (grass_clumps <= 0.0) return false;
+	float size = floor(max(grass_clump_cell, 6.0));
+	vec2 cell = floor(p / size);
+	float gather = mix(1.0, 2.0 * smoothstep(0.4, 0.7, noise((cell * size + 0.5) / grass_clump_gather_scale + vec2(6.0, 44.0))),
+		grass_clump_gather);
+	if (hash(cell + vec2(31.7, 4.9)) >= grass_clumps * gather) return false;
+	vec2 spot = cell * size + vec2(2.0 + floor(hash(cell + vec2(5.3, 2.2)) * (size - 4.0)),
+		3.0 + floor(hash(cell + vec2(9.1, 6.4)) * (size - 3.0)));
+	vec2 twin = spot + vec2(2.0, 1.0);
+	// trois formes : un brin seul (le brin du milieu), une touffe, une touffe doublée
+	float shape = hash(cell + vec2(2.6, 8.8));
+	bool lone = shape < 0.35;
+	bool two = shape > 0.75;
+	vec2 q = p - spot;
+	int blade = max(lone && q.x != 0.0 ? 0 : tuft_pixel(q, cell), two ? tuft_pixel(p - twin, cell + 3.0) : 0);
+	if (blade == 1) { tuft = under * 0.68; return true; }
+	if (blade == 2) { tuft = under * 0.86; return true; }
+	if (blade == 3) { tuft = under * vec3(1.22, 1.2, 1.0); return true; }
+	if ((tuft_pixel(p + vec2(1.0, 0.0) - spot, cell) > 0 && (!lone || q.x == -1.0)) || (two && tuft_pixel(p + vec2(1.0, 0.0) - twin, cell + 3.0) > 0)) {
+		tuft = under * 0.84;
+		return true;
+	}
+	return false;
+}
+
+// Un bouquet de fleurs au pixel d'art p, s'il y en a un : de 3 à 7 fleurs d'une couleur, serrées dans le carré
+bool flower_patch_at(vec2 p, vec3 under, out vec3 flower) {
+	flower = under;
+	if (flower_patches <= 0.0) return false;
+	float size = 22.0;
+	vec2 cell = floor(p / size);
+	if (hash(cell + vec2(51.3, 17.9)) >= flower_patches) return false;
+	vec2 center = cell * size + 7.0 + floor(vec2(hash(cell + vec2(1.9, 6.6)), hash(cell + vec2(4.2, 3.1))) * (size - 14.0));
+	float k = hash(cell + vec2(7.4, 2.8));
+	vec3 petal = k < 0.35 ? vec3(0.96, 0.95, 0.9) : (k < 0.65 ? vec3(0.95, 0.82, 0.28) : (k < 0.85 ? vec3(0.68, 0.5, 0.8) : vec3(0.9, 0.42, 0.38)));
+	int count = 3 + int(floor(hash(cell + vec2(8.3, 0.7)) * 5.0));
+	for (int i = 0; i < 7; i++) {
+		if (i >= count) break;
+		vec2 at = center + floor(vec2(hash(cell + vec2(float(i) * 3.7, 1.1)), hash(cell + vec2(2.3, float(i) * 5.3))) * vec2(9.0, 7.0)) - vec2(4.0, 3.0);
+		vec2 d = p - at;
+		// une fleur sur deux d'un seul pixel, les autres en croix ; un pixel d'ombre dessous
+		bool small = hash(cell + vec2(float(i), 9.9)) < 0.5;
+		if (d == vec2(0.0)) { flower = small ? petal : petal * 0.85 + 0.12; return true; }
+		if (!small && abs(d.x) + abs(d.y) == 1.0 && d.y <= 0.0) { flower = petal; return true; }
+		if (d == vec2(-1.0, 1.0)) { flower = under * 0.75; return true; }
+	}
+	return false;
 }
 
 // Une petite touffe d'herbe sur la route près du pixel d'art p : 0 rien, 1 à 3 la touffe (tuft_pixel), 4 son ombre
@@ -687,7 +850,12 @@ void fragment() {
 		// la plage s'amincit jusqu'à disparaître là où l'herbe descend à l'eau, s'élargit un peu ailleurs
 		float width = (beach_width + (noise((p + 0.5) / 9.0 + vec2(5.0, 61.0)) * 2.0 - 1.0) * beach_wave)
 			* smoothstep(bank_grass - 0.06, bank_grass + 0.1, kind) * (0.7 + 0.6 * smoothstep(0.4, 0.8, kind));
-		if (width > 1.0 && sd < width + 1.0 && (sd < width - 1.0 || bayer(p) < (width + 1.0 - sd) / 2.0)) {
+		// un éventail de sable là où un ruisseau se jette
+		if (stream_mouth > 0.0) width = max(width, stream_mouth * (1.0 - smoothstep(3.0, 16.0, stream_distance(p))));
+		// de petites plaques d'herbe au milieu du sable
+		float patch = noise((p + 0.5) / beach_patch_scale + vec2(41.0, 7.0));
+		bool grassy = sd > wet_width + 2.5 && sd < width - 2.0 && patch > 1.0 - beach_patches;
+		if (width > 1.0 && !grassy && sd < width + 1.0 && (sd < width - 1.0 || bayer(p) < (width + 1.0 - sd) / 2.0)) {
 			vec3 beach = tile_color(sand, p);
 			if (sd < 1.5) beach *= 1.0 - outline;
 			else if (sd < wet_width + 1.5) beach *= 1.0 - wet;
@@ -701,6 +869,19 @@ void fragment() {
 				vec2 dim = hash(cell + vec2(9.9, 4.2)) < 0.5 ? vec2(1.0) : vec2(2.0, 1.0);
 				vec3 pebble;
 				if (stone_shape(p - spot, dim, cell, color, pebble)) color = pebble;
+			}
+			// des touffes d'herbe sur le sable, plus côté terre
+			vec2 tcell = floor(p / 6.0);
+			if (beach_tufts > 0.0 && sd >= wet_width + 1.5
+				&& hash(tcell + vec2(23.1, 5.6)) < beach_tufts * smoothstep(0.2, 0.9, sd / width)) {
+				vec2 spot = tcell * 6.0 + vec2(2.0, 2.0 + floor(hash(tcell + vec2(7.2, 2.5)) * 2.0));
+				vec2 twin = spot + vec2(1.0, 1.0);
+				int tuft = max(tuft_pixel(p - spot, tcell), tuft_pixel(p - twin, tcell + 7.0));
+				vec3 blade = tile_color(grass, p);
+				if (tuft == 1) color = blade * 0.7;
+				else if (tuft == 2) color = blade;
+				else if (tuft == 3) color = blade * 1.2;
+				else if (tuft_pixel(p + 1.0 - spot, tcell) > 0 || tuft_pixel(p + 1.0 - twin, tcell + 7.0) > 0) color *= 0.82;
 			}
 		} else if (sd < mud_width + 1.0 && kind < bank_grass + 0.1) {
 			// l'herbe jusqu'à l'eau : une ligne de terre mouillée, tramée vers l'herbe
@@ -716,29 +897,81 @@ void fragment() {
 	// Fleurs et cailloux, sur l'herbe franche (pas dans les mélanges)
 	if (t == grass && !in_water && (share <= 0.0 || share >= 1.0)) {
 		vec3 flower;
-		if (flower_at(p, color, flower)) color = flower;
+		if (grass_clump_at(p, color, flower)) color = flower;
+		if (flower_patch_at(p, color, flower)) color = flower;
+		else if (flower_at(p, color, flower)) color = flower;
 	}
 	// Les rochers dans l'eau peu profonde, puis les roseaux du bord (dans l'eau et sur la rive)
+	// le delta d'un ruisseau : une eau claire qui s'ouvre en éventail dans l'eau où il se jette
+	if (stream_delta > 0.0 && in_water) {
+		float axis = stream_distance(p);
+		float offshore = -shore_side(p);
+		if (axis < 20.0 && offshore < 14.0) {
+			float reach = (1.0 - smoothstep(stream_width, 20.0, axis)) * (1.0 - smoothstep(2.0, 14.0, offshore));
+			reach = floor(reach * 4.0 + bayer(p)) / 4.0;
+			color = mix(color, shallow_color, stream_shallow * 1.5 * reach);
+		}
+	}
 	if (rocks > 0.0 && in_water) {
 		vec3 rock;
 		if (rock_at(p, color, rock)) color = rock;
 	}
 	if (reeds > 0.0 && abs(river) < 12.0 || (reeds > 0.0 && (a == water || b == water))) {
-		int reed = reed_at(p);
+		int reed = reed_at(p, false);
 		if (reed == 1) color = vec3(0.2, 0.27, 0.11);
 		else if (reed == 2) color = vec3(0.32, 0.44, 0.17);
 		else if (reed == 3) color = vec3(0.5, 0.6, 0.26);
 		else if (reed == 4) color = vec3(0.42, 0.26, 0.13);
 	}
 	// Les ruisseaux (pas dans l'eau où ils se jettent) : l'eau, une écume contre la rive, un contour sombre
-	float depth = stream_width + (noise((p + 0.5) / 7.0 + vec2(5.0, 91.0)) * 2.0 - 1.0) * stream_wave - stream_distance(p);
-	if (!in_water && depth > -1.5) {
-		if (depth <= 0.0) color *= 1.0 - outline;
-		else {
+	// (des mares, l'eau claire au bord et sombre au milieu, la terre mouillée de la rive, des bancs de sable, des pierres)
+	float depth = stream_depth(p);
+	// le delta : plus large près de l'eau où il se jette, des îlots de sable entre ses bras
+	float mouth = 0.0;
+	if (stream_delta > 0.0 && !in_water && depth > -stream_delta - 4.0)
+		mouth = 1.0 - smoothstep(0.0, stream_mouth + 4.0, shore_side(p));
+	depth += mouth * mouth * stream_delta;
+	bool islet = mouth > 0.15 && depth > 1.5
+		&& depth < stream_width + stream_delta * mouth * mouth - 1.0
+		&& noise((p + 0.5) / 4.0 + vec2(13.0, 57.0)) > 1.0 - stream_islets * (0.2 + 0.5 * mouth);
+	if (!in_water && depth > -1.5 - mud_width) {
+		// un banc de sable : il mange le bord de l'eau et couvre la rive, par endroits
+		float bar = stream_bars > 0.0
+			? smoothstep(1.0 - stream_bars, 1.0 - stream_bars + 0.12, noise((p + 0.5) / 9.0 + vec2(71.0, 3.0))) * 3.5 : 0.0;
+		if (islet || (bar > 1.0 && depth < bar - 1.0 && depth > -1.0)) {
+			color = tile_color(sand, p);
+			if (depth > bar - 2.5) color *= 1.0 - wet;
+		} else if (depth <= 0.0 && mouth > 0.2) {
+			// à l'embouchure, la rive est de sable mouillé, sans contour
+			if (depth > -1.5 - mud_width * mouth) color = tile_color(sand, p) * (1.0 - wet * mouth);
+		} else if (depth <= 0.0) {
+			if (stream_mud > 0.0 && (depth > -0.5 - mud_width || bayer(p) < 0.5))
+				color = mix(color, mud_color, stream_mud);
+			if (depth > -1.5) color *= 1.0 - outline;
+		} else {
 			color = tile_color(water, p);
 			if (depth < 1.5) color = mix(color, foam_color, foam);
 			else if (depth < 2.5 && bayer(p) < 0.5) color = mix(color, foam_color, foam * 0.6);
+			else if (depth < 3.0 || (depth < 4.0 && bayer(p) < 0.5)) color = mix(color, shallow_color, stream_shallow);
+			float middle = depth - (stream_width - 1.2);
+			if (stream_deep > 0.0 && (middle > 1.0 || (middle > 0.0 && bayer(p) < 0.5)))
+				color = mix(color, deep_color, stream_deep);
+			// à l'embouchure, l'eau prend peu à peu la teinte de l'eau où il se jette (claire contre la rive, et
+			// l'éventail clair du delta)
+			if (mouth > 0.0) {
+				vec3 joined = mix(mix(tile_color(water, p), shallow_color, shallow), shallow_color, stream_shallow * 1.5);
+				color = mix(color, joined, clamp(floor(mouth * 4.0 + bayer(p)) / 4.0, 0.0, 1.0));
+			}
+			vec3 stone;
+			if (stream_stones > 0.0 && stream_stone_at(p, color, stone)) color = stone;
 		}
+	}
+	if (stream_reeds > 0.0 && !in_water && depth > -12.0) {
+		int reed = reed_at(p, true);
+		if (reed == 1) color = vec3(0.2, 0.27, 0.11);
+		else if (reed == 2) color = vec3(0.32, 0.44, 0.17);
+		else if (reed == 3) color = vec3(0.5, 0.6, 0.26);
+		else if (reed == 4) color = vec3(0.42, 0.26, 0.13);
 	}
 	// La route, par-dessus le sol
 	int road_kind = 1;

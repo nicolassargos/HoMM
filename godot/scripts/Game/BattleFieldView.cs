@@ -1189,6 +1189,10 @@ public partial class BattleFieldView : Control
                             }
                             if (Sheet(struck.Attacker, AttackState) != null)
                                 striker.Play(AttackState);
+                            if (struck.Ranged)
+                                Audio.PlayCreature(struck.Attacker.Type, "shoot");
+                            else
+                                Audio.PlayCreature(struck.Attacker.Type, "attack");
                         }
                         // une attaque plus lente porte son coup plus tard, au même moment du geste
                         double release = shot != null && Setting(struck.Attacker, "launchFrame") is double frame
@@ -1228,6 +1232,9 @@ public partial class BattleFieldView : Control
                             string impact = shot != null ? BattleEffects.ImpactOf(shot) : TextSetting(struck.Attacker, "impact") ?? "choc";
                             if (!onHex)
                                 _effects.Hit(impact, BodyCenter(struck.Target, target), direction);
+                            Audio.PlayCreature(struck.Attacker.Type, struck.Ranged ? "shot-impact" : "impact");
+                            if (struck.Killed > 0)
+                                Audio.PlayCreature(struck.Target.Type, "death");
                             // le nuage de mort s'étale autour de la cible (ses coups sur les voisines suivent)
                             if (shot != null && struck.Attacker.Has(Ability.DeathCloud))
                                 _effects.Hit("nuage", target.Position + new Vector2(0, HexHeight / 2 - Ui.Px(24)), direction);
@@ -1263,6 +1270,7 @@ public partial class BattleFieldView : Control
                         if (!started)
                         {
                             started = true;
+                            Audio.Play($"spell-{cast.Spell.Id}");
                             var hand = CastPoint(cast.Side);
                             var ground = Center(cast.Target) + new Vector2(0, HexHeight / 2 - Ui.Px(10));
                             var body = Battle.UnitAt(cast.Target) is { } aimed && _shown.TryGetValue(aimed, out var aimedShown)
@@ -1324,7 +1332,10 @@ public partial class BattleFieldView : Control
                             target.Flash = 1;
                             _floating.Add(($"-{damaged.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 170, 90)));
                             if (damaged.Killed > 0)
+                            {
                                 _floating.Add(($"{damaged.Killed} †", target.Position + Ui.V(0, -30), 0, Colors.White));
+                                Audio.PlayCreature(damaged.Target.Type, "death");
+                            }
                         }
                         hurt += delta;
                         if (hurt < 0.35)

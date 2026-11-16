@@ -27,7 +27,7 @@ La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessou
 - Règles → affichage : `GameState` ajoute des événements (type de base dans `GameEvents.cs`, chaque événement défini dans le fichier de ce qu'il concerne) que `Main` lit avec `TakeEvents()` et montre à son rythme. L'affichage ne modifie l'état qu'en appelant les méthodes de `GameState`. Toute nouvelle action visible (animation, fenêtre, son) passe par un événement. Les règles ne produisent aucun texte affiché : tout texte va dans `Game/Texts.cs`.
 - `godot/scripts/Game/` : affichage, interface, commandes (Godot). Une classe Godot par fichier, nom du fichier = nom de la classe.
 - `tests/HoMM.Core.Tests/` : tests xUnit des règles.
-- Son : `godot/audio/` (fichiers .ogg ou .wav, lus directement), décrits dans `godot/data/sounds.json` ; joués par `Game/Audio.cs` (`Audio.Play`, `Audio.PlayMusic`, `Audio.PlayFor` pour un événement). Outils dans `tools/audio/`.
+- Son : `godot/audio/` (fichiers .ogg, .wav ou .mp3, lus directement ; licences dans `godot/audio/LICENCES.md`), décrits dans `godot/data/sounds.json` ; joués par `Game/Audio.cs` (`Audio.Play`, `Audio.PlayMusic`, `Audio.PlayFor` pour un événement, `Audio.PlayCreature` au combat). Outils dans `tools/audio/` (`essai.py` : générer chez ElevenLabs et Stable Audio, page d'écoute).
 - `prototype-python/` : ancien prototype, gardé pour mémoire, ne plus le faire évoluer.
 
 ## Services d'images (décision de l'utilisateur, 2026-11-04)
@@ -67,3 +67,4 @@ Décision de l'utilisateur, valable pour toutes les sessions :
 - Lire des cartes de Heroes 2 et 3 (dans `maps references/`, non suivi) pour en tirer des règles : `tools/cartes/` (voir son `LISEZMOI.md`)
 - Compiler : `dotnet build` (dans `godot/`)
 - Lancer : `godot\lancer.bat` (Godot attendu dans `C:\Godot\`) : le menu principal ; toute option (ou `-- --play`) entre directement dans une partie ; plein écran (F11 ou Alt+Entrée : fenêtre agrandie ; `-- --windowed` pour démarrer en fenêtre), option `-- --seed=42` pour une carte fixe, `-- --load` pour reprendre la dernière sauvegarde
+- Montrer le jeu : `godot\demo.bat` (ou l'option `--demo`) : le menu principal, on choisit sa faction et son héros dans Nouvelle partie ; or et ressources sans fin, tous les bâtiments dans la ville du joueur (habitations pleines, sorts de la guilde), sans brouillard

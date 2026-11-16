@@ -23,7 +23,8 @@ public class SonsTests
         Assert.All(files, f =>
         {
             Assert.True(File.Exists(Path.Combine(audio, f.File)), $"{f.Name} : {f.File} absent de godot/audio/");
-            Assert.True(f.File.EndsWith(".ogg") || f.File.EndsWith(".wav"), $"{f.Name} : {f.File} ni .ogg ni .wav");
+            Assert.True(f.File.EndsWith(".ogg") || f.File.EndsWith(".wav") || f.File.EndsWith(".mp3"),
+                $"{f.Name} : {f.File} ni .ogg, ni .wav, ni .mp3");
         });
     }
 
@@ -34,9 +35,22 @@ public class SonsTests
         using var document = JsonDocument.Parse(json);
         var music = document.RootElement.GetProperty("music").EnumerateObject().Select(e => e.Name).ToHashSet();
         var sounds = document.RootElement.GetProperty("sounds").EnumerateObject().Select(e => e.Name).ToHashSet();
-        Assert.Superset(music, new[] { "menu", "map", "town", "battle" }.ToHashSet());
-        Assert.Superset(sounds,
-            new[] { "click", "pickup", "chest", "capture", "build", "level-up", "new-week", "victory", "defeat" }.ToHashSet());
+        Assert.All(new[] { "menu", "map", "town", "battle" }, id => Assert.Contains(id, music));
+        Assert.All(new[] { "click", "pickup", "chest", "capture", "build", "level-up", "new-week", "victory", "defeat",
+            "battle-impact", "battle-death" }, id => Assert.Contains(id, sounds));
+    }
+
+    [Fact]
+    public void Chaque_duree_coupee_est_celle_d_un_son()
+    {
+        var json = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "data", "sounds.json"));
+        using var document = JsonDocument.Parse(json);
+        var sounds = document.RootElement.GetProperty("sounds").EnumerateObject().Select(e => e.Name).ToHashSet();
+        Assert.All(document.RootElement.GetProperty("lengths").EnumerateObject(), e =>
+        {
+            Assert.Contains(e.Name, sounds);
+            Assert.True(e.Value.GetDouble() > 0, $"{e.Name} : durée nulle");
+        });
     }
 
     /// <summary>Le dossier godot/audio/, en remontant depuis celui des tests.</summary>

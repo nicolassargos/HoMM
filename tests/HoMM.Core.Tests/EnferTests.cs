@@ -99,9 +99,11 @@ public class EnferTests
         var victim = Warlock(knowledge: 5);
         var (battle, imps, peasants) = Duel("diablotin", 20, "paysan", 50, hero: thief, defenderHero: victim);
         Assert.True(battle.Attack(peasants, imps.Position));
-        Assert.Equal(4, battle.TakeLog().OfType<SpellPointsStolen>().Single().Points); // un point pour 5 diablotins
+        var log = battle.TakeLog();
+        Assert.Equal(4, log.OfType<SpellPointsStolen>().Single().Points); // un point pour 5 diablotins
         Assert.Equal(46, battle.SpellPointsOf(BattleSide.Defender));
-        Assert.Equal(4, battle.SpellPointsOf(BattleSide.Attacker));
+        // plus le prix du sang, si la riposte a tué des diablotins
+        Assert.Equal(4 + log.OfType<BloodPaid>().Sum(b => b.Points), battle.SpellPointsOf(BattleSide.Attacker));
     }
 
     [Fact]

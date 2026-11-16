@@ -78,7 +78,14 @@ public sealed class CreatureCatalog
     public IReadOnlyCollection<CreatureType> All => _all;
 
     public CreatureType Get(string id) =>
-        _byId.TryGetValue(id, out var c) ? c : throw new KeyNotFoundException($"Créature inconnue : {id}");
+        _byId.TryGetValue(Renamed.GetValueOrDefault(id, id), out var c) ? c : throw new KeyNotFoundException($"Créature inconnue : {id}");
+
+    /// <summary>Les créatures remplacées, retrouvées sous leur nouvel identifiant (les sauvegardes d'avant).</summary>
+    private static readonly Dictionary<string, string> Renamed = new()
+    {
+        ["lance-flammes"] = "sapeur", // 2026-11-16, choix de l'utilisateur
+        ["machine-guerre"] = "roi-de-cristal",
+    };
 
     public static CreatureCatalog FromJson(string json) =>
         new(GameData.Parse<CatalogFile>(json, "créatures").Creatures);

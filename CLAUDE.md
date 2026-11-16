@@ -27,7 +27,7 @@ La vision du jeu et les étapes prévues sont dans `PLAN.md`, importé ci-dessou
 - Règles → affichage : `GameState` ajoute des événements (type de base dans `GameEvents.cs`, chaque événement défini dans le fichier de ce qu'il concerne) que `Main` lit avec `TakeEvents()` et montre à son rythme. L'affichage ne modifie l'état qu'en appelant les méthodes de `GameState`. Toute nouvelle action visible (animation, fenêtre, son) passe par un événement. Les règles ne produisent aucun texte affiché : tout texte va dans `Game/Texts.cs`.
 - `godot/scripts/Game/` : affichage, interface, commandes (Godot). Une classe Godot par fichier, nom du fichier = nom de la classe.
 - `tests/HoMM.Core.Tests/` : tests xUnit des règles.
-- Son : `godot/audio/` (fichiers .ogg ou .wav, lus directement), décrits dans `godot/data/sounds.json` ; joués par `Game/Audio.cs` (`Audio.Play`, `Audio.PlayMusic`, `Audio.PlayFor` pour un événement). Outils dans `tools/audio/`.
+- Son : `godot/audio/` (fichiers .ogg, .wav ou .mp3, lus directement ; licences dans `godot/audio/LICENCES.md`), décrits dans `godot/data/sounds.json` ; joués par `Game/Audio.cs` (`Audio.Play`, `Audio.PlayMusic`, `Audio.PlayFor` pour un événement, `Audio.PlayCreature` au combat). Outils dans `tools/audio/` (`essai.py` : générer chez ElevenLabs et Stable Audio, page d'écoute).
 - `prototype-python/` : ancien prototype, gardé pour mémoire, ne plus le faire évoluer.
 
 ## Services d'images (décision de l'utilisateur, 2026-11-04)

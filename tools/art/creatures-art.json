@@ -2009,7 +2009,11 @@
         "L10": "angle seul",
         "L11": "références",
         "L12": "angle seul"
-      }
+      },
+      "choix": {
+        "fixe": "L10-2"
+      },
+      "grande": "art-candidats/references/derives/chevaucheur-chevre-grand.png"
     },
     "porte-etendard": {
       "nom": "Porte-étendard des ancêtres",

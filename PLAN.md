@@ -72,8 +72,8 @@ pirates).
   Lance-flammes : un mineur qui creuse sous le champ, ressort à côté d'un ennemi et frappe le premier, capacité
   `burrows` du Ver des profondeurs) et le **Roi de cristal → Roi des ancêtres** (niveau 7, à la place de la Machine de
   guerre : un très vieux roi nain scellé dans le cristal, réveillé pour la guerre ; vivant, pas « façonné » ; le Roi des
-  ancêtres portera une couronne de cristal qui luit). Leurs données sont dans la PR #167 (`sapeur`, `roi-de-cristal`,
-  habitations `galeries-sapeurs` et `caveau-rois`), leurs images dans `creatures-nains-images`. **À faire (session
+  ancêtres portera une couronne de cristal qui luit). ✅ Leurs données (PR #167 : `sapeur`, `roi-de-cristal`, habitations
+  `galeries-sapeurs` et `caveau-rois` ; le déplacement sous terre du Sapeur marche) et leurs images. **À faire (session
   règles)** : les deux capacités du Roi (son cristal renvoie les sorts néfastes sur la troupe du lanceur ; tant qu'il ne
   s'est pas déplacé, toutes les troupes naines gardent l'obstination même après avoir bougé) ; le **Gyrocoptère**, devenu
   un nain aux ailes de cuir, de bois et de fer (idée de l'utilisateur), n'est plus une machine : sa capacité « façonné »

@@ -2110,7 +2110,11 @@
         "L14": "angle seul",
         "L15": "références",
         "L16": "angle seul"
-      }
+      },
+      "choix": {
+        "fixe": "L13-4"
+      },
+      "grande": "art-candidats/references/derives/gyrocoptere-grand.png"
     },
     "machine-guerre": {
       "nom": "Machine de guerre",

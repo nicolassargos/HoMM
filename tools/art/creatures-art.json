@@ -2197,7 +2197,8 @@
         "fixe": "L3-2",
         "idle": "garde-2-r1",
         "move": "mmarche-2-r1",
-        "attack": "mcoup-1-r2"
+        "attack": "mcoup-1-r2",
+        "carte": "p1-6"
       },
       "grande": "art-candidats/references/derives/sapeur-grand.png"
     },
@@ -2235,7 +2236,8 @@
         "fixe": "L5-1",
         "idle": "mgarde-1",
         "move": "mmarche-2",
-        "attack": "mcoup-2-r1"
+        "attack": "mcoup-2-r1",
+        "carte": "p1-1"
       },
       "grande": "art-candidats/references/derives/roi-de-cristal-grand.png",
       "garder_cyan": true

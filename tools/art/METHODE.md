@@ -904,6 +904,28 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
 - Écartés : les cadres épais du premier essai, B7 (fil d'or, trop discret), les boutons de pierre de 96 × 32, les cadres
   de Kenney, la police DotGothic16. La police VT323 (2026-11-11 : nette seulement à 25, trop petite, ou à 50, trop
   grande) ; Pixel Operator fin, en gras ou mêlé, et Jersey 10 pour les titres, essayés à côté de Pixel Operator HB 8.
+- **Une peau « Heroes 2 » en bois et or (2026-11-15, essais gardés pour plus tard, rien d'installé)** : demandé par
+  l'utilisateur (« l'interface fait très ordinaire »). Tout est dans `art-candidats/archives/2026-11-16-interface-bois/`
+  (page `interface-bois/peau-bois.html` : l'interface actuelle, puis chaque essai sur le menu, l'écran du héros et le
+  recrutement). PixelLab « pro », sans image de style, « square window frame for the user interface of a 1990s fantasy
+  strategy game like Heroes of Might and Magic 2: a border of carved warm brown wood with polished gold trim… the centre
+  is a flat plain dark brown area… » ; boutons de même (« wide rectangular button… »), 0,08 $ le lot.
+  - **Cadres de 64 px** (`cadres/`, 16) : jolis, mais un bord fin (environ 15 pixels d'art) ; les meilleurs : 11
+    (volutes), 10, 14. Réglages essayés : `panelCorner` 16, `panelContentX` 22, `panelContentY` 16.
+  - **Cadres épais** de 96 et 128 px (`suite/epais*`, bord de 17 à 27 pixels d'art) : à rogner d'abord à leur partie
+    opaque (PixelLab laisse une marge transparente). Les grandes équerres d'or et rubis (`epais128-a/1`) ont enfin l'air
+    de Heroes 2 sur le menu, **mais sur les écrans serrés le bord mord sur le contenu et ses coins débordent des barres
+    minces** : il faudra deux cadres (un épais pour les fenêtres, un mince pour les barres) et des écrans qui laissent la
+    place du bord.
+  - **Boutons** : le gris de pierre jure avec le bois ; des boutons de bois rouge et or (`suite/boutons3/6`, rivets)
+    lient le tout (`buttonCorner` 7, `buttonTextureStrength` 0). Le bouton 24 de la première série laisse des raccords.
+  - **Plaques de titre** (`suite/plaque`, 128 × 32) : pas encore branchées.
+  - **Fonds texturés** (`fonds/`, Retro Diffusion `rd_tile__single_tile` 64 × 64 `tile`, 0,24 $ les 4 ; entrées
+    `ui/fond-*` de `assets.json`) : bois, cuir, tissu, pierre, sans raccord. Le jeu sait s'en servir :
+    `"panelTexture": "image:ui/fond-bois-1"` dans `ui.json` (l'image dans `art/ui/`) ; chaque pixel éclaircit ou
+    assombrit la couleur du fond selon son écart à la moyenne de l'image (`panelTextureStrength` : de combien), donc
+    toutes les couleurs de l'interface restent. Préféré de Claude : planches n° 1 à la force 2 avec le cadre aux équerres
+    d'or (F2). Rien n'est encore choisi par l'utilisateur.
 - **Le solde PixelLab est partagé entre les sessions** (2026-11-09) : pour connaître le prix d'un lot, lire le `solde`
   juste avant et juste après (une autre session peut générer en même temps). `pixellab.py pro` à 32 × 32 (64 icônes) :
   0,08 $ le lot, vérifié.

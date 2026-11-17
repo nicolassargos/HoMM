@@ -317,11 +317,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   left », le Fantôme tend le bras vers l'avant (l'utilisateur : on dirait qu'il attaque). Une créature de face (le
   Troll) bouge à peine. Une étincelle reste parfois sur une image (Djinn, Arbalétrier) quelle que soit la graine.
   Les grandes créatures (Dragon, Hydre, Démon) ont résisté à cinq revues : elles bougent, mais pas comme sous un coup
-  (le Dragon penche même en avant quoi qu'on écrive). **Ce qui a marché : une image clé.** La pose de départ tournée de
-  8 à 12° en arrière autour de ses pieds (l'idée de l'utilisateur : « que la créature bascule »), donnée en dernière image
-  (`last_frame`) ; PixelLab anime de l'une à l'autre en 4 images (« rocks back from a heavy blow: the whole body tilts
-  backward as one, pivoting on its feet… ending in the tilted pose »), puis la feuille joue l'aller, le retour et la pose
-  de départ (8 images). Des morceaux détachés (une tête de trop pour l'Hydre) : les retirer ; un éclair blanc : l'effacer.
+  (le Dragon penche même en avant quoi qu'on écrive). **Une image clé** guide le geste (l'idée de l'utilisateur : « que
+  la créature bascule »), donnée en dernière image (`last_frame`). Tournée d'un bloc autour des pieds, elle donne un
+  corps raide qui pivote, les pieds en l'air (refusé : « pas naturel »). **Ce qui marche : la pose de départ pliée en
+  arrière**, les pieds fixes, chaque rangée décalée d'autant plus qu'elle est haute (en courbe, 14° en haut) ; PixelLab
+  anime l'aller (départ → clé, 4 images : « is hit hard and bends backward from the blow, the feet stay planted on the
+  ground, the upper body and head are thrown back… ») **et le retour à part** (clé → départ : « recovers from a blow:
+  straightens up… »), pour que le corps vive aussi en revenant ; la feuille : l'aller, le retour, la pose de départ
+  (8 images). « is hit hard » fait encore dessiner un éclat à l'image 3 : la remplacer par la 4e. Des morceaux détachés
+  (une tête de trop pour l'Hydre) : les retirer ; un éclair blanc : l'effacer.
   Le jeu ajoute un recul de 9 pixels de l'écran (`Recoil`) : la page de revue le montre aussi. Retirer des effets à la
   main : par rectangles, n'effacer que les pixels clairs (ou jaune vif sur des cheveux blonds) ; sur le corps, leur donner
   la couleur du corps voisine plutôt que de faire un trou ; ou reprendre une image voisine.

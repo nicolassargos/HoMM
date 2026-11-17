@@ -325,7 +325,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   ground, the upper body and head are thrown back… ») **et le retour à part** (clé → départ : « recovers from a blow:
   straightens up… »), pour que le corps vive aussi en revenant ; la feuille : l'aller, le retour, la pose de départ
   (8 images). « is hit hard » fait encore dessiner un éclat à l'image 3 : la remplacer par la 4e. Des morceaux détachés
-  (une tête de trop pour l'Hydre) : les retirer ; un éclair blanc : l'effacer.
+  (une tête de trop pour l'Hydre) : les retirer ; un éclair blanc : l'effacer. L'utilisateur a pourtant refusé ces
+  images clés (on voit l'image écrasée). **Le mieux pour ces trois : le second modèle (`minimax`, avec le « sujet »,
+  retour à la pose de départ, 8 images)**, sans image clé : « takes a heavy blow to the chest and recoils: the head and
+  neck jerk back, the wings flinch, the body sways back on its legs, then it recovers; no effects » (le Dragon se tasse,
+  le Démon se plie un peu) ; il dessine un effet sur les 1 ou 2 premières images : les remplacer par une image suivante.
+  À essayer en premier pour une grande créature.
   Le jeu ajoute un recul de 9 pixels de l'écran (`Recoil`) : la page de revue le montre aussi. Retirer des effets à la
   main : par rectangles, n'effacer que les pixels clairs (ou jaune vif sur des cheveux blonds) ; sur le corps, leur donner
   la couleur du corps voisine plutôt que de faire un trou ; ou reprendre une image voisine.

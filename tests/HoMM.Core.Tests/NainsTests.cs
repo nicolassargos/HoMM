@@ -176,6 +176,69 @@ public class NainsTests
         Assert.DoesNotContain(hits, h => h.Target == shields);
     }
 
+    /// <summary>Un combat où un héros qui connaît ces sorts attaque le Roi de cristal ; c'est au tour de sa troupe.</summary>
+    private static (TacticalBattle Battle, BattleUnit Ours, BattleUnit King) AgainstKing(string ours, params string[] spells)
+    {
+        var hero = new Hero("Merlin", new Player("Rouge", new AdventureMap(5, 5)), new Cell(1, 1)) { Power = 2, Knowledge = 3 };
+        hero.SpellPoints = hero.MaxSpellPoints;
+        foreach (var id in spells)
+            hero.Learn(TestData.Spells.Get(id));
+        var battle = new TacticalBattle(Army((ours, 20)), Army(("roi-de-cristal", 1)), new GameRandom(1), hero);
+        battle.Field.Obstacles.Clear();
+        var own = Unit(battle, ours);
+        battle.ForceTurn(own);
+        return (battle, own, Unit(battle, "roi-de-cristal"));
+    }
+
+    [Fact]
+    public void Le_miroir_de_cristal_renvoie_les_sorts_nefastes_sur_la_troupe_du_lanceur()
+    {
+        var (battle, ours, king) = AgainstKing("ogre", "malediction", "fleche-magique");
+        Assert.True(battle.Cast(TestData.Spells.Get("malediction"), king.Position));
+        Assert.True(ours.IsUnder(SpellEffect.Curse));
+        Assert.False(king.IsUnder(SpellEffect.Curse));
+        var reflected = battle.TakeLog().OfType<SpellReflected>().Single();
+        Assert.Equal((king, ours), (reflected.King, reflected.Target));
+
+        // les sorts de dégâts le touchent comme les autres
+        var (hurt, _, target) = AgainstKing("ogre", "fleche-magique");
+        int before = target.TotalHitPoints;
+        Assert.True(hurt.Cast(TestData.Spells.Get("fleche-magique"), target.Position));
+        Assert.True(target.TotalHitPoints < before);
+    }
+
+    [Fact]
+    public void Un_sort_nefaste_renvoye_n_atteint_pas_une_troupe_qui_n_y_est_pas_sensible_et_l_ia_l_evite()
+    {
+        var (battle, skeletons, king) = AgainstKing("squelette", "malediction");
+        Assert.True(battle.Cast(TestData.Spells.Get("malediction"), king.Position));
+        Assert.False(skeletons.IsUnder(SpellEffect.Curse)); // un mort-vivant n'y est pas sensible
+
+        var (aiming, _, target) = AgainstKing("ogre", "lenteur");
+        Assert.True(BattleAI.SpellValue(aiming, TestData.Spells.Get("lenteur"), target.Position, BattleSide.Attacker) < 0);
+    }
+
+    [Fact]
+    public void La_garde_des_ancetres_garde_l_obstination_des_troupes_qui_ont_bouge_tant_que_le_roi_ne_bouge_pas()
+    {
+        int Hit(bool kingMoved)
+        {
+            var battle = Battle(Army(("ogre", 20)), Army(("porte-bouclier", 100), ("roi-de-cristal", 1)));
+            var shields = Unit(battle, "porte-bouclier");
+            var king = Unit(battle, "roi-de-cristal");
+            shields.Position = new Hex(5, 4);
+            king.Position = new Hex(9, 0);
+            shields.HasMoved = true;
+            king.HasMoved = kingMoved;
+            Assert.Equal(!kingMoved, battle.HeldByAncestors(shields));
+            battle.ForceTurn(Unit(battle, "ogre"), new Hex(4, 4));
+            Assert.True(battle.Attack(shields, new Hex(4, 4)));
+            return FirstHit(battle);
+        }
+        int held = Hit(kingMoved: false), alone = Hit(kingMoved: true);
+        Assert.InRange(held, (int)(alone * 0.8) - 1, (int)(alone * 0.8) + 1);
+    }
+
     [Fact]
     public void Les_sauvegardes_d_avant_retrouvent_le_sapeur_et_le_roi_de_cristal()
     {

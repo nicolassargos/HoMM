@@ -208,7 +208,10 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   musique d'abord des **bibliothèques libres**, **Stable Audio** plus tard (« plus années 90 »). Dans le jeu, chaque
   créature a ses sons (geste, tir, coup qui porte, tir qui touche, mort ; sinon ceux de tout le combat) et chaque sort
   le sien (`Audio.PlayCreature`, `spell-<id>`) ; l'Ange gifle (comme son animation), sa première mort essayée sert à la
-  Résurrection. Licences : `godot/audio/LICENCES.md` ; 3. le reste partie par partie, comme les images.
+  Résurrection. Licences : `godot/audio/LICENCES.md` ; 3. le reste partie par partie, comme les images : ✅ les sons
+  de combat de **toutes les créatures** (2026-11-17, branche `sons-factions`, 113 sons ElevenLabs revus un à un sur la
+  page de `tools/audio/sons.py` ; le Paysan garde les sons communs). **Reste** : les autres sorts, la carte,
+  l'interface, les musiques des villes et de la carte, puis la musique chez Stable Audio.
 
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à

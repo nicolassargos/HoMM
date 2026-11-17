@@ -191,6 +191,7 @@ public static class Texts
         LightningStruck l => $"La foudre frappe {Stack(new CreatureStack(l.Target.Type, l.Target.Count + l.Killed))} : {l.Damage} dégâts"
                              + (l.Killed > 0 ? $", {l.Killed} {(l.Killed == 1 ? "tué" : "tués")}." : "."),
         SpellCast c => $"{c.Caster.Name} lance {c.Spell.Name}.",
+        SpellReflected r => $"Le cristal {(r.King.Count == 1 ? "du" : "des")} {Creature(r.King.Type, r.King.Count)} renvoie {r.Spell.Name} sur {Stack(r.Target.Stack)} !",
         SpellDamaged d => $"{d.Spell.Name} : {d.Damage} dégâts à {Stack(new CreatureStack(d.Target.Type, d.Target.Count + d.Killed))}"
                           + (d.Killed > 0 ? $", {d.Killed} {(d.Killed == 1 ? "tué" : "tués")}." : "."),
         UnitHealed { Revived: > 0 } h => $"{h.Spell.Name} : {h.Revived} {Creature(h.Unit.Type, h.Revived)} {(h.Revived == 1 ? "revient" : "reviennent")} au combat.",
@@ -1049,6 +1050,8 @@ public static class Texts
         Ability.SureFooted => "pied sûr (riposte avant le coup, rien ne le déplace)",
         Ability.Banner => "bannière (+2 défense aux troupes amies voisines)",
         Ability.Blast => "explosion (touche aussi les ennemis autour de la cible)",
+        Ability.CrystalMirror => "miroir de cristal (renvoie les sorts néfastes sur la troupe du lanceur)",
+        Ability.AncestralHold => "garde des ancêtres (tant qu'il n'a pas bougé dans le round, les troupes obstinées le restent même après avoir bougé)",
         _ => ability,
     };
 

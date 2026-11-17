@@ -279,6 +279,27 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     paliers de couleur de la Boule de feu, boule qui bouillonne, fumée, braises) : un jet fait de couches unies ne
     ressemblait pas à du feu.
   - Une créature qui vole trop vite (le Diablotin) : `stepTime` (0,3 s par case pour un petit volant).
+- **Leçons des Nains** (2026-11-16) :
+  - **Pas de clichés** (choix de l'utilisateur) : chaque créature a sa silhouette, son âge, son visage, des traits
+    exagérés (« a grotesque caricature in the style of a fantasy board game miniature, exaggerated features ») ; une
+    créature de la faction sert de modèle **de rendu seulement** (« completely different face, body shape, hair and
+    gear ») : avec le même croquis pour toutes, les sept nains avaient la même barbe. Oser plus fou.
+  - **Une image fixe immobile** : une monture décrite « charging » galope sur toutes les images ; écrire « stands still
+    on all four hooves, not leaping » et donner l'image choisie comme modèle d'allure.
+  - **Un envol** (le nain ailé) : transformation `--sans-retour` qui finit en l'air, puis le vol animé depuis sa dernière
+    image (`--depart=…/9.png`) : l'envol, le vol et l'atterrissage (l'envol à l'envers) se suivent.
+  - **Le nettoyage du cyan** efface aussi ce qui est cyan pour de vrai (les yeux de la tête de pierre, le cristal du Roi
+    de cristal : 300 à 400 pixels par image) : `"garder_cyan": true` dans la fiche, ou remettre les pixels après coup.
+  - **Les trous** d'une feuille (pixels vides enfermés) : ne boucher que les petits (une douzaine de pixels au plus) ;
+    les grands sont de vrais jours (entre une corne et le cou, un bras et le corps).
+  - **Une traînée ou un éclair collé au corps** : si l'image d'après a la même pose sans l'effet, la copier par-dessus
+    (le marteau du Roi de cristal) ; sinon effacer l'effet et reboucher la forme rangée par rangée (la tête de pierre du
+    Porte-étendard).
+  - **Un objet lancé au corps à corps** (la bombe) : effacer l'objet qui part dans la feuille et le faire dessiner par le
+    jeu (`meleeProjectile`, `launchFrame`, `launchPoint` : là où l'objet quitte la main) ; une explosion de zone joue une
+    fois, les autres troupes touchées n'ont pas de nouveau geste (`UnitStruck.Splash`).
+  - **Une image de la carte au contour trop fort** (la chèvre) : un autre modèle de style plus doux (`cerf.png`) et « thin
+    dark brown outline only » ; l'utilisateur a pourtant gardé un candidat du premier lot.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).
@@ -312,6 +333,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   tall » (64 × 48) donne de grosses souches, à réduire ensuite (`reduire.py`, 80 %) pour tenir dans une case. Le bois
   d'une souche moussue réutilisé dans le désert : `blanchir.py`. Les arbres du désert reposent sur une tache de sable :
   `sans_socle.py --sable` (le sable clair seul est retiré dans les colonnes du tronc, sinon un tronc brun clair disparaît).
+- Marais (2026-11-16) : `edge-swamp` (cyprès, arbres morts, saules), `trunk-swamp`, `bush-swamp`, `mid-swamp` (bouleaux,
+  petits saules), `far-swamp`, `side-swamp` (roseaux, fougères), `obstacle-swamp`, `detail-swamp` ; descriptions
+  « damp swamp, muted dark greens and browns » et « no water under it ». Un saule : « long thin drooping branches
+  hanging down like a curtain almost to the ground » ; demandé gros (« very thick short trunk, broad full crown »), il
+  devient une boule : garder les candidats où les branches pendent encore. Les arbres obstacles à 64 × 80 (comme le
+  chêne de l'herbe) : à 48 de large, ils paraissaient grêles. Mousse et bois gris : `sans_socle.py` prend un tronc gris
+  pour une ombre (il efface les racines) et les mousses vertes pour de l'herbe : `--buisson` pour les souches, rochers et
+  troncs moussus ; un tronc gris : ne retirer que le vert. L'eau sous un arbre (anneau bleu-vert) n'est pas retirée.
 - Des troncs : demander « the lower part of a very tall tree » donne de jeunes arbres à petite couronne ; posés au fond,
   leur couronne sort du cadre et l'on ne voit que les troncs.
 
@@ -571,8 +600,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   **Les 15 autres** (2026-11-14) : même recette, 15 lots lancés ensemble (5 à la fois), 0,08 $ chacun. Choix sur une
   **page où l'on ne fait que cliquer** (demandé par l'utilisateur : ne rien recopier à la main) : une rangée de 64
   icônes ×2 par sort, le choisi montré dans une case du livre, « Aucun ne va » et un commentaire ; chaque clic est
-  envoyé à `tools/art/revue.py serveur` (toute page nommée `revue-<nom>.html` qui envoie `{page, items}`), qui écrit
-  `en-cours/revue-<nom>.json`, lu ensuite par Claude. Choisis : Flèche magique 14 (flèche violette), Malédiction 54
+  envoyé à `tools/art/revue.py serveur` (toute page nommée `revue-<nom>.html` qui envoie `{page, dossier, items}`), qui
+  écrit `revue-<nom>.json` dans le dossier `en-cours` donné par la page, lu ensuite par Claude. **Sessions en parallèle**
+  (2026-11-17) : trois serveurs écoutaient le même port (Windows le permet avec l'adresse réutilisable) et deux pages de
+  pieds avaient le même nom, des réponses se sont perdues. Depuis, le serveur refuse de démarrer si le port est pris (un
+  seul serveur sert toutes les sessions, il écrit dans le dossier de chaque page) et le nom des pages porte celui du
+  dossier de travail (`revue-pieds-marais.html` dans `HoMM-marais`, rien de plus dans `HoMM`). Choisis : Flèche magique 14 (flèche violette), Malédiction 54
   (crâne dans une fumée verte), Soif de sang 37 (lame sanglante), Hâte 20 (bottes ailées), Lenteur 5 (escargot),
   Soins 21 (mains et croix de lumière), Bouclier contre les tirs 13, Faiblesse 6 (épée brisée), Aveuglement 39 (yeux
   bandés), Téléportation 13 (portail bleu), Dissipation 3 (éclat blanc), Résurrection 22 (ankh d'or à l'aube), Pluie

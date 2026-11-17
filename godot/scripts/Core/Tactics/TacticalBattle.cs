@@ -21,10 +21,11 @@ public sealed record UnitMoved(BattleUnit Unit, IReadOnlyList<Hex> Path) : Battl
 
 /// <summary>
 /// Un coup : <paramref name="Damage"/> points de dégâts, <paramref name="Killed"/> créatures tuées.
-/// <paramref name="Ranged"/> : un tir ; <paramref name="Retaliation"/> : une riposte.
+/// <paramref name="Ranged"/> : un tir ; <paramref name="Retaliation"/> : une riposte ; <paramref name="Splash"/> : une
+/// troupe touchée en plus de la cible (souffle, balayage, explosion), juste après le coup sur la cible.
 /// </summary>
 public sealed record UnitStruck(BattleUnit Attacker, BattleUnit Target, int Damage, int Killed, bool Ranged, bool Retaliation,
-    int Luck = 0) : BattleAction;
+    int Luck = 0, bool Splash = false) : BattleAction;
 
 public sealed record UnitWaited(BattleUnit Unit) : BattleAction;
 
@@ -411,13 +412,21 @@ public sealed partial class TacticalBattle
         }
     }
 
-    /// <summary>Quelques obstacles entre les deux camps, sans jamais couper le champ en deux.</summary>
+    /// <summary>
+    /// Quelques obstacles entre les deux camps, sans jamais couper le champ en deux. Plutôt au milieu du champ (choix de
+    /// l'utilisateur, 2026-11-16) : jamais sur la première colonne devant chaque camp (colonnes 3 à 7 seulement), le plus
+    /// souvent sur la colonne du milieu ; les rangées du milieu un peu plus souvent que celles du bord.
+    /// </summary>
     private void PlaceObstacles()
     {
         int count = MinObstacles + Next(MaxObstacles - MinObstacles + 1);
         for (int tries = 0; Field.Obstacles.Count < count && tries < 100; tries++)
         {
-            var hex = new Hex(2 + Next(Battlefield.Columns - 4), Next(Battlefield.Rows));
+            // deux tirages ajoutés : une chance en pointe au milieu (colonnes 3 à 7 : 1, 2, 3, 2, 1 sur 9) ; pour la rangée,
+            // la moitié des fois un tirage simple, l'autre moitié deux tirages ajoutés (milieu un peu plus souvent)
+            int col = 3 + Next(3) + Next(3);
+            int row = Next(2) == 0 ? Next(Battlefield.Rows) : Next(Battlefield.Rows / 2 + 1) + Next(Battlefield.Rows - Battlefield.Rows / 2);
+            var hex = new Hex(col, row);
             if (Field.Obstacles.Contains(hex))
                 continue;
             Field.Obstacles.Add(hex);
@@ -974,7 +983,7 @@ public sealed partial class TacticalBattle
         int lost = Math.Min(damage, to.TotalHitPoints); // les points de vie vraiment ôtés
         int killed = to.TakeDamage(damage);
         to.Wake();
-        _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation, luck));
+        _log.Add(new UnitStruck(from, to, damage, killed, ranged, retaliation, luck, splash));
         BloodPrice(to, killed);
         Split(to);
         if (to.Has(Ability.Rage) && to.Enrage(RagePerHit, Talents.RageMax(to.IsRebel ? null : HeroOf(to.Side), RageMax)))
@@ -1088,8 +1097,9 @@ public sealed partial class TacticalBattle
         // le mur de boucliers : un tireur à côté d'un Porte-bouclier ami
         if (ranged && to.CanShoot && Neighbours(to).Any(u => u.Side == to.Side && u.Has(Ability.ShieldWall)))
             damage *= 0.5;
-        // l'obstination des Nains : la troupe n'a pas bougé depuis le début du round (plus, avec le talent de son héros)
-        if (to.Has(Ability.Stubborn) && !to.HasMoved)
+        // l'obstination des Nains : la troupe n'a pas bougé depuis le début du round, ou la garde d'un Roi de cristal
+        // immobile la lui garde (plus, avec le talent de son héros)
+        if (to.Has(Ability.Stubborn) && (!to.HasMoved || HeldByAncestors(to)))
             damage *= 1 - Talents.StubbornShare(to.IsRebel ? null : HeroOf(to.Side), StubbornShare);
         // les sorts : bénédiction et malédiction (en pourcentage), bouclier contre les tirs
         damage *= 1 + (from.SpellAmount(SpellEffect.Bless) - from.SpellAmount(SpellEffect.Curse)) / 100.0;
@@ -1109,6 +1119,13 @@ public sealed partial class TacticalBattle
     /// <summary>La défense que donne un Porte-étendard ami voisin (<see cref="Ability.Banner"/>), une seule fois.</summary>
     public int BannerBonus(BattleUnit unit) =>
         Neighbours(unit).Any(u => u.Side == unit.Side && u.Has(Ability.Banner)) ? BannerDefense : 0;
+
+    /// <summary>
+    /// La garde des ancêtres (<see cref="Ability.AncestralHold"/>) : un Roi de cristal de son camp qui ne s'est pas
+    /// déplacé dans ce round (les révoltés gardent les leurs).
+    /// </summary>
+    public bool HeldByAncestors(BattleUnit unit) =>
+        _units.Any(u => u.IsAlive && u.Side == unit.Side && u.IsRebel == unit.IsRebel && u.Has(Ability.AncestralHold) && !u.HasMoved);
 
     // ------------------------------------------------------------------ l'Enfer
 

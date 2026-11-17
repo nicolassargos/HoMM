@@ -132,7 +132,9 @@ public class HerosContreHerosTests
     [Fact]
     public void Le_joueur_attaque_dirige_sa_defense_puis_l_adversaire_reprend_son_tour()
     {
-        var (state, me, him) = FaceToFace(mine: 40, rival: 60);
+        // sans ville, l'ordinateur n'attaque que s'il prévoit au plus 10 % de pertes : une nette avance (60 contre 40 était
+        // juste à la limite, et dépendait des tirages au sort du combat)
+        var (state, me, him) = FaceToFace(mine: 40, rival: 200);
         state.HumansDefend = true;
         state.EndTurn();
 

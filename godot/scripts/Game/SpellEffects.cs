@@ -66,11 +66,23 @@ public sealed class SpellEffects
     /// </summary>
     public void Launch(string kind, Vector2 from, Vector2 to, Vector2 ground, Vector2[] area, Action hit)
     {
-        float speed = kind == "boule-de-feu" ? FireballSpeed : BoltSpeed;
-        double flight = Math.Max(0.15, from.DistanceTo(to) / speed);
+        float speed = kind switch { "boule-de-feu" => FireballSpeed, "bombe" => BombSpeed, "cristal-rebond" => ShardSpeed, _ => BoltSpeed };
+        double flight = Math.Max(kind == "bombe" ? 0.35 : 0.15, from.DistanceTo(to) / speed);
         _effects.Add(new Effect { Kind = kind, From = from, To = to, Ground = ground, Area = area, Duration = flight, HitTime = flight,
-            Hit = () => { hit(); Burst(kind == "boule-de-feu" ? "explosion" : "eclat-magique", from, to, ground, area); }, Seed = ++_seed });
+            Hit = () =>
+            {
+                hit();
+                // l'éclat de cristal n'éclate pas : le sort renvoyé se joue aussitôt sur la troupe
+                if (kind != "cristal-rebond")
+                    Burst(kind == "fleche-magique" ? "eclat-magique" : "explosion", from, to, ground, area);
+            }, Seed = ++_seed });
     }
+
+    /// <summary>Vitesse de l'éclat que renvoie le miroir de cristal du Roi de cristal.</summary>
+    private const float ShardSpeed = 1300;
+
+    /// <summary>Vitesse de la bombe du Gyrocoptère, lancée à la main : plus lente, en cloche.</summary>
+    private const float BombSpeed = 700;
 
     /// <summary>La pluie de météores : un météore par case, l'un après l'autre ; <paramref name="hit"/> quand le dernier tombe.</summary>
     public void Meteors(Vector2[] area, Action hit)
@@ -102,6 +114,7 @@ public sealed class SpellEffects
         "benediction" => 0.9,
         "hate" => 0.8,
         "teleport-depart" or "teleport-arrivee" => 0.45,
+        "cristal" => 0.8,
         _ => 1.0,
     };
 
@@ -183,6 +196,8 @@ public sealed class SpellEffects
                     break;
                 case "dissipation": tint *= Mix(new Color(1.7f, 1.7f, 1.8f), Math.Clamp(1 - MathF.Abs(t - 0.15f) * 6, 0, 1)); break;
                 case "hate": ghost = Math.Max(ghost, Bell(t)); break;
+                // le miroir de cristal : le Roi s'éclaire d'un bleu de glace
+                case "cristal": tint *= Mix(new Color(1.35f, 1.75f, 2.0f), Bell(Math.Clamp(t * 1.4f, 0, 1))); break;
                 case "teleport-depart":
                     alpha *= Math.Clamp(1 - t / 0.75f, 0, 1);
                     tint *= Mix(new Color(1.3f, 1.5f, 1.9f), t * 1.3f);
@@ -239,6 +254,8 @@ public sealed class SpellEffects
             {
                 case "fleche-magique": if (!e.HitDone) DrawMagicBolt(canvas, e); break;
                 case "boule-de-feu": if (!e.HitDone) DrawFireball(canvas, e); break;
+                case "bombe": if (!e.HitDone) DrawBomb(canvas, e); break;
+                case "cristal-rebond": if (!e.HitDone) DrawCrystalShard(canvas, e); break;
                 case "eclat-magique": DrawMagicBurst(canvas, e, t); break;
                 case "explosion": DrawExplosion(canvas, e, t); break;
                 case "meteores": DrawMeteors(canvas, e); break;
@@ -267,6 +284,7 @@ public sealed class SpellEffects
             case "dissipation": DrawDispel(canvas, e, t); break;
             case "teleport-depart": DrawTeleport(canvas, e, t, true); break;
             case "teleport-arrivee": DrawTeleport(canvas, e, t, false); break;
+            case "cristal": DrawCrystalMirror(canvas, e, t); break;
         }
     }
 
@@ -284,7 +302,8 @@ public sealed class SpellEffects
         SkyDeep = new(0.2f, 0.4f, 0.9f), EarthDark = new(0.3f, 0.27f, 0.2f), Grey = new(0.6f, 0.65f, 0.55f),
         Sand = new(0.98f, 0.85f, 0.5f), SandDark = new(0.6f, 0.4f, 0.16f), Wood = new(0.4f, 0.24f, 0.1f),
         ArcCore = new(0.92f, 0.97f, 1), ArcHalo = new(0.45f, 0.7f, 1), ArcOuter = new(0.25f, 0.4f, 1),
-        Night = new(0.09f, 0.07f, 0.13f), NightGrey = new(0.3f, 0.27f, 0.36f);
+        Night = new(0.09f, 0.07f, 0.13f), NightGrey = new(0.3f, 0.27f, 0.36f),
+        Ice = new(0.55f, 0.88f, 1), IceCore = new(0.92f, 1, 1), IceDeep = new(0.18f, 0.42f, 0.75f);
 
     /// <summary>Les tons d'un feu, du plus chaud au plus froid (voir <see cref="Heat"/>).</summary>
     private static readonly Color[] FireColors = { FireCore, FireYellow, FireOrange, FireRed, Ember };
@@ -557,9 +576,12 @@ public sealed class SpellEffects
 
     // ------------------------------------------------------------------ ce qui file du héros à la cible
 
-    /// <summary>Le point du vol au moment <paramref name="k"/> : la flèche magique monte un peu en arc, la boule de feu file droit.</summary>
+    /// <summary>
+    /// Le point du vol au moment <paramref name="k"/> : la flèche magique monte un peu en arc, la boule de feu file droit, la
+    /// bombe monte en cloche.
+    /// </summary>
     private static Vector2 Flight(Effect e, float k) => e.Kind == "boule-de-feu" ? e.From.Lerp(e.To, k)
-        : e.From.Lerp(e.To, k) - new Vector2(0, 0.08f * e.From.DistanceTo(e.To) * 4 * k * (1 - k));
+        : e.From.Lerp(e.To, k) - new Vector2(0, (e.Kind == "bombe" ? 0.3f : 0.08f) * e.From.DistanceTo(e.To) * 4 * k * (1 - k));
 
     private static Vector2 Heading(Effect e, float k) =>
         (Flight(e, Math.Min(1, k + 0.01f)) - Flight(e, Math.Max(0, k - 0.01f))).Normalized();
@@ -604,6 +626,102 @@ public sealed class SpellEffects
             Star(canvas, p, n % 3 == 0 ? 2 : 1, Violet, 1 - life);
         }
         ArrowHead(canvas, here - dir * 6 * U, dir, side);
+    }
+
+    /// <summary>
+    /// Le miroir de cristal (le Roi de cristal renvoie un sort néfaste) : une coque de cristal à six faces se dresse autour
+    /// de lui et luit, puis vole en éclats qui filent et tournent ; des scintillements.
+    /// </summary>
+    private static void DrawCrystalMirror(CanvasItem canvas, Effect e, float t)
+    {
+        var center = e.To;
+        // la coque suit la taille de la troupe (le Roi est grand)
+        float rx = Math.Max(20 * U, e.Height * 0.4f) * (1 + 0.1f * t), ry = e.Height * 0.62f;
+        // la coque : six arêtes verticales et les arêtes qui les relient, en haut et en bas
+        float shell = Math.Clamp(t / 0.15f, 0, 1) * Math.Clamp((0.55f - t) / 0.15f, 0, 1);
+        if (shell > 0)
+        {
+            if (!_back)
+                Glow(canvas, center, rx, ry, Ice, 0.35f * shell);
+            for (int n = 0; n < 6; n++)
+            {
+                float a = n * MathF.Tau / 6 + 0.3f, b = (n + 1) * MathF.Tau / 6 + 0.3f;
+                if (!Shows(MathF.Sin((a + b) / 2)))
+                    continue;
+                Vector2 Rim(float angle, float h) => center + new Vector2(MathF.Cos(angle) * rx, MathF.Sin(angle) * rx * 0.3f + h);
+                var color = A(MathF.Sin((a + b) / 2) < 0 ? IceDeep : n % 2 == 0 ? IceCore : Ice, shell);
+                float bottom = ry * 0.7f;
+                // des arêtes épaisses de deux pixels d'art
+                foreach (var shift in new[] { Vector2.Zero, new Vector2(Pixel, 0) })
+                {
+                    Line(canvas, Rim(a, -ry) + shift, Rim(b, -ry) + shift, color);
+                    Line(canvas, Rim(a, bottom) + shift, Rim(b, bottom) + shift, color);
+                    Line(canvas, Rim(a, -ry) + shift, Rim(a, bottom) + shift, color);
+                }
+                // la face : un voile de glace entre les arêtes
+                if (!_back)
+                    Glow(canvas, (Rim(a, (bottom - ry) / 2) + Rim(b, (bottom - ry) / 2)) / 2, rx * 0.35f, ry * 0.7f, IceCore, 0.12f * shell);
+            }
+        }
+        // les éclats : la coque se brise, ils filent vers l'extérieur et retombent un peu
+        for (int n = 0; n < 20; n++)
+        {
+            float u = Math.Clamp((t - 0.45f - Noise(e.Seed, n + 40) * 0.08f) / 0.5f, 0, 1);
+            if (u <= 0 || u >= 1)
+                continue;
+            float a = Noise(e.Seed, n) * MathF.Tau;
+            float z = MathF.Sin(a);
+            if (!Shows(z))
+                continue;
+            float reach = rx * 0.9f + (4 + 14 * Noise(e.Seed, n + 10)) * U * (1 - (1 - u) * (1 - u));
+            var at = center + new Vector2(MathF.Cos(a) * reach, z * reach * 0.3f
+                + (Noise(e.Seed, n + 20) - 0.6f) * ry * 1.3f + u * u * 12 * U);
+            Gem(canvas, at, Vector2.Right.Rotated(u * 9 + n), (3 + 2 * Noise(e.Seed, n + 30)) * U, 1 - u * u * u);
+        }
+        if (!_back)
+            for (int n = 0; n < 6; n++)
+            {
+                var at = center + new Vector2(Noise(e.Seed, n + 60) - 0.5f, Noise(e.Seed, n + 70) - 0.5f) * new Vector2(rx * 2, ry * 2);
+                Star(canvas, at, 2, IceCore, Bell(Math.Clamp(t * 1.8f - n * 0.1f, 0, 1)));
+            }
+    }
+
+    /// <summary>L'éclat que renvoie le miroir de cristal, du Roi à la troupe du lanceur : une gemme qui tourne, un sillage de glace.</summary>
+    private static void DrawCrystalShard(CanvasItem canvas, Effect e)
+    {
+        float k = (float)Math.Clamp(e.Age / e.Duration, 0, 1);
+        var here = Flight(e, k);
+        var dir = Heading(e, k);
+        Glow(canvas, here, 12 * U, 9 * U, Ice, 0.35f);
+        Streak(canvas, here - dir * 3 * U, dir, 26 * U, IceCore, IceDeep, 0.8f);
+        for (int n = 0; n < 6; n++)
+        {
+            float life = ((float)e.Age * 4 + Noise(e.Seed, n)) % 1;
+            var p = Flight(e, Math.Max(0, k - (6 + life * 20) * U / Math.Max(1, e.From.DistanceTo(e.To))))
+                + new Vector2(-dir.Y, dir.X) * (Noise(e.Seed, n + 5) - 0.5f) * 10 * U * life;
+            Star(canvas, p, 1, Ice, 1 - life);
+        }
+        Gem(canvas, here, dir.Rotated((float)e.Age * 14), 4 * U, 1);
+    }
+
+    /// <summary>Une gemme : un losange de cristal, une face claire et une face d'ombre, cerné de bleu profond.</summary>
+    private static void Gem(CanvasItem canvas, Vector2 at, Vector2 dir, float size, float alpha)
+    {
+        if (alpha <= 0.01f)
+            return;
+        var side = new Vector2(-dir.Y, dir.X);
+        int n = (int)(size / Pixel) + 1;
+        for (int y = -n; y <= n; y++)
+        for (int x = -n; x <= n; x++)
+        {
+            var rel = new Vector2(x, y) * Pixel;
+            float u = rel.Dot(dir) / size, v = rel.Dot(side) / (size * 0.55f);
+            float d = MathF.Abs(u) + MathF.Abs(v);
+            if (d > 1)
+                continue;
+            var c = d > 0.72f ? IceDeep : u + v < -0.2f ? IceCore : v > 0.15f ? Ice.Darkened(0.2f) : Ice;
+            Dot(canvas, at + rel, A(c, alpha));
+        }
     }
 
     /// <summary>Le fer et la hampe de la flèche magique, pointés vers <paramref name="dir"/> (la pointe à 11 unités devant <paramref name="at"/>).</summary>
@@ -682,6 +800,36 @@ public sealed class SpellEffects
         // une seule boule en feu : des flammes l'enveloppent et lèchent un peu vers l'arrière, la sphère brûle au milieu
         Blaze(canvas, here, radius * 1.3f, dir, 0.9f, e.Seed, time, 1, FireColors);
         SwirlBall(canvas, here + dir * 1.5f * U, radius * 0.8f, time * 9, e.Seed, time);
+    }
+
+    /// <summary>
+    /// La bombe du Gyrocoptère en vol : une boule de fonte noire (un reflet en haut), sa mèche qui tourne avec elle et
+    /// crépite d'une étincelle au bout, un filet de fumée derrière.
+    /// </summary>
+    private static void DrawBomb(CanvasItem canvas, Effect e)
+    {
+        float k = (float)Math.Clamp(e.Age / e.Duration, 0, 1);
+        float time = (float)e.Age;
+        var here = Flight(e, k);
+        for (int n = 5; n >= 1; n--)
+        {
+            float back = k - n * 0.05f;
+            if (back > 0)
+                Puff(canvas, Flight(e, back) - new Vector2(0, n * 1.5f * U), (1.5f + n * 0.5f) * U, Smoke, 0.35f * (1 - n / 6f), e.Seed + n);
+        }
+        // la boule (rayons en pixels d'art), cernée de noir
+        Disc(canvas, here, 4.5f, new Color(0.05f, 0.05f, 0.06f));
+        Disc(canvas, here, 3.5f, new Color(0.16f, 0.16f, 0.19f));
+        Disc(canvas, here + new Vector2(-1.5f, -1.5f) * Pixel, 1, new Color(0.45f, 0.45f, 0.5f));
+        // la mèche tourne avec la bombe
+        float spin = time * 9;
+        var dir = new Vector2(MathF.Cos(spin), MathF.Sin(spin));
+        float radius = 4.5f * Pixel;
+        var tip = here + dir * (radius + 3 * Pixel);
+        for (int s = 0; s <= 3; s++)
+            Dot(canvas, here + dir * (radius + s * Pixel), new Color(0.55f, 0.4f, 0.22f));
+        Glow(canvas, tip, 5 * U, 5 * U, FireOrange, 0.5f);
+        Star(canvas, tip, (int)(2 + Noise(e.Seed, (int)(time * 30)) * 2), FireCore, 1);
     }
 
     /// <summary>

@@ -1006,9 +1006,14 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
    au corps à corps ; habitation `caveau-rois` (Caveau des rois). Chiffres réglés par `Duels_a_prix_egal` (la Machine
    de guerre, sans son canon, gagnait tous ses duels) : attaque 24, défense 25, dégâts 76-96, 1400 PV, vitesse 4 ;
    victoires dans son niveau 56 % (Sapeur 56 %). Les anciens identifiants restent lus (sauvegardes d'avant :
-   `CreatureCatalog`, `BuildingCatalog`). **À faire (session règles)** : ses deux capacités prévues, renvoyer les
-   sorts néfastes sur la troupe du lanceur, et l'obstination gardée par toute l'armée tant qu'il ne bouge pas ;
-   peut-être un Sapeur qui surgit n'importe où (aujourd'hui, sa vitesse limite où il ressort).
+   `CreatureCatalog`, `BuildingCatalog`). ✅ Ses deux capacités (2026-11-17, branche `roi-de-cristal-capacites`) : le
+   **miroir de cristal** (`crystal-mirror`) : un sort néfaste (malédiction, lenteur, faiblesse, aveuglement) lancé sur
+   lui frappe la troupe active du lanceur à sa place (`SpellHits` le redirige, événement `SpellReflected` ; sans effet
+   sur une troupe qui n'y est pas sensible ; l'IA compte un sort néfaste sur sa propre troupe comme une perte, donc ne
+   le tente pas) ; la **garde des ancêtres** (`ancestral-hold`) : tant que le Roi ne s'est pas déplacé dans le round,
+   les troupes obstinées de son camp gardent leur obstination même après avoir bougé (`HeldByAncestors`). Les sorts
+   de dégâts le touchent normalement. Pas encore d'effet visible du renvoi (seule la ligne du journal). Peut-être
+   plus tard : un Sapeur qui surgit n'importe où (aujourd'hui, sa vitesse limite où il ressort).
 
 #### L'Enfer
 Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).
@@ -1841,6 +1846,39 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   changé en dôme d'or en bulbe (`retoucher`, h-1 ; l'utilisateur aime l'air oriental, accordé aux Naga et Djinn).
   Luminosité ramenée de 156 à 125, celle du Château (`tools/art/luminosite.py`, nouvel outil) ; pieds revus par
   l'utilisateur (trois segments, opacité 0,9).
+- ✅ Champ de bataille du marais (2026-11-16, branche `champ-marais`). Choix de l'utilisateur : **les deux à la fois**, un
+  bayou à la lisière (cyprès à mousse espagnole, arbres morts, saules pleureurs, grands troncs, buissons) et une tourbière
+  au paysage ouvert (bouleaux, petits arbres lointains) ; **des flaques où l'on marche** (pas des obstacles). Palette
+  `SwampPalette` (ciel couvert gris-vert, collines basses bleu-gris, pré de la couleur du sol mesurée en jeu,
+  0,40 / 0,32 / 0,20). Flaques (`BuildPuddles`, drapeau `Puddles`) : une dizaine, de 1 à 3 ronds aplatis au bord déformé
+  par un bruit doux, une rive de boue mouillée en paliers de 25 et 50 %, quelques taches de boue sans eau ; l'eau olive
+  (bleutée, elle jurait avec la boue brune), d'après la distance à la rive du haut : la rive reflétée (sombre), une
+  **bande de ciel étroite** qui se défait en traits (large et pâle, elle faisait des rochers gris), puis l'eau trouble ;
+  des rides, des nénuphars, des joncs sur les bords et sur la rive du haut avec leur reflet renversé. Pas de terre battue.
+  **Moins de taches vertes** sur le sol (`SmoothGround.FewerSpecks`, au combat seulement) : l'image du marais a des
+  touffes vertes qui se répétaient trop sur un grand champ ; les petites (4 pixels au plus) restent, les grandes
+  (6 à 28 pixels) prennent la boue d'à côté (essayé : en enlever deux sur trois, puis garder une grande sur trois : trop).
+  Paysage ouvert : bouleaux fondus dans une brume plus sombre (leurs feuilles presque blanches restaient claires avec
+  la brume ordinaire), des mares lointaines dans le pré, à moitié de la couleur des collines (plus pâles, trop voyantes).
+  Images Retro Diffusion (5,04 $ : 16 sujets puis les saules, puis des arbres obstacles plus gros à 64 × 80, comme le
+  chêne de l'herbe, demandés « plus gros ou plus épais » par l'utilisateur) ; deux retouches à la main : un arbre au
+  tronc gris (pris pour une ombre par `sans_socle.py` : seule l'herbe retirée) et un saule posé sur un anneau d'eau
+  bleu-vert. **Le raccord du pré et du sol** des paysages ouverts (herbe, désert, marais) : une ligne nette coupait la
+  scène en deux (remarque de l'utilisateur) ; le pré se fond maintenant sur 8 rangées, en paliers mêlés d'un pixel à
+  l'autre, depuis un bord qui ondule, et la brume commence au pied des collines et culmine sur le raccord (elle
+  commençait juste au raccord et doublait la ligne). **Les obstacles plutôt au milieu** (règle, tous terrains) :
+  colonnes 3 à 7 seulement (jamais la première devant chaque camp), la colonne du milieu le plus souvent (1, 2, 3, 2, 1
+  sur 9), les rangées du milieu un peu plus souvent ; test `Les_obstacles_sont_plutot_au_milieu_du_champ`. Les tirages
+  du combat changent : deux tests revus (le prix du sang du Démoniste compté avec le vol du Diablotin ; l'adversaire
+  sans ville n'attaque qu'avec au plus 10 % de pertes prévues : 200 paysans contre 40 au lieu de 60, qui était à la
+  limite).
+- ✅ Finitions des champs (2026-11-17, branche `champ-finitions`). **Nuages** dans le ciel des paysages ouverts : 1 à 3,
+  plats dessous, des bosses bombées dessus (gardées dans le nuage : une bosse coupée au bout faisait un mur) ; gris sous
+  le ciel couvert du marais (drapeau `Overcast` : le haut blanc y brillait trop, remarque de l'utilisateur). **Rochers**
+  sur les collines proches (pas sur les dunes) : de petits dômes gris éclairés en haut à droite. Nuages et rochers ont
+  leur propre tirage : les collines d'un combat restent les mêmes. **Pas de flaque sous un obstacle** du marais : la
+  place est tirée à nouveau (12 essais), sinon pas de flaque. « De vrais obstacles de combat » : déjà faits avec les
+  trois champs (herbe 7 images, désert 8, marais 11 ; la forêt et la montagne prennent ceux de l'herbe).
 - ✅ Champ de bataille du désert (2026-11-11, branche `champ-sable`). Une palette par terrain pour le paysage
   (`ScenePalette` : ciel, chaînes, pré, brumes, ombre ; `FlatTops` pour des mesas, `Dunes` pour des dunes une à une, face
   raide à l'ombre au bord en biais et incurvé), `--battle-terrain=sand`. Écartés : les cactus (un désert américain), les
@@ -2001,6 +2039,33 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   - **Moloch** (112 px, L8-1, idole de bronze à tête de taureau, fournaise dans le ventre : une statue animée, pas un être
     vivant) : attente fournaise-2, marche pas-2, attaque poings-3 (ses poings rougissent et s'abattent). Carte p1-6.
   - **Icône du bouton « Invoquer »** (`ui/icons/invoquer.png`, n° 2 : un diablotin qui sort d'un portail).
+- ✅ Créatures des Nains (2026-11-16, branche `creatures-nains-images`, PixelLab). Choix de l'utilisateur : **des nains
+  caricaturés, chacun le sien, loin des clichés** (« ils se ressemblent tous, tellement stéréotypés ! ») ; un premier lot
+  d'après le Porte-bouclier, le héros nain et un croquis de l'utilisateur donnait sept fois la même barbe et le même cuir ;
+  le second, des caricatures de figurines (« grotesque caricature… exaggerated features »), le seul Porte-bouclier comme
+  modèle de rendu, a plu (« va encore plus loin »).
+  - **Porte-bouclier** (L7-4, barbe noire, cuir, bouclier rond de bois ; moins d'armure : un niveau 1) : garde-1,
+    mmarche-1, mcoup-2 (les trous du bouclier bouchés). Carte p1-3.
+  - **Arbalétrier** (L6-3, chauve, ventru, gros nez rouge, monocle, manteau vert) : garde-1, mmarche-1, mtir-1 (le
+    carreau dessiné par PixelLab effacé ; le jeu tire la flèche de l'Archer depuis le bout de l'arbalète, image 5). Carte p1-2.
+  - **Chevaucheur de chèvre** (L10-2, nain sauvage aux cheveux blancs et peinture bleue, chèvre pie hirsute ; les
+    premières images galopaient : refaites **immobiles**, d'après L8-1) : mgarde-2, mmarche-1, mcoup-1 ; un trot vif
+    (0,45 s par case). Carte p1-2.
+  - **Porte-étendard** (L8-3, vieux nain voûté encapuchonné, tête d'ancêtre de pierre au bout de la hampe) : mgarde-2,
+    mmarche-1 (les yeux bleus de la tête, effacés par le nettoyage du cyan, remis), attaque attack-2 refaite **à deux
+    mains** (l'éclair de l'impact effacé, la tête de pierre réparée). Carte p1-2.
+  - **Gyrocoptère** : un **nain aux ailes de cuir, de bois et de fer** (idée de l'utilisateur, après des tonneaux et une
+    baignoire volante), L13-4, bandé de partout, casque-casserole, barbe orange. Attente garde-1, **envol** (transformation
+    menvol-1) puis vol move-4 depuis sa dernière image, lancer de bombe attack-2 (la bombe qui part effacée). Le jeu
+    lance la **bombe** (`meleeProjectile` « bombe », `SpellEffects.DrawBomb` : fonte noire, mèche qui crépite, en cloche)
+    qui **explose** sur la cible et les cases autour (l'explosion de la Boule de feu) ; les troupes voisines touchées par
+    l'explosion le sont sans nouveau geste (`UnitStruck.Splash`). Carte p1-2.
+  - **Sapeur** (remplace le Lance-flammes, choix de l'utilisateur ; L3-2, mineur voûté au gros nez pâle, bougie au
+    casque) : garde-2, mmarche-2, mcoup-1. Carte p1-6.
+  - **Roi de cristal** (remplace la Machine de guerre ; L5-1, un **esprit pâle** demandé par l'utilisateur, cristal et
+    brume, 136 px) : mgarde-1, mmarche-2, mcoup-2 (la traînée du marteau retirée). Le nettoyage effaçait son cristal
+    cyan : `garder_cyan` dans la fiche. Carte p1-1.
+  - Les pieds des 7 images de la carte revus par l'utilisateur.
 - ✅ Combat à ×2 (2026-11-09, branche `combat-x2`). Question de l'utilisateur : un pixel d'art a-t-il la même taille au
   combat et sur la carte ? Non : 3 pixels de l'écran au combat, 2 sur la carte (zoom ×1 ; 3 au zoom ×1,5). Essai montré
   (page `echelle.html` : même combat à ×3 et à ×2, créatures 1,5 fois plus hautes) ; choix de l'utilisateur : ×2 partout
@@ -2647,8 +2712,9 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   désert américain : choix de l'utilisateur) : toujours le paysage ouvert (ciel pâle, mesas, dunes une à une dont la face
   à l'ombre a un bord en biais), des dunes en relief sur le champ, un sol de marques légères d'après des références de
   l'utilisateur (rides de vent, traînées de points, fissures, touffes, cailloux de couleurs mêlées, en taches irrégulières
-  aux couleurs nuancées), grès, grosses souches et troncs blanchis, arbustes, buissons épineux, palmiers. Reste : le
-  marais (même recette), peut-être des rochers dans les collines et quelques nuages. Détail dans `HISTORIQUE.md`.
+  aux couleurs nuancées), grès, grosses souches et troncs blanchis, arbustes, buissons épineux, palmiers. ✅ **Le
+  marais** (2026-11-16, branche `champ-marais`) : un bayou à la lisière, une tourbière au loin, des flaques où l'on
+  marche. Reste : peut-être des rochers dans les collines et quelques nuages.
 - Le héros sur la carte et au combat ; cadres des portraits, bandeau de la date. ✅ **Le héros du Château sur la
   carte** (2026-11-14, branche `heros-carte`, choix de l'utilisateur) : une image par faction, 48 × 48, gauche et droite,
   une marche de 8 images avec un rebond, un pas de 3 cases par seconde avec un élan par case. ✅ **La marche dans les

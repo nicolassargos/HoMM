@@ -1904,6 +1904,343 @@
         "carte": "p1-6"
       },
       "grande": "art-candidats/references/derives/moloch-grand.png"
+    },
+    "porte-bouclier": {
+      "nom": "Porte-bouclier",
+      "gabarit": "humain",
+      "hauteur": 56,
+      "generation": [
+        104,
+        120
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "comparer": [
+        "archer",
+        "cultiste"
+      ],
+      "references": [],
+      "notes": "Nains, niveau 1 : le mur ; protège les tireurs voisins (sans références : deux styles proposés, 2026-11-15). Acier et or, barbe tressée (L1, L2) ; fer sombre et cuir, runes orange (L3, L4) ; trop d'armure pour un niveau 1 (avis de l'utilisateur) : plus légers, gambison, cuir et bouclier de bois (L5, L6 ; L7, L8).",
+      "description": "a stocky dwarf warrior standing firm: short and broad, a thick black beard tied with iron rings, a simple dark iron cap, a brown leather jerkin over a grey wool tunic, no plate armour, bare forearms with leather bracers, a big round wooden shield with an iron boss and a few orange runes, a short war hammer in the other hand, simple boots, a humble militia soldier, grim and stubborn",
+      "sujet": "a stocky dwarf warrior with a black beard, simple iron cap and leather jerkin, holding a big round wooden shield with orange runes and a war hammer, facing right",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L7-4",
+        "idle": "garde-1",
+        "move": "mmarche-1",
+        "attack": "mcoup-2-r1",
+        "carte": "p1-3"
+      },
+      "grande": "art-candidats/references/derives/porte-bouclier-grand.png"
+    },
+    "arbaletrier": {
+      "nom": "Arbalétrier",
+      "gabarit": "humain",
+      "hauteur": 54,
+      "generation": [
+        104,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "archer"
+      ],
+      "notes": "Nains, niveau 2 : le tireur ; ses carreaux percent la défense. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
+      "description": "a short pot-bellied bald dwarf crossbowman: a huge bulbous red nose, one eye squinting shut and the other magnified by a big brass monocle, ginger mutton-chop whiskers and no beard on the chin, a few warts, a patched green wool coat and a leather belt straining over his belly, an oversized heavy crossbow with a brass sighting tube, held at the shoulder and aimed forward, a quiver of bolts at the hip, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "a bald pot-bellied dwarf with a big red nose, a brass monocle and ginger whiskers, aiming an oversized crossbow, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L6-3",
+        "idle": "garde-1",
+        "move": "mmarche-1",
+        "attack": "mtir-1-r1",
+        "carte": "p1-2"
+      },
+      "grande": "art-candidats/references/derives/arbaletrier-grand.png"
+    },
+    "chevaucheur-chevre": {
+      "nom": "Chevaucheur de chèvre",
+      "gabarit": "quadrupede",
+      "hauteur": 70,
+      "generation": [
+        128,
+        104
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "sanglier"
+      ],
+      "notes": "Nains, niveau 3 : la cavalerie de montagne, la seule troupe rapide ; pied sûr (comme la monture du héros nain). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants). Troisième passage (2026-11-16) : la même allure que L8-1, debout et immobile (L9 et suivants).",
+      "description": "a wiry wild dwarf sitting on a huge ugly shaggy black-and-white mountain goat that stands still: the goat stands calmly on all four hooves planted on the ground, legs straight, not jumping, not running; it has one broken horn and one long twisted horn, a scruffy beard, mad yellow eyes with slit pupils, its tongue hanging out, iron bells on its collar; the dwarf sits upright, skinny for a dwarf, wild white hair sticking up, blue war paint, a gap-toothed grin, a long blond beard in two braids, a fur vest, a short throwing axe resting on his shoulder, riding bareback with a rope bridle, idle standing pose, side view, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "a wild grinning dwarf with white hair and blue war paint sitting on a huge shaggy black-and-white goat standing still on four hooves, idle pose, side view, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/chevaucheur-chevre-L8-1.png::look reference (the same rider and goat, chosen design): keep exactly this dwarf and this goat, their colours and the pixel art rendering; but the goat now stands still on all four hooves, not leaping"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul",
+        "L11": "références",
+        "L12": "angle seul"
+      },
+      "choix": {
+        "fixe": "L10-2",
+        "idle": "mgarde-2-r1",
+        "move": "mmarche-1-r1",
+        "attack": "mcoup-1-r1",
+        "carte": "p1-2"
+      },
+      "grande": "art-candidats/references/derives/chevaucheur-chevre-grand.png"
+    },
+    "porte-etendard": {
+      "nom": "Porte-étendard des ancêtres",
+      "gabarit": "humain",
+      "hauteur": 68,
+      "generation": [
+        104,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "moine"
+      ],
+      "notes": "Nains, niveau 4 : la bannière des ancêtres (aura de défense) ; l'étendard rouge du héros nain. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
+      "description": "an ancient hunched tiny dwarf standard-bearer: very old and wrinkled, a huge warty nose, bushy white eyebrows hiding his eyes, an enormous white beard so long it is wrapped around his waist and tucked in his belt, a grey hooded robe with bronze clasps, prayer beads of carved runestones; he carries a tall pole topped by a big carved stone head of a dwarf ancestor with glowing blue eyes, a long faded red banner with gold runes hanging below it, leaning on the pole as a walking stick, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "an ancient hunched dwarf with a huge white beard wrapped around his waist, carrying a pole topped by a carved stone ancestor head and a red banner, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L8-3",
+        "idle": "mgarde-2-r1",
+        "move": "mmarche-1-r1",
+        "attack": "attack-2-r2",
+        "carte": "p1-2"
+      },
+      "grande": "art-candidats/references/derives/porte-etendard-grand.png",
+      "consignes": {
+        "attack": "the old dwarf grips the banner pole firmly with both hands, lifts it high above his head, then swings it down with both hands so the carved stone head comes down in front of him, then he returns to the starting pose leaning on the pole; only the body and the pole move"
+      }
+    },
+    "lance-flammes": {
+      "nom": "Lance-flammes",
+      "gabarit": "humain",
+      "hauteur": 62,
+      "generation": [
+        104,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "porte-etendard"
+      ],
+      "notes": "Nains, niveau 5 : le feu de près (le jeu dessine la flamme). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
+      "description": "a very fat dwarf flamethrower with burn scars: his beard is burnt off to a short black frizzy stubble, no eyebrows, a bald soot-covered head, a crazy wide grin with missing teeth, round dark welding goggles, a heavy fireproof leather apron and huge padded gloves, two dented copper fuel tanks strapped on his back with leaking pipes, holding a long copper flame lance pointing forward with a tiny blue pilot flame, no fire, no big flame, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "a very fat bald dwarf with a burnt frizzy beard, welding goggles and a crazy grin, two copper tanks on his back, holding a copper flame lance, no fire, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
+    },
+    "gyrocoptere": {
+      "nom": "Gyrocoptère",
+      "gabarit": "humain",
+      "hauteur": 66,
+      "generation": [
+        120,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "gargouille"
+      ],
+      "notes": "Nains, niveau 6 : la machine volante (façonnée) ; elle lâche une bombe. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants). Quatrième passage (2026-11-16, idée de l'utilisateur) : un nain aux ailes de cuir, de bois et de métal, debout au repos, qui s'envole pour se déplacer et lâche ses bombes (L13 et suivants).",
+      "description": "a reckless dwarf inventor standing on the ground with home-made mechanical wings on his back: two big bat-like wings of patched brown leather stretched over wooden ribs, joined by iron hinges, springs and brass gears, half folded behind him, strapped on with a leather harness; the dwarf is short and round, an enormous bushy orange beard tucked into the harness, buck teeth, a crazy eager grin, one eye bigger than the other behind cracked aviator goggles, a dented cooking pot as a helmet, bandages and plasters all over from past crashes, one arm in a sling made of rope, a bandolier of round black bombs across his chest and a bomb held in his free hand, unlit, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd and funny, full of character",
+      "sujet": "a bandaged dwarf inventor with a huge orange beard, cracked goggles and a pot helmet, home-made bat wings of leather, wood and iron on his back, a bandolier of bombs, standing, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new machine and characters are completely different"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L9": "références",
+        "L10": "angle seul",
+        "L11": "références",
+        "L12": "angle seul",
+        "L13": "références",
+        "L14": "angle seul",
+        "L15": "références",
+        "L16": "angle seul"
+      },
+      "choix": {
+        "fixe": "L13-4",
+        "idle": "garde-1",
+        "transform": "menvol-1",
+        "move": "move-4",
+        "attack": "attack-2-r1",
+        "carte": "p1-2"
+      },
+      "grande": "art-candidats/references/derives/gyrocoptere-grand.png",
+      "consignes": {
+        "attack": "the dwarf swings his round black bomb back and lobs it forward underarm towards the front, his wings flare open, the bomb leaves his hand and he returns to the starting pose; only the body moves, no explosion, no fire, no smoke, no spark"
+      }
+    },
+    "machine-guerre": {
+      "nom": "Machine de guerre",
+      "gabarit": "grand",
+      "hauteur": 100,
+      "generation": [
+        120,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "behemoth"
+      ],
+      "notes": "Nains, niveau 7 : le canon à vapeur (tire, façonné ; plus tard la Forteresse ambulante). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
+      "description": "a dwarven steam war machine shaped like a giant angry dwarf head: a squat round iron and bronze furnace on thick iron wheels, its front is a huge scowling bronze dwarf face with a riveted iron beard, the big cannon barrel comes out of its open mouth, its eyes glow orange with fire, a tall chimney with black smoke on top of its helmet; a small dwarf stoker with a soot-black face shovels coal at the back, side view, massive, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "a dwarven steam war machine shaped like a giant scowling bronze dwarf head on iron wheels, a cannon coming out of its mouth, glowing eyes, a smoking chimney, side view, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      }
+    },
+    "sapeur": {
+      "nom": "Sapeur",
+      "gabarit": "humain",
+      "hauteur": 60,
+      "generation": [
+        104,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "arbaletrier"
+      ],
+      "notes": "Nains, niveau 5 : creuse sous le champ, ressort à côté d'un ennemi et frappe le premier. Nains : nouvelle créature (choix de l'utilisateur, 2026-11-16), id provisoire en attendant la session règles.",
+      "description": "a hunched dwarf sapper who has lived underground too long, like a mole: tiny squinting pink eyes almost blind, a huge pale bulbous nose, very long arms with enormous dirty hands and long black nails, a beard caked with mud, pebbles and a few earthworms, a dented miner's helmet with a lit candle-lantern on top, patched leather clothes grey with dust, knee pads, a huge iron pick held in both hands, a coil of rope and small sacks on his belt, a toothless grin, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd, full of character",
+      "sujet": "a hunched mole-like dwarf miner with tiny eyes, a huge pale nose, a muddy beard and a lantern helmet, holding a big iron pick, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      },
+      "choix": {
+        "fixe": "L3-2",
+        "idle": "garde-2-r1",
+        "move": "mmarche-2-r1",
+        "attack": "mcoup-1-r2",
+        "carte": "p1-6"
+      },
+      "grande": "art-candidats/references/derives/sapeur-grand.png"
+    },
+    "roi-de-cristal": {
+      "nom": "Roi de cristal",
+      "gabarit": "grand",
+      "hauteur": 100,
+      "generation": [
+        120,
+        120
+      ],
+      "comparer": [
+        "porte-bouclier",
+        "behemoth"
+      ],
+      "notes": "Nains, niveau 7 (→ Roi des ancêtres, la couronne de cristal qui luit) : renvoie les sorts néfastes ; l'obstination de toute l'armée. Nains : nouvelle créature (choix de l'utilisateur, 2026-11-16), id provisoire en attendant la session règles. Deuxième passage (2026-11-16) : plus fantomatique, à la demande de l'utilisateur (L5 et suivants).",
+      "description": "the ghost of a colossal ancient dwarf king bound to crystal, woken from a thousand years under the mountain: his huge stooped body is pale and luminous, ghostly white-blue and slightly see-through like a spirit, glowing softly from inside, wisps of pale mist trailing from his robe and his long beard, his beard and one arm grown into clear pale blue crystal, crystal shards jutting from his shoulders and his old faded bronze armour, hollow glowing white eyes, a tarnished ancient crown, holding a giant warhammer with a head of raw glowing crystal, eerie, cold and terrifying, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "the pale glowing ghost of a colossal ancient dwarf king, mist trailing from his beard and robe, crystal shards on his old armour, hollow glowing eyes, holding a giant crystal warhammer, facing right",
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/troll.png",
+      "references": [
+        "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul"
+      },
+      "choix": {
+        "fixe": "L5-1",
+        "idle": "mgarde-1",
+        "move": "mmarche-2",
+        "attack": "mcoup-2-r1",
+        "carte": "p1-1"
+      },
+      "grande": "art-candidats/references/derives/roi-de-cristal-grand.png",
+      "garder_cyan": true
     }
   }
 }

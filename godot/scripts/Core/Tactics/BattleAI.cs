@@ -90,7 +90,8 @@ public static class BattleAI
             var type = unit.Type;
             // les sorts qui durent sur la troupe, utiles ou néfastes (pour la dissipation)
             int good = unit.Spells.Count(s => !s.Spell.Harmful), bad = unit.Spells.Count(s => s.Spell.Harmful);
-            value += spell.Effect switch
+            // un sort néfaste renvoyé sur une troupe amie (le miroir de cristal) est une perte
+            value += (spell.Harmful ? sign : 1) * spell.Effect switch
             {
                 SpellEffect.Damage => sign * Math.Min(strength, unit.TotalHitPoints) * perHitPoint,
                 SpellEffect.Cure => Math.Min(strength, type.HitPoints - unit.TopHitPoints) * perHitPoint

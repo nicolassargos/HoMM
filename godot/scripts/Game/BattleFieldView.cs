@@ -332,7 +332,14 @@ public partial class BattleFieldView : Control
             {
                 if (random.Next(3) == 0)
                     x += 150 + random.Next(200); // des trouées
-                Add(middle[random.Next(middle.Length)], 0.12f, new Vector2(x, 168 + random.Next(30)));
+                var foot = new Vector2(x, 168 + random.Next(30));
+                var tree = middle[random.Next(middle.Length)];
+                // les bouleaux du marais, très clairs (des feuilles presque blanches) : fondus dans une brume plus sombre, pour
+                // qu'ils restent au loin (choix de l'utilisateur)
+                if (PaletteOf(terrain).Puddles)
+                    edge.Add((Hazy(tree, 0.45f, hazeColor.Darkened(0.35f)), tree, Snap(foot)));
+                else
+                    Add(tree, 0.12f, foot);
             }
         }
         else if (trees.Length > 0)
@@ -411,7 +418,7 @@ public partial class BattleFieldView : Control
     {
         int[,] bayer = { { 0, 8, 2, 10 }, { 12, 4, 14, 6 }, { 3, 11, 1, 9 }, { 15, 7, 13, 5 } };
         var palette = PaletteOf(terrain);
-        int w = (int)Math.Ceiling(FieldSize.X / GroundScale), h = 84;
+        int w = (int)Math.Ceiling(FieldSize.X / GroundScale), h = 90;
         var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
         var random = new Random(seed * 13 + 5);
         // une ligne de crête : des sinus aux phases tirées au sort
@@ -468,13 +475,55 @@ public partial class BattleFieldView : Control
             var c = i + 1 < tones.Length && bayer[y % 4, x % 4] < (u - i) * 16 ? tones[i + 1] : tones[i];
             return Speck(x, y, 9) ? c.Darkened(0.12f) : c;
         }
+        // les nuages et les rochers ont leur propre tirage : les collines restent celles d'avant pour une même graine
+        var extras = new Random(seed * 17 + 9);
+        // quelques nuages plats dessous, bombés dessus (des bosses qui se chevauchent), dans le ciel seulement
+        var clouds = Enumerable.Range(0, 1 + extras.Next(3)).Select(i =>
+        {
+            float length = 24 + extras.Next(50), x = extras.Next(w), bottom = 10 + extras.Next(12);
+            // les bosses restent dans le nuage (une bosse coupée au bout faisait un mur), plus hautes vers le milieu
+            var bumps = Enumerable.Range(0, 3 + extras.Next(3)).Select(b =>
+            {
+                float r = length * (0.18f + 0.14f * (float)extras.NextDouble()), at = r + (float)extras.NextDouble() * (length - 2 * r);
+                float middle = 1 - MathF.Abs(at / length - 0.5f) * 1.2f;
+                return (X: x + at, R: r, Height: MathF.Max(2, MathF.Min(r * 0.8f, (3 + extras.Next(5)) * middle)));
+            }).ToArray();
+            return (Left: x, Right: x + length, Bottom: bottom, Bumps: bumps);
+        }).ToArray();
+        // sous un ciel couvert (le marais), des nuages gris : le haut blanc y brillait trop (remarque de l'utilisateur)
+        Color cloudLight = palette.Overcast ? sky[^1].Lightened(0.1f) : Colors.White.Lerp(sky[^1], 0.3f),
+            cloudBody = palette.Overcast ? sky[^1].Lerp(sky[2], 0.4f) : sky[^1].Lightened(0.08f),
+            cloudShade = palette.Overcast ? sky[1].Darkened(0.06f) : sky[^1].Lerp(sky[1], 0.5f);
+        // la couleur d'un nuage en (x, y), ou null
+        Color? Cloud(int x, int y)
+        {
+            foreach (var cloud in clouds)
+            {
+                if (x < cloud.Left || x > cloud.Right || y > cloud.Bottom)
+                    continue;
+                float top = cloud.Bottom;
+                foreach (var b in cloud.Bumps)
+                    if (MathF.Abs(x - b.X) < b.R)
+                        top = MathF.Min(top, cloud.Bottom - b.Height * MathF.Sqrt(1 - MathF.Pow((x - b.X) / b.R, 2)));
+                if (y < MathF.Round(top) || top >= cloud.Bottom - 1)
+                    continue;
+                // éclairé en haut, ombré dessous (tramé avec le corps)
+                return y - MathF.Round(top) < 1 ? cloudLight
+                    : y >= cloud.Bottom - 1 || (y >= cloud.Bottom - 2 && bayer[y % 4, x % 4] < 8) ? cloudShade : cloudBody;
+            }
+            return null;
+        }
+        // le pré se fond dans le sol du champ sur plusieurs rangées (sur trois, la limite faisait une ligne nette qui coupait
+        // la scène en deux, remarque de l'utilisateur, 2026-11-16), à partir d'un bord qui ondule d'une colonne à l'autre
+        const int Fade = 8;
         for (int x = 0; x < w; x++)
         {
             int f = (int)far(x), n = (int)near(x), m = (int)meadow(x);
+            int fadeTop = m - 1 + (int)MathF.Round(1.5f * MathF.Sin(x / 7f + seed) + MathF.Sin(x / 3.1f + seed * 0.7f));
             for (int y = 0; y < h; y++)
             {
                 Color c;
-                if (y >= m + 3)
+                if (y >= fadeTop + Fade)
                     continue; // le sol du champ
                 if (y >= n)
                     // les collines proches ; une dune : sa face raide dans l'ombre, dont le bord part de la crête et descend en
@@ -496,14 +545,61 @@ public partial class BattleFieldView : Control
                     float t = (float)y / Math.Max(1, f) * (sky.Length - 1);
                     int band = Math.Min(sky.Length - 2, (int)t);
                     c = bayer[y % 4, x % 4] < (t - band) * 16 ? sky[band + 1] : sky[band];
+                    c = Cloud(x, y) ?? c;
                 }
                 // le pré au pied des collines proches, entre elles et le sol du champ
                 if (y >= n && y >= m - 4)
                     c = Tone(meadowTones, (y - m + 4) / 6f, x, y);
-                // le bord du pré se fond dans le sol par paliers de transparence (75, 50, 25 %)
-                if (y >= m)
-                    c = new Color(c, 0.75f - 0.25f * (y - m));
+                // le bord du pré se fond dans le sol par paliers de transparence (75, 50, 25 %), un peu mêlés d'un pixel à
+                // l'autre (sinon chaque palier ferait sa propre ligne)
+                if (y >= fadeTop)
+                {
+                    float jitter = ((((x * 73856093) ^ (y * 19349663) ^ seed) & 255) / 255f - 0.5f) * 0.3f;
+                    float alpha = MathF.Ceiling((1 - (y - fadeTop + 1f) / (Fade + 1) + jitter) * 4) / 4;
+                    if (alpha <= 0)
+                        continue;
+                    c = new Color(c, MathF.Min(alpha, 0.75f));
+                }
                 image.SetPixel(x, y, c);
+            }
+        }
+        // des rochers sur les collines proches (pas sur les dunes) : de petits dômes, éclairés en haut à droite (le soleil),
+        // l'ombre à gauche et dessous, un peu dans la brume
+        var rock = new Color(0.56f, 0.55f, 0.51f).Lerp(nearTones[1], 0.3f).Lerp(sky[^1], 0.15f);
+        for (float x = extras.Next(40); !palette.Dunes && x < w; x += 25 + extras.Next(60))
+        {
+            int rx = (int)x, top = (int)near(rx) + 3, bottom = (int)meadow(rx) - 6;
+            if (bottom <= top)
+                continue;
+            int width = 3 + extras.Next(6), height = (width + 1) / 2, ry = top + extras.Next(bottom - top);
+            for (int dy = -height; dy <= 0; dy++)
+            for (int dx = -width / 2; dx <= width / 2; dx++)
+            {
+                float u = dx / (width / 2f + 0.5f), v = dy / (height + 0.5f);
+                int px = rx + dx, py = ry + dy;
+                if (u * u + v * v > 1 || px < 0 || px >= w || py < 0)
+                    continue;
+                var c = dy == 0 || u < -0.3f ? rock.Darkened(0.3f) : u > 0.1f && v < -0.4f ? rock.Lightened(0.18f) : rock;
+                image.SetPixel(px, py, c);
+            }
+        }
+        // le marais : des mares lointaines dans le pré, longues et plates, où le ciel se reflète (un trait sombre au bord du haut)
+        // (plus larges, demandé par l'utilisateur : de minces traits se voyaient mal ; puis moins voyantes : le reflet du ciel
+        // à moitié fondu dans la couleur des collines, des rides discrètes, moins de mares)
+        var lake = sky[^1].Lerp(palette.Near[1], 0.5f);
+        for (float x = random.Next(80); palette.Puddles && x < w; x += 110 + random.Next(150))
+        {
+            int length = 40 + random.Next(70), y = (int)meadow((int)x) - 5 - random.Next(2);
+            for (int dx = 0; dx < length && x + dx < w; dx++)
+            {
+                // les bouts s'amincissent ; une rive sombre en haut, puis le ciel, plus sombre vers le bas, avec quelques rides
+                float e = MathF.Sin(MathF.PI * dx / length);
+                int depth = (int)MathF.Round(4 * MathF.Sqrt(e));
+                for (int dy = 0; dy <= depth; dy++)
+                    if (y + dy >= 0 && y + dy < h)
+                        image.SetPixel((int)x + dx, y + dy, dy == 0 ? palette.Near[^1]
+                            : dy == 2 && (dx * 7 + (int)x) % 11 < 3 ? lake.Lightened(0.06f)
+                            : lake.Darkened(dy == 1 ? 0.14f : 0.03f * dy));
             }
         }
         // les petits arbres lointains, au pied des collines proches, brumeux
@@ -527,10 +623,10 @@ public partial class BattleFieldView : Control
     /// <summary>
     /// Les couleurs du décor d'un terrain : le ciel (du haut vers l'horizon), la chaîne lointaine et la proche (éclairée,
     /// couleur, ombre), le pré qui rejoint le sol, la brume des images, la brume claire vers l'horizon, l'ombre de la lisière ;
-    /// <c>FlatTops</c> : la chaîne lointaine en mesas.
+    /// <c>FlatTops</c> : la chaîne lointaine en mesas ; <c>Overcast</c> : un ciel couvert, aux nuages gris.
     /// </summary>
     private sealed record ScenePalette(Color[] Sky, Color[] Far, Color[] Near, Color[] Meadow, Color Haze, Color Mist, Color Shade,
-        bool FlatTops = false, bool Dunes = false);
+        bool FlatTops = false, bool Dunes = false, bool Puddles = false, bool Overcast = false);
 
     private static readonly ScenePalette GrassPalette = new(
         new Color[] { new(0.47f, 0.62f, 0.78f), new(0.58f, 0.71f, 0.82f), new(0.70f, 0.80f, 0.86f), new(0.80f, 0.86f, 0.87f) },
@@ -547,11 +643,212 @@ public partial class BattleFieldView : Control
         new Color[] { new(0.86f, 0.74f, 0.50f), new(0.82f, 0.70f, 0.46f) },
         new Color(0.80f, 0.70f, 0.55f), new Color(0.95f, 0.88f, 0.75f), new Color(0.25f, 0.15f, 0.05f), FlatTops: true, Dunes: true);
 
+    /// <summary>
+    /// Le marais (choix de l'utilisateur, 2026-11-16 : un bayou à la lisière, une tourbière ouverte au loin) : un ciel couvert
+    /// gris-vert, des collines basses bleu-gris, un pré de la couleur boueuse du sol (mesurée en jeu), une brume verdâtre.
+    /// </summary>
+    private static readonly ScenePalette SwampPalette = new(
+        new Color[] { new(0.50f, 0.58f, 0.62f), new(0.60f, 0.66f, 0.68f), new(0.70f, 0.74f, 0.73f), new(0.78f, 0.80f, 0.75f) },
+        new Color[] { new(0.56f, 0.62f, 0.62f), new(0.48f, 0.55f, 0.55f), new(0.41f, 0.48f, 0.49f) },
+        new Color[] { new(0.40f, 0.47f, 0.33f), new(0.33f, 0.40f, 0.28f), new(0.27f, 0.33f, 0.24f) },
+        new Color[] { new(0.42f, 0.36f, 0.22f), new(0.40f, 0.32f, 0.20f) },
+        new Color(0.34f, 0.40f, 0.34f), new Color(0.74f, 0.78f, 0.72f), new Color(0.02f, 0.05f, 0.03f), Puddles: true,
+        Overcast: true);
+
     private static ScenePalette PaletteOf(TerrainType terrain) => terrain switch
     {
         TerrainType.Sand => SandPalette,
+        TerrainType.Swamp => SwampPalette,
         _ => GrassPalette,
     };
+
+    /// <summary>Les flaques du marais, ×2, ou null.</summary>
+    private Texture2D? _puddles;
+
+    /// <summary>
+    /// Les flaques du marais (choix de l'utilisateur, 2026-11-16 : de l'eau où l'on marche, pas des obstacles) : une dizaine
+    /// de flaques de tailles très différentes, tirées selon <paramref name="seed"/>, chacune faite de 1 à 3 ronds aplatis qui
+    /// se chevauchent, le bord déformé par un bruit doux. Autour, la terre mouillée (plus sombre, en paliers de transparence) ;
+    /// l'eau trouble, plus sombre sous la rive du haut (l'ombre du bord) et plus claire vers le bas (le ciel s'y reflète),
+    /// avec de courts reflets horizontaux ; dans les grandes, quelques nénuphars ; sur le bord, des brins de jonc. Ailleurs,
+    /// quelques taches de terre mouillée sans eau. Aucune sous les cases <paramref name="avoid"/> (le centre des obstacles,
+    /// en pixels de l'image).
+    /// </summary>
+    private static Texture2D BuildPuddles(int seed, Vector2[] avoid)
+    {
+        int w = (int)Math.Ceiling(FieldSize.X / GroundScale), h = (int)Math.Ceiling(FieldSize.Y / GroundScale);
+        var random = new Random(seed * 11 + 4);
+        var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        // un bruit doux (comme BuildStones)
+        float Smooth(float x, float y, float cell, int k)
+        {
+            float gx = x / cell, gy = y / cell;
+            int ix = (int)MathF.Floor(gx), iy = (int)MathF.Floor(gy);
+            float fx = gx - ix, fy = gy - iy;
+            fx = fx * fx * (3 - 2 * fx);
+            fy = fy * fy * (3 - 2 * fy);
+            float At(int cx, int cy) => (((cx * 73856093) ^ (cy * 19349663) ^ (k * 83492791) ^ seed) & 1023) / 1023f;
+            float top = At(ix, iy) + (At(ix + 1, iy) - At(ix, iy)) * fx, bottom = At(ix, iy + 1) + (At(ix + 1, iy + 1) - At(ix, iy + 1)) * fx;
+            return top + (bottom - top) * fy;
+        }
+        // les flaques (Water : de l'eau ; sinon une tache de terre mouillée), surtout petites, quelques grandes
+        var pools = Enumerable.Range(0, 9 + random.Next(5)).Select(i =>
+        {
+            float r = 7f + 34f * MathF.Pow((float)random.NextDouble(), 1.8f);
+            var blobs = new List<(float Dx, float Dy, float R)> { (0, 0, r) };
+            for (int b = random.Next(3); b > 0; b--)
+            {
+                float angle = (float)random.NextDouble() * 6.28f, dist = r * (0.5f + 0.5f * (float)random.NextDouble());
+                blobs.Add((MathF.Cos(angle) * dist, MathF.Sin(angle) * dist / 2f, r * (0.4f + 0.4f * (float)random.NextDouble())));
+            }
+            // pas sous un obstacle (un arbre les pieds dans l'eau jurait) : on tire une autre place, sinon pas de flaque
+            float reach = 1.8f * r + 14;
+            for (int tries = 0; tries < 12; tries++)
+            {
+                float x = 20f + random.Next(w - 40), y = 100f + random.Next(h - 115);
+                if (avoid.All(o => MathF.Pow((x - o.X) / reach, 2) + MathF.Pow((y - o.Y) * 2 / reach, 2) > 1))
+                    return (X: x, Y: y, R: r, Water: i % 4 != 3, Blobs: blobs.ToArray());
+            }
+            return (X: 0f, Y: 0f, R: 0f, Water: false, Blobs: Array.Empty<(float Dx, float Dy, float R)>());
+        }).Where(p => p.R > 0).ToArray();
+        // de 1 au milieu à 0 au bord : le plus haut des ronds (aplatis : vus en biais), le bord déformé par un bruit doux
+        float Shape((float X, float Y, float R, bool Water, (float Dx, float Dy, float R)[] Blobs) p, float x, float y)
+        {
+            float best = -1;
+            foreach (var (bdx, bdy, br) in p.Blobs)
+            {
+                float dx = (x - p.X - bdx) / br, dy = (y - p.Y - bdy) * 2f / br;
+                best = MathF.Max(best, 1 - MathF.Sqrt(dx * dx + dy * dy));
+            }
+            return best + 0.35f * (Smooth(x, y, MathF.Max(4, p.R * 0.4f), 21) - 0.5f);
+        }
+        var mud = new Color(0.20f, 0.15f, 0.08f);
+        // une eau trouble, olive (bleutée, elle jurait avec la boue brune) : la rive reflétée, l'eau sombre, l'eau, le ciel reflété
+        Color[] water = { new(0.15f, 0.18f, 0.12f), new(0.22f, 0.27f, 0.19f), new(0.31f, 0.37f, 0.28f), new(0.43f, 0.50f, 0.46f) };
+        var shine = new Color(0.78f, 0.83f, 0.80f);
+        foreach (var pool in pools)
+        {
+            float reach = pool.R * 2.2f;
+            int x0 = (int)MathF.Max(0, pool.X - reach), x1 = (int)MathF.Min(w - 1, pool.X + reach);
+            int y0 = (int)MathF.Max(0, pool.Y - reach / 2), y1 = (int)MathF.Min(h - 1, pool.Y + reach / 2);
+            // la rive mouillée : à partir de cette profondeur de la forme, l'eau
+            float wet = MathF.Min(0.5f, 3.5f / pool.R), edge = pool.Water ? wet : 2;
+            for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+            {
+                float inside = Shape(pool, x, y) + wet;
+                if (inside <= 0)
+                    continue;
+                Color c;
+                if (inside < edge + wet)
+                    // la terre mouillée, plus sombre vers l'eau, par paliers (25, 50 %), le bord effrangé
+                    c = new Color(mud, MathF.Ceiling(MathF.Min(1, inside / wet) * 2 + 0.3f * (Smooth(x, y, 3, 22) - 0.5f)) / 4);
+                else
+                {
+                    // l'eau, d'après la distance à la rive du haut (demandé par l'utilisateur, 2026-11-16 : des reflets) : la
+                    // rive s'y reflète (sombre), puis une bande de ciel clair, puis l'eau trouble de plus en plus sombre vers le
+                    // bord proche (on voit dedans) ; la bande de ciel ondule un peu
+                    // (trop large et trop pâle, la bande de ciel faisait des rochers : étroite, et qui se défait en traits)
+                    int fromTop = 1;
+                    while (fromTop < 40 && Shape(pool, x, y - fromTop) >= edge)
+                        fromTop++;
+                    float sky = MathF.Max(1.5f, pool.R * 0.12f) * (0.7f + 0.6f * Smooth(x, y, 5, 23));
+                    float streak = Smooth(x, y * 4, 7, 25); // des traits horizontaux (le bruit écrasé en hauteur)
+                    c = fromTop <= 2 ? water[0] : fromTop <= 2 + sky ? water[3]
+                        : fromTop <= 2 + sky * 2.5f ? (streak > 0.5f ? water[3] : water[2])
+                        : streak > 0.75f ? water[2] : Smooth(x, y, 6, 24) < 0.4f ? water[1] : water[2];
+                }
+                if (c.A > image.GetPixel(x, y).A || c.A >= 1)
+                    image.SetPixel(x, y, c);
+            }
+        }
+        bool IsWater(int x, int y) => x >= 0 && y >= 0 && x < w && y < h && image.GetPixel(x, y).A >= 1;
+        foreach (var pool in pools.Where(p => p.Water))
+        {
+            // des rides à plat : claires dans la bande du ciel, ailleurs du ton du ciel sur l'eau trouble, les bouts plus doux
+            for (int i = 0; i < pool.R / 2 + 2; i++)
+            {
+                int x = (int)(pool.X + ((float)random.NextDouble() - 0.5f) * pool.R * 1.6f), y = (int)(pool.Y + ((float)random.NextDouble() - 0.5f) * pool.R * 0.5f);
+                int length = 2 + random.Next(Math.Max(2, (int)pool.R / 3));
+                if (!IsWater(x, y))
+                    continue;
+                bool inSky = image.GetPixel(x, y) == water[3];
+                for (int k = 0; k < length; k++)
+                    if (IsWater(x + k, y) && IsWater(x + k, y - 1) && IsWater(x + k, y + 1))
+                        image.SetPixel(x + k, y, inSky ? (k == 0 || k == length - 1 ? water[3].Lightened(0.15f) : shine)
+                            : k == 0 || k == length - 1 ? water[2] : water[3]);
+            }
+            // des joncs sur la rive du haut, et leur reflet renversé dans l'eau (plus sombre, coupé par les rides)
+            for (int i = pool.R > 10 ? (int)pool.R / 12 + 1 : 0; i > 0; i--)
+            {
+                int bx = (int)(pool.X + ((float)random.NextDouble() - 0.5f) * pool.R * 1.2f), by = (int)pool.Y;
+                if (!IsWater(bx, by))
+                    continue;
+                while (IsWater(bx, by - 1))
+                    by--; // le haut de l'eau dans cette colonne
+                by--; // sur la rive
+                var reed = random.Next(3) == 0 ? new Color(0.52f, 0.50f, 0.24f) : new Color(0.32f, 0.44f, 0.20f);
+                var mirrored = reed.Lerp(water[1], 0.45f);
+                for (int b = 2 + random.Next(3), k0 = 0; k0 < b; k0++)
+                {
+                    float lean = (k0 - (b - 1) / 2f) * 0.45f;
+                    int length = 4 + random.Next(5);
+                    for (int k = 0; k <= length; k++)
+                    {
+                        int px = (int)MathF.Round(bx + lean * k);
+                        if (px < 0 || px >= w)
+                            continue;
+                        if (by - k >= 0)
+                            image.SetPixel(px, by - k, k == length ? reed.Lightened(0.3f) : k == 0 ? reed.Darkened(0.3f) : reed);
+                        // le reflet : sous la rive, dans l'eau, un pixel sur trois effacé vers la pointe
+                        int ry = by + 1 + k;
+                        if (IsWater(px, ry) && !(k > length / 2 && (k + px) % 3 == 0))
+                            image.SetPixel(px, ry, mirrored);
+                    }
+                }
+            }
+            // des nénuphars dans les grandes flaques : une feuille ronde entaillée, une sur trois avec une fleur
+            for (int i = pool.R > 18 ? 1 + random.Next((int)pool.R / 9) : 0; i > 0; i--)
+            {
+                int cx = (int)(pool.X + ((float)random.NextDouble() - 0.5f) * pool.R), cy = (int)(pool.Y + ((float)random.NextDouble() - 0.5f) * pool.R * 0.4f);
+                int r = 1 + random.Next(2);
+                var leaf = new Color(0.30f, 0.46f, 0.22f).Lightened((float)random.NextDouble() * 0.1f);
+                for (int dy = -r; dy <= r; dy++)
+                for (int dx = -r - 1; dx <= r + 1; dx++)
+                {
+                    float ex = dx / (r + 1.4f), ey = dy / (r + 0.4f);
+                    if (ex * ex + ey * ey > 1 || !IsWater(cx + dx, cy + dy) || (dx > 0 && dy == 0))
+                        continue; // l'entaille de la feuille
+                    image.SetPixel(cx + dx, cy + dy, dy > 0 ? leaf.Darkened(0.25f) : dy < 0 && dx < 0 ? leaf.Lightened(0.2f) : leaf);
+                }
+                if (random.Next(3) == 0 && IsWater(cx, cy - 1))
+                {
+                    image.SetPixel(cx, cy - 1, new Color(0.95f, 0.90f, 0.92f));
+                    image.SetPixel(cx, cy, new Color(0.92f, 0.70f, 0.78f));
+                }
+            }
+            // des brins de jonc au bord : des touffes de 2 à 4 brins verts, la pointe plus claire, sur la rive du bas et des côtés
+            for (int i = 0; i < pool.R / 3 + 1; i++)
+            {
+                float angle = (float)random.NextDouble() * MathF.PI; // la moitié du bas : devant l'eau
+                var (bdx, bdy, br) = pool.Blobs[random.Next(pool.Blobs.Length)];
+                int bx = (int)(pool.X + bdx + MathF.Cos(angle) * br * 1.05f), by = (int)(pool.Y + bdy + MathF.Sin(angle) * br * 0.55f);
+                var reed = random.Next(3) == 0 ? new Color(0.52f, 0.50f, 0.24f) : new Color(0.32f, 0.44f, 0.20f);
+                for (int b = 2 + random.Next(3), k0 = 0; k0 < b; k0++)
+                {
+                    float lean = (k0 - (b - 1) / 2f) * 0.45f;
+                    int length = 3 + random.Next(4);
+                    for (int k = 0; k <= length; k++)
+                    {
+                        int px = (int)MathF.Round(bx + lean * k), py = by - k;
+                        if (px >= 0 && py >= 0 && px < w && py < h)
+                            image.SetPixel(px, py, k == length ? reed.Lightened(0.3f) : k == 0 ? reed.Darkened(0.3f) : reed);
+                    }
+                }
+            }
+        }
+        return ImageTexture.CreateFromImage(image);
+    }
 
     /// <summary>Le sol de pierres sous le sable (le désert), ×2, ou null.</summary>
     private Texture2D? _stones;
@@ -892,10 +1189,12 @@ public partial class BattleFieldView : Control
     /// plus clair et plus bleuté), du pied des collines vers le bas.
     /// </summary>
     private static Texture2D BuildMist(TerrainType terrain, int seed) =>
-        Bands(PaletteOf(terrain).Mist, new[] { 0.14f, 0.08f, 0.04f }, 146, 20, seed);
+        // elle commence au pied des collines et culmine sur le raccord du pré et du sol (elle commençait juste au raccord, et
+        // son bord y ajoutait une ligne), puis s'efface vers le bas
+        Bands(PaletteOf(terrain).Mist, new[] { 0.04f, 0.08f, 0.12f, 0.14f, 0.10f, 0.06f, 0.03f }, 104, 14, seed);
 
     /// <summary>
-    /// Des bandes horizontales d'une couleur, de plus en plus transparentes vers le bas (une opacité par bande), qui commencent
+    /// Des bandes horizontales d'une couleur (une opacité par bande, de haut en bas), qui commencent
     /// à <paramref name="top"/> (pixels de l'écran) ; chaque bord ondule (pixels d'art entiers), pour ne pas faire de lignes.
     /// </summary>
     private static Texture2D Bands(Color color, float[] alphas, float top, float height, int seed)
@@ -953,6 +1252,8 @@ public partial class BattleFieldView : Control
         _details = BuildDetails(terrain, seed);
         _relief = PaletteOf(terrain).Dunes ? BuildDunes(seed) : null;
         _stones = PaletteOf(terrain).Dunes ? BuildStones(seed) : null;
+        _puddles = PaletteOf(terrain).Puddles
+            ? BuildPuddles(seed, Battle.Field.Obstacles.Select(o => Center(o) / GroundScale).ToArray()) : null;
         if (SmoothGround.CreateBattle(terrain, FieldSize, seed) is not { } ground)
             return;
         // le sol couvre des cases entières de la carte : le surplus est coupé au bord du champ
@@ -1172,13 +1473,18 @@ public partial class BattleFieldView : Control
                     // un coup joué sur la case de la cible (la foudre de l'Oiseau-tonnerre) : l'effet part un peu avant le
                     // coup, pour toucher le sol au moment où il porte
                     bool onHex = shot == null && BattleEffects.PlaysOnHex(TextSetting(struck.Attacker, "impact"));
+                    // la bombe (le Gyrocoptère) explose sur la cible et les cases autour : les troupes voisines touchées
+                    // ensuite le sont par la même explosion, sans nouveau geste
+                    bool bomb = shot == "bombe", blasted = bomb && struck.Splash;
+                    if (blasted)
+                        shot = null;
                     _animations.Enqueue(delta =>
                     {
                         // l'attaquant fait son geste (s'il a une animation d'attaque) ; le coup porte vers la fin
                         var striker = _shown[struck.Attacker];
                         if (boltAge >= 0)
                             boltAge += delta;
-                        if (wind == 0)
+                        if (wind == 0 && !blasted)
                         {
                             // l'attaquant se tourne vers sa cible, et la cible vers lui
                             var struckShown = _shown[struck.Target];
@@ -1211,7 +1517,15 @@ public partial class BattleFieldView : Control
                         wind = Math.Max(wind, 1e-6);
                         if (onHex && boltAge < BattleEffects.LightningHitTime)
                             return false;
-                        if (shot != null && !launched)
+                        if (shot != null && !launched && bomb)
+                        {
+                            launched = true;
+                            var ground = Ground(_shown[struck.Target]);
+                            var area = struck.Target.Hexes.Concat(struck.Target.Hexes.SelectMany(h => h.Neighbours())).Distinct()
+                                .Where(Battlefield.InBounds).Select(h => Center(h) + new Vector2(0, HexHeight / 2 - Ui.Px(10))).ToArray();
+                            _spells.Launch("bombe", LaunchPoint(struck.Attacker, striker), ground - Ui.V(0, 20), ground, area, () => landed = true);
+                        }
+                        else if (shot != null && !launched)
                         {
                             launched = true;
                             _effects.Launch(shot, LaunchPoint(struck.Attacker, striker), BodyCenter(struck.Target, _shown[struck.Target]),
@@ -1230,7 +1544,7 @@ public partial class BattleFieldView : Control
                             target.Recoil = 1;
                             target.RecoilDirection = direction;
                             string impact = shot != null ? BattleEffects.ImpactOf(shot) : TextSetting(struck.Attacker, "impact") ?? "choc";
-                            if (!onHex)
+                            if (!onHex && !bomb)
                                 _effects.Hit(impact, BodyCenter(struck.Target, target), direction);
                             Audio.PlayCreature(struck.Attacker.Type, struck.Ranged ? "shot-impact" : "impact");
                             if (struck.Killed > 0)
@@ -1636,6 +1950,26 @@ public partial class BattleFieldView : Control
                         return heal >= 0.6;
                     });
                     break;
+                case SpellReflected reflected:
+                    // le miroir de cristal : le Roi luit et sa coque vole en éclats, puis un éclat file vers la troupe du lanceur
+                    double mirrored = 0;
+                    bool thrown = false, returned = false;
+                    _animations.Enqueue(delta =>
+                    {
+                        var king = _shown[reflected.King];
+                        if (mirrored == 0)
+                            _spells.OnUnit("cristal", BodyCenter(reflected.King, king), Ground(king), Facing(reflected.King));
+                        mirrored += Math.Max(delta, 1e-6);
+                        if (!thrown && mirrored >= 0.45)
+                        {
+                            thrown = true;
+                            var target = _shown[reflected.Target];
+                            _spells.Launch("cristal-rebond", BodyCenter(reflected.King, king), BodyCenter(reflected.Target, target),
+                                Ground(target), Array.Empty<Vector2>(), () => returned = true);
+                        }
+                        return returned;
+                    });
+                    break;
                 case SpellApplied applied:
                     double marked = 0;
                     _animations.Enqueue(delta =>
@@ -1801,6 +2135,11 @@ public partial class BattleFieldView : Control
             PreviewHook();
             return;
         }
+        if (parts[0] == "cristal")
+        {
+            PreviewMirror(delta, parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var still) ? still : null);
+            return;
+        }
         if (!BattleEffects.PlaysOnHex(parts[0]))
         {
             // un tir (« eclair ») : de la première troupe de gauche vers la première de droite, relancé sans cesse pour
@@ -1848,6 +2187,32 @@ public partial class BattleFieldView : Control
             targets = new() { frozen != null ? targets[^1] : targets[_previewTurn++ % targets.Count] };
         foreach (var shown in targets)
             _effects.OnHex(parts[0], Ground(shown), frozen);
+    }
+
+    /// <summary>
+    /// Développement (« --effect-preview=cristal ») : le miroir de cristal sur la première troupe de droite, toutes les
+    /// deux secondes, et son éclat vers la première troupe de gauche ; « cristal:0.3 » fige le miroir à cet instant.
+    /// </summary>
+    private void PreviewMirror(double delta, double? frozen)
+    {
+        var king = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Defender);
+        var caster = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Attacker);
+        if (king.Key == null || caster.Key == null)
+            return;
+        double before = _previewClock;
+        if (frozen != null)
+        {
+            if (before < 0)
+                _spells.OnUnit("cristal", BodyCenter(king.Key, king.Value), Ground(king.Value), Facing(king.Key), frozen);
+            _previewClock = 0;
+            return;
+        }
+        _previewClock = _previewClock < 0 || _previewClock > 2 ? 0 : _previewClock + delta;
+        if (_previewClock == 0)
+            _spells.OnUnit("cristal", BodyCenter(king.Key, king.Value), Ground(king.Value), Facing(king.Key));
+        if (before < 0.45 && _previewClock >= 0.45)
+            _spells.Launch("cristal-rebond", BodyCenter(king.Key, king.Value), BodyCenter(caster.Key, caster.Value),
+                Ground(caster.Value), Array.Empty<Vector2>(), () => { });
     }
 
     /// <summary>
@@ -2035,6 +2400,9 @@ public partial class BattleFieldView : Control
         {
             if (_landscape != null)
                 DrawTextureRect(_landscape, new Rect2(Vector2.Zero, _landscape.GetSize() * GroundScale), false);
+            // les flaques, sous l'ombre de la forêt
+            if (_puddles != null)
+                DrawTextureRect(_puddles, new Rect2(Vector2.Zero, _puddles.GetSize() * GroundScale), false);
             // l'ombre de la forêt sur le haut du sol, puis la lisière : des rangées d'arbres, plus sombres vers le fond
             if (_shade != null)
                 DrawTextureRect(_shade, new Rect2(Vector2.Zero, _shade.GetSize() * GroundScale), false);

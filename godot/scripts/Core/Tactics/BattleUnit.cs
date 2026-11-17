@@ -177,6 +177,13 @@ public static class Ability
     public const string Banner = "banner";
     /// <summary>Explosion (le Gyrocoptère, la Machine de guerre) : son attaque touche aussi les ennemis autour de la cible.</summary>
     public const string Blast = "blast";
+    /// <summary>Miroir de cristal (le Roi de cristal) : un sort néfaste lancé sur lui frappe la troupe active du lanceur.</summary>
+    public const string CrystalMirror = "crystal-mirror";
+    /// <summary>
+    /// Garde des ancêtres (le Roi de cristal) : tant qu'il ne s'est pas déplacé dans le round, les troupes obstinées de
+    /// son camp gardent leur obstination même après avoir bougé.
+    /// </summary>
+    public const string AncestralHold = "ancestral-hold";
 
     public static readonly string[] Known =
     {
@@ -188,7 +195,7 @@ public static class Ability
         Made, Repairs, Blessing, NoMeleePenalty,
         Terror, Horror, Brave, EndlessRetaliation, Burrows, Swallow, Rays,
         Infernal, ManaThief, Sacrifice, Splits, Seduce, Hook, HeatAura, Feeds, Summons,
-        Stubborn, ShieldWall, Piercing, SureFooted, Banner, Blast,
+        Stubborn, ShieldWall, Piercing, SureFooted, Banner, Blast, CrystalMirror, AncestralHold,
     };
 }
 

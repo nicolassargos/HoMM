@@ -22,12 +22,28 @@ public partial class DecorLayer : Node2D
     private static Texture2D[] Trees =>
         Art.VariantsOf("decor/pine").Concat(Art.VariantsOf("decor/oak")).Concat(Art.VariantsOf("decor/autumn")).ToArray();
 
+    /// <summary>Les arbres des pentes (sapins et chênes, pas d'automne) : entre les massifs et à leur pied, comme dans Heroes 3.</summary>
+    private static Texture2D[] SlopeTrees => Art.VariantsOf("decor/pine").Concat(Art.VariantsOf("decor/oak")).ToArray();
+
     /// <summary>Les sommets seuls, du même dessin que les massifs.</summary>
     private static Texture2D[] Peaks => Art.VariantsOf("decor/peak");
+
+    /// <summary>Des éboulis (quelques blocs et pierres), au pied des chaînes de montagnes.</summary>
+    private static Texture2D[] Scree => Art.VariantsOf("decor/scree");
 
     private static MassifCatalog? _shapes;
     /// <summary>Les formes des massifs (data/mountains.json), pour poser leur image.</summary>
     private static MassifCatalog Shapes => _shapes ??= MassifCatalog.FromJson(Godot.FileAccess.GetFileAsString("res://data/mountains.json"));
+
+    private static HashSet<Texture2D>? _mountainImages;
+
+    /// <summary>
+    /// True pour l'image d'un massif ou d'un sommet seul (2026-11-17) : elle porte déjà sa lumière et ses pentes se fondent
+    /// dans le sol, elle ne jette donc pas d'ombre (<see cref="ShadowLayer"/>), qui ferait une bande sombre autour.
+    /// </summary>
+    public static bool IsMountain(Texture2D image) =>
+        (_mountainImages ??= Shapes.All.Select(s => Art.Get(s.Image)).Where(t => t != null).Select(t => t!).Concat(Peaks).ToHashSet())
+        .Contains(image);
 
     /// <summary>True si ce terrain est dessiné par le décor (le sol de la case est alors de l'herbe).</summary>
     public static bool Covers(TerrainType terrain) => terrain switch
@@ -104,6 +120,7 @@ public partial class DecorLayer : Node2D
                 rocks.Add((new Vector2(massif.At.X + shape.Width / 2f, massif.At.Y + shape.Height) * t, image));
         FillGaps(map, rocks, peaks);
         sprites.AddRange(rocks);
+        AddScree(map, sprites);
 
         sprites.Sort((a, b) => a.Foot.Y != b.Foot.Y ? a.Foot.Y.CompareTo(b.Foot.Y) : a.Foot.X.CompareTo(b.Foot.X));
         return sprites;
@@ -160,6 +177,14 @@ public partial class DecorLayer : Node2D
             }
         }
         var fillers = new List<(Vector2 Foot, Texture2D Image)>();
+        // les sommets du sol de chaque montagne (ceux de l'herbe s'il n'y en a pas)
+        var grounds = MountainGrounds.Of(map);
+        Texture2D[] PeaksOn(TerrainType ground) => ground switch
+        {
+            TerrainType.Sand when Art.VariantsOf("decor/peak-sable") is { Length: > 0 } sand => sand,
+            TerrainType.Swamp when Art.VariantsOf("decor/peak-marais") is { Length: > 0 } swamp => swamp,
+            _ => peaks,
+        };
         for (int y = 0; y < map.Height; y++)
         for (int x = 0; x < map.Width; x++)
         {
@@ -173,13 +198,53 @@ public partial class DecorLayer : Node2D
             // le sommet sous le milieu de la partie découverte, son pied au bas de celle-ci
             float mx = (float)open.Average(i => i % samples) + 0.5f, my = open.Max(i => i / samples) + 1f;
             var rng = new Random(Seed(x, y) + 7);
-            fillers.Add((new Vector2(x + mx / samples, y + Math.Max(0.6f, my / samples)) * MapRenderer.TileSize, peaks[rng.Next(peaks.Length)]));
+            // un sommet seul (pas d'arbre : au milieu des massifs, on n'en voyait que la cime derrière les pentes)
+            var own = PeaksOn(grounds.GetValueOrDefault(cell, TerrainType.Grass));
+            fillers.Add((new Vector2(x + mx / samples, y + Math.Max(0.6f, my / samples)) * MapRenderer.TileSize, own[rng.Next(own.Length)]));
         }
         rocks.AddRange(fillers);
     }
 
+    /// <summary>
+    /// Le pied des chaînes (2026-11-17) : sous une case de montagne dont la case du dessous est libre, souvent un éboulis
+    /// posé sur le bas de la case, qui casse la rangée régulière des pointes du bord. Seulement le dessin.
+    /// </summary>
+    private static void AddScree(AdventureMap map, List<(Vector2 Foot, Texture2D Image)> sprites)
+    {
+        var scree = Scree;
+        var trees = SlopeTrees;
+        if (scree.Length + trees.Length == 0 || map.Massifs.Count == 0)
+            return;
+        bool Rock(Cell c) => map.InBounds(c) && map.GetTerrain(c) == TerrainType.Mountain;
+        var grounds = MountainGrounds.Of(map);
+        for (int y = 0; y < map.Height; y++)
+        for (int x = 0; x < map.Width; x++)
+        {
+            var cell = new Cell(x, y);
+            var below = cell.Offset(0, 1);
+            // (des arbres au pied d'une montagne d'herbe seulement)
+            if (!Rock(cell) || Rock(below) || grounds.GetValueOrDefault(cell) != TerrainType.Grass
+                || map.InBounds(below) && (map.GetTerrain(below) == TerrainType.Water || map.GetRiver(below) != RiverKind.None))
+                continue;
+            var rng = new Random(Seed(x, y) + 13);
+            if (rng.NextDouble() >= ScreeShare)
+                continue;
+            float fx = x + 0.2f + (float)rng.NextDouble() * 0.6f, fy = y + 1f - (float)rng.NextDouble() * 0.12f;
+            // sans éboulis, rien que des arbres
+            var image = trees.Length > 0 && (scree.Length == 0 || rng.NextDouble() < SlopeTreeShare)
+                ? trees[rng.Next(trees.Length)] : scree[rng.Next(scree.Length)];
+            sprites.Add((new Vector2(fx, fy) * MapRenderer.TileSize, image));
+        }
+    }
+
+    /// <summary>La part des pieds de montagne qui prennent un arbre plutôt qu'un éboulis.</summary>
+    private const double SlopeTreeShare = 0.5;
+
+    /// <summary>La part des cases du bas d'une chaîne qui ont un éboulis.</summary>
+    private const double ScreeShare = 0.6;
+
     /// <summary>La part découverte d'une case de montagne à partir de laquelle on y ajoute un sommet.</summary>
-    private const float GapShare = 0.25f;
+    private const float GapShare = 0.15f;
 
     /// <summary>Un nombre fixe par case, mélangé pour que les cases voisines n'aient pas le même décor.</summary>
     private static int Seed(int x, int y)

@@ -32,6 +32,7 @@ chiffres en vigueur sont dans `godot/data/`.
    difficulté.
 9. **Contenu (en cours)** : magie, factions, héros, compétences, artefacts, carte, mer (ci-dessous).
 10. Finitions : apparence et détails, **les sons et la musique** (ci-dessous).
+11. Multijoueur : d'abord à tour de rôle sur un même PC, plus tard en réseau (ci-dessous).
 
 ## Étape 9 : contenu
 
@@ -236,6 +237,16 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   Wonders » lui plaisent aussi (taverne, carte ?). **Reste** : les autres sorts, la carte, l'interface, la musique de
   la carte, puis la musique chez Stable Audio.
 
+## Étape 11 : multijoueur (à concevoir)
+Idée de l'utilisateur (2026-11-17). Les règles s'y prêtent déjà : plusieurs joueurs dans `GameState`, un brouillard
+par joueur, un humain peut diriger sa défense, et une partie se rejoue pareil avec la même graine.
+- **À tour de rôle sur un même PC** (après le contenu de l'étape 9) : humain ou ordinateur pour chaque joueur dans la
+  nouvelle partie ; un écran « Au tour de… » qui cache la carte entre deux joueurs ; l'affichage suit le joueur humain
+  du tour (son brouillard, ses villes, ses héros) ; un combat entre deux humains, chacun dirige son camp.
+- **En réseau** (plus tard, après l'étape 10) : n'envoyer que les ordres des joueurs, chaque PC calcule la même
+  partie (tests qui le vérifient) ; rejoindre une partie, reprendre après une coupure ; un combat où l'un attend
+  l'autre.
+
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à
   700 × (n−1) × n / 2 d'expérience (= l'or des créatures tuées) ; chaque niveau : +1 charisme, +1 au choix et un point
@@ -263,7 +274,9 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   l'écran vient du nombre de pixels de l'image, jamais d'un autre agrandissement (voir `tools/art/METHODE.md`).
 - **Les tailles communes de l'interface** (`Ui.cs`, 2026-11-11) : un écran prend ses tailles de bouton, de texte et de
   marge parmi celles de `Ui` (`ButtonHeight`, `NormalText`…), et ses longueurs tombent sur la grille (`Px`, `Snap`).
-- **`GameState` gère plusieurs joueurs**, et l'IA joue avec les mêmes méthodes que le joueur humain.
+- **`GameState` gère plusieurs joueurs**, et l'IA joue avec les mêmes méthodes que le joueur humain. Ne pas supposer
+  un seul humain (en vue du multijoueur) : l'affichage et les règles passent par le joueur du tour, pas par « le
+  joueur ».
 - **Toutes les règles restent dans `Core/`** (sans Godot), testables ; l'affichage ne fait que lire des événements.
 - **Les données de jeu** (créatures, bâtiments, sorts, artefacts) sont dans `godot/data/`, pas dans le code.
 - Rester proche des règles et des chiffres de Heroes 3, sauf choix contraire noté (charisme, magie…).

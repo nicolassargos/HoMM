@@ -581,8 +581,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   **Les 15 autres** (2026-11-14) : même recette, 15 lots lancés ensemble (5 à la fois), 0,08 $ chacun. Choix sur une
   **page où l'on ne fait que cliquer** (demandé par l'utilisateur : ne rien recopier à la main) : une rangée de 64
   icônes ×2 par sort, le choisi montré dans une case du livre, « Aucun ne va » et un commentaire ; chaque clic est
-  envoyé à `tools/art/revue.py serveur` (toute page nommée `revue-<nom>.html` qui envoie `{page, items}`), qui écrit
-  `en-cours/revue-<nom>.json`, lu ensuite par Claude. Choisis : Flèche magique 14 (flèche violette), Malédiction 54
+  envoyé à `tools/art/revue.py serveur` (toute page nommée `revue-<nom>.html` qui envoie `{page, dossier, items}`), qui
+  écrit `revue-<nom>.json` dans le dossier `en-cours` donné par la page, lu ensuite par Claude. **Sessions en parallèle**
+  (2026-11-17) : trois serveurs écoutaient le même port (Windows le permet avec l'adresse réutilisable) et deux pages de
+  pieds avaient le même nom, des réponses se sont perdues. Depuis, le serveur refuse de démarrer si le port est pris (un
+  seul serveur sert toutes les sessions, il écrit dans le dossier de chaque page) et le nom des pages porte celui du
+  dossier de travail (`revue-pieds-marais.html` dans `HoMM-marais`, rien de plus dans `HoMM`). Choisis : Flèche magique 14 (flèche violette), Malédiction 54
   (crâne dans une fumée verte), Soif de sang 37 (lame sanglante), Hâte 20 (bottes ailées), Lenteur 5 (escargot),
   Soins 21 (mains et croix de lumière), Bouclier contre les tirs 13, Faiblesse 6 (épée brisée), Aveuglement 39 (yeux
   bandés), Téléportation 13 (portail bleu), Dissipation 3 (éclat blanc), Résurrection 22 (ankh d'or à l'aube), Pluie

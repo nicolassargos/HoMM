@@ -4,11 +4,12 @@
                                                      propose les pieds des images qui n'en ont pas encore (--tout : toutes
                                                      les images non vérifiées ; des noms : ces images-là, vérifiées ou non,
                                                      par exemple après avoir changé l'image) et les écrit dans godot/art/pieds.json
-    python -I tools/art/pieds.py page [préfixes…]    écrit art-candidats/en-cours/revue-pieds.html (la page de revue ; des
-                                                     préfixes : ces images-là seulement, par exemple heroes/)
+    python -I tools/art/pieds.py page [préfixes…]    écrit art-candidats/en-cours/revue-pieds[-<dossier>].html (la page
+                                                     de revue ; « -marais » dans HoMM-marais ; des préfixes : ces
+                                                     images-là seulement, par exemple heroes/)
     python -I tools/art/revue.py serveur             (à lancer à côté) écrit les réponses de la page sur le disque
-    python -I tools/art/pieds.py appliquer [fichier] reporte les réponses (en-cours/revue-pieds.json, sinon le dernier
-                                                     revue-pieds*.json des Téléchargements) dans godot/art/pieds.json
+    python -I tools/art/pieds.py appliquer [fichier] reporte les réponses (en-cours/revue-pieds[-<dossier>].json, sinon le
+                                                     dernier revue-pieds[-<dossier>]*.json des Téléchargements) dans godot/art/pieds.json
 
 Un pied est un segment, du pixel le plus à gauche au pixel le plus à droite de la base d'un objet (en pixels de l'image).
 Le jeu suit le bas du dessin entre ces deux points, ferme la forme par un arc au-dessus, puis l'entoure de bagues de plus en
@@ -35,8 +36,10 @@ RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 ART = os.path.join(RACINE, "godot", "art")
 FICHIER = os.path.join(ART, "pieds.json")
 EN_COURS = os.path.join(RACINE, "art-candidats", "en-cours")
-PAGE = "revue-pieds"
-PORT = 8765  # celui de « revue.py serveur »
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from revue import PORT, SUFFIXE  # noqa: E402  (le port de « revue.py serveur », le dossier de travail)
+
+PAGE = "revue-pieds" + SUFFIXE
 
 STEP, BRIDGE = 3, 10      # remontée qui arrête le pied ; creux enjambé
 NECK, SEED = 3, 20        # amincissement qui sépare deux objets ; taille d'un bout qui compte
@@ -227,7 +230,8 @@ def page(prefixes=()):
                       "empreinte": zlib.crc32(octets),
                       "etalement": d.get("etalement", ETALEMENT),
                       "opacite": d.get("opacite", OPACITE), "couleur": d.get("couleur", COULEUR)})
-    html = PAGE_HTML.replace("%ITEMS%", json.dumps(items)).replace("%PAGE%", PAGE).replace("%PORT%", str(PORT))
+    html = PAGE_HTML.replace("%ITEMS%", json.dumps(items)).replace("%PAGE%", PAGE).replace("%PORT%", str(PORT)) \
+        .replace("%DOSSIER%", json.dumps(EN_COURS))
     os.makedirs(EN_COURS, exist_ok=True)
     sortie = os.path.join(EN_COURS, PAGE + ".html")
     with open(sortie, "w", encoding="utf-8") as f:
@@ -293,7 +297,7 @@ function it(n){const d=ITEMS.find(i=>i.nom===n);
  const s=etat[n]||(etat[n]={pieds:JSON.parse(JSON.stringify(d.pieds)),verifie:d.verifie,commentaire:'',empreinte:d.empreinte});
  if(s.etalement==null)s.etalement=d.etalement||ETALEMENT;if(s.opacite==null)s.opacite=d.opacite||1;if(!s.couleur)s.couleur=d.couleur||'#000000';return s}
 function sauver(){try{localStorage.setItem(CLE,JSON.stringify(etat))}catch(e){}clearTimeout(sauver.t);sauver.t=setTimeout(envoyer,400);compter()}
-function reponses(){const items={};for(const i of ITEMS)items[i.nom]=it(i.nom);return{page:CLE,items}}
+function reponses(){const items={};for(const i of ITEMS)items[i.nom]=it(i.nom);return{page:CLE,dossier:%DOSSIER%,items}}
 async function envoyer(){const d=document.getElementById('disque');try{const r=await fetch('http://127.0.0.1:%PORT%/reponses',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(reponses())});
  if(!r.ok)throw 0;d.textContent='✓ enregistré sur le disque';d.style.color='var(--vert)'}catch(e){d.textContent='non enregistré sur le disque : utilise Télécharger';d.style.color='var(--rouge)'}}
 function compter(){const n=ITEMS.filter(i=>it(i.nom).verifie).length;document.querySelector('.compte').textContent=n+' / '+ITEMS.length+' bonnes';

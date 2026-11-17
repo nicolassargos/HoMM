@@ -77,6 +77,12 @@ pirates).
   du Roi (`crystal-mirror`, `ancestral-hold`). **À faire (session règles)** : le **Gyrocoptère**, devenu
   un nain aux ailes de cuir, de bois et de fer (idée de l'utilisateur), n'est plus une machine : sa capacité « façonné »
   et peut-être son nom.
+- **Château, la refonte** (choix de l'utilisateur, 2026-11-17) : le **Cavalier descend au niveau 4** (un cavalier plus
+  léger, plus petit ; charge), le **Chevalier à pied** prend le niveau 6 (armure de plaques, grand bouclier : résiste
+  aux tirs et protège les tireurs à côté de lui), l'Épéiste disparaît ; le Griffon garde ses règles. ✅ Les données
+  (branche `chateau-refonte`). **À faire (images, PixelLab)** : le Griffon, le Cavalier (plus petit), le Chevalier
+  (image de la carte à faire ; celle de combat date des débuts), l'Archer ; dans le style caricaturé des Nains, chacun
+  le sien. Le Moine reste tel quel pour l'instant.
 - **Noms** : l'Hydre améliorée ; les habitations de l'Enfer, si l'utilisateur le souhaite.
 - **Règles (session règles)** : le **Démon se téléporte** (toute case libre à sa portée, sans voler ; l'animation est
   prête) et sa cible **brûle** quelques tours (à comparer d'abord avec l'aura du Moloch) ; l'**attaque du Géant**
@@ -90,8 +96,7 @@ pirates).
 - **Équilibrage** : le **Colosse d'os plus faible que l'Ange** ; la Forêt souvent la plus forte (régénération) ; le
   Mage un peu faible en duel ; la horde barbare devrait dominer les premières semaines (son moral la freine) ; les
   gardiens du Donjon ralentissent certaines petites cartes ; vus par `Duels_a_prix_egal`, à revoir avec l'utilisateur :
-  l'Archer perd contre tous les niveaux 2, le Griffon bat largement les niveaux 3, le Vampire écrase le Moine, le
-  Cavalier écrase les niveaux 6 ; le Squelette peut-être trop fort face aux paysans.
+  l'Archer perd contre tous les niveaux 2, le Griffon bat largement les niveaux 3, le Vampire écrase le Moine ; le Squelette peut-être trop fort face aux paysans.
 - **Animations** (plus tard) : le Ver des profondeurs (glisser vers sa cible, les fissures, peut-être avaler).
 - L'IA apprend chaque nouvelle faction.
 
@@ -171,7 +176,7 @@ la zone ; les créatures du Donjon en gardiens.
 ✅ Fait : combat à ×2, effets dessinés par le jeu, animations des sorts, les options du combat, choisir le côté de
 l'attaque, les champs de l'herbe, du désert et du marais (2026-11-16), les obstacles plutôt au milieu du champ, des
 nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles (2026-11-17).
-**Reste** : l'**Épéiste et le Cavalier** à refaire (plus petits) ; peut-être une animation « touché » par
+**Reste** : peut-être une animation « touché » par
 créature.
 
 ### Les héros en images
@@ -227,8 +232,8 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   début d'un combat (≈ 50 % à deux fois la limite), ou pendant si elle grossit (Fantômes). Les garnisons n'ont pas de
   limite.
 - **Château** : départ 30 paysans, 15 archers, 4 griffons ; prix 3 or par « paysan équivalent » (Archer 18, Griffon
-  40, Épéiste 80, Moine 150, Cavalier 300, Ange 4900 et 1 cristal) ; croissance 30, 18, 14, 8, 6, 4, 2 ; paysans pour
-  vaincre une unité : Archer 8, Griffon 13, Épéiste 26, Moine 58, Cavalier 112, Ange 1560 (`UnitCurveTests`).
+  40, Cavalier 80, Moine 150, Chevalier 300, Ange 4900 et 1 cristal) ; croissance 30, 18, 14, 8, 6, 4, 2 ; paysans
+  pour vaincre une unité : Archer 8, Griffon 14, Cavalier 25, Moine 61, Chevalier 93, Ange 1597 (`UnitCurveTests`).
 - **Économie** : villes 300 / 600 / 1200 or par jour, mines d'or 500 (doublés le 2026-11-11), autres mines 2 bois ou
   minerai, 1 d'une ressource rare ; héros de taverne 2500 or (8 au plus).
 - **Combat** : dégâts tirés au sort puis règle attaque / défense de Heroes 3 ; tir à moitié au-delà de 6 cases ou

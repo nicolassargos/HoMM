@@ -934,6 +934,20 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
 - **Les factions : conception et chiffres** (déplacés de `PLAN.md` le 2026-11-15, tels quels : chaque faction telle
   qu'elle a été conçue, ses créatures, ses chiffres réglés et ses mesures).
 
+#### Le Château, la refonte des niveaux 4 et 6 (2026-11-17, branche `chateau-refonte`)
+Choix de l'utilisateur : le Griffon, l'Épéiste, le Cavalier et l'Archer à revoir ; le Moine reste. Le **Cavalier
+descend au niveau 4** à la place de l'Épéiste (un cavalier plus léger : attaque 10, défense 9, 4 à 6 de dégâts, 36 PV,
+vitesse 7, charge, deux cases ; 80 or, croissance 8) ; le **Chevalier à pied** prend le niveau 6 (attaque 11,
+défense 17, 12 à 16 de dégâts, 150 PV, vitesse 4 ; résiste aux tirs et fait **mur de boucliers** pour les tireurs
+amis à côté de lui, comme le Porte-bouclier nain ; 300 or, croissance 4). Habitations : **Écuries** (niveau 4, à la
+place de la Caserne) et **Commanderie** (niveau 6, à la place du Terrain d'entraînement), mêmes prix et mêmes places.
+Les anciennes sauvegardes retrouvent `epeiste` → `cavalier`, `caserne` → `ecuries`, `terrain-entrainement` →
+`commanderie`. L'armée qui mesure les gardiens (`CreatureStrength`) prend les Cavaliers à la place des Épéistes.
+Réglage par `Duels_a_prix_egal` : avec les chiffres de l'Épéiste puis de l'ancien Cavalier, ils gagnaient 99 et 97 %
+de leurs duels ; très sensible (Cavalier : 41 % à 35 PV, 56 % à 36, 71 % à 37) ; gardés : Cavalier 56 %,
+Chevalier 62 % (les meilleurs des autres : Tréants 64 %, Molochs 57 %, Cerfs 56 %). Courbe des paysans : Archer 8,
+Griffon 14, Cavalier 25, Moine 61, Chevalier 93, Ange 1597.
+
 #### Les Nains
 Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Heroes 3 ni Heroes 5 (choix de l'utilisateur).
 - **Philosophie : les halls de la montagne.** Des artisans têtus qui gravent des runes et bâtissent des machines.

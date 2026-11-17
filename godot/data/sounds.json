@@ -22,7 +22,7 @@
     "archer-shot-impact": ["combat/fleche-impact.mp3"],
     "griffon-attack": ["combat/griffon-attaque.mp3"],
     "griffon-death": ["combat/griffon-mort.mp3"],
-    "epeiste-impact": ["combat/coup-epee.mp3"],
+    "chevalier-impact": ["combat/coup-epee.mp3"],
     "cavalier-attack": ["combat/cavalier-galop.ogg"],
     "cavalier-impact": ["combat/coup-epee.mp3"],
     "cavalier-death": ["combat/cavalier-mort.mp3"],

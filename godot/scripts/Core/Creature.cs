@@ -85,6 +85,7 @@ public sealed class CreatureCatalog
     {
         ["lance-flammes"] = "sapeur", // 2026-11-16, choix de l'utilisateur
         ["machine-guerre"] = "roi-de-cristal",
+        ["epeiste"] = "cavalier", // 2026-11-17 : le Cavalier descend au niveau 4, le Chevalier prend le niveau 6
     };
 
     public static CreatureCatalog FromJson(string json) =>

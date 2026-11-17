@@ -28,7 +28,7 @@ public static class Ability
     /// <summary>Souffle : l'attaque touche aussi la troupe juste derrière la cible, amie ou ennemie (Dragon).</summary>
     public const string Breath = "breath";
 
-    /// <summary>Les tirs contre elle font moitié moins de dégâts (bouclier de l'Épéiste, os du Squelette).</summary>
+    /// <summary>Les tirs contre elle font moitié moins de dégâts (bouclier du Chevalier, os du Squelette).</summary>
     public const string RangedResistance = "ranged-resistance";
 
     /// <summary>Charge : +5 % de dégâts par case parcourue avant d'attaquer (Cavalier).</summary>

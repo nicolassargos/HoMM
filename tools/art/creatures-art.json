@@ -748,7 +748,7 @@
       },
       "choix": {
         "death": "death-1",
-        "hit": "hit-8"
+        "hit": "hit-10"
       }
     },
     "gobelin": {
@@ -1774,7 +1774,7 @@
         "attack": "mm-proche-6",
         "carte": "p1-7",
         "death": "death-1",
-        "hit": "hit-9"
+        "hit": "hit-14"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png",
       "mouvements": {
@@ -1865,7 +1865,7 @@
         "attack": "crache-2-r",
         "carte": "p1-5",
         "death": "death-1",
-        "hit": "hit-7"
+        "hit": "hit-8"
       },
       "grande": "art-candidats/references/derives/demon-grand.png",
       "mouvements": {

@@ -2689,7 +2689,9 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   d'abord sur 8 créatures, revu par l'utilisateur (gardés : le Paysan, le Roi de cristal, puis le Fantôme, le Troll et le
   Limon refaits « vers la gauche » ; l'Archer, le Loup, le Troll et le Griffon seront refaits entièrement), puis les 48
   autres (l'Ogre, l'Oiseau-tonnerre, le Djinn et l'Arbalétrier refaits pour des étincelles) ; environ 1,4 $ en tout.
-  Méthode dans `tools/art/METHODE.md` ; à revoir avec l'utilisateur (`art-candidats/en-cours/coups.html`).
+  Méthode dans `tools/art/METHODE.md`. Revus avec l'utilisateur en six tours (2026-11-17) : gardés ou refaits avec ses
+  remarques (plus de mouvement, en arrière, sans effets ; effets retirés à la main sur le Zombie, l'Oiseau-tonnerre,
+  l'Archer elfe, le Tourmenteur, le Tyran) ; le Dragon, l'Hydre et le Démon par une image clé penchée en arrière.
   ✅ Les options du combat (bouton Options, touche O) : la vitesse des projectiles (lente, normale, rapide), gardée
   d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - ✅ **Des cases de 32 pixels d'art** (au lieu de 24 ; décision de l'utilisateur, 2026-11-08) : cases de 64 pixels à

@@ -316,6 +316,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture ». Sans « to the
   left », le Fantôme tend le bras vers l'avant (l'utilisateur : on dirait qu'il attaque). Une créature de face (le
   Troll) bouge à peine. Une étincelle reste parfois sur une image (Djinn, Arbalétrier) quelle que soit la graine.
+  Les grandes créatures (Dragon, Hydre, Démon) ont résisté à cinq revues : elles bougent, mais pas comme sous un coup
+  (le Dragon penche même en avant quoi qu'on écrive). **Ce qui a marché : une image clé.** La pose de départ tournée de
+  8 à 12° en arrière autour de ses pieds (l'idée de l'utilisateur : « que la créature bascule »), donnée en dernière image
+  (`last_frame`) ; PixelLab anime de l'une à l'autre en 4 images (« rocks back from a heavy blow: the whole body tilts
+  backward as one, pivoting on its feet… ending in the tilted pose »), puis la feuille joue l'aller, le retour et la pose
+  de départ (8 images). Des morceaux détachés (une tête de trop pour l'Hydre) : les retirer ; un éclair blanc : l'effacer.
+  Le jeu ajoute un recul de 9 pixels de l'écran (`Recoil`) : la page de revue le montre aussi. Retirer des effets à la
+  main : par rectangles, n'effacer que les pixels clairs (ou jaune vif sur des cheveux blonds) ; sur le corps, leur donner
+  la couleur du corps voisine plutôt que de faire un trou ; ou reprendre une image voisine.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).

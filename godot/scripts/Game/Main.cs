@@ -303,6 +303,11 @@ public partial class Main : Node2D
                     .All(n => !map.InBounds(n) || map.GetTerrain(n) == TerrainType.Sand),
                 _ => null,
             };
+            // « --center=mountains » : l'endroit le plus montagneux (le plus de cases de montagne autour)
+            if (kind == "mountains")
+                _camera.CenterOn(Enumerable.Range(0, map.Width * map.Height).Select(i => new Cell(i % map.Width, i / map.Width))
+                    .MaxBy(c => Enumerable.Range(-6, 13).Sum(dx => Enumerable.Range(-4, 9).Count(dy =>
+                        map.InBounds(c.Offset(dx, dy)) && map.GetTerrain(c.Offset(dx, dy)) == TerrainType.Mountain))));
             if (wanted != null && Enumerable.Range(0, map.Width * map.Height).Select(i => new Cell(i % map.Width, i / map.Width))
                     .Where(wanted).Skip(rank - 1).Take(1).ToList() is [var found])
                 _camera.CenterOn(found);
@@ -576,7 +581,8 @@ public partial class Main : Node2D
         Godot.FileAccess.GetFileAsString("res://data/spells.json"),
         Godot.FileAccess.GetFileAsString("res://data/heroes.json"),
         Godot.FileAccess.GetFileAsString("res://data/classes.json"),
-        Godot.FileAccess.GetFileAsString("res://data/skills.json"));
+        Godot.FileAccess.GetFileAsString("res://data/skills.json"),
+        Godot.FileAccess.GetFileAsString("res://data/mountains.json"));
 
     /// <summary>Le joueur regarde la carte (pas de fenêtre ni d'écran de ville ouverts).</summary>
     /// <summary>Passe au héros suivant et centre la vue sur lui (touche H ou bouton).</summary>

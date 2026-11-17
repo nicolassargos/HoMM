@@ -91,10 +91,10 @@ uniform float road_stones_inside = 0.08;
 // des cailloux semés partout sur le sol, loin des routes (la part des carrés de ground_stone_cell pixels d'art qui en ont)
 uniform float ground_stones = 0.08;
 uniform float ground_stone_cell = 11.0;
-// Le pied des montagnes (à l'essai, 0 : rien) : jusqu'à foothill_reach cases d'une montagne, l'herbe sèche (foothill),
+// Le pied des montagnes (0 : rien ; 0,7 choisi le 2026-11-17) : jusqu'à foothill_reach cases d'une montagne, l'herbe sèche (foothill),
 // des plaques de terre et de gravier (foothill_soil : leur part au pied), des éboulis (foothill_scree : la part des
 // carrés de 6 pixels d'art qui ont une pierre, au pied) ; le bord ondule de foothill_wave cases
-uniform float foothill = 0.0;
+uniform float foothill = 0.7;
 uniform float foothill_reach = 1.2;
 uniform float foothill_soil = 0.5;
 uniform float foothill_scree = 0.35;

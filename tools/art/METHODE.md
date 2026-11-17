@@ -64,8 +64,8 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 ## Carte (Retro Diffusion)
 - Images de 24 px (cases de 48 px à ×2, puis ×3 et ×4 en 1920 × 1080). `tools/art/generer.py` estime le prix
   (gratuit), génère des candidats et installe le candidat choisi ; `tools/art/assets.json` décrit les images à produire.
-- Forêts et montagnes : des arbres et des sommets seuls (`art/decor/`) semés par le jeu (`DecorLayer`) ; écarté : une
-  image par case (trous réguliers).
+- Forêts : des arbres seuls (`art/decor/`) semés par le jeu (`DecorLayer`) ; écarté : une image par case (trous
+  réguliers). Montagnes : des massifs (voir « Montagnes de la carte »).
 - Terrains : deux images par terrain (`grass-2.png`…), les bords sont calculés par le shader (pas d'images de bords).
 - Routes (2026-11-15) : une case de 32 px par sorte (`terrain/road.png` terre, `road-gravel.png`, `road-cobbles.png`),
   Retro Diffusion `rd_tile__single_tile`, 4 candidats chacune (0,24 $) ; **les juger en jeu** (l'utilisateur ne choisit
@@ -345,6 +345,25 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   socle dans le terrain (transparent peu à peu selon la distance à la roche, 7 pixels) : l'utilisateur voulait garder un
   peu de sol, pas le couper net. Compte comme roche un pixel gris ou brun assez clair (les contours sombres du socle
   doivent fondre aussi, sinon le bord reste net).
+
+## Montagnes de la carte (massifs, PixelLab, 2026-11-17)
+- Des **massifs** posés comme les montagnes de Heroes 3 (voir `HISTORIQUE.md`). **PixelLab « Pro »** fait bien mieux
+  que Retro Diffusion (des îlots isolés) : `pixellab.py pro <dossier> 160 88 "<description>" <graine> <modèle>` donne 4
+  grands massifs (0,08 $), `80 44` ou `96 56` en donne 9 à 16 petits, `44 44` 25 sommets d'une case.
+- **Le modèle de style** : une de nos montagnes ; écrire « Same colours as the reference mountains, with very thin
+  soft outlines in a dark grey close to the rock colour, no black outlines », sinon PixelLab met un contour noir épais.
+- **La forme**, choix de l'utilisateur : « a low natural irregular mountain, much wider than tall, a broad heavy base
+  rising gently to a few low uneven rocky summits, some rounded and some pointed », et « no flat tops, no terraces, no
+  stacked layers, no box shapes ». Sans cela : des pics pointus (« trop pointus ») ou des gradins (« trop carrés »). Une
+  chaîne en biais : « a long low mountain ridge running diagonally from the lower left up to the upper right ».
+- **Les petits sont coupés par le bord** de l'image (un bas tout droit, laid au bord d'une chaîne) : ajouter « one object
+  alone in the middle of the image with empty transparent margins on all sides, not touching the image edges », sur une
+  toile plus grande (96 × 56, 88 × 68). Ils sortent alors plus sombres : `luminosite.py regler … 89`.
+- **Le trait** reste trop visible (gris bleu sombre, pas noir) : `adoucir.py entree sortie 0.85 90 1 0.4` (le dernier
+  nombre adoucit aussi les traits sombres de l'intérieur ; plus fort, la roche devient terne).
+- Installer : `recadrer.py` (l'image coupée à son dessin), `godot/art/decor/massif-*.png` (sommets d'une case : `peak*.png`), puis
+  `python -I tools/art/empreintes.py` écrit les cases bloquées de chaque image dans `godot/data/mountains.json` (à
+  retoucher à la main si besoin) et `pieds.py proposer` leurs pieds. Voir en jeu : `--center=mountains`.
 
 ## Villes de la carte (5 × 4 cases, 160 × 128, 2026-11-08)
 - Assemblées de pièces (`tools/art/villes.py`) comme les mines : enceinte sur **toute la largeur** (tours aux coins, mur du

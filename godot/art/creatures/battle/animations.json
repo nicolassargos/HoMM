@@ -1,7 +1,7 @@
 {
   "*": {"idlePauseMin": 3, "idlePauseMax": 6},
   "colosse-os": {"idle": 7, "move": 7, "attack": 7},
-  "archer": {"idle": 7, "idlePauseMin": 10, "idlePauseMax": 20, "projectile": "fleche", "launchFrame": 5, "launchPoint": [84, 33]},
+  "archer": {"idle": 7, "idlePauseMin": 10, "idlePauseMax": 20, "projectile": "fleche", "launchFrame": 5, "launchPoint": [83, 42]},
   "zombie": {"move": 8, "moveFrames": 16, "stepTime": 0.45},
   "troll": {"move": 7, "idle": 6},
   "vampire": {"stepTime": 0.25, "impact": "morsure"},
@@ -12,7 +12,7 @@
   "orc": {"projectile": "hache", "launchFrame": 3, "launchPoint": [129, 38]},
   "chevalier": {"impact": "choc"},
   "squelette": {"impact": "entaille"},
-  "nomades": {"move": 16, "moveFrames": 12, "stepTime": 0.4},
+  "nomades": {"move": 8, "moveFrames": 11, "stepTime": 0.4},
   "oiseau-tonnerre": {"move": 14, "stepTime": 0.57, "transform": 12, "transformFrames": 5, "impact": "foudre"},
   "ange": {"move": 10, "stepTime": 0.4},
   "farfadet": {"move": 16, "stepTime": 0.25},
@@ -39,5 +39,6 @@
   "diablotin": {"stepTime": 0.3},
   "arbaletrier": {"projectile": "fleche", "launchFrame": 4, "launchPoint": [79, 40]},
   "gyrocoptere": {"meleeProjectile": "bombe", "launchFrame": 5, "launchPoint": [141, 61], "stepTime": 0.25},
-  "chevaucheur-chevre": {"move": 14, "stepTime": 0.45}
+  "chevaucheur-chevre": {"move": 14, "stepTime": 0.45},
+  "cavalier": {"move": 8, "moveFrames": 9, "stepTime": 0.4}
 }

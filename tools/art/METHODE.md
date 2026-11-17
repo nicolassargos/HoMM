@@ -279,6 +279,22 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     paliers de couleur de la Boule de feu, boule qui bouillonne, fumée, braises) : un jet fait de couches unies ne
     ressemblait pas à du feu.
   - Une créature qui vole trop vite (le Diablotin) : `stepTime` (0,3 s par case pour un petit volant).
+- **Leçons du Château** (2026-11-17) :
+  - **Un cheval qui galope** : PixelLab l'anime souvent comme un chien ou un cerf (il bondit). Ce qui marche : un essai
+    de **16 images** (`--images=16`) avec le texte des Nomades (« the horse gallops forward to the right, its four legs
+    in a clear fast gallop, the rider leaning forward »), puis garder **le cycle exact** : comparer la forme des jambes
+    d'une image à l'autre (le bas de chaque image, pixels opaques) ; l'image qui ressemble presque à l'identique à une
+    image plus haut (écart d'environ 40, contre plus de 1000 ailleurs) ferme le cycle (le Cavalier : images 4 à 12, soit
+    9). Une image en trop au bouclage se voit (deux poses pareilles de suite). **8 images/s** pour 0,4 s par case : à 16,
+    les jambes allaient trop vite pour la vitesse du déplacement.
+  - **Une image nette** : une créature réduite depuis un grand cadre est floue ; la garder à sa taille de génération
+    (la « hauteur » de la fiche égale à la hauteur recadrée de la grande image). Pour la faire plus grande, redessiner
+    le candidat choisi dans un plus grand cadre (lui-même en référence), jamais l'agrandir.
+  - **Petites images de la carte** : avec le Moine ou le Cerf comme modèle de style, le Chevalier sortait trop
+    contrasté, illisible (« crunchy ») ; avec la petite image de l'Épéiste (gardée :
+    `art-candidats/references/style-carte-epeiste.png`), un dessin plus doux et lisible.
+  - Pour rendre une créature moins impressionnante (le niveau 4) : un équipement modeste, un cheval ordinaire, un
+    visage jeune, sans moustaches.
 - **Leçons des Nains** (2026-11-16) :
   - **Pas de clichés** (choix de l'utilisateur) : chaque créature a sa silhouette, son âge, son visage, des traits
     exagérés (« a grotesque caricature in the style of a fantasy board game miniature, exaggerated features ») ; une

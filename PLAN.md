@@ -79,10 +79,10 @@ pirates).
   et peut-être son nom.
 - **Château, la refonte** (choix de l'utilisateur, 2026-11-17) : le **Cavalier descend au niveau 4** (un cavalier plus
   léger, plus petit ; charge), le **Chevalier à pied** prend le niveau 6 (armure de plaques, grand bouclier : résiste
-  aux tirs et protège les tireurs à côté de lui), l'Épéiste disparaît ; le Griffon garde ses règles. ✅ Les données
-  (branche `chateau-refonte`). **À faire (images, PixelLab)** : le Griffon, le Cavalier (plus petit), le Chevalier
-  (image de la carte à faire ; celle de combat date des débuts), l'Archer ; dans le style caricaturé des Nains, chacun
-  le sien. Le Moine reste tel quel pour l'instant.
+  aux tirs et protège les tireurs à côté de lui), l'Épéiste disparaît ; le Griffon garde ses règles. ✅ Les données et
+  les images (branche `chateau-refonte`) : l'Archer en braconnier osseux, un Griffon de guerre maigre et plus petit, le
+  Cavalier en jeune sergent à cheval, la taille des Nomades ; le Chevalier garde son image de combat. Le Moine reste
+  tel quel pour l'instant.
 - **Noms** : l'Hydre améliorée ; les habitations de l'Enfer, si l'utilisateur le souhaite.
 - **Règles (session règles)** : le **Démon se téléporte** (toute case libre à sa portée, sans voler ; l'animation est
   prête) et sa cible **brûle** quelques tours (à comparer d'abord avec l'aura du Moloch) ; l'**attaque du Géant**

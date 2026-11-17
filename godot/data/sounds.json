@@ -11,6 +11,24 @@
     ],
     "battle": [
       "musique/combat-poursuite.wav"
+    ],
+    "town-chateau": [
+      "musique/ville-chateau.mp3"
+    ],
+    "town-barbares": [
+      "musique/ville-barbares.mp3"
+    ],
+    "town-tour": [
+      "musique/ville-tour.ogg"
+    ],
+    "town-donjon": [
+      "musique/ville-donjon.ogg"
+    ],
+    "town-enfer": [
+      "musique/ville-enfer.ogg"
+    ],
+    "town-morts-vivants": [
+      "musique/ville-morts-vivants.ogg"
     ]
   },
   "sounds": {

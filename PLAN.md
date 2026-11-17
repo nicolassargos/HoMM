@@ -220,8 +220,14 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   le sien (`Audio.PlayCreature`, `spell-<id>`) ; l'Ange gifle (comme son animation), sa première mort essayée sert à la
   Résurrection. Licences : `godot/audio/LICENCES.md` ; 3. le reste partie par partie, comme les images : ✅ les sons
   de combat de **toutes les créatures** (2026-11-17, branche `sons-factions`, 113 sons ElevenLabs revus un à un sur la
-  page de `tools/audio/sons.py` ; le Paysan garde les sons communs). **Reste** : les autres sorts, la carte,
-  l'interface, les musiques des villes et de la carte, puis la musique chez Stable Audio.
+  page de `tools/audio/sons.py` ; le Paysan garde les sons communs) ; ✅ les **musiques des villes** (2026-11-17,
+  branche `musiques-villes`, bibliothèques libres, `tools/audio/musiques.py` : page d'écoute, étoiles et avis gardés
+  dans `tools/audio/musiques-villes.json`) : six choisies ; la **Forêt** et les **Nains** se choisiront avec l'image de
+  leur ville (finalistes à 4 étoiles : Alandriel's Theme, A Midnight's Dream, Magical Forest, Beautiful Forest ;
+  Forging Flames, Varyag War Drum, Five Armies, Heroic Age), en attendant la musique d'attente. Idées de
+  l'utilisateur : « Death Is Just Another Path » pour l'écran de défaite ; « King's Feast » et « The Cavern of
+  Wonders » lui plaisent aussi (taverne, carte ?). **Reste** : les autres sorts, la carte, l'interface, la musique de
+  la carte, puis la musique chez Stable Audio.
 
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à

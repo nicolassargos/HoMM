@@ -1872,6 +1872,13 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   du combat changent : deux tests revus (le prix du sang du Démoniste compté avec le vol du Diablotin ; l'adversaire
   sans ville n'attaque qu'avec au plus 10 % de pertes prévues : 200 paysans contre 40 au lieu de 60, qui était à la
   limite).
+- ✅ Finitions des champs (2026-11-17, branche `champ-finitions`). **Nuages** dans le ciel des paysages ouverts : 1 à 3,
+  plats dessous, des bosses bombées dessus (gardées dans le nuage : une bosse coupée au bout faisait un mur) ; gris sous
+  le ciel couvert du marais (drapeau `Overcast` : le haut blanc y brillait trop, remarque de l'utilisateur). **Rochers**
+  sur les collines proches (pas sur les dunes) : de petits dômes gris éclairés en haut à droite. Nuages et rochers ont
+  leur propre tirage : les collines d'un combat restent les mêmes. **Pas de flaque sous un obstacle** du marais : la
+  place est tirée à nouveau (12 essais), sinon pas de flaque. « De vrais obstacles de combat » : déjà faits avec les
+  trois champs (herbe 7 images, désert 8, marais 11 ; la forêt et la montagne prennent ceux de l'herbe).
 - ✅ Champ de bataille du désert (2026-11-11, branche `champ-sable`). Une palette par terrain pour le paysage
   (`ScenePalette` : ciel, chaînes, pré, brumes, ombre ; `FlatTops` pour des mesas, `Dunes` pour des dunes une à une, face
   raide à l'ombre au bord en biais et incurvé), `--battle-terrain=sand`. Écartés : les cactus (un désert américain), les

@@ -2733,6 +2733,28 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
 - Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,
   impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). ✅ Les animations des sorts sur le champ
   (étape 9, `SpellEffects`). Reste : peut-être une animation « touché » par créature.
+  ✅ **Une animation de mort par créature** (2026-11-17, branche `animations-mort`, demandée par l'utilisateur : un seul
+  essai chacune, pour commencer à peu de frais ; 1,0 $ les 59 essais). Dans le jeu (`BattleFieldView.Kill`) : une troupe
+  sans créatures joue sa feuille `<id>-death.png` une fois, reste couchée 0,7 s, puis s'efface en 0,6 s, sans retenir le
+  combat (le nombre et les sorts ne s'affichent plus) ; une troupe ramenée pendant sa mort se relève ; sans feuille,
+  elle disparaît comme avant. `--effect-preview=mort` (ou `mort:0.5`, figé) : toutes les troupes meurent en boucle.
+  Images : l'état `death` de `creature.py` (cadre de la largeur de l'attaque, hauteur de l'attente), une consigne par
+  gabarit et quelques-unes à part (os, pierre, magma, cristal, arbre ; `tools/art/METHODE.md`). Refaits : le Golem de
+  pierre (ne s'effondrait pas) et la Gargouille (taches blanches). À revoir avec l'utilisateur
+  (`art-candidats/en-cours/morts.html`).
+  ✅ **Un coup reçu par créature** (2026-11-17, même branche, demandé par l'utilisateur avant de juger les morts) : une
+  troupe touchée qui survit (coup, tir, sort, poison, brûlure, foudre, nuage) et qui attendait joue sa feuille
+  `<id>-hit.png` une fois (6 images à 12 images/s), puis revient à l'attente (`BattleFieldView.Hurt`) ; l'éclair blanc
+  et l'effet du coup s'y ajoutent. `--effect-preview=coup` : toutes les troupes le jouent toutes les 1,5 s. Un essai
+  d'abord sur 8 créatures, revu par l'utilisateur (gardés : le Paysan, le Roi de cristal, puis le Fantôme, le Troll et le
+  Limon refaits « vers la gauche » ; l'Archer, le Loup, le Troll et le Griffon seront refaits entièrement), puis les 48
+  autres (l'Ogre, l'Oiseau-tonnerre, le Djinn et l'Arbalétrier refaits pour des étincelles) ; environ 1,4 $ en tout.
+  Méthode dans `tools/art/METHODE.md`. Revus avec l'utilisateur en six tours (2026-11-17) : gardés ou refaits avec ses
+  remarques (plus de mouvement, en arrière, sans effets ; effets retirés à la main sur le Zombie, l'Oiseau-tonnerre,
+  l'Archer elfe, le Tourmenteur, le Tyran) ; le Dragon, l'Hydre et le Démon, après des images clés refusées (corps
+  raide, puis écrasé), par le second modèle de PixelLab (`minimax`) : le Démon surpris, puis content du coup.
+  À la fusion de la refonte du Château, la mort et le coup reçu de l'Archer et du Griffon (faits d'après leurs anciennes
+  images) ont été retirés : 54 créatures ont les deux ; l'Archer, le Griffon et le Cavalier restent à faire.
   ✅ Les options du combat (bouton Options, touche O) : la vitesse des projectiles (lente, normale, rapide), gardée
   d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - ✅ **Des cases de 32 pixels d'art** (au lieu de 24 ; décision de l'utilisateur, 2026-11-08) : cases de 64 pixels à

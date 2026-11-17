@@ -279,6 +279,22 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     paliers de couleur de la Boule de feu, boule qui bouillonne, fumée, braises) : un jet fait de couches unies ne
     ressemblait pas à du feu.
   - Une créature qui vole trop vite (le Diablotin) : `stepTime` (0,3 s par case pour un petit volant).
+- **Leçons du Château** (2026-11-17) :
+  - **Un cheval qui galope** : PixelLab l'anime souvent comme un chien ou un cerf (il bondit). Ce qui marche : un essai
+    de **16 images** (`--images=16`) avec le texte des Nomades (« the horse gallops forward to the right, its four legs
+    in a clear fast gallop, the rider leaning forward »), puis garder **le cycle exact** : comparer la forme des jambes
+    d'une image à l'autre (le bas de chaque image, pixels opaques) ; l'image qui ressemble presque à l'identique à une
+    image plus haut (écart d'environ 40, contre plus de 1000 ailleurs) ferme le cycle (le Cavalier : images 4 à 12, soit
+    9). Une image en trop au bouclage se voit (deux poses pareilles de suite). **8 images/s** pour 0,4 s par case : à 16,
+    les jambes allaient trop vite pour la vitesse du déplacement.
+  - **Une image nette** : une créature réduite depuis un grand cadre est floue ; la garder à sa taille de génération
+    (la « hauteur » de la fiche égale à la hauteur recadrée de la grande image). Pour la faire plus grande, redessiner
+    le candidat choisi dans un plus grand cadre (lui-même en référence), jamais l'agrandir.
+  - **Petites images de la carte** : avec le Moine ou le Cerf comme modèle de style, le Chevalier sortait trop
+    contrasté, illisible (« crunchy ») ; avec la petite image de l'Épéiste (gardée :
+    `art-candidats/references/style-carte-epeiste.png`), un dessin plus doux et lisible.
+  - Pour rendre une créature moins impressionnante (le niveau 4) : un équipement modeste, un cheval ordinaire, un
+    visage jeune, sans moustaches.
 - **Leçons des Nains** (2026-11-16) :
   - **Pas de clichés** (choix de l'utilisateur) : chaque créature a sa silhouette, son âge, son visage, des traits
     exagérés (« a grotesque caricature in the style of a fantasy board game miniature, exaggerated features ») ; une
@@ -410,23 +426,32 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   doivent fondre aussi, sinon le bord reste net).
 
 ## Montagnes de la carte (massifs, PixelLab, 2026-11-17)
-- Des **massifs** posés comme les montagnes de Heroes 3 (voir `HISTORIQUE.md`). **PixelLab « Pro »** fait bien mieux
-  que Retro Diffusion (des îlots isolés) : `pixellab.py pro <dossier> 160 88 "<description>" <graine> <modèle>` donne 4
-  grands massifs (0,08 $), `80 44` ou `96 56` en donne 9 à 16 petits, `44 44` 25 sommets d'une case.
-- **Le modèle de style** : une de nos montagnes ; écrire « Same colours as the reference mountains, with very thin
-  soft outlines in a dark grey close to the rock colour, no black outlines », sinon PixelLab met un contour noir épais.
-- **La forme**, choix de l'utilisateur : « a low natural irregular mountain, much wider than tall, a broad heavy base
-  rising gently to a few low uneven rocky summits, some rounded and some pointed », et « no flat tops, no terraces, no
-  stacked layers, no box shapes ». Sans cela : des pics pointus (« trop pointus ») ou des gradins (« trop carrés »). Une
-  chaîne en biais : « a long low mountain ridge running diagonally from the lower left up to the upper right ».
-- **Les petits sont coupés par le bord** de l'image (un bas tout droit, laid au bord d'une chaîne) : ajouter « one object
-  alone in the middle of the image with empty transparent margins on all sides, not touching the image edges », sur une
-  toile plus grande (96 × 56, 88 × 68). Ils sortent alors plus sombres : `luminosite.py regler … 89`.
-- **Le trait** reste trop visible (gris bleu sombre, pas noir) : `adoucir.py entree sortie 0.85 90 1 0.4` (le dernier
-  nombre adoucit aussi les traits sombres de l'intérieur ; plus fort, la roche devient terne).
-- Installer : `recadrer.py` (l'image coupée à son dessin), `godot/art/decor/massif-*.png` (sommets d'une case : `peak*.png`), puis
-  `python -I tools/art/empreintes.py` écrit les cases bloquées de chaque image dans `godot/data/mountains.json` (à
-  retoucher à la main si besoin) et `pieds.py proposer` leurs pieds. Voir en jeu : `--center=mountains`.
+- Des **massifs** posés comme les montagnes de Heroes 3 (voir `HISTORIQUE.md`). **PixelLab « Pro »** :
+  `pixellab.py pro <dossier> 160 112 "<description>" <graine> <modèle>` donne 4 images (0,12 $), `112 96` 4, `80 56`
+  9, `72 88` 9, `44 44` 25.
+- **Le modèle** : une image composée de nos images (`ref-montagne-arbres.png` : un massif et des arbres de la carte),
+  puis une de nos montagnes faites ainsi. Jamais une capture d'un autre jeu.
+- **La description** qui marche : « Rocky ochre and grey peaks and jagged ridges at the top; the lower slopes are smooth
+  green grass with a few grey rocks, absolutely no trees, no bushes, no shrubs (…), at the bottom the grassy slopes fade
+  into green grass with an irregular soft edge, no hard base line. No outline at all, no dark contour. One light from the
+  upper right ». **Pas d'arbres dessinés** : de tout petits arbres à côté de ceux de la carte (l'utilisateur). Formes :
+  « a section of a long mountain range running diagonally (…) both ends going down low as if the range continues »
+  (`chaine`), « a compact mountain with two or three summits » (`cime`), « a narrow mountain, a bit taller than wide »
+  (`etroit`), « a small low mountain spur » (`petit`), « a single small mountain peak » (`peak`). Les autres (morceaux
+  vus de face, rangées vers le fond) ont donné des piles de boules ou des images coupées par le bord. Retourner une image
+  (`reduire.py … 1 --miroir`) donne la chaîne qui descend.
+- **Écartés** (l'utilisateur) : un contour sombre (`adoucir.py … 0.85 90 1 0.4` l'adoucit), des gradins, le style des
+  mines (« des morceaux de rocher côte à côte, pas une chaîne »).
+- **Fondre dans le sol** : `fondre.py` donne aux pentes les couleurs d'un sol pris dans une capture du jeu (l'herbe : un
+  pré de `--center=mountains` ; le sable et le marais : `--terrain-test`) et défait leur bord. **`--bord=fondu`** (choix
+  de l'utilisateur, 2026-11-17) : de plus en plus transparent sur 4 pixels ; une trame régulière se voyait comme une ligne
+  de points, un bord effrité restait granuleux. Avant, `adoucir.py … 0.85 90 1 0.4` sur les images brutes (un trait
+  sombre restait sur certains pics). Les jeux du sable
+  et du marais sont les images d'herbe ainsi recolorées (`massif-sable-*`, `massif-marais-*`, `peak-sable*`…). Les
+  images brutes et les captures sont dans `art-candidats/archives/2026-11-17-montagnes/sources/`.
+- Installer : `recadrer.py` (l'image coupée à son dessin), `fondre.py`, puis `python -I tools/art/empreintes.py` écrit les
+  cases bloquées, celles du dessin, la sorte (`tier`) et le sol de chaque image dans `godot/data/mountains.json`. Les
+  montagnes n'ont ni ombre portée ni ombre de contact (leur image porte sa lumière). Voir en jeu : `--center=mountains`.
 
 ## Villes de la carte (5 × 4 cases, 160 × 128, 2026-11-08)
 - Assemblées de pièces (`tools/art/villes.py`) comme les mines : enceinte sur **toute la largeur** (tours aux coins, mur du

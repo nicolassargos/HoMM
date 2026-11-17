@@ -934,6 +934,38 @@ Après l'IA (choix de l'utilisateur), qui devra ensuite apprendre la magie et le
 - **Les factions : conception et chiffres** (déplacés de `PLAN.md` le 2026-11-15, tels quels : chaque faction telle
   qu'elle a été conçue, ses créatures, ses chiffres réglés et ses mesures).
 
+#### Le Château, la refonte des niveaux 4 et 6 (2026-11-17, branche `chateau-refonte`)
+Choix de l'utilisateur : le Griffon, l'Épéiste, le Cavalier et l'Archer à revoir ; le Moine reste. Le **Cavalier
+descend au niveau 4** à la place de l'Épéiste (un cavalier plus léger : attaque 10, défense 9, 4 à 6 de dégâts, 36 PV,
+vitesse 7, charge, deux cases ; 80 or, croissance 8) ; le **Chevalier à pied** prend le niveau 6 (attaque 11,
+défense 17, 12 à 16 de dégâts, 150 PV, vitesse 4 ; résiste aux tirs et fait **mur de boucliers** pour les tireurs
+amis à côté de lui, comme le Porte-bouclier nain ; 300 or, croissance 4). Habitations : **Écuries** (niveau 4, à la
+place de la Caserne) et **Commanderie** (niveau 6, à la place du Terrain d'entraînement), mêmes prix et mêmes places.
+Les anciennes sauvegardes retrouvent `epeiste` → `cavalier`, `caserne` → `ecuries`, `terrain-entrainement` →
+`commanderie`. L'armée qui mesure les gardiens (`CreatureStrength`) prend les Cavaliers à la place des Épéistes.
+Réglage par `Duels_a_prix_egal` : avec les chiffres de l'Épéiste puis de l'ancien Cavalier, ils gagnaient 99 et 97 %
+de leurs duels ; très sensible (Cavalier : 41 % à 35 PV, 56 % à 36, 71 % à 37) ; gardés : Cavalier 56 %,
+Chevalier 62 % (les meilleurs des autres : Tréants 64 %, Molochs 57 %, Cerfs 56 %). Courbe des paysans : Archer 8,
+Griffon 14, Cavalier 25, Moine 61, Chevalier 93, Ange 1597.
+**Les images** (PixelLab, environ 3 $ ; choix de l'utilisateur à chaque étape) :
+- **Archer** : un ancien braconnier long et osseux, nez crochu, chapeau mou à plume, tabard bleu délavé (L4-2) ;
+  attente idle-2, marche move-2, tir attack-2 (une flèche détachée effacée à la main) ; le départ de la flèche suit le
+  nouvel arc (`launchPoint` [83, 42]).
+- **Griffon** : une monture de guerre maigre et ébouriffée, tête d'aigle sombre et cabossée, harnais bleu (L2-1), plus
+  petit (66 px, ailes comprises, au lieu de 76) ; idle-1, move-2, attack-2 (éclats effacés). L'ancienne image, modèle de
+  style, est gardée dans `art-candidats/references/griffon-ancien.png`.
+- **Cavalier** : après un fanfaron du XVIe siècle (trop impressionnant pour le niveau 4, des moustaches refusées) et un
+  chevalier en surcot fleurdelisé (trop riche), un **jeune sergent à cheval** : casque à nasal, mailles, surcot bleu à
+  une fleur de lys, lance à fanion, cheval alezan au chanfrein et aux lames de cou d'acier, couverture bleue (L20-3,
+  redessiné plus grand en L22-3) ; gardé à sa taille de génération (126 px lance comprise ; réduit, il était flou),
+  la taille des Nomades. Attente idle-3 (le cheval lève un sabot) ; attaque attack-2 (la lance abaissée) ; le galop :
+  voir `METHODE.md`.
+- **Chevalier** : l'image de combat des débuts gardée ; image de la carte p1-13.
+- **Images de la carte** (32 px) : Archer p1-15, Griffon p1-1, Cavalier p1-1, Chevalier p1-13 ; pieds revus par
+  l'utilisateur. Les images de l'Épéiste sont retirées.
+- Le galop des **Nomades** ralenti à 8 images/s (au lieu de 16) et une image en double retirée (11 images) : les
+  jambes allaient trop vite pour la vitesse du déplacement (remarque de l'utilisateur).
+
 #### Les Nains
 Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Heroes 3 ni Heroes 5 (choix de l'utilisateur).
 - **Philosophie : les halls de la montagne.** Des artisans têtus qui gravent des runes et bâtissent des machines.
@@ -2649,12 +2681,28 @@ choix de l'utilisateur) :
   sur un passage, une route, l'eau, près d'un départ) ; le reste prend un sommet seul. Les cases de montagne sont
   exactement les cases bloquées des massifs (test `MontagnesTests`) ; ils sont sauvegardés (version 10 ; une sauvegarde
   d'avant dessine encore ses montagnes case par case). Les cases bloquées de chaque image viennent de l'image
-  (`tools/art/empreintes.py`). À l'affichage (`DecorLayer.FillGaps`), une case de montagne dont plus d'un quart du sol
-  se voit entre les images prend un petit sommet en plus. Le pied des montagnes (herbe sèche, terre, gravier, éboulis)
-  est dessiné par le shader (`foothill`, 0,7). Images : 11 grands massifs (environ 155 × 80), 11 petits, 4 sommets bas
-  (PixelLab, voir `tools/art/METHODE.md`). Essayés puis écartés : des sommets semés case par case (motif répété), des
-  massifs de Retro Diffusion (des îlots), des sommets pointus (« trop pointus »), larges en gradins (« trop carrés »),
-  naturels mais hauts (l'utilisateur les préfère plus bas). Une même graine donne une carte un peu différente d'avant.
+  (`tools/art/empreintes.py`), avec les cases que le dessin couvre (pas de massif dont l'image couvrirait de l'eau). Puis,
+  avec l'utilisateur, une longue suite d'essais d'images et de placement (même jour) :
+  - **Pour qu'une chaîne se lise comme une chaîne** : d'abord les grands sommets (`cime`) au cœur des montagnes larges,
+    puis des morceaux de chaîne (`chaine`, `etroit`), des contreforts (`petit`) au bord ; une forme d'une seule rangée
+    seulement en dernier recours ; à couverture égale, pas la même image qu'un voisin ; un peu de chevauchement préféré.
+    Les petites taches de montagne (moins de 6 cases) deviennent de la forêt (elle bloque aussi).
+  - **Pour qu'elle se fonde dans le pays** (d'après une capture de Heroes 3 HD donnée par l'utilisateur : la montagne y
+    est une surface de pentes, pas des objets posés) : des images sans contour, des pics de roche et des **pentes
+    d'herbe sans arbres dessinés** (de tout petits arbres à côté de ceux de la carte : l'échelle n'allait pas) ; leurs
+    verts sont ceux de l'herbe de la carte et leur bord se défait en trame (`tools/art/fondre.py`) ; pas d'ombre portée
+    pour les montagnes ; des arbres de la carte à leur pied ; au cœur, le sol de la montagne assombri (`foothill_rock`) ;
+    le pied du shader presque sans terre ni cailloux (`foothill` 0,35).
+  - **Un jeu d'images par sol**, comme Heroes 3 : l'herbe, le sable, le marais (`ground` dans `mountains.json`,
+    `MountainGrounds`) : les mêmes images, leurs pentes aux couleurs de chaque sol ; le sol le plus courant à deux cases
+    décide, et le shader dessine ce sol sous la montagne.
+  Essayés puis écartés : des sommets semés case par case (motif répété), des massifs de Retro Diffusion (des îlots), des
+  pics pointus (« trop pointus »), larges en gradins (« trop carrés »), recolorés au style des mines (des morceaux de
+  rocher côte à côte, « pas une vraie chaîne »), de grands sommets en blocs de rocher (« pas la bonne direction »).
+  Puis le bord des pentes (branche `montagnes-bords`) : une trame régulière se voyait comme une ligne de points ; comparés
+  avec l'utilisateur, un bord de plus en plus transparent (choisi), effrité par grappes, ou les deux ; et le trait sombre
+  qui restait sur certains pics, adouci. **Reste** : les montagnes au bord de deux sols ; les mines au flanc des
+  montagnes (idée de l'utilisateur, comme Heroes 3). Une même graine donne une carte un peu différente d'avant.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et
@@ -2693,6 +2741,8 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   remarques (plus de mouvement, en arrière, sans effets ; effets retirés à la main sur le Zombie, l'Oiseau-tonnerre,
   l'Archer elfe, le Tourmenteur, le Tyran) ; le Dragon, l'Hydre et le Démon, après des images clés refusées (corps
   raide, puis écrasé), par le second modèle de PixelLab (`minimax`) : le Démon surpris, puis content du coup.
+  À la fusion de la refonte du Château, la mort et le coup reçu de l'Archer et du Griffon (faits d'après leurs anciennes
+  images) ont été retirés : 54 créatures ont les deux ; l'Archer, le Griffon et le Cavalier restent à faire.
   ✅ Les options du combat (bouton Options, touche O) : la vitesse des projectiles (lente, normale, rapide), gardée
   d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - ✅ **Des cases de 32 pixels d'art** (au lieu de 24 ; décision de l'utilisateur, 2026-11-08) : cases de 64 pixels à

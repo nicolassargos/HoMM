@@ -95,7 +95,7 @@ public class DiplomatieTests
         Assert.Equal(JoinRefusal.Price, Diplomacy.Encounter(hero, guard)!.Offer!.Refusal);
 
         hero.Owner.Resources[ResourceType.Gold] = 5000;
-        foreach (var id in new[] { "archer", "griffon", "epeiste", "moine", "cavalier", "squelette" })
+        foreach (var id in new[] { "archer", "griffon", "chevalier", "moine", "cavalier", "squelette" })
             hero.Army.Add(Creature(id), 1);
         Assert.Equal(JoinRefusal.Slot, Diplomacy.Encounter(hero, guard)!.Offer!.Refusal);
         Assert.False(state.ResolveEncounter(EncounterChoice.Join)); // rien n'attend

@@ -23,9 +23,27 @@ public class MontagnesTests
         var blocked = map.Massifs.SelectMany(m => shapes.Find(m.Id)!.CellsAt(m.At)).ToHashSet();
         var mountains = Cells(map).Where(c => map.GetTerrain(c) == TerrainType.Mountain).ToHashSet();
         Assert.NotEmpty(mountains);
-        Assert.True(mountains.SetEquals(blocked));
+        Assert.True(mountains.SetEquals(blocked), $"montagnes sans massif : {string.Join(" ", mountains.Except(blocked))} ; "
+            + $"massif hors des montagnes : {string.Join(" ", blocked.Except(mountains))}");
         // surtout de vrais massifs, pas seulement des sommets seuls
-        Assert.True(map.Massifs.Count(m => shapes.Find(m.Id)!.Cells.Count() > 1) * 2 > map.Massifs.Count);
+        int real = map.Massifs.Count(m => shapes.Find(m.Id)!.Cells.Count() > 1);
+        Assert.True(real * 2 > map.Massifs.Count, $"{real} massifs sur {map.Massifs.Count}");
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(12)]
+    [InlineData(42)]
+    public void Aucun_massif_ne_couvre_l_eau(int seed)
+    {
+        var map = new MapGenerator(seed, TestData.Data).Generate();
+        var shapes = TestData.Data.Massifs;
+
+        // (les sommets seuls restent dans leur case)
+        var drawn = map.Massifs.Select(m => (Shape: shapes.Find(m.Id)!, m.At)).Where(x => x.Shape.Cells.Count() > 1)
+            .SelectMany(x => x.Shape.DrawnCellsAt(x.At));
+        Assert.All(drawn.Where(map.InBounds), c =>
+            Assert.True(map.GetTerrain(c) != TerrainType.Water && map.GetRiver(c) == RiverKind.None, $"{c} : de l'eau sous un massif"));
     }
 
     [Fact]

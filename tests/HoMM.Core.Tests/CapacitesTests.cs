@@ -73,7 +73,7 @@ public class CapacitesTests
     [Fact]
     public void L_ange_frappe_sans_riposte()
     {
-        var (battle, angel, target) = Duel(Creature("ange"), 1, Creature("epeiste"), 100, new Hex(4, 4), new Hex(5, 4));
+        var (battle, angel, target) = Duel(Creature("ange"), 1, Creature("chevalier"), 100, new Hex(4, 4), new Hex(5, 4));
 
         battle.Attack(target, new Hex(4, 4));
 
@@ -124,8 +124,8 @@ public class CapacitesTests
     [Fact]
     public void Le_bouclier_divise_par_deux_les_degats_des_tirs()
     {
-        var shielded = Creature("epeiste");
-        var plain = shielded with { Id = "epeiste-sans-bouclier", Abilities = new List<string>() };
+        var shielded = Creature("chevalier");
+        var plain = shielded with { Id = "chevalier-sans-bouclier", Abilities = new List<string>() };
 
         Assert.InRange(ShotOn(shielded), ShotOn(plain) / 2 - 1, ShotOn(plain) / 2 + 1);
     }
@@ -137,7 +137,7 @@ public class CapacitesTests
 
         int Hit(Hex from, Hex start)
         {
-            var (battle, _, d) = Duel(knight, 5, Fixed("epeiste", 1), 100, start, new Hex(8, 4));
+            var (battle, _, d) = Duel(knight, 5, Fixed("chevalier", 1), 100, start, new Hex(8, 4));
             battle.Attack(d, from);
             return Strikes(battle).First(s => !s.Retaliation).Damage;
         }
@@ -160,7 +160,7 @@ public class CapacitesTests
     [Fact]
     public void Le_loup_frappe_deux_fois()
     {
-        var (battle, _, target) = Duel(Creature("loup"), 20, Creature("epeiste"), 5, new Hex(4, 4), new Hex(5, 4));
+        var (battle, _, target) = Duel(Creature("loup"), 20, Creature("chevalier"), 5, new Hex(4, 4), new Hex(5, 4));
 
         battle.Attack(target, new Hex(4, 4));
 
@@ -189,7 +189,7 @@ public class CapacitesTests
     {
         int Hit(CreatureType ogre)
         {
-            var (battle, _, d) = Duel(ogre, 5, Fixed("epeiste", 1), 100, new Hex(4, 4), new Hex(5, 4));
+            var (battle, _, d) = Duel(ogre, 5, Fixed("chevalier", 1), 100, new Hex(4, 4), new Hex(5, 4));
             battle.Attack(d, new Hex(4, 4));
             return Strikes(battle).First(s => !s.Retaliation).Damage;
         }

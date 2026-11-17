@@ -37,7 +37,7 @@ public partial class BattleFieldView : Control
 
     /// <summary>
     /// Les animations d'une créature : des feuilles de 8 images (4 colonnes, 2 rangées), à côté de son image de combat
-    /// (« epeiste-idle.png », « epeiste-move.png », « epeiste-attack.png »). Sans feuille, l'image fixe est montrée.
+    /// (« moine-idle.png », « moine-move.png », « moine-attack.png »). Sans feuille, l'image fixe est montrée.
     /// Une feuille peut avoir plus d'images (« moveFrames »: 16 dans animations.json : 4 colonnes, 4 rangées), pour un
     /// mouvement plus lent mais aussi fluide.
     /// </summary>

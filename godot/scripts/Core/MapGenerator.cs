@@ -16,6 +16,8 @@ public sealed class MapGenerator
     private readonly int _seed;
     /// <summary>Le hasard de la faction des villes neutres, à part : il ne change pas le reste de la carte.</summary>
     private readonly Random _factionRng;
+    /// <summary>Le hasard des massifs de montagnes, à part : il ne change pas le reste de la carte.</summary>
+    private readonly Random _massifRng;
     private readonly GameData? _data;
     private AdventureMap _map = null!;
 
@@ -43,6 +45,7 @@ public sealed class MapGenerator
         _rng = new Random(seed);
         _seed = seed;
         _factionRng = new Random(seed * 7919 + 17);
+        _massifRng = new Random(seed * 6271 + 29);
         _data = data;
     }
 
@@ -178,6 +181,7 @@ public sealed class MapGenerator
         if (_sea != null)
             _landArea = AllCells().Count(c => !_sea[c.X, c.Y]);
         ClearStartArea();
+        ShapeMountains();
         if (_data != null)
             PlaceTowns(_data);
         PlaceStreams();
@@ -189,6 +193,7 @@ public sealed class MapGenerator
         ConnectToRoads();
         RemoveDeadEndRoads(mainOnly: false);
         ChooseRoadKinds();
+        FinishMountains();
         return _map;
     }
 
@@ -2075,6 +2080,81 @@ public sealed class MapGenerator
                 if (_map.InBounds(c))
                     _map.SetTerrain(c, TerrainType.Grass);
             }
+    }
+
+    /// <summary>Le plus de cases qu'un massif peut prendre hors des montagnes peintes, pour mieux tenir (selon sa taille).</summary>
+    private static int MassifOverflow(MassifShape shape) => shape.Cells.Count() >= 6 ? 2 : 1;
+
+    /// <summary>
+    /// Les montagnes comme dans Heroes 3 (2026-11-17) : chaque tache ou mur de montagne est recouvert de massifs
+    /// (data/mountains.json), une image chacun, qui se chevauchent ; les cases de montagne deviennent exactement leurs cases
+    /// bloquées. Un massif peut déborder d'une case ou deux dans un creux du bord (une case libre qui touche trois cases de montagne), jamais
+    /// sur un passage, une route, une rivière, l'eau ou près d'un départ. Ce que les massifs ne couvrent pas prend un sommet
+    /// seul. D'en haut à gauche vers en bas à droite : à chaque case pas encore couverte, le massif qui en couvre le plus.
+    /// </summary>
+    private void ShapeMountains()
+    {
+        var shapes = _data?.Massifs.All.Where(s => s.Cells.Count() > 1).ToList() ?? new List<MassifShape>();
+        var singles = _data?.Massifs.Singles.ToList() ?? new List<MassifShape>();
+        if (singles.Count == 0)
+            return;
+        var rock = AllCells().Where(c => _map.GetTerrain(c) == TerrainType.Mountain).ToHashSet();
+        var covered = new HashSet<Cell>();
+        bool CanOverflow(Cell c) =>
+            _map.InBounds(c) && _map.IsPassable(c) && !_map.HasRoad(c) && _map.GetRiver(c) == RiverKind.None && !IsSea(c)
+            && !_reserved.Contains(c) && !InStartingTown(c) && DistanceToStart(c) > 5
+            && Neighbours(c).Count(rock.Contains) >= 3;
+        foreach (var cell in rock.OrderBy(c => c.Y).ThenBy(c => c.X).ToList())
+        {
+            if (covered.Contains(cell))
+                continue;
+            // les formes dans un ordre tiré au sort, chacune posée de toutes les façons qui couvrent cette case
+            (MassifShape Shape, Cell At, int Score)? best = null;
+            foreach (var shape in shapes.OrderBy(_ => _massifRng.Next()))
+                foreach (var (dx, dy) in shape.Cells)
+                {
+                    var at = cell.Offset(-dx, -dy);
+                    var cells = shape.CellsAt(at).ToList();
+                    var outside = cells.Where(c => !rock.Contains(c)).ToList();
+                    if (outside.Count > MassifOverflow(shape) || !outside.All(CanOverflow))
+                        continue;
+                    int fresh = cells.Count(c => rock.Contains(c) && !covered.Contains(c));
+                    int score = 2 * fresh - 3 * outside.Count;
+                    if (fresh >= 2 && (best == null || score > best.Value.Score))
+                        best = (shape, at, score);
+                }
+            if (best is { } chosen)
+            {
+                _map.Massifs.Add(new MountainMassif(chosen.Shape.Id, chosen.At));
+                foreach (var c in chosen.Shape.CellsAt(chosen.At))
+                {
+                    covered.Add(c);
+                    _map.SetTerrain(c, TerrainType.Mountain);
+                }
+            }
+            else
+            {
+                _map.Massifs.Add(new MountainMassif(singles[_massifRng.Next(singles.Count)].Id, cell));
+                covered.Add(cell);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Après les autres étapes (villes, routes, lieux, qui dégagent parfois une case de montagne) : un massif qui a perdu une
+    /// de ses cases s'en va, et chaque case de montagne qu'aucun massif ne couvre prend un sommet seul.
+    /// </summary>
+    private void FinishMountains()
+    {
+        var singles = _data?.Massifs.Singles.ToList() ?? new List<MassifShape>();
+        if (singles.Count == 0)
+            return;
+        var shapes = _data!.Massifs;
+        _map.Massifs.RemoveAll(m => shapes.Find(m.Id) is not { } shape
+            || shape.CellsAt(m.At).Any(c => !_map.InBounds(c) || _map.GetTerrain(c) != TerrainType.Mountain));
+        var covered = _map.Massifs.SelectMany(m => shapes.Find(m.Id)!.CellsAt(m.At)).ToHashSet();
+        foreach (var cell in AllCells().Where(c => _map.GetTerrain(c) == TerrainType.Mountain && !covered.Contains(c)))
+            _map.Massifs.Add(new MountainMassif(singles[_massifRng.Next(singles.Count)].Id, cell));
     }
 
     /// <summary>Toutes les cases accessibles à pied depuis le départ (et en bateau, sur une carte où l'on navigue).</summary>

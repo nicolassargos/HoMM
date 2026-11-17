@@ -485,6 +485,44 @@ public partial class BattleFieldView : Control
             var c = i + 1 < tones.Length && bayer[y % 4, x % 4] < (u - i) * 16 ? tones[i + 1] : tones[i];
             return Speck(x, y, 9) ? c.Darkened(0.12f) : c;
         }
+        // les nuages et les rochers ont leur propre tirage : les collines restent celles d'avant pour une même graine
+        var extras = new Random(seed * 17 + 9);
+        // quelques nuages plats dessous, bombés dessus (des bosses qui se chevauchent), dans le ciel seulement
+        var clouds = Enumerable.Range(0, 1 + extras.Next(3)).Select(i =>
+        {
+            float length = 24 + extras.Next(50), x = extras.Next(w), bottom = 10 + extras.Next(12);
+            // les bosses restent dans le nuage (une bosse coupée au bout faisait un mur), plus hautes vers le milieu
+            var bumps = Enumerable.Range(0, 3 + extras.Next(3)).Select(b =>
+            {
+                float r = length * (0.18f + 0.14f * (float)extras.NextDouble()), at = r + (float)extras.NextDouble() * (length - 2 * r);
+                float middle = 1 - MathF.Abs(at / length - 0.5f) * 1.2f;
+                return (X: x + at, R: r, Height: MathF.Max(2, MathF.Min(r * 0.8f, (3 + extras.Next(5)) * middle)));
+            }).ToArray();
+            return (Left: x, Right: x + length, Bottom: bottom, Bumps: bumps);
+        }).ToArray();
+        // sous un ciel couvert (le marais), des nuages gris : le haut blanc y brillait trop (remarque de l'utilisateur)
+        Color cloudLight = palette.Overcast ? sky[^1].Lightened(0.1f) : Colors.White.Lerp(sky[^1], 0.3f),
+            cloudBody = palette.Overcast ? sky[^1].Lerp(sky[2], 0.4f) : sky[^1].Lightened(0.08f),
+            cloudShade = palette.Overcast ? sky[1].Darkened(0.06f) : sky[^1].Lerp(sky[1], 0.5f);
+        // la couleur d'un nuage en (x, y), ou null
+        Color? Cloud(int x, int y)
+        {
+            foreach (var cloud in clouds)
+            {
+                if (x < cloud.Left || x > cloud.Right || y > cloud.Bottom)
+                    continue;
+                float top = cloud.Bottom;
+                foreach (var b in cloud.Bumps)
+                    if (MathF.Abs(x - b.X) < b.R)
+                        top = MathF.Min(top, cloud.Bottom - b.Height * MathF.Sqrt(1 - MathF.Pow((x - b.X) / b.R, 2)));
+                if (y < MathF.Round(top) || top >= cloud.Bottom - 1)
+                    continue;
+                // éclairé en haut, ombré dessous (tramé avec le corps)
+                return y - MathF.Round(top) < 1 ? cloudLight
+                    : y >= cloud.Bottom - 1 || (y >= cloud.Bottom - 2 && bayer[y % 4, x % 4] < 8) ? cloudShade : cloudBody;
+            }
+            return null;
+        }
         // le pré se fond dans le sol du champ sur plusieurs rangées (sur trois, la limite faisait une ligne nette qui coupait
         // la scène en deux, remarque de l'utilisateur, 2026-11-16), à partir d'un bord qui ondule d'une colonne à l'autre
         const int Fade = 8;
@@ -517,6 +555,7 @@ public partial class BattleFieldView : Control
                     float t = (float)y / Math.Max(1, f) * (sky.Length - 1);
                     int band = Math.Min(sky.Length - 2, (int)t);
                     c = bayer[y % 4, x % 4] < (t - band) * 16 ? sky[band + 1] : sky[band];
+                    c = Cloud(x, y) ?? c;
                 }
                 // le pré au pied des collines proches, entre elles et le sol du champ
                 if (y >= n && y >= m - 4)
@@ -532,6 +571,26 @@ public partial class BattleFieldView : Control
                     c = new Color(c, MathF.Min(alpha, 0.75f));
                 }
                 image.SetPixel(x, y, c);
+            }
+        }
+        // des rochers sur les collines proches (pas sur les dunes) : de petits dômes, éclairés en haut à droite (le soleil),
+        // l'ombre à gauche et dessous, un peu dans la brume
+        var rock = new Color(0.56f, 0.55f, 0.51f).Lerp(nearTones[1], 0.3f).Lerp(sky[^1], 0.15f);
+        for (float x = extras.Next(40); !palette.Dunes && x < w; x += 25 + extras.Next(60))
+        {
+            int rx = (int)x, top = (int)near(rx) + 3, bottom = (int)meadow(rx) - 6;
+            if (bottom <= top)
+                continue;
+            int width = 3 + extras.Next(6), height = (width + 1) / 2, ry = top + extras.Next(bottom - top);
+            for (int dy = -height; dy <= 0; dy++)
+            for (int dx = -width / 2; dx <= width / 2; dx++)
+            {
+                float u = dx / (width / 2f + 0.5f), v = dy / (height + 0.5f);
+                int px = rx + dx, py = ry + dy;
+                if (u * u + v * v > 1 || px < 0 || px >= w || py < 0)
+                    continue;
+                var c = dy == 0 || u < -0.3f ? rock.Darkened(0.3f) : u > 0.1f && v < -0.4f ? rock.Lightened(0.18f) : rock;
+                image.SetPixel(px, py, c);
             }
         }
         // le marais : des mares lointaines dans le pré, longues et plates, où le ciel se reflète (un trait sombre au bord du haut)
@@ -574,10 +633,10 @@ public partial class BattleFieldView : Control
     /// <summary>
     /// Les couleurs du décor d'un terrain : le ciel (du haut vers l'horizon), la chaîne lointaine et la proche (éclairée,
     /// couleur, ombre), le pré qui rejoint le sol, la brume des images, la brume claire vers l'horizon, l'ombre de la lisière ;
-    /// <c>FlatTops</c> : la chaîne lointaine en mesas.
+    /// <c>FlatTops</c> : la chaîne lointaine en mesas ; <c>Overcast</c> : un ciel couvert, aux nuages gris.
     /// </summary>
     private sealed record ScenePalette(Color[] Sky, Color[] Far, Color[] Near, Color[] Meadow, Color Haze, Color Mist, Color Shade,
-        bool FlatTops = false, bool Dunes = false, bool Puddles = false);
+        bool FlatTops = false, bool Dunes = false, bool Puddles = false, bool Overcast = false);
 
     private static readonly ScenePalette GrassPalette = new(
         new Color[] { new(0.47f, 0.62f, 0.78f), new(0.58f, 0.71f, 0.82f), new(0.70f, 0.80f, 0.86f), new(0.80f, 0.86f, 0.87f) },
@@ -603,7 +662,8 @@ public partial class BattleFieldView : Control
         new Color[] { new(0.56f, 0.62f, 0.62f), new(0.48f, 0.55f, 0.55f), new(0.41f, 0.48f, 0.49f) },
         new Color[] { new(0.40f, 0.47f, 0.33f), new(0.33f, 0.40f, 0.28f), new(0.27f, 0.33f, 0.24f) },
         new Color[] { new(0.42f, 0.36f, 0.22f), new(0.40f, 0.32f, 0.20f) },
-        new Color(0.34f, 0.40f, 0.34f), new Color(0.74f, 0.78f, 0.72f), new Color(0.02f, 0.05f, 0.03f), Puddles: true);
+        new Color(0.34f, 0.40f, 0.34f), new Color(0.74f, 0.78f, 0.72f), new Color(0.02f, 0.05f, 0.03f), Puddles: true,
+        Overcast: true);
 
     private static ScenePalette PaletteOf(TerrainType terrain) => terrain switch
     {
@@ -621,9 +681,10 @@ public partial class BattleFieldView : Control
     /// se chevauchent, le bord déformé par un bruit doux. Autour, la terre mouillée (plus sombre, en paliers de transparence) ;
     /// l'eau trouble, plus sombre sous la rive du haut (l'ombre du bord) et plus claire vers le bas (le ciel s'y reflète),
     /// avec de courts reflets horizontaux ; dans les grandes, quelques nénuphars ; sur le bord, des brins de jonc. Ailleurs,
-    /// quelques taches de terre mouillée sans eau.
+    /// quelques taches de terre mouillée sans eau. Aucune sous les cases <paramref name="avoid"/> (le centre des obstacles,
+    /// en pixels de l'image).
     /// </summary>
-    private static Texture2D BuildPuddles(int seed)
+    private static Texture2D BuildPuddles(int seed, Vector2[] avoid)
     {
         int w = (int)Math.Ceiling(FieldSize.X / GroundScale), h = (int)Math.Ceiling(FieldSize.Y / GroundScale);
         var random = new Random(seed * 11 + 4);
@@ -650,8 +711,16 @@ public partial class BattleFieldView : Control
                 float angle = (float)random.NextDouble() * 6.28f, dist = r * (0.5f + 0.5f * (float)random.NextDouble());
                 blobs.Add((MathF.Cos(angle) * dist, MathF.Sin(angle) * dist / 2f, r * (0.4f + 0.4f * (float)random.NextDouble())));
             }
-            return (X: 20f + random.Next(w - 40), Y: 100f + random.Next(h - 115), R: r, Water: i % 4 != 3, Blobs: blobs.ToArray());
-        }).ToArray();
+            // pas sous un obstacle (un arbre les pieds dans l'eau jurait) : on tire une autre place, sinon pas de flaque
+            float reach = 1.8f * r + 14;
+            for (int tries = 0; tries < 12; tries++)
+            {
+                float x = 20f + random.Next(w - 40), y = 100f + random.Next(h - 115);
+                if (avoid.All(o => MathF.Pow((x - o.X) / reach, 2) + MathF.Pow((y - o.Y) * 2 / reach, 2) > 1))
+                    return (X: x, Y: y, R: r, Water: i % 4 != 3, Blobs: blobs.ToArray());
+            }
+            return (X: 0f, Y: 0f, R: 0f, Water: false, Blobs: Array.Empty<(float Dx, float Dy, float R)>());
+        }).Where(p => p.R > 0).ToArray();
         // de 1 au milieu à 0 au bord : le plus haut des ronds (aplatis : vus en biais), le bord déformé par un bruit doux
         float Shape((float X, float Y, float R, bool Water, (float Dx, float Dy, float R)[] Blobs) p, float x, float y)
         {
@@ -1193,7 +1262,8 @@ public partial class BattleFieldView : Control
         _details = BuildDetails(terrain, seed);
         _relief = PaletteOf(terrain).Dunes ? BuildDunes(seed) : null;
         _stones = PaletteOf(terrain).Dunes ? BuildStones(seed) : null;
-        _puddles = PaletteOf(terrain).Puddles ? BuildPuddles(seed) : null;
+        _puddles = PaletteOf(terrain).Puddles
+            ? BuildPuddles(seed, Battle.Field.Obstacles.Select(o => Center(o) / GroundScale).ToArray()) : null;
         if (SmoothGround.CreateBattle(terrain, FieldSize, seed) is not { } ground)
             return;
         // le sol couvre des cases entières de la carte : le surplus est coupé au bord du champ

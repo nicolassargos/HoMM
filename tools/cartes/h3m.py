@@ -42,10 +42,14 @@ def read(path):
     k = count_at
     ntpl = struct.unpack_from('<I', d, k)[0]; k += 4
     m.templates = []
+    m.masks = []  # pour chaque modèle : (cases bloquées, cases d'entrée), en (colonne, rangée) d'un cadre de 8 × 6
     for _ in range(ntpl):
         ln = struct.unpack_from('<I', d, k)[0]; k += 4
         name = d[k:k + ln].decode('latin-1'); k += ln
-        k += 6 + 6  # passage, action
+        passage, action = d[k:k + 6], d[k + 6:k + 12]; k += 12
+        # rangée 0 en haut ; le bit j d'une rangée est la colonne 7 - j (l'objet est posé par sa case en bas à droite)
+        m.masks.append(({(7 - j, i) for i in range(6) for j in range(8) if not passage[i] >> j & 1},
+                        {(7 - j, i) for i in range(6) for j in range(8) if action[i] >> j & 1}))
         k += 2 + 2  # terrains
         cls, sub = struct.unpack_from('<II', d, k); k += 8
         k += 1 + 1 + 16

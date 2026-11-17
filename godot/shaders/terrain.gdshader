@@ -14,6 +14,8 @@ render_mode unshaded;
 uniform sampler2D terrain_map : filter_nearest;
 // les formes douces des rivières (rouge) et des ruisseaux (vert), plusieurs points par case (RiverField)
 uniform sampler2D water_field : filter_linear;
+// Le pied des montagnes (MountainField, rouge : la distance à la case de montagne la plus proche, en cases)
+uniform sampler2D mountain_field : filter_linear;
 // L'image de la route (24 × 24)
 // les images des sortes de routes : terre, gravier, pavés (RoadKind - 1)
 uniform sampler2DArray road_tiles : filter_nearest;
@@ -89,6 +91,14 @@ uniform float road_stones_inside = 0.08;
 // des cailloux semés partout sur le sol, loin des routes (la part des carrés de ground_stone_cell pixels d'art qui en ont)
 uniform float ground_stones = 0.08;
 uniform float ground_stone_cell = 11.0;
+// Le pied des montagnes (0 : rien ; 0,7 choisi le 2026-11-17) : jusqu'à foothill_reach cases d'une montagne, l'herbe sèche (foothill),
+// des plaques de terre et de gravier (foothill_soil : leur part au pied), des éboulis (foothill_scree : la part des
+// carrés de 6 pixels d'art qui ont une pierre, au pied) ; le bord ondule de foothill_wave cases
+uniform float foothill = 0.7;
+uniform float foothill_reach = 1.2;
+uniform float foothill_soil = 0.5;
+uniform float foothill_scree = 0.35;
+uniform float foothill_wave = 0.5;
 uniform float road_stone_cell = 6.0;
 // l'herbe qui déborde sur la route (à l'essai, 0 : rien) : par plaques le long du bord (road_grass_share du bord, plaques
 // d'environ road_grass_scale pixels d'art), l'herbe avance de road_grass pixels d'art au plus, en brins de longueurs
@@ -887,6 +897,36 @@ void fragment() {
 			// l'herbe jusqu'à l'eau : une ligne de terre mouillée, tramée vers l'herbe
 			if (sd < mud_width || bayer(p) < 0.5)
 				color = mix(color, mud_color, 0.7);
+		}
+	}
+	// Le pied des montagnes : de 1 (contre la roche) à 0 (à foothill_reach cases), au bord ondulé
+	float foot = 0.0;
+	if (foothill > 0.0 && !in_water && t != water) {
+		float inside = texture(mountain_field, (p + 0.5) / (vec2(map_cells) * ART)).r;
+		float md = inside
+			+ (noise((p + 0.5) / 11.0 + vec2(43.0, 17.0)) - 0.5) * foothill_wave
+			+ (noise((p + 0.5) / 3.5 + vec2(7.0, 91.0)) - 0.5) * foothill_wave * 0.35;
+		foot = 1.0 - smoothstep(0.0, max(foothill_reach, 0.1), md);
+		// l'herbe sèche, en paliers tramés
+		float dry = clamp(floor(foot * 3.0 + bayer(p)) / 3.0, 0.0, 1.0);
+		color = mix(color, color * vec3(1.06, 0.96, 0.74) * 0.9, dry * 0.7 * foothill);
+		// des plaques de terre et de gravier, plus serrées contre la roche
+		// (dans les cases de montagne elles-mêmes, entre les sommets, rien que de la terre et du gravier)
+		float bare = noise((p + 0.5) / 7.0 + vec2(29.0, 61.0)) - 1.0 + foot * foothill_soil
+			+ (1.0 - smoothstep(0.0, 0.25, inside)) * foothill_soil;
+		if (bare > 0.0 || (bare > -0.04 && bayer(p) < 0.5)) {
+			vec3 dirt = texelFetch(road_tiles, ivec3(ivec2(mod(p, ART)), 0), 0).rgb;
+			vec3 gravel = texelFetch(road_tiles, ivec3(ivec2(mod(p, ART)), 1), 0).rgb;
+			vec3 soil = mix(dirt, gravel, smoothstep(0.3, 0.7, noise((p + 0.5) / 5.0 + vec2(3.0, 3.0))));
+			color = mix(color, soil, foothill);
+			t = -1; // plus d'herbe : ni fleurs ni touffes
+		}
+		// des éboulis : des pierres, plus nombreuses contre la roche
+		vec2 cell = floor(p / 6.0);
+		if (foothill_scree > 0.0 && hash(cell + vec2(14.1, 77.3)) < foothill_scree * foot * foot) {
+			vec2 spot = cell * 6.0 + 1.0 + floor(vec2(hash(cell + vec2(2.2, 9.4)), hash(cell + vec2(5.8, 1.6))) * 2.0);
+			vec3 stone;
+			if (stone_shape(p - spot, stone_size(cell + vec2(3.3)), cell, color, stone)) color = stone;
 		}
 	}
 	// Des cailloux semés sur le sol (l'herbe, le sable), loin des routes

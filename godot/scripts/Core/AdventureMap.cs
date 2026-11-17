@@ -46,6 +46,12 @@ public sealed class AdventureMap
     /// </summary>
     public Cell? Treasure { get; set; }
 
+    /// <summary>
+    /// Les massifs de montagnes posés par le générateur (comme dans Heroes 3) : les cases de montagne sont exactement leurs
+    /// cases bloquées. Seulement pour le dessin ; vide pour une carte sans massifs (dessinée case par case).
+    /// </summary>
+    public List<MountainMassif> Massifs { get; } = new();
+
     public IReadOnlyCollection<MapObject> Objects => _objects.Values;
 
     public bool InBounds(Cell c) => c.X >= 0 && c.Y >= 0 && c.X < Width && c.Y < Height;

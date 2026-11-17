@@ -744,11 +744,11 @@
       "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
       "mouvements": {
         "death": "is mortally wounded: its wings fold, it sways and collapses heavily onto its side, lying motionless on the ground at the end; no effects, no blood, no other character",
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: from the very first frame the head and long neck snap backward to the left and the body leans back to the left, the wings jolt; it never leans forward, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "is hit in the face and rears back: the head and long neck pull up and back toward its tail, the chest moves back toward its tail, the front feet lift, the wings jolt open; the head stays behind its starting position the whole time, never moving forward, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
         "death": "death-1",
-        "hit": "hit-5"
+        "hit": "hit-6"
       }
     },
     "gobelin": {
@@ -1094,7 +1094,7 @@
         "move": "move-2",
         "attack": "attack-2-r",
         "death": "death-1",
-        "hit": "hit-5"
+        "hit": "hit-4"
       },
       "grande": "art-candidats/references/derives/druide-grand.png",
       "consignes": {
@@ -1298,7 +1298,7 @@
         "move": "move-5",
         "carte": "p2-5",
         "death": "death-1",
-        "hit": "hit-5"
+        "hit": "hit-7"
       },
       "grande": "art-candidats/references/derives/naga-grand.png",
       "marge_bas": 0.06,
@@ -1308,7 +1308,7 @@
         "attack": "leans forward on her snake tail and slashes at the enemy in front of her with her curved swords, her six arms striking one after another, then rises back to her stance"
       },
       "mouvements": {
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: violently knocked back to the left: the upper body bends far backward to the left, the arms and blades are thrown back, the snake tail coils and twists, a very exaggerated movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: the head whips back, the torso bends and twists backward at the waist, the arms flail in different directions and the long snake tail coils and ripples separately, a supple, loose, exaggerated movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "djinn": {
@@ -1726,7 +1726,7 @@
         "attack": "regard-3",
         "carte": "p1-13",
         "death": "death-1",
-        "hit": "hit-5"
+        "hit": "hit-6"
       },
       "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
       "consignes": {
@@ -1736,7 +1736,7 @@
       },
       "mouvements": {
         "death": "is mortally wounded: stops floating, drops to the ground and rolls onto its side, eye closed, lying motionless on the ground at the end; no effects, no blood, no other character",
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: its round body is knocked back to the left and tilts, the big eye squeezes shut, all its eye stalks whip and flail wildly, the mouth gapes, a very lively movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "is hit in the eye and pushed backward: the whole round body is shoved back away from where it looks, toward the left, and tilts back, the big eye squeezes shut, all its eye stalks whip and flail wildly, the mouth gapes, a very lively movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "hydre": {
@@ -1774,11 +1774,11 @@
         "attack": "mm-proche-6",
         "carte": "p1-7",
         "death": "death-1",
-        "hit": "hit-5"
+        "hit": "hit-6"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png",
       "mouvements": {
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: all its heads snap back and thrash, the necks whip backward to the left, the body rocks back, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: each head recoils in a different direction, the necks whip back and sway wildly, some heads roar, the heavy body steps back toward its tail, a very lively movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "succube": {
@@ -1865,11 +1865,11 @@
         "attack": "crache-2-r",
         "carte": "p1-5",
         "death": "death-1",
-        "hit": "hit-3"
+        "hit": "hit-4"
       },
       "grande": "art-candidats/references/derives/demon-grand.png",
       "mouvements": {
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: the huge body jolts and rocks backward to the left, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "is hit in the face and stumbles back: the head snaps back, the fat belly wobbles, the wings jerk open, he steps back toward his tail, holding his trident, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "diablotin": {

@@ -574,6 +574,21 @@ public sealed class MapGenerator
         return mine;
     }
 
+    /// <summary>
+    /// Combien de cases de montagne touchent le dos d'une mine d'entrée <paramref name="entrance"/> (les 3 cases juste
+    /// derrière elle, au-dessus de sa rangée du haut) : de 0 à 3. Comme dans Heroes 3, une mine se creuse au flanc d'une
+    /// montagne (idée de l'utilisateur, 2026-11-17) ; une montagne à côté seulement ne fait pas une mine creusée dedans.
+    /// </summary>
+    private int MountainBack(Cell entrance) =>
+        new[] { -1, 0, 1 }.Count(dx =>
+            _map.InBounds(entrance.Offset(dx, -2)) && _map.GetTerrain(entrance.Offset(dx, -2)) == TerrainType.Mountain);
+
+    /// <summary>Une mine qu'on creuse (toutes sauf la scierie) : elle cherche le flanc d'une montagne.</summary>
+    private static bool Dug(ResourceType resource) => resource != ResourceType.Wood;
+
+    /// <summary>1 si la mine a le dos contre la montagne (2 des 3 cases derrière elle au moins), sinon 0.</summary>
+    private int Backed(Cell entrance) => MountainBack(entrance) >= 2 ? 1 : 0;
+
     /// <summary>Les mines posées dans la zone de départ d'un joueur (bois, minerai, ressource principale) : sans gardien.</summary>
     private readonly HashSet<MapObject> _startZoneMines = new();
 
@@ -2399,9 +2414,11 @@ public sealed class MapGenerator
                 int Steps(Cell c) => Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y));
                 bool Home(Cell c) => _zones.Count == 0 || ZoneAt(c) == ZoneAt(start);
                 var otherStarts = _map.Starts.Where(o => o != start).Select(o => _zones.Count == 0 ? null : ZoneAt(o)).ToList();
+                // une mine creusée : au flanc d'une montagne de préférence, toujours à 4 à 11 pas
+                int Flank(Cell c) => Dug(resource) ? -Backed(c) : 0;
                 var tries = new[]
                 {
-                    free.Where(c => Home(c) && Steps(c) is >= 4 and <= 11).OrderBy(c => Math.Abs(SquaredDistance(c, start) - target)),
+                    free.Where(c => Home(c) && Steps(c) is >= 4 and <= 11).OrderBy(Flank).ThenBy(c => Math.Abs(SquaredDistance(c, start) - target)),
                     free.Where(c => Home(c) && Steps(c) >= 3).OrderBy(c => SquaredDistance(c, start)),
                     free.Where(c => _zones.Count == 0 || !otherStarts.Contains(ZoneAt(c))).OrderBy(c => SquaredDistance(c, start)),
                 };
@@ -2465,7 +2482,8 @@ public sealed class MapGenerator
                 bool done = false;
                 foreach (var (where, order) in tries)
                 {
-                    foreach (var cell in free.Where(c => DistanceToNearestTown(c) >= 5 && where(c)).OrderBy(order).ThenBy(c => c.Y).ThenBy(c => c.X).ToList())
+                    foreach (var cell in free.Where(c => DistanceToNearestTown(c) >= 5 && where(c))
+                                 .OrderBy(c => Dug(resource) ? -Backed(c) : 0).ThenBy(order).ThenBy(c => c.Y).ThenBy(c => c.X).ToList())
                     {
                         var spots = GuardSpotsFor(cell, freeSet);
                         if (TryPlaceMine(cell, resource, freeSet) is not { } mine)
@@ -2509,7 +2527,8 @@ public sealed class MapGenerator
         mines = planned;
         foreach (var resource in mines)
         {
-            bool placed = false;
+            // une mine creusée : d'abord une place au flanc d'une montagne, la première de la liste tirée au sort
+            bool placed = Dug(resource) && free.Skip(next).Where(c => Backed(c) == 1).Any(c => TryPlaceMine(c, resource, freeSet) is not null);
             while (!placed && next < free.Count)
                 placed = TryPlaceMine(free[next++], resource, freeSet) is not null;
             if (!placed)

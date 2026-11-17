@@ -32,6 +32,7 @@ chiffres en vigueur sont dans `godot/data/`.
    difficulté.
 9. **Contenu (en cours)** : magie, factions, héros, compétences, artefacts, carte, mer (ci-dessous).
 10. Finitions : apparence et détails, **les sons et la musique** (ci-dessous).
+11. Multijoueur : d'abord à tour de rôle sur un même PC, plus tard en réseau (ci-dessous).
 
 ## Étape 9 : contenu
 
@@ -141,12 +142,10 @@ une option, une ville au plus par zone, une scierie et une mine de minerai gard�
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
-dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais (2026-11-17).
+dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
 - **Le marais** : ses bords sont carrés (le shader du sol), à arrondir comme ceux du sable.
-- **Les montagnes** (en cours) : mieux fondre les montagnes au bord de deux sols ; les **mines au flanc des montagnes**
-  (idée de l'utilisateur, comme Heroes 3).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
 - **L'herbe** : embellir les fleurs (l'utilisateur, plus tard) ; le bord des routes suivra.
@@ -237,6 +236,16 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   Wonders » lui plaisent aussi (taverne, carte ?). **Reste** : les autres sorts, la carte, l'interface, la musique de
   la carte, puis la musique chez Stable Audio.
 
+## Étape 11 : multijoueur (à concevoir)
+Idée de l'utilisateur (2026-11-17). Les règles s'y prêtent déjà : plusieurs joueurs dans `GameState`, un brouillard
+par joueur, un humain peut diriger sa défense, et une partie se rejoue pareil avec la même graine.
+- **À tour de rôle sur un même PC** (après le contenu de l'étape 9) : humain ou ordinateur pour chaque joueur dans la
+  nouvelle partie ; un écran « Au tour de… » qui cache la carte entre deux joueurs ; l'affichage suit le joueur humain
+  du tour (son brouillard, ses villes, ses héros) ; un combat entre deux humains, chacun dirige son camp.
+- **En réseau** (plus tard, après l'étape 10) : n'envoyer que les ordres des joueurs, chaque PC calcule la même
+  partie (tests qui le vérifient) ; rejoindre une partie, reprendre après une coupure ; un combat où l'un attend
+  l'autre.
+
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à
   700 × (n−1) × n / 2 d'expérience (= l'or des créatures tuées) ; chaque niveau : +1 charisme, +1 au choix et un point
@@ -264,7 +273,9 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   l'écran vient du nombre de pixels de l'image, jamais d'un autre agrandissement (voir `tools/art/METHODE.md`).
 - **Les tailles communes de l'interface** (`Ui.cs`, 2026-11-11) : un écran prend ses tailles de bouton, de texte et de
   marge parmi celles de `Ui` (`ButtonHeight`, `NormalText`…), et ses longueurs tombent sur la grille (`Px`, `Snap`).
-- **`GameState` gère plusieurs joueurs**, et l'IA joue avec les mêmes méthodes que le joueur humain.
+- **`GameState` gère plusieurs joueurs**, et l'IA joue avec les mêmes méthodes que le joueur humain. Ne pas supposer
+  un seul humain (en vue du multijoueur) : l'affichage et les règles passent par le joueur du tour, pas par « le
+  joueur ».
 - **Toutes les règles restent dans `Core/`** (sans Godot), testables ; l'affichage ne fait que lire des événements.
 - **Les données de jeu** (créatures, bâtiments, sorts, artefacts) sont dans `godot/data/`, pas dans le code.
 - Rester proche des règles et des chiffres de Heroes 3, sauf choix contraire noté (charisme, magie…).

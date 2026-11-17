@@ -308,6 +308,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   rubble » (le Golem reste debout, ou une fente blanche s'ouvre) : le faire **basculer** (« topples forward and falls
   face down ») ; des taches blanches (poussière) sur la Gargouille : une autre graine. Les os qui se défont (Squelette,
   Colosse d'os), la lave qui refroidit (Limon), l'arbre qui bascule (Tréant) marchent bien.
+- **Les coups reçus** (2026-11-17) : animés directement (modèle v3), **avec retour** à l'image de départ, **6 images**
+  (joués à 12 images/s : une demi-seconde), même cadre que la mort ; environ 0,016 $ l'essai. **Ne jamais parler du coup
+  ni de la douleur** (« is struck by a blow », « recoils in pain ») : PixelLab dessine alors une étincelle ou un éclair
+  d'impact sur la créature, et « no sparks, no flash » en ajoute encore. Décrire seulement le geste, **avec le sens** :
+  « flinches away to the left: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then
+  recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture ». Sans « to the
+  left », le Fantôme tend le bras vers l'avant (l'utilisateur : on dirait qu'il attaque). Une créature de face (le
+  Troll) bouge à peine. Une étincelle reste parfois sur une image (Djinn, Arbalétrier) quelle que soit la graine.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).

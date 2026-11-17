@@ -171,9 +171,11 @@ la zone ; les créatures du Donjon en gardiens.
 ✅ Fait : combat à ×2, effets dessinés par le jeu, animations des sorts, les options du combat, choisir le côté de
 l'attaque, les champs de l'herbe, du désert et du marais (2026-11-16), les obstacles plutôt au milieu du champ.
 ✅ Une **animation de mort** par créature (2026-11-17, branche `animations-mort`, un essai chacune pour commencer :
-choix de l'utilisateur) ; **à revoir avec lui** (page `art-candidats/en-cours/morts.html` : garder ou refaire).
-**Reste** : peut-être des rochers dans les collines et des nuages ; de vrais obstacles de combat ; l'**Épéiste et le Cavalier** à refaire (plus petits) ; peut-être une animation « touché » par
-créature.
+choix de l'utilisateur) ; **à revoir avec lui** (page `art-candidats/en-cours/morts.html` : garder ou refaire), peut-être
+en tombant en arrière. ✅ Un **coup reçu** par créature (2026-11-17, même branche) ; 8 revus, **les 48 autres à revoir**
+(`art-candidats/en-cours/coups.html`).
+**Reste** : peut-être des rochers dans les collines et des nuages ; de vrais obstacles de combat ; l'**Épéiste et le Cavalier** à refaire (plus petits) ;
+l'Archer, le Loup, le Troll et le Griffon à refaire entièrement (choix de l'utilisateur).
 
 ### Les héros en images
 ✅ Le héros de chaque faction sur la carte (8 directions, une marche), leurs pieds revus.

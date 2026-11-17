@@ -55,7 +55,7 @@ BATAILLE = "godot/art/creatures/battle"
 VITESSES = BATAILLE + "/animations.json"
 EN_COURS = "art-candidats/en-cours"
 GARDEES = "art-candidats/references/derives"
-ETATS = ("idle", "move", "attack", "transform", "throw", "death")  # transform : facultatif, joué avant et après un déplacement ; throw : le lancer du crochet (Tourmenteur) ; death : la mort, jouée une fois
+ETATS = ("idle", "move", "attack", "transform", "throw", "death", "hit")  # transform : facultatif, joué avant et après un déplacement ; throw : le lancer du crochet (Tourmenteur) ; death : la mort, jouée une fois ; hit : le coup reçu, joué une fois
 
 
 def charger():
@@ -190,6 +190,8 @@ def departs(f, ident, large=2.2, large_vol=None):
     tailles["move"] = tailles["transform"] = tailles["idle"]
     # la mort : la créature tombe sur le côté, couchée elle est plus large que debout
     tailles["death"] = (tailles["attack"][0], tailles["idle"][1])
+    # le coup reçu : la créature recule, un cadre aussi large que la mort
+    tailles["hit"] = tailles["death"]
     if large_vol:
         # un déplacement aux grandes ailes (l'Ange) : un cadre aussi large que demandé, sinon les ailes sont coupées
         tailles["move"] = (min(256, arrondi16(w * large_vol)), arrondi16(h * 1.2))
@@ -408,7 +410,7 @@ def cmd_choisir(ident, quoi, nom, fps=None):
     elif quoi in ETATS:
         choisir_anim(donnees, ident, quoi, nom, fps)
     else:
-        sys.exit("choisir <id> fixe|idle|move|attack|transform|throw|death <nom> [images/s]")
+        sys.exit("choisir <id> fixe|idle|move|attack|transform|throw|death|hit <nom> [images/s]")
     enregistrer(donnees)
     cmd_page(ident)
 
@@ -514,7 +516,7 @@ def cmd_page(ident):
     voisin = vers_page(f"{BATAILLE}/{comparer[0]}.png") if comparer else ""
     anims, donnees_js = "", []
     d = dossier(ident, "anim")
-    for etat, titre in (("idle", "Attente"), ("move", "Déplacement"), ("attack", "Attaque"), ("transform", "Transformation"), ("death", "Mort")):
+    for etat, titre in (("idle", "Attente"), ("move", "Déplacement"), ("attack", "Attaque"), ("transform", "Transformation"), ("death", "Mort"), ("hit", "Coup reçu")):
         noms = sorted((x[:-4] for x in os.listdir(d) if x.startswith(etat + "-") and x.endswith(".png")) if os.path.isdir(d) else [],
                       key=lambda x: [int(v) if v.isdigit() else 0 for v in x.split("-")[1:]], reverse=True)
         if not noms:
@@ -530,7 +532,7 @@ def cmd_page(ident):
             anims += (f"<div class=scene style='max-width:{largeur_scene + 5}px'><canvas id='{fid}' width={largeur_scene} height=210></canvas>"
                       f"<div>{'★ ' if pris else ''}{nom}{f' ({total} images)' if total != 8 else ''}</div>{alertes}</div>")
             donnees_js.append({"id": fid, "feuille": vers_page(os.path.join(d, nom + ".png")), "voisin": voisin, "images": total,
-                               "fps": propre.get(etat, 10), "attaque": etat in ("attack", "transform", "death"), "deplacement": etat == "move",
+                               "fps": propre.get(etat, 10), "attaque": etat in ("attack", "transform", "death", "hit"), "deplacement": etat == "move",
                                # comme le jeu : un cycle par case pour une créature qui marche, 0,09 s pour un volant
                                "pas": propre.get("stepTime", 0.09 if f.get("vole") else total / propre.get("move", 10)),
                                "pause": pause if etat == "idle" and pause[1] > 0 else None})

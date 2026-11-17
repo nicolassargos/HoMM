@@ -8,7 +8,8 @@
         "idle": "subtle idle: slow calm breathing and one small movement, the feet stay in place",
         "attack": "strikes the enemy in front of it with its weapon, then returns to its starting pose",
         "move": "walking forward to the right with steady steps, the legs clearly alternating",
-        "death": "is mortally wounded: staggers backward, drops to its knees and collapses face down, lying motionless on the ground at the end; no effects, no blood, no other character"
+        "death": "is mortally wounded: staggers backward, drops to its knees and collapses face down, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches away to the left: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     },
@@ -20,7 +21,8 @@
         "idle": "hovering in place, swaying gently, very small movements",
         "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place",
         "move": "flying forward to the right, gliding smoothly through the air",
-        "death": "is mortally wounded: stops flying and falls down to the ground, lying motionless on the ground at the end; no effects, no blood, no other character"
+        "death": "is mortally wounded: stops flying and falls down to the ground, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches away to the left: jolts backward to the left in the air, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     },
@@ -32,7 +34,8 @@
         "idle": "standing still, breathing, the head and tail move a little",
         "attack": "lunges forward and bites the enemy in front of it, then steps back to its starting pose",
         "move": "trotting forward to the right, the four legs moving in a clear trot",
-        "death": "is mortally wounded: its legs give way and it collapses onto its side, lying motionless on the ground at the end; no effects, no blood, no other character"
+        "death": "is mortally wounded: its legs give way and it collapses onto its side, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches away to the left: jerks its head back and shifts its weight backward to the left, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     },
@@ -44,7 +47,8 @@
         "idle": "slow heavy breathing, the huge body sways a little, the feet stay in place",
         "attack": "a slow powerful blow with both hands at the enemy in front of it, then back to its starting pose",
         "move": "slow heavy steps forward to the right, the whole body swaying with each step",
-        "death": "is mortally wounded: sways, then falls heavily to the ground on its side, lying motionless on the ground at the end; no effects, no blood, no other character"
+        "death": "is mortally wounded: sways, then falls heavily to the ground on its side, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches away to the left: the huge body jolts and rocks backward to the left, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     }
@@ -74,7 +78,8 @@
         "idle": "idle-1",
         "attack": "attack-9",
         "move": "move-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "notes": "D'après une image de l'utilisateur, en plus simple (style rétro). Sur une seule case. Lent : 7 images par seconde.",
       "mouvements": {
@@ -107,7 +112,8 @@
         "idle": "idle-1",
         "attack": "attack-7",
         "move": "move-3",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "notes": "Remplacera l'Épéiste. Les candidats sortaient tournés vers la gauche (miroir). Bouclier changé avec « retoucher » de pixellab.py."
     },
@@ -136,12 +142,14 @@
         "idle": "idle-2",
         "attack": "attack-1",
         "move": "move-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-5"
       },
       "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur).",
       "vole": true,
       "mouvements": {
-        "death": "is destroyed: slowly sinks down to the ground and shrinks to a small heap of tattered cloth; no effects, no other character"
+        "death": "is destroyed: slowly sinks down to the ground and shrinks to a small heap of tattered cloth; no effects, no other character",
+        "hit": "flinches away to the left: its arms pull back against its chest, its body bends and is pushed backward to the left, away from the right side, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "archer": {
@@ -173,7 +181,8 @@
         "idle": "idle-4-corde",
         "attack": "attack-3-corde",
         "move": "move-1-corde",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-3"
       },
       "notes": "Refait le 2026-11-06. La corde de l'arc est tracée par l'outil (« corde »). Il regarde autour de lui, rarement.",
       "lots": {
@@ -204,7 +213,8 @@
         "idle": "idle-2",
         "attack": "attack-5-propre",
         "move": "move-1",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "notes": "Image d'origine gardée (modèle de style). La boule de feu sera un effet du jeu : l'attaque ne lance rien."
     },
@@ -223,7 +233,8 @@
         "idle": "idle-2",
         "attack": "attack-2",
         "move": "move-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-3"
       },
       "notes": "Image d'origine gardée (modèle de style)."
     },
@@ -265,7 +276,8 @@
         "idle": "idle-3",
         "attack": "attack-11",
         "move": "move-10",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/zombie-grand.png",
       "consignes": {
@@ -287,7 +299,8 @@
       "mouvements": {
         "idle": "the troll breathes slowly and heavily, its huge shoulders rise and fall, it flexes its big fingers, the feet stay in place",
         "attack": "the troll raises both huge fists high above its head, then brings them down hard in front of it with all its weight, then straightens up to its starting pose",
-        "move": "the troll walks forward to the right with slow heavy stomping steps, its long arms swinging, its shoulders rolling"
+        "move": "the troll walks forward to the right with slow heavy stomping steps, its long arms swinging, its shoulders rolling",
+        "hit": "flinches away to the left: the huge body is knocked backward, the head snaps back and the torso leans back to the left, arms close to the body, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "grande": "art-candidats/references/derives/troll-grand.png",
       "notes": "Image d'origine gardée (modèle de style). Il se régénère (capacité) : l'effet viendra du jeu.",
@@ -299,7 +312,8 @@
         "idle": "idle-3",
         "attack": "attack-4",
         "move": "move-1",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-5"
       }
     },
     "ogre": {
@@ -321,7 +335,8 @@
         "idle": "idle-3",
         "attack": "attack-2",
         "move": "move-1",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-2"
       },
       "notes": "Fait avant l'outil (session du 2026-11-04) : sa grande image n'a que 66 px. Attente et attaque refaites le 2026-11-06.",
       "consignes": {
@@ -352,7 +367,8 @@
         "idle": "idle-2",
         "attack": "attack-2",
         "move": "move-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "vole": true
     },
@@ -378,7 +394,8 @@
         "move": "move-2",
         "idle": "idle-1",
         "attack": "attack-2-r",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "notes": "Fait avant l'outil (2026-11-04), animations refaites le 2026-11-06. Il lance des haches (tir court) : la hache en vol sera dessinée par le jeu.",
       "consignes": {
@@ -426,7 +443,8 @@
         "move": "move-1",
         "attack": "attack-14",
         "idle": "idle-1",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/vampire-grand.png",
       "consignes": {
@@ -470,7 +488,8 @@
         "idle": "idle-1",
         "move": "move-2",
         "attack": "attack-4",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/liche-grand.png",
       "consignes": {
@@ -515,7 +534,8 @@
         "idle": "idle-2",
         "move": "move-2",
         "attack": "attack-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/araignee-grand.png",
       "consignes": {
@@ -556,7 +576,8 @@
       },
       "choix": {
         "fixe": "L6-2 + visage",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/nomades-grand.png",
       "consignes": {
@@ -603,7 +624,8 @@
         "attack": "attack-2-r",
         "move": "move-7",
         "transform": "transform-2, images 1 à 5 (sans la pose tenue), 12 images/s",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-2"
       },
       "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png",
       "consignes": {
@@ -649,7 +671,8 @@
         "idle": "idle-2",
         "move": "move-2",
         "attack": "attack-4-r",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/farfadet-grand.png",
       "mouvements": {
@@ -699,7 +722,8 @@
       "choix": {
         "fixe": "L8-1",
         "attack": "attack-2-main",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/behemoth-grand.png",
       "consignes": {
@@ -717,7 +741,8 @@
         "death": "is mortally wounded: its wings fold, it sways and collapses heavily onto its side, lying motionless on the ground at the end; no effects, no blood, no other character"
       },
       "choix": {
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       }
     },
     "gobelin": {
@@ -726,7 +751,8 @@
       "grande": "art-candidats/references/derives/gobelin-grand.png",
       "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
       "choix": {
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       }
     },
     "paysan": {
@@ -735,7 +761,8 @@
       "grande": "art-candidats/references/derives/paysan-grand.png",
       "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
       "choix": {
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-3"
       }
     },
     "ange": {
@@ -767,7 +794,8 @@
         "idle": "idle-1",
         "move": "move-4",
         "attack": "attack-8-r",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/ange-grand.png",
       "mouvements": {
@@ -811,7 +839,8 @@
         "idle": "idle-3",
         "move": "move-5",
         "attack": "attack-6-r",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/squelette-grand.png",
       "mouvements": {
@@ -855,7 +884,8 @@
         "idle": "idle-2-r",
         "move": "move-2",
         "attack": "attack-2-r",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/sanglier-grand.png",
       "mouvements": {
@@ -899,7 +929,8 @@
         "move": "move-3-sc",
         "attack": "attack-2-r",
         "idle": "idle-5-sc",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/archer-elfe-grand.png",
       "mouvements": {
@@ -942,7 +973,8 @@
         "idle": "idle-2",
         "move": "move-4",
         "attack": "attack-4-r",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/cerf-grand.png",
       "mouvements": {
@@ -992,14 +1024,16 @@
         "move": "move-6",
         "attack": "attack-4-r",
         "idle": "idle-6",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/treant-grand.png",
       "mouvements": {
         "idle": "the walking tree stands still and sways gently in the wind, its crown of leaves and blossoms rustles, its branch arms move slowly, its roots stay in place",
         "move": "the walking tree walks slowly forward to the right on its thick roots in one full heavy lumbering walking cycle, one root leg lifting and stepping forward after the other, its crown swaying, it stays at the same place",
         "attack": "the walking tree raises one heavy branch arm high and swings it down hard to smash the enemy in front of it, then slowly returns to its starting pose",
-        "death": "is destroyed: creaks and topples over sideways like a falling tree, lying motionless on the ground at the end; no effects, no blood, no other character"
+        "death": "is destroyed: creaks and topples over sideways like a falling tree, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches away to the left: its trunk creaks and bends backward, branches shaking, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "consignes": {
         "idle": "the walking tree shakes its big leafy crown strongly from left to right and back again several times, like an animal shaking its head, a few leaves and petals fall slowly from its crown to the ground, then it stands still again, its roots stay in place",
@@ -1050,7 +1084,8 @@
         "idle": "idle-2-r",
         "move": "move-2",
         "attack": "attack-2-r",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/druide-grand.png",
       "consignes": {
@@ -1098,7 +1133,8 @@
         "idle": "idle-1",
         "move": "move-2",
         "attack": "attack-2-r",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/gnome-grand.png",
       "mouvements": {
@@ -1146,7 +1182,8 @@
         "move": "move-4-gris",
         "transform": "transform-1",
         "attack": "attack-13-gris",
-        "death": "death-2"
+        "death": "death-2",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/gargouille-grand.png",
       "mouvements": {
@@ -1198,7 +1235,8 @@
         "idle": "idle-9",
         "attack": "attack-8-gris",
         "carte": "p1-11",
-        "death": "death-3"
+        "death": "death-3",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/golem-pierre-grand.png",
       "consignes": {
@@ -1208,7 +1246,8 @@
       },
       "marge_bas": 0.08,
       "mouvements": {
-        "death": "is destroyed: the heavy stone body topples forward and falls face down onto the ground with a thud, lying motionless on the ground at the end; no effects, no blood, no other character"
+        "death": "is destroyed: the heavy stone body topples forward and falls face down onto the ground with a thud, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches away to the left: the heavy stone body rocks backward slightly, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "naga": {
@@ -1249,7 +1288,8 @@
         "attack": "attack-7-sb",
         "move": "move-5",
         "carte": "p2-5",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/naga-grand.png",
       "marge_bas": 0.06,
@@ -1296,7 +1336,8 @@
         "move": "move-2",
         "attack": "attack-2-r",
         "carte": "p1-4",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/djinn-grand.png",
       "consignes": {
@@ -1342,7 +1383,8 @@
         "move": "move-5",
         "attack": "attack-5-r",
         "carte": "p1-6",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/mage-grand.png",
       "consignes": {
@@ -1393,7 +1435,8 @@
         "move": "move-5",
         "attack": "attack-5-r",
         "carte": "p1-12",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/geant-grand.png",
       "consignes": {
@@ -1437,7 +1480,8 @@
         "attack": "attack-2-r",
         "move": "move-5-r",
         "carte": "p1-7",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/homme-lezard-grand.png",
       "marge_bas": 0.06,
@@ -1486,7 +1530,8 @@
         "idle": "idle-5",
         "attack": "attack-5",
         "carte": "p1-1",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/homme-grenouille-grand.png",
       "consignes": {
@@ -1530,7 +1575,8 @@
         "move": "move-1",
         "attack": "attack-2-r",
         "carte": "p1-4",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/minotaure-grand.png",
       "consignes": {
@@ -1574,7 +1620,8 @@
         "move": "move-5",
         "attack": "attack-5-c",
         "carte": "p1-6",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/aberration-grand.png",
       "consignes": {
@@ -1620,7 +1667,8 @@
         "transform": "transform-terre",
         "move": "move-vide",
         "carte": "p1-3",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/ver-des-profondeurs-grand.png",
       "consignes": {
@@ -1665,7 +1713,8 @@
         "move": "vent-4",
         "attack": "regard-3",
         "carte": "p1-13",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
       "consignes": {
@@ -1674,7 +1723,8 @@
         "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place"
       },
       "mouvements": {
-        "death": "is mortally wounded: stops floating, drops to the ground and rolls onto its side, eye closed, lying motionless on the ground at the end; no effects, no blood, no other character"
+        "death": "is mortally wounded: stops floating, drops to the ground and rolls onto its side, eye closed, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches away to the left: its eye squeezes shut and its body is pushed backward in the air, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "hydre": {
@@ -1711,7 +1761,8 @@
         "move": "mm-marche-1",
         "attack": "mm-proche-6",
         "carte": "p1-7",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png"
     },
@@ -1753,7 +1804,8 @@
         "idle": "queue-2",
         "move": "mm-pas-3",
         "carte": "p1-6",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/succube-grand.png"
     },
@@ -1797,7 +1849,8 @@
         "move": "move-vide",
         "attack": "crache-2-r",
         "carte": "p1-5",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/demon-grand.png"
     },
@@ -1836,7 +1889,8 @@
         "attack": "bond-2",
         "idle": "lecher-8",
         "carte": "p1-1",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/diablotin-grand.png"
     },
@@ -1873,7 +1927,8 @@
         "move": "marche-3",
         "attack": "coup-1-r",
         "carte": "p1-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/cultiste-grand.png"
     },
@@ -1907,11 +1962,13 @@
         "attack": "ecrase-1",
         "move": "rampe32-2",
         "carte": "p1-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/limon-magma-grand.png",
       "mouvements": {
-        "death": "is destroyed: melts and collapses into a flat puddle of dark cooling lava on the ground; no effects, no other character"
+        "death": "is destroyed: melts and collapses into a flat puddle of dark cooling lava on the ground; no effects, no other character",
+        "hit": "flinches away to the left: its soft body is squashed flat and sags backward to the left, then bulges back up, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "tourmenteur": {
@@ -1948,7 +2005,8 @@
         "attack": "fauche-2-r",
         "throw": "lancer-1",
         "carte": "p1-1",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/tourmenteur-grand.png"
     },
@@ -1988,7 +2046,8 @@
         "idle": "fournaise-2",
         "attack": "poings-3",
         "carte": "p1-6",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/moloch-grand.png"
     },
@@ -2026,7 +2085,8 @@
         "move": "mmarche-1",
         "attack": "mcoup-2-r1",
         "carte": "p1-3",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/porte-bouclier-grand.png"
     },
@@ -2066,7 +2126,8 @@
         "move": "mmarche-1",
         "attack": "mtir-1-r1",
         "carte": "p1-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/arbaletrier-grand.png"
     },
@@ -2110,7 +2171,8 @@
         "move": "mmarche-1-r1",
         "attack": "mcoup-1-r1",
         "carte": "p1-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/chevaucheur-chevre-grand.png"
     },
@@ -2150,7 +2212,8 @@
         "move": "mmarche-1-r1",
         "attack": "attack-2-r2",
         "carte": "p1-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/porte-etendard-grand.png",
       "consignes": {
@@ -2225,7 +2288,8 @@
         "move": "move-4",
         "attack": "attack-2-r1",
         "carte": "p1-2",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/gyrocoptere-grand.png",
       "consignes": {
@@ -2294,7 +2358,8 @@
         "move": "mmarche-2-r1",
         "attack": "mcoup-1-r2",
         "carte": "p1-6",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/sapeur-grand.png"
     },
@@ -2334,7 +2399,8 @@
         "move": "mmarche-2",
         "attack": "mcoup-2-r1",
         "carte": "p1-1",
-        "death": "death-1"
+        "death": "death-1",
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/roi-de-cristal-grand.png",
       "garder_cyan": true,

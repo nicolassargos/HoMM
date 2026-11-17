@@ -147,8 +147,9 @@ public partial class BattleFieldView : Control
 
     /// <summary>« transform » (facultatif) : jouée avant un déplacement (le Vampire devient chauve-souris), et à
     /// l'envers à l'arrivée.</summary>
-    // « throw » : le lancer du crochet (le Tourmenteur), joué une fois, sa feuille facultative
-    private const string Idle = "idle", Move = "move", AttackState = "attack", Transform = "transform", Throw = "throw", Death = "death";
+    // « throw » : le lancer du crochet (le Tourmenteur), joué une fois, sa feuille facultative ; « hit » : le coup reçu,
+    // joué une fois par une troupe touchée qui survit
+    private const string Idle = "idle", Move = "move", AttackState = "attack", Transform = "transform", Throw = "throw", Death = "death", Hit = "hit";
 
     /// <summary>Une troupe morte reste couchée un moment après son animation de mort, puis s'efface (secondes).</summary>
     private const double DeathHold = 0.7, DeathFade = 0.6;
@@ -1388,6 +1389,7 @@ public partial class BattleFieldView : Control
                             var target = _shown[cloudStruck.Target];
                             target.Count = Math.Max(0, target.Count - cloudStruck.Killed);
                             target.Flash = 1;
+                            Hurt(cloudStruck.Target);
                             target.Recoil = 1;
                             target.RecoilDirection = target.Position.X >= _shown[cloudStruck.Attacker].Position.X ? 1 : -1;
                             _floating.Add(($"-{cloudStruck.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(170, 220, 150)));
@@ -1478,6 +1480,7 @@ public partial class BattleFieldView : Control
                             var target = _shown[struck.Target];
                             target.Count = Math.Max(0, target.Count - struck.Killed);
                             target.Flash = 1;
+                            Hurt(struck.Target);
                             // un éclat sur la troupe touchée, et elle recule un peu, dans le sens du coup
                             float direction = target.Position.X >= striker.Position.X ? 1 : -1;
                             target.Recoil = 1;
@@ -1583,6 +1586,7 @@ public partial class BattleFieldView : Control
                             var target = _shown[damaged.Target];
                             target.Count = Math.Max(0, target.Count - damaged.Killed);
                             target.Flash = 1;
+                            Hurt(damaged.Target);
                             _floating.Add(($"-{damaged.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(255, 170, 90)));
                             if (damaged.Killed > 0)
                             {
@@ -1646,6 +1650,7 @@ public partial class BattleFieldView : Control
                             var target = _shown[poisoned.Unit];
                             target.Count = Math.Max(0, target.Count - poisoned.Killed);
                             target.Flash = 1;
+                            Hurt(poisoned.Unit);
                             _effects.Hit("bulles", BodyCenter(poisoned.Unit, target), 1);
                             _floating.Add(($"-{poisoned.Damage}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(150, 220, 90)));
                         }
@@ -1741,6 +1746,7 @@ public partial class BattleFieldView : Control
                         var shown = _shown[burned.Unit];
                         shown.Count = Math.Max(0, shown.Count - burned.Killed);
                         shown.Flash = 1;
+                        Hurt(burned.Unit);
                     }, 0.35);
                     break;
                 case UnitHooked hooked:
@@ -1834,6 +1840,7 @@ public partial class BattleFieldView : Control
                         {
                             target.Count = Math.Max(0, target.Count - bolt.Killed);
                             target.Flash = 1;
+                            Hurt(bolt.Target);
                             _floating.Add(($"-{bolt.Damage}", target.Position + Ui.V(0, -85), 0, MapRenderer.Rgb(150, 200, 255)));
                             if (bolt.Killed > 0)
                                 _floating.Add(($"{bolt.Killed} †", target.Position + Ui.V(0, -65), 0, Colors.White));
@@ -2085,6 +2092,11 @@ public partial class BattleFieldView : Control
             PreviewDeath(delta, parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var still) ? still : null);
             return;
         }
+        if (parts[0] == "coup")
+        {
+            PreviewHit(delta);
+            return;
+        }
         if (parts[0] == "cristal")
         {
             PreviewMirror(delta, parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var still) ? still : null);
@@ -2156,6 +2168,19 @@ public partial class BattleFieldView : Control
             shown.Dying = t < DeathTime(unit);
             shown.Gone = !shown.Dying;
         }
+    }
+
+    /// <summary>Développement (« --effect-preview=coup ») : chaque troupe qui a un coup reçu le joue toutes les 1,5
+    /// secondes.</summary>
+    private void PreviewHit(double delta)
+    {
+        double before = _previewClock;
+        _previewClock = _previewClock < 0 ? 0 : _previewClock + delta;
+        if (before >= 0 && Math.Floor(before / 1.5) == Math.Floor(_previewClock / 1.5))
+            return;
+        foreach (var (unit, shown) in _shown)
+            if (!shown.Gone && Sheet(unit, Hit) != null)
+                shown.Play(Hit);
     }
 
     /// <summary>
@@ -2315,6 +2340,15 @@ public partial class BattleFieldView : Control
     }
 
     /// <summary>Combien de temps dure la mort d'une troupe à l'écran : l'animation, le corps couché, puis l'effacement.</summary>
+    /// <summary>Une troupe touchée qui survit joue son coup reçu (si elle en a un et qu'elle attendait), puis revient à
+    /// l'attente.</summary>
+    private void Hurt(BattleUnit unit)
+    {
+        var shown = _shown[unit];
+        if (shown.Count > 0 && shown.State == Idle && Sheet(unit, Hit) != null)
+            shown.Play(Hit);
+    }
+
     private static double DeathTime(BattleUnit unit) => Frames(unit, Death) / Fps(unit, Death) + DeathHold + DeathFade;
 
     /// <summary>
@@ -2350,6 +2384,8 @@ public partial class BattleFieldView : Control
             shown.Recoil = Math.Max(0, shown.Recoil - (float)delta * 4);
             shown.Glow = Math.Max(0, shown.Glow - (float)delta * 1.2f);
             shown.StateTime += delta;
+            if (shown.State == Hit && shown.StateTime >= Frames(unit, Hit) / Fps(unit, Hit))
+                shown.Play(Idle);
             if (shown.Dying && shown.StateTime >= DeathTime(unit))
             {
                 shown.Dying = false;
@@ -2580,8 +2616,9 @@ public partial class BattleFieldView : Control
         int index = shown.State == Idle && IdlePause(unit) is var (least, most)
             ? IdleFrameWithPauses(time, Fps(unit, Idle), least, most, shown.Phase, frames)
             : (int)(time * Fps(unit, state));
-        // l'attaque, le lancer, la transformation et la mort sont joués une fois (la transformation parfois à l'envers)
-        index = state is AttackState or Transform or Throw or Death ? Math.Min(index, frames - 1) : index % frames;
+        // l'attaque, le lancer, la transformation, la mort et le coup reçu sont joués une fois (la transformation parfois
+        // à l'envers)
+        index = state is AttackState or Transform or Throw or Death or Hit ? Math.Min(index, frames - 1) : index % frames;
         if (state == Transform && shown.Backwards)
             index = frames - 1 - index;
         int rows = (frames + AnimationColumns - 1) / AnimationColumns;

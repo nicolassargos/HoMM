@@ -329,5 +329,10 @@ public partial class Audio : Node
             AudioServer.SetBusMute(index, volume <= 0.001);
             AudioServer.SetBusVolumeDb(index, Mathf.LinearToDb((float)(volume * volume)));
         }
+        // aucun son pendant une capture, ni avec « --mute » (2026-11-17, demandé par l'utilisateur : les captures à la
+        // suite relançaient la musique à chaque fois)
+        AudioServer.SetBusMute(0, Muted);
     }
+
+    private static bool Muted => OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--capture=") || a == "--mute");
 }

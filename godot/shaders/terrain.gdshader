@@ -91,14 +91,19 @@ uniform float road_stones_inside = 0.08;
 // des cailloux semés partout sur le sol, loin des routes (la part des carrés de ground_stone_cell pixels d'art qui en ont)
 uniform float ground_stones = 0.08;
 uniform float ground_stone_cell = 11.0;
-// Le pied des montagnes (0 : rien ; 0,7 choisi le 2026-11-17) : jusqu'à foothill_reach cases d'une montagne, l'herbe sèche (foothill),
+// Le pied des montagnes (0 : rien ; 0,35 sans terre ni gravier, 2026-11-17 : les pentes se fondent dans l'herbe) : jusqu'à foothill_reach cases d'une montagne, l'herbe sèche (foothill),
 // des plaques de terre et de gravier (foothill_soil : leur part au pied), des éboulis (foothill_scree : la part des
 // carrés de 6 pixels d'art qui ont une pierre, au pied) ; le bord ondule de foothill_wave cases
-uniform float foothill = 0.7;
+uniform float foothill = 0.35;
 uniform float foothill_reach = 1.2;
-uniform float foothill_soil = 0.5;
-uniform float foothill_scree = 0.35;
+uniform float foothill_soil = 0.0;
+uniform float foothill_scree = 0.12;
 uniform float foothill_wave = 0.5;
+// Le sol au cœur des montagnes (2026-11-17) : le sol de la montagne (l'herbe, le sable ou le marais qui l'entoure),
+// assombri, dans l'ombre des massifs, pour que le sol vu entre deux images se lise comme un creux de la pente et pas
+// comme un trou (0 : la terre et le gravier du pied ; foothill_rock_shade : la part de lumière gardée)
+uniform float foothill_rock = 1.0;
+uniform float foothill_rock_shade = 0.62;
 uniform float road_stone_cell = 6.0;
 // l'herbe qui déborde sur la route (à l'essai, 0 : rien) : par plaques le long du bord (road_grass_share du bord, plaques
 // d'environ road_grass_scale pixels d'art), l'herbe avance de road_grass pixels d'art au plus, en brins de longueurs
@@ -901,8 +906,10 @@ void fragment() {
 	}
 	// Le pied des montagnes : de 1 (contre la roche) à 0 (à foothill_reach cases), au bord ondulé
 	float foot = 0.0;
+	vec3 slope = color; // le sol avant le pied : celui du cœur des montagnes
 	if (foothill > 0.0 && !in_water && t != water) {
-		float inside = texture(mountain_field, (p + 0.5) / (vec2(map_cells) * ART)).r;
+		vec2 field = texture(mountain_field, (p + 0.5) / (vec2(map_cells) * ART)).rg;
+		float inside = field.r;
 		float md = inside
 			+ (noise((p + 0.5) / 11.0 + vec2(43.0, 17.0)) - 0.5) * foothill_wave
 			+ (noise((p + 0.5) / 3.5 + vec2(7.0, 91.0)) - 0.5) * foothill_wave * 0.35;
@@ -920,6 +927,14 @@ void fragment() {
 			vec3 soil = mix(dirt, gravel, smoothstep(0.3, 0.7, noise((p + 0.5) / 5.0 + vec2(3.0, 3.0))));
 			color = mix(color, soil, foothill);
 			t = -1; // plus d'herbe : ni fleurs ni touffes
+		}
+		// au cœur des montagnes (à plus d'un tiers de case du bord), la roche sombre, au bord ondulé et tramé
+		float rocky = smoothstep(0.3, 0.6, field.g + (noise((p + 0.5) / 6.0 + vec2(71.0, 23.0)) - 0.5) * 0.4
+			+ (bayer(p) - 0.5) * 0.12);
+		if (foothill_rock > 0.0 && rocky > 0.0) {
+			vec3 hollow = slope * foothill_rock_shade * (0.9 + 0.2 * noise((p + 0.5) / 4.0 + vec2(11.0, 5.0)));
+			color = mix(color, hollow, rocky * foothill_rock);
+			t = -1;
 		}
 		// des éboulis : des pierres, plus nombreuses contre la roche
 		vec2 cell = floor(p / 6.0);

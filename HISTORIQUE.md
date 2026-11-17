@@ -2681,12 +2681,26 @@ choix de l'utilisateur) :
   sur un passage, une route, l'eau, près d'un départ) ; le reste prend un sommet seul. Les cases de montagne sont
   exactement les cases bloquées des massifs (test `MontagnesTests`) ; ils sont sauvegardés (version 10 ; une sauvegarde
   d'avant dessine encore ses montagnes case par case). Les cases bloquées de chaque image viennent de l'image
-  (`tools/art/empreintes.py`). À l'affichage (`DecorLayer.FillGaps`), une case de montagne dont plus d'un quart du sol
-  se voit entre les images prend un petit sommet en plus. Le pied des montagnes (herbe sèche, terre, gravier, éboulis)
-  est dessiné par le shader (`foothill`, 0,7). Images : 11 grands massifs (environ 155 × 80), 11 petits, 4 sommets bas
-  (PixelLab, voir `tools/art/METHODE.md`). Essayés puis écartés : des sommets semés case par case (motif répété), des
-  massifs de Retro Diffusion (des îlots), des sommets pointus (« trop pointus »), larges en gradins (« trop carrés »),
-  naturels mais hauts (l'utilisateur les préfère plus bas). Une même graine donne une carte un peu différente d'avant.
+  (`tools/art/empreintes.py`), avec les cases que le dessin couvre (pas de massif dont l'image couvrirait de l'eau). Puis,
+  avec l'utilisateur, une longue suite d'essais d'images et de placement (même jour) :
+  - **Pour qu'une chaîne se lise comme une chaîne** : d'abord les grands sommets (`cime`) au cœur des montagnes larges,
+    puis des morceaux de chaîne (`chaine`, `etroit`), des contreforts (`petit`) au bord ; une forme d'une seule rangée
+    seulement en dernier recours ; à couverture égale, pas la même image qu'un voisin ; un peu de chevauchement préféré.
+    Les petites taches de montagne (moins de 6 cases) deviennent de la forêt (elle bloque aussi).
+  - **Pour qu'elle se fonde dans le pays** (d'après une capture de Heroes 3 HD donnée par l'utilisateur : la montagne y
+    est une surface de pentes, pas des objets posés) : des images sans contour, des pics de roche et des **pentes
+    d'herbe sans arbres dessinés** (de tout petits arbres à côté de ceux de la carte : l'échelle n'allait pas) ; leurs
+    verts sont ceux de l'herbe de la carte et leur bord se défait en trame (`tools/art/fondre.py`) ; pas d'ombre portée
+    pour les montagnes ; des arbres de la carte à leur pied ; au cœur, le sol de la montagne assombri (`foothill_rock`) ;
+    le pied du shader presque sans terre ni cailloux (`foothill` 0,35).
+  - **Un jeu d'images par sol**, comme Heroes 3 : l'herbe, le sable, le marais (`ground` dans `mountains.json`,
+    `MountainGrounds`) : les mêmes images, leurs pentes aux couleurs de chaque sol ; le sol le plus courant à deux cases
+    décide, et le shader dessine ce sol sous la montagne.
+  Essayés puis écartés : des sommets semés case par case (motif répété), des massifs de Retro Diffusion (des îlots), des
+  pics pointus (« trop pointus »), larges en gradins (« trop carrés »), recolorés au style des mines (des morceaux de
+  rocher côte à côte, « pas une vraie chaîne »), de grands sommets en blocs de rocher (« pas la bonne direction »).
+  **Reste** : les montagnes au bord de deux sols ; des bords en trame qui se voient parfois ; les mines au flanc des
+  montagnes (idée de l'utilisateur, comme Heroes 3). Une même graine donne une carte un peu différente d'avant.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

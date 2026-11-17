@@ -105,6 +105,8 @@ public partial class ShadowLayer : Node2D
     {
         foreach (var (foot, image) in DecorLayer.Sprites(State.Map))
         {
+            if (DecorLayer.IsMountain(image))
+                continue;
             var size = image.GetSize() * MapRenderer.ArtScale;
             draw(ci, image, new Rect2(foot - new Vector2(size.X / 2, size.Y), size));
         }

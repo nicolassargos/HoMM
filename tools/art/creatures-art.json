@@ -630,7 +630,7 @@
         "move": "move-7",
         "transform": "transform-2, images 1 à 5 (sans la pose tenue), 12 images/s",
         "death": "death-1",
-        "hit": "hit-4"
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png",
       "consignes": {
@@ -744,11 +744,11 @@
       "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
       "mouvements": {
         "death": "is mortally wounded: its wings fold, it sways and collapses heavily onto its side, lying motionless on the ground at the end; no effects, no blood, no other character",
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: from the very first frame the head and long neck snap backward to the left and the body leans back to the left, the wings jolt; it never leans forward, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
         "death": "death-1",
-        "hit": "hit-3"
+        "hit": "hit-5"
       }
     },
     "gobelin": {
@@ -891,7 +891,7 @@
         "move": "move-2",
         "attack": "attack-2-r",
         "death": "death-1",
-        "hit": "hit-3"
+        "hit": "hit-2"
       },
       "grande": "art-candidats/references/derives/sanglier-grand.png",
       "mouvements": {
@@ -1086,7 +1086,7 @@
         "idle": "the stout old druid stands holding his staff, slowly strokes his long white beard with his free hand, the owl on top of the staff turns its head and ruffles its feathers, the feet stay in place",
         "move": "the stout old druid walks forward to the right slowly in one full walking cycle, leaning on his tall staff with each step, his heavy robe swaying, the owl stays perched on the staff, he stays at the same place",
         "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff",
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: the old man staggers backward to the left, head and shoulders jerk back, and the owl on his shoulder startles and flaps its wings, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
         "fixe": "L10-3",
@@ -1094,7 +1094,7 @@
         "move": "move-2",
         "attack": "attack-2-r",
         "death": "death-1",
-        "hit": "hit-3"
+        "hit": "hit-5"
       },
       "grande": "art-candidats/references/derives/druide-grand.png",
       "consignes": {
@@ -1298,7 +1298,7 @@
         "move": "move-5",
         "carte": "p2-5",
         "death": "death-1",
-        "hit": "hit-3"
+        "hit": "hit-5"
       },
       "grande": "art-candidats/references/derives/naga-grand.png",
       "marge_bas": 0.06,
@@ -1308,7 +1308,7 @@
         "attack": "leans forward on her snake tail and slashes at the enemy in front of her with her curved swords, her six arms striking one after another, then rises back to her stance"
       },
       "mouvements": {
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: violently knocked back to the left: the upper body bends far backward to the left, the arms and blades are thrown back, the snake tail coils and twists, a very exaggerated movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "djinn": {
@@ -1726,7 +1726,7 @@
         "attack": "regard-3",
         "carte": "p1-13",
         "death": "death-1",
-        "hit": "hit-3"
+        "hit": "hit-5"
       },
       "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
       "consignes": {
@@ -1736,7 +1736,7 @@
       },
       "mouvements": {
         "death": "is mortally wounded: stops floating, drops to the ground and rolls onto its side, eye closed, lying motionless on the ground at the end; no effects, no blood, no other character",
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: its eye squeezes shut and its body is pushed backward in the air, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its round body is knocked back to the left and tilts, the big eye squeezes shut, all its eye stalks whip and flail wildly, the mouth gapes, a very lively movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "hydre": {
@@ -1774,7 +1774,7 @@
         "attack": "mm-proche-6",
         "carte": "p1-7",
         "death": "death-1",
-        "hit": "hit-3"
+        "hit": "hit-5"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png",
       "mouvements": {
@@ -1908,11 +1908,11 @@
         "idle": "lecher-8",
         "carte": "p1-1",
         "death": "death-1",
-        "hit": "hit-3"
+        "hit": "hit-5"
       },
       "grande": "art-candidats/references/derives/diablotin-grand.png",
       "mouvements": {
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: the whole small body is thrown backward to the left, arms and wings flailing, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head snaps back sharply as if punched in the face, the whole small body is thrown backward to the left, arms and wings flailing, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "cultiste": {

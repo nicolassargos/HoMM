@@ -1097,8 +1097,9 @@ public sealed partial class TacticalBattle
         // le mur de boucliers : un tireur à côté d'un Porte-bouclier ami
         if (ranged && to.CanShoot && Neighbours(to).Any(u => u.Side == to.Side && u.Has(Ability.ShieldWall)))
             damage *= 0.5;
-        // l'obstination des Nains : la troupe n'a pas bougé depuis le début du round (plus, avec le talent de son héros)
-        if (to.Has(Ability.Stubborn) && !to.HasMoved)
+        // l'obstination des Nains : la troupe n'a pas bougé depuis le début du round, ou la garde d'un Roi de cristal
+        // immobile la lui garde (plus, avec le talent de son héros)
+        if (to.Has(Ability.Stubborn) && (!to.HasMoved || HeldByAncestors(to)))
             damage *= 1 - Talents.StubbornShare(to.IsRebel ? null : HeroOf(to.Side), StubbornShare);
         // les sorts : bénédiction et malédiction (en pourcentage), bouclier contre les tirs
         damage *= 1 + (from.SpellAmount(SpellEffect.Bless) - from.SpellAmount(SpellEffect.Curse)) / 100.0;
@@ -1118,6 +1119,13 @@ public sealed partial class TacticalBattle
     /// <summary>La défense que donne un Porte-étendard ami voisin (<see cref="Ability.Banner"/>), une seule fois.</summary>
     public int BannerBonus(BattleUnit unit) =>
         Neighbours(unit).Any(u => u.Side == unit.Side && u.Has(Ability.Banner)) ? BannerDefense : 0;
+
+    /// <summary>
+    /// La garde des ancêtres (<see cref="Ability.AncestralHold"/>) : un Roi de cristal de son camp qui ne s'est pas
+    /// déplacé dans ce round (les révoltés gardent les leurs).
+    /// </summary>
+    public bool HeldByAncestors(BattleUnit unit) =>
+        _units.Any(u => u.IsAlive && u.Side == unit.Side && u.IsRebel == unit.IsRebel && u.Has(Ability.AncestralHold) && !u.HasMoved);
 
     // ------------------------------------------------------------------ l'Enfer
 

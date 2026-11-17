@@ -124,6 +124,9 @@ public sealed record ActiveSpell(SpellType Spell, int Amount, int LastRound);
 /// <summary>Un héros lance un sort sur cette case (pendant le tour d'une de ses troupes).</summary>
 public sealed record SpellCast(Hero Caster, BattleSide Side, SpellType Spell, Hex Target) : BattleAction;
 
+/// <summary>Le miroir de cristal d'un Roi de cristal renvoie un sort néfaste sur la troupe active du lanceur.</summary>
+public sealed record SpellReflected(BattleUnit King, BattleUnit Target, SpellType Spell) : BattleAction;
+
 /// <summary>Un sort fait <paramref name="Damage"/> dégâts à une troupe et tue <paramref name="Killed"/> créatures.</summary>
 public sealed record SpellDamaged(BattleUnit Target, SpellType Spell, int Damage, int Killed) : BattleAction;
 

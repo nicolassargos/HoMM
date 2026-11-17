@@ -1006,9 +1006,14 @@ Découpage comme les autres : 1. les créatures et leurs capacités ; 2. la vill
    au corps à corps ; habitation `caveau-rois` (Caveau des rois). Chiffres réglés par `Duels_a_prix_egal` (la Machine
    de guerre, sans son canon, gagnait tous ses duels) : attaque 24, défense 25, dégâts 76-96, 1400 PV, vitesse 4 ;
    victoires dans son niveau 56 % (Sapeur 56 %). Les anciens identifiants restent lus (sauvegardes d'avant :
-   `CreatureCatalog`, `BuildingCatalog`). **À faire (session règles)** : ses deux capacités prévues, renvoyer les
-   sorts néfastes sur la troupe du lanceur, et l'obstination gardée par toute l'armée tant qu'il ne bouge pas ;
-   peut-être un Sapeur qui surgit n'importe où (aujourd'hui, sa vitesse limite où il ressort).
+   `CreatureCatalog`, `BuildingCatalog`). ✅ Ses deux capacités (2026-11-17, branche `roi-de-cristal-capacites`) : le
+   **miroir de cristal** (`crystal-mirror`) : un sort néfaste (malédiction, lenteur, faiblesse, aveuglement) lancé sur
+   lui frappe la troupe active du lanceur à sa place (`SpellHits` le redirige, événement `SpellReflected` ; sans effet
+   sur une troupe qui n'y est pas sensible ; l'IA compte un sort néfaste sur sa propre troupe comme une perte, donc ne
+   le tente pas) ; la **garde des ancêtres** (`ancestral-hold`) : tant que le Roi ne s'est pas déplacé dans le round,
+   les troupes obstinées de son camp gardent leur obstination même après avoir bougé (`HeldByAncestors`). Les sorts
+   de dégâts le touchent normalement. Pas encore d'effet visible du renvoi (seule la ligne du journal). Peut-être
+   plus tard : un Sapeur qui surgit n'importe où (aujourd'hui, sa vitesse limite où il ressort).
 
 #### L'Enfer
 Décidé avec l'utilisateur (2026-11-11). Des créatures moins attendues que celles de Heroes 3 (choix de l'utilisateur).

@@ -1880,6 +1880,26 @@ public partial class BattleFieldView : Control
                         return heal >= 0.6;
                     });
                     break;
+                case SpellReflected reflected:
+                    // le miroir de cristal : le Roi luit et sa coque vole en éclats, puis un éclat file vers la troupe du lanceur
+                    double mirrored = 0;
+                    bool thrown = false, returned = false;
+                    _animations.Enqueue(delta =>
+                    {
+                        var king = _shown[reflected.King];
+                        if (mirrored == 0)
+                            _spells.OnUnit("cristal", BodyCenter(reflected.King, king), Ground(king), Facing(reflected.King));
+                        mirrored += Math.Max(delta, 1e-6);
+                        if (!thrown && mirrored >= 0.45)
+                        {
+                            thrown = true;
+                            var target = _shown[reflected.Target];
+                            _spells.Launch("cristal-rebond", BodyCenter(reflected.King, king), BodyCenter(reflected.Target, target),
+                                Ground(target), Array.Empty<Vector2>(), () => returned = true);
+                        }
+                        return returned;
+                    });
+                    break;
                 case SpellApplied applied:
                     double marked = 0;
                     _animations.Enqueue(delta =>
@@ -2045,6 +2065,11 @@ public partial class BattleFieldView : Control
             PreviewHook();
             return;
         }
+        if (parts[0] == "cristal")
+        {
+            PreviewMirror(delta, parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var still) ? still : null);
+            return;
+        }
         if (!BattleEffects.PlaysOnHex(parts[0]))
         {
             // un tir (« eclair ») : de la première troupe de gauche vers la première de droite, relancé sans cesse pour
@@ -2092,6 +2117,32 @@ public partial class BattleFieldView : Control
             targets = new() { frozen != null ? targets[^1] : targets[_previewTurn++ % targets.Count] };
         foreach (var shown in targets)
             _effects.OnHex(parts[0], Ground(shown), frozen);
+    }
+
+    /// <summary>
+    /// Développement (« --effect-preview=cristal ») : le miroir de cristal sur la première troupe de droite, toutes les
+    /// deux secondes, et son éclat vers la première troupe de gauche ; « cristal:0.3 » fige le miroir à cet instant.
+    /// </summary>
+    private void PreviewMirror(double delta, double? frozen)
+    {
+        var king = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Defender);
+        var caster = _shown.FirstOrDefault(p => !p.Value.Gone && p.Key.Side == BattleSide.Attacker);
+        if (king.Key == null || caster.Key == null)
+            return;
+        double before = _previewClock;
+        if (frozen != null)
+        {
+            if (before < 0)
+                _spells.OnUnit("cristal", BodyCenter(king.Key, king.Value), Ground(king.Value), Facing(king.Key), frozen);
+            _previewClock = 0;
+            return;
+        }
+        _previewClock = _previewClock < 0 || _previewClock > 2 ? 0 : _previewClock + delta;
+        if (_previewClock == 0)
+            _spells.OnUnit("cristal", BodyCenter(king.Key, king.Value), Ground(king.Value), Facing(king.Key));
+        if (before < 0.45 && _previewClock >= 0.45)
+            _spells.Launch("cristal-rebond", BodyCenter(king.Key, king.Value), BodyCenter(caster.Key, caster.Value),
+                Ground(caster.Value), Array.Empty<Vector2>(), () => { });
     }
 
     /// <summary>

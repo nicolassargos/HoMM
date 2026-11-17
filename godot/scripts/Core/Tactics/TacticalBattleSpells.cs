@@ -115,6 +115,8 @@ public sealed partial class TacticalBattle
             return Array.Empty<(BattleUnit, int)>();
         if (Burns(spell, first))
             return Array.Empty<(BattleUnit, int)>();
+        if (Mirror(spell, first, side) is { } caster)
+            return new[] { (caster, strength) };
         var hits = new List<(BattleUnit, int)> { (first, strength) };
         if (spell.Target != SpellTarget.Chain)
             return hits;
@@ -135,6 +137,14 @@ public sealed partial class TacticalBattle
     /// <summary>Un sort de dégâts de l'école du feu sur une créature de l'Enfer : elle y est insensible.</summary>
     private static bool Burns(SpellType spell, BattleUnit unit) =>
         spell.Effect == SpellEffect.Damage && spell.School == FireSchool && unit.IsInfernal;
+
+    /// <summary>
+    /// Le miroir de cristal (<see cref="Ability.CrystalMirror"/>) : un sort néfaste lancé sur un Roi de cristal frappe la
+    /// troupe active du lanceur à sa place. Renvoie cette troupe, ou rien si le sort n'est pas renvoyé.
+    /// </summary>
+    private BattleUnit? Mirror(SpellType spell, BattleUnit? aimed, BattleSide side) =>
+        spell.Harmful && aimed is { } king && king.Side != side && king.Has(Ability.CrystalMirror)
+        && Active is { IsAlive: true } caster && caster.Side == side ? caster : null;
 
     /// <summary>L'école du feu (data/spells.json).</summary>
     public const string FireSchool = "feu";
@@ -171,6 +181,8 @@ public sealed partial class TacticalBattle
         _castThisRound[s] = true;
         var hits = SpellHits(spell, target, side);
         _log.Add(new SpellCast(HeroOf(side)!, side, spell, target));
+        if (UnitAt(target) is { } aimed && Mirror(spell, aimed, side) is { } caster)
+            _log.Add(new SpellReflected(aimed, caster, spell));
         foreach (var (unit, strength) in hits)
             Apply(spell, unit, strength, side, destination);
         if (CheckEnd())
@@ -214,7 +226,8 @@ public sealed partial class TacticalBattle
                 _log.Add(new UnitHealed(unit, spell, hitPoints, revived));
                 break;
             default:
-                if (unit.IsMade && spell.Harmful)
+                // (un sort renvoyé par le miroir de cristal peut tomber sur une troupe qui n'y est pas sensible)
+                if (unit.IsMade && spell.Harmful || unit.IsUndead && !spell.AffectsUndead)
                     break;
                 unit.Enchant(spell, Round + SpellDuration(side) - 1);
                 _log.Add(new SpellApplied(unit, spell));

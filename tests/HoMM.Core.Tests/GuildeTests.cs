@@ -56,7 +56,7 @@ public class GuildeTests
         castle.BuiltToday = false;
         Assert.Equal(BuildResult.MissingRequirement, state.Build(castle, "guilde-mages-3")); // il faut l'hôtel de ville
 
-        Build(state, castle, "taverne", "hotel-ville", "guilde-mages-3", "tour-archers", "caserne", "grand-hotel-ville", "guilde-mages-4");
+        Build(state, castle, "taverne", "hotel-ville", "guilde-mages-3", "tour-archers", "ecuries", "grand-hotel-ville", "guilde-mages-4");
 
         Assert.Equal(4, castle.MageGuildLevel);
         Assert.Equal(new[] { 3, 3, 2, 2 }, Enumerable.Range(1, 4).Select(l => castle.GuildSpells.Count(s => s.Level == l)));

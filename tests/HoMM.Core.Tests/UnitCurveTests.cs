@@ -7,8 +7,9 @@ namespace HoMM.Core.Tests;
 /// <summary>
 /// La progression des unités du Château : combien de paysans il faut pour vaincre une unité
 /// (avec un héros de départ). Chaque palier doit être environ deux fois plus fort que le précédent.
-/// Avec le combat tactique et les capacités (étape 6) : Archer 8, Griffon 13, Épéiste 26, Moine 58, Cavalier 112,
-/// Ange 1560.
+/// Avec le combat tactique et les capacités (étape 6) : Archer 8, Griffon 13, Épéiste 26, Moine 58, Cavalier 112 ;
+/// Ange 1560. Le Cavalier au niveau 4 et le Chevalier au niveau 6 (2026-11-17) : Archer 8, Griffon 14, Cavalier 25,
+/// Moine 61, Chevalier 93, Ange 1597.
 /// </summary>
 public class UnitCurveTests
 {
@@ -39,7 +40,7 @@ public class UnitCurveTests
     public void Chaque_palier_du_chateau_est_environ_deux_fois_plus_fort()
     {
         var hero = new GameState(7, TestData.Data).CurrentHero!;
-        var ids = new[] { "archer", "griffon", "epeiste", "moine", "cavalier" };
+        var ids = new[] { "archer", "griffon", "cavalier", "moine", "chevalier" };
         var values = ids.Select(id => PeasantsToBeat(id, hero)).ToList();
 
         for (int i = 1; i < values.Count; i++)
@@ -50,10 +51,10 @@ public class UnitCurveTests
     }
 
     [Fact]
-    public void L_ange_reste_loin_au_dessus_du_cavalier()
+    public void L_ange_reste_loin_au_dessus_du_chevalier()
     {
         var hero = new GameState(7, TestData.Data).CurrentHero!;
 
-        Assert.True(PeasantsToBeat("ange", hero) >= 10 * PeasantsToBeat("cavalier", hero));
+        Assert.True(PeasantsToBeat("ange", hero) >= 10 * PeasantsToBeat("chevalier", hero));
     }
 }

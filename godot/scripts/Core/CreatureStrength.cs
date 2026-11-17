@@ -21,7 +21,7 @@ public static class CreatureStrength
     /// L'armée du Château qui sert à mesurer (<see cref="GoldToBeat"/>) : des troupes nombreuses des quatre premiers
     /// niveaux, dans les proportions de leur croissance, pour que l'armée grandisse par petits pas.
     /// </summary>
-    private static readonly (string Id, int Count)[] MeasuringArmy = { ("paysan", 30), ("archer", 18), ("griffon", 14), ("epeiste", 8) };
+    private static readonly (string Id, int Count)[] MeasuringArmy = { ("paysan", 30), ("archer", 18), ("griffon", 14), ("cavalier", 8) };
 
     /// <summary>La troupe mesurée vaut à peu près tant d'or (une seule créature au moins).</summary>
     private const int MeasuredStackGold = 3000;

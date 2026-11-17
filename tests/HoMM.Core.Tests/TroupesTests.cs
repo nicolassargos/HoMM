@@ -71,7 +71,7 @@ public class TroupesTests
     [Fact]
     public void On_ne_partage_pas_vers_une_autre_creature_ni_dans_une_armee_pleine()
     {
-        var full = ArmyOf(("paysan", 7), ("archer", 7), ("griffon", 7), ("epeiste", 7), ("moine", 7), ("cavalier", 7), ("ange", 7));
+        var full = ArmyOf(("paysan", 7), ("archer", 7), ("griffon", 7), ("chevalier", 7), ("moine", 7), ("cavalier", 7), ("ange", 7));
         var other = ArmyOf(("paysan", 10), ("archer", 10));
 
         Assert.False(other.MoveTroop(0, other, 1, 5)); // une partie des paysans sur les archers

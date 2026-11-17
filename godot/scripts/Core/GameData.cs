@@ -151,6 +151,8 @@ public sealed class BuildingCatalog
     {
         ["forge-flammes"] = "galeries-sapeurs", // 2026-11-16, avec leurs créatures
         ["grande-fonderie"] = "caveau-rois",
+        ["caserne"] = "ecuries", // 2026-11-17, avec le Cavalier et le Chevalier
+        ["terrain-entrainement"] = "commanderie",
     };
 
     /// <summary>Les bâtiments d'une ville de cette faction : les siens, et les bâtiments communs.</summary>

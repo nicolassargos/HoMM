@@ -168,15 +168,15 @@ public class CombatTactiqueTests
     [Fact]
     public void Les_degats_sont_tires_entre_le_minimum_et_le_maximum()
     {
-        // 3 Ogres contre des Épéistes : entre 3 fois leurs dégâts minimum et 3 fois leur maximum, avant la règle attaque /
+        // 3 Ogres contre des Chevaliers : entre 3 fois leurs dégâts minimum et 3 fois leur maximum, avant la règle attaque /
         // défense (leur coup écrasant ignore 40 % de la défense)
         var ogre = Creature("ogre");
-        int defense = (int)Math.Round(Creature("epeiste").Defense * (1 - TacticalBattle.CrushingShare));
+        int defense = (int)Math.Round(Creature("chevalier").Defense * (1 - TacticalBattle.CrushingShare));
         double modifier = HoMM.Core.Battle.DamageModifier(Creature("ogre").Attack, defense);
         var seen = new HashSet<int>();
         for (int seed = 1; seed <= 40; seed++)
         {
-            var battle = Battle(ArmyOf(("ogre", 3)), ArmyOf(("epeiste", 10)), seed);
+            var battle = Battle(ArmyOf(("ogre", 3)), ArmyOf(("chevalier", 10)), seed);
             var ogres = UnitOf(battle, BattleSide.Attacker);
             var target = UnitOf(battle, BattleSide.Defender);
             target.Position = new Hex(5, 4);
@@ -226,7 +226,7 @@ public class CombatTactiqueTests
     {
         var attacker = new Army();
         attacker.Add(shooter, 10);
-        var battle = Battle(attacker, ArmyOf(("epeiste", 50)));
+        var battle = Battle(attacker, ArmyOf(("chevalier", 50)));
         var unit = UnitOf(battle, BattleSide.Attacker);
         var target = UnitOf(battle, BattleSide.Defender);
         target.Position = new Hex(column, 4);
@@ -253,7 +253,7 @@ public class CombatTactiqueTests
         {
             var attacker = new Army();
             attacker.Add(shooter, 10);
-            var battle = Battle(attacker, ArmyOf(("epeiste", 50)));
+            var battle = Battle(attacker, ArmyOf(("chevalier", 50)));
             var unit = UnitOf(battle, BattleSide.Attacker);
             var target = UnitOf(battle, BattleSide.Defender);
             target.Position = new Hex(column, 4);
@@ -285,7 +285,7 @@ public class CombatTactiqueTests
         {
             var attacker = new Army();
             attacker.Add(type, 10);
-            var battle = Battle(attacker, ArmyOf(("epeiste", 50)));
+            var battle = Battle(attacker, ArmyOf(("chevalier", 50)));
             var unit = UnitOf(battle, BattleSide.Attacker);
             var target = UnitOf(battle, BattleSide.Defender);
             target.Position = new Hex(5, 4);
@@ -321,7 +321,7 @@ public class CombatTactiqueTests
     [Fact]
     public void Se_defendre_augmente_la_defense_jusqu_au_prochain_tour()
     {
-        var battle = Battle(ArmyOf(("epeiste", 5)), ArmyOf(("paysan", 5)));
+        var battle = Battle(ArmyOf(("chevalier", 5)), ArmyOf(("paysan", 5)));
         var unit = UnitOf(battle, BattleSide.Attacker);
         int defense = unit.Defense;
         battle.ForceTurn(unit);

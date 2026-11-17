@@ -2699,7 +2699,9 @@ choix de l'utilisateur) :
   Essayés puis écartés : des sommets semés case par case (motif répété), des massifs de Retro Diffusion (des îlots), des
   pics pointus (« trop pointus »), larges en gradins (« trop carrés »), recolorés au style des mines (des morceaux de
   rocher côte à côte, « pas une vraie chaîne »), de grands sommets en blocs de rocher (« pas la bonne direction »).
-  **Reste** : les montagnes au bord de deux sols ; des bords en trame qui se voient parfois ; les mines au flanc des
+  Puis le bord des pentes (branche `montagnes-bords`) : une trame régulière se voyait comme une ligne de points ; comparés
+  avec l'utilisateur, un bord de plus en plus transparent (choisi), effrité par grappes, ou les deux ; et le trait sombre
+  qui restait sur certains pics, adouci. **Reste** : les montagnes au bord de deux sols ; les mines au flanc des
   montagnes (idée de l'utilisateur, comme Heroes 3). Une même graine donne une carte un peu différente d'avant.
 
 #### Les habitations sur la carte

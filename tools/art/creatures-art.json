@@ -444,13 +444,16 @@
         "attack": "attack-14",
         "idle": "idle-1",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/vampire-grand.png",
       "consignes": {
         "idle": "the vampire stands still, his cape sways gently, he slowly tilts his head and bares his long fangs with a thin smile, the feet stay in place",
         "move": "a small black bat with a pale vampire face flies in place, beating its wings up and down in a steady flying cycle, facing right, it stays at the same place",
         "attack": "the vampire takes a long step forward to the right and sweeps his huge black cape forward with his outstretched arm, the cape opens enormous and wide like a dark curtain covering everything in front of him, he bends deeply forward behind it and stays completely hidden behind the cape for a long moment, only a dark shape leaning over his prey, then he slowly pulls back to his starting place and wraps the cape around himself"
+      },
+      "mouvements": {
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "liche": {
@@ -489,14 +492,15 @@
         "move": "move-2",
         "attack": "attack-4",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/liche-grand.png",
       "consignes": {
         "attack": "the lich straightens its hunched back and slowly raises its long staff high above its crowned skull with one bony arm, holds it up toward the sky for a moment as if calling the storm, then lowers the staff and sinks back into its hunched starting pose"
       },
       "mouvements": {
-        "death": "is destroyed: staggers and crumples into a heap of empty robes and bones on the ground; no effects, no other character"
+        "death": "is destroyed: staggers and crumples into a heap of empty robes and bones on the ground; no effects, no other character",
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "araignee": {
@@ -606,7 +610,8 @@
       "mouvements": {
         "idle": "the thunderbird stands on its talons with its wings folded along its body, breathes slowly, ruffles its totem-patterned feathers and turns its head proudly, the talons stay in place",
         "attack": "the thunderbird half opens its great wings, leaps forward and strikes the enemy in front of it with its talons and hooked beak, then folds its wings and steps back to its starting pose",
-        "move": "the thunderbird spreads its huge wings and flies forward to the right with powerful wing beats"
+        "move": "the thunderbird spreads its huge wings and flies forward to the right with powerful wing beats",
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: jolts backward to the left in the air, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "vole": true,
       "notes": "Barbares, niveau 6 : vole, 1 case (choix de l'utilisateur, 2026-11-08), appelle la foudre (l'effet vient du jeu, pas de l'image). Choix de l'utilisateur (2026-11-08) : oiseau-totem mythique. Revu : ailes repliées le long du corps. Animations (revu) : au repos il se gratte l'aile avec le bec ; il se déplace trop vite pour battre des ailes ; l'attaque montre la foudre, sans éclat ; refaite (2026-11-09) : ailes déployées, cri vers le ciel, sans éclair (la foudre est jouée par le jeu sur la case de la cible).",
@@ -625,7 +630,7 @@
         "move": "move-7",
         "transform": "transform-2, images 1 à 5 (sans la pose tenue), 12 images/s",
         "death": "death-1",
-        "hit": "hit-2"
+        "hit": "hit-4"
       },
       "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png",
       "consignes": {
@@ -738,11 +743,12 @@
       "grande": "art-candidats/references/derives/dragon-grand.png",
       "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
       "mouvements": {
-        "death": "is mortally wounded: its wings fold, it sways and collapses heavily onto its side, lying motionless on the ground at the end; no effects, no blood, no other character"
+        "death": "is mortally wounded: its wings fold, it sways and collapses heavily onto its side, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       }
     },
     "gobelin": {
@@ -885,13 +891,14 @@
         "move": "move-2",
         "attack": "attack-2-r",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/sanglier-grand.png",
       "mouvements": {
         "idle": "the wild boar stands on its four legs, snorts, lowers and raises its head, paws the ground with one front hoof, its bristly mane rises a little, the legs stay in place",
         "move": "the wild boar trots forward to the right with heavy steps in one full trotting cycle, head low, its legs moving in turn, it stays at the same place",
-        "attack": "the wild boar lowers its head and lunges forward, thrusting its long tusks upward at the enemy in front of it, then steps back to its starting pose"
+        "attack": "the wild boar lowers its head and lunges forward, thrusting its long tusks upward at the enemy in front of it, then steps back to its starting pose",
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: jerks its head back and shifts its weight backward to the left, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "consignes": {
         "idle": "the wild boar stands on its four legs, snorts, lowers and raises its head, paws the ground with one front hoof, its bristly mane rises a little, the legs stay in place",
@@ -930,13 +937,14 @@
         "attack": "attack-2-r",
         "idle": "idle-5-sc",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/archer-elfe-grand.png",
       "mouvements": {
         "idle": "the hooded elf archer stands calmly holding its longbow, breathes slowly, turns its head to look around, its cloak moves slightly, the feet stay in place",
         "move": "the hooded elf archer walks forward to the right in one full light walking cycle, holding its longbow in one hand, its cloak swaying, it stays at the same place",
-        "attack": "the hooded elf archer takes an arrow from its quiver, nocks it, raises the longbow, draws the bowstring fully back to its cheek and releases it, then lowers the bow back to its starting pose"
+        "attack": "the hooded elf archer takes an arrow from its quiver, nocks it, raises the longbow, draws the bowstring fully back to its cheek and releases it, then lowers the bow back to its starting pose",
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "consignes": {
         "idle": "the hooded elf archer reaches over its shoulder, takes one arrow from its quiver, looks at it closely, then puts it back in the quiver and stands calmly again, holding its longbow, the feet stay in place",
@@ -1077,7 +1085,8 @@
       "mouvements": {
         "idle": "the stout old druid stands holding his staff, slowly strokes his long white beard with his free hand, the owl on top of the staff turns its head and ruffles its feathers, the feet stay in place",
         "move": "the stout old druid walks forward to the right slowly in one full walking cycle, leaning on his tall staff with each step, his heavy robe swaying, the owl stays perched on the staff, he stays at the same place",
-        "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff"
+        "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff",
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
         "fixe": "L10-3",
@@ -1085,7 +1094,7 @@
         "move": "move-2",
         "attack": "attack-2-r",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/druide-grand.png",
       "consignes": {
@@ -1289,7 +1298,7 @@
         "move": "move-5",
         "carte": "p2-5",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/naga-grand.png",
       "marge_bas": 0.06,
@@ -1297,6 +1306,9 @@
         "idle": "sways gently on her coiled snake tail, slowly rubs two of her curved swords against each other to sharpen them, the tip of her tail flicks and shakes",
         "move": "slithers forward like a snake, her long snake body making big exaggerated S-shaped waves that travel from her waist to the tip of her tail, the coils clearly rising and sliding on the ground, her upper body upright and swaying a little, the six arms holding the swords ready",
         "attack": "leans forward on her snake tail and slashes at the enemy in front of her with her curved swords, her six arms striking one after another, then rises back to her stance"
+      },
+      "mouvements": {
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "djinn": {
@@ -1714,7 +1726,7 @@
         "attack": "regard-3",
         "carte": "p1-13",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
       "consignes": {
@@ -1724,7 +1736,7 @@
       },
       "mouvements": {
         "death": "is mortally wounded: stops floating, drops to the ground and rolls onto its side, eye closed, lying motionless on the ground at the end; no effects, no blood, no other character",
-        "hit": "flinches away to the left: its eye squeezes shut and its body is pushed backward in the air, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its eye squeezes shut and its body is pushed backward in the air, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "hydre": {
@@ -1762,9 +1774,12 @@
         "attack": "mm-proche-6",
         "carte": "p1-7",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
-      "grande": "art-candidats/references/derives/hydre-grand.png"
+      "grande": "art-candidats/references/derives/hydre-grand.png",
+      "mouvements": {
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: all its heads snap back and thrash, the necks whip backward to the left, the body rocks back, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      }
     },
     "succube": {
       "nom": "Succube",
@@ -1850,9 +1865,12 @@
         "attack": "crache-2-r",
         "carte": "p1-5",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
-      "grande": "art-candidats/references/derives/demon-grand.png"
+      "grande": "art-candidats/references/derives/demon-grand.png",
+      "mouvements": {
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: the huge body jolts and rocks backward to the left, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      }
     },
     "diablotin": {
       "nom": "Diablotin",
@@ -1890,9 +1908,12 @@
         "idle": "lecher-8",
         "carte": "p1-1",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
-      "grande": "art-candidats/references/derives/diablotin-grand.png"
+      "grande": "art-candidats/references/derives/diablotin-grand.png",
+      "mouvements": {
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: the whole small body is thrown backward to the left, arms and wings flailing, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      }
     },
     "cultiste": {
       "nom": "Cultiste",
@@ -2006,9 +2027,12 @@
         "throw": "lancer-1",
         "carte": "p1-1",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
-      "grande": "art-candidats/references/derives/tourmenteur-grand.png"
+      "grande": "art-candidats/references/derives/tourmenteur-grand.png",
+      "mouvements": {
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      }
     },
     "moloch": {
       "nom": "Moloch",
@@ -2172,9 +2196,12 @@
         "attack": "mcoup-1-r1",
         "carte": "p1-2",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-3"
       },
-      "grande": "art-candidats/references/derives/chevaucheur-chevre-grand.png"
+      "grande": "art-candidats/references/derives/chevaucheur-chevre-grand.png",
+      "mouvements": {
+        "hit": "flinches hard and is knocked back to the left, a big clear movement: jerks its head back and shifts its weight backward to the left, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      }
     },
     "porte-etendard": {
       "nom": "Porte-étendard des ancêtres",

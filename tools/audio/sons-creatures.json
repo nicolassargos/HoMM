@@ -1,0 +1,796 @@
+{
+  "_": "Les sons des créatures au combat (tools/audio/sons.py). L'id est le nom du son dans le jeu (data/sounds.json) : <créature>-<action>, l'action « impact » (le coup qui porte), « death », « shoot », « shot-impact ». Descriptions en anglais (« no music » est ajouté à la demande).",
+  "sons": [
+    {
+      "id": "moine-shoot",
+      "faction": "chateau",
+      "nom": "Moine : tir",
+      "duree": 1.0,
+      "texte": "monk casting a fireball from his hands: a short chant syllable and a whoosh of fire launching"
+    },
+    {
+      "id": "moine-shot-impact",
+      "faction": "chateau",
+      "nom": "Moine : tir qui touche",
+      "duree": 0.7,
+      "texte": "small fireball hitting a soldier: a fiery burst and crackle"
+    },
+    {
+      "id": "squelette-impact",
+      "faction": "morts-vivants",
+      "nom": "Squelette : coup",
+      "duree": 1.2,
+      "texte": "an old rusty sword chops into a wooden shield: a dull metallic chop, with a quick hollow clatter of loose skeleton bones"
+    },
+    {
+      "id": "squelette-death",
+      "faction": "morts-vivants",
+      "nom": "Squelette : mort",
+      "duree": 1.6,
+      "texte": "skeleton collapsing into a pile of dry bones, clattering on the ground"
+    },
+    {
+      "id": "zombie-impact",
+      "faction": "morts-vivants",
+      "nom": "Zombie : coup",
+      "duree": 1.2,
+      "texte": "a huge fat belly slams into a body: a deep dull muffled thud of soft heavy flesh, wet and meaty, low and organic, no voice"
+    },
+    {
+      "id": "zombie-death",
+      "faction": "morts-vivants",
+      "nom": "Zombie : mort",
+      "duree": 1.6,
+      "texte": "fat zombie dying: a wet gurgling moan, a squelch and a heavy body flopping down"
+    },
+    {
+      "id": "fantome-impact",
+      "faction": "morts-vivants",
+      "nom": "Fantôme : coup",
+      "duree": 1.2,
+      "texte": "a female ghost strikes: a cold ghostly shriek that cuts sharply, with an icy whoosh, eerie, short and loud"
+    },
+    {
+      "id": "fantome-death",
+      "faction": "morts-vivants",
+      "nom": "Fantôme : mort",
+      "duree": 1.6,
+      "texte": "ghost dissolving: a fading ethereal wail drifting away into echoes"
+    },
+    {
+      "id": "araignee-impact",
+      "faction": "morts-vivants",
+      "nom": "Araignée géante : coup",
+      "duree": 1.2,
+      "texte": "giant spider bite: fast clicking legs, a hiss and a venomous fang bite"
+    },
+    {
+      "id": "araignee-death",
+      "faction": "morts-vivants",
+      "nom": "Araignée géante : mort",
+      "duree": 1.6,
+      "texte": "giant spider dying: a shrill hiss, legs twitching and curling up, a dry crunch"
+    },
+    {
+      "id": "vampire-impact",
+      "faction": "morts-vivants",
+      "nom": "Vampire : coup",
+      "duree": 1.2,
+      "texte": "a vampire bites a soldier: a quick vicious hiss and a sharp wet bite, close and loud"
+    },
+    {
+      "id": "vampire-death",
+      "faction": "morts-vivants",
+      "nom": "Vampire : mort",
+      "duree": 1.6,
+      "texte": "vampire dying: an agonized hiss turning into dust, a rush of bat wings flying away"
+    },
+    {
+      "id": "liche-shoot",
+      "faction": "morts-vivants",
+      "nom": "Liche : tir",
+      "duree": 1.0,
+      "texte": "lich casting a ball of poison: a hollow whispering incantation and a sickly bubbling magic whoosh"
+    },
+    {
+      "id": "liche-shot-impact",
+      "faction": "morts-vivants",
+      "nom": "Liche : tir qui touche",
+      "duree": 0.7,
+      "texte": "a ball of green poison bursts on a soldier: a loud wet splat and a short acid sizzle"
+    },
+    {
+      "id": "liche-death",
+      "faction": "morts-vivants",
+      "nom": "Liche : mort",
+      "duree": 1.6,
+      "texte": "an undead lich sorcerer dies: one hollow ghostly scream that echoes and fades, a bony body clattering to the floor"
+    },
+    {
+      "id": "colosse-os-impact",
+      "faction": "morts-vivants",
+      "nom": "Colosse d’os : coup",
+      "duree": 1.2,
+      "texte": "a huge club made of a thigh bone hits the ground: a massive deep thump with dry bones clacking and crunching, heavy impact"
+    },
+    {
+      "id": "colosse-os-death",
+      "faction": "morts-vivants",
+      "nom": "Colosse d’os : mort",
+      "duree": 1.6,
+      "texte": "giant made of bones collapsing: a huge cascade of hundreds of bones crashing to the ground"
+    },
+    {
+      "id": "gobelin-impact",
+      "faction": "barbares",
+      "nom": "Gobelin : coup",
+      "duree": 1.2,
+      "texte": "a goblin hits with a crude spiked club: a quick whack, a mean little goblin laugh"
+    },
+    {
+      "id": "gobelin-death",
+      "faction": "barbares",
+      "nom": "Gobelin : mort",
+      "duree": 1.6,
+      "texte": "a small goblin dies: one short high-pitched squeal of pain, then a little body falls"
+    },
+    {
+      "id": "loup-impact",
+      "faction": "barbares",
+      "nom": "Loup : coup",
+      "duree": 1.2,
+      "texte": "wolf attacking: a vicious snarl and a snapping bite"
+    },
+    {
+      "id": "loup-death",
+      "faction": "barbares",
+      "nom": "Loup : mort",
+      "duree": 1.6,
+      "texte": "a big wolf dies: a dog yelp of pain followed by a sad fading whine"
+    },
+    {
+      "id": "orc-shoot",
+      "faction": "barbares",
+      "nom": "Orc : tir",
+      "duree": 1.0,
+      "texte": "orc throwing an axe: an angry grunt and a spinning axe whooshing through the air"
+    },
+    {
+      "id": "orc-shot-impact",
+      "faction": "barbares",
+      "nom": "Orc : tir qui touche",
+      "duree": 0.7,
+      "texte": "throwing axe chopping into a soldier: a heavy thunk"
+    },
+    {
+      "id": "orc-death",
+      "faction": "barbares",
+      "nom": "Orc : mort",
+      "duree": 1.6,
+      "texte": "orc warrior dying: a deep guttural roar of pain and a heavy body falling"
+    },
+    {
+      "id": "ogre-impact",
+      "faction": "barbares",
+      "nom": "Ogre : coup",
+      "duree": 1.2,
+      "texte": "ogre smashing with a big wooden club: a deep bellow and a huge thudding impact"
+    },
+    {
+      "id": "ogre-death",
+      "faction": "barbares",
+      "nom": "Ogre : mort",
+      "duree": 1.6,
+      "texte": "ogre dying: a deep long groan and a very heavy body crashing to the ground"
+    },
+    {
+      "id": "nomades-impact",
+      "faction": "barbares",
+      "nom": "Nomades : coup",
+      "duree": 1.2,
+      "texte": "steppe horseman charging: a quick horse gallop, a war cry and a curved sabre slash"
+    },
+    {
+      "id": "nomades-death",
+      "faction": "barbares",
+      "nom": "Nomades : mort",
+      "duree": 1.6,
+      "texte": "horse rider falling: horse whinny, rider cry, bodies hitting the dirt"
+    },
+    {
+      "id": "oiseau-tonnerre-impact",
+      "faction": "barbares",
+      "nom": "Oiseau-tonnerre : coup",
+      "duree": 1.2,
+      "texte": "giant thunderbird striking: a piercing raptor shriek and a sharp electric crackle"
+    },
+    {
+      "id": "oiseau-tonnerre-death",
+      "faction": "barbares",
+      "nom": "Oiseau-tonnerre : mort",
+      "duree": 1.6,
+      "texte": "a giant mythic eagle dies: a long loud eagle cry that fades away, followed by a rumble of distant thunder"
+    },
+    {
+      "id": "behemoth-impact",
+      "faction": "barbares",
+      "nom": "Béhémoth : coup",
+      "duree": 1.2,
+      "texte": "a colossal monster attacks: a huge deep beast roar and a brutal claw slash, loud and powerful"
+    },
+    {
+      "id": "behemoth-death",
+      "faction": "barbares",
+      "nom": "Béhémoth : mort",
+      "duree": 1.6,
+      "texte": "colossal beast dying: a huge fading roar and a massive body crashing down, ground shaking"
+    },
+    {
+      "id": "farfadet-impact",
+      "faction": "foret",
+      "nom": "Farfadet : coup",
+      "duree": 1.2,
+      "texte": "tiny forest sprite attacking: a cheeky giggle, fluttering wings and a small magical zap"
+    },
+    {
+      "id": "farfadet-death",
+      "faction": "foret",
+      "nom": "Farfadet : mort",
+      "duree": 1.6,
+      "texte": "tiny fairy sprite dying: a small squeak and a magic sparkle fading out"
+    },
+    {
+      "id": "sanglier-impact",
+      "faction": "foret",
+      "nom": "Sanglier : coup",
+      "duree": 1.2,
+      "texte": "wild boar charging: angry squeal and grunt, hooves, and tusks goring"
+    },
+    {
+      "id": "sanglier-death",
+      "faction": "foret",
+      "nom": "Sanglier : mort",
+      "duree": 1.6,
+      "texte": "wild boar dying: a loud squeal and a heavy body falling on leaves"
+    },
+    {
+      "id": "archer-elfe-shoot",
+      "faction": "foret",
+      "nom": "Archer elfe : tir",
+      "duree": 1.0,
+      "texte": "two arrows shot quickly from a wooden longbow: twang whoosh, twang whoosh, crisp and close"
+    },
+    {
+      "id": "archer-elfe-shot-impact",
+      "faction": "foret",
+      "nom": "Archer elfe : tir qui touche",
+      "duree": 0.7,
+      "texte": "arrow hitting a soldier: a short thud"
+    },
+    {
+      "id": "archer-elfe-death",
+      "faction": "foret",
+      "nom": "Archer elfe : mort",
+      "duree": 1.6,
+      "texte": "a female elf archer is killed: one short pained cry, then a light body falls on leaves"
+    },
+    {
+      "id": "cerf-impact",
+      "faction": "foret",
+      "nom": "Cerf : coup",
+      "duree": 1.2,
+      "texte": "great stag attacking: a loud bellow and antlers clashing hard into a shield"
+    },
+    {
+      "id": "cerf-death",
+      "faction": "foret",
+      "nom": "Cerf : mort",
+      "duree": 1.6,
+      "texte": "stag dying: a weak bellow and a large animal collapsing on leaves"
+    },
+    {
+      "id": "druide-shoot",
+      "faction": "foret",
+      "nom": "Druide : tir",
+      "duree": 1.0,
+      "texte": "magic spell of nature: a soft whoosh of wind with a chime of magic and a rustle of leaves, short and clear"
+    },
+    {
+      "id": "druide-shot-impact",
+      "faction": "foret",
+      "nom": "Druide : tir qui touche",
+      "duree": 0.7,
+      "texte": "magic leaves striking soldiers: a whirl of sharp rustling leaves and a soft magical impact"
+    },
+    {
+      "id": "druide-death",
+      "faction": "foret",
+      "nom": "Druide : mort",
+      "duree": 1.6,
+      "texte": "old druid dying: a deep tired groan and a staff falling, leaves rustling"
+    },
+    {
+      "id": "treant-impact",
+      "faction": "foret",
+      "nom": "Tréant : coup",
+      "duree": 1.2,
+      "texte": "a giant living tree smashes with its branch arm: loud creaking wood and a heavy wooden crash, powerful"
+    },
+    {
+      "id": "treant-death",
+      "faction": "foret",
+      "nom": "Tréant : mort",
+      "duree": 1.6,
+      "texte": "giant tree falling: loud cracking and splintering wood and a huge crash with rustling leaves"
+    },
+    {
+      "id": "troll-impact",
+      "faction": "foret",
+      "nom": "Troll : coup",
+      "duree": 1.2,
+      "texte": "a huge troll punches: a loud angry troll grunt and a heavy meaty punch, close"
+    },
+    {
+      "id": "troll-death",
+      "faction": "foret",
+      "nom": "Troll : mort",
+      "duree": 1.6,
+      "texte": "troll dying: a long deep growl fading and a heavy body thudding down"
+    },
+    {
+      "id": "gnome-impact",
+      "faction": "tour",
+      "nom": "Gnome : coup",
+      "duree": 1.2,
+      "texte": "an old wizard hits someone on the head with a wooden staff: a hollow wooden bonk, a cranky old man grumble"
+    },
+    {
+      "id": "gnome-death",
+      "faction": "tour",
+      "nom": "Gnome : mort",
+      "duree": 1.6,
+      "texte": "little old gnome dying: a short high-pitched cry and a tiny body falling"
+    },
+    {
+      "id": "gargouille-impact",
+      "faction": "tour",
+      "nom": "Gargouille : coup",
+      "duree": 1.2,
+      "texte": "a stone gargoyle strikes with stone claws: a gritty stone scrape and a hard rocky hit, with a raspy growl"
+    },
+    {
+      "id": "gargouille-death",
+      "faction": "tour",
+      "nom": "Gargouille : mort",
+      "duree": 1.6,
+      "texte": "stone gargoyle shattering: cracking stone and rubble crumbling to the ground"
+    },
+    {
+      "id": "golem-pierre-impact",
+      "faction": "tour",
+      "nom": "Golem de pierre : coup",
+      "duree": 1.2,
+      "texte": "stone golem punching: grinding rock and a heavy stone fist slamming"
+    },
+    {
+      "id": "golem-pierre-death",
+      "faction": "tour",
+      "nom": "Golem de pierre : mort",
+      "duree": 1.6,
+      "texte": "stone golem collapsing: big stone blocks tumbling and crashing to the ground"
+    },
+    {
+      "id": "naga-impact",
+      "faction": "tour",
+      "nom": "Naga : coup",
+      "duree": 1.2,
+      "texte": "six-armed snake woman attacking: a hiss and a fast flurry of scimitar slashes"
+    },
+    {
+      "id": "naga-death",
+      "faction": "tour",
+      "nom": "Naga : mort",
+      "duree": 1.6,
+      "texte": "naga dying: a long hiss turning into a cry, scimitars falling with metallic clanks"
+    },
+    {
+      "id": "djinn-impact",
+      "faction": "tour",
+      "nom": "Djinn : coup",
+      "duree": 1.2,
+      "texte": "djinn attacking: a magical wind gust and a booming magical punch"
+    },
+    {
+      "id": "djinn-death",
+      "faction": "tour",
+      "nom": "Djinn : mort",
+      "duree": 1.6,
+      "texte": "djinn dying: a deep echoing cry fading away in a swirling wind of smoke"
+    },
+    {
+      "id": "mage-shoot",
+      "faction": "tour",
+      "nom": "Mage : tir",
+      "duree": 1.0,
+      "texte": "battle mage casting a lightning bolt: an incantation and a crackle of electricity building up"
+    },
+    {
+      "id": "mage-shot-impact",
+      "faction": "tour",
+      "nom": "Mage : tir qui touche",
+      "duree": 0.7,
+      "texte": "lightning bolt striking a soldier: a sharp electric zap and crack"
+    },
+    {
+      "id": "mage-death",
+      "faction": "tour",
+      "nom": "Mage : mort",
+      "duree": 1.6,
+      "texte": "mage dying: a short cry and a staff falling, magic fizzling out"
+    },
+    {
+      "id": "geant-impact",
+      "faction": "tour",
+      "nom": "Géant : coup",
+      "duree": 1.2,
+      "texte": "giant striking the ground with his fist: a deep effort grunt and a huge earth-shaking thud"
+    },
+    {
+      "id": "geant-death",
+      "faction": "tour",
+      "nom": "Géant : mort",
+      "duree": 1.6,
+      "texte": "a giant dies: a deep booming groan of pain, then an enormous body crashes down, the ground shakes"
+    },
+    {
+      "id": "homme-lezard-impact",
+      "faction": "donjon",
+      "nom": "Homme-lézard : coup",
+      "duree": 1.2,
+      "texte": "lizardman attacking with a spear: a reptilian hiss and a spear thrust"
+    },
+    {
+      "id": "homme-lezard-death",
+      "faction": "donjon",
+      "nom": "Homme-lézard : mort",
+      "duree": 1.6,
+      "texte": "lizardman dying: a raspy reptilian screech and a body falling"
+    },
+    {
+      "id": "homme-grenouille-shoot",
+      "faction": "donjon",
+      "nom": "Homme-grenouille : tir",
+      "duree": 1.0,
+      "texte": "frogman throwing a stone with a sling: a croak and a sling whirling then releasing"
+    },
+    {
+      "id": "homme-grenouille-shot-impact",
+      "faction": "donjon",
+      "nom": "Homme-grenouille : tir qui touche",
+      "duree": 0.7,
+      "texte": "stone hitting armor: a hard rocky clunk"
+    },
+    {
+      "id": "homme-grenouille-death",
+      "faction": "donjon",
+      "nom": "Homme-grenouille : mort",
+      "duree": 1.6,
+      "texte": "a frog warrior dies: one loud sad frog croak, then a wet body slaps the ground"
+    },
+    {
+      "id": "minotaure-impact",
+      "faction": "donjon",
+      "nom": "Minotaure : coup",
+      "duree": 1.2,
+      "texte": "a minotaur strikes with a big axe: an angry bull bellow and a heavy axe chop on armor, loud"
+    },
+    {
+      "id": "minotaure-death",
+      "faction": "donjon",
+      "nom": "Minotaure : mort",
+      "duree": 1.6,
+      "texte": "minotaur dying: a pained bull moo and a heavy body falling"
+    },
+    {
+      "id": "aberration-impact",
+      "faction": "donjon",
+      "nom": "Aberration : coup",
+      "duree": 1.2,
+      "texte": "horrible flesh aberration attacking: wet squelching flesh, many limbs flailing and a disturbing gurgling growl"
+    },
+    {
+      "id": "aberration-death",
+      "faction": "donjon",
+      "nom": "Aberration : mort",
+      "duree": 1.6,
+      "texte": "one single flesh monster dies: a single gurgling screech from one creature only, then wet flesh collapses"
+    },
+    {
+      "id": "ver-des-profondeurs-impact",
+      "faction": "donjon",
+      "nom": "Ver des profondeurs : coup",
+      "duree": 1.2,
+      "texte": "a giant worm bites: the ground rumbles, then a huge wet chomp of a giant mouth, loud"
+    },
+    {
+      "id": "ver-des-profondeurs-death",
+      "faction": "donjon",
+      "nom": "Ver des profondeurs : mort",
+      "duree": 1.6,
+      "texte": "a giant worm dies: a long low gurgling moan, then a huge heavy body slams the ground"
+    },
+    {
+      "id": "tyran-oeil-shoot",
+      "faction": "donjon",
+      "nom": "Tyran œil : tir",
+      "duree": 1.0,
+      "texte": "a monster eye fires a magic ray: a deep pulsing humming beam, eerie and wobbly, fantasy laser"
+    },
+    {
+      "id": "tyran-oeil-shot-impact",
+      "faction": "donjon",
+      "nom": "Tyran œil : tir qui touche",
+      "duree": 0.7,
+      "texte": "magic ray hitting a soldier: a buzzing energy zap"
+    },
+    {
+      "id": "tyran-oeil-death",
+      "faction": "donjon",
+      "nom": "Tyran œil : mort",
+      "duree": 1.6,
+      "texte": "floating eye monster dying: a gurgling screech and a heavy fleshy body plopping on the ground"
+    },
+    {
+      "id": "hydre-impact",
+      "faction": "donjon",
+      "nom": "Hydre : coup",
+      "duree": 1.2,
+      "texte": "a choir of several big snakes hissing loudly at the same time, many overlapping reptile hisses and growls from different heads, then fast snapping jaws"
+    },
+    {
+      "id": "hydre-death",
+      "faction": "donjon",
+      "nom": "Hydre : mort",
+      "duree": 1.6,
+      "texte": "hydra dying: several serpent hisses fading out, a huge body crashing down"
+    },
+    {
+      "id": "diablotin-impact",
+      "faction": "enfer",
+      "nom": "Diablotin : coup",
+      "duree": 1.2,
+      "texte": "small imp attacking: a nasty high-pitched cackle and a claw scratch"
+    },
+    {
+      "id": "diablotin-death",
+      "faction": "enfer",
+      "nom": "Diablotin : mort",
+      "duree": 1.6,
+      "texte": "a tiny imp demon dies: a short shrill squeak of pain, then a little fiery poof"
+    },
+    {
+      "id": "cultiste-impact",
+      "faction": "enfer",
+      "nom": "Cultiste : coup",
+      "duree": 1.2,
+      "texte": "a hooded cultist stabs with a dagger: a sharp blade stab into a body, with a short evil hiss"
+    },
+    {
+      "id": "cultiste-death",
+      "faction": "enfer",
+      "nom": "Cultiste : mort",
+      "duree": 1.6,
+      "texte": "cultist dying: a scream and a body falling in robes"
+    },
+    {
+      "id": "limon-magma-impact",
+      "faction": "enfer",
+      "nom": "Limon de magma : coup",
+      "duree": 1.2,
+      "texte": "lava slime hitting: a hot bubbling splash and a sizzle of molten rock"
+    },
+    {
+      "id": "limon-magma-death",
+      "faction": "enfer",
+      "nom": "Limon de magma : mort",
+      "duree": 1.6,
+      "texte": "lava slime dying: bubbling fading and hardening rock cracking with a final sizzle"
+    },
+    {
+      "id": "succube-shoot",
+      "faction": "enfer",
+      "nom": "Succube : tir",
+      "duree": 1.0,
+      "texte": "a long loud kiss sound: lips smacking slowly, a long mwaaah kiss blown into the air, with a magical sparkle"
+    },
+    {
+      "id": "succube-shot-impact",
+      "faction": "enfer",
+      "nom": "Succube : tir qui touche",
+      "duree": 0.7,
+      "texte": "a magic kiss hits a soldier: a bright magical pop with a sparkle and a small heart-like chime"
+    },
+    {
+      "id": "succube-death",
+      "faction": "enfer",
+      "nom": "Succube : mort",
+      "duree": 1.6,
+      "texte": "succubus dying: a scream and bat wings fluttering down"
+    },
+    {
+      "id": "tourmenteur-impact",
+      "faction": "enfer",
+      "nom": "Tourmenteur : coup",
+      "duree": 1.2,
+      "texte": "monster with a deer skull attacking: a hollow bony shriek and a hooked chain slashing"
+    },
+    {
+      "id": "tourmenteur-death",
+      "faction": "enfer",
+      "nom": "Tourmenteur : mort",
+      "duree": 1.6,
+      "texte": "skull monster dying: a hollow echoing shriek and bones clattering down"
+    },
+    {
+      "id": "moloch-impact",
+      "faction": "enfer",
+      "nom": "Moloch : coup",
+      "duree": 1.2,
+      "texte": "a giant bronze statue punches: a very loud heavy metal clang, like a huge bronze bell struck by a hammer, powerful and close"
+    },
+    {
+      "id": "moloch-death",
+      "faction": "enfer",
+      "nom": "Moloch : mort",
+      "duree": 1.6,
+      "texte": "bronze statue collapsing: heavy metal crashing and clanging pieces"
+    },
+    {
+      "id": "demon-impact",
+      "faction": "enfer",
+      "nom": "Démon : coup",
+      "duree": 1.2,
+      "texte": "huge demon attacking with a trident and fire breath: a deep demonic roar and a burst of flames"
+    },
+    {
+      "id": "demon-death",
+      "faction": "enfer",
+      "nom": "Démon : mort",
+      "duree": 1.6,
+      "texte": "demon dying: a demonic roar fading and a big burst of fire and embers"
+    },
+    {
+      "id": "porte-bouclier-impact",
+      "faction": "nains",
+      "nom": "Porte-bouclier : coup",
+      "duree": 1.2,
+      "texte": "dwarf warrior bashing with a big shield and an axe: a gruff grunt and a heavy shield bash"
+    },
+    {
+      "id": "porte-bouclier-death",
+      "faction": "nains",
+      "nom": "Porte-bouclier : mort",
+      "duree": 1.6,
+      "texte": "dwarf dying: a gruff groan and a heavy armored body with a shield falling"
+    },
+    {
+      "id": "arbaletrier-shoot",
+      "faction": "nains",
+      "nom": "Arbalétrier : tir",
+      "duree": 1.0,
+      "texte": "heavy crossbow firing: a mechanical click and a powerful bolt release"
+    },
+    {
+      "id": "arbaletrier-shot-impact",
+      "faction": "nains",
+      "nom": "Arbalétrier : tir qui touche",
+      "duree": 0.7,
+      "texte": "crossbow bolt piercing armor: a sharp metallic punch"
+    },
+    {
+      "id": "arbaletrier-death",
+      "faction": "nains",
+      "nom": "Arbalétrier : mort",
+      "duree": 1.6,
+      "texte": "dwarf crossbowman dying: a gruff groan and armor clattering down"
+    },
+    {
+      "id": "chevaucheur-chevre-impact",
+      "faction": "nains",
+      "nom": "Chevaucheur de chèvre : coup",
+      "duree": 1.2,
+      "texte": "a dwarf rider on a mountain goat charges: a gruff dwarf war shout, a goat bleat, a hammer hit"
+    },
+    {
+      "id": "chevaucheur-chevre-death",
+      "faction": "nains",
+      "nom": "Chevaucheur de chèvre : mort",
+      "duree": 1.6,
+      "texte": "a dwarf falls from his goat: a gruff dwarf cry of pain, a goat bleating, armor hitting the ground"
+    },
+    {
+      "id": "porte-etendard-impact",
+      "faction": "nains",
+      "nom": "Porte-étendard des ancêtres : coup",
+      "duree": 1.2,
+      "texte": "dwarf banner bearer striking with a war banner pole: a battle shout and a heavy pole hit"
+    },
+    {
+      "id": "porte-etendard-death",
+      "faction": "nains",
+      "nom": "Porte-étendard des ancêtres : mort",
+      "duree": 1.6,
+      "texte": "dwarf banner bearer dying: a groan and a big flag pole falling"
+    },
+    {
+      "id": "sapeur-impact",
+      "faction": "nains",
+      "nom": "Sapeur : coup",
+      "duree": 1.2,
+      "texte": "dwarf miner striking with a pickaxe: a gruff grunt and a sharp pickaxe hit on armor and stone"
+    },
+    {
+      "id": "sapeur-death",
+      "faction": "nains",
+      "nom": "Sapeur : mort",
+      "duree": 1.6,
+      "texte": "a dwarf miner dies: a short gruff dwarf groan, then a pickaxe falls on stone with a metal clang"
+    },
+    {
+      "id": "gyrocoptere-impact",
+      "faction": "nains",
+      "nom": "Gyrocoptère : coup",
+      "duree": 1.2,
+      "texte": "a small flying steam machine drops a bomb: a whirring propeller and a loud bomb explosion"
+    },
+    {
+      "id": "gyrocoptere-death",
+      "faction": "nains",
+      "nom": "Gyrocoptère : mort",
+      "duree": 1.6,
+      "texte": "small flying machine crashing: sputtering rotor, metal crash and a small explosion"
+    },
+    {
+      "id": "roi-de-cristal-impact",
+      "faction": "nains",
+      "nom": "Roi de cristal : coup",
+      "duree": 1.2,
+      "texte": "a huge glass and crystal hammer blow: a heavy smash with a bright crystal ringing like a giant wine glass, a deep low grunt"
+    },
+    {
+      "id": "roi-de-cristal-death",
+      "faction": "nains",
+      "nom": "Roi de cristal : mort",
+      "duree": 1.6,
+      "texte": "a big crystal statue breaks: loud cracking ice-like crystal, then it shatters, glass shards falling and tinkling on stone"
+    },
+    {
+      "id": "dragon-impact",
+      "faction": "neutre",
+      "nom": "Dragon rouge : coup",
+      "duree": 1.2,
+      "texte": "a red dragon attacks: a huge roar and a big burst of fire flames, loud"
+    },
+    {
+      "id": "dragon-death",
+      "faction": "neutre",
+      "nom": "Dragon rouge : mort",
+      "duree": 1.6,
+      "texte": "dragon dying: a long mighty roar fading and a huge body crashing down"
+    },
+    {
+      "id": "pirate-impact",
+      "faction": "neutre",
+      "nom": "Pirate : coup",
+      "duree": 1.2,
+      "texte": "pirate attacking with a cutlass: a rough battle shout and a quick double sword slash"
+    },
+    {
+      "id": "pirate-death",
+      "faction": "neutre",
+      "nom": "Pirate : mort",
+      "duree": 1.6,
+      "texte": "pirate dying: a gruff cry and a body falling on wooden deck"
+    }
+  ]
+}

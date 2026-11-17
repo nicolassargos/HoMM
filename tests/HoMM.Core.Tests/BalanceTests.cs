@@ -64,8 +64,8 @@ internal static class BalanceSimulation
     /// <summary>Ordre de construction : les habitations d'abord, puis l'économie.</summary>
     private static readonly string[] BuildOrder =
     {
-        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "caserne", "monastere",
-        "terrain-entrainement", "grand-hotel-ville", "portail-gloire",
+        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "ecuries", "monastere",
+        "commanderie", "grand-hotel-ville", "portail-gloire",
     };
 
     /// <summary>
@@ -102,7 +102,7 @@ internal static class BalanceSimulation
     private static readonly string[] MagicBuildOrder =
     {
         "guilde-mages-1", "tour-archers", "guilde-mages-2", "taverne", "hotel-ville", "guilde-mages-3", "tour-griffons",
-        "caserne", "monastere", "terrain-entrainement", "grand-hotel-ville", "guilde-mages-4", "portail-gloire",
+        "ecuries", "monastere", "commanderie", "grand-hotel-ville", "guilde-mages-4", "portail-gloire",
     };
 
     public static Result Play(int seed, MapSize size = MapSize.Normal, Style style = Style.None)

@@ -221,13 +221,13 @@ public class MesuresTests(ITestOutputHelper output)
     /// <summary>
     /// La difficulté de chaque gardien possible de la carte pour la simulation : un gardien moyen de son niveau (taille de
     /// <see cref="MapGenerator"/>, force ramenée à celle du gardien de référence), et la plus petite armée du Château
-    /// (Paysans, Archers, Griffons, Épéistes, dans les proportions de leur croissance) qui le bat en perdant au plus 30 % de ses points de vie, la règle de
+    /// (Paysans, Archers, Griffons, Cavaliers, dans les proportions de leur croissance) qui le bat en perdant au plus 30 % de ses points de vie, la règle de
     /// la simulation. Écrit l'or de cette armée : dans un niveau, des gardiens justes demandent à peu près autant.
     /// </summary>
     [Mesure]
     public void Gardiens_par_creature()
     {
-        var growth = new[] { ("paysan", 30), ("archer", 18), ("griffon", 14), ("epeiste", 8), ("moine", 6), ("cavalier", 4), ("ange", 2) };
+        var growth = new[] { ("paysan", 30), ("archer", 18), ("griffon", 14), ("chevalier", 8), ("moine", 6), ("cavalier", 4), ("ange", 2) };
         foreach (var group in TestData.Creatures.All.Where(c => MapGenerator.MonsterFactions.Contains(c.Faction)).GroupBy(c => c.Tier).OrderBy(g => g.Key))
         {
             int tier = group.Key;
@@ -290,7 +290,7 @@ public class MesuresTests(ITestOutputHelper output)
         var without = nomads with { Abilities = nomads.Abilities.Where(a => a != Ability.HitAndRun).ToList() };
         const int count = 20;
         int gold = count * nomads.Cost[ResourceType.Gold];
-        foreach (var id in new[] { "zombie", "ogre", "epeiste", "moine", "vampire", "cavalier", "troll" })
+        foreach (var id in new[] { "zombie", "ogre", "chevalier", "moine", "vampire", "cavalier", "troll" })
         {
             var enemy = TestData.Creatures.Get(id);
             string Line(CreatureType type)

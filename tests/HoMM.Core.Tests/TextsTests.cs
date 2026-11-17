@@ -14,7 +14,7 @@ public class TextsTests
     [InlineData("loup", 3, "Quelques Loups")]
     [InlineData("loup", 15, "Une bande de Loups")]
     [InlineData("archer", 15, "Une bande d'Archers")]
-    [InlineData("epeiste", 30, "Beaucoup d'Épéistes")]
+    [InlineData("ange", 30, "Beaucoup d'Anges")]
     [InlineData("ogre", 1200, "Une légion d'Ogres")]
     public void La_taille_d_un_groupe_de_monstres_est_approximative(string id, int count, string expected) =>
         Assert.Equal(expected, Texts.MonsterGroup(Type(id), count));
@@ -82,10 +82,10 @@ public class TextsTests
     public void Le_bouton_de_construction_dit_ce_qui_manque()
     {
         var (state, town) = OwnedTown();
-        var training = TestData.Data.Buildings.Get("terrain-entrainement");
+        var training = TestData.Data.Buildings.Get("commanderie");
         var result = town.CanBuild(training, state.Players[0]);
 
-        Assert.Equal("Requiert : Tour des griffons, Caserne", Texts.BuildStatus(result, town, training));
+        Assert.Equal("Requiert : Tour des griffons, Écuries", Texts.BuildStatus(result, town, training));
         Assert.Equal("2500 or", Texts.Cost(TestData.Data.Buildings.Get("hotel-ville").Cost));
         Assert.Equal("Gratuit", Texts.Cost(TestData.Data.Buildings.Get("salle-village").Cost));
     }

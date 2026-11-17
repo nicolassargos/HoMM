@@ -167,7 +167,7 @@ public class MagieTests
     public void Les_sorts_qui_durent_changent_les_caracteristiques_puis_s_arretent()
     {
         var hero = Mage(power: 1, knowledge: 5, spells: new[] { "peau-de-pierre", "hate", "lenteur", "faiblesse" });
-        var (battle, ours, theirs) = Fight(hero, "epeiste", 10, "ogre", 10);
+        var (battle, ours, theirs) = Fight(hero, "chevalier", 10, "ogre", 10);
         int defense = ours.Defense, speed = battle.SpeedOf(ours);
 
         battle.Cast(Spell("peau-de-pierre"), ours.Position);
@@ -211,14 +211,14 @@ public class MagieTests
     [Fact]
     public void Les_soins_soignent_la_creature_de_tete_et_retirent_les_sorts_nefastes()
     {
-        var (battle, ours, _) = Fight(Mage(power: 2, spells: "soins"), "cavalier", 3, "paysan", 10);
-        ours.TakeDamage(150); // 1 cavalier tué, le suivant à 90 PV
+        var (battle, ours, _) = Fight(Mage(power: 2, spells: "soins"), "chevalier", 3, "paysan", 10);
+        ours.TakeDamage(180); // 1 chevalier tué, le suivant à 120 PV
         ours.Enchant(Spell("lenteur"), 5);
 
         battle.Cast(Spell("soins"), ours.Position);
 
         Assert.Equal(2, ours.Count); // les soins ne ramènent personne
-        Assert.Equal(110, ours.TopHitPoints); // 10 + 5 × 2 = 20 PV
+        Assert.Equal(140, ours.TopHitPoints); // 10 + 5 × 2 = 20 PV
         Assert.False(ours.IsUnder(SpellEffect.Slow));
     }
 
@@ -254,7 +254,7 @@ public class MagieTests
     public void L_IA_lance_le_sort_qui_vaut_le_plus()
     {
         var hero = Mage(power: 1, knowledge: 3, spells: new[] { "fleche-magique", "eclair", "benediction" });
-        var (battle, _, theirs) = Fight(hero, "archer", 10, "epeiste", 10);
+        var (battle, _, theirs) = Fight(hero, "archer", 10, "chevalier", 10);
 
         var choice = BattleAI.ChooseSpell(battle);
 
@@ -320,7 +320,7 @@ public class MagieTests
     [Fact]
     public void La_soif_de_sang_donne_de_l_attaque()
     {
-        var (battle, ours, _) = Fight(Mage(spells: "soif-de-sang"), "epeiste", 10, "paysan", 10);
+        var (battle, ours, _) = Fight(Mage(spells: "soif-de-sang"), "chevalier", 10, "paysan", 10);
         int attack = ours.Attack;
         Assert.True(battle.Cast(Spell("soif-de-sang"), ours.Position));
         Assert.Equal(attack + 6, ours.Attack);
@@ -350,7 +350,7 @@ public class MagieTests
     public void Une_troupe_aveuglee_passe_son_tour_jusqu_a_ce_qu_on_la_frappe_sans_riposter()
     {
         var hero = Mage(knowledge: 2, spells: "aveuglement");
-        var (battle, ours, theirs) = Fight(hero, "epeiste", 10, "ogre", 10);
+        var (battle, ours, theirs) = Fight(hero, "chevalier", 10, "ogre", 10);
         Assert.True(battle.Cast(Spell("aveuglement"), theirs.Position));
         battle.Defend();
 
@@ -371,7 +371,7 @@ public class MagieTests
     public void La_teleportation_envoie_une_troupe_amie_sur_une_case_libre()
     {
         var hero = Mage(knowledge: 2, spells: "teleportation");
-        var (battle, ours, theirs) = Fight(hero, "epeiste", 10, "ogre", 10);
+        var (battle, ours, theirs) = Fight(hero, "chevalier", 10, "ogre", 10);
         Assert.False(battle.Cast(Spell("teleportation"), ours.Position)); // il faut une destination
         Assert.False(battle.Cast(Spell("teleportation"), ours.Position, theirs.Position)); // occupée
 
@@ -385,7 +385,7 @@ public class MagieTests
     public void L_IA_teleporte_une_troupe_qui_n_atteint_personne_pres_de_l_ennemi()
     {
         var hero = Mage(knowledge: 2, spells: "teleportation");
-        var (battle, ours, theirs) = Fight(hero, "epeiste", 10, "ogre", 10);
+        var (battle, ours, theirs) = Fight(hero, "chevalier", 10, "ogre", 10);
 
         BattleAI.PlayTurn(battle);
 
@@ -397,7 +397,7 @@ public class MagieTests
     public void La_dissipation_retire_tous_les_sorts_amis_ou_ennemis()
     {
         var hero = Mage(knowledge: 2, spells: "dissipation");
-        var (battle, ours, theirs) = Fight(hero, "epeiste", 10, "ogre", 10);
+        var (battle, ours, theirs) = Fight(hero, "chevalier", 10, "ogre", 10);
         theirs.Enchant(Spell("hate"), 5);
         theirs.Enchant(Spell("peau-de-pierre"), 5);
 
@@ -405,7 +405,7 @@ public class MagieTests
 
         Assert.Empty(theirs.Spells);
         // l'IA la lance sur un ennemi qui a de bons sorts, pas sur ses troupes sans sort
-        var (other, _, enemy) = Fight(hero, "epeiste", 10, "ogre", 10);
+        var (other, _, enemy) = Fight(hero, "chevalier", 10, "ogre", 10);
         enemy.Enchant(Spell("hate"), 5);
         Assert.Equal(enemy.Position, BattleAI.ChooseSpell(other)!.Value.Target);
     }

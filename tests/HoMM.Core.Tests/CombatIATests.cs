@@ -85,8 +85,8 @@ public class CombatIATests
         // même hasard, même combat ; un autre hasard peut donner d'autres pertes
         int Losses(int seed)
         {
-            // des Ogres (6 à 12 de dégâts) contre des Épéistes : les pertes dépendent des tirages
-            var attacker = ArmyOf(("epeiste", 20));
+            // des Ogres (6 à 12 de dégâts) contre des Cavaliers : les pertes dépendent des tirages
+            var attacker = ArmyOf(("cavalier", 20));
             HoMM.Core.Battle.Resolve(attacker, ArmyOf(("ogre", 12)), rng: new GameRandom(seed));
             return attacker.TotalCount;
         }

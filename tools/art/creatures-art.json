@@ -98,7 +98,8 @@
         "fixe": "L2",
         "idle": "idle-1",
         "attack": "attack-7",
-        "move": "move-3"
+        "move": "move-3",
+        "carte": "p1-13"
       },
       "notes": "Remplacera l'Épéiste. Les candidats sortaient tournés vers la gauche (miroir). Bouclier changé avec « retoucher » de pixellab.py."
     },
@@ -134,8 +135,8 @@
     "archer": {
       "nom": "Archer",
       "gabarit": "humain",
-      "description": "a medieval army archer in light armor: steel kettle hat, a royal blue tabard with a small golden fleur-de-lis on the chest over a grey gambison, leather belt with a quiver of arrows, sturdy boots, holding a tall longbow, strong confident stance",
-      "sujet": "a medieval archer with a steel kettle hat, blue tabard with a golden fleur-de-lis, holding a longbow",
+      "description": "a lanky ex-poacher archer, very tall and bony with long thin legs, a long crooked nose, hollow cheeks, a sly squint, a few days of stubble, a floppy brown felt hat with a bent pheasant feather, a patched faded royal blue tabard with a small golden fleur-de-lis over a grey padded jacket, a quiver of arrows at his hip, worn boots, holding a longbow taller than himself, relaxed slouching stance, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "a lanky bony poacher archer with a long crooked nose and a floppy feathered hat, a faded blue tabard with a golden fleur-de-lis, holding a very tall longbow, facing right",
       "hauteur": 75,
       "generation": [
         104,
@@ -143,9 +144,7 @@
       ],
       "style": "godot/art/creatures/battle/moine.png",
       "angle": "godot/art/creatures/battle/troll.png",
-      "references": [
-        "art-candidats/references/archer-reference.jpg::costume reference only, not the style and not the camera angle"
-      ],
+      "references": [],
       "comparer": [
         "chevalier",
         "paysan"
@@ -156,20 +155,23 @@
       },
       "grande": "art-candidats/references/derives/archer-grand.png",
       "choix": {
-        "fixe": "L3-2",
-        "idle": "idle-4-corde",
-        "attack": "attack-3-corde",
-        "move": "move-1-corde"
+        "fixe": "L4-2",
+        "idle": "idle-2",
+        "attack": "attack-2-r",
+        "move": "move-2",
+        "carte": "p1-15"
       },
-      "notes": "Refait le 2026-11-06. La corde de l'arc est tracée par l'outil (« corde »). Il regarde autour de lui, rarement.",
+      "notes": "Refait le 2026-11-06. La corde de l'arc est tracée par l'outil (« corde »). Il regarde autour de lui, rarement. Refonte du Château (2026-11-17, choix de l'utilisateur) : un ancien braconnier, long et osseux.",
       "lots": {
-        "L1": "références (ancien archer + image de l'utilisateur), costume rayé",
-        "L2": "ancien archer, costume rayé",
-        "L3": "références, tabard bleu",
-        "L4": "ancien archer, tabard bleu"
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul"
       },
       "consignes": {
-        "idle": "subtle idle: slow calm breathing and one small movement, the feet stay in place"
+        "idle": "subtle idle: slow calm breathing and one small movement, the feet stay in place",
+        "move": "walking forward to the right with steady steps, the legs clearly alternating",
+        "attack": "quick shot: lifts the bow, pulls the string fully back aiming to the right, lets go, then lowers the bow; the arrow is not shown flying"
       }
     },
     "moine": {
@@ -311,9 +313,9 @@
     "griffon": {
       "nom": "Griffon",
       "gabarit": "quadrupede",
-      "description": "a griffon with the body of a lion, the head of an eagle and large brown feathered wings raised",
-      "sujet": "a griffon with a lion body, an eagle head and large brown wings, side view facing right",
-      "hauteur": 76,
+      "description": "a lean scruffy war griffon, a working beast standing still on its four legs planted on the ground: the body of a lean tawny lion with ribs showing, the head of a battered eagle with a notched hooked beak and a fierce yellow eye, ruffled ragged brown feathers, wings half raised with a few feathers missing, a worn royal blue leather harness across its chest and a small saddle cloth with a gold trim on its back, a scarred lion tail with a tuft, idle standing pose, side view, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "a lean scruffy griffon with a battered eagle head, ragged brown feathers, a blue harness and a small gold-trimmed saddle cloth, standing still, side view facing right",
+      "hauteur": 64,
       "comparer": [
         "archer",
         "loup"
@@ -324,16 +326,33 @@
         "move": "the griffon flies forward to the right: it beats its large wings strongly, rises a little off the ground with its paws tucked, and glides forward"
       },
       "grande": "art-candidats/references/derives/griffon-grand.png",
-      "notes": "Image d'origine gardée (modèle de style). Il vole : sa « marche » est un vol.",
+      "notes": "Image d'origine gardée (modèle de style). Il vole : sa « marche » est un vol. Refonte du Château (2026-11-17, choix de l'utilisateur) : une monture de guerre maigre et ébouriffée ; l'ancienne image est gardée dans art-candidats/references/griffon-ancien.png.",
       "consignes": {
-        "move": "the griffon hovers in place a little above the ground, beating its large wings up and down in a steady flying cycle, its paws tucked under its body, facing right, it stays at the same place"
+        "move": "the griffon flies forward to the right: it beats its large wings strongly, rises a little off the ground with its paws tucked, and glides forward",
+        "idle": "the griffon stands still, ruffles and slightly opens its raised wings, turns its eagle head a little, its tail swishes, the paws stay in place",
+        "attack": "the griffon rears up on its hind legs with its wings spread wide, then lunges forward and rakes with its front talons and snaps its beak at the enemy in front of it, then lands back in its starting pose"
       },
       "choix": {
-        "idle": "idle-2",
-        "attack": "attack-2",
-        "move": "move-2"
+        "idle": "idle-1",
+        "attack": "attack-2-r",
+        "move": "move-2",
+        "fixe": "L2-1",
+        "carte": "p1-1"
       },
-      "vole": true
+      "vole": true,
+      "generation": [
+        128,
+        104
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/loup.png",
+      "references": [],
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul"
+      }
     },
     "orc": {
       "nom": "Orc",
@@ -2241,6 +2260,69 @@
       },
       "grande": "art-candidats/references/derives/roi-de-cristal-grand.png",
       "garder_cyan": true
+    },
+    "cavalier": {
+      "nom": "Cavalier",
+      "gabarit": "quadrupede",
+      "hauteur": 126,
+      "generation": [
+        160,
+        136
+      ],
+      "style": "godot/art/creatures/battle/moine.png",
+      "angle": "godot/art/creatures/battle/loup.png",
+      "references": [
+        "art-candidats/references/cavalier-l20-3.png::the chosen character: keep exactly this rider, his face, helmet, mail, blue surcoat with the fleur-de-lis, the lance with its blue and gold pennant, the chestnut horse with its steel face and neck plates and blue rump cloth, and the pose; draw it larger, filling the frame"
+      ],
+      "comparer": [
+        "archer",
+        "nomades"
+      ],
+      "description": "a plain serious young medieval mounted sergeant, clean-shaven, no moustache, sitting upright on a chestnut horse that stands still on all four hooves planted on the ground, legs straight, not leaping: a conical nasal helmet, a chain mail hauberk, a simple royal blue surcoat with a single small golden fleur-de-lis on the chest, a lance held upright with a small blue and gold swallow-tailed pennant near its tip, a plain kite shield on his arm; the horse wears some armor: a steel chanfron plate on its face, a few steel lames on its neck and a short blue cloth over its rump, a simple brown saddle and bridle; disciplined and unflashy, idle standing pose, side view, a caricature in the style of a fantasy board game miniature, full of character",
+      "sujet": "a plain young clean-shaven medieval mounted sergeant with a nasal helmet, chain mail and a simple blue surcoat, lance upright with a small pennant, on a chestnut horse with a steel face plate and neck plates, standing still, side view, facing right",
+      "notes": "Château, niveau 4 (refonte du 2026-11-17, choix de l'utilisateur) : un cavalier léger vaniteux qui parade ; charge, 2 cases. Remplace l'ancienne image du Cavalier (niveau 6, trop grande). Choix (2026-11-17) : L7-4, mais en plus médiéval (cotte de mailles, surcot ; pas de plaques ni de chapeau du XVIe), une épée (L9 et suivants). Puis (2026-11-17) : plus humble ; choisi l'esprit de L15-2 (sergent à cheval), variantes avec des plaques sur le cheval et un fanion (L17 et suivants). Choisi L20-3, trop petit à côté des Nomades (93 px lance comprise) : redessiné dans un cadre plus grand (160 × 136, L21 et suivants). Choisi L22-3 (2026-11-17), gardé à sa taille de génération (126 px, lance comprise ; réduit, il était flou).",
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "angle seul",
+        "L6": "angle seul",
+        "L7": "angle seul",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul",
+        "L11": "références",
+        "L12": "angle seul",
+        "L13": "angle seul",
+        "L14": "angle seul",
+        "L15": "angle seul",
+        "L16": "angle seul",
+        "L17": "références",
+        "L18": "angle seul",
+        "L19": "références",
+        "L20": "angle seul",
+        "L21": "références",
+        "L22": "angle seul"
+      },
+      "choix": {
+        "fixe": "L22-3",
+        "attack": "attack-2",
+        "idle": "idle-3",
+        "move": "move-11-boucle",
+        "carte": "p1-1"
+      },
+      "grande": "art-candidats/references/derives/cavalier-grand.png",
+      "mouvements": {
+        "idle": "the horse stands still, shifts its weight and shakes its head a little, the pennant flutters, the rider sits upright and looks ahead, the hooves stay in place",
+        "attack": "the horse lunges forward and the rider lowers his lance level and thrusts it forward at chest height, then raises it again and the horse steps back to its starting place",
+        "move": "the horse gallops forward to the right, its four legs in a clear fast gallop, the rider leaning forward, the lance held upright"
+      },
+      "consignes": {
+        "idle": "the horse slowly lifts one front hoof, paws the ground once and puts it back down, then shakes its head a little; the pennant flutters; the rider sits still and upright; the other hooves stay in place",
+        "move": "the horse gallops forward to the right, its four legs in a clear fast gallop, the rider leaning forward, the lance held upright",
+        "attack": "the horse lunges forward and the rider lowers his lance level and thrusts it forward at chest height, then raises it again and the horse steps back to its starting place"
+      }
     }
   }
 }

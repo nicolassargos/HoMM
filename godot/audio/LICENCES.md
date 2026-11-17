@@ -10,6 +10,8 @@ avant toute diffusion commerciale.
   `combat/cavalier-mort.mp3`, `combat/ange-gifle.mp3`, `combat/ange-mort-1.mp3`, `combat/ange-mort-2.mp3`,
   `combat/coup-epee.mp3`, `combat/coup-sourd.mp3`, `combat/mort-soldat.mp3`, `combat/sort-boule-de-feu.mp3`,
   `combat/sort-eclair.mp3`, `combat/sort-resurrection.mp3`
+- Les sons des créatures des autres factions : `combat/<créature>-<action>.mp3` (décrits dans
+  `tools/audio/sons-creatures.json`, faits par `tools/audio/sons.py`).
 
 ## Bibliothèques libres (OpenGameArt)
 - `combat/cavalier-galop.ogg` : « Horse Gallop Loop », AntumDeluge, **CC-BY 3.0** (citer l'auteur),
@@ -19,3 +21,15 @@ avant toute diffusion commerciale.
 - `musique/combat-poursuite.wav` : « Determined Pursuit (Epic Orchestra Loop) », Emma_MA, CC0,
   https://opengameart.org/content/determined-pursuit-epic-orchestra-loop (passée en mono à 22 050 Hz pour la taille ;
   musique d'attente, à remplacer par Stable Audio plus tard)
+- Les musiques des villes (choisies le 2026-11-17, `tools/audio/musiques.py`, liste dans
+  `tools/audio/musiques-villes.json` ; **CC-BY** : citer l'auteur) :
+  - `musique/ville-chateau.mp3` : « RPG Town Theme 1 », LarsG, CC-BY 4.0, https://opengameart.org/content/rpg-town-theme-1
+  - `musique/ville-barbares.mp3` : « Drums in the Deepwood », Elyvilon, CC-BY 4.0,
+    https://opengameart.org/content/dark-forest-tribal-troll-folk-shamanic-music-drums-in-the-deepwood
+  - `musique/ville-tour.ogg` : « City in the Clouds », peastman, CC-BY 3.0, https://opengameart.org/content/city-in-the-clouds
+  - `musique/ville-donjon.ogg` : « RPG - Foreboding Ambiance », Hitctrl, CC-BY 3.0,
+    https://opengameart.org/content/rpg-foreboding-ambiance
+  - `musique/ville-enfer.ogg` : « Demonium », Alexandr Zhelanov, CC-BY 4.0, https://opengameart.org/content/demonium
+    (la version ogg de l'aperçu du site, au lieu du wav de 67 Mo)
+  - `musique/ville-morts-vivants.ogg` : « RPG - The Graveyard », HitCtrl, CC-BY 3.0,
+    https://opengameart.org/content/rpg-the-graveyard

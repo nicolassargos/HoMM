@@ -212,7 +212,7 @@ public class TownTests
 
         Assert.Equal(BuildResult.AlreadyBuiltToday, state.Build(town, "tour-archers"));
         // Ce qui manque durablement passe avant « un bâtiment par jour »
-        Assert.Equal(BuildResult.MissingRequirement, state.Build(town, "caserne"));
+        Assert.Equal(BuildResult.MissingRequirement, state.Build(town, "ecuries"));
         state.EndTurn();
         Assert.Equal(BuildResult.Ok, state.Build(town, "tour-archers"));
     }
@@ -226,7 +226,7 @@ public class TownTests
         Assert.Equal(BuildResult.NotOwner, state.Build(town, "taverne"));
         town.SetOwner(player);
         Assert.Equal(BuildResult.AlreadyBuilt, state.Build(town, "corps-de-garde"));
-        Assert.Equal(BuildResult.MissingRequirement, state.Build(town, "caserne"));
+        Assert.Equal(BuildResult.MissingRequirement, state.Build(town, "ecuries"));
         player.Resources[ResourceType.Gold] = 100;
         Assert.Equal(BuildResult.NotEnoughResources, state.Build(town, "taverne"));
         Assert.False(town.Has("taverne"));

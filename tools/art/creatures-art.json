@@ -744,11 +744,11 @@
       "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
       "mouvements": {
         "death": "is mortally wounded: its wings fold, it sways and collapses heavily onto its side, lying motionless on the ground at the end; no effects, no blood, no other character",
-        "hit": "is hit in the face and rears back: the head and long neck pull up and back toward its tail, the chest moves back toward its tail, the front feet lift, the wings jolt open; the head stays behind its starting position the whole time, never moving forward, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "cringes from a blow: shuts its eyes, ducks its head down and pulls its neck back toward its tail, the wings fold in tight, the whole body crouches and shrinks back toward its tail, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
         "death": "death-1",
-        "hit": "hit-6"
+        "hit": "hit-8"
       }
     },
     "gobelin": {
@@ -1726,7 +1726,7 @@
         "attack": "regard-3",
         "carte": "p1-13",
         "death": "death-1",
-        "hit": "hit-6"
+        "hit": "hit-7"
       },
       "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
       "consignes": {
@@ -1774,11 +1774,11 @@
         "attack": "mm-proche-6",
         "carte": "p1-7",
         "death": "death-1",
-        "hit": "hit-6"
+        "hit": "hit-9"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png",
       "mouvements": {
-        "hit": "flinches hard and is knocked back to the left, a big clear movement: each head recoils in a different direction, the necks whip back and sway wildly, some heads roar, the heavy body steps back toward its tail, a very lively movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "cringes from a blow: all the heads duck and pull back toward the tail at once, then each head shakes and sways in its own way, mouths open, the body crouches back, a very lively movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "succube": {
@@ -1865,11 +1865,11 @@
         "attack": "crache-2-r",
         "carte": "p1-5",
         "death": "death-1",
-        "hit": "hit-4"
+        "hit": "hit-7"
       },
       "grande": "art-candidats/references/derives/demon-grand.png",
       "mouvements": {
-        "hit": "is hit in the face and stumbles back: the head snaps back, the fat belly wobbles, the wings jerk open, he steps back toward his tail, holding his trident, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+        "hit": "takes a blow and likes it: the head snaps back, then he looks up with a wide wicked grin, eyes wide with surprise and pleasure, the fat belly wobbles, the wings twitch, holding his trident, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "diablotin": {

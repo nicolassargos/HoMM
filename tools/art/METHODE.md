@@ -409,7 +409,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Écartés** (l'utilisateur) : un contour sombre (`adoucir.py … 0.85 90 1 0.4` l'adoucit), des gradins, le style des
   mines (« des morceaux de rocher côte à côte, pas une chaîne »).
 - **Fondre dans le sol** : `fondre.py` donne aux pentes les couleurs d'un sol pris dans une capture du jeu (l'herbe : un
-  pré de `--center=mountains` ; le sable et le marais : `--terrain-test`) et défait leur bord en trame. Les jeux du sable
+  pré de `--center=mountains` ; le sable et le marais : `--terrain-test`) et défait leur bord. **`--bord=fondu`** (choix
+  de l'utilisateur, 2026-11-17) : de plus en plus transparent sur 4 pixels ; une trame régulière se voyait comme une ligne
+  de points, un bord effrité restait granuleux. Avant, `adoucir.py … 0.85 90 1 0.4` sur les images brutes (un trait
+  sombre restait sur certains pics). Les jeux du sable
   et du marais sont les images d'herbe ainsi recolorées (`massif-sable-*`, `massif-marais-*`, `peak-sable*`…). Les
   images brutes et les captures sont dans `art-candidats/archives/2026-11-17-montagnes/sources/`.
 - Installer : `recadrer.py` (l'image coupée à son dessin), `fondre.py`, puis `python -I tools/art/empreintes.py` écrit les

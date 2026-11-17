@@ -13,6 +13,9 @@ Sur la page : un clic sur un candidat le choisit, « Garder » ou « À refaire 
 commentaire. Les réponses restent dans le navigateur (on peut fermer la page et revenir) ; « Télécharger » les écrit dans
 un fichier revue-32px.json, que « appliquer » lit : il copie les candidats choisis dans godot/art, refait les mines dont
 le bâtiment a changé (tools/art/assembler.py) et affiche les images à refaire avec leurs commentaires. Rien n'est commité.
+Le nom des pages porte celui du dossier de travail (revue-32px-marais.html dans HoMM-marais) : deux sessions en
+parallèle ne se mélangent pas. Un seul serveur tourne (il refuse de démarrer si le port est pris) et écrit les réponses
+de chaque page dans le dossier en-cours de celle-ci.
 Seule la bibliothèque standard de Python est utilisée.
 """
 import copy
@@ -32,6 +35,17 @@ CANDIDATS = os.path.join(EN_COURS, "candidats")
 ART = os.path.join(RACINE, "godot", "art")
 VARIANTES = os.path.join(CANDIDATS, "mines-32", "variantes")
 PORT = 8765
+
+
+def suffixe():
+    """Le dossier de travail dans le nom des pages (« -marais » pour HoMM-marais, rien pour HoMM) : deux sessions en
+    parallèle n'ont jamais la même page, ni les mêmes réponses gardées par le navigateur, ni le même fichier téléchargé."""
+    nom = re.sub(r"[^a-z0-9]+", "-", os.path.basename(RACINE).lower()).strip("-")
+    nom = nom.removeprefix("homm").strip("-")
+    return f"-{nom}" if nom else ""
+
+
+SUFFIXE = suffixe()
 
 # les images revues, par groupe (nom dans godot/art, sans .png)
 GROUPES_32PX = [
@@ -104,8 +118,8 @@ def regler(lot):
     if lot not in LOTS:
         sys.exit(f"Lot inconnu : {lot} ({', '.join(LOTS)})")
     LOT = lot
-    PAGE = os.path.join(EN_COURS, f"revue-{lot}.html")
-    REPONSES = os.path.join(EN_COURS, f"revue-{lot}.json")
+    PAGE = os.path.join(EN_COURS, f"revue-{lot}{SUFFIXE}.html")
+    REPONSES = os.path.join(EN_COURS, f"revue-{lot}{SUFFIXE}.json")
 
 
 regler("32px")
@@ -251,7 +265,7 @@ const g=document.getElementById('general');g.value=etat.general||'';g.oninput=()
 document.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>zoom(+b.dataset.zoom));
 document.querySelectorAll('[data-filtre]').forEach(b=>b.onclick=()=>{filtre=b.dataset.filtre;filtrer()});
 function note(t){const n=document.getElementById('note');n.textContent=t;n.style.display='block';setTimeout(()=>n.style.display='none',2500)}
-function reponses(){const items={};for(const[n,it]of Object.entries(etat.items))if(vu(it))items[n]=it;return{page:'%PAGE%',general:etat.general,items}}
+function reponses(){const items={};for(const[n,it]of Object.entries(etat.items))if(vu(it))items[n]=it;return{page:'%PAGE%',dossier:%DOSSIER%,general:etat.general,items}}
 function texte(){const r=reponses();let s='';for(const[n,it]of Object.entries(r.items)){
  const d=document.querySelector(`.item[data-nom="${n}"]`);const o=d&&d.querySelector(`.opt[data-id="${it.choix}"] span`);const lib=o?o.textContent:it.choix;
  s+=`${n} : ${it.avis==='refaire'?'à refaire':it.choix!=='installee'?'changer pour '+lib:it.avis==='garder'?'garder':'—'}${it.commentaire?' — '+it.commentaire:''}\n`}
@@ -314,7 +328,7 @@ def page():
                 morceaux.append(f"<div class=opt data-id='{ident}'{fond}>{vue}<span>{html.escape(libelle)}</span></div>")
             morceaux.append("</div><textarea placeholder='Commentaire'></textarea></div>")
         morceaux.append("</div>")
-    morceaux.append(f"</main><div id=loupe><img alt=''></div><div id=note></div><script>{SCRIPT.replace('%PORT%', str(PORT)).replace('%PAGE%', 'revue-' + LOT)}</script></body></html>")
+    morceaux.append(f"</main><div id=loupe><img alt=''></div><div id=note></div><script>{SCRIPT.replace('%PORT%', str(PORT)).replace('%PAGE%', f'revue-{LOT}{SUFFIXE}').replace('%DOSSIER%', json.dumps(EN_COURS))}</script></body></html>")
     with open(PAGE, "w", encoding="utf-8") as f:
         f.write("".join(morceaux))
     print(f"{total} images : {os.path.relpath(PAGE, RACINE)}")
@@ -325,9 +339,9 @@ def appliquer(fichier):
         fichier = REPONSES
     if fichier is None:
         dl = os.path.join(os.path.expanduser("~"), "Downloads")
-        fichiers = sorted(glob.glob(os.path.join(dl, f"revue-{LOT}*.json")), key=os.path.getmtime)
+        fichiers = sorted(glob.glob(os.path.join(dl, f"revue-{LOT}{SUFFIXE}*.json")), key=os.path.getmtime)
         if not fichiers:
-            sys.exit(f"Aucun revue-{LOT}*.json dans {dl}")
+            sys.exit(f"Aucun revue-{LOT}{SUFFIXE}*.json dans {dl}")
         fichier = fichiers[-1]
     with open(fichier, encoding="utf-8") as f:
         r = json.load(f)
@@ -370,8 +384,16 @@ def appliquer(fichier):
 
 
 def serveur():
-    """Reçoit les réponses de la page à chaque changement et les écrit dans en-cours/revue-<lot>.json."""
+    """Reçoit les réponses des pages à chaque changement et les écrit dans le dossier en-cours de chaque page (celui du
+    dossier de travail qui l'a écrite : un seul serveur sert toutes les sessions)."""
+    import socket
     from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    def dossier_de(r):
+        # une page d'avant le dossier dans les réponses : celui de ce serveur
+        d = r.get("dossier") or EN_COURS
+        assert os.path.isdir(d) and os.path.basename(d) == "en-cours"             and os.path.basename(os.path.dirname(d)) == "art-candidats"
+        return d
 
     class Reponses(BaseHTTPRequestHandler):
         def _entetes(self, code):
@@ -390,22 +412,37 @@ def serveur():
                 r = json.loads(corps)
                 # toute page de revue (un lot ajouté après le lancement du serveur aussi)
                 assert re.fullmatch(r"revue-[\w-]+", r.get("page", ""))
+                fichier = os.path.join(dossier_de(r), r["page"] + ".json")
             except Exception:
                 return self._entetes(400)
-            fichier = os.path.join(EN_COURS, r["page"] + ".json")
             temp = fichier + ".tmp"
             with open(temp, "w", encoding="utf-8") as f:
                 json.dump(r, f, ensure_ascii=False, indent=1)
             os.replace(temp, fichier)
-            print(f"{r['page']} : {len(r.get('items', {}))} réponses enregistrées", flush=True)
+            print(f"{os.path.relpath(fichier, os.path.dirname(RACINE))} : {len(r.get('items', {}))} réponses enregistrées",
+                  flush=True)
             self._entetes(200)
 
         def log_message(self, *args):
             pass
 
-    print(f"Réponses écrites dans {os.path.relpath(EN_COURS, RACINE)}/revue-<lot>.json (port {PORT}) ; Ctrl+C pour arrêter",
-          flush=True)
-    HTTPServer(("127.0.0.1", PORT), Reponses).serve_forever()
+    class Exclusif(HTTPServer):
+        # un seul serveur sur le port : sous Windows, l'adresse réutilisable laisserait plusieurs serveurs l'écouter, et
+        # les réponses partiraient chez l'un d'eux au hasard
+        allow_reuse_address = False
+
+        def server_bind(self):
+            if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+                self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+            super().server_bind()
+
+    try:
+        serveur = Exclusif(("127.0.0.1", PORT), Reponses)
+    except OSError:
+        sys.exit(f"Le port {PORT} est déjà pris : un serveur de revue tourne sans doute déjà (peut-être lancé par une autre "
+                 "session). Il écrit aussi les réponses de vos pages dans leur dossier : rien à lancer.")
+    print(f"Réponses écrites dans le dossier en-cours de chaque page (port {PORT}) ; Ctrl+C pour arrêter", flush=True)
+    serveur.serve_forever()
 
 
 if __name__ == "__main__":

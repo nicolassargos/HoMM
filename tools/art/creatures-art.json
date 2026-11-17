@@ -73,7 +73,8 @@
         "fixe": "X6",
         "idle": "idle-1",
         "attack": "attack-9",
-        "move": "move-2"
+        "move": "move-2",
+        "death": "death-1"
       },
       "notes": "D'après une image de l'utilisateur, en plus simple (style rétro). Sur une seule case. Lent : 7 images par seconde.",
       "mouvements": {
@@ -105,7 +106,8 @@
         "fixe": "L2",
         "idle": "idle-1",
         "attack": "attack-7",
-        "move": "move-3"
+        "move": "move-3",
+        "death": "death-1"
       },
       "notes": "Remplacera l'Épéiste. Les candidats sortaient tournés vers la gauche (miroir). Bouclier changé avec « retoucher » de pixellab.py."
     },
@@ -133,7 +135,8 @@
         "fixe": "V16",
         "idle": "idle-2",
         "attack": "attack-1",
-        "move": "move-2"
+        "move": "move-2",
+        "death": "death-1"
       },
       "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur).",
       "vole": true,
@@ -200,7 +203,8 @@
       "choix": {
         "idle": "idle-2",
         "attack": "attack-5-propre",
-        "move": "move-1"
+        "move": "move-1",
+        "death": "death-1"
       },
       "notes": "Image d'origine gardée (modèle de style). La boule de feu sera un effet du jeu : l'attaque ne lance rien."
     },
@@ -260,7 +264,8 @@
         "fixe": "L3-1",
         "idle": "idle-3",
         "attack": "attack-11",
-        "move": "move-10"
+        "move": "move-10",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/zombie-grand.png",
       "consignes": {
@@ -293,7 +298,8 @@
       "choix": {
         "idle": "idle-3",
         "attack": "attack-4",
-        "move": "move-1"
+        "move": "move-1",
+        "death": "death-1"
       }
     },
     "ogre": {
@@ -314,7 +320,8 @@
         "fixe": "H4",
         "idle": "idle-3",
         "attack": "attack-2",
-        "move": "move-1"
+        "move": "move-1",
+        "death": "death-1"
       },
       "notes": "Fait avant l'outil (session du 2026-11-04) : sa grande image n'a que 66 px. Attente et attaque refaites le 2026-11-06.",
       "consignes": {
@@ -344,7 +351,8 @@
       "choix": {
         "idle": "idle-2",
         "attack": "attack-2",
-        "move": "move-2"
+        "move": "move-2",
+        "death": "death-1"
       },
       "vole": true
     },
@@ -369,7 +377,8 @@
         "fixe": "O1",
         "move": "move-2",
         "idle": "idle-1",
-        "attack": "attack-2-r"
+        "attack": "attack-2-r",
+        "death": "death-1"
       },
       "notes": "Fait avant l'outil (2026-11-04), animations refaites le 2026-11-06. Il lance des haches (tir court) : la hache en vol sera dessinée par le jeu.",
       "consignes": {
@@ -416,7 +425,8 @@
         "transform": "transform-1",
         "move": "move-1",
         "attack": "attack-14",
-        "idle": "idle-1"
+        "idle": "idle-1",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/vampire-grand.png",
       "consignes": {
@@ -459,7 +469,8 @@
         "fixe": "L5-4",
         "idle": "idle-1",
         "move": "move-2",
-        "attack": "attack-4"
+        "attack": "attack-4",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/liche-grand.png",
       "consignes": {
@@ -503,7 +514,8 @@
         "fixe": "L9-2",
         "idle": "idle-2",
         "move": "move-2",
-        "attack": "attack-2"
+        "attack": "attack-2",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/araignee-grand.png",
       "consignes": {
@@ -543,7 +555,8 @@
         "L6": "angle seul"
       },
       "choix": {
-        "fixe": "L6-2 + visage"
+        "fixe": "L6-2 + visage",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/nomades-grand.png",
       "consignes": {
@@ -589,7 +602,8 @@
         "idle": "idle-3",
         "attack": "attack-2-r",
         "move": "move-7",
-        "transform": "transform-2, images 1 à 5 (sans la pose tenue), 12 images/s"
+        "transform": "transform-2, images 1 à 5 (sans la pose tenue), 12 images/s",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png",
       "consignes": {
@@ -634,7 +648,8 @@
         "fixe": "L1-1",
         "idle": "idle-2",
         "move": "move-2",
-        "attack": "attack-4-r"
+        "attack": "attack-4-r",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/farfadet-grand.png",
       "mouvements": {
@@ -683,7 +698,8 @@
       },
       "choix": {
         "fixe": "L8-1",
-        "attack": "attack-2-main"
+        "attack": "attack-2-main",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/behemoth-grand.png",
       "consignes": {
@@ -699,19 +715,28 @@
       "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
       "mouvements": {
         "death": "is mortally wounded: its wings fold, it sways and collapses heavily onto its side, lying motionless on the ground at the end; no effects, no blood, no other character"
+      },
+      "choix": {
+        "death": "death-1"
       }
     },
     "gobelin": {
       "nom": "gobelin",
       "hauteur": 42,
       "grande": "art-candidats/references/derives/gobelin-grand.png",
-      "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2."
+      "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
+      "choix": {
+        "death": "death-1"
+      }
     },
     "paysan": {
       "nom": "paysan",
       "hauteur": 57,
       "grande": "art-candidats/references/derives/paysan-grand.png",
-      "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2."
+      "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
+      "choix": {
+        "death": "death-1"
+      }
     },
     "ange": {
       "nom": "Ange",
@@ -741,7 +766,8 @@
         "fixe": "L3-4",
         "idle": "idle-1",
         "move": "move-4",
-        "attack": "attack-8-r"
+        "attack": "attack-8-r",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/ange-grand.png",
       "mouvements": {
@@ -784,7 +810,8 @@
         "fixe": "L1-1",
         "idle": "idle-3",
         "move": "move-5",
-        "attack": "attack-6-r"
+        "attack": "attack-6-r",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/squelette-grand.png",
       "mouvements": {
@@ -827,7 +854,8 @@
         "fixe": "L2-1",
         "idle": "idle-2-r",
         "move": "move-2",
-        "attack": "attack-2-r"
+        "attack": "attack-2-r",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/sanglier-grand.png",
       "mouvements": {
@@ -870,7 +898,8 @@
         "fixe": "L2-4",
         "move": "move-3-sc",
         "attack": "attack-2-r",
-        "idle": "idle-5-sc"
+        "idle": "idle-5-sc",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/archer-elfe-grand.png",
       "mouvements": {
@@ -912,7 +941,8 @@
         "fixe": "L4-1",
         "idle": "idle-2",
         "move": "move-4",
-        "attack": "attack-4-r"
+        "attack": "attack-4-r",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/cerf-grand.png",
       "mouvements": {
@@ -961,7 +991,8 @@
         "fixe": "L10-1",
         "move": "move-6",
         "attack": "attack-4-r",
-        "idle": "idle-6"
+        "idle": "idle-6",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/treant-grand.png",
       "mouvements": {
@@ -1018,7 +1049,8 @@
         "fixe": "L10-3",
         "idle": "idle-2-r",
         "move": "move-2",
-        "attack": "attack-2-r"
+        "attack": "attack-2-r",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/druide-grand.png",
       "consignes": {
@@ -1065,7 +1097,8 @@
         "fixe": "L12-1",
         "idle": "idle-1",
         "move": "move-2",
-        "attack": "attack-2-r"
+        "attack": "attack-2-r",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/gnome-grand.png",
       "mouvements": {
@@ -1112,7 +1145,8 @@
         "fixe": "L8-1",
         "move": "move-4-gris",
         "transform": "transform-1",
-        "attack": "attack-13-gris"
+        "attack": "attack-13-gris",
+        "death": "death-2"
       },
       "grande": "art-candidats/references/derives/gargouille-grand.png",
       "mouvements": {
@@ -1163,7 +1197,8 @@
         "move": "move-9",
         "idle": "idle-9",
         "attack": "attack-8-gris",
-        "carte": "p1-11"
+        "carte": "p1-11",
+        "death": "death-3"
       },
       "grande": "art-candidats/references/derives/golem-pierre-grand.png",
       "consignes": {
@@ -1173,7 +1208,7 @@
       },
       "marge_bas": 0.08,
       "mouvements": {
-        "death": "is destroyed: cracks apart and crumbles into a heap of stone rubble on the ground; no effects, no other character"
+        "death": "is destroyed: the heavy stone body topples forward and falls face down onto the ground with a thud, lying motionless on the ground at the end; no effects, no blood, no other character"
       }
     },
     "naga": {
@@ -1213,7 +1248,8 @@
         "idle": "idle-2",
         "attack": "attack-7-sb",
         "move": "move-5",
-        "carte": "p2-5"
+        "carte": "p2-5",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/naga-grand.png",
       "marge_bas": 0.06,
@@ -1259,7 +1295,8 @@
         "idle": "idle-2",
         "move": "move-2",
         "attack": "attack-2-r",
-        "carte": "p1-4"
+        "carte": "p1-4",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/djinn-grand.png",
       "consignes": {
@@ -1304,7 +1341,8 @@
         "idle": "idle-2",
         "move": "move-5",
         "attack": "attack-5-r",
-        "carte": "p1-6"
+        "carte": "p1-6",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/mage-grand.png",
       "consignes": {
@@ -1354,7 +1392,8 @@
         "transform": "transform-1",
         "move": "move-5",
         "attack": "attack-5-r",
-        "carte": "p1-12"
+        "carte": "p1-12",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/geant-grand.png",
       "consignes": {
@@ -1397,7 +1436,8 @@
         "idle": "idle-3",
         "attack": "attack-2-r",
         "move": "move-5-r",
-        "carte": "p1-7"
+        "carte": "p1-7",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/homme-lezard-grand.png",
       "marge_bas": 0.06,
@@ -1445,7 +1485,8 @@
         "move": "move-1",
         "idle": "idle-5",
         "attack": "attack-5",
-        "carte": "p1-1"
+        "carte": "p1-1",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/homme-grenouille-grand.png",
       "consignes": {
@@ -1488,7 +1529,8 @@
         "idle": "idle-2",
         "move": "move-1",
         "attack": "attack-2-r",
-        "carte": "p1-4"
+        "carte": "p1-4",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/minotaure-grand.png",
       "consignes": {
@@ -1531,7 +1573,8 @@
         "idle": "idle-5",
         "move": "move-5",
         "attack": "attack-5-c",
-        "carte": "p1-6"
+        "carte": "p1-6",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/aberration-grand.png",
       "consignes": {
@@ -1576,7 +1619,8 @@
         "attack": "attack-12-c",
         "transform": "transform-terre",
         "move": "move-vide",
-        "carte": "p1-3"
+        "carte": "p1-3",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/ver-des-profondeurs-grand.png",
       "consignes": {
@@ -1620,7 +1664,8 @@
         "idle": "calme-2",
         "move": "vent-4",
         "attack": "regard-3",
-        "carte": "p1-13"
+        "carte": "p1-13",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/tyran-oeil-grand.png",
       "consignes": {
@@ -1665,7 +1710,8 @@
         "idle": "mm-calme-3",
         "move": "mm-marche-1",
         "attack": "mm-proche-6",
-        "carte": "p1-7"
+        "carte": "p1-7",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png"
     },
@@ -1706,7 +1752,8 @@
         "attack": "mm-baiser-1",
         "idle": "queue-2",
         "move": "mm-pas-3",
-        "carte": "p1-6"
+        "carte": "p1-6",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/succube-grand.png"
     },
@@ -1749,7 +1796,8 @@
         "transform": "ailes-1-envol",
         "move": "move-vide",
         "attack": "crache-2-r",
-        "carte": "p1-5"
+        "carte": "p1-5",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/demon-grand.png"
     },
@@ -1787,7 +1835,8 @@
         "move": "sauts-1",
         "attack": "bond-2",
         "idle": "lecher-8",
-        "carte": "p1-1"
+        "carte": "p1-1",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/diablotin-grand.png"
     },
@@ -1823,7 +1872,8 @@
         "idle": "priere-1",
         "move": "marche-3",
         "attack": "coup-1-r",
-        "carte": "p1-2"
+        "carte": "p1-2",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/cultiste-grand.png"
     },
@@ -1856,7 +1906,8 @@
         "idle": "bouillon-1",
         "attack": "ecrase-1",
         "move": "rampe32-2",
-        "carte": "p1-2"
+        "carte": "p1-2",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/limon-magma-grand.png",
       "mouvements": {
@@ -1896,7 +1947,8 @@
         "idle": "guette-1",
         "attack": "fauche-2-r",
         "throw": "lancer-1",
-        "carte": "p1-1"
+        "carte": "p1-1",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/tourmenteur-grand.png"
     },
@@ -1935,7 +1987,8 @@
         "move": "pas-2",
         "idle": "fournaise-2",
         "attack": "poings-3",
-        "carte": "p1-6"
+        "carte": "p1-6",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/moloch-grand.png"
     },
@@ -1972,7 +2025,8 @@
         "idle": "garde-1",
         "move": "mmarche-1",
         "attack": "mcoup-2-r1",
-        "carte": "p1-3"
+        "carte": "p1-3",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/porte-bouclier-grand.png"
     },
@@ -2011,7 +2065,8 @@
         "idle": "garde-1",
         "move": "mmarche-1",
         "attack": "mtir-1-r1",
-        "carte": "p1-2"
+        "carte": "p1-2",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/arbaletrier-grand.png"
     },
@@ -2054,7 +2109,8 @@
         "idle": "mgarde-2-r1",
         "move": "mmarche-1-r1",
         "attack": "mcoup-1-r1",
-        "carte": "p1-2"
+        "carte": "p1-2",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/chevaucheur-chevre-grand.png"
     },
@@ -2093,7 +2149,8 @@
         "idle": "mgarde-2-r1",
         "move": "mmarche-1-r1",
         "attack": "attack-2-r2",
-        "carte": "p1-2"
+        "carte": "p1-2",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/porte-etendard-grand.png",
       "consignes": {
@@ -2167,7 +2224,8 @@
         "transform": "menvol-1",
         "move": "move-4",
         "attack": "attack-2-r1",
-        "carte": "p1-2"
+        "carte": "p1-2",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/gyrocoptere-grand.png",
       "consignes": {
@@ -2235,7 +2293,8 @@
         "idle": "garde-2-r1",
         "move": "mmarche-2-r1",
         "attack": "mcoup-1-r2",
-        "carte": "p1-6"
+        "carte": "p1-6",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/sapeur-grand.png"
     },
@@ -2274,7 +2333,8 @@
         "idle": "mgarde-1",
         "move": "mmarche-2",
         "attack": "mcoup-2-r1",
-        "carte": "p1-1"
+        "carte": "p1-1",
+        "death": "death-1"
       },
       "grande": "art-candidats/references/derives/roi-de-cristal-grand.png",
       "garder_cyan": true,

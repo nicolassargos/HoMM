@@ -300,6 +300,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     fois, les autres troupes touchées n'ont pas de nouveau geste (`UnitStruck.Splash`).
   - **Une image de la carte au contour trop fort** (la chèvre) : un autre modèle de style plus doux (`cerf.png`) et « thin
     dark brown outline only » ; l'utilisateur a pourtant gardé un candidat du premier lot.
+- **Les morts** (2026-11-17) : animées directement (modèle v3, sans le « sujet », `--sans-retour`, 8 images), depuis la
+  grande image dans un cadre de la largeur de l'attaque (la créature couchée est plus large) ; environ 0,017 $ l'essai.
+  La consigne : « is mortally wounded: staggers backward, drops to its knees and collapses face down, lying motionless
+  on the ground at the end; no effects, no blood, no other character » (le quadrupède « its legs give way… onto its
+  side », le volant « stops flying and falls down… »). Un essai suffit pour presque toutes. Ce qui rate : « crumbles into
+  rubble » (le Golem reste debout, ou une fente blanche s'ouvre) : le faire **basculer** (« topples forward and falls
+  face down ») ; des taches blanches (poussière) sur la Gargouille : une autre graine. Les os qui se défont (Squelette,
+  Colosse d'os), la lave qui refroidit (Limon), l'arbre qui bascule (Tréant) marchent bien.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).

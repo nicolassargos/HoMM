@@ -2650,6 +2650,15 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
 - Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,
   impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). ✅ Les animations des sorts sur le champ
   (étape 9, `SpellEffects`). Reste : peut-être une animation « touché » par créature.
+  ✅ **Une animation de mort par créature** (2026-11-17, branche `animations-mort`, demandée par l'utilisateur : un seul
+  essai chacune, pour commencer à peu de frais ; 1,0 $ les 59 essais). Dans le jeu (`BattleFieldView.Kill`) : une troupe
+  sans créatures joue sa feuille `<id>-death.png` une fois, reste couchée 0,7 s, puis s'efface en 0,6 s, sans retenir le
+  combat (le nombre et les sorts ne s'affichent plus) ; une troupe ramenée pendant sa mort se relève ; sans feuille,
+  elle disparaît comme avant. `--effect-preview=mort` (ou `mort:0.5`, figé) : toutes les troupes meurent en boucle.
+  Images : l'état `death` de `creature.py` (cadre de la largeur de l'attaque, hauteur de l'attente), une consigne par
+  gabarit et quelques-unes à part (os, pierre, magma, cristal, arbre ; `tools/art/METHODE.md`). Refaits : le Golem de
+  pierre (ne s'effondrait pas) et la Gargouille (taches blanches). À revoir avec l'utilisateur
+  (`art-candidats/en-cours/morts.html`).
   ✅ Les options du combat (bouton Options, touche O) : la vitesse des projectiles (lente, normale, rapide), gardée
   d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - ✅ **Des cases de 32 pixels d'art** (au lieu de 24 ; décision de l'utilisateur, 2026-11-08) : cases de 64 pixels à

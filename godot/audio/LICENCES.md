@@ -10,6 +10,8 @@ avant toute diffusion commerciale.
   `combat/cavalier-mort.mp3`, `combat/ange-gifle.mp3`, `combat/ange-mort-1.mp3`, `combat/ange-mort-2.mp3`,
   `combat/coup-epee.mp3`, `combat/coup-sourd.mp3`, `combat/mort-soldat.mp3`, `combat/sort-boule-de-feu.mp3`,
   `combat/sort-eclair.mp3`, `combat/sort-resurrection.mp3`
+- Les sons des créatures des autres factions : `combat/<créature>-<action>.mp3` (décrits dans
+  `tools/audio/sons-creatures.json`, faits par `tools/audio/sons.py`).
 
 ## Bibliothèques libres (OpenGameArt)
 - `combat/cavalier-galop.ogg` : « Horse Gallop Loop », AntumDeluge, **CC-BY 3.0** (citer l'auteur),

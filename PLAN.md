@@ -144,7 +144,7 @@ roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et dr
 dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais (2026-11-17).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
-- **Les montagnes** (en cours, branche `montagnes-pied`) : mieux fondre les montagnes au bord de deux sols et les bords
+- **Les montagnes** (en cours) : mieux fondre les montagnes au bord de deux sols et les bords
   en trame ; les **mines au flanc des montagnes** (idée de l'utilisateur, comme Heroes 3).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).

@@ -7,7 +7,8 @@
       "mouvements": {
         "idle": "subtle idle: slow calm breathing and one small movement, the feet stay in place",
         "attack": "strikes the enemy in front of it with its weapon, then returns to its starting pose",
-        "move": "walking forward to the right with steady steps, the legs clearly alternating"
+        "move": "walking forward to the right with steady steps, the legs clearly alternating",
+        "death": "is mortally wounded: staggers backward, drops to its knees and collapses face down, lying motionless on the ground at the end; no effects, no blood, no other character"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     },
@@ -18,7 +19,8 @@
       "mouvements": {
         "idle": "hovering in place, swaying gently, very small movements",
         "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place",
-        "move": "flying forward to the right, gliding smoothly through the air"
+        "move": "flying forward to the right, gliding smoothly through the air",
+        "death": "is mortally wounded: stops flying and falls down to the ground, lying motionless on the ground at the end; no effects, no blood, no other character"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     },
@@ -29,7 +31,8 @@
       "mouvements": {
         "idle": "standing still, breathing, the head and tail move a little",
         "attack": "lunges forward and bites the enemy in front of it, then steps back to its starting pose",
-        "move": "trotting forward to the right, the four legs moving in a clear trot"
+        "move": "trotting forward to the right, the four legs moving in a clear trot",
+        "death": "is mortally wounded: its legs give way and it collapses onto its side, lying motionless on the ground at the end; no effects, no blood, no other character"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     },
@@ -40,7 +43,8 @@
       "mouvements": {
         "idle": "slow heavy breathing, the huge body sways a little, the feet stay in place",
         "attack": "a slow powerful blow with both hands at the enemy in front of it, then back to its starting pose",
-        "move": "slow heavy steps forward to the right, the whole body swaying with each step"
+        "move": "slow heavy steps forward to the right, the whole body swaying with each step",
+        "death": "is mortally wounded: sways, then falls heavily to the ground on its side, lying motionless on the ground at the end; no effects, no blood, no other character"
       },
       "sans": "no other character, no enemy drawn, no visual effects, no sparks, no flash, no projectile"
     }
@@ -71,7 +75,10 @@
         "attack": "attack-9",
         "move": "move-2"
       },
-      "notes": "D'après une image de l'utilisateur, en plus simple (style rétro). Sur une seule case. Lent : 7 images par seconde."
+      "notes": "D'après une image de l'utilisateur, en plus simple (style rétro). Sur une seule case. Lent : 7 images par seconde.",
+      "mouvements": {
+        "death": "is destroyed: its huge bones come apart and it collapses into a heap of bones on the ground; no effects, no other character"
+      }
     },
     "chevalier": {
       "nom": "Chevalier",
@@ -129,7 +136,10 @@
         "move": "move-2"
       },
       "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur).",
-      "vole": true
+      "vole": true,
+      "mouvements": {
+        "death": "is destroyed: slowly sinks down to the ground and shrinks to a small heap of tattered cloth; no effects, no other character"
+      }
     },
     "archer": {
       "nom": "Archer",
@@ -159,7 +169,8 @@
         "fixe": "L3-2",
         "idle": "idle-4-corde",
         "attack": "attack-3-corde",
-        "move": "move-1-corde"
+        "move": "move-1-corde",
+        "death": "death-1"
       },
       "notes": "Refait le 2026-11-06. La corde de l'arc est tracée par l'outil (« corde »). Il regarde autour de lui, rarement.",
       "lots": {
@@ -207,7 +218,8 @@
       "choix": {
         "idle": "idle-2",
         "attack": "attack-2",
-        "move": "move-2"
+        "move": "move-2",
+        "death": "death-1"
       },
       "notes": "Image d'origine gardée (modèle de style)."
     },
@@ -234,7 +246,8 @@
       "mouvements": {
         "idle": "the bloated zombie slowly raises one hand and reaches forward, its gaping mouth opens wider, then the arm sinks back down, the feet stay in place",
         "attack": "lurches forward and slams both heavy arms down on the enemy in front of it, then sways back to its starting pose",
-        "move": "limping very slowly forward to the right on a crippled leg: one stiff leg is dragged behind at every step, the body lurches and leans heavily to one side, the belly wobbles"
+        "move": "limping very slowly forward to the right on a crippled leg: one stiff leg is dragged behind at every step, the body lurches and leans heavily to one side, the belly wobbles",
+        "death": "is destroyed: sways and falls forward heavily, lying motionless on the ground at the end; no effects, no blood, no other character"
       },
       "notes": "Futur mort-vivant (premier niveau). D'après une image de « zombie boursouflé » de l'utilisateur, en plus simple. Niveau 2 : plus petit que l'Archer (44 px). Marche lente, une jambe infirme.",
       "lots": {
@@ -451,6 +464,9 @@
       "grande": "art-candidats/references/derives/liche-grand.png",
       "consignes": {
         "attack": "the lich straightens its hunched back and slowly raises its long staff high above its crowned skull with one bony arm, holds it up toward the sky for a moment as if calling the storm, then lowers the staff and sinks back into its hunched starting pose"
+      },
+      "mouvements": {
+        "death": "is destroyed: staggers and crumples into a heap of empty robes and bones on the ground; no effects, no other character"
       }
     },
     "araignee": {
@@ -680,7 +696,10 @@
       "nom": "dragon",
       "hauteur": 113,
       "grande": "art-candidats/references/derives/dragon-grand.png",
-      "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2."
+      "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
+      "mouvements": {
+        "death": "is mortally wounded: its wings fold, it sways and collapses heavily onto its side, lying motionless on the ground at the end; no effects, no blood, no other character"
+      }
     },
     "gobelin": {
       "nom": "gobelin",
@@ -771,7 +790,8 @@
       "mouvements": {
         "idle": "the hunched skeleton sways slowly on its bent legs, its head twitches and turns, its clawed bony fingers flex, the feet stay in place",
         "move": "the hunched skeleton shambles forward to the right with jerky steps, arms dangling in front of it, it stays at the same place",
-        "attack": "the hunched skeleton lunges forward and rakes the enemy in front of it with its clawed bony hands, then steps back to its starting pose"
+        "attack": "the hunched skeleton lunges forward and rakes the enemy in front of it with its clawed bony hands, then steps back to its starting pose",
+        "death": "is destroyed: its bones come apart and it collapses into a heap of loose bones on the ground; no effects, no other character"
       },
       "consignes": {
         "idle": "the hunched skeleton sways slowly on its bent legs, its head twitches and turns, its clawed bony fingers flex, the feet stay in place",
@@ -947,7 +967,8 @@
       "mouvements": {
         "idle": "the walking tree stands still and sways gently in the wind, its crown of leaves and blossoms rustles, its branch arms move slowly, its roots stay in place",
         "move": "the walking tree walks slowly forward to the right on its thick roots in one full heavy lumbering walking cycle, one root leg lifting and stepping forward after the other, its crown swaying, it stays at the same place",
-        "attack": "the walking tree raises one heavy branch arm high and swings it down hard to smash the enemy in front of it, then slowly returns to its starting pose"
+        "attack": "the walking tree raises one heavy branch arm high and swings it down hard to smash the enemy in front of it, then slowly returns to its starting pose",
+        "death": "is destroyed: creaks and topples over sideways like a falling tree, lying motionless on the ground at the end; no effects, no blood, no other character"
       },
       "consignes": {
         "idle": "the walking tree shakes its big leafy crown strongly from left to right and back again several times, like an animal shaking its head, a few leaves and petals fall slowly from its crown to the ground, then it stands still again, its roots stay in place",
@@ -1097,7 +1118,8 @@
       "mouvements": {
         "idle": "the stone gargoyle stays crouched on its clawed feet, slowly turns its horned head from side to side, its folded stone wings shift a little, it flexes its claws, the feet stay in place",
         "move": "the stone gargoyle spreads its large stone wings wide and flies forward to the right, beating them heavily up and down in one full slow flapping cycle, its legs tucked under its body, it stays at the same place",
-        "attack": "the stone gargoyle springs forward from its crouch, half opens its wings and rakes hard with both clawed hands in front of it, then crouches back to its starting pose"
+        "attack": "the stone gargoyle springs forward from its crouch, half opens its wings and rakes hard with both clawed hands in front of it, then crouches back to its starting pose",
+        "death": "is destroyed: falls to the ground and breaks into a heap of stone rubble; no effects, no other character"
       },
       "consignes": {
         "idle": "the stone gargoyle stays crouched on its clawed feet, slowly turns its horned head from side to side, its folded stone wings shift a little, it flexes its claws, the feet stay in place",
@@ -1149,7 +1171,10 @@
         "move": "walking slowly and heavily forward, a slow stomping stone gait",
         "attack": "leans its heavy body back, then charges two big steps forward and throws its whole torso far forward, chest first, like a battering ram, then walks back two steps to its starting place and stance"
       },
-      "marge_bas": 0.08
+      "marge_bas": 0.08,
+      "mouvements": {
+        "death": "is destroyed: cracks apart and crumbles into a heap of stone rubble on the ground; no effects, no other character"
+      }
     },
     "naga": {
       "nom": "Naga",
@@ -1241,6 +1266,9 @@
         "idle": "floats in place, bobbing slowly up and down, arms crossed, his golden smoke tail swirling and curling gently",
         "move": "glides forward through the air, leaning forward, his golden smoke tail streaming and waving behind him",
         "attack": "swoops forward and strikes the enemy in front of him with both big fists, then floats back to his place"
+      },
+      "mouvements": {
+        "death": "is mortally wounded: its body sinks down and shrinks into a small heap on the ground; no effects, no other character"
       }
     },
     "mage": {
@@ -1599,6 +1627,9 @@
         "idle": "floats in place, bobbing slowly up and down in the air, its thin eye stalks writhing gently like snakes, its huge central eye blinking once, its fanged mouth opening and closing a little",
         "move": "flying forward to the right, gliding smoothly through the air",
         "attack": "swoops forward and strikes the enemy in front of it, then returns to its starting place"
+      },
+      "mouvements": {
+        "death": "is mortally wounded: stops floating, drops to the ground and rolls onto its side, eye closed, lying motionless on the ground at the end; no effects, no blood, no other character"
       }
     },
     "hydre": {
@@ -1827,7 +1858,10 @@
         "move": "rampe32-2",
         "carte": "p1-2"
       },
-      "grande": "art-candidats/references/derives/limon-magma-grand.png"
+      "grande": "art-candidats/references/derives/limon-magma-grand.png",
+      "mouvements": {
+        "death": "is destroyed: melts and collapses into a flat puddle of dark cooling lava on the ground; no effects, no other character"
+      }
     },
     "tourmenteur": {
       "nom": "Tourmenteur",
@@ -2138,6 +2172,9 @@
       "grande": "art-candidats/references/derives/gyrocoptere-grand.png",
       "consignes": {
         "attack": "the dwarf swings his round black bomb back and lobs it forward underarm towards the front, his wings flare open, the bomb leaves his hand and he returns to the starting pose; only the body moves, no explosion, no fire, no smoke, no spark"
+      },
+      "mouvements": {
+        "death": "is mortally wounded: his wings break, he staggers and collapses face down, lying motionless on the ground at the end; no effects, no blood, no other character"
       }
     },
     "machine-guerre": {
@@ -2240,7 +2277,10 @@
         "carte": "p1-1"
       },
       "grande": "art-candidats/references/derives/roi-de-cristal-grand.png",
-      "garder_cyan": true
+      "garder_cyan": true,
+      "mouvements": {
+        "death": "is destroyed: his crystal body cracks, he falls to his knees and collapses into a heap of crystal shards on the ground; no effects, no other character"
+      }
     }
   }
 }

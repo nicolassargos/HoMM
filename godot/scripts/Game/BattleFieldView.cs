@@ -148,7 +148,10 @@ public partial class BattleFieldView : Control
     /// <summary>« transform » (facultatif) : jouée avant un déplacement (le Vampire devient chauve-souris), et à
     /// l'envers à l'arrivée.</summary>
     // « throw » : le lancer du crochet (le Tourmenteur), joué une fois, sa feuille facultative
-    private const string Idle = "idle", Move = "move", AttackState = "attack", Transform = "transform", Throw = "throw";
+    private const string Idle = "idle", Move = "move", AttackState = "attack", Transform = "transform", Throw = "throw", Death = "death";
+
+    /// <summary>Une troupe morte reste couchée un moment après son animation de mort, puis s'efface (secondes).</summary>
+    private const double DeathHold = 0.7, DeathFade = 0.6;
 
     /// <summary>
     /// La place de chaque côté de la grille (étape 7) : le sol continue, pour les héros (et plus tard les machines de
@@ -199,6 +202,9 @@ public partial class BattleFieldView : Control
         public float Flash;
         public bool Gone;
 
+        /// <summary>La troupe vient de mourir : elle joue son animation de mort, reste couchée, puis s'efface (<see cref="Kill"/>).</summary>
+        public bool Dying;
+
         /// <summary>L'animation jouée (attente, marche, attaque) et depuis quand.</summary>
         public string State = Idle;
         public double StateTime;
@@ -221,6 +227,9 @@ public partial class BattleFieldView : Control
 
         public void Play(string state, bool backwards = false)
         {
+            // une troupe qui meurt ne joue plus rien d'autre
+            if (Dying)
+                return;
             State = state;
             StateTime = 0;
             Backwards = backwards;
@@ -1389,7 +1398,7 @@ public partial class BattleFieldView : Control
                         if (after < 0.18)
                             return false;
                         if (_shown[cloudStruck.Target].Count == 0)
-                            _shown[cloudStruck.Target].Gone = true;
+                            Kill(cloudStruck.Target);
                         return true;
                     });
                     break;
@@ -1495,7 +1504,7 @@ public partial class BattleFieldView : Control
                         if (age < 0.35 * AnimationFps / Fps(struck.Attacker, AttackState))
                             return false;
                         if (_shown[struck.Target].Count == 0)
-                            _shown[struck.Target].Gone = true;
+                            Kill(struck.Target);
                         if (striker.State == AttackState)
                             striker.Play(Idle);
                         striker.FacesLeft = null;
@@ -1585,7 +1594,7 @@ public partial class BattleFieldView : Control
                         if (hurt < 0.35)
                             return false;
                         if (_shown[damaged.Target].Count == 0)
-                            _shown[damaged.Target].Gone = true;
+                            Kill(damaged.Target);
                         return true;
                     });
                     break;
@@ -1644,7 +1653,7 @@ public partial class BattleFieldView : Control
                         if (venom < 0.35)
                             return false;
                         if (_shown[poisoned.Unit].Count == 0)
-                            _shown[poisoned.Unit].Gone = true;
+                            Kill(poisoned.Unit);
                         return true;
                     });
                     break;
@@ -1701,7 +1710,7 @@ public partial class BattleFieldView : Control
                         if (gulp < 0.3)
                             return false;
                         if (_shown[swallowed.Unit].Count == 0)
-                            _shown[swallowed.Unit].Gone = true;
+                            Kill(swallowed.Unit);
                         return true;
                     });
                     break;
@@ -1832,7 +1841,7 @@ public partial class BattleFieldView : Control
                         if (flash < 0.6)
                             return false;
                         if (target.Count == 0)
-                            target.Gone = true;
+                            Kill(bolt.Target);
                         return true;
                     });
                     break;
@@ -1873,6 +1882,12 @@ public partial class BattleFieldView : Control
                             var target = _shown[healed.Unit];
                             target.Count += healed.Revived;
                             _spells.OnUnit(SpellEffects.UnitEffectOf(healed.Spell) ?? "soins", BodyCenter(healed.Unit, target), Ground(target), Facing(healed.Unit));
+                            // ramenée pendant sa mort : elle se relève
+                            if (target.Count > 0 && target.Dying)
+                            {
+                                target.Dying = false;
+                                target.Play(Idle);
+                            }
                             target.Gone = target.Count == 0;
                             _floating.Add(($"+{healed.HitPoints}", target.Position + Ui.V(0, -50), 0, MapRenderer.Rgb(140, 235, 140)));
                         }
@@ -2065,6 +2080,11 @@ public partial class BattleFieldView : Control
             PreviewHook();
             return;
         }
+        if (parts[0] == "mort")
+        {
+            PreviewDeath(delta, parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var still) ? still : null);
+            return;
+        }
         if (parts[0] == "cristal")
         {
             PreviewMirror(delta, parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var still) ? still : null);
@@ -2117,6 +2137,25 @@ public partial class BattleFieldView : Control
             targets = new() { frozen != null ? targets[^1] : targets[_previewTurn++ % targets.Count] };
         foreach (var shown in targets)
             _effects.OnHex(parts[0], Ground(shown), frozen);
+    }
+
+    /// <summary>
+    /// Développement (« --effect-preview=mort ») : chaque troupe qui a une animation de mort meurt, s'efface, revient et
+    /// recommence ; « mort:0.5 » les fige toutes à cet instant de leur mort (secondes).
+    /// </summary>
+    private void PreviewDeath(double delta, double? frozen)
+    {
+        _previewClock = _previewClock < 0 ? 0 : _previewClock + delta;
+        foreach (var (unit, shown) in _shown)
+        {
+            if (Sheet(unit, Death) == null)
+                continue;
+            double t = frozen ?? _previewClock % (DeathTime(unit) + 0.6);
+            shown.State = Death;
+            shown.StateTime = t;
+            shown.Dying = t < DeathTime(unit);
+            shown.Gone = !shown.Dying;
+        }
     }
 
     /// <summary>
@@ -2258,6 +2297,27 @@ public partial class BattleFieldView : Control
     }
 
     /// <summary>
+    /// Une troupe n'a plus de créatures : elle joue son animation de mort (« death »), reste couchée un moment puis
+    /// s'efface (<see cref="_Process"/>), sans retenir le combat ; sans animation de mort, elle disparaît aussitôt.
+    /// </summary>
+    private void Kill(BattleUnit unit)
+    {
+        var shown = _shown[unit];
+        if (shown.Dying || shown.Gone)
+            return;
+        if (Sheet(unit, Death) == null)
+        {
+            shown.Gone = true;
+            return;
+        }
+        shown.Play(Death);
+        shown.Dying = true;
+    }
+
+    /// <summary>Combien de temps dure la mort d'une troupe à l'écran : l'animation, le corps couché, puis l'effacement.</summary>
+    private static double DeathTime(BattleUnit unit) => Frames(unit, Death) / Fps(unit, Death) + DeathHold + DeathFade;
+
+    /// <summary>
     /// Un texte qui monte au-dessus de la troupe, après <paramref name="first"/> (ce qui change à l'écran) ; la troupe
     /// disparaît si elle n'a plus de créatures.
     /// </summary>
@@ -2275,7 +2335,7 @@ public partial class BattleFieldView : Control
             if (elapsed < time)
                 return false;
             if (_shown[unit].Count == 0)
-                _shown[unit].Gone = true;
+                Kill(unit);
             return true;
         });
     }
@@ -2284,12 +2344,17 @@ public partial class BattleFieldView : Control
     {
         if (_animations.Count > 0 && _animations.Peek()(delta))
             _animations.Dequeue();
-        foreach (var shown in _shown.Values)
+        foreach (var (unit, shown) in _shown)
         {
             shown.Flash = Math.Max(0, shown.Flash - (float)delta * 3);
             shown.Recoil = Math.Max(0, shown.Recoil - (float)delta * 4);
             shown.Glow = Math.Max(0, shown.Glow - (float)delta * 1.2f);
             shown.StateTime += delta;
+            if (shown.Dying && shown.StateTime >= DeathTime(unit))
+            {
+                shown.Dying = false;
+                shown.Gone = true;
+            }
         }
         _effects.Update(delta);
         _spells.Update(delta);
@@ -2515,8 +2580,8 @@ public partial class BattleFieldView : Control
         int index = shown.State == Idle && IdlePause(unit) is var (least, most)
             ? IdleFrameWithPauses(time, Fps(unit, Idle), least, most, shown.Phase, frames)
             : (int)(time * Fps(unit, state));
-        // l'attaque, le lancer et la transformation sont joués une fois (la transformation parfois à l'envers)
-        index = state is AttackState or Transform or Throw ? Math.Min(index, frames - 1) : index % frames;
+        // l'attaque, le lancer, la transformation et la mort sont joués une fois (la transformation parfois à l'envers)
+        index = state is AttackState or Transform or Throw or Death ? Math.Min(index, frames - 1) : index % frames;
         if (state == Transform && shown.Backwards)
             index = frames - 1 - index;
         int rows = (frames + AnimationColumns - 1) / AnimationColumns;
@@ -2637,6 +2702,9 @@ public partial class BattleFieldView : Control
         var (spellTint, alpha, ghost) = _spells.Look(Ground(shown));
         tint *= spellTint;
         tint.A = alpha;
+        // une troupe morte s'efface à la fin
+        if (shown.Dying)
+            tint.A *= (float)Math.Clamp((DeathTime(unit) - shown.StateTime) / DeathFade, 0, 1);
         // L'image de combat (plus détaillée), sinon la petite de la carte ×4 ; une grande créature est centrée sur ses 2 cases
         var battleImage = Art.Get($"creatures/battle/{unit.Type.Id}");
         var (sheet, frame) = Frame(unit, shown);
@@ -2668,6 +2736,8 @@ public partial class BattleFieldView : Control
         }
         else
             DrawCircle(foot + Ui.V(0, -24), Ui.Px(20), unit.Side == PlayerSide ? MapRenderer.PlayerColor : MapRenderer.NeutralColor);
+        if (shown.Dying)
+            return; // ni nombre ni sorts sur un mort
 
         // le nombre de créatures, dans une petite boîte à la couleur du camp
         string count = shown.Count.ToString();

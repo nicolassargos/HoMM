@@ -2701,8 +2701,12 @@ choix de l'utilisateur) :
   rocher côte à côte, « pas une vraie chaîne »), de grands sommets en blocs de rocher (« pas la bonne direction »).
   Puis le bord des pentes (branche `montagnes-bords`) : une trame régulière se voyait comme une ligne de points ; comparés
   avec l'utilisateur, un bord de plus en plus transparent (choisi), effrité par grappes, ou les deux ; et le trait sombre
-  qui restait sur certains pics, adouci. **Reste** : les montagnes au bord de deux sols ; les mines au flanc des
-  montagnes (idée de l'utilisateur, comme Heroes 3). Une même graine donne une carte un peu différente d'avant.
+  qui restait sur certains pics, adouci. Puis **les mines au flanc des montagnes** (idée de l'utilisateur, comme Heroes 3 ; branche `mines-montagnes`) :
+  une mine creusée (toutes sauf la scierie) préfère une place où deux des trois cases juste derrière elle sont de la
+  montagne (`MapGenerator.MountainBack`), dans les limites de chaque sorte de mine (à 4 à 11 pas du départ, près d'une
+  ville neutre, ailleurs) ; une montagne seulement à côté ne suffit pas (essayé : la mine paraissait posée à côté).
+  Mesuré sur les cartes 5, 12 et 42 : 23 mines creusées sur 45 adossées (test `MontagnesTests`), une sur dix avant.
+  **Reste** : les montagnes au bord de deux sols. Une même graine donne une carte un peu différente d'avant.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

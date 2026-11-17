@@ -47,6 +47,26 @@ public class MontagnesTests
     }
 
     [Fact]
+    public void Les_mines_creusees_s_adossent_souvent_a_une_montagne()
+    {
+        // comme dans Heroes 3 : une mine (sauf la scierie) au flanc d'une montagne, deux des trois cases juste derrière elle
+        // sont de la montagne
+        int total = 0, backed = 0;
+        foreach (int seed in new[] { 5, 12, 42 })
+        {
+            var map = new MapGenerator(seed, TestData.Data).Generate();
+            foreach (var mine in map.Objects.OfType<Mine>().Where(m => m.Resource != ResourceType.Wood))
+            {
+                total++;
+                var e = mine.Position;
+                if (new[] { -1, 0, 1 }.Count(dx => map.InBounds(e.Offset(dx, -2)) && map.GetTerrain(e.Offset(dx, -2)) == TerrainType.Mountain) >= 2)
+                    backed++;
+            }
+        }
+        Assert.True(backed * 10 >= total * 4, $"{backed} mines adossées sur {total}");
+    }
+
+    [Fact]
     public void Un_massif_bloque_les_cases_de_sa_forme()
     {
         var shape = new MassifShape { Id = "essai", Rows = new List<string> { ".##", "##." } };

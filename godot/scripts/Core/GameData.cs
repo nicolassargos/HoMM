@@ -10,7 +10,7 @@ namespace HoMM.Core;
 public sealed class GameData
 {
     public GameData(CreatureCatalog creatures, BuildingCatalog buildings, ArtifactCatalog? artifacts = null, SpellCatalog? spells = null,
-        HeroCatalog? heroes = null, ClassCatalog? classes = null, SkillCatalog? skills = null)
+        HeroCatalog? heroes = null, ClassCatalog? classes = null, SkillCatalog? skills = null, MassifCatalog? massifs = null)
     {
         var errors = DataValidation.Check(creatures.All, buildings.All);
         DataValidation.CheckSpells((spells ?? SpellCatalog.Empty).All, errors);
@@ -38,6 +38,7 @@ public sealed class GameData
         Heroes = heroes ?? HeroCatalog.Empty;
         Classes = classes ?? ClassCatalog.Empty;
         Skills = skills ?? SkillCatalog.Empty;
+        Massifs = massifs ?? MassifCatalog.Empty;
         foreach (var creature in creatures.All.Where(c => c.Blessings.Count > 0))
             creature.BlessingSpells = creature.Blessings.Select(Spells.Get).ToList();
         foreach (var creature in creatures.All.Where(c => c.Rays.Count > 0))
@@ -53,15 +54,18 @@ public sealed class GameData
     public HeroCatalog Heroes { get; }
     public ClassCatalog Classes { get; }
     public SkillCatalog Skills { get; }
+    /// <summary>Les formes des massifs de montagnes (data/mountains.json) ; sans elles, des montagnes case par case.</summary>
+    public MassifCatalog Massifs { get; }
 
     public static GameData FromJson(string creaturesJson, string buildingsJson, string? artifactsJson = null, string? spellsJson = null,
-        string? heroesJson = null, string? classesJson = null, string? skillsJson = null) =>
+        string? heroesJson = null, string? classesJson = null, string? skillsJson = null, string? mountainsJson = null) =>
         new(CreatureCatalog.FromJson(creaturesJson), BuildingCatalog.FromJson(buildingsJson),
             artifactsJson != null ? ArtifactCatalog.FromJson(artifactsJson) : null,
             spellsJson != null ? SpellCatalog.FromJson(spellsJson) : null,
             heroesJson != null ? HeroCatalog.FromJson(heroesJson) : null,
             classesJson != null ? ClassCatalog.FromJson(classesJson) : null,
-            skillsJson != null ? SkillCatalog.FromJson(skillsJson) : null);
+            skillsJson != null ? SkillCatalog.FromJson(skillsJson) : null,
+            mountainsJson != null ? MassifCatalog.FromJson(mountainsJson) : null);
 
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {

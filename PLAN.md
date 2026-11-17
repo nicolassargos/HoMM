@@ -141,7 +141,7 @@ une option, une ville au plus par zone, une scierie et une mine de minerai gard�
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
-dessin).
+dessin) ; les montagnes en massifs posés comme dans Heroes 3, avec leur pied (2026-11-17).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
@@ -223,7 +223,10 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   musique d'abord des **bibliothèques libres**, **Stable Audio** plus tard (« plus années 90 »). Dans le jeu, chaque
   créature a ses sons (geste, tir, coup qui porte, tir qui touche, mort ; sinon ceux de tout le combat) et chaque sort
   le sien (`Audio.PlayCreature`, `spell-<id>`) ; l'Ange gifle (comme son animation), sa première mort essayée sert à la
-  Résurrection. Licences : `godot/audio/LICENCES.md` ; 3. le reste partie par partie, comme les images.
+  Résurrection. Licences : `godot/audio/LICENCES.md` ; 3. le reste partie par partie, comme les images : ✅ les sons
+  de combat de **toutes les créatures** (2026-11-17, branche `sons-factions`, 113 sons ElevenLabs revus un à un sur la
+  page de `tools/audio/sons.py` ; le Paysan garde les sons communs). **Reste** : les autres sorts, la carte,
+  l'interface, les musiques des villes et de la carte, puis la musique chez Stable Audio.
 
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à

@@ -4,6 +4,8 @@
 #   assombrir : part de la couleur voisine gardée (plus petit = bord plus sombre)
 #   seuil : luminosité sous laquelle un pixel du bord est considéré comme noir
 #   passes : 2 traite aussi la ligne noire juste à l'intérieur du bord
+#   interieur : 0 à 1, adoucit aussi les traits sombres à l'intérieur du dessin (les fentes des rochers d'une montagne,
+#     2026-11-17) : chaque pixel sous le seuil va vers ses voisins plus clairs, assombris, d'autant
 # Marche aussi sur une feuille d'animation (chaque image est traitée de la même façon).
 import os
 import sys
@@ -49,6 +51,26 @@ def adoucir(p, w, h, assombrir=0.55, seuil=45, passes=1):
     return p
 
 
+def traits(p, w, h, assombrir, seuil, force):
+    """Les traits sombres à l'intérieur du dessin vont, d'une part <force>, vers la couleur de leurs voisins plus clairs."""
+    opaque = lambda x, y: 0 <= x < w and 0 <= y < h and p[y][x][3] > 128
+    nouveau = {}
+    for y in range(h):
+        for x in range(w):
+            if not opaque(x, y) or lum(p[y][x]) >= seuil:
+                continue
+            sources = [p[y + dy][x + dx] for dy in (-1, 0, 1) for dx in (-1, 0, 1)
+                       if (dx or dy) and opaque(x + dx, y + dy) and lum(p[y + dy][x + dx]) >= seuil]
+            if not sources:
+                continue
+            c = p[y][x]
+            cible = [sum(s[i] for s in sources) / len(sources) * assombrir for i in range(3)]
+            nouveau[(x, y)] = tuple(int(c[i] + force * (cible[i] - c[i])) for i in range(3)) + (c[3],)
+    for (x, y), c in nouveau.items():
+        p[y][x] = c
+    return p
+
+
 def main():
     if len(sys.argv) < 3:
         print(__doc__ or "python -I tools/art/adoucir.py entree.png sortie.png [assombrir] [seuil] [passes]")
@@ -57,8 +79,12 @@ def main():
     assombrir = float(sys.argv[3]) if len(sys.argv) > 3 else 0.55
     seuil = float(sys.argv[4]) if len(sys.argv) > 4 else 45
     passes = int(sys.argv[5]) if len(sys.argv) > 5 else 1
+    interieur = float(sys.argv[6]) if len(sys.argv) > 6 else 0
     w, h, p = lire(entree)
-    ecrire(sortie, adoucir(p, w, h, assombrir, seuil, passes))
+    p = adoucir(p, w, h, assombrir, seuil, passes)
+    if interieur:
+        p = traits(p, w, h, assombrir, seuil, interieur)
+    ecrire(sortie, p)
     print(f"{sortie} : contour adouci")
 
 

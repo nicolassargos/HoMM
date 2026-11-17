@@ -1,37 +1,434 @@
 {
   "music": {
-    "menu": ["attente/musique-menu.wav"],
-    "map": ["attente/musique-carte.wav"],
-    "town": ["attente/musique-ville.wav"],
-    "battle": ["musique/combat-poursuite.wav"]
+    "menu": [
+      "attente/musique-menu.wav"
+    ],
+    "map": [
+      "attente/musique-carte.wav"
+    ],
+    "town": [
+      "attente/musique-ville.wav"
+    ],
+    "battle": [
+      "musique/combat-poursuite.wav"
+    ]
   },
   "sounds": {
-    "click": ["attente/clic.wav"],
-    "pickup": ["attente/ramasser.wav"],
-    "chest": ["attente/coffre.wav"],
-    "capture": ["attente/prendre.wav"],
-    "build": ["attente/construire.wav"],
-    "level-up": ["attente/niveau.wav"],
-    "new-week": ["attente/nouvelle-semaine.wav"],
-    "victory": ["attente/victoire.wav"],
-    "defeat": ["attente/defaite.wav"],
-
-    "battle-impact": ["combat/coup-sourd.mp3"],
-    "battle-death": ["combat/mort-soldat.mp3"],
-    "archer-shoot": ["combat/archer-tir.mp3"],
-    "archer-shot-impact": ["combat/fleche-impact.mp3"],
-    "griffon-attack": ["combat/griffon-attaque.mp3"],
-    "griffon-death": ["combat/griffon-mort.mp3"],
-    "chevalier-impact": ["combat/coup-epee.mp3"],
-    "cavalier-attack": ["combat/cavalier-galop.ogg"],
-    "cavalier-impact": ["combat/coup-epee.mp3"],
-    "cavalier-death": ["combat/cavalier-mort.mp3"],
-    "ange-impact": ["combat/ange-gifle.mp3"],
-    "ange-death": ["combat/ange-mort-1.mp3", "combat/ange-mort-2.mp3"],
-    "spell-fleche-magique": ["combat/sort-fleche-magique.ogg"],
-    "spell-boule-de-feu": ["combat/sort-boule-de-feu.mp3"],
-    "spell-eclair": ["combat/sort-eclair.mp3"],
-    "spell-resurrection": ["combat/sort-resurrection.mp3"]
+    "click": [
+      "attente/clic.wav"
+    ],
+    "pickup": [
+      "attente/ramasser.wav"
+    ],
+    "chest": [
+      "attente/coffre.wav"
+    ],
+    "capture": [
+      "attente/prendre.wav"
+    ],
+    "build": [
+      "attente/construire.wav"
+    ],
+    "level-up": [
+      "attente/niveau.wav"
+    ],
+    "new-week": [
+      "attente/nouvelle-semaine.wav"
+    ],
+    "victory": [
+      "attente/victoire.wav"
+    ],
+    "defeat": [
+      "attente/defaite.wav"
+    ],
+    "battle-impact": [
+      "combat/coup-sourd.mp3"
+    ],
+    "battle-death": [
+      "combat/mort-soldat.mp3"
+    ],
+    "archer-shoot": [
+      "combat/archer-tir.mp3"
+    ],
+    "archer-shot-impact": [
+      "combat/fleche-impact.mp3"
+    ],
+    "griffon-attack": [
+      "combat/griffon-attaque.mp3"
+    ],
+    "griffon-death": [
+      "combat/griffon-mort.mp3"
+    ],
+    "chevalier-impact": [
+      "combat/coup-epee.mp3"
+    ],
+    "cavalier-attack": [
+      "combat/cavalier-galop.ogg"
+    ],
+    "cavalier-impact": [
+      "combat/coup-epee.mp3"
+    ],
+    "cavalier-death": [
+      "combat/cavalier-mort.mp3"
+    ],
+    "ange-impact": [
+      "combat/ange-gifle.mp3"
+    ],
+    "ange-death": [
+      "combat/ange-mort-1.mp3",
+      "combat/ange-mort-2.mp3"
+    ],
+    "spell-fleche-magique": [
+      "combat/sort-fleche-magique.ogg"
+    ],
+    "spell-boule-de-feu": [
+      "combat/sort-boule-de-feu.mp3"
+    ],
+    "spell-eclair": [
+      "combat/sort-eclair.mp3"
+    ],
+    "spell-resurrection": [
+      "combat/sort-resurrection.mp3"
+    ],
+    "moine-shoot": [
+      "combat/moine-shoot.mp3"
+    ],
+    "moine-shot-impact": [
+      "combat/moine-shot-impact.mp3"
+    ],
+    "squelette-death": [
+      "combat/squelette-death.mp3"
+    ],
+    "zombie-death": [
+      "combat/zombie-death.mp3"
+    ],
+    "fantome-death": [
+      "combat/fantome-death.mp3"
+    ],
+    "araignee-impact": [
+      "combat/araignee-impact.mp3"
+    ],
+    "araignee-death": [
+      "combat/araignee-death.mp3"
+    ],
+    "vampire-death": [
+      "combat/vampire-death.mp3"
+    ],
+    "liche-shoot": [
+      "combat/liche-shoot.mp3"
+    ],
+    "colosse-os-death": [
+      "combat/colosse-os-death.mp3"
+    ],
+    "loup-impact": [
+      "combat/loup-impact.mp3"
+    ],
+    "orc-shoot": [
+      "combat/orc-shoot.mp3"
+    ],
+    "orc-shot-impact": [
+      "combat/orc-shot-impact.mp3"
+    ],
+    "orc-death": [
+      "combat/orc-death.mp3"
+    ],
+    "ogre-impact": [
+      "combat/ogre-impact.mp3"
+    ],
+    "ogre-death": [
+      "combat/ogre-death.mp3"
+    ],
+    "nomades-impact": [
+      "combat/nomades-impact.mp3"
+    ],
+    "nomades-death": [
+      "combat/nomades-death.mp3"
+    ],
+    "oiseau-tonnerre-impact": [
+      "combat/oiseau-tonnerre-impact.mp3"
+    ],
+    "behemoth-death": [
+      "combat/behemoth-death.mp3"
+    ],
+    "farfadet-impact": [
+      "combat/farfadet-impact.mp3"
+    ],
+    "farfadet-death": [
+      "combat/farfadet-death.mp3"
+    ],
+    "sanglier-impact": [
+      "combat/sanglier-impact.mp3"
+    ],
+    "sanglier-death": [
+      "combat/sanglier-death.mp3"
+    ],
+    "archer-elfe-shot-impact": [
+      "combat/archer-elfe-shot-impact.mp3"
+    ],
+    "cerf-impact": [
+      "combat/cerf-impact.mp3"
+    ],
+    "cerf-death": [
+      "combat/cerf-death.mp3"
+    ],
+    "druide-shot-impact": [
+      "combat/druide-shot-impact.mp3"
+    ],
+    "druide-death": [
+      "combat/druide-death.mp3"
+    ],
+    "treant-death": [
+      "combat/treant-death.mp3"
+    ],
+    "troll-death": [
+      "combat/troll-death.mp3"
+    ],
+    "gnome-death": [
+      "combat/gnome-death.mp3"
+    ],
+    "gargouille-death": [
+      "combat/gargouille-death.mp3"
+    ],
+    "golem-pierre-impact": [
+      "combat/golem-pierre-impact.mp3"
+    ],
+    "golem-pierre-death": [
+      "combat/golem-pierre-death.mp3"
+    ],
+    "naga-impact": [
+      "combat/naga-impact.mp3"
+    ],
+    "naga-death": [
+      "combat/naga-death.mp3"
+    ],
+    "djinn-impact": [
+      "combat/djinn-impact.mp3"
+    ],
+    "djinn-death": [
+      "combat/djinn-death.mp3"
+    ],
+    "mage-shoot": [
+      "combat/mage-shoot.mp3"
+    ],
+    "mage-shot-impact": [
+      "combat/mage-shot-impact.mp3"
+    ],
+    "mage-death": [
+      "combat/mage-death.mp3"
+    ],
+    "geant-impact": [
+      "combat/geant-impact.mp3"
+    ],
+    "homme-lezard-impact": [
+      "combat/homme-lezard-impact.mp3"
+    ],
+    "homme-lezard-death": [
+      "combat/homme-lezard-death.mp3"
+    ],
+    "homme-grenouille-shoot": [
+      "combat/homme-grenouille-shoot.mp3"
+    ],
+    "homme-grenouille-shot-impact": [
+      "combat/homme-grenouille-shot-impact.mp3"
+    ],
+    "minotaure-death": [
+      "combat/minotaure-death.mp3"
+    ],
+    "aberration-impact": [
+      "combat/aberration-impact.mp3"
+    ],
+    "tyran-oeil-shot-impact": [
+      "combat/tyran-oeil-shot-impact.mp3"
+    ],
+    "tyran-oeil-death": [
+      "combat/tyran-oeil-death.mp3"
+    ],
+    "hydre-death": [
+      "combat/hydre-death.mp3"
+    ],
+    "diablotin-impact": [
+      "combat/diablotin-impact.mp3"
+    ],
+    "cultiste-death": [
+      "combat/cultiste-death.mp3"
+    ],
+    "limon-magma-impact": [
+      "combat/limon-magma-impact.mp3"
+    ],
+    "limon-magma-death": [
+      "combat/limon-magma-death.mp3"
+    ],
+    "succube-death": [
+      "combat/succube-death.mp3"
+    ],
+    "tourmenteur-impact": [
+      "combat/tourmenteur-impact.mp3"
+    ],
+    "tourmenteur-death": [
+      "combat/tourmenteur-death.mp3"
+    ],
+    "moloch-death": [
+      "combat/moloch-death.mp3"
+    ],
+    "demon-impact": [
+      "combat/demon-impact.mp3"
+    ],
+    "demon-death": [
+      "combat/demon-death.mp3"
+    ],
+    "porte-bouclier-impact": [
+      "combat/porte-bouclier-impact.mp3"
+    ],
+    "porte-bouclier-death": [
+      "combat/porte-bouclier-death.mp3"
+    ],
+    "arbaletrier-shoot": [
+      "combat/arbaletrier-shoot.mp3"
+    ],
+    "arbaletrier-shot-impact": [
+      "combat/arbaletrier-shot-impact.mp3"
+    ],
+    "arbaletrier-death": [
+      "combat/arbaletrier-death.mp3"
+    ],
+    "porte-etendard-impact": [
+      "combat/porte-etendard-impact.mp3"
+    ],
+    "porte-etendard-death": [
+      "combat/porte-etendard-death.mp3"
+    ],
+    "sapeur-impact": [
+      "combat/sapeur-impact.mp3"
+    ],
+    "gyrocoptere-death": [
+      "combat/gyrocoptere-death.mp3"
+    ],
+    "dragon-death": [
+      "combat/dragon-death.mp3"
+    ],
+    "pirate-impact": [
+      "combat/pirate-impact.mp3"
+    ],
+    "pirate-death": [
+      "combat/pirate-death.mp3"
+    ],
+    "fantome-impact": [
+      "combat/fantome-impact.mp3"
+    ],
+    "vampire-impact": [
+      "combat/vampire-impact.mp3"
+    ],
+    "liche-shot-impact": [
+      "combat/liche-shot-impact.mp3"
+    ],
+    "liche-death": [
+      "combat/liche-death.mp3"
+    ],
+    "gobelin-death": [
+      "combat/gobelin-death.mp3"
+    ],
+    "behemoth-impact": [
+      "combat/behemoth-impact.mp3"
+    ],
+    "archer-elfe-shoot": [
+      "combat/archer-elfe-shoot.mp3"
+    ],
+    "archer-elfe-death": [
+      "combat/archer-elfe-death.mp3"
+    ],
+    "treant-impact": [
+      "combat/treant-impact.mp3"
+    ],
+    "troll-impact": [
+      "combat/troll-impact.mp3"
+    ],
+    "gargouille-impact": [
+      "combat/gargouille-impact.mp3"
+    ],
+    "geant-death": [
+      "combat/geant-death.mp3"
+    ],
+    "homme-grenouille-death": [
+      "combat/homme-grenouille-death.mp3"
+    ],
+    "minotaure-impact": [
+      "combat/minotaure-impact.mp3"
+    ],
+    "aberration-death": [
+      "combat/aberration-death.mp3"
+    ],
+    "ver-des-profondeurs-impact": [
+      "combat/ver-des-profondeurs-impact.mp3"
+    ],
+    "ver-des-profondeurs-death": [
+      "combat/ver-des-profondeurs-death.mp3"
+    ],
+    "diablotin-death": [
+      "combat/diablotin-death.mp3"
+    ],
+    "cultiste-impact": [
+      "combat/cultiste-impact.mp3"
+    ],
+    "succube-shoot": [
+      "combat/succube-shoot.mp3"
+    ],
+    "succube-shot-impact": [
+      "combat/succube-shot-impact.mp3"
+    ],
+    "moloch-impact": [
+      "combat/moloch-impact.mp3"
+    ],
+    "chevaucheur-chevre-impact": [
+      "combat/chevaucheur-chevre-impact.mp3"
+    ],
+    "chevaucheur-chevre-death": [
+      "combat/chevaucheur-chevre-death.mp3"
+    ],
+    "sapeur-death": [
+      "combat/sapeur-death.mp3"
+    ],
+    "gyrocoptere-impact": [
+      "combat/gyrocoptere-impact.mp3"
+    ],
+    "dragon-impact": [
+      "combat/dragon-impact.mp3"
+    ],
+    "colosse-os-impact": [
+      "combat/colosse-os-impact.mp3"
+    ],
+    "gobelin-impact": [
+      "combat/gobelin-impact.mp3"
+    ],
+    "loup-death": [
+      "combat/loup-death.mp3"
+    ],
+    "oiseau-tonnerre-death": [
+      "combat/oiseau-tonnerre-death.mp3"
+    ],
+    "druide-shoot": [
+      "combat/druide-shoot.mp3"
+    ],
+    "gnome-impact": [
+      "combat/gnome-impact.mp3"
+    ],
+    "tyran-oeil-shoot": [
+      "combat/tyran-oeil-shoot.mp3"
+    ],
+    "hydre-impact": [
+      "combat/hydre-impact.mp3"
+    ],
+    "roi-de-cristal-impact": [
+      "combat/roi-de-cristal-impact.mp3"
+    ],
+    "roi-de-cristal-death": [
+      "combat/roi-de-cristal-death.mp3"
+    ],
+    "squelette-impact": [
+      "combat/squelette-impact.mp3"
+    ],
+    "zombie-impact": [
+      "combat/zombie-impact.mp3"
+    ]
   },
   "lengths": {
     "cavalier-attack": 1.4

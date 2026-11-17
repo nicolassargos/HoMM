@@ -2691,7 +2691,8 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   autres (l'Ogre, l'Oiseau-tonnerre, le Djinn et l'Arbalétrier refaits pour des étincelles) ; environ 1,4 $ en tout.
   Méthode dans `tools/art/METHODE.md`. Revus avec l'utilisateur en six tours (2026-11-17) : gardés ou refaits avec ses
   remarques (plus de mouvement, en arrière, sans effets ; effets retirés à la main sur le Zombie, l'Oiseau-tonnerre,
-  l'Archer elfe, le Tourmenteur, le Tyran) ; le Dragon, l'Hydre et le Démon par une image clé penchée en arrière.
+  l'Archer elfe, le Tourmenteur, le Tyran) ; le Dragon, l'Hydre et le Démon, après des images clés refusées (corps
+  raide, puis écrasé), par le second modèle de PixelLab (`minimax`) : le Démon surpris, puis content du coup.
   ✅ Les options du combat (bouton Options, touche O) : la vitesse des projectiles (lente, normale, rapide), gardée
   d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - ✅ **Des cases de 32 pixels d'art** (au lieu de 24 ; décision de l'utilisateur, 2026-11-08) : cases de 64 pixels à

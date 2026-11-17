@@ -173,8 +173,8 @@ l'attaque, les champs de l'herbe, du désert et du marais (2026-11-16), les obst
 nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles (2026-11-17).
 ✅ Une **animation de mort** par créature (2026-11-17, branche `animations-mort`, un essai chacune pour commencer :
 choix de l'utilisateur) ; **à revoir avec lui** (page `art-candidats/en-cours/morts.html` : garder ou refaire), peut-être
-en tombant en arrière. ✅ Un **coup reçu** par créature (2026-11-17, même branche), revu avec l'utilisateur ; le Dragon, l'Hydre et le
-Démon, refaits par une image clé, à revoir (`art-candidats/en-cours/coups.html`).
+en tombant en arrière. ✅ Un **coup reçu** par créature (2026-11-17, même branche), revu et choisi avec l'utilisateur (le Dragon,
+l'Hydre et le Démon par le second modèle de PixelLab ; « encore à finir » pour le Dragon et l'Hydre, selon lui).
 **Reste** : l'**Épéiste et le Cavalier** à refaire (plus petits) ; l'Archer, le Loup, le Troll et le Griffon à refaire
 entièrement (choix de l'utilisateur).
 

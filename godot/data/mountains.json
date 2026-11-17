@@ -1,0 +1,30 @@
+{
+  "massifs": [
+    {"id": "grand-1", "image": "decor/massif-grand-1", "cells": [".####", "###.."]},
+    {"id": "grand-10", "image": "decor/massif-grand-10", "cells": [".#...", "#####"]},
+    {"id": "grand-11", "image": "decor/massif-grand-11", "cells": [".###.", "####."]},
+    {"id": "grand-2", "image": "decor/massif-grand-2", "cells": [".####", "###.."]},
+    {"id": "grand-3", "image": "decor/massif-grand-3", "cells": ["..###", "####."]},
+    {"id": "grand-4", "image": "decor/massif-grand-4", "cells": ["..###", "###.."]},
+    {"id": "grand-5", "image": "decor/massif-grand-5", "cells": ["###..", "..##."]},
+    {"id": "grand-6", "image": "decor/massif-grand-6", "cells": ["####.", "..###"]},
+    {"id": "grand-7", "image": "decor/massif-grand-7", "cells": ["###..", "..###"]},
+    {"id": "grand-8", "image": "decor/massif-grand-8", "cells": ["###..", "..###"]},
+    {"id": "grand-9", "image": "decor/massif-grand-9", "cells": [".###.", "####."]},
+    {"id": "petit-1", "image": "decor/massif-petit-1", "cells": ["##"]},
+    {"id": "petit-10", "image": "decor/massif-petit-10", "cells": ["##"]},
+    {"id": "petit-11", "image": "decor/massif-petit-11", "cells": ["##"]},
+    {"id": "petit-2", "image": "decor/massif-petit-2", "cells": ["##"]},
+    {"id": "petit-3", "image": "decor/massif-petit-3", "cells": ["##"]},
+    {"id": "petit-4", "image": "decor/massif-petit-4", "cells": ["##"]},
+    {"id": "petit-5", "image": "decor/massif-petit-5", "cells": ["##."]},
+    {"id": "petit-6", "image": "decor/massif-petit-6", "cells": [".##"]},
+    {"id": "petit-7", "image": "decor/massif-petit-7", "cells": ["##"]},
+    {"id": "petit-8", "image": "decor/massif-petit-8", "cells": ["##"]},
+    {"id": "petit-9", "image": "decor/massif-petit-9", "cells": ["##"]},
+    {"id": "sommet-2", "image": "decor/peak-2", "cells": ["#"]},
+    {"id": "sommet-3", "image": "decor/peak-3", "cells": ["#"]},
+    {"id": "sommet-4", "image": "decor/peak-4", "cells": ["#"]},
+    {"id": "sommet", "image": "decor/peak", "cells": ["#"]}
+  ]
+}

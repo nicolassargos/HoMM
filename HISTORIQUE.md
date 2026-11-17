@@ -2639,6 +2639,22 @@ choix de l'utilisateur) :
   → **68** (revenus), la plus lente 164 → 90 ; normales 86 ; grandes 153 → 147 ; un adversaire après six semaines
   (Normal, or d'armée) : Château 57 100, morts-vivants 47 700, Barbares 54 700, Forêt 61 700, Tour 56 200, Donjon
   60 000, Enfer 65 200 (environ 25 000 avant : les adversaires sont deux fois plus riches).
+- ✅ **Les montagnes en massifs, comme Heroes 3** (2026-11-17, branche `montagnes-pied`, demandé par l'utilisateur : des
+  montagnes sans motif répété ni trous). Mesuré d'abord sur 50 cartes de Heroes 3 (`tools/cartes/montagnes_h3.py`) : une
+  montagne y est un objet, 6 modèles par terrain (2 grands de 5 × 3 cases dont 12 bloquées, 4 petits de 3 × 2), aux
+  cases bloquées en biais ; médiane de 39 montagnes pour 1000 cases de terre, 23 % de la terre bloquée, 90 % en chaînes,
+  un quart des cases bloquées chevauchent une autre montagne. Chez nous : le générateur recouvre chaque tache de
+  montagne de **massifs** qui se chevauchent (`MapGenerator.ShapeMountains`, `data/mountains.json`, `Core/Mountains.cs`),
+  le plus couvrant d'abord, d'en haut à gauche ; un massif peut déborder d'une ou deux cases dans un creux du bord (jamais
+  sur un passage, une route, l'eau, près d'un départ) ; le reste prend un sommet seul. Les cases de montagne sont
+  exactement les cases bloquées des massifs (test `MontagnesTests`) ; ils sont sauvegardés (version 10 ; une sauvegarde
+  d'avant dessine encore ses montagnes case par case). Les cases bloquées de chaque image viennent de l'image
+  (`tools/art/empreintes.py`). À l'affichage (`DecorLayer.FillGaps`), une case de montagne dont plus d'un quart du sol
+  se voit entre les images prend un petit sommet en plus. Le pied des montagnes (herbe sèche, terre, gravier, éboulis)
+  est dessiné par le shader (`foothill`, 0,7). Images : 11 grands massifs (environ 155 × 80), 11 petits, 4 sommets bas
+  (PixelLab, voir `tools/art/METHODE.md`). Essayés puis écartés : des sommets semés case par case (motif répété), des
+  massifs de Retro Diffusion (des îlots), des sommets pointus (« trop pointus »), larges en gradins (« trop carrés »),
+  naturels mais hauts (l'utilisateur les préfère plus bas). Une même graine donne une carte un peu différente d'avant.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

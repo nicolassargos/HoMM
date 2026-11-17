@@ -136,7 +136,7 @@ une option, une ville au plus par zone, une scierie et une mine de minerai gard�
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
-dessin).
+dessin) ; les montagnes en massifs posés comme dans Heroes 3, avec leur pied (2026-11-17).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus

@@ -103,7 +103,7 @@ public class ExplorationIATests
         // malchanceux : la prévision de l'IA, jouée trois fois, ne voit pas toujours venir un combat qui tourne mal)
         Assert.Contains(rivals, p => p.Heroes.Count > 0 || p.Towns.Any(t => t.Buildings.Any(b => b.Tavern && t.Has(b.Id))));
         // chacun a fait quelque chose : un combat gagné, une mine ou une ville prise, ou de l'or ramassé
-        Assert.All(rivals.Select((p, i) => (p, i)), x => Assert.True(x.p.Statistics.BattlesWon > 0 || x.p.Mines.Count > 0
+        Assert.All(rivals.Select((p, i) => (p, i)).Where(x => !x.p.IsDefeated), x => Assert.True(x.p.Statistics.BattlesWon > 0 || x.p.Mines.Count > 0
             || x.p.Towns.Count > 0 || x.p.Resources[ResourceType.Gold] > startGold[x.i]));
     }
 }

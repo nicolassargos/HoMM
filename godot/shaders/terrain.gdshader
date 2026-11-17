@@ -102,7 +102,7 @@ uniform float foothill_wave = 0.5;
 // Le sol au cœur des montagnes (2026-11-17) : le sol de la montagne (l'herbe, le sable ou le marais qui l'entoure),
 // assombri, dans l'ombre des massifs, pour que le sol vu entre deux images se lise comme un creux de la pente et pas
 // comme un trou (0 : la terre et le gravier du pied ; foothill_rock_shade : la part de lumière gardée)
-uniform float foothill_rock = 1.0;
+uniform float foothill_rock = 0.0;
 uniform float foothill_rock_shade = 0.62;
 uniform float road_stone_cell = 6.0;
 // l'herbe qui déborde sur la route (à l'essai, 0 : rien) : par plaques le long du bord (road_grass_share du bord, plaques

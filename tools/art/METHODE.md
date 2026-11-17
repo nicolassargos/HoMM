@@ -412,7 +412,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   pré de `--center=mountains` ; le sable et le marais : `--terrain-test`) et défait leur bord. **`--bord=fondu`** (choix
   de l'utilisateur, 2026-11-17) : de plus en plus transparent sur 4 pixels ; une trame régulière se voyait comme une ligne
   de points, un bord effrité restait granuleux. Avant, `adoucir.py … 0.85 90 1 0.4` sur les images brutes (un trait
-  sombre restait sur certains pics). Les jeux du sable
+  sombre restait sur certains pics).
+- **Un seul jeu d'images, celui de l'herbe** (2026-11-17) : en jeu, le shader `mountain_slopes.gdshader` donne à chaque
+  pixel de pente le sol qui est dessous (l'herbe, le sable, le marais…). Il reconnaît une pente à son vert franc (le vert
+  de plus de 0,06 au-dessus du rouge et du bleu) : les pentes des images doivent rester vertes (`fondre.py`, sol « »),
+  la roche ne doit pas l'être. Les jeux `massif-sable-*` et `massif-marais-*` ne servent plus. Les jeux du sable
   et du marais sont les images d'herbe ainsi recolorées (`massif-sable-*`, `massif-marais-*`, `peak-sable*`…). Les
   images brutes et les captures sont dans `art-candidats/archives/2026-11-17-montagnes/sources/`.
 - Installer : `recadrer.py` (l'image coupée à son dessin), `fondre.py`, puis `python -I tools/art/empreintes.py` écrit les

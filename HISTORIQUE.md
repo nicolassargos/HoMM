@@ -2703,6 +2703,14 @@ choix de l'utilisateur) :
   avec l'utilisateur, un bord de plus en plus transparent (choisi), effrité par grappes, ou les deux ; et le trait sombre
   qui restait sur certains pics, adouci. **Reste** : les montagnes au bord de deux sols ; les mines au flanc des
   montagnes (idée de l'utilisateur, comme Heroes 3). Une même graine donne une carte un peu différente d'avant.
+- ✅ **Les montagnes au bord de deux sols** (2026-11-17, branche `montagnes-deux-sols`) : choisir le jeu d'images d'après
+  le sol devant le pied de chaque massif ne suffisait pas (une image n'a qu'un sol : fausse d'un côté de la frontière). À
+  la place, un shader (`shaders/mountain_slopes.gdshader`, sur `DecorLayer`) : chaque pixel de pente (vert franc dans
+  l'image) prend la couleur du sol déjà dessiné à cet endroit, avec la lumière du pixel d'origine (`slope_relief` 0,6) ;
+  les pentes se fondent ainsi dans l'herbe, le sable, le marais, une frontière, et la texture du sol continue sur elles.
+  Les jeux du sable et du marais sont retirés (un seul jeu, celui de l'herbe) ; le sol sous les montagnes est celui qui
+  les entoure ; plus d'assombrissement au cœur (`foothill_rock` 0). Vu en chemin : les bords du marais sont carrés (le
+  shader du sol, sans lien avec les montagnes).
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

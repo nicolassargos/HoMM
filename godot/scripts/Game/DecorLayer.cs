@@ -53,15 +53,23 @@ public partial class DecorLayer : Node2D
         _ => false,
     };
 
-    // Pixel art : les images agrandies restent nettes
-    public override void _Ready() => TextureFilter = TextureFilterEnum.Nearest;
+    /// <summary>La couleur qui marque une image de montagne pour le shader des pentes (le bleu à 0,998, invisible).</summary>
+    private static readonly Color SlopeMark = new(1, 1, 0.998f);
+
+    // Pixel art : les images agrandies restent nettes ; les pentes des montagnes prennent le sol de dessous
+    public override void _Ready()
+    {
+        TextureFilter = TextureFilterEnum.Nearest;
+        if (ResourceLoader.Exists("res://shaders/mountain_slopes.gdshader"))
+            Material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/mountain_slopes.gdshader") };
+    }
 
     public override void _Draw()
     {
         foreach (var (foot, image) in Sprites(Map))
         {
             var size = image.GetSize() * MapRenderer.ArtScale;
-            DrawTextureRect(image, new Rect2(foot - new Vector2(size.X / 2, size.Y), size), false);
+            DrawTextureRect(image, new Rect2(foot - new Vector2(size.X / 2, size.Y), size), false, IsMountain(image) ? SlopeMark : Colors.White);
         }
     }
 

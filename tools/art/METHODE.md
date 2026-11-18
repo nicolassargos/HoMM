@@ -82,6 +82,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   viennent du shader. Des fissures franches font de la boue séchée, des dalles rondes du cuir : des fissures discrètes,
   des dalles anguleuses et allongées, une pente légère et inégale d'une dalle à l'autre. Les pierres dessinées par-dessus
   n'ont pas plu ; la couleur brune d'origine non plus n'est pas à changer.
+  Terre brûlée (2026-11-18) : les cases de la roche recolorées d'après leur luminosité suffisent, sans rien générer. Une
+  fissure qui se lit comme telle n'est pas un bord de plaques (trop lisse : des brindilles) : c'est un trait en zigzag,
+  avec des branches, noir, large au milieu et fin aux bouts, le feu seulement au fond de sa partie large ; des tailles
+  très inégales, regroupées par régions. Une animation lente et décalée d'une fissure à l'autre reste discrète.
 - Portraits : 64 × 64, style « retro », des visages marqués plutôt qu'idéalisés, trouvés d'après le nom du héros.
   28 portraits de plus (2026-11-07, 5,58 $ : 3 candidats chacun, 3 refaits) : barbares, chevaliers, sorciers, mages,
   gens des bois, morts-vivants, démons. Ce qui marche : décrire un détail qui se voit (cicatrice, cache-œil,

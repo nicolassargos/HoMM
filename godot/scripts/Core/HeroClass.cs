@@ -84,7 +84,7 @@ public sealed record HeroClass
 
     /// <summary>
     /// Le sol de la faction (2026-11-17, comme Heroes 3) : une ville neutre de cette faction se trouve de préférence dans une
-    /// zone de ce sol (le sable, le marais) ; sans sol, l'herbe.
+    /// zone de ce sol (le sable, le marais, la roche) ; sans sol, l'herbe.
     /// </summary>
     public TerrainType? Ground { get; init; }
 }

@@ -28,7 +28,8 @@ public partial class SmoothGround : ColorRect
         TerrainType.Water => 0,
         TerrainType.Sand => 2,
         TerrainType.Swamp => 3,
-        _ => 4, // herbe (et le sol des forêts et des montagnes)
+        TerrainType.Rock => 4,
+        _ => 5, // herbe (et le sol des forêts et des montagnes)
     };
 
     /// <summary>
@@ -314,6 +315,7 @@ public partial class SmoothGround : ColorRect
         material.SetShaderParameter("priority", ranks);
         material.SetShaderParameter("water", (int)TerrainType.Water);
         material.SetShaderParameter("sand", (int)TerrainType.Sand);
+        material.SetShaderParameter("rock_ground", (int)TerrainType.Rock);
         material.SetShaderParameter("grass", (int)TerrainType.Grass);
         // la taille d'une case en pixels d'art (celle des images des terrains) ; les longueurs du shader, réglées pour des
         // cases de 24, gardent les mêmes proportions

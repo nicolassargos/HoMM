@@ -12,7 +12,7 @@ public class SolsDesZonesTests
 
     [Theory]
     [InlineData("barbares", TerrainType.Sand)]
-    [InlineData("enfer", TerrainType.Sand)]
+    [InlineData("enfer", TerrainType.Burnt)]
     [InlineData("morts-vivants", TerrainType.Swamp)]
     [InlineData("donjon", TerrainType.Swamp)]
     [InlineData("chateau", TerrainType.Grass)]

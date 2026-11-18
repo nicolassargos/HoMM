@@ -2739,6 +2739,19 @@ choix de l'utilisateur) :
   attendant le leur. Mesuré (cartes normales, médianes) : herbe 73 %, sable 11 %, marais 9 %, roche 10 % de la terre.
   Armée d'un adversaire après six semaines : moyenne 51 500 (52 200 avant) ; Nains 50 600 → 61 700, les premiers ; Tour
   47 000 → 40 400, les derniers.
+- ✅ **La terre brûlée** (2026-11-18, branche `sol-brule`) : `TerrainType.Burnt`, le sol de l'Enfer, coût 100 comme la
+  lave de Heroes 3 ; une zone qui change de sol en tire un parmi le sable, le marais, la roche et la terre brûlée. Les
+  deux cases sont celles de la roche, recolorées d'après leur luminosité (de 0,085 / 0,065 / 0,06 à 0,33 / 0,27 / 0,245) :
+  rien à payer. Le shader ajoute des nappes de cendre, des braises isolées et des fissures (`burnt_*`) : par carrés de
+  44 pixels d'art, plus nombreuses par régions, une fente noire en zigzag à branches, large au milieu et fine aux bouts ;
+  beaucoup de petites sans feu, quelques grandes où le feu passe du rouge sombre à l'orange, la lèvre du bas éclairée.
+  Le feu et les braises **respirent** (cycle de 5 s, chacun à son rythme, par paliers tramés ; `burnt_glow_at` fige une
+  capture). Essayé et écarté par l'utilisateur : des fissures entre plaques (Voronoï : des brindilles lumineuses, pas des
+  fissures). Aucun écart d'images par seconde mesuré avec ou sans fissures (48 sur le PC de l'utilisateur, 45 environ
+  avec toute la carte à l'écran). Les combats y prennent le champ du désert en attendant le leur. Mesuré (cartes normales,
+  médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
+  six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
+  55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

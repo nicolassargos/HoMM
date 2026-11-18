@@ -25,7 +25,7 @@ uniform sampler2DArray tiles : filter_nearest;
 uniform int variants = 1;
 uniform ivec2 map_cells = ivec2(1, 1);
 // Rang de chaque terrain : un terrain de rang plus élevé déborde davantage sur l'autre
-uniform int priority[8];
+uniform int priority[9];
 // Numéro du terrain « eau » (rives nettes et écume), du sable (les plages) et de l'herbe (les fleurs)
 uniform int water = 5;
 uniform int sand = 3;
@@ -96,6 +96,32 @@ uniform float ground_stone_cell = 11.0;
 // d'une fissure (slab_light), son fond (slab_dark) ; slab_wobble tord les bords ; chaque dalle penche un peu de son côté
 // et la lumière la prend en biais (slab_relief)
 uniform int rock_ground = 7;
+// la terre brûlée (burnt_ground : son numéro) : des nappes de cendre (burnt_ash : leur force), des braises isolées (la part
+// burnt_embers des carrés de 9 pixels d'art) et des fissures (burnt_veins : la part des carrés de burnt_vein_cell pixels
+// d'art d'où part une fissure, plus ou moins selon la région) : une fente noire en zigzag, avec des branches, large de
+// burnt_vein_width au milieu des plus grandes et fine à ses bouts ; au fond de sa partie large, le feu passe du rouge
+// sombre au rouge (burnt_vein_glow), vif au plus large (burnt_vein_hot), sauf par endroits (burnt_vein_gaps) ;
+// burnt_vein_rim assombrit le sol tout près, burnt_vein_light éclaire la lèvre du bas, burnt_vein_halo réchauffe le sol.
+// Le feu et les braises respirent : un cycle de burnt_glow_period secondes, chaque fissure à son rythme, la chaleur
+// courant le long d'elle ; burnt_glow_depth : de combien il baisse (burnt_glow_at : l'instant, pour figer une capture)
+uniform int burnt_ground = 8;
+uniform float burnt_ash = 0.5;
+uniform vec3 ash_color = vec3(0.46, 0.43, 0.41);
+uniform float burnt_embers = 0.04;
+uniform float burnt_veins = 0.36;
+uniform float burnt_vein_width = 1.45;
+uniform float burnt_vein_gaps = 0.3;
+uniform float burnt_vein_glow = 0.8;
+uniform float burnt_vein_hot = 0.35;
+uniform float burnt_vein_rim = 0.25;
+uniform float burnt_vein_light = 0.35;
+uniform float burnt_vein_halo = 0.14;
+uniform float burnt_glow_period = 5.0;
+uniform float burnt_glow_depth = 0.55;
+uniform float burnt_glow_at = -1.0;
+uniform float burnt_vein_cell = 44.0;
+uniform vec3 ember_hot = vec3(1.0, 0.68, 0.24);
+uniform vec3 ember_color = vec3(0.86, 0.27, 0.07);
 uniform float slab_cell = 22.0;
 uniform float slab_crack = 0.8;
 uniform float slab_cracked = 0.55;
@@ -744,6 +770,62 @@ float slab_edge(vec2 p, out vec2 id, out vec2 from) {
 	return (second - first) * slab_cell * 0.5;
 }
 
+// Le souffle du feu au pixel d'art p, de 0 à 1, par paliers tramés
+float burnt_breath(vec2 p, float phase) {
+	float at = burnt_glow_at >= 0.0 ? burnt_glow_at : TIME;
+	return floor((0.5 + 0.5 * sin(TAU * (at / burnt_glow_period + phase))) * 3.0 + bayer(p)) / 3.0;
+}
+
+// Garde le tronçon de fissure de a à b s'il est le plus proche de p : (marge au bord de la fente, distance au trait, largeur, phase du feu)
+vec4 vein_segment(vec4 best, vec2 p, vec2 a, vec2 b, float wide_a, float wide_b, float phase_a, float phase_b) {
+	vec2 ab = b - a;
+	float s = clamp(dot(p - a, ab) / max(dot(ab, ab), 0.001), 0.0, 1.0);
+	float d = length(p - a - ab * s);
+	float wide = mix(wide_a, wide_b, s);
+	float margin = d - 0.55 - wide * burnt_vein_width;
+	return margin < best.x ? vec4(margin, d, wide, mix(phase_a, phase_b, s)) : best;
+}
+
+// La fissure de terre brûlée la plus proche du pixel d'art p : un tronc en zigzag, plus large au milieu, et ses branches
+vec4 vein_at(vec2 p) {
+	vec2 base = floor(p / burnt_vein_cell);
+	vec4 best = vec4(1e9, 1e9, 0.0, 0.0);
+	for (int y = -1; y <= 1; y++)
+	for (int x = -1; x <= 1; x++) {
+		vec2 n = base + vec2(float(x), float(y));
+		if (hash(n + vec2(31.7, 64.2)) >= burnt_veins * (0.35 + 1.3 * noise(n / 3.0 + vec2(14.0, 37.0)))) continue;
+		float angle = hash(n + vec2(12.4, 5.9)) * TAU;
+		// beaucoup de petites fissures sans feu, quelques grandes
+		float size = hash(n + vec2(2.2, 41.3));
+		size = 0.45 + 0.55 * size * (2.0 - size) * size;
+		float step_size = burnt_vein_cell * 0.18 * size;
+		vec2 a = (n + 0.3 + vec2(hash(n + vec2(5.3, 2.6)), hash(n + vec2(1.4, 7.9))) * 0.4) * burnt_vein_cell;
+		a -= vec2(cos(angle), sin(angle)) * step_size * 3.5;
+		float side = hash(n + vec2(8.8, 19.1)) < 0.5 ? -1.0 : 1.0;
+		float phase = hash(n + vec2(6.6, 33.1));
+		for (int i = 0; i < 7; i++) {
+			float f = float(i);
+			side = -side;
+			float heading = angle + side * (0.15 + 0.8 * hash(n + vec2(f * 1.7, 9.1)));
+			vec2 b = a + vec2(cos(heading), sin(heading)) * step_size * (0.45 + 1.1 * hash(n + vec2(f * 2.3, 27.4)));
+			float wide_a = sin(PI * f / 7.0) * size;
+			float wide_b = sin(PI * (f + 1.0) / 7.0) * size;
+			float phase_b = phase + (f + 1.0) / 14.0;
+			best = vein_segment(best, p, a, b, wide_a, wide_b, phase + f / 14.0, phase_b);
+			if (i >= 1 && i <= 4 && hash(n + vec2(f * 3.1, 53.6)) < 0.45) {
+				float turn = heading + side * (0.8 + 0.5 * hash(n + vec2(f * 4.3, 15.2)));
+				vec2 c = b + vec2(cos(turn), sin(turn)) * step_size * 0.9;
+				turn -= side * 0.6;
+				vec2 e = c + vec2(cos(turn), sin(turn)) * step_size * 0.7;
+				best = vein_segment(best, p, b, c, wide_b * 0.5, wide_b * 0.2, phase_b, phase_b);
+				best = vein_segment(best, p, c, e, wide_b * 0.2, 0.0, phase_b, phase_b);
+			}
+			a = b;
+		}
+	}
+	return best;
+}
+
 // Une fissure du sol rocheux au pixel d'art p ?
 bool crack_at(vec2 p) {
 	vec2 id;
@@ -1017,8 +1099,37 @@ void fragment() {
 		if (crack_at(p)) color *= slab_dark;
 		else if (crack_at(p + vec2(1.0, 0.0))) color *= slab_light;
 	}
+	// La terre brûlée : la cendre, les fissures rougeoyantes et les braises
+	if (t == burnt_ground && !in_water && stream_depth(p) <= 0.0 && shore_distance(p) > 2.0) {
+		float drift = noise((p + 0.5) / 24.0 + vec2(53.0, 8.0)) * 0.65 + noise((p + 0.5) / 6.0 + vec2(16.0, 34.0)) * 0.35;
+		color = mix(color, ash_color, floor(smoothstep(0.52, 0.72, drift) * 3.0 + bayer(p)) / 3.0 * burnt_ash);
+		if (burnt_veins > 0.0) {
+			vec4 vein = vein_at(p + 0.5);
+			float breath = burnt_breath(p, vein.w);
+			float heat = 1.0 - burnt_glow_depth * (1.0 - breath);
+			if (vein.x < 0.0) {
+				color *= 0.22;
+				float fire = vein.z * burnt_vein_width * 0.7;
+				if (vein.z > 0.3 && vein.y < fire && noise((p + 0.5) / 9.0 + vec2(23.0, 58.0)) > burnt_vein_gaps) {
+					if (vein.z > 0.62 && vein.y < fire * 0.7) color = mix(mix(color, ember_color, heat), ember_hot, burnt_vein_hot * breath * 2.0);
+					else color = mix(color, ember_color, burnt_vein_glow * heat * (vein.z > 0.42 ? 1.0 : 0.5));
+				}
+			} else if (vein.x < 2.5) {
+				if (vein.x < 1.0) color *= 1.0 - burnt_vein_rim;
+				if (vein_at(p + vec2(0.5, -0.5)).x < 0.0) color = mix(color, mix(ash_color, ember_color, vein.z * 0.35 * heat), burnt_vein_light);
+				else if (vein.z > 0.5 && bayer(p) < 0.3) color = mix(color, ember_color, burnt_vein_halo * (0.4 + 1.2 * breath));
+			}
+		}
+		vec2 cell = floor(p / 9.0);
+		if (hash(cell + vec2(47.3, 12.8)) < burnt_embers) {
+			vec2 spot = cell * 9.0 + 2.0 + floor(vec2(hash(cell + vec2(3.3, 6.1)), hash(cell + vec2(8.7, 2.4))) * 5.0);
+			float ember = 1.0 - burnt_glow_depth * (1.0 - burnt_breath(p, hash(cell + vec2(21.9, 40.2))));
+			if (p == spot) color = mix(ember_color, ember_hot, ember * ember);
+			else if (p == spot + vec2(1.0, 0.0) || p == spot + vec2(0.0, 1.0)) color = mix(color, ember_color, 0.8 * ember);
+		}
+	}
 	// Des cailloux semés sur le sol (l'herbe, le sable), loin des routes
-	if (ground_stones > 0.0 && !in_water && t != water && t != rock_ground) {
+	if (ground_stones > 0.0 && !in_water && t != water && t != rock_ground && t != burnt_ground) {
 		vec3 stone;
 		if (ground_stone_at(p, color, stone)) color = stone;
 	}

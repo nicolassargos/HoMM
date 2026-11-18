@@ -1968,7 +1968,7 @@ public sealed class MapGenerator
     }
 
     /// <summary>Les sols que peut prendre une zone, en plus de l'herbe.</summary>
-    private static readonly TerrainType[] ZoneGrounds = { TerrainType.Sand, TerrainType.Swamp, TerrainType.Rock };
+    private static readonly TerrainType[] ZoneGrounds = { TerrainType.Sand, TerrainType.Swamp, TerrainType.Rock, TerrainType.Burnt };
 
     /// <summary>La part des zones de terre (hors départs) dont le sol n'est pas de l'herbe.</summary>
     public double ZoneGroundShare { get; init; } = 0.35;
@@ -1978,7 +1978,7 @@ public sealed class MapGenerator
 
     /// <summary>
     /// Le sol des zones (2026-11-17, mesuré sur Heroes 2 et 3 : un sol y forme une ou deux grandes régions par carte, pas
-    /// des taches semées) : une zone de terre sur trois à peu près devient du sable, du marais ou de la roche en entier (son herbe ; la
+    /// des taches semées) : une zone de terre sur trois à peu près prend l'un des autres sols en entier (son herbe ; la
     /// forêt, la montagne et l'eau restent). Une ville neutre y prend une faction de ce sol (<see cref="HeroClass.Ground"/>) ;
     /// la zone d'un départ prend le sol de la faction du joueur (l'herbe si elle n'en a pas).
     /// </summary>

@@ -81,6 +81,12 @@ public sealed record HeroClass
     /// </summary>
     public ResourceType? MainResource { get; init; }
     public ResourceType? SecondaryResource { get; init; }
+
+    /// <summary>
+    /// Le sol de la faction (2026-11-17, comme Heroes 3) : une ville neutre de cette faction se trouve de préférence dans une
+    /// zone de ce sol (le sable, le marais) ; sans sol, l'herbe.
+    /// </summary>
+    public TerrainType? Ground { get; init; }
 }
 
 /// <summary>Une troupe de l'armée de départ d'une classe.</summary>

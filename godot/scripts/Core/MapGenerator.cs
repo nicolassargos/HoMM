@@ -16,6 +16,8 @@ public sealed class MapGenerator
     private readonly int _seed;
     /// <summary>Le hasard de la faction des villes neutres, à part : il ne change pas le reste de la carte.</summary>
     private readonly Random _factionRng;
+    /// <summary>Le hasard du sol des zones (à part : le reste de la carte ne change pas avec lui).</summary>
+    private readonly Random _groundRng;
     /// <summary>Le hasard des massifs de montagnes, à part : il ne change pas le reste de la carte.</summary>
     private readonly Random _massifRng;
     private readonly GameData? _data;
@@ -45,6 +47,7 @@ public sealed class MapGenerator
         _rng = new Random(seed);
         _seed = seed;
         _factionRng = new Random(seed * 7919 + 17);
+        _groundRng = new Random(seed * 4421 + 3);
         _massifRng = new Random(seed * 6271 + 29);
         _data = data;
     }
@@ -178,6 +181,7 @@ public sealed class MapGenerator
         _landArea = width * height;
         PaintTerrain();
         MakeZones();
+        PaintZoneGrounds();
         if (_sea != null)
             _landArea = AllCells().Count(c => !_sea[c.X, c.Y]);
         ClearStartArea();
@@ -1499,7 +1503,7 @@ public sealed class MapGenerator
                 foreach (var corner in new[] { new Cell(back.X, c.Y), new Cell(c.X, back.Y) })
                 {
                     if (_map.GetTerrain(corner) is TerrainType.Water or TerrainType.Mountain or TerrainType.Forest)
-                        _map.SetTerrain(corner, TerrainType.Grass);
+                        _map.SetTerrain(corner, GroundOf(corner));
                     _roadCorners.Add(corner);
                 }
             }
@@ -1581,7 +1585,7 @@ public sealed class MapGenerator
     {
         _map.SetRoad(c, true);
         if (_map.GetTerrain(c) is TerrainType.Water or TerrainType.Mountain or TerrainType.Forest)
-            _map.SetTerrain(c, TerrainType.Grass);
+            _map.SetTerrain(c, GroundOf(c));
     }
 
     /// <summary>Le danger d'une case, de 0 (départ) à 1 (zone la plus lointaine).</summary>
@@ -1713,7 +1717,7 @@ public sealed class MapGenerator
     {
         foreach (var f in Town.FootprintAt(start).Append(start.Offset(0, 1)))
         {
-            _map.SetTerrain(f, TerrainType.Grass);
+            _map.SetTerrain(f, GroundOf(start));
             if (f != start && f != start.Offset(0, 1))
                 _map.SetRoad(f, false);
         }
@@ -1727,11 +1731,19 @@ public sealed class MapGenerator
         _townDistance = null; // une ville de plus
     }
 
-    /// <summary>La faction d'une ville neutre : une des factions qu'on peut jouer, au hasard.</summary>
-    private string NeutralTownFaction(GameData data)
+    /// <summary>
+    /// La faction d'une ville neutre : une des factions qu'on peut jouer, au hasard, parmi celles du sol de sa zone (le
+    /// sable, le marais ; l'herbe : celles qui n'ont pas de sol) s'il y en a.
+    /// </summary>
+    private string NeutralTownFaction(GameData data, Cell cell)
     {
         var factions = data.Classes.PlayableFactions;
-        return factions.Count == 0 ? DefaultFaction : factions[_factionRng.Next(factions.Count)];
+        if (factions.Count == 0)
+            return DefaultFaction;
+        var ground = _zones.Count > 0 && _zoneGround.TryGetValue(_zoneOf[cell.X, cell.Y], out var g) ? g : TerrainType.Grass;
+        var native = factions.Where(f => (data.Classes.ForFaction(f)?.Ground ?? TerrainType.Grass) == ground).ToList();
+        var pool = native.Count > 0 ? native : factions.ToList();
+        return pool[_factionRng.Next(pool.Count)];
     }
 
     /// <summary>
@@ -1800,7 +1812,7 @@ public sealed class MapGenerator
             .Where(c => !footprint.Contains(c) && _map.InBounds(c) && _map.HasRoad(c)).Distinct().ToList();
         foreach (var f in footprint.Append(approach))
         {
-            _map.SetTerrain(f, TerrainType.Grass);
+            _map.SetTerrain(f, GroundOf(f));
             if (footprint.Contains(f))
                 _map.SetRoad(f, false);
         }
@@ -1874,7 +1886,7 @@ public sealed class MapGenerator
     /// </summary>
     private void AddTown(GameData data, Cell cell, string name, int level)
     {
-        var town = new Town(cell, name, NeutralTownFaction(data), data);
+        var town = new Town(cell, name, NeutralTownFaction(data, cell), data);
         town.AddBuilding(data.Buildings.Get("salle-village"));
         if (town.DwellingOfTier(1) is { } dwelling)
             town.AddBuilding(dwelling);
@@ -1948,13 +1960,65 @@ public sealed class MapGenerator
             (TerrainType.Water, area / 300, 30),
             (TerrainType.Mountain, area / 500, 18),
         };
+        // le sable et le marais en grand viennent des zones (PaintZoneGrounds, 2026-11-17) : ici, une tache sur quatre
+        // seulement, pour le décor ; les autres tirent leur hasard sans rien peindre (le reste de la carte ne change pas)
         foreach (var (terrain, count, size) in patches)
             for (int i = 0; i < count; i++)
-                Patch(terrain, size);
+                Patch(terrain, size, paint: terrain is not (TerrainType.Sand or TerrainType.Swamp) || i % 4 == 0);
     }
 
+    /// <summary>La part des zones de terre (hors départs) dont le sol devient du sable ou du marais.</summary>
+    public double ZoneGroundShare { get; init; } = 0.35;
+
+    /// <summary>Le sol de chaque zone (par son numéro) : l'herbe, sauf celles devenues sable ou marais.</summary>
+    private readonly Dictionary<int, TerrainType> _zoneGround = new();
+
+    /// <summary>
+    /// Le sol des zones (2026-11-17, mesuré sur Heroes 2 et 3 : un sol y forme une ou deux grandes régions par carte, pas
+    /// des taches semées) : une zone de terre sur trois à peu près devient du sable ou du marais en entier (son herbe ; la
+    /// forêt, la montagne et l'eau restent). Une ville neutre y prend une faction de ce sol (<see cref="HeroClass.Ground"/>) ;
+    /// la zone d'un départ prend le sol de la faction du joueur (l'herbe si elle n'en a pas).
+    /// </summary>
+    private void PaintZoneGrounds()
+    {
+        if (_zones.Count <= 1)
+            return;
+        var startZones = _map.Starts.Select(s => _zoneOf[s.X, s.Y]).ToHashSet();
+        foreach (var zone in _zones.Where(z => !z.Sea && !startZones.Contains(z.Index)))
+        {
+            if (_groundRng.NextDouble() >= ZoneGroundShare)
+                continue;
+            _zoneGround[zone.Index] = _groundRng.Next(2) == 0 ? TerrainType.Sand : TerrainType.Swamp;
+        }
+        foreach (var (start, i) in _map.Starts.Select((s, i) => (s, i)))
+            if (_data?.Classes.ForFaction(i < PlayerFactions.Count ? PlayerFactions[i] : DefaultFaction)?.Ground is { } native)
+                _zoneGround.TryAdd(_zoneOf[start.X, start.Y], native);
+        foreach (var c in AllCells())
+            if (_zoneGround.TryGetValue(_zoneOf[c.X, c.Y], out var ground) && _map.GetTerrain(c) == TerrainType.Grass)
+                _map.SetTerrain(c, ground);
+        // un bord irrégulier entre deux sols (sinon, la ligne droite de la frontière entre deux zones) : quelques passes où
+        // une case du bord prend parfois le sol d'une voisine
+        bool Soil(TerrainType t) => t is TerrainType.Grass or TerrainType.Sand or TerrainType.Swamp;
+        for (int pass = 0; pass < 6; pass++)
+        {
+            var changes = new List<(Cell, TerrainType)>();
+            foreach (var c in AllCells().Where(c => Soil(_map.GetTerrain(c))))
+            {
+                var other = Neighbours(c).Where(_map.InBounds).Select(_map.GetTerrain).Where(t => Soil(t) && t != _map.GetTerrain(c)).ToList();
+                if (other.Count > 0 && _groundRng.NextDouble() < 0.15 * other.Count)
+                    changes.Add((c, other[_groundRng.Next(other.Count)]));
+            }
+            foreach (var (c, ground) in changes)
+                _map.SetTerrain(c, ground);
+        }
+    }
+
+    /// <summary>Le sol d'une case quand on la dégage (une route, une ville, un passage) : celui de sa zone, sinon l'herbe.</summary>
+    private TerrainType GroundOf(Cell c) =>
+        _zones.Count > 0 && _zoneGround.TryGetValue(_zoneOf[c.X, c.Y], out var ground) ? ground : TerrainType.Grass;
+
     /// <summary>Pose une « tache » de terrain par marche aléatoire.</summary>
-    private void Patch(TerrainType terrain, int steps)
+    private void Patch(TerrainType terrain, int steps, bool paint = true)
     {
         int x = _rng.Next(_map.Width), y = _rng.Next(_map.Height);
         for (int i = 0; i < steps; i++)
@@ -1963,7 +2027,7 @@ public sealed class MapGenerator
             for (int dy = 0; dy <= 1; dy++)
             {
                 var c = new Cell(x + dx, y + dy);
-                if (_map.InBounds(c))
+                if (paint && _map.InBounds(c))
                     _map.SetTerrain(c, terrain);
             }
             x = Math.Clamp(x + _rng.Next(-1, 2), 0, _map.Width - 1);
@@ -2086,14 +2150,14 @@ public sealed class MapGenerator
 
     private void ClearStartArea()
     {
-        // de l'herbe autour du départ, et au-dessus pour le château (4 cases de haut, l'entrée sur le départ)
+        // le sol de la zone autour du départ, et au-dessus pour le château (4 cases de haut, l'entrée sur le départ)
         foreach (var start in _map.Starts)
             for (int dy = -Town.Height; dy <= 2; dy++)
             for (int dx = -3; dx <= 3; dx++)
             {
                 var c = start.Offset(dx, dy);
                 if (_map.InBounds(c))
-                    _map.SetTerrain(c, TerrainType.Grass);
+                    _map.SetTerrain(c, GroundOf(start));
             }
     }
 

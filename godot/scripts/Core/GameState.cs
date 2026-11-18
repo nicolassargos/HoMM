@@ -471,7 +471,7 @@ public sealed partial class GameState
         // Un clic sur les murs d'une ville mène à son entrée
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction);
+        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction, hero.OwnGround);
     }
 
     public void ClearPath() => Path = null;
@@ -522,7 +522,7 @@ public sealed partial class GameState
         // Un héros d'un autre joueur sur la case suivante : on l'attaque, sans bouger (comme un monstre)
         if (EnemyHeroAt(next, hero.Owner) is { } enemy)
         {
-            hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next, hero.RoughTerrainReduction));
+            hero.SpendMovement(hero.StepCost(Map, hero.Position, next));
             Path = null;
             BeginFights(hero, hero.Position, hero.Position, new[] { ((MapObject)new HeroDefender(enemy), enemy.Army) }, visit: false);
             return false;
@@ -534,7 +534,7 @@ public sealed partial class GameState
         // Attaque directe d'un monstre voisin : le héros reste sur sa case
         if (Map.ObjectAt(next) is MonsterGuard target)
         {
-            hero.SpendMovement(Pathfinder.StepCost(Map, hero.Position, next, hero.RoughTerrainReduction));
+            hero.SpendMovement(hero.StepCost(Map, hero.Position, next));
             Path = null;
             BeginFights(hero, hero.Position, hero.Position, new[] { ((MapObject)target, target.Army) }, visit: false);
             return false;
@@ -960,7 +960,7 @@ public sealed partial class GameState
             return null;
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction) is not { } path)
+        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction, hero.OwnGround) is not { } path)
             return null;
         int days = 1, movement = hero.Movement;
         var previous = hero.Position;
@@ -968,7 +968,7 @@ public sealed partial class GameState
         {
             // monter à bord ou débarquer : possible avec un peu de mouvement, puis la journée est finie
             bool boards = Pathfinder.Boards(Map, previous, cell);
-            int cost = boards ? 1 : Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
+            int cost = boards ? 1 : hero.StepCost(Map, previous, cell);
             if (cost > movement)
             {
                 days++;
@@ -997,7 +997,7 @@ public sealed partial class GameState
             }
             else
             {
-                movement -= Pathfinder.StepCost(Map, previous, cell, hero.RoughTerrainReduction);
+                movement -= hero.StepCost(Map, previous, cell);
                 result.Add(movement >= 0);
             }
             previous = cell;

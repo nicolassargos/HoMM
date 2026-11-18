@@ -237,7 +237,7 @@ public sealed class Hero
 
     public bool CanStepTo(AdventureMap map, Cell next) => Pathfinder.Boards(map, Position, next)
         ? Movement > 0
-        : Pathfinder.StepCost(map, Position, next, RoughTerrainReduction) <= Movement;
+        : StepCost(map, Position, next) <= Movement;
 
     /// <summary>Le héros est en mer (dans son bateau) : sur une case d'eau.</summary>
     public bool AtSea(AdventureMap map) => map.IsWater(Position);
@@ -245,12 +245,21 @@ public sealed class Hero
     /// <summary>L'Orientation : le surcoût des terrains difficiles baisse d'autant (en pourcentage).</summary>
     public int RoughTerrainReduction => SkillValue(HoMM.Core.Skills.Pathfinding);
 
+    /// <summary>Le sol de sa faction : il y marche sans ralentir (le sable, le marais).</summary>
+    public TerrainType? OwnGround => Class?.Ground;
+
+    /// <summary>Ce que coûte à ce héros un pas d'une case à sa voisine.</summary>
+    public int StepCost(AdventureMap map, Cell from, Cell to) => Pathfinder.StepCost(map, from, to, RoughTerrainReduction, OwnGround);
+
+    /// <summary>Ce que coûte à ce héros de quitter une case (un pas tout droit).</summary>
+    public int CellCost(AdventureMap map, Cell cell) => Pathfinder.CellCost(map, cell, RoughTerrainReduction, OwnGround);
+
     public void SpendMovement(int amount) => Movement = System.Math.Max(0, Movement - amount);
 
     public void StepTo(AdventureMap map, Cell next)
     {
         // monter à bord ou débarquer : tout le mouvement qui reste
-        SpendMovement(Pathfinder.Boards(map, Position, next) ? Movement : Pathfinder.StepCost(map, Position, next, RoughTerrainReduction));
+        SpendMovement(Pathfinder.Boards(map, Position, next) ? Movement : StepCost(map, Position, next));
         Position = next;
         Owner.Fog.Reveal(Position, VisionRadius);
     }

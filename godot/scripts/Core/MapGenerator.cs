@@ -1967,15 +1967,18 @@ public sealed class MapGenerator
                 Patch(terrain, size, paint: terrain is not (TerrainType.Sand or TerrainType.Swamp) || i % 4 == 0);
     }
 
-    /// <summary>La part des zones de terre (hors départs) dont le sol devient du sable ou du marais.</summary>
+    /// <summary>Les sols que peut prendre une zone, en plus de l'herbe.</summary>
+    private static readonly TerrainType[] ZoneGrounds = { TerrainType.Sand, TerrainType.Swamp, TerrainType.Rock };
+
+    /// <summary>La part des zones de terre (hors départs) dont le sol n'est pas de l'herbe.</summary>
     public double ZoneGroundShare { get; init; } = 0.35;
 
-    /// <summary>Le sol de chaque zone (par son numéro) : l'herbe, sauf celles devenues sable ou marais.</summary>
+    /// <summary>Le sol de chaque zone (par son numéro) : l'herbe, sauf celles qui ont pris un autre sol.</summary>
     private readonly Dictionary<int, TerrainType> _zoneGround = new();
 
     /// <summary>
     /// Le sol des zones (2026-11-17, mesuré sur Heroes 2 et 3 : un sol y forme une ou deux grandes régions par carte, pas
-    /// des taches semées) : une zone de terre sur trois à peu près devient du sable ou du marais en entier (son herbe ; la
+    /// des taches semées) : une zone de terre sur trois à peu près devient du sable, du marais ou de la roche en entier (son herbe ; la
     /// forêt, la montagne et l'eau restent). Une ville neutre y prend une faction de ce sol (<see cref="HeroClass.Ground"/>) ;
     /// la zone d'un départ prend le sol de la faction du joueur (l'herbe si elle n'en a pas).
     /// </summary>
@@ -1988,7 +1991,7 @@ public sealed class MapGenerator
         {
             if (_groundRng.NextDouble() >= ZoneGroundShare)
                 continue;
-            _zoneGround[zone.Index] = _groundRng.Next(2) == 0 ? TerrainType.Sand : TerrainType.Swamp;
+            _zoneGround[zone.Index] = ZoneGrounds[_groundRng.Next(ZoneGrounds.Length)];
         }
         foreach (var (start, i) in _map.Starts.Select((s, i) => (s, i)))
             if (_data?.Classes.ForFaction(i < PlayerFactions.Count ? PlayerFactions[i] : DefaultFaction)?.Ground is { } native)
@@ -1998,7 +2001,7 @@ public sealed class MapGenerator
                 _map.SetTerrain(c, ground);
         // un bord irrégulier entre deux sols (sinon, la ligne droite de la frontière entre deux zones) : quelques passes où
         // une case du bord prend parfois le sol d'une voisine
-        bool Soil(TerrainType t) => t is TerrainType.Grass or TerrainType.Sand or TerrainType.Swamp;
+        bool Soil(TerrainType t) => t == TerrainType.Grass || ZoneGrounds.Contains(t);
         for (int pass = 0; pass < 6; pass++)
         {
             var changes = new List<(Cell, TerrainType)>();

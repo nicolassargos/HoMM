@@ -2729,6 +2729,14 @@ choix de l'utilisateur) :
   avec les sols, 52 200 avec le sol de la faction sans surcoût (57 700 si sable et marais ne ralentissaient pas). Par
   faction : Donjon et Enfer −4 %, Nains −10, Barbares −11, Tour −17, morts-vivants −21, Château −29, Forêt −32 ;
   l'équilibre est remis à plus tard, quand d'autres sols viendront (choix de l'utilisateur).
+- ✅ **Le sol rocheux** (2026-11-18, branche `sols-nouveaux`) : `TerrainType.Rock`, le sol des Nains, coût 125 (le sol
+  accidenté de Heroes 3) ; une zone qui change de sol prend le sable, le marais ou la roche à parts égales. Deux cases de
+  Retro Diffusion (`terrain/rock`), puis le shader : de petites dalles, des fissures discrètes, des pierres (`slab_*`,
+  `rock_stones`). Essayé : des fissures franches (de la boue séchée), de grandes dalles, surtout des pierres ; retenu par
+  l'utilisateur : les petites dalles aux fissures discrètes. Les combats sur la roche prennent le champ du désert en
+  attendant le leur. Mesuré (cartes normales, médianes) : herbe 73 %, sable 11 %, marais 9 %, roche 10 % de la terre.
+  Armée d'un adversaire après six semaines : moyenne 51 500 (52 200 avant) ; Nains 50 600 → 61 700, les premiers ; Tour
+  47 000 → 40 400, les derniers.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

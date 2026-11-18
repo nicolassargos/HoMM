@@ -142,12 +142,13 @@ une option, une ville au plus par zone, une scierie et une mine de minerai gard�
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
-dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien (2026-11-18).
+dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains (2026-11-18).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
 - **Les sols** : d'autres sols viendront, et peut-être des thèmes de cartes (la répartition se réglera alors) ; le sol
-  des Nains et des factions encore sur l'herbe, à décider ; des arbres du désert et du marais (les forêts y restent
-  vertes) ; l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
+  des factions encore sur l'herbe, à décider (peut-être la lave pour l'Enfer) ; un champ de bataille pour la roche
+  (celui du désert en attendant) ; des arbres du désert, du marais et de la roche (les forêts y restent vertes) ;
+  l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
 - **L'herbe** : embellir les fleurs (l'utilisateur, plus tard) ; le bord des routes suivra.

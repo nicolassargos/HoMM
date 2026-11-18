@@ -245,7 +245,7 @@ public sealed class Hero
     /// <summary>L'Orientation : le surcoût des terrains difficiles baisse d'autant (en pourcentage).</summary>
     public int RoughTerrainReduction => SkillValue(HoMM.Core.Skills.Pathfinding);
 
-    /// <summary>Le sol de sa faction : il y marche sans ralentir (le sable, le marais).</summary>
+    /// <summary>Le sol de sa faction : il y marche sans ralentir (le sable, le marais, la roche).</summary>
     public TerrainType? OwnGround => Class?.Ground;
 
     /// <summary>Ce que coûte à ce héros un pas d'une case à sa voisine.</summary>

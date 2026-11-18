@@ -121,7 +121,7 @@ public static class MountainGrounds
                         group.Add(n);
                     else if (map.GetTerrain(n) is var t && t != TerrainType.Water)
                     {
-                        var ground = t is TerrainType.Sand or TerrainType.Swamp ? t : TerrainType.Grass;
+                        var ground = TerrainInfo.SoilOf(t);
                         around[ground] = around.GetValueOrDefault(ground) + 1;
                     }
                 }
@@ -135,7 +135,7 @@ public static class MountainGrounds
                     var n = c.Offset(dx, dy);
                     if (map.InBounds(n) && map.GetTerrain(n) is var t && t is not (TerrainType.Mountain or TerrainType.Water))
                     {
-                        var ground = t is TerrainType.Sand or TerrainType.Swamp ? t : TerrainType.Grass;
+                        var ground = TerrainInfo.SoilOf(t);
                         near[ground] = near.GetValueOrDefault(ground) + 1;
                     }
                 }

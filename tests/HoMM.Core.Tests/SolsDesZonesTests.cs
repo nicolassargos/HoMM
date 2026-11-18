@@ -16,7 +16,7 @@ public class SolsDesZonesTests
     [InlineData("morts-vivants", TerrainType.Swamp)]
     [InlineData("donjon", TerrainType.Swamp)]
     [InlineData("chateau", TerrainType.Grass)]
-    [InlineData("nains", TerrainType.Grass)]
+    [InlineData("nains", TerrainType.Rock)]
     public void Le_depart_prend_le_sol_de_sa_faction(string faction, TerrainType ground)
     {
         foreach (int seed in new[] { 5, 12, 42 })

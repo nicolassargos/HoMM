@@ -78,9 +78,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   répétition et réglables (`--ground=`).
   Herbe (2026-11-16) : le vide d'une grande prairie se comble au shader, à l'échelle moyenne (taches sèches et drues,
   touffes, bouquets de fleurs) ; trop de touffes ou de grandes taches foncées font des plaques.
-  Roche (2026-11-18) : la case de Retro Diffusion seule ressemble à de la terre gravillonnée ; les dalles, fissures et
-  pierres viennent du shader. Des fissures franches font de la boue séchée et gênent la lecture des objets : les garder
-  discrètes.
+  Roche (2026-11-18) : la case de Retro Diffusion seule ressemble à de la terre gravillonnée ; les dalles et les fissures
+  viennent du shader. Des fissures franches font de la boue séchée, des dalles rondes du cuir : des fissures discrètes,
+  des dalles anguleuses et allongées, une pente légère et inégale d'une dalle à l'autre. Les pierres dessinées par-dessus
+  n'ont pas plu ; la couleur brune d'origine non plus n'est pas à changer.
 - Portraits : 64 × 64, style « retro », des visages marqués plutôt qu'idéalisés, trouvés d'après le nom du héros.
   28 portraits de plus (2026-11-07, 5,58 $ : 3 candidats chacun, 3 refaits) : barbares, chevaliers, sorciers, mages,
   gens des bois, morts-vivants, démons. Ce qui marche : décrire un détail qui se voit (cicatrice, cache-œil,

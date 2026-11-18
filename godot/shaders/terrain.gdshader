@@ -91,20 +91,24 @@ uniform float road_stones_inside = 0.08;
 // des cailloux semés partout sur le sol, loin des routes (la part des carrés de ground_stone_cell pixels d'art qui en ont)
 uniform float ground_stones = 0.08;
 uniform float ground_stone_cell = 11.0;
-// le sol rocheux (rock_ground : son numéro) : de grandes dalles (slab_cell pixels d'art) de tons un peu différents
-// (slab_tone), séparées par des fissures (slab_crack de large, sur la part slab_cracked des bords : pas un pavage) ; le
-// bord éclairé d'une fissure (slab_light), son fond (slab_dark) ; slab_wobble tord les bords. Des pierres par-dessus
-// (la part rock_stones des carrés de rock_stone_cell pixels d'art)
+// le sol rocheux (rock_ground : son numéro) : des dalles (slab_cell pixels d'art) de tons un peu différents (slab_tone),
+// séparées par des fissures (slab_crack de large, sur la part slab_cracked des bords : pas un pavage) ; le bord éclairé
+// d'une fissure (slab_light), son fond (slab_dark) ; slab_wobble tord les bords ; chaque dalle penche un peu de son côté
+// et la lumière la prend en biais (slab_relief)
 uniform int rock_ground = 7;
-uniform float slab_cell = 20.0;
+uniform float slab_cell = 22.0;
 uniform float slab_crack = 0.8;
 uniform float slab_cracked = 0.55;
-uniform float slab_tone = 0.05;
+uniform float slab_tone = 0.03;
 uniform float slab_dark = 0.83;
 uniform float slab_light = 1.04;
-uniform float slab_wobble = 3.0;
-uniform float rock_stones = 0.16;
-uniform float rock_stone_cell = 13.0;
+uniform float slab_wobble = 1.2;
+uniform float slab_relief = 0.11;
+// le grain fin de l'image du sol rocheux qu'on garde (rock_grain, de 0 à 1) ; slab_stretch allonge les dalles dans le sens
+// des strates de la roche ; rock_cool : de grandes parties un peu plus froides
+uniform float rock_grain = 0.5;
+uniform float slab_stretch = 1.7;
+uniform float rock_cool = 0.04;
 // Le pied des montagnes (0 : rien ; 0,35 sans terre ni gravier, 2026-11-17 : les pentes se fondent dans l'herbe) : jusqu'à foothill_reach cases d'une montagne, l'herbe sèche (foothill),
 // des plaques de terre et de gravier (foothill_soil : leur part au pied), des éboulis (foothill_scree : la part des
 // carrés de 6 pixels d'art qui ont une pierre, au pied) ; le bord ondule de foothill_wave cases
@@ -714,22 +718,27 @@ bool ground_stone_at(vec2 p, vec3 under, out vec3 stone) {
 	return stone_shape(p - spot, stone_size(cell + vec2(0.5)), cell, under, stone);
 }
 
-// La distance du pixel d'art p au bord de sa dalle (pixels d'art, à peu près) ; id : la dalle
-float slab_edge(vec2 p, out vec2 id) {
+// La distance du pixel d'art p au bord de sa dalle (pixels d'art, à peu près) ; id : la dalle ; from : p depuis le centre
+// de la dalle (en tailles de dalle)
+float slab_edge(vec2 p, out vec2 id, out vec2 from) {
 	vec2 twist = vec2(noise(p / 9.0 + vec2(41.0, 7.0)), noise(p / 9.0 + vec2(5.0, 63.0))) - 0.5;
-	vec2 g = (p + twist * 2.0 * slab_wobble) / slab_cell;
+	vec2 q = p + twist * 2.0 * slab_wobble;
+	vec2 g = vec2(q.x * 0.94 + q.y * 0.34, (q.y * 0.94 - q.x * 0.34) * slab_stretch) / slab_cell;
 	vec2 base = floor(g);
 	float first = 1e9;
 	float second = 1e9;
 	id = base;
+	from = vec2(0.0);
 	for (int y = -1; y <= 1; y++)
 	for (int x = -1; x <= 1; x++) {
 		vec2 n = base + vec2(float(x), float(y));
-		float d = length(g - n - 0.05 - vec2(hash(n + vec2(3.1, 8.2)), hash(n + vec2(6.4, 1.7))) * 0.9);
+		vec2 away = g - n - 0.05 - vec2(hash(n + vec2(3.1, 8.2)), hash(n + vec2(6.4, 1.7))) * 0.9;
+		float d = length(away);
 		if (d < first) {
 			second = first;
 			first = d;
 			id = n;
+			from = away;
 		} else if (d < second) second = d;
 	}
 	return (second - first) * slab_cell * 0.5;
@@ -738,21 +747,8 @@ float slab_edge(vec2 p, out vec2 id) {
 // Une fissure du sol rocheux au pixel d'art p ?
 bool crack_at(vec2 p) {
 	vec2 id;
-	return slab_edge(p, id) < slab_crack && noise(p / (slab_cell * 0.8) + vec2(12.0, 77.0)) < slab_cracked;
-}
-
-// Une pierre du sol rocheux au pixel d'art p (plus grosses que les cailloux, loin des routes)
-bool rock_stone_at(vec2 p, vec3 under, out vec3 stone) {
-	stone = under;
-	float size = floor(max(rock_stone_cell, 8.0));
-	vec2 cell = floor(p / size);
-	if (hash(cell + vec2(31.7, 52.3)) >= rock_stones) return false;
-	vec2 spot = cell * size + 1.0 + floor(vec2(hash(cell + vec2(4.9, 7.3)), hash(cell + vec2(9.1, 3.8))) * (size - 6.0));
-	int kind;
-	if (road_inside(spot, kind) > -4.0) return false;
-	float pick = hash(cell + vec2(6.2, 8.8));
-	vec2 dim = pick < 0.35 ? vec2(3.0, 2.0) : (pick < 0.65 ? vec2(3.0) : (pick < 0.88 ? vec2(4.0, 3.0) : vec2(5.0, 3.0)));
-	return stone_shape(p - spot, dim, cell, under, stone);
+	vec2 from;
+	return slab_edge(p, id, from) < slab_crack && noise(p / (slab_cell * 0.8) + vec2(12.0, 77.0)) < slab_cracked;
 }
 
 // Combien d'herbe sur ce tronçon de route, autour du pixel d'art p : 0 aucune, 1 l'ordinaire, road_grass_more envahie
@@ -999,18 +995,30 @@ void fragment() {
 			if (stone_shape(p - spot, stone_size(cell + vec2(3.3)), cell, color, stone)) color = stone;
 		}
 	}
-	// Le sol rocheux : ses dalles, leurs fissures et ses pierres
+	// Le sol rocheux : ses dalles et leurs fissures
 	if (t == rock_ground && !in_water && stream_depth(p) <= 0.0 && shore_distance(p) > 2.0) {
+		// moins de grain fin : on rapproche la case de la moyenne de ses voisines (seulement pour la part de roche du mélange)
+		vec3 around = (tile_color(rock_ground, p + vec2(3.0, 1.0)) + tile_color(rock_ground, p + vec2(-1.0, 3.0))
+			+ tile_color(rock_ground, p + vec2(-3.0, -1.0)) + tile_color(rock_ground, p + vec2(1.0, -3.0))) * 0.25;
+		color += (around - tile_color(rock_ground, p)) * (1.0 - rock_grain) * (b == rock_ground ? share : 1.0 - share);
+		if (rock_cool > 0.0) {
+			float cool = floor(smoothstep(0.35, 0.65, noise((p + 0.5) / 70.0 + vec2(61.0, 29.0))) * 2.0 + bayer(p)) / 2.0;
+			color *= mix(vec3(1.0), vec3(1.0 - rock_cool, 1.0, 1.0 + rock_cool * 1.2), cool);
+		}
 		vec2 slab;
-		slab_edge(p, slab);
+		vec2 from;
+		slab_edge(p, slab, from);
 		color *= 1.0 + (floor(hash(slab + vec2(2.7, 4.4)) * 3.0) - 1.0) * slab_tone;
+		float tilt = hash(slab + vec2(8.3, 1.9)) * 6.2832;
+		float facet = clamp(dot(from, vec2(cos(tilt), sin(tilt))) * 2.0, -1.0, 1.0);
+		// certaines dalles penchent à peine, et par endroits aucune : l'effet ne dessine pas un pavage
+		facet *= mix(0.35, 1.0, hash(slab + vec2(4.1, 9.6))) * smoothstep(0.25, 0.6, noise((p + 0.5) / 48.0 + vec2(19.0, 43.0)));
+		color *= 1.0 + clamp(floor(facet * 2.5 + bayer(p)) / 2.5, -1.0, 1.0) * slab_relief;
 		if (crack_at(p)) color *= slab_dark;
 		else if (crack_at(p + vec2(1.0, 0.0))) color *= slab_light;
-		vec3 stone;
-		if (rock_stones > 0.0 && rock_stone_at(p, color, stone)) color = stone;
 	}
 	// Des cailloux semés sur le sol (l'herbe, le sable), loin des routes
-	if (ground_stones > 0.0 && !in_water && t != water) {
+	if (ground_stones > 0.0 && !in_water && t != water && t != rock_ground) {
 		vec3 stone;
 		if (ground_stone_at(p, color, stone)) color = stone;
 	}

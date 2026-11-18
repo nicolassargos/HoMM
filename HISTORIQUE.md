@@ -2715,6 +2715,20 @@ choix de l'utilisateur) :
   Les jeux du sable et du marais sont retirés (un seul jeu, celui de l'herbe) ; le sol sous les montagnes est celui qui
   les entoure ; plus d'assombrissement au cœur (`foothill_rock` 0). Vu en chemin : les bords du marais sont carrés (le
   shader du sol, sans lien avec les montagnes).
+- ✅ **Un sol par zone** (2026-11-18, branche `terrains`) : mesuré avec `tools/cartes/terrains.py`, un sol forme une ou
+  deux grandes régions dans Heroes 2 et 3, chez nous douze petites taches. Une zone de terre sur trois environ
+  (`ZoneGroundShare` 0,35) devient du sable ou du marais ; il reste une tache sur quatre pour le décor (le hasard des
+  autres est tiré quand même : la disposition de la carte ne change pas) ; six passes rendent les frontières irrégulières
+  (le shader suit les rangées de cases). Le sol de chaque faction est dans `classes.json` (`ground`) : sable pour les
+  Barbares et l'Enfer, marais pour les morts-vivants et le Donjon, herbe pour les autres (les Nains et quelques autres,
+  à décider). Une ville neutre prend une faction de son sol, la zone d'un départ le sol de la faction du joueur, et un
+  héros ne paie aucun surcoût sur le sol de sa classe (`Hero.OwnGround`). Mesuré (`Sols_des_cartes`, cartes normales,
+  médianes) : herbe 91 → 74 %, sable 5 → 18 %, marais 5 → 12 % de la terre ; la plus grande tache de sable, 17 → 30 % du
+  sable (les bords irréguliers laissent beaucoup de miettes : la taille médiane d'une tache ne dit plus rien).
+  Armée d'un adversaire après six semaines (`Adversaires_par_faction`, moyenne des 8 factions) : 62 300 avant, 45 800
+  avec les sols, 52 200 avec le sol de la faction sans surcoût (57 700 si sable et marais ne ralentissaient pas). Par
+  faction : Donjon et Enfer −4 %, Nains −10, Barbares −11, Tour −17, morts-vivants −21, Château −29, Forêt −32 ;
+  l'équilibre est remis à plus tard, quand d'autres sols viendront (choix de l'utilisateur).
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

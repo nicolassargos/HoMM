@@ -550,6 +550,8 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (2 cases) : l'image de 64 × 64 telle quelle. Recadrer chaque image sur son dessin avant de l'installer (le jeu pose le
   bas de l'image sur le bas de la case : des rangées vides dessous le feraient flotter). `--center=windmill` (sage,
   temple…) centre la capture sur un lieu.
+  Un lieu au contour trop dur (« crunchy », le moulin, 2026-11-18) : `adoucir.py entree sortie 0.7 60 2`, puis recadrer et
+  corriger ses pieds dans `godot/art/pieds.json`.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 

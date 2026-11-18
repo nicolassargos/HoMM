@@ -272,5 +272,5 @@
   "objects/town-nains": {"pieds": [[[14, 102], [79, 110]], [[145, 102], [83, 111]]], "verifie": true, "opacite": 0.8},
   "objects/town-tour": {"pieds": [[[16, 90], [67, 111]], [[68, 111], [92, 111]], [[94, 113], [143, 85]]], "verifie": true, "opacite": 0.9},
   "objects/water-wheel": {"pieds": [[[23, 34], [47, 42]]], "verifie": true, "opacite": 0.7},
-  "objects/windmill": {"pieds": [[[11, 56], [42, 57]]], "verifie": true, "opacite": 0.7}
+  "objects/windmill": {"pieds": [[[10, 57], [36, 57]]], "verifie": true, "opacite": 0.7}
 }

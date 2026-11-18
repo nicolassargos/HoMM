@@ -1442,7 +1442,7 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
   à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),
-  sage 8, roue à eau 13, moulin 12, tour 16, temple 8, cercle des fées 12. L'utilisateur trouvait les lieux petits : comme
+  sage 8, roue à eau 13, moulin 12 (remplacé le 2026-11-18 par le 8, tout brun et illisible : le 8 au contour adouci), tour 16, temple 8, cercle des fées 12. L'utilisateur trouvait les lieux petits : comme
   Heroes 2 et 3, les lieux hauts prennent 2 cases (`TallSite.FootprintAt` : la porte, `Position`, et la case au-dessus,
   qui bloque ; `Large`, faux pour les sauvegardes d'avant la version 7). Une empreinte de 2 × 2 aurait mis la porte à
   côté du héros (largeur paire) : une colonne de 2 cases et une image qui déborde d'une demi-case de chaque côté, comme

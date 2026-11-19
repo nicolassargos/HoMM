@@ -12,7 +12,7 @@ namespace HoMM.Game;
 /// Heroes 3 (<see cref="AdventureMap.Massifs"/> ; sans eux, deux ou trois sommets par case).
 /// Ils débordent un peu sur les cases voisines et sont dessinés de haut en bas : chaque arbre ou sommet recouvre
 /// ceux de derrière, et les forêts et les chaînes de montagnes forment des masses continues.
-/// Les règles ne changent pas : seul le dessin du terrain change (le sol de ces cases est de l'herbe).
+/// Les règles ne changent pas : seul le dessin du terrain change (le sol de ces cases est celui qui les entoure).
 /// Dessiné une seule fois, comme le terrain. Le hasard dépend de la case : le même décor revient à chaque partie.
 /// </summary>
 public partial class DecorLayer : Node2D
@@ -21,6 +21,15 @@ public partial class DecorLayer : Node2D
 
     private static Texture2D[] Trees =>
         Art.VariantsOf("decor/pine").Concat(Art.VariantsOf("decor/oak")).Concat(Art.VariantsOf("decor/autumn")).ToArray();
+
+    /// <summary>
+    /// Les arbres d'une forêt sur ce sol (2026-11-19) : ceux du sol (decor/tree-sand, tree-snow…) s'il y en a, des sapins
+    /// sur la roche, sinon ceux de l'herbe.
+    /// </summary>
+    private static Texture2D[] TreesOn(TerrainType ground) =>
+        Art.VariantsOf($"decor/tree-{Art.Name(ground)}") is { Length: > 0 } own ? own
+        : ground == TerrainType.Rock && Art.VariantsOf("decor/pine") is { Length: > 0 } pines ? pines
+        : Trees;
 
     /// <summary>Les arbres des pentes (sapins et chênes, pas d'automne) : entre les massifs et à leur pied, comme dans Heroes 3.</summary>
     private static Texture2D[] SlopeTrees => Art.VariantsOf("decor/pine").Concat(Art.VariantsOf("decor/oak")).ToArray();
@@ -80,6 +89,7 @@ public partial class DecorLayer : Node2D
     public static List<(Vector2 Foot, Texture2D Image)> Sprites(AdventureMap map)
     {
         var trees = Trees;
+        var forestGrounds = ForestGrounds.Of(map);
         var peaks = Peaks;
         const int t = MapRenderer.TileSize;
         // les placements ont été réglés pour des cases de 48 pixels de la carte : ils suivent la taille des cases
@@ -97,12 +107,21 @@ public partial class DecorLayer : Node2D
             {
                 case TerrainType.Forest when trees.Length > 0:
                     // quatre arbres en carré, un peu décalés, et parfois un cinquième n'importe où
+                    // dans le désert, une palmeraie plus clairsemée : trois arbres, sans le cinquième
+                    var ground = forestGrounds.GetValueOrDefault(new Cell(x, y), TerrainType.Grass);
+                    var own = TreesOn(ground);
+                    bool sparse = ground == TerrainType.Sand;
+                    int gap = sparse ? rng.Next(4) : -1;
                     for (int row = 0; row < 2; row++)
                     for (int col = 0; col < 2; col++)
-                        sprites.Add((o + new Vector2((12 + col * 24) * k + R(-6, 7, rng), (20 + row * 22) * k + R(-4, 5, rng)),
-                            trees[rng.Next(trees.Length)]));
-                    if (rng.Next(2) == 0)
-                        sprites.Add((o + new Vector2(R(6, 42, rng), R(14, 48, rng)), trees[rng.Next(trees.Length)]));
+                    {
+                        var at = o + new Vector2((12 + col * 24) * k + R(-6, 7, rng), (20 + row * 22) * k + R(-4, 5, rng));
+                        var tree = own[rng.Next(own.Length)];
+                        if (row * 2 + col != gap)
+                            sprites.Add((at, tree));
+                    }
+                    if (!sparse && rng.Next(2) == 0)
+                        sprites.Add((o + new Vector2(R(6, 42, rng), R(14, 48, rng)), own[rng.Next(own.Length)]));
                     break;
 
                 case TerrainType.Mountain when peaks.Length > 0 && map.Massifs.Count == 0:

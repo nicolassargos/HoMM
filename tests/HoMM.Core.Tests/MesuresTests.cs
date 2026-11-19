@@ -163,10 +163,11 @@ public class MesuresTests(ITestOutputHelper output)
             {
                 var map = new GameState(seed, TestData.Data, size).Map;
                 var under = MountainGrounds.Of(map);
+                var forests = ForestGrounds.Of(map);
                 TerrainType? Ground(Cell c) => map.GetTerrain(c) switch
                 {
                     TerrainType.Water => null,
-                    TerrainType.Forest => TerrainType.Grass,
+                    TerrainType.Forest => forests.GetValueOrDefault(c, TerrainType.Grass),
                     TerrainType.Mountain => under.GetValueOrDefault(c, TerrainType.Grass),
                     var t => t,
                 };

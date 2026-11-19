@@ -2757,7 +2757,7 @@ choix de l'utilisateur) :
   sur 35 cartes de Heroes 3 sur 50 (12 % de la terre, médiane) et 19 de Heroes 2 (19 %), en peu de grandes taches. Les
   deux cases sont celles du sable, recolorées en blanc bleuté de faible contraste (rien à payer). Le shader ajoute des
   congères rondes (`snow_*`) : une ombre bleutée du côté abrité, une crête un peu plus claire, quelques pixels qui
-  scintillent. Écartés par l'utilisateur : de longues congères en bandes (des nuages), une neige presque lisse. Les
+  scintillent ; trois fois moins de cailloux semés (`snow_stones` : sombres, ils se voyaient trop). Écartés par l'utilisateur : de longues congères en bandes (des nuages), une neige presque lisse. Les
   combats y prennent le champ du désert en attendant le leur. Mesuré (cartes normales, médianes) : herbe 74 %, roche 11 %, terre brûlée 8 %, neige 7 %, sable
   6 %, marais 6 % de la terre.
   Armée d'un adversaire après six semaines : moyenne 54 600 (53 700 avant) ; Tour 45 600 → 48 500 ; les

@@ -116,6 +116,8 @@ uniform float snow_drift_stretch = 0.75;
 uniform vec3 snow_shadow = vec3(0.63, 0.71, 0.86);
 uniform float snow_crest = 0.04;
 uniform float snow_sparkle = 0.015;
+// sur la neige, la part snow_stones des cailloux semés reste (sombres, ils se voient trop sur le blanc)
+uniform float snow_stones = 0.3;
 uniform float burnt_ash = 0.5;
 uniform vec3 ash_color = vec3(0.46, 0.43, 0.41);
 uniform float burnt_embers = 0.04;
@@ -744,11 +746,11 @@ bool road_stone_at(vec2 p, vec3 under, out vec3 stone) {
 }
 
 // Un caillou semé sur le sol au pixel d'art p (loin des routes), s'il y en a un
-bool ground_stone_at(vec2 p, vec3 under, out vec3 stone) {
+bool ground_stone_at(vec2 p, vec3 under, float share, out vec3 stone) {
 	stone = under;
 	float size = floor(max(ground_stone_cell, 6.0));
 	vec2 cell = floor(p / size);
-	if (hash(cell + vec2(73.1, 19.9)) >= ground_stones) return false;
+	if (hash(cell + vec2(73.1, 19.9)) >= ground_stones * share) return false;
 	vec2 spot = cell * size + 1.0 + floor(vec2(hash(cell + vec2(8.6, 2.2)), hash(cell + vec2(3.7, 6.6))) * (size - 4.0));
 	int kind;
 	if (road_inside(spot, kind) > -4.0) return false;
@@ -1153,7 +1155,7 @@ void fragment() {
 	// Des cailloux semés sur le sol (l'herbe, le sable), loin des routes
 	if (ground_stones > 0.0 && !in_water && t != water && t != rock_ground && t != burnt_ground) {
 		vec3 stone;
-		if (ground_stone_at(p, color, stone)) color = stone;
+		if (ground_stone_at(p, color, t == snow_ground ? snow_stones : 1.0, stone)) color = stone;
 	}
 	// Fleurs et cailloux, sur l'herbe franche (pas dans les mélanges)
 	if (t == grass && !in_water && (share <= 0.0 || share >= 1.0)) {

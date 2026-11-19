@@ -25,7 +25,7 @@ uniform sampler2DArray tiles : filter_nearest;
 uniform int variants = 1;
 uniform ivec2 map_cells = ivec2(1, 1);
 // Rang de chaque terrain : un terrain de rang plus élevé déborde davantage sur l'autre
-uniform int priority[9];
+uniform int priority[10];
 // Numéro du terrain « eau » (rives nettes et écume), du sable (les plages) et de l'herbe (les fleurs)
 uniform int water = 5;
 uniform int sand = 3;
@@ -105,6 +105,19 @@ uniform int rock_ground = 7;
 // Le feu et les braises respirent : un cycle de burnt_glow_period secondes, chaque fissure à son rythme, la chaleur
 // courant le long d'elle ; burnt_glow_depth : de combien il baisse (burnt_glow_at : l'instant, pour figer une capture)
 uniform int burnt_ground = 8;
+// la neige (snow_ground : son numéro) : des congères poussées par le vent, longues de snow_drift_scale pixels d'art (et
+// snow_drift_stretch fois moins hautes),
+// une ombre bleutée (snow_shadow, de force snow_drifts) du côté abrité et une crête plus claire (snow_crest) ; quelques
+// pixels qui scintillent (la part snow_sparkle)
+uniform int snow_ground = 9;
+uniform float snow_drifts = 0.4;
+uniform float snow_drift_scale = 44.0;
+uniform float snow_drift_stretch = 0.75;
+uniform vec3 snow_shadow = vec3(0.63, 0.71, 0.86);
+uniform float snow_crest = 0.04;
+uniform float snow_sparkle = 0.015;
+// sur la neige, la part snow_stones des cailloux semés reste (sombres, ils se voient trop sur le blanc)
+uniform float snow_stones = 0.3;
 uniform float burnt_ash = 0.5;
 uniform vec3 ash_color = vec3(0.46, 0.43, 0.41);
 uniform float burnt_embers = 0.04;
@@ -733,11 +746,11 @@ bool road_stone_at(vec2 p, vec3 under, out vec3 stone) {
 }
 
 // Un caillou semé sur le sol au pixel d'art p (loin des routes), s'il y en a un
-bool ground_stone_at(vec2 p, vec3 under, out vec3 stone) {
+bool ground_stone_at(vec2 p, vec3 under, float share, out vec3 stone) {
 	stone = under;
 	float size = floor(max(ground_stone_cell, 6.0));
 	vec2 cell = floor(p / size);
-	if (hash(cell + vec2(73.1, 19.9)) >= ground_stones) return false;
+	if (hash(cell + vec2(73.1, 19.9)) >= ground_stones * share) return false;
 	vec2 spot = cell * size + 1.0 + floor(vec2(hash(cell + vec2(8.6, 2.2)), hash(cell + vec2(3.7, 6.6))) * (size - 4.0));
 	int kind;
 	if (road_inside(spot, kind) > -4.0) return false;
@@ -1128,10 +1141,21 @@ void fragment() {
 			else if (p == spot + vec2(1.0, 0.0) || p == spot + vec2(0.0, 1.0)) color = mix(color, ember_color, 0.8 * ember);
 		}
 	}
+	// La neige : les congères et leur ombre bleutée, le scintillement
+	if (t == snow_ground && !in_water && stream_depth(p) <= 0.0 && shore_distance(p) > 2.0) {
+		vec2 q = (p + 0.5) / vec2(snow_drift_scale, snow_drift_scale * snow_drift_stretch) + vec2(61.0, 17.0);
+		q.x += noise((p + 0.5) / 40.0 + vec2(5.0, 72.0)) * 1.5;
+		float here = noise(q) * 0.75 + noise((p + 0.5) / 9.0 + vec2(38.0, 11.0)) * 0.25;
+		float below = noise(q + vec2(0.0, 2.5 / (snow_drift_scale * snow_drift_stretch))) * 0.75 + noise((p + 0.5 + vec2(0.0, 2.5)) / 9.0 + vec2(38.0, 11.0)) * 0.25;
+		float lee = clamp((here - below) * 9.0, -1.0, 1.0);
+		if (lee > 0.0) color = mix(color, color * snow_shadow, floor(lee * 3.0 + bayer(p)) / 3.0 * snow_drifts);
+		else color *= 1.0 + floor(-lee * 2.0 + bayer(p)) / 2.0 * snow_crest;
+		if (hash(p + vec2(17.3, 91.7)) < snow_sparkle) color = vec3(1.0);
+	}
 	// Des cailloux semés sur le sol (l'herbe, le sable), loin des routes
 	if (ground_stones > 0.0 && !in_water && t != water && t != rock_ground && t != burnt_ground) {
 		vec3 stone;
-		if (ground_stone_at(p, color, stone)) color = stone;
+		if (ground_stone_at(p, color, t == snow_ground ? snow_stones : 1.0, stone)) color = stone;
 	}
 	// Fleurs et cailloux, sur l'herbe franche (pas dans les mélanges)
 	if (t == grass && !in_water && (share <= 0.0 || share >= 1.0)) {

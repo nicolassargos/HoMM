@@ -240,7 +240,7 @@ public partial class TownScreen : CanvasLayer
         CloseWindow();
         _town = null;
         Visible = false;
-        Audio.PlayMusic("map");
+        Audio.PlayMapMusic();
         Closed?.Invoke();
     }
 

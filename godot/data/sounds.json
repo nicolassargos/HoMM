@@ -1,7 +1,7 @@
 {
   "music": {
     "menu": [
-      "attente/musique-menu.wav"
+      "musique/musique-menu.ogg"
     ],
     "map": [
       "attente/musique-carte.wav"
@@ -10,7 +10,9 @@
       "attente/musique-ville.wav"
     ],
     "battle": [
-      "musique/combat-poursuite.wav"
+      "musique/combat-poursuite.wav",
+      "musique/combat-heroic-age.mp3",
+      "musique/combat-heated-lands.mp3"
     ],
     "town-chateau": [
       "musique/ville-chateau.mp3"
@@ -29,6 +31,32 @@
     ],
     "town-morts-vivants": [
       "musique/ville-morts-vivants.ogg"
+    ],
+    "town-nains": [
+      "musique/ville-nains.mp3"
+    ],
+    "map-grass": [
+      "musique/carte-grass.mp3"
+    ],
+    "map-water": [
+      "musique/carte-water.ogg",
+      "musique/carte-water-2.ogg",
+      "musique/carte-water-3.ogg"
+    ],
+    "town-foret": [
+      "musique/ville-foret.mp3"
+    ],
+    "map-swamp": [
+      "musique/carte-swamp.mp3"
+    ],
+    "map-sand": [
+      "musique/carte-sand.mp3"
+    ],
+    "map-rock": [
+      "musique/carte-rock.mp3"
+    ],
+    "map-snow": [
+      "musique/carte-snow.mp3"
     ]
   },
   "sounds": {

@@ -196,6 +196,15 @@ public partial class Audio : Node
     }
 
     /// <summary>
+    /// La musique de la carte à cet instant : celle du terrain autour du héros choisi (« map-sand »…), tenue à jour par
+    /// Main ; « map » si ce terrain n'a pas la sienne.
+    /// </summary>
+    public static string MapMusic { get; set; } = "map";
+
+    /// <summary>Revient à la musique de la carte (en sortant d'une ville ou d'un combat).</summary>
+    public static void PlayMapMusic() => PlayMusic(MapMusic, "map");
+
+    /// <summary>
     /// Passe à cette musique, en fondu : le premier de ces noms qui existe (« town-chateau », sinon « town »). Rien ne
     /// change si elle joue déjà.
     /// </summary>

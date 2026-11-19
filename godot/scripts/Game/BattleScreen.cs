@@ -828,7 +828,10 @@ public partial class BattleScreen : CanvasLayer
         _finished = null;
         Visible = false;
         MapCursor.Show(CursorKind.Pointer);
-        Audio.PlayMusic(_musicBefore ?? "map");
+        if (_musicBefore is { } before)
+            Audio.PlayMusic(before);
+        else
+            Audio.PlayMapMusic();
         finished?.Invoke();
     }
 }

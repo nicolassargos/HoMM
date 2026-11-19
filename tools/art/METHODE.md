@@ -78,6 +78,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   répétition et réglables (`--ground=`).
   Herbe (2026-11-16) : le vide d'une grande prairie se comble au shader, à l'échelle moyenne (taches sèches et drues,
   touffes, bouquets de fleurs) ; trop de touffes ou de grandes taches foncées font des plaques.
+  Roche (2026-11-18) : la case de Retro Diffusion seule ressemble à de la terre gravillonnée ; les dalles et les fissures
+  viennent du shader. Des fissures franches font de la boue séchée, des dalles rondes du cuir : des fissures discrètes,
+  des dalles anguleuses et allongées, une pente légère et inégale d'une dalle à l'autre. Les pierres dessinées par-dessus
+  n'ont pas plu ; la couleur brune d'origine non plus n'est pas à changer.
+  Terre brûlée (2026-11-18) : les cases de la roche recolorées d'après leur luminosité suffisent, sans rien générer. Une
+  fissure qui se lit comme telle n'est pas un bord de plaques (trop lisse : des brindilles) : c'est un trait en zigzag,
+  avec des branches, noir, large au milieu et fin aux bouts, le feu seulement au fond de sa partie large ; des tailles
+  très inégales, regroupées par régions. Une animation lente et décalée d'une fissure à l'autre reste discrète.
 - Portraits : 64 × 64, style « retro », des visages marqués plutôt qu'idéalisés, trouvés d'après le nom du héros.
   28 portraits de plus (2026-11-07, 5,58 $ : 3 candidats chacun, 3 refaits) : barbares, chevaliers, sorciers, mages,
   gens des bois, morts-vivants, démons. Ce qui marche : décrire un détail qui se voit (cicatrice, cache-œil,
@@ -316,6 +324,40 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     fois, les autres troupes touchées n'ont pas de nouveau geste (`UnitStruck.Splash`).
   - **Une image de la carte au contour trop fort** (la chèvre) : un autre modèle de style plus doux (`cerf.png`) et « thin
     dark brown outline only » ; l'utilisateur a pourtant gardé un candidat du premier lot.
+- **Les morts** (2026-11-17) : animées directement (modèle v3, sans le « sujet », `--sans-retour`, 8 images), depuis la
+  grande image dans un cadre de la largeur de l'attaque (la créature couchée est plus large) ; environ 0,017 $ l'essai.
+  La consigne : « is mortally wounded: staggers backward, drops to its knees and collapses face down, lying motionless
+  on the ground at the end; no effects, no blood, no other character » (le quadrupède « its legs give way… onto its
+  side », le volant « stops flying and falls down… »). Un essai suffit pour presque toutes. Ce qui rate : « crumbles into
+  rubble » (le Golem reste debout, ou une fente blanche s'ouvre) : le faire **basculer** (« topples forward and falls
+  face down ») ; des taches blanches (poussière) sur la Gargouille : une autre graine. Les os qui se défont (Squelette,
+  Colosse d'os), la lave qui refroidit (Limon), l'arbre qui bascule (Tréant) marchent bien.
+- **Les coups reçus** (2026-11-17) : animés directement (modèle v3), **avec retour** à l'image de départ, **6 images**
+  (joués à 12 images/s : une demi-seconde), même cadre que la mort ; environ 0,016 $ l'essai. **Ne jamais parler du coup
+  ni de la douleur** (« is struck by a blow », « recoils in pain ») : PixelLab dessine alors une étincelle ou un éclair
+  d'impact sur la créature, et « no sparks, no flash » en ajoute encore. Décrire seulement le geste, **avec le sens** :
+  « flinches away to the left: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then
+  recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture ». Sans « to the
+  left », le Fantôme tend le bras vers l'avant (l'utilisateur : on dirait qu'il attaque). Une créature de face (le
+  Troll) bouge à peine. Une étincelle reste parfois sur une image (Djinn, Arbalétrier) quelle que soit la graine.
+  Les grandes créatures (Dragon, Hydre, Démon) ont résisté à cinq revues : elles bougent, mais pas comme sous un coup
+  (le Dragon penche même en avant quoi qu'on écrive). **Une image clé** guide le geste (l'idée de l'utilisateur : « que
+  la créature bascule »), donnée en dernière image (`last_frame`). Tournée d'un bloc autour des pieds, elle donne un
+  corps raide qui pivote, les pieds en l'air (refusé : « pas naturel »). **Ce qui marche : la pose de départ pliée en
+  arrière**, les pieds fixes, chaque rangée décalée d'autant plus qu'elle est haute (en courbe, 14° en haut) ; PixelLab
+  anime l'aller (départ → clé, 4 images : « is hit hard and bends backward from the blow, the feet stay planted on the
+  ground, the upper body and head are thrown back… ») **et le retour à part** (clé → départ : « recovers from a blow:
+  straightens up… »), pour que le corps vive aussi en revenant ; la feuille : l'aller, le retour, la pose de départ
+  (8 images). « is hit hard » fait encore dessiner un éclat à l'image 3 : la remplacer par la 4e. Des morceaux détachés
+  (une tête de trop pour l'Hydre) : les retirer ; un éclair blanc : l'effacer. L'utilisateur a pourtant refusé ces
+  images clés (on voit l'image écrasée). **Le mieux pour ces trois : le second modèle (`minimax`, avec le « sujet »,
+  retour à la pose de départ, 8 images)**, sans image clé : « takes a heavy blow to the chest and recoils: the head and
+  neck jerk back, the wings flinch, the body sways back on its legs, then it recovers; no effects » (le Dragon se tasse,
+  le Démon se plie un peu) ; il dessine un effet sur les 1 ou 2 premières images : les remplacer par une image suivante.
+  À essayer en premier pour une grande créature.
+  Le jeu ajoute un recul de 9 pixels de l'écran (`Recoil`) : la page de revue le montre aussi. Retirer des effets à la
+  main : par rectangles, n'effacer que les pixels clairs (ou jaune vif sur des cheveux blonds) ; sur le corps, leur donner
+  la couleur du corps voisine plutôt que de faire un trou ; ou reprendre une image voisine.
 - Écartés : « Bitforge » (`creer`) à cette taille, le style « classic » (trop dessin animé), le style « retro » de Retro
   Diffusion pour les créatures (images carrées, toutes de face et de la même taille), repeindre une seule zone
   (`repeindre` demande un abonnement payant : `retoucher` sur toute l'image à la place).
@@ -392,23 +434,36 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   doivent fondre aussi, sinon le bord reste net).
 
 ## Montagnes de la carte (massifs, PixelLab, 2026-11-17)
-- Des **massifs** posés comme les montagnes de Heroes 3 (voir `HISTORIQUE.md`). **PixelLab « Pro »** fait bien mieux
-  que Retro Diffusion (des îlots isolés) : `pixellab.py pro <dossier> 160 88 "<description>" <graine> <modèle>` donne 4
-  grands massifs (0,08 $), `80 44` ou `96 56` en donne 9 à 16 petits, `44 44` 25 sommets d'une case.
-- **Le modèle de style** : une de nos montagnes ; écrire « Same colours as the reference mountains, with very thin
-  soft outlines in a dark grey close to the rock colour, no black outlines », sinon PixelLab met un contour noir épais.
-- **La forme**, choix de l'utilisateur : « a low natural irregular mountain, much wider than tall, a broad heavy base
-  rising gently to a few low uneven rocky summits, some rounded and some pointed », et « no flat tops, no terraces, no
-  stacked layers, no box shapes ». Sans cela : des pics pointus (« trop pointus ») ou des gradins (« trop carrés »). Une
-  chaîne en biais : « a long low mountain ridge running diagonally from the lower left up to the upper right ».
-- **Les petits sont coupés par le bord** de l'image (un bas tout droit, laid au bord d'une chaîne) : ajouter « one object
-  alone in the middle of the image with empty transparent margins on all sides, not touching the image edges », sur une
-  toile plus grande (96 × 56, 88 × 68). Ils sortent alors plus sombres : `luminosite.py regler … 89`.
-- **Le trait** reste trop visible (gris bleu sombre, pas noir) : `adoucir.py entree sortie 0.85 90 1 0.4` (le dernier
-  nombre adoucit aussi les traits sombres de l'intérieur ; plus fort, la roche devient terne).
-- Installer : `recadrer.py` (l'image coupée à son dessin), `godot/art/decor/massif-*.png` (sommets d'une case : `peak*.png`), puis
-  `python -I tools/art/empreintes.py` écrit les cases bloquées de chaque image dans `godot/data/mountains.json` (à
-  retoucher à la main si besoin) et `pieds.py proposer` leurs pieds. Voir en jeu : `--center=mountains`.
+- Des **massifs** posés comme les montagnes de Heroes 3 (voir `HISTORIQUE.md`). **PixelLab « Pro »** :
+  `pixellab.py pro <dossier> 160 112 "<description>" <graine> <modèle>` donne 4 images (0,12 $), `112 96` 4, `80 56`
+  9, `72 88` 9, `44 44` 25.
+- **Le modèle** : une image composée de nos images (`ref-montagne-arbres.png` : un massif et des arbres de la carte),
+  puis une de nos montagnes faites ainsi. Jamais une capture d'un autre jeu.
+- **La description** qui marche : « Rocky ochre and grey peaks and jagged ridges at the top; the lower slopes are smooth
+  green grass with a few grey rocks, absolutely no trees, no bushes, no shrubs (…), at the bottom the grassy slopes fade
+  into green grass with an irregular soft edge, no hard base line. No outline at all, no dark contour. One light from the
+  upper right ». **Pas d'arbres dessinés** : de tout petits arbres à côté de ceux de la carte (l'utilisateur). Formes :
+  « a section of a long mountain range running diagonally (…) both ends going down low as if the range continues »
+  (`chaine`), « a compact mountain with two or three summits » (`cime`), « a narrow mountain, a bit taller than wide »
+  (`etroit`), « a small low mountain spur » (`petit`), « a single small mountain peak » (`peak`). Les autres (morceaux
+  vus de face, rangées vers le fond) ont donné des piles de boules ou des images coupées par le bord. Retourner une image
+  (`reduire.py … 1 --miroir`) donne la chaîne qui descend.
+- **Écartés** (l'utilisateur) : un contour sombre (`adoucir.py … 0.85 90 1 0.4` l'adoucit), des gradins, le style des
+  mines (« des morceaux de rocher côte à côte, pas une chaîne »).
+- **Fondre dans le sol** : `fondre.py` donne aux pentes les couleurs d'un sol pris dans une capture du jeu (l'herbe : un
+  pré de `--center=mountains` ; le sable et le marais : `--terrain-test`) et défait leur bord. **`--bord=fondu`** (choix
+  de l'utilisateur, 2026-11-17) : de plus en plus transparent sur 4 pixels ; une trame régulière se voyait comme une ligne
+  de points, un bord effrité restait granuleux. Avant, `adoucir.py … 0.85 90 1 0.4` sur les images brutes (un trait
+  sombre restait sur certains pics).
+- **Un seul jeu d'images, celui de l'herbe** (2026-11-17) : en jeu, le shader `mountain_slopes.gdshader` donne à chaque
+  pixel de pente le sol qui est dessous (l'herbe, le sable, le marais…). Il reconnaît une pente à son vert franc (le vert
+  de plus de 0,06 au-dessus du rouge et du bleu) : les pentes des images doivent rester vertes (`fondre.py`, sol « »),
+  la roche ne doit pas l'être. Les jeux `massif-sable-*` et `massif-marais-*` ne servent plus. Les jeux du sable
+  et du marais sont les images d'herbe ainsi recolorées (`massif-sable-*`, `massif-marais-*`, `peak-sable*`…). Les
+  images brutes et les captures sont dans `art-candidats/archives/2026-11-17-montagnes/sources/`.
+- Installer : `recadrer.py` (l'image coupée à son dessin), `fondre.py`, puis `python -I tools/art/empreintes.py` écrit les
+  cases bloquées, celles du dessin, la sorte (`tier`) et le sol de chaque image dans `godot/data/mountains.json`. Les
+  montagnes n'ont ni ombre portée ni ombre de contact (leur image porte sa lumière). Voir en jeu : `--center=mountains`.
 
 ## Villes de la carte (5 × 4 cases, 160 × 128, 2026-11-08)
 - Assemblées de pièces (`tools/art/villes.py`) comme les mines : enceinte sur **toute la largeur** (tours aux coins, mur du

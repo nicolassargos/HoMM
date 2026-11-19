@@ -16,6 +16,8 @@ public sealed class MapGenerator
     private readonly int _seed;
     /// <summary>Le hasard de la faction des villes neutres, à part : il ne change pas le reste de la carte.</summary>
     private readonly Random _factionRng;
+    /// <summary>Le hasard du sol des zones (à part : le reste de la carte ne change pas avec lui).</summary>
+    private readonly Random _groundRng;
     /// <summary>Le hasard des massifs de montagnes, à part : il ne change pas le reste de la carte.</summary>
     private readonly Random _massifRng;
     private readonly GameData? _data;
@@ -45,6 +47,7 @@ public sealed class MapGenerator
         _rng = new Random(seed);
         _seed = seed;
         _factionRng = new Random(seed * 7919 + 17);
+        _groundRng = new Random(seed * 4421 + 3);
         _massifRng = new Random(seed * 6271 + 29);
         _data = data;
     }
@@ -178,6 +181,7 @@ public sealed class MapGenerator
         _landArea = width * height;
         PaintTerrain();
         MakeZones();
+        PaintZoneGrounds();
         if (_sea != null)
             _landArea = AllCells().Count(c => !_sea[c.X, c.Y]);
         ClearStartArea();
@@ -573,6 +577,21 @@ public sealed class MapGenerator
         _mineCells.UnionWith(cells);
         return mine;
     }
+
+    /// <summary>
+    /// Combien de cases de montagne touchent le dos d'une mine d'entrée <paramref name="entrance"/> (les 3 cases juste
+    /// derrière elle, au-dessus de sa rangée du haut) : de 0 à 3. Comme dans Heroes 3, une mine se creuse au flanc d'une
+    /// montagne (idée de l'utilisateur, 2026-11-17) ; une montagne à côté seulement ne fait pas une mine creusée dedans.
+    /// </summary>
+    private int MountainBack(Cell entrance) =>
+        new[] { -1, 0, 1 }.Count(dx =>
+            _map.InBounds(entrance.Offset(dx, -2)) && _map.GetTerrain(entrance.Offset(dx, -2)) == TerrainType.Mountain);
+
+    /// <summary>Une mine qu'on creuse (toutes sauf la scierie) : elle cherche le flanc d'une montagne.</summary>
+    private static bool Dug(ResourceType resource) => resource != ResourceType.Wood;
+
+    /// <summary>1 si la mine a le dos contre la montagne (2 des 3 cases derrière elle au moins), sinon 0.</summary>
+    private int Backed(Cell entrance) => MountainBack(entrance) >= 2 ? 1 : 0;
 
     /// <summary>Les mines posées dans la zone de départ d'un joueur (bois, minerai, ressource principale) : sans gardien.</summary>
     private readonly HashSet<MapObject> _startZoneMines = new();
@@ -1484,7 +1503,7 @@ public sealed class MapGenerator
                 foreach (var corner in new[] { new Cell(back.X, c.Y), new Cell(c.X, back.Y) })
                 {
                     if (_map.GetTerrain(corner) is TerrainType.Water or TerrainType.Mountain or TerrainType.Forest)
-                        _map.SetTerrain(corner, TerrainType.Grass);
+                        _map.SetTerrain(corner, GroundOf(corner));
                     _roadCorners.Add(corner);
                 }
             }
@@ -1566,7 +1585,7 @@ public sealed class MapGenerator
     {
         _map.SetRoad(c, true);
         if (_map.GetTerrain(c) is TerrainType.Water or TerrainType.Mountain or TerrainType.Forest)
-            _map.SetTerrain(c, TerrainType.Grass);
+            _map.SetTerrain(c, GroundOf(c));
     }
 
     /// <summary>Le danger d'une case, de 0 (départ) à 1 (zone la plus lointaine).</summary>
@@ -1698,7 +1717,7 @@ public sealed class MapGenerator
     {
         foreach (var f in Town.FootprintAt(start).Append(start.Offset(0, 1)))
         {
-            _map.SetTerrain(f, TerrainType.Grass);
+            _map.SetTerrain(f, GroundOf(start));
             if (f != start && f != start.Offset(0, 1))
                 _map.SetRoad(f, false);
         }
@@ -1712,11 +1731,19 @@ public sealed class MapGenerator
         _townDistance = null; // une ville de plus
     }
 
-    /// <summary>La faction d'une ville neutre : une des factions qu'on peut jouer, au hasard.</summary>
-    private string NeutralTownFaction(GameData data)
+    /// <summary>
+    /// La faction d'une ville neutre : une des factions qu'on peut jouer, au hasard, parmi celles du sol de sa zone (le
+    /// sable, le marais ; l'herbe : celles qui n'ont pas de sol) s'il y en a.
+    /// </summary>
+    private string NeutralTownFaction(GameData data, Cell cell)
     {
         var factions = data.Classes.PlayableFactions;
-        return factions.Count == 0 ? DefaultFaction : factions[_factionRng.Next(factions.Count)];
+        if (factions.Count == 0)
+            return DefaultFaction;
+        var ground = _zones.Count > 0 && _zoneGround.TryGetValue(_zoneOf[cell.X, cell.Y], out var g) ? g : TerrainType.Grass;
+        var native = factions.Where(f => (data.Classes.ForFaction(f)?.Ground ?? TerrainType.Grass) == ground).ToList();
+        var pool = native.Count > 0 ? native : factions.ToList();
+        return pool[_factionRng.Next(pool.Count)];
     }
 
     /// <summary>
@@ -1785,7 +1812,7 @@ public sealed class MapGenerator
             .Where(c => !footprint.Contains(c) && _map.InBounds(c) && _map.HasRoad(c)).Distinct().ToList();
         foreach (var f in footprint.Append(approach))
         {
-            _map.SetTerrain(f, TerrainType.Grass);
+            _map.SetTerrain(f, GroundOf(f));
             if (footprint.Contains(f))
                 _map.SetRoad(f, false);
         }
@@ -1859,7 +1886,7 @@ public sealed class MapGenerator
     /// </summary>
     private void AddTown(GameData data, Cell cell, string name, int level)
     {
-        var town = new Town(cell, name, NeutralTownFaction(data), data);
+        var town = new Town(cell, name, NeutralTownFaction(data, cell), data);
         town.AddBuilding(data.Buildings.Get("salle-village"));
         if (town.DwellingOfTier(1) is { } dwelling)
             town.AddBuilding(dwelling);
@@ -1933,13 +1960,68 @@ public sealed class MapGenerator
             (TerrainType.Water, area / 300, 30),
             (TerrainType.Mountain, area / 500, 18),
         };
+        // le sable et le marais en grand viennent des zones (PaintZoneGrounds, 2026-11-17) : ici, une tache sur quatre
+        // seulement, pour le décor ; les autres tirent leur hasard sans rien peindre (le reste de la carte ne change pas)
         foreach (var (terrain, count, size) in patches)
             for (int i = 0; i < count; i++)
-                Patch(terrain, size);
+                Patch(terrain, size, paint: terrain is not (TerrainType.Sand or TerrainType.Swamp) || i % 4 == 0);
     }
 
+    /// <summary>Les sols que peut prendre une zone, en plus de l'herbe.</summary>
+    private static readonly TerrainType[] ZoneGrounds = { TerrainType.Sand, TerrainType.Swamp, TerrainType.Rock, TerrainType.Burnt };
+
+    /// <summary>La part des zones de terre (hors départs) dont le sol n'est pas de l'herbe.</summary>
+    public double ZoneGroundShare { get; init; } = 0.35;
+
+    /// <summary>Le sol de chaque zone (par son numéro) : l'herbe, sauf celles qui ont pris un autre sol.</summary>
+    private readonly Dictionary<int, TerrainType> _zoneGround = new();
+
+    /// <summary>
+    /// Le sol des zones (2026-11-17, mesuré sur Heroes 2 et 3 : un sol y forme une ou deux grandes régions par carte, pas
+    /// des taches semées) : une zone de terre sur trois à peu près prend l'un des autres sols en entier (son herbe ; la
+    /// forêt, la montagne et l'eau restent). Une ville neutre y prend une faction de ce sol (<see cref="HeroClass.Ground"/>) ;
+    /// la zone d'un départ prend le sol de la faction du joueur (l'herbe si elle n'en a pas).
+    /// </summary>
+    private void PaintZoneGrounds()
+    {
+        if (_zones.Count <= 1)
+            return;
+        var startZones = _map.Starts.Select(s => _zoneOf[s.X, s.Y]).ToHashSet();
+        foreach (var zone in _zones.Where(z => !z.Sea && !startZones.Contains(z.Index)))
+        {
+            if (_groundRng.NextDouble() >= ZoneGroundShare)
+                continue;
+            _zoneGround[zone.Index] = ZoneGrounds[_groundRng.Next(ZoneGrounds.Length)];
+        }
+        foreach (var (start, i) in _map.Starts.Select((s, i) => (s, i)))
+            if (_data?.Classes.ForFaction(i < PlayerFactions.Count ? PlayerFactions[i] : DefaultFaction)?.Ground is { } native)
+                _zoneGround.TryAdd(_zoneOf[start.X, start.Y], native);
+        foreach (var c in AllCells())
+            if (_zoneGround.TryGetValue(_zoneOf[c.X, c.Y], out var ground) && _map.GetTerrain(c) == TerrainType.Grass)
+                _map.SetTerrain(c, ground);
+        // un bord irrégulier entre deux sols (sinon, la ligne droite de la frontière entre deux zones) : quelques passes où
+        // une case du bord prend parfois le sol d'une voisine
+        bool Soil(TerrainType t) => t == TerrainType.Grass || ZoneGrounds.Contains(t);
+        for (int pass = 0; pass < 6; pass++)
+        {
+            var changes = new List<(Cell, TerrainType)>();
+            foreach (var c in AllCells().Where(c => Soil(_map.GetTerrain(c))))
+            {
+                var other = Neighbours(c).Where(_map.InBounds).Select(_map.GetTerrain).Where(t => Soil(t) && t != _map.GetTerrain(c)).ToList();
+                if (other.Count > 0 && _groundRng.NextDouble() < 0.15 * other.Count)
+                    changes.Add((c, other[_groundRng.Next(other.Count)]));
+            }
+            foreach (var (c, ground) in changes)
+                _map.SetTerrain(c, ground);
+        }
+    }
+
+    /// <summary>Le sol d'une case quand on la dégage (une route, une ville, un passage) : celui de sa zone, sinon l'herbe.</summary>
+    private TerrainType GroundOf(Cell c) =>
+        _zones.Count > 0 && _zoneGround.TryGetValue(_zoneOf[c.X, c.Y], out var ground) ? ground : TerrainType.Grass;
+
     /// <summary>Pose une « tache » de terrain par marche aléatoire.</summary>
-    private void Patch(TerrainType terrain, int steps)
+    private void Patch(TerrainType terrain, int steps, bool paint = true)
     {
         int x = _rng.Next(_map.Width), y = _rng.Next(_map.Height);
         for (int i = 0; i < steps; i++)
@@ -1948,7 +2030,7 @@ public sealed class MapGenerator
             for (int dy = 0; dy <= 1; dy++)
             {
                 var c = new Cell(x + dx, y + dy);
-                if (_map.InBounds(c))
+                if (paint && _map.InBounds(c))
                     _map.SetTerrain(c, terrain);
             }
             x = Math.Clamp(x + _rng.Next(-1, 2), 0, _map.Width - 1);
@@ -2071,14 +2153,14 @@ public sealed class MapGenerator
 
     private void ClearStartArea()
     {
-        // de l'herbe autour du départ, et au-dessus pour le château (4 cases de haut, l'entrée sur le départ)
+        // le sol de la zone autour du départ, et au-dessus pour le château (4 cases de haut, l'entrée sur le départ)
         foreach (var start in _map.Starts)
             for (int dy = -Town.Height; dy <= 2; dy++)
             for (int dx = -3; dx <= 3; dx++)
             {
                 var c = start.Offset(dx, dy);
                 if (_map.InBounds(c))
-                    _map.SetTerrain(c, TerrainType.Grass);
+                    _map.SetTerrain(c, GroundOf(start));
             }
     }
 
@@ -2091,6 +2173,9 @@ public sealed class MapGenerator
     /// bloquées. Un massif peut déborder d'une case ou deux dans un creux du bord (une case libre qui touche trois cases de montagne), jamais
     /// sur un passage, une route, une rivière, l'eau ou près d'un départ. Ce que les massifs ne couvrent pas prend un sommet
     /// seul. D'en haut à gauche vers en bas à droite : à chaque case pas encore couverte, le massif qui en couvre le plus.
+    /// Pour qu'une chaîne se lise comme une chaîne et pas comme des rochers côte à côte (2026-11-17) : d'abord les grands
+    /// sommets au cœur des montagnes larges (l'épine), puis des morceaux de chaîne, et des contreforts bas au bord des
+    /// montagnes larges ; un massif qui en chevauche un autre est préféré (les silhouettes se fondent).
     /// </summary>
     private void ShapeMountains()
     {
@@ -2098,34 +2183,98 @@ public sealed class MapGenerator
         var singles = _data?.Massifs.Singles.ToList() ?? new List<MassifShape>();
         if (singles.Count == 0)
             return;
+        ForestSmallMountains();
         var rock = AllCells().Where(c => _map.GetTerrain(c) == TerrainType.Mountain).ToHashSet();
         var covered = new HashSet<Cell>();
+        // les massifs du sol de chaque montagne (ceux de l'herbe s'il n'y en a pas pour ce sol)
+        var grounds = MountainGrounds.Of(_map);
+        List<MassifShape> ForGround(IEnumerable<MassifShape> list, Cell c)
+        {
+            var ground = grounds.GetValueOrDefault(c, TerrainType.Grass);
+            var own = list.Where(s => s.Ground == ground).ToList();
+            return own.Count > 0 ? own : list.Where(s => s.Ground == TerrainType.Grass).ToList();
+        }
         bool CanOverflow(Cell c) =>
             _map.InBounds(c) && _map.IsPassable(c) && !_map.HasRoad(c) && _map.GetRiver(c) == RiverKind.None && !IsSea(c)
             && !_reserved.Contains(c) && !InStartingTown(c) && DistanceToStart(c) > 5
             && Neighbours(c).Count(rock.Contains) >= 3;
+        // la profondeur de chaque case dans la montagne : 1 au bord, 2 juste derrière…
+        var depth = new Dictionary<Cell, int>();
+        var queue = new Queue<Cell>();
+        foreach (var c in rock.Where(c => Orthogonal(c).Any(n => !rock.Contains(n))))
+        {
+            depth[c] = 1;
+            queue.Enqueue(c);
+        }
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            foreach (var n in Orthogonal(c).Where(n => rock.Contains(n) && !depth.ContainsKey(n)))
+            {
+                depth[n] = depth[c] + 1;
+                queue.Enqueue(n);
+            }
+        }
+        int Depth(Cell c) => depth.GetValueOrDefault(c, rock.Contains(c) ? 1 : 0);
+
+        // l'épine : les grands sommets, des cases les plus profondes vers le bord, loin les uns des autres
+        var summits = shapes.Where(s => s.Tier >= 3).ToList();
+        var peaks = new List<Cell>();
+        foreach (var cell in rock.Where(c => Depth(c) >= 2).OrderByDescending(Depth).ThenBy(_ => _massifRng.Next()).ToList())
+        {
+            if (covered.Contains(cell) || peaks.Any(p => Math.Abs(p.X - cell.X) <= 3 && Math.Abs(p.Y - cell.Y) <= 2))
+                continue;
+            (MassifShape Shape, Cell At, int Score)? best = null;
+            foreach (var shape in ForGround(summits, cell).OrderBy(_ => _massifRng.Next()))
+                foreach (var (dx, dy) in shape.Cells)
+                {
+                    var at = cell.Offset(-dx, -dy);
+                    var cells = shape.CellsAt(at).ToList();
+                    if (!cells.All(rock.Contains) || OverWater(shape, at) || cells.Count(covered.Contains) * 2 > cells.Count)
+                        continue;
+                    int score = cells.Sum(Depth) - (NearSame(shape.Id, at, 6, 4) ? 2 : 0);
+                    if (best == null || score > best.Value.Score)
+                        best = (shape, at, score);
+                }
+            if (best is { } summit)
+            {
+                AddMassif(new MountainMassif(summit.Shape.Id, summit.At));
+                covered.UnionWith(summit.Shape.CellsAt(summit.At));
+                peaks.Add(cell);
+            }
+        }
+
+        var rest = shapes.Where(s => s.Tier < 3).ToList();
         foreach (var cell in rock.OrderBy(c => c.Y).ThenBy(c => c.X).ToList())
         {
             if (covered.Contains(cell))
                 continue;
+            // au bord d'une montagne large, un contrefort bas ; ailleurs (une chaîne mince), un morceau de chaîne
+            int wanted = Depth(cell) == 1 && Orthogonal(cell).Any(n => Depth(n) >= 2) ? 1 : 2;
             // les formes dans un ordre tiré au sort, chacune posée de toutes les façons qui couvrent cette case
             (MassifShape Shape, Cell At, int Score)? best = null;
-            foreach (var shape in shapes.OrderBy(_ => _massifRng.Next()))
+            foreach (var shape in ForGround(rest, cell).OrderBy(_ => _massifRng.Next()))
                 foreach (var (dx, dy) in shape.Cells)
                 {
                     var at = cell.Offset(-dx, -dy);
                     var cells = shape.CellsAt(at).ToList();
                     var outside = cells.Where(c => !rock.Contains(c)).ToList();
-                    if (outside.Count > MassifOverflow(shape) || !outside.All(CanOverflow))
+                    if (outside.Count > MassifOverflow(shape) || !outside.All(CanOverflow) || OverWater(shape, at))
                         continue;
                     int fresh = cells.Count(c => rock.Contains(c) && !covered.Contains(c));
-                    int score = 2 * fresh - 3 * outside.Count;
+                    // à couverture égale, pas la même image qu'un massif voisin (sinon un motif se voit)
+                    bool twin = NearSame(shape.Id, at, 4, 3);
+                    // une forme d'une seule rangée seulement si rien d'autre ne va : empilées, elles font un quadrillage
+                    // de petits rochers (Heroes 3 n'a pas de montagne de moins de deux rangées)
+                    // la bonne sorte pour la place, et un peu de chevauchement avec un massif déjà posé
+                    int score = 2 * fresh - 6 * outside.Count - (twin ? 1 : 0) - (shape.Height == 1 ? 3 : 0)
+                        + (shape.Tier == wanted ? 2 : 0) + Math.Min(2, cells.Count(covered.Contains));
                     if (fresh >= 2 && (best == null || score > best.Value.Score))
                         best = (shape, at, score);
                 }
             if (best is { } chosen)
             {
-                _map.Massifs.Add(new MountainMassif(chosen.Shape.Id, chosen.At));
+                AddMassif(new MountainMassif(chosen.Shape.Id, chosen.At));
                 foreach (var c in chosen.Shape.CellsAt(chosen.At))
                 {
                     covered.Add(c);
@@ -2134,15 +2283,80 @@ public sealed class MapGenerator
             }
             else
             {
-                _map.Massifs.Add(new MountainMassif(singles[_massifRng.Next(singles.Count)].Id, cell));
+                AddMassif(new MountainMassif(UnusedNear(ForGround(singles, cell), cell).Id, cell));
                 covered.Add(cell);
             }
         }
     }
 
+    /// <summary>Le moins de cases d'une montagne : en dessous, des petites taches çà et là, qui ne font pas une chaîne.</summary>
+    private const int MinMountainCells = 6;
+
     /// <summary>
-    /// Après les autres étapes (villes, routes, lieux, qui dégagent parfois une case de montagne) : un massif qui a perdu une
-    /// de ses cases s'en va, et chaque case de montagne qu'aucun massif ne couvre prend un sommet seul.
+    /// Les petites taches de montagne (moins de <see cref="MinMountainCells"/> cases qui se touchent, souvent les restes d'une
+    /// tache coupée par une ville, une route ou un lieu) deviennent de la forêt (2026-11-17, demandé par l'utilisateur) :
+    /// elle bloque aussi le passage, la partie ne change pas, et des arbres se fondent mieux qu'un sommet isolé.
+    /// </summary>
+    private void ForestSmallMountains()
+    {
+        var seen = new HashSet<Cell>();
+        foreach (var start in AllCells().Where(c => _map.GetTerrain(c) == TerrainType.Mountain).ToList())
+        {
+            if (!seen.Add(start))
+                continue;
+            var group = new List<Cell> { start };
+            for (int i = 0; i < group.Count; i++)
+                foreach (var n in Neighbours(group[i]))
+                    if (_map.InBounds(n) && _map.GetTerrain(n) == TerrainType.Mountain && seen.Add(n))
+                        group.Add(n);
+            if (group.Count < MinMountainCells)
+                foreach (var c in group)
+                    _map.SetTerrain(c, TerrainType.Forest);
+        }
+    }
+
+    /// <summary>Les images des massifs posés, par le coin de leur rectangle : pour ne pas mettre la même côte à côte.</summary>
+    private readonly Dictionary<Cell, List<string>> _massifIds = new();
+
+    private void AddMassif(MountainMassif massif)
+    {
+        _map.Massifs.Add(massif);
+        if (!_massifIds.TryGetValue(massif.At, out var ids))
+            _massifIds[massif.At] = ids = new List<string>();
+        ids.Add(massif.Id);
+    }
+
+    /// <summary>True si un massif de cette image est posé à moins de rx colonnes et ry rangées de <paramref name="at"/>.</summary>
+    private bool NearSame(string id, Cell at, int rx, int ry)
+    {
+        for (int dy = -ry; dy <= ry; dy++)
+        for (int dx = -rx; dx <= rx; dx++)
+            if (_massifIds.TryGetValue(at.Offset(dx, dy), out var ids) && ids.Contains(id))
+                return true;
+        return false;
+    }
+
+    /// <summary>De l'eau (lac, mer, rivière, ruisseau) : l'image d'un massif ne la couvre pas, il y paraîtrait en l'air.</summary>
+    private bool Wet(Cell c) => _map.InBounds(c) && (_map.GetTerrain(c) == TerrainType.Water || IsSea(c) || _map.GetRiver(c) != RiverKind.None);
+
+    /// <summary>
+    /// True si l'image de ce massif couvrirait de l'eau : une case d'eau qu'elle couvre un peu (3 % suffisent, voir
+    /// tools/art/empreintes.py). Plus strict (aucune case de l'image au bord de l'eau), les rives n'avaient plus que des
+    /// sommets seuls en rang.
+    /// </summary>
+    private bool OverWater(MassifShape shape, Cell at) => shape.DrawnCellsAt(at).Any(Wet);
+
+    /// <summary>Un sommet seul au hasard, autre que ceux posés tout près s'il en reste.</summary>
+    private MassifShape UnusedNear(List<MassifShape> singles, Cell cell)
+    {
+        var free = singles.Where(s => !NearSame(s.Id, cell, 2, 2)).ToList();
+        var pool = free.Count > 0 ? free : singles;
+        return pool[_massifRng.Next(pool.Count)];
+    }
+
+    /// <summary>
+    /// Après les autres étapes (villes, routes, lieux, qui dégagent parfois une case de montagne ; ruisseaux) : un massif qui
+    /// a perdu une de ses cases, ou dont l'image couvrirait l'eau, s'en va, et chaque case de montagne qu'aucun massif ne couvre prend un sommet seul.
     /// </summary>
     private void FinishMountains()
     {
@@ -2150,11 +2364,19 @@ public sealed class MapGenerator
         if (singles.Count == 0)
             return;
         var shapes = _data!.Massifs;
+        ForestSmallMountains();
+        // (et celui dont l'image couvrirait un ruisseau posé après lui)
         _map.Massifs.RemoveAll(m => shapes.Find(m.Id) is not { } shape
-            || shape.CellsAt(m.At).Any(c => !_map.InBounds(c) || _map.GetTerrain(c) != TerrainType.Mountain));
+            || shape.CellsAt(m.At).Any(c => !_map.InBounds(c) || _map.GetTerrain(c) != TerrainType.Mountain)
+            || shape.Cells.Count() > 1 && OverWater(shape, m.At));
         var covered = _map.Massifs.SelectMany(m => shapes.Find(m.Id)!.CellsAt(m.At)).ToHashSet();
-        foreach (var cell in AllCells().Where(c => _map.GetTerrain(c) == TerrainType.Mountain && !covered.Contains(c)))
-            _map.Massifs.Add(new MountainMassif(singles[_massifRng.Next(singles.Count)].Id, cell));
+        var grounds = MountainGrounds.Of(_map);
+        foreach (var cell in AllCells().Where(c => _map.GetTerrain(c) == TerrainType.Mountain && !covered.Contains(c)).ToList())
+        {
+            var ground = grounds.GetValueOrDefault(cell, TerrainType.Grass);
+            var own = singles.Where(s => s.Ground == ground).ToList();
+            AddMassif(new MountainMassif(UnusedNear(own.Count > 0 ? own : singles.Where(s => s.Ground == TerrainType.Grass).ToList(), cell).Id, cell));
+        }
     }
 
     /// <summary>Toutes les cases accessibles à pied depuis le départ (et en bateau, sur une carte où l'on navigue).</summary>
@@ -2259,9 +2481,11 @@ public sealed class MapGenerator
                 int Steps(Cell c) => Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y));
                 bool Home(Cell c) => _zones.Count == 0 || ZoneAt(c) == ZoneAt(start);
                 var otherStarts = _map.Starts.Where(o => o != start).Select(o => _zones.Count == 0 ? null : ZoneAt(o)).ToList();
+                // une mine creusée : au flanc d'une montagne de préférence, toujours à 4 à 11 pas
+                int Flank(Cell c) => Dug(resource) ? -Backed(c) : 0;
                 var tries = new[]
                 {
-                    free.Where(c => Home(c) && Steps(c) is >= 4 and <= 11).OrderBy(c => Math.Abs(SquaredDistance(c, start) - target)),
+                    free.Where(c => Home(c) && Steps(c) is >= 4 and <= 11).OrderBy(Flank).ThenBy(c => Math.Abs(SquaredDistance(c, start) - target)),
                     free.Where(c => Home(c) && Steps(c) >= 3).OrderBy(c => SquaredDistance(c, start)),
                     free.Where(c => _zones.Count == 0 || !otherStarts.Contains(ZoneAt(c))).OrderBy(c => SquaredDistance(c, start)),
                 };
@@ -2325,7 +2549,8 @@ public sealed class MapGenerator
                 bool done = false;
                 foreach (var (where, order) in tries)
                 {
-                    foreach (var cell in free.Where(c => DistanceToNearestTown(c) >= 5 && where(c)).OrderBy(order).ThenBy(c => c.Y).ThenBy(c => c.X).ToList())
+                    foreach (var cell in free.Where(c => DistanceToNearestTown(c) >= 5 && where(c))
+                                 .OrderBy(c => Dug(resource) ? -Backed(c) : 0).ThenBy(order).ThenBy(c => c.Y).ThenBy(c => c.X).ToList())
                     {
                         var spots = GuardSpotsFor(cell, freeSet);
                         if (TryPlaceMine(cell, resource, freeSet) is not { } mine)
@@ -2369,7 +2594,8 @@ public sealed class MapGenerator
         mines = planned;
         foreach (var resource in mines)
         {
-            bool placed = false;
+            // une mine creusée : d'abord une place au flanc d'une montagne, la première de la liste tirée au sort
+            bool placed = Dug(resource) && free.Skip(next).Where(c => Backed(c) == 1).Any(c => TryPlaceMine(c, resource, freeSet) is not null);
             while (!placed && next < free.Count)
                 placed = TryPlaceMine(free[next++], resource, freeSet) is not null;
             if (!placed)

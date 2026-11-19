@@ -32,6 +32,7 @@ chiffres en vigueur sont dans `godot/data/`.
    difficulté.
 9. **Contenu (en cours)** : magie, factions, héros, compétences, artefacts, carte, mer (ci-dessous).
 10. Finitions : apparence et détails, **les sons et la musique** (ci-dessous).
+11. Multijoueur : d'abord à tour de rôle sur un même PC, plus tard en réseau (ci-dessous).
 
 ## Étape 9 : contenu
 
@@ -141,9 +142,13 @@ une option, une ville au plus par zone, une scierie et une mine de minerai gard�
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
-dessin) ; les montagnes en massifs posés comme dans Heroes 3, avec leur pied (2026-11-17).
+dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
+- **Les sols** : d'autres sols viendront, et peut-être des thèmes de cartes (la répartition se réglera alors) ; le sol
+  des factions encore sur l'herbe, à décider ; un champ de bataille pour la roche et la terre brûlée
+  (celui du désert en attendant) ; des arbres du désert, du marais, de la roche et de la terre brûlée (les forêts y restent vertes) ;
+  l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
 - **L'herbe** : embellir les fleurs (l'utilisateur, plus tard) ; le bord des routes suivra.
@@ -176,8 +181,13 @@ la zone ; les créatures du Donjon en gardiens.
 ✅ Fait : combat à ×2, effets dessinés par le jeu, animations des sorts, les options du combat, choisir le côté de
 l'attaque, les champs de l'herbe, du désert et du marais (2026-11-16), les obstacles plutôt au milieu du champ, des
 nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles (2026-11-17).
-**Reste** : peut-être une animation « touché » par
-créature.
+✅ Une **animation de mort** par créature (2026-11-17, un essai chacune pour commencer : choix de l'utilisateur) ; **à
+revoir avec lui** (page `art-candidats/en-cours/morts.html` : garder ou refaire), peut-être en tombant en arrière.
+✅ Un **coup reçu** par créature (2026-11-17), revu et choisi avec l'utilisateur (le Dragon, l'Hydre et le Démon par le
+second modèle de PixelLab ; « encore à finir » pour le Dragon et l'Hydre, selon lui).
+**Reste** : la mort et le coup reçu de l'**Archer**, du **Griffon** (refaits avec le Château) et du **Cavalier** ; ceux
+du **Loup**, du **Moine** et du **Troll** à refaire quand leurs nouvelles images seront prêtes (en cours sur une autre
+branche : les feuilles actuelles viennent des anciennes images).
 
 ### Les héros en images
 ✅ Le héros de chaque faction sur la carte (8 directions, une marche), leurs pieds revus.
@@ -225,8 +235,24 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   le sien (`Audio.PlayCreature`, `spell-<id>`) ; l'Ange gifle (comme son animation), sa première mort essayée sert à la
   Résurrection. Licences : `godot/audio/LICENCES.md` ; 3. le reste partie par partie, comme les images : ✅ les sons
   de combat de **toutes les créatures** (2026-11-17, branche `sons-factions`, 113 sons ElevenLabs revus un à un sur la
-  page de `tools/audio/sons.py` ; le Paysan garde les sons communs). **Reste** : les autres sorts, la carte,
-  l'interface, les musiques des villes et de la carte, puis la musique chez Stable Audio.
+  page de `tools/audio/sons.py` ; le Paysan garde les sons communs) ; ✅ les **musiques des villes** (2026-11-17,
+  branche `musiques-villes`, bibliothèques libres, `tools/audio/musiques.py` : page d'écoute, étoiles et avis gardés
+  dans `tools/audio/musiques-villes.json`) : six choisies ; la **Forêt** et les **Nains** se choisiront avec l'image de
+  leur ville (finalistes à 4 étoiles : Alandriel's Theme, A Midnight's Dream, Magical Forest, Beautiful Forest ;
+  Forging Flames, Varyag War Drum, Five Armies, Heroic Age), en attendant la musique d'attente. Idées de
+  l'utilisateur : « Death Is Just Another Path » pour l'écran de défaite ; « King's Feast » et « The Cavern of
+  Wonders » lui plaisent aussi (taverne, carte ?). **Reste** : les autres sorts, la carte, l'interface, la musique de
+  la carte, puis la musique chez Stable Audio.
+
+## Étape 11 : multijoueur (à concevoir)
+Idée de l'utilisateur (2026-11-17). Les règles s'y prêtent déjà : plusieurs joueurs dans `GameState`, un brouillard
+par joueur, un humain peut diriger sa défense, et une partie se rejoue pareil avec la même graine.
+- **À tour de rôle sur un même PC** (après le contenu de l'étape 9) : humain ou ordinateur pour chaque joueur dans la
+  nouvelle partie ; un écran « Au tour de… » qui cache la carte entre deux joueurs ; l'affichage suit le joueur humain
+  du tour (son brouillard, ses villes, ses héros) ; un combat entre deux humains, chacun dirige son camp.
+- **En réseau** (plus tard, après l'étape 10) : n'envoyer que les ordres des joueurs, chaque PC calcule la même
+  partie (tests qui le vérifient) ; rejoindre une partie, reprendre après une coupure ; un combat où l'un attend
+  l'autre.
 
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à
@@ -255,7 +281,9 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   l'écran vient du nombre de pixels de l'image, jamais d'un autre agrandissement (voir `tools/art/METHODE.md`).
 - **Les tailles communes de l'interface** (`Ui.cs`, 2026-11-11) : un écran prend ses tailles de bouton, de texte et de
   marge parmi celles de `Ui` (`ButtonHeight`, `NormalText`…), et ses longueurs tombent sur la grille (`Px`, `Snap`).
-- **`GameState` gère plusieurs joueurs**, et l'IA joue avec les mêmes méthodes que le joueur humain.
+- **`GameState` gère plusieurs joueurs**, et l'IA joue avec les mêmes méthodes que le joueur humain. Ne pas supposer
+  un seul humain (en vue du multijoueur) : l'affichage et les règles passent par le joueur du tour, pas par « le
+  joueur ».
 - **Toutes les règles restent dans `Core/`** (sans Godot), testables ; l'affichage ne fait que lire des événements.
 - **Les données de jeu** (créatures, bâtiments, sorts, artefacts) sont dans `godot/data/`, pas dans le code.
 - Rester proche des règles et des chiffres de Heroes 3, sauf choix contraire noté (charisme, magie…).

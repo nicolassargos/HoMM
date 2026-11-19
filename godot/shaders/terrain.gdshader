@@ -25,7 +25,7 @@ uniform sampler2DArray tiles : filter_nearest;
 uniform int variants = 1;
 uniform ivec2 map_cells = ivec2(1, 1);
 // Rang de chaque terrain : un terrain de rang plus élevé déborde davantage sur l'autre
-uniform int priority[8];
+uniform int priority[9];
 // Numéro du terrain « eau » (rives nettes et écume), du sable (les plages) et de l'herbe (les fleurs)
 uniform int water = 5;
 uniform int sand = 3;
@@ -91,14 +91,63 @@ uniform float road_stones_inside = 0.08;
 // des cailloux semés partout sur le sol, loin des routes (la part des carrés de ground_stone_cell pixels d'art qui en ont)
 uniform float ground_stones = 0.08;
 uniform float ground_stone_cell = 11.0;
-// Le pied des montagnes (0 : rien ; 0,7 choisi le 2026-11-17) : jusqu'à foothill_reach cases d'une montagne, l'herbe sèche (foothill),
+// le sol rocheux (rock_ground : son numéro) : des dalles (slab_cell pixels d'art) de tons un peu différents (slab_tone),
+// séparées par des fissures (slab_crack de large, sur la part slab_cracked des bords : pas un pavage) ; le bord éclairé
+// d'une fissure (slab_light), son fond (slab_dark) ; slab_wobble tord les bords ; chaque dalle penche un peu de son côté
+// et la lumière la prend en biais (slab_relief)
+uniform int rock_ground = 7;
+// la terre brûlée (burnt_ground : son numéro) : des nappes de cendre (burnt_ash : leur force), des braises isolées (la part
+// burnt_embers des carrés de 9 pixels d'art) et des fissures (burnt_veins : la part des carrés de burnt_vein_cell pixels
+// d'art d'où part une fissure, plus ou moins selon la région) : une fente noire en zigzag, avec des branches, large de
+// burnt_vein_width au milieu des plus grandes et fine à ses bouts ; au fond de sa partie large, le feu passe du rouge
+// sombre au rouge (burnt_vein_glow), vif au plus large (burnt_vein_hot), sauf par endroits (burnt_vein_gaps) ;
+// burnt_vein_rim assombrit le sol tout près, burnt_vein_light éclaire la lèvre du bas, burnt_vein_halo réchauffe le sol.
+// Le feu et les braises respirent : un cycle de burnt_glow_period secondes, chaque fissure à son rythme, la chaleur
+// courant le long d'elle ; burnt_glow_depth : de combien il baisse (burnt_glow_at : l'instant, pour figer une capture)
+uniform int burnt_ground = 8;
+uniform float burnt_ash = 0.5;
+uniform vec3 ash_color = vec3(0.46, 0.43, 0.41);
+uniform float burnt_embers = 0.04;
+uniform float burnt_veins = 0.36;
+uniform float burnt_vein_width = 1.45;
+uniform float burnt_vein_gaps = 0.3;
+uniform float burnt_vein_glow = 0.8;
+uniform float burnt_vein_hot = 0.35;
+uniform float burnt_vein_rim = 0.25;
+uniform float burnt_vein_light = 0.35;
+uniform float burnt_vein_halo = 0.14;
+uniform float burnt_glow_period = 5.0;
+uniform float burnt_glow_depth = 0.55;
+uniform float burnt_glow_at = -1.0;
+uniform float burnt_vein_cell = 44.0;
+uniform vec3 ember_hot = vec3(1.0, 0.68, 0.24);
+uniform vec3 ember_color = vec3(0.86, 0.27, 0.07);
+uniform float slab_cell = 22.0;
+uniform float slab_crack = 0.8;
+uniform float slab_cracked = 0.55;
+uniform float slab_tone = 0.03;
+uniform float slab_dark = 0.83;
+uniform float slab_light = 1.04;
+uniform float slab_wobble = 1.2;
+uniform float slab_relief = 0.11;
+// le grain fin de l'image du sol rocheux qu'on garde (rock_grain, de 0 à 1) ; slab_stretch allonge les dalles dans le sens
+// des strates de la roche ; rock_cool : de grandes parties un peu plus froides
+uniform float rock_grain = 0.5;
+uniform float slab_stretch = 1.7;
+uniform float rock_cool = 0.04;
+// Le pied des montagnes (0 : rien ; 0,35 sans terre ni gravier, 2026-11-17 : les pentes se fondent dans l'herbe) : jusqu'à foothill_reach cases d'une montagne, l'herbe sèche (foothill),
 // des plaques de terre et de gravier (foothill_soil : leur part au pied), des éboulis (foothill_scree : la part des
 // carrés de 6 pixels d'art qui ont une pierre, au pied) ; le bord ondule de foothill_wave cases
-uniform float foothill = 0.7;
+uniform float foothill = 0.35;
 uniform float foothill_reach = 1.2;
-uniform float foothill_soil = 0.5;
-uniform float foothill_scree = 0.35;
+uniform float foothill_soil = 0.0;
+uniform float foothill_scree = 0.12;
 uniform float foothill_wave = 0.5;
+// Le sol au cœur des montagnes (2026-11-17) : le sol de la montagne (l'herbe, le sable ou le marais qui l'entoure),
+// assombri, dans l'ombre des massifs, pour que le sol vu entre deux images se lise comme un creux de la pente et pas
+// comme un trou (0 : la terre et le gravier du pied ; foothill_rock_shade : la part de lumière gardée)
+uniform float foothill_rock = 0.0;
+uniform float foothill_rock_shade = 0.62;
 uniform float road_stone_cell = 6.0;
 // l'herbe qui déborde sur la route (à l'essai, 0 : rien) : par plaques le long du bord (road_grass_share du bord, plaques
 // d'environ road_grass_scale pixels d'art), l'herbe avance de road_grass pixels d'art au plus, en brins de longueurs
@@ -695,6 +744,95 @@ bool ground_stone_at(vec2 p, vec3 under, out vec3 stone) {
 	return stone_shape(p - spot, stone_size(cell + vec2(0.5)), cell, under, stone);
 }
 
+// La distance du pixel d'art p au bord de sa dalle (pixels d'art, à peu près) ; id : la dalle ; from : p depuis le centre
+// de la dalle (en tailles de dalle)
+float slab_edge(vec2 p, out vec2 id, out vec2 from) {
+	vec2 twist = vec2(noise(p / 9.0 + vec2(41.0, 7.0)), noise(p / 9.0 + vec2(5.0, 63.0))) - 0.5;
+	vec2 q = p + twist * 2.0 * slab_wobble;
+	vec2 g = vec2(q.x * 0.94 + q.y * 0.34, (q.y * 0.94 - q.x * 0.34) * slab_stretch) / slab_cell;
+	vec2 base = floor(g);
+	float first = 1e9;
+	float second = 1e9;
+	id = base;
+	from = vec2(0.0);
+	for (int y = -1; y <= 1; y++)
+	for (int x = -1; x <= 1; x++) {
+		vec2 n = base + vec2(float(x), float(y));
+		vec2 away = g - n - 0.05 - vec2(hash(n + vec2(3.1, 8.2)), hash(n + vec2(6.4, 1.7))) * 0.9;
+		float d = length(away);
+		if (d < first) {
+			second = first;
+			first = d;
+			id = n;
+			from = away;
+		} else if (d < second) second = d;
+	}
+	return (second - first) * slab_cell * 0.5;
+}
+
+// Le souffle du feu au pixel d'art p, de 0 à 1, par paliers tramés
+float burnt_breath(vec2 p, float phase) {
+	float at = burnt_glow_at >= 0.0 ? burnt_glow_at : TIME;
+	return floor((0.5 + 0.5 * sin(TAU * (at / burnt_glow_period + phase))) * 3.0 + bayer(p)) / 3.0;
+}
+
+// Garde le tronçon de fissure de a à b s'il est le plus proche de p : (marge au bord de la fente, distance au trait, largeur, phase du feu)
+vec4 vein_segment(vec4 best, vec2 p, vec2 a, vec2 b, float wide_a, float wide_b, float phase_a, float phase_b) {
+	vec2 ab = b - a;
+	float s = clamp(dot(p - a, ab) / max(dot(ab, ab), 0.001), 0.0, 1.0);
+	float d = length(p - a - ab * s);
+	float wide = mix(wide_a, wide_b, s);
+	float margin = d - 0.55 - wide * burnt_vein_width;
+	return margin < best.x ? vec4(margin, d, wide, mix(phase_a, phase_b, s)) : best;
+}
+
+// La fissure de terre brûlée la plus proche du pixel d'art p : un tronc en zigzag, plus large au milieu, et ses branches
+vec4 vein_at(vec2 p) {
+	vec2 base = floor(p / burnt_vein_cell);
+	vec4 best = vec4(1e9, 1e9, 0.0, 0.0);
+	for (int y = -1; y <= 1; y++)
+	for (int x = -1; x <= 1; x++) {
+		vec2 n = base + vec2(float(x), float(y));
+		if (hash(n + vec2(31.7, 64.2)) >= burnt_veins * (0.35 + 1.3 * noise(n / 3.0 + vec2(14.0, 37.0)))) continue;
+		float angle = hash(n + vec2(12.4, 5.9)) * TAU;
+		// beaucoup de petites fissures sans feu, quelques grandes
+		float size = hash(n + vec2(2.2, 41.3));
+		size = 0.45 + 0.55 * size * (2.0 - size) * size;
+		float step_size = burnt_vein_cell * 0.18 * size;
+		vec2 a = (n + 0.3 + vec2(hash(n + vec2(5.3, 2.6)), hash(n + vec2(1.4, 7.9))) * 0.4) * burnt_vein_cell;
+		a -= vec2(cos(angle), sin(angle)) * step_size * 3.5;
+		float side = hash(n + vec2(8.8, 19.1)) < 0.5 ? -1.0 : 1.0;
+		float phase = hash(n + vec2(6.6, 33.1));
+		for (int i = 0; i < 7; i++) {
+			float f = float(i);
+			side = -side;
+			float heading = angle + side * (0.15 + 0.8 * hash(n + vec2(f * 1.7, 9.1)));
+			vec2 b = a + vec2(cos(heading), sin(heading)) * step_size * (0.45 + 1.1 * hash(n + vec2(f * 2.3, 27.4)));
+			float wide_a = sin(PI * f / 7.0) * size;
+			float wide_b = sin(PI * (f + 1.0) / 7.0) * size;
+			float phase_b = phase + (f + 1.0) / 14.0;
+			best = vein_segment(best, p, a, b, wide_a, wide_b, phase + f / 14.0, phase_b);
+			if (i >= 1 && i <= 4 && hash(n + vec2(f * 3.1, 53.6)) < 0.45) {
+				float turn = heading + side * (0.8 + 0.5 * hash(n + vec2(f * 4.3, 15.2)));
+				vec2 c = b + vec2(cos(turn), sin(turn)) * step_size * 0.9;
+				turn -= side * 0.6;
+				vec2 e = c + vec2(cos(turn), sin(turn)) * step_size * 0.7;
+				best = vein_segment(best, p, b, c, wide_b * 0.5, wide_b * 0.2, phase_b, phase_b);
+				best = vein_segment(best, p, c, e, wide_b * 0.2, 0.0, phase_b, phase_b);
+			}
+			a = b;
+		}
+	}
+	return best;
+}
+
+// Une fissure du sol rocheux au pixel d'art p ?
+bool crack_at(vec2 p) {
+	vec2 id;
+	vec2 from;
+	return slab_edge(p, id, from) < slab_crack && noise(p / (slab_cell * 0.8) + vec2(12.0, 77.0)) < slab_cracked;
+}
+
 // Combien d'herbe sur ce tronçon de route, autour du pixel d'art p : 0 aucune, 1 l'ordinaire, road_grass_more envahie
 float grass_amount(vec2 p) {
 	float n = noise((p + 0.5) / road_grass_stretch + vec2(61.0, 29.0));
@@ -901,8 +1039,10 @@ void fragment() {
 	}
 	// Le pied des montagnes : de 1 (contre la roche) à 0 (à foothill_reach cases), au bord ondulé
 	float foot = 0.0;
+	vec3 slope = color; // le sol avant le pied : celui du cœur des montagnes
 	if (foothill > 0.0 && !in_water && t != water) {
-		float inside = texture(mountain_field, (p + 0.5) / (vec2(map_cells) * ART)).r;
+		vec2 field = texture(mountain_field, (p + 0.5) / (vec2(map_cells) * ART)).rg;
+		float inside = field.r;
 		float md = inside
 			+ (noise((p + 0.5) / 11.0 + vec2(43.0, 17.0)) - 0.5) * foothill_wave
 			+ (noise((p + 0.5) / 3.5 + vec2(7.0, 91.0)) - 0.5) * foothill_wave * 0.35;
@@ -921,6 +1061,14 @@ void fragment() {
 			color = mix(color, soil, foothill);
 			t = -1; // plus d'herbe : ni fleurs ni touffes
 		}
+		// au cœur des montagnes (à plus d'un tiers de case du bord), la roche sombre, au bord ondulé et tramé
+		float rocky = smoothstep(0.3, 0.6, field.g + (noise((p + 0.5) / 6.0 + vec2(71.0, 23.0)) - 0.5) * 0.4
+			+ (bayer(p) - 0.5) * 0.12);
+		if (foothill_rock > 0.0 && rocky > 0.0) {
+			vec3 hollow = slope * foothill_rock_shade * (0.9 + 0.2 * noise((p + 0.5) / 4.0 + vec2(11.0, 5.0)));
+			color = mix(color, hollow, rocky * foothill_rock);
+			t = -1;
+		}
 		// des éboulis : des pierres, plus nombreuses contre la roche
 		vec2 cell = floor(p / 6.0);
 		if (foothill_scree > 0.0 && hash(cell + vec2(14.1, 77.3)) < foothill_scree * foot * foot) {
@@ -929,8 +1077,59 @@ void fragment() {
 			if (stone_shape(p - spot, stone_size(cell + vec2(3.3)), cell, color, stone)) color = stone;
 		}
 	}
+	// Le sol rocheux : ses dalles et leurs fissures
+	if (t == rock_ground && !in_water && stream_depth(p) <= 0.0 && shore_distance(p) > 2.0) {
+		// moins de grain fin : on rapproche la case de la moyenne de ses voisines (seulement pour la part de roche du mélange)
+		vec3 around = (tile_color(rock_ground, p + vec2(3.0, 1.0)) + tile_color(rock_ground, p + vec2(-1.0, 3.0))
+			+ tile_color(rock_ground, p + vec2(-3.0, -1.0)) + tile_color(rock_ground, p + vec2(1.0, -3.0))) * 0.25;
+		color += (around - tile_color(rock_ground, p)) * (1.0 - rock_grain) * (b == rock_ground ? share : 1.0 - share);
+		if (rock_cool > 0.0) {
+			float cool = floor(smoothstep(0.35, 0.65, noise((p + 0.5) / 70.0 + vec2(61.0, 29.0))) * 2.0 + bayer(p)) / 2.0;
+			color *= mix(vec3(1.0), vec3(1.0 - rock_cool, 1.0, 1.0 + rock_cool * 1.2), cool);
+		}
+		vec2 slab;
+		vec2 from;
+		slab_edge(p, slab, from);
+		color *= 1.0 + (floor(hash(slab + vec2(2.7, 4.4)) * 3.0) - 1.0) * slab_tone;
+		float tilt = hash(slab + vec2(8.3, 1.9)) * 6.2832;
+		float facet = clamp(dot(from, vec2(cos(tilt), sin(tilt))) * 2.0, -1.0, 1.0);
+		// certaines dalles penchent à peine, et par endroits aucune : l'effet ne dessine pas un pavage
+		facet *= mix(0.35, 1.0, hash(slab + vec2(4.1, 9.6))) * smoothstep(0.25, 0.6, noise((p + 0.5) / 48.0 + vec2(19.0, 43.0)));
+		color *= 1.0 + clamp(floor(facet * 2.5 + bayer(p)) / 2.5, -1.0, 1.0) * slab_relief;
+		if (crack_at(p)) color *= slab_dark;
+		else if (crack_at(p + vec2(1.0, 0.0))) color *= slab_light;
+	}
+	// La terre brûlée : la cendre, les fissures rougeoyantes et les braises
+	if (t == burnt_ground && !in_water && stream_depth(p) <= 0.0 && shore_distance(p) > 2.0) {
+		float drift = noise((p + 0.5) / 24.0 + vec2(53.0, 8.0)) * 0.65 + noise((p + 0.5) / 6.0 + vec2(16.0, 34.0)) * 0.35;
+		color = mix(color, ash_color, floor(smoothstep(0.52, 0.72, drift) * 3.0 + bayer(p)) / 3.0 * burnt_ash);
+		if (burnt_veins > 0.0) {
+			vec4 vein = vein_at(p + 0.5);
+			float breath = burnt_breath(p, vein.w);
+			float heat = 1.0 - burnt_glow_depth * (1.0 - breath);
+			if (vein.x < 0.0) {
+				color *= 0.22;
+				float fire = vein.z * burnt_vein_width * 0.7;
+				if (vein.z > 0.3 && vein.y < fire && noise((p + 0.5) / 9.0 + vec2(23.0, 58.0)) > burnt_vein_gaps) {
+					if (vein.z > 0.62 && vein.y < fire * 0.7) color = mix(mix(color, ember_color, heat), ember_hot, burnt_vein_hot * breath * 2.0);
+					else color = mix(color, ember_color, burnt_vein_glow * heat * (vein.z > 0.42 ? 1.0 : 0.5));
+				}
+			} else if (vein.x < 2.5) {
+				if (vein.x < 1.0) color *= 1.0 - burnt_vein_rim;
+				if (vein_at(p + vec2(0.5, -0.5)).x < 0.0) color = mix(color, mix(ash_color, ember_color, vein.z * 0.35 * heat), burnt_vein_light);
+				else if (vein.z > 0.5 && bayer(p) < 0.3) color = mix(color, ember_color, burnt_vein_halo * (0.4 + 1.2 * breath));
+			}
+		}
+		vec2 cell = floor(p / 9.0);
+		if (hash(cell + vec2(47.3, 12.8)) < burnt_embers) {
+			vec2 spot = cell * 9.0 + 2.0 + floor(vec2(hash(cell + vec2(3.3, 6.1)), hash(cell + vec2(8.7, 2.4))) * 5.0);
+			float ember = 1.0 - burnt_glow_depth * (1.0 - burnt_breath(p, hash(cell + vec2(21.9, 40.2))));
+			if (p == spot) color = mix(ember_color, ember_hot, ember * ember);
+			else if (p == spot + vec2(1.0, 0.0) || p == spot + vec2(0.0, 1.0)) color = mix(color, ember_color, 0.8 * ember);
+		}
+	}
 	// Des cailloux semés sur le sol (l'herbe, le sable), loin des routes
-	if (ground_stones > 0.0 && !in_water && t != water) {
+	if (ground_stones > 0.0 && !in_water && t != water && t != rock_ground && t != burnt_ground) {
 		vec3 stone;
 		if (ground_stone_at(p, color, stone)) color = stone;
 	}

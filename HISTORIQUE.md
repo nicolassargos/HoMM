@@ -2681,12 +2681,77 @@ choix de l'utilisateur) :
   sur un passage, une route, l'eau, près d'un départ) ; le reste prend un sommet seul. Les cases de montagne sont
   exactement les cases bloquées des massifs (test `MontagnesTests`) ; ils sont sauvegardés (version 10 ; une sauvegarde
   d'avant dessine encore ses montagnes case par case). Les cases bloquées de chaque image viennent de l'image
-  (`tools/art/empreintes.py`). À l'affichage (`DecorLayer.FillGaps`), une case de montagne dont plus d'un quart du sol
-  se voit entre les images prend un petit sommet en plus. Le pied des montagnes (herbe sèche, terre, gravier, éboulis)
-  est dessiné par le shader (`foothill`, 0,7). Images : 11 grands massifs (environ 155 × 80), 11 petits, 4 sommets bas
-  (PixelLab, voir `tools/art/METHODE.md`). Essayés puis écartés : des sommets semés case par case (motif répété), des
-  massifs de Retro Diffusion (des îlots), des sommets pointus (« trop pointus »), larges en gradins (« trop carrés »),
-  naturels mais hauts (l'utilisateur les préfère plus bas). Une même graine donne une carte un peu différente d'avant.
+  (`tools/art/empreintes.py`), avec les cases que le dessin couvre (pas de massif dont l'image couvrirait de l'eau). Puis,
+  avec l'utilisateur, une longue suite d'essais d'images et de placement (même jour) :
+  - **Pour qu'une chaîne se lise comme une chaîne** : d'abord les grands sommets (`cime`) au cœur des montagnes larges,
+    puis des morceaux de chaîne (`chaine`, `etroit`), des contreforts (`petit`) au bord ; une forme d'une seule rangée
+    seulement en dernier recours ; à couverture égale, pas la même image qu'un voisin ; un peu de chevauchement préféré.
+    Les petites taches de montagne (moins de 6 cases) deviennent de la forêt (elle bloque aussi).
+  - **Pour qu'elle se fonde dans le pays** (d'après une capture de Heroes 3 HD donnée par l'utilisateur : la montagne y
+    est une surface de pentes, pas des objets posés) : des images sans contour, des pics de roche et des **pentes
+    d'herbe sans arbres dessinés** (de tout petits arbres à côté de ceux de la carte : l'échelle n'allait pas) ; leurs
+    verts sont ceux de l'herbe de la carte et leur bord se défait en trame (`tools/art/fondre.py`) ; pas d'ombre portée
+    pour les montagnes ; des arbres de la carte à leur pied ; au cœur, le sol de la montagne assombri (`foothill_rock`) ;
+    le pied du shader presque sans terre ni cailloux (`foothill` 0,35).
+  - **Un jeu d'images par sol**, comme Heroes 3 : l'herbe, le sable, le marais (`ground` dans `mountains.json`,
+    `MountainGrounds`) : les mêmes images, leurs pentes aux couleurs de chaque sol ; le sol le plus courant à deux cases
+    décide, et le shader dessine ce sol sous la montagne.
+  Essayés puis écartés : des sommets semés case par case (motif répété), des massifs de Retro Diffusion (des îlots), des
+  pics pointus (« trop pointus »), larges en gradins (« trop carrés »), recolorés au style des mines (des morceaux de
+  rocher côte à côte, « pas une vraie chaîne »), de grands sommets en blocs de rocher (« pas la bonne direction »).
+  Puis le bord des pentes (branche `montagnes-bords`) : une trame régulière se voyait comme une ligne de points ; comparés
+  avec l'utilisateur, un bord de plus en plus transparent (choisi), effrité par grappes, ou les deux ; et le trait sombre
+  qui restait sur certains pics, adouci. Puis **les mines au flanc des montagnes** (idée de l'utilisateur, comme Heroes 3 ; branche `mines-montagnes`) :
+  une mine creusée (toutes sauf la scierie) préfère une place où deux des trois cases juste derrière elle sont de la
+  montagne (`MapGenerator.MountainBack`), dans les limites de chaque sorte de mine (à 4 à 11 pas du départ, près d'une
+  ville neutre, ailleurs) ; une montagne seulement à côté ne suffit pas (essayé : la mine paraissait posée à côté).
+  Mesuré sur les cartes 5, 12 et 42 : 23 mines creusées sur 45 adossées (test `MontagnesTests`), une sur dix avant.
+  Une même graine donne une carte un peu différente d'avant.
+- ✅ **Les montagnes au bord de deux sols** (2026-11-17, branche `montagnes-deux-sols`) : choisir le jeu d'images d'après
+  le sol devant le pied de chaque massif ne suffisait pas (une image n'a qu'un sol : fausse d'un côté de la frontière). À
+  la place, un shader (`shaders/mountain_slopes.gdshader`, sur `DecorLayer`) : chaque pixel de pente (vert franc dans
+  l'image) prend la couleur du sol déjà dessiné à cet endroit, avec la lumière du pixel d'origine (`slope_relief` 0,6) ;
+  les pentes se fondent ainsi dans l'herbe, le sable, le marais, une frontière, et la texture du sol continue sur elles.
+  Les jeux du sable et du marais sont retirés (un seul jeu, celui de l'herbe) ; le sol sous les montagnes est celui qui
+  les entoure ; plus d'assombrissement au cœur (`foothill_rock` 0). Vu en chemin : les bords du marais sont carrés (le
+  shader du sol, sans lien avec les montagnes).
+- ✅ **Un sol par zone** (2026-11-18, branche `terrains`) : mesuré avec `tools/cartes/terrains.py`, un sol forme une ou
+  deux grandes régions dans Heroes 2 et 3, chez nous douze petites taches. Une zone de terre sur trois environ
+  (`ZoneGroundShare` 0,35) devient du sable ou du marais ; il reste une tache sur quatre pour le décor (le hasard des
+  autres est tiré quand même : la disposition de la carte ne change pas) ; six passes rendent les frontières irrégulières
+  (le shader suit les rangées de cases). Le sol de chaque faction est dans `classes.json` (`ground`) : sable pour les
+  Barbares et l'Enfer, marais pour les morts-vivants et le Donjon, herbe pour les autres (les Nains et quelques autres,
+  à décider). Une ville neutre prend une faction de son sol, la zone d'un départ le sol de la faction du joueur, et un
+  héros ne paie aucun surcoût sur le sol de sa classe (`Hero.OwnGround`). Mesuré (`Sols_des_cartes`, cartes normales,
+  médianes) : herbe 91 → 74 %, sable 5 → 18 %, marais 5 → 12 % de la terre ; la plus grande tache de sable, 17 → 30 % du
+  sable (les bords irréguliers laissent beaucoup de miettes : la taille médiane d'une tache ne dit plus rien).
+  Armée d'un adversaire après six semaines (`Adversaires_par_faction`, moyenne des 8 factions) : 62 300 avant, 45 800
+  avec les sols, 52 200 avec le sol de la faction sans surcoût (57 700 si sable et marais ne ralentissaient pas). Par
+  faction : Donjon et Enfer −4 %, Nains −10, Barbares −11, Tour −17, morts-vivants −21, Château −29, Forêt −32 ;
+  l'équilibre est remis à plus tard, quand d'autres sols viendront (choix de l'utilisateur).
+- ✅ **Le sol rocheux** (2026-11-18, branche `sols-nouveaux`) : `TerrainType.Rock`, le sol des Nains, coût 125 (le sol
+  accidenté de Heroes 3) ; une zone qui change de sol prend le sable, le marais ou la roche à parts égales. Deux cases de
+  Retro Diffusion (`terrain/rock`), puis le shader : des dalles anguleuses allongées comme des strates, des fissures
+  discrètes, un peu de pente sur chaque dalle, moins de grain fin (`slab_*`, `rock_grain`, `rock_cool`). Essayé et écarté
+  par l'utilisateur : des fissures franches (de la boue séchée), des pierres (petites ou en gros blocs), une pente trop
+  marquée (un pavage), des dalles arrondies (du cuir), une roche grise, bleutée ou à lichen (pour s'éloigner du futur sol
+  brûlé de l'Enfer : c'est ce sol-là qui devra se distinguer, sombre, cendres et braises). Les combats sur la roche prennent le champ du désert en
+  attendant le leur. Mesuré (cartes normales, médianes) : herbe 73 %, sable 11 %, marais 9 %, roche 10 % de la terre.
+  Armée d'un adversaire après six semaines : moyenne 51 500 (52 200 avant) ; Nains 50 600 → 61 700, les premiers ; Tour
+  47 000 → 40 400, les derniers.
+- ✅ **La terre brûlée** (2026-11-18, branche `sol-brule`) : `TerrainType.Burnt`, le sol de l'Enfer, coût 100 comme la
+  lave de Heroes 3 ; une zone qui change de sol en tire un parmi le sable, le marais, la roche et la terre brûlée. Les
+  deux cases sont celles de la roche, recolorées d'après leur luminosité (de 0,085 / 0,065 / 0,06 à 0,33 / 0,27 / 0,245) :
+  rien à payer. Le shader ajoute des nappes de cendre, des braises isolées et des fissures (`burnt_*`) : par carrés de
+  44 pixels d'art, plus nombreuses par régions, une fente noire en zigzag à branches, large au milieu et fine aux bouts ;
+  beaucoup de petites sans feu, quelques grandes où le feu passe du rouge sombre à l'orange, la lèvre du bas éclairée.
+  Le feu et les braises **respirent** (cycle de 5 s, chacun à son rythme, par paliers tramés ; `burnt_glow_at` fige une
+  capture). Essayé et écarté par l'utilisateur : des fissures entre plaques (Voronoï : des brindilles lumineuses, pas des
+  fissures). Aucun écart d'images par seconde mesuré avec ou sans fissures (48 sur le PC de l'utilisateur, 45 environ
+  avec toute la carte à l'écran). Les combats y prennent le champ du désert en attendant le leur. Mesuré (cartes normales,
+  médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
+  six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
+  55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et
@@ -2705,6 +2770,28 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
 - Animations des créatures avec PixelLab (au fil de l'eau). ✅ Effets du combat dessinés par le jeu (projectiles,
   impacts, poison, drain, régénération, auras ; `tools/art/METHODE.md`). ✅ Les animations des sorts sur le champ
   (étape 9, `SpellEffects`). Reste : peut-être une animation « touché » par créature.
+  ✅ **Une animation de mort par créature** (2026-11-17, branche `animations-mort`, demandée par l'utilisateur : un seul
+  essai chacune, pour commencer à peu de frais ; 1,0 $ les 59 essais). Dans le jeu (`BattleFieldView.Kill`) : une troupe
+  sans créatures joue sa feuille `<id>-death.png` une fois, reste couchée 0,7 s, puis s'efface en 0,6 s, sans retenir le
+  combat (le nombre et les sorts ne s'affichent plus) ; une troupe ramenée pendant sa mort se relève ; sans feuille,
+  elle disparaît comme avant. `--effect-preview=mort` (ou `mort:0.5`, figé) : toutes les troupes meurent en boucle.
+  Images : l'état `death` de `creature.py` (cadre de la largeur de l'attaque, hauteur de l'attente), une consigne par
+  gabarit et quelques-unes à part (os, pierre, magma, cristal, arbre ; `tools/art/METHODE.md`). Refaits : le Golem de
+  pierre (ne s'effondrait pas) et la Gargouille (taches blanches). À revoir avec l'utilisateur
+  (`art-candidats/en-cours/morts.html`).
+  ✅ **Un coup reçu par créature** (2026-11-17, même branche, demandé par l'utilisateur avant de juger les morts) : une
+  troupe touchée qui survit (coup, tir, sort, poison, brûlure, foudre, nuage) et qui attendait joue sa feuille
+  `<id>-hit.png` une fois (6 images à 12 images/s), puis revient à l'attente (`BattleFieldView.Hurt`) ; l'éclair blanc
+  et l'effet du coup s'y ajoutent. `--effect-preview=coup` : toutes les troupes le jouent toutes les 1,5 s. Un essai
+  d'abord sur 8 créatures, revu par l'utilisateur (gardés : le Paysan, le Roi de cristal, puis le Fantôme, le Troll et le
+  Limon refaits « vers la gauche » ; l'Archer, le Loup, le Troll et le Griffon seront refaits entièrement), puis les 48
+  autres (l'Ogre, l'Oiseau-tonnerre, le Djinn et l'Arbalétrier refaits pour des étincelles) ; environ 1,4 $ en tout.
+  Méthode dans `tools/art/METHODE.md`. Revus avec l'utilisateur en six tours (2026-11-17) : gardés ou refaits avec ses
+  remarques (plus de mouvement, en arrière, sans effets ; effets retirés à la main sur le Zombie, l'Oiseau-tonnerre,
+  l'Archer elfe, le Tourmenteur, le Tyran) ; le Dragon, l'Hydre et le Démon, après des images clés refusées (corps
+  raide, puis écrasé), par le second modèle de PixelLab (`minimax`) : le Démon surpris, puis content du coup.
+  À la fusion de la refonte du Château, la mort et le coup reçu de l'Archer et du Griffon (faits d'après leurs anciennes
+  images) ont été retirés : 54 créatures ont les deux ; l'Archer, le Griffon et le Cavalier restent à faire.
   ✅ Les options du combat (bouton Options, touche O) : la vitesse des projectiles (lente, normale, rapide), gardée
   d'une partie à l'autre dans `user://reglages.cfg` (`Settings`).
 - ✅ **Des cases de 32 pixels d'art** (au lieu de 24 ; décision de l'utilisateur, 2026-11-08) : cases de 64 pixels à

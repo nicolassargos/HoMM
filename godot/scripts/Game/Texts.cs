@@ -41,6 +41,8 @@ public static class Texts
         TerrainType.Forest => "Forêt",
         TerrainType.Sand => "Sable",
         TerrainType.Swamp => "Marais",
+        TerrainType.Rock => "Roche",
+        TerrainType.Burnt => "Terre brûlée",
         TerrainType.Water => "Eau",
         TerrainType.Mountain => "Montagne",
         _ => terrain.ToString(),

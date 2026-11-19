@@ -555,7 +555,7 @@ public static class ComputerPlayer
                 int dx = next.X - cell.X, dy = next.Y - cell.Y;
                 if (dx != 0 && dy != 0 && !Pathfinder.CornersOpen(map, cell, next))
                     continue;
-                int nextCost = cost + Pathfinder.StepCost(map, cell, next, hero.RoughTerrainReduction)
+                int nextCost = cost + hero.StepCost(map, cell, next)
                     + (Pathfinder.Boards(map, cell, next) ? Pathfinder.BoardingPenalty : 0);
                 if (nextCost < costs.GetValueOrDefault(next, int.MaxValue))
                 {
@@ -587,7 +587,7 @@ public static class ComputerPlayer
                 int dx = cell.X - from.X, dy = cell.Y - from.Y;
                 if (dx != 0 && dy != 0 && !(map.IsPassable(from.Offset(dx, 0)) && map.IsPassable(from.Offset(0, dy))))
                     continue;
-                best = Math.Min(best, cost + Pathfinder.StepCost(map, from, cell, hero.RoughTerrainReduction));
+                best = Math.Min(best, cost + hero.StepCost(map, from, cell));
             }
             if (best != int.MaxValue)
                 yield return (cell, best);

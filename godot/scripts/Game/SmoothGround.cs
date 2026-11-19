@@ -28,11 +28,13 @@ public partial class SmoothGround : ColorRect
         TerrainType.Water => 0,
         TerrainType.Sand => 2,
         TerrainType.Swamp => 3,
-        _ => 4, // herbe (et le sol des forêts et des montagnes)
+        TerrainType.Rock => 4,
+        TerrainType.Burnt => 5,
+        _ => 6, // herbe (et le sol des forêts et des montagnes)
     };
 
     /// <summary>
-    /// Développement : « -- --ground=edge_width:9,foam:0.6 » change des réglages du shader sans recompiler,
+    /// Développement : « -- --ground=edge_width:9,foam:0.6 » (une couleur : « nom:0.2/0.18/0.2 ») change des réglages du shader sans recompiler,
     /// pour comparer des essais sur des captures d'écran.
     /// </summary>
     private static void ApplyDevelopmentSettings(ShaderMaterial material)
@@ -43,9 +45,13 @@ public partial class SmoothGround : ColorRect
         foreach (var setting in arg["--ground=".Length..].Split(',', StringSplitOptions.RemoveEmptyEntries))
         {
             var parts = setting.Split(':');
-            if (parts.Length == 2 && float.TryParse(parts[1], System.Globalization.NumberStyles.Float,
-                    System.Globalization.CultureInfo.InvariantCulture, out float value))
-                material.SetShaderParameter(parts[0], value);
+            var numbers = parts.Length == 2 ? parts[1].Split('/').Select(s => float.TryParse(s, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out float v) ? v : float.NaN).ToArray() : Array.Empty<float>();
+            // un nombre, ou une couleur « r/g/b » (de 0 à 1)
+            if (numbers.Length == 1 && !float.IsNaN(numbers[0]))
+                material.SetShaderParameter(parts[0], numbers[0]);
+            else if (numbers.Length == 3 && !numbers.Any(float.IsNaN))
+                material.SetShaderParameter(parts[0], new Vector3(numbers[0], numbers[1], numbers[2]));
             else
                 GD.PrintErr($"Réglage du sol illisible : {setting}");
         }
@@ -101,11 +107,14 @@ public partial class SmoothGround : ColorRect
     /// </summary>
     public static SmoothGround? Create(AdventureMap map)
     {
+        // les forêts ont un sol d'herbe, les montagnes celui qui les entoure (leur décor est dessiné à part)
+        var mountainGrounds = MountainGrounds.Of(map);
         var ground = Create(map.Width, map.Height, cell =>
         {
-            // les forêts et les montagnes ont un sol d'herbe (leur décor est dessiné à part)
             var terrain = map.GetTerrain(cell);
-            return (DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain, map.GetRoadKind(cell), map.GetRiver(cell));
+            var under = terrain == TerrainType.Mountain ? mountainGrounds.GetValueOrDefault(cell, TerrainType.Grass)
+                : DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
+            return (under, map.GetRoadKind(cell), map.GetRiver(cell));
         });
         // le pied des montagnes
         if (ground?.Material is ShaderMaterial material)
@@ -300,13 +309,15 @@ public partial class SmoothGround : ColorRect
         material.SetShaderParameter("road_tiles", RoadTiles(size));
         material.SetShaderParameter("variants", Variants);
         material.SetShaderParameter("map_cells", new Vector2I(width, height));
-        var ranks = new int[8];
+        var ranks = new int[9];
         foreach (var terrain in terrains)
             ranks[(int)terrain] = Rank(terrain);
         ranks[(int)DirtId] = 1;
         material.SetShaderParameter("priority", ranks);
         material.SetShaderParameter("water", (int)TerrainType.Water);
         material.SetShaderParameter("sand", (int)TerrainType.Sand);
+        material.SetShaderParameter("rock_ground", (int)TerrainType.Rock);
+        material.SetShaderParameter("burnt_ground", (int)TerrainType.Burnt);
         material.SetShaderParameter("grass", (int)TerrainType.Grass);
         // la taille d'une case en pixels d'art (celle des images des terrains) ; les longueurs du shader, réglées pour des
         // cases de 24, gardent les mêmes proportions

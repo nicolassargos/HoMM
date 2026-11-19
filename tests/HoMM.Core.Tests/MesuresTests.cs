@@ -144,6 +144,75 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Les sols des cartes (2026-11-17, à comparer avec Heroes 2 et 3 : tools/cartes/terrains.py) : la part de la terre de
+    /// chaque sol (la forêt compte comme l'herbe, la montagne comme le sol qui l'entoure), et ses taches (cases du même sol
+    /// qui se touchent par un côté) : combien de 4 cases et plus, leur taille, la part de la plus grande, la part en taches
+    /// de moins de 10 cases.
+    /// </summary>
+    [Mesure]
+    public void Sols_des_cartes()
+    {
+        foreach (var size in new[] { MapSize.Small, MapSize.Normal, MapSize.Large })
+        {
+            var share = new Dictionary<TerrainType, List<int>>();
+            var count = new Dictionary<TerrainType, List<int>>();
+            var sizes = new Dictionary<TerrainType, List<int>>();
+            var biggest = new Dictionary<TerrainType, List<int>>();
+            var small = new Dictionary<TerrainType, List<int>>();
+            foreach (int seed in Seeds)
+            {
+                var map = new GameState(seed, TestData.Data, size).Map;
+                var under = MountainGrounds.Of(map);
+                TerrainType? Ground(Cell c) => map.GetTerrain(c) switch
+                {
+                    TerrainType.Water => null,
+                    TerrainType.Forest => TerrainType.Grass,
+                    TerrainType.Mountain => under.GetValueOrDefault(c, TerrainType.Grass),
+                    var t => t,
+                };
+                var cells = Enumerable.Range(0, map.Height).SelectMany(y => Enumerable.Range(0, map.Width).Select(x => new Cell(x, y)))
+                    .Where(c => !map.IsWater(c) && Ground(c) != null).ToList();
+                var seen = new HashSet<Cell>();
+                var patches = new Dictionary<TerrainType, List<int>>();
+                foreach (var start in cells)
+                {
+                    if (!seen.Add(start))
+                        continue;
+                    var ground = Ground(start)!.Value;
+                    int n = 0;
+                    var queue = new Queue<Cell>(new[] { start });
+                    while (queue.Count > 0)
+                    {
+                        var c = queue.Dequeue();
+                        n++;
+                        foreach (var next in new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) })
+                            if (map.InBounds(next) && !map.IsWater(next) && Ground(next) == ground && seen.Add(next))
+                                queue.Enqueue(next);
+                    }
+                    (patches.TryGetValue(ground, out var list) ? list : patches[ground] = new List<int>()).Add(n);
+                }
+                foreach (var (ground, list) in patches)
+                {
+                    int total = list.Sum();
+                    if (total * 100 < cells.Count)
+                        continue;
+                    List<int> Of(Dictionary<TerrainType, List<int>> d) => d.TryGetValue(ground, out var l) ? l : d[ground] = new List<int>();
+                    Of(share).Add((int)Math.Round(100.0 * total / cells.Count));
+                    Of(count).Add(list.Count(s => s >= 4));
+                    Of(sizes).AddRange(list.Where(s => s >= 4));
+                    Of(biggest).Add((int)Math.Round(100.0 * list.Max() / total));
+                    Of(small).Add((int)Math.Round(100.0 * list.Where(s => s < 10).Sum() / total));
+                }
+            }
+            static string Median(List<int> v) => v.Count == 0 ? "-" : $"médiane {v.OrderBy(x => x).ElementAt(v.Count / 2)} (de {v.Min()} à {v.Max()})";
+            foreach (var ground in share.Keys.OrderBy(g => g))
+                output.WriteLine($"{size} {ground} : part de la terre {Median(share[ground])} % ; taches de 4 cases et plus par carte "
+                                 + $"{Median(count[ground])}, taille {Median(sizes[ground])} ; la plus grande {Median(biggest[ground])} % ; "
+                                 + $"en taches de moins de 10 cases {Median(small[ground])} %");
+        }
+    }
+
+    /// <summary>
     /// Un adversaire (Normal) sur chaque type de carte, six semaines : s'il prend la mer (bateaux pris, débarquements),
     /// ses villes, son armée. Sur les îles, il doit quitter la sienne.
     /// </summary>

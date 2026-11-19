@@ -39,6 +39,8 @@ public static class MapRenderer
         TerrainType.Forest => Rgb(52, 105, 45),
         TerrainType.Sand => Rgb(214, 196, 128),
         TerrainType.Swamp => Rgb(74, 98, 72),
+        TerrainType.Rock => Rgb(136, 124, 108),
+        TerrainType.Burnt => Rgb(58, 46, 42),
         TerrainType.Water => Rgb(40, 90, 170),
         TerrainType.Mountain => Rgb(120, 112, 104),
         _ => Colors.Magenta,
@@ -113,7 +115,7 @@ public static class MapRenderer
 
         switch (terrain)
         {
-            case TerrainType.Grass or TerrainType.Sand or TerrainType.Swamp:
+            case TerrainType.Grass or TerrainType.Sand or TerrainType.Swamp or TerrainType.Rock or TerrainType.Burnt:
                 for (int i = 0; i < 10; i++)
                     ci.DrawCircle(o + V(rng.Next(T), rng.Next(T)), rng.Next(1, 3), Vary(baseColor, rng, 25));
                 if (terrain == TerrainType.Swamp)

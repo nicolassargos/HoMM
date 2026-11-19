@@ -11,7 +11,7 @@ public readonly record struct Cell(int X, int Y)
 /// Le terrain d'une case. Les numéros sont fixes : ils sont enregistrés dans les sauvegardes. Le 1 était la route,
 /// qui est maintenant une couche posée sur le terrain (<see cref="AdventureMap.HasRoad"/>) ; il n'est plus utilisé.
 /// </summary>
-public enum TerrainType { Grass = 0, Forest = 2, Sand = 3, Swamp = 4, Water = 5, Mountain = 6 }
+public enum TerrainType { Grass = 0, Forest = 2, Sand = 3, Swamp = 4, Water = 5, Mountain = 6, Rock = 7, Burnt = 8 }
 
 /// <summary>
 /// La rivière d'une case, posée sur le terrain comme la route (2026-11-15, choix de l'utilisateur). Les numéros sont
@@ -37,6 +37,8 @@ public static class TerrainInfo
         TerrainType.Grass => 100,
         // en bateau (la mer : la vitesse ordinaire du héros, comme Heroes 3)
         TerrainType.Water => 100,
+        TerrainType.Rock => 125, // le sol rocheux, comme le sol accidenté de Heroes 3
+        TerrainType.Burnt => 100, // la terre brûlée, comme la lave de Heroes 3
         TerrainType.Sand => 150,
         TerrainType.Swamp => 175,
         _ => 0,
@@ -46,6 +48,10 @@ public static class TerrainInfo
     /// L'eau, la montagne et la forêt bloquent le passage : comme dans Heroes 1 à 3, les arbres sont des obstacles qu'on
     /// contourne (choix de l'utilisateur, 2026-11-08 : traverser une forêt cachait le héros et les objets).
     /// </summary>
+    /// <summary>Le sol visible d'une case : le sien, ou l'herbe sous une forêt et une montagne.</summary>
+    public static TerrainType SoilOf(TerrainType terrain) =>
+        terrain is TerrainType.Sand or TerrainType.Swamp or TerrainType.Rock or TerrainType.Burnt ? terrain : TerrainType.Grass;
+
     public static bool IsPassable(TerrainType terrain) =>
         terrain is not (TerrainType.Water or TerrainType.Mountain or TerrainType.Forest);
 }

@@ -902,10 +902,11 @@
       },
       "choix": {
         "death": "death-2",
-        "hit": "hit-13"
+        "hit": "hit-2"
       },
       "consignes": {
-        "death": "is mortally wounded: the long neck twists and writhes, swings high then low, the body sinks onto its side, and the neck coils on the ground with the head coming to rest last, lying motionless on the ground at the end"
+        "death": "is mortally wounded: the long neck twists and writhes, swings high then low, the body sinks onto its side, and the neck coils on the ground with the head coming to rest last, lying motionless on the ground at the end",
+        "hit": "recoils violently from a blow: it rears back onto its hind legs, its front claws lift off the ground, its long neck and head are thrown back to the left, its wings snap wide open, its tail lashes, then it drops back down to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "gobelin": {
@@ -1948,11 +1949,14 @@
         "attack": "mm-proche-6",
         "carte": "p1-7",
         "death": "death-1",
-        "hit": "hit-18"
+        "hit": "hit-4-r"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png",
       "mouvements": {
         "hit": "cringes from a blow: all the heads duck and pull back toward the tail at once, then each head shakes and sways in its own way, mouths open, the body crouches back, a very lively movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      },
+      "consignes": {
+        "hit": "recoils violently from a blow: the whole body rears back to the left, all the heads are thrown back on their long necks like whips, then they swing forward again one after another, mouths open, the tail lashes, then it settles back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "succube": {

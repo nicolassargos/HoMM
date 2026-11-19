@@ -461,6 +461,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   troncs moussus ; un tronc gris : ne retirer que le vert. L'eau sous un arbre (anneau bleu-vert) n'est pas retirée.
 - Des troncs : demander « the lower part of a very tall tree » donne de jeunes arbres à petite couronne ; posés au fond,
   leur couronne sort du cadre et l'on ne voit que les troncs.
+- Neige (2026-11-19) : les arbres générés reposent sur une tache de neige, avec une ombre peinte ou des reflets chauds.
+  Ni la retirer (l'arbre paraît posé), ni la garder (une tache) : tout ce qui, sous l'arbre, n'est ni aiguilles (vert plus
+  que bleu) ni écorce prend la couleur de la neige du champ, à 65 % au pied puis 38, 30, 12 et 8 % (les retouches de
+  l'utilisateur) ; l'ombre de contact au bas du tronc, bleue et légère. La neige bleutée a plus de bleu que de vert : ce
+  qui la distingue des aiguilles vert-bleu.
 
 ## Effets du combat (dessinés par le jeu)
 - **Pas d'effet dans les animations des créatures** : projectiles, impacts, auras sont dessinés par `Game/BattleEffects.cs`,

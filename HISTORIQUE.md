@@ -1930,6 +1930,17 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   du combat changent : deux tests revus (le prix du sang du Démoniste compté avec le vol du Diablotin ; l'adversaire
   sans ville n'attaque qu'avec au plus 10 % de pertes prévues : 200 paysans contre 40 au lieu de 60, qui était à la
   limite).
+- ✅ Champ de bataille de la neige (2026-11-19, branche `champs-sols`). Choix de l'utilisateur : **une neige épaisse**.
+  `SnowPalette` (ciel pâle et froid, montagnes blanc bleuté, collines enneigées, pré de la couleur du sol de neige, brume
+  bleutée) ; pas de terre battue ; peu de détails sur le sol (16). Images Retro Diffusion (3,84 $, 16 sujets) : sapins et
+  sapin pectiné ployant sous la neige, arbres morts enneigés, grands troncs, buissons ensevelis, jeunes sapins et bouleaux,
+  petits sapins lointains, congères et rochers presque ensevelis sur les bords ; obstacles : sapins ensevelis, rochers
+  coiffés de neige, blocs de glace bleue, troncs couchés sous la neige ; détails : mottes de neige, touffes gelées. Les
+  rochers, la glace et les troncs gardent leur congère (la neige épaisse). **La neige sous les arbres** : retirée, ils
+  paraissaient posés ; gardée, elle faisait une tache et une ombre peinte. Retenu, d'après sept arbres retouchés par
+  l'utilisateur : tout ce qui, sous l'arbre, n'est ni aiguilles ni écorce prend la couleur de la neige du champ, à 65 %
+  au pied puis 38, 30, 12 et 8 % en s'éloignant ; leur ombre de contact est bleue et plus légère (`pieds.json`), posée au
+  bas du tronc.
 - ✅ Finitions des champs (2026-11-17, branche `champ-finitions`). **Nuages** dans le ciel des paysages ouverts : 1 à 3,
   plats dessous, des bosses bombées dessus (gardées dans le nuage : une bosse coupée au bout faisait un mur) ; gris sous
   le ciel couvert du marais (drapeau `Overcast` : le haut blanc y brillait trop, remarque de l'utilisateur). **Rochers**

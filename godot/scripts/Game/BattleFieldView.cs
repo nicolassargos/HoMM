@@ -402,7 +402,8 @@ public partial class BattleFieldView : Control
             return details;
         var random = new Random(seed * 7 + 3);
         // moins dans le désert (remarque de l'utilisateur : moins de crânes et de touffes) : ses taches de sol ont déjà leurs marques
-        int count = ground == TerrainType.Sand ? 30 : 44;
+        // ; peu sur la neige épaisse, qui recouvre presque tout
+        int count = ground switch { TerrainType.Sand => 30, TerrainType.Snow => 16, _ => 44 };
         for (int i = 0; i < count; i++)
         {
             var image = images[random.Next(images.Length)];
@@ -665,10 +666,22 @@ public partial class BattleFieldView : Control
         new Color(0.34f, 0.40f, 0.34f), new Color(0.74f, 0.78f, 0.72f), new Color(0.02f, 0.05f, 0.03f), Puddles: true,
         Overcast: true);
 
+    /// <summary>
+    /// La neige (choix de l'utilisateur, 2026-11-19 : une neige épaisse) : un ciel pâle et froid, des montagnes blanc bleuté
+    /// au loin, des collines enneigées devant, un pré de la couleur du sol de neige, une brume bleutée.
+    /// </summary>
+    private static readonly ScenePalette SnowPalette = new(
+        new Color[] { new(0.62f, 0.72f, 0.84f), new(0.72f, 0.80f, 0.88f), new(0.82f, 0.87f, 0.91f), new(0.90f, 0.92f, 0.94f) },
+        new Color[] { new(0.80f, 0.84f, 0.90f), new(0.70f, 0.76f, 0.85f), new(0.62f, 0.68f, 0.79f) },
+        new Color[] { new(0.93f, 0.95f, 0.98f), new(0.86f, 0.89f, 0.95f), new(0.78f, 0.82f, 0.90f) },
+        new Color[] { new(0.89f, 0.91f, 0.95f), new(0.86f, 0.89f, 0.94f) },
+        new Color(0.80f, 0.85f, 0.92f), new Color(0.93f, 0.95f, 0.98f), new Color(0.05f, 0.08f, 0.18f));
+
     private static ScenePalette PaletteOf(TerrainType terrain) => terrain switch
     {
         TerrainType.Sand => SandPalette,
         TerrainType.Swamp => SwampPalette,
+        TerrainType.Snow => SnowPalette,
         _ => GrassPalette,
     };
 

@@ -257,7 +257,8 @@
       "auteur": "Patrick Maney",
       "licence": "CC-BY 3.0",
       "duree": "3:04",
-      "etoiles": 4
+      "etoiles": 4,
+      "avis": "battle music for the inferno terrain; its windy start could also fit the rock map"
     },
     {
       "id": "nains-3",
@@ -373,7 +374,7 @@
       "licence": "CC-BY 4.0",
       "duree": "2:35",
       "fichier": null,
-      "etoiles": 4
+      "etoiles": 5
     },
     {
       "id": "nains-5",
@@ -385,7 +386,8 @@
       "licence": "CC-BY 4.0",
       "duree": "1:37",
       "fichier": null,
-      "etoiles": 4
+      "etoiles": 4,
+      "avis": "keep this one for combats"
     },
     {
       "id": "nains-6",
@@ -470,6 +472,32 @@
       "duree": "2:45",
       "fichier": null,
       "etoiles": 3
+    },
+    {
+      "titre": "Mist Forest (Orchestra)",
+      "url": "https://opengameart.org/sites/default/files/forezt.mp3",
+      "fichier": null,
+      "page": "https://opengameart.org/content/mist-forest-orchestra",
+      "auteur": "migfus20",
+      "licence": "CC-BY 4.0",
+      "duree": "1:58",
+      "id": "foret-19",
+      "faction": "foret",
+      "etoiles": 5,
+      "avis": "This should be the music for the forest village!!!"
+    },
+    {
+      "id": "foret-20",
+      "faction": "foret",
+      "titre": "The Pilgrimage",
+      "url": "https://opengameart.org/sites/default/files/Viktor%20Kraus%20-%20The%20Pilgrimage_0.mp3",
+      "fichier": null,
+      "page": "https://opengameart.org/content/the-pilgrimage-0",
+      "auteur": "Viktor Kraus",
+      "licence": "CC-BY 3.0",
+      "duree": "3:28",
+      "etoiles": 5,
+      "avis": "also a very good candidate for the forest town (proposed for the rock map)"
     }
   ]
 }

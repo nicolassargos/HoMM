@@ -115,7 +115,6 @@ public partial class Main : Node2D
         _state.QuickBattles = false; // chaque combat s'arrête : le joueur le dirige ou choisit le combat rapide
         _state.HumansDefend = true;  // attaqué par un adversaire, le joueur dirige aussi sa défense
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
-        Audio.PlayMusic("map");
         // Développement : « --rich » : le joueur a de quoi tout bâtir et tout recruter, remis au plein chaque jour (Enrich)
         Enrich();
         // « --demo » : les villes du joueur toutes construites
@@ -209,6 +208,7 @@ public partial class Main : Node2D
         _townScreen = new TownScreen();
         AddChild(_townScreen);
         _townScreen.Build(_state, screen);
+        UpdateMapMusic();
 
         // sauvegarder sous un nom, charger une sauvegarde (depuis les options)
         _saves = new SavesWindow();
@@ -814,6 +814,20 @@ public partial class Main : Node2D
             return;
         _state.SelectHero(hero);
         CenterOnHero();
+        UpdateMapMusic();
+    }
+
+    /// <summary>
+    /// La musique de la carte suit le terrain autour du héros choisi (« map-grass », « map-sand », « map-water » en
+    /// bateau…), en fondu ; elle ne change que sur la carte (pas dans une ville ni un combat, qui y reviendront).
+    /// </summary>
+    private void UpdateMapMusic()
+    {
+        Audio.MapMusic = _state.CurrentHero is { } hero
+            ? "map-" + _state.Map.MusicTerrain(hero.Position).ToString().ToLowerInvariant()
+            : "map";
+        if (!_townScreen.IsOpen && !_battleScreen.IsOpen && !_inMenu)
+            Audio.PlayMapMusic();
     }
 
     /// <summary>L'écran du héros (clic sur son portrait, double clic dans une liste).</summary>
@@ -1110,6 +1124,7 @@ public partial class Main : Node2D
             {
                 case HeroMoved moved when moved.Hero == _state.CurrentHero:
                     _camera.Follow(moved.To);
+                    UpdateMapMusic();
                     break;
                 // un pas d'un héros adverse là où le joueur peut voir : il sera rejoué (et montré d'où il part)
                 case HeroMoved moved when moved.Hero.Owner != viewer

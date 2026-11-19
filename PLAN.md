@@ -238,12 +238,16 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   de combat de **toutes les créatures** (2026-11-17, branche `sons-factions`, 113 sons ElevenLabs revus un à un sur la
   page de `tools/audio/sons.py` ; le Paysan garde les sons communs) ; ✅ les **musiques des villes** (2026-11-17,
   branche `musiques-villes`, bibliothèques libres, `tools/audio/musiques.py` : page d'écoute, étoiles et avis gardés
-  dans `tools/audio/musiques-villes.json`) : six choisies ; la **Forêt** et les **Nains** se choisiront avec l'image de
-  leur ville (finalistes à 4 étoiles : Alandriel's Theme, A Midnight's Dream, Magical Forest, Beautiful Forest ;
-  Forging Flames, Varyag War Drum, Five Armies, Heroic Age), en attendant la musique d'attente. Idées de
-  l'utilisateur : « Death Is Just Another Path » pour l'écran de défaite ; « King's Feast » et « The Cavern of
-  Wonders » lui plaisent aussi (taverne, carte ?). **Reste** : les autres sorts, la carte, l'interface, la musique de
-  la carte, puis la musique chez Stable Audio.
+  dans `tools/audio/musiques-villes.json`) : les huit choisies (Nains : Five Armies ; Forêt : Mist Forest, peut-être
+  à revoir avec l'image de sa ville, The Pilgrimage aussi candidate) ; ✅ la **musique de la carte** (2026-11-19,
+  branche `musiques-carte`) : une par terrain autour du héros (`AdventureMap.MusicTerrain` ; herbe World Map, désert
+  Myst, marais Crystal Meadow, roche Crusade, neige Mevalian Winter, mer trois pistes qui alternent ; le sol brûlé
+  attend la sienne, Forging Flames proposée), celle du **menu** (Alandriel's Theme) et
+  trois musiques de combat qui alternent (Determined Pursuit, Heroic Age, Heated Lands). Idées de l'utilisateur :
+  « Death Is Just Another Path » pour l'écran de défaite ; « King's Feast » lui plaît (taverne ?) ; un **second
+  désert** au thème arabe (Ibn Al-Noor, Desert City gardées) ; Forging Flames aussi pour les combats sur le sol
+  brûlé. **Reste** : les autres sorts, la carte, l'interface, les **pas au
+  combat**, les **ambiances** du combat et de la carte, de courts airs, puis la musique chez Stable Audio.
 
 ## Étape 11 : multijoueur (à concevoir)
 Idée de l'utilisateur (2026-11-17). Les règles s'y prêtent déjà : plusieurs joueurs dans `GameState`, un brouillard

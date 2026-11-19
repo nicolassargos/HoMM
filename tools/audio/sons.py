@@ -161,15 +161,7 @@ charger();
     print(f"http://localhost:{PORT}/sons.html  ({os.path.join(EN_COURS, 'sons.html')})")
 
 
-class Serveur(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=EN_COURS, **kwargs)
-
-    def end_headers(self):
-        # un son refait garde son adresse : le navigateur ne doit pas rejouer l'ancien qu'il a gardé
-        self.send_header("Cache-Control", "no-store")
-        super().end_headers()
-
+class Serveur(essai.ServeurAudio):
     def do_POST(self):
         if self.path != "/reponses":
             self.send_error(404)
@@ -183,9 +175,6 @@ class Serveur(http.server.SimpleHTTPRequestHandler):
             json.dump(donnees, f, ensure_ascii=False, indent=2)
         self.send_response(204)
         self.end_headers()
-
-    def log_message(self, *args):
-        pass
 
 
 def serveur():

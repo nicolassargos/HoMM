@@ -181,7 +181,7 @@ public partial class BattleFieldView : Control
 
     private static Rect2 HeroRectAt(float centerX, Hero? hero)
     {
-        var size = (MapRenderer.HeroImage(hero)?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
+        var size = (MapRenderer.HeroBattleImage(hero)?.GetSize() ?? new Vector2(24, 24)) * HeroScale;
         return new Rect2(new Vector2(centerX - size.X / 2, (FieldSize.Y + TopMargin) / 2 - size.Y / 2), size); // au milieu de la grille
     }
 
@@ -2583,11 +2583,11 @@ public partial class BattleFieldView : Control
             }
         }
 
-        // les héros (leur image de la carte, à leurs couleurs, en attendant une image de combat) : l'attaquant à gauche,
-        // celui qui se défend à droite, tourné vers la gauche
-        if (AttackerHero != null && MapRenderer.HeroImage(AttackerHero) is { } heroImage)
+        // les héros (leur image de combat, sinon celle de la carte, à leurs couleurs) : l'attaquant à gauche, celui qui se
+        // défend à droite, tourné vers la gauche
+        if (AttackerHero != null && MapRenderer.HeroBattleImage(AttackerHero) is { } heroImage)
             DrawTextureRect(heroImage, HeroRect, false);
-        if (DefenderHero != null && MapRenderer.HeroImage(DefenderHero) is { } defenderImage)
+        if (DefenderHero != null && MapRenderer.HeroBattleImage(DefenderHero) is { } defenderImage)
         {
             var rect = DefenderHeroRect;
             DrawSetTransform(new Vector2(rect.End.X, rect.Position.Y), 0, new Vector2(-1, 1));

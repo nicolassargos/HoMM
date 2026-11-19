@@ -650,6 +650,17 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (sinon toutes les vues les gardent). Regarder la hampe du drapeau : PixelLab la coupe souvent à la main du cavalier ;
   la prolonger par le code avant les marches.
 
+## Héros au combat (environ 125 px, 2026-11-19)
+- `tools/art/heros_combat.py essayer <id>` : « Pro » à 160 × 144 (4 images, 0,12 $), le Cavalier du combat comme style
+  et comme modèle de la vue de côté, le **portrait** comme modèle du visage (« face, hair, beard and clothes colours
+  only; not the framing, not the background »), le héros de la faction sur la carte comme modèle de la tenue et de la
+  monture. La description reprend ce que montre le portrait (couleur des cheveux, coiffe, peau) : les quatre essais
+  lui ressemblent du premier coup, la monture suit celle de la carte. Gardés à la taille de génération (pas réduits).
+- **Les rouges** : le jeu peint de la couleur du joueur les rouges vifs (saturation > 0,45, teinte < 0,05 ou > 0,93),
+  et un cheval brun, du cuir, des cheveux roux, du feu y tombent souvent. « no red anywhere except the banner » ne
+  suffit pas : `choisir` passe au brun (teinte 0,06) toutes les taches rouges sauf l'étendard, la tache qui commence le
+  plus haut (au bout de la hampe). Vérifier avec un aperçu peint en bleu. Éviter un héros à la peau rouge (Méphis).
+
 ## Interface
 - **Icônes des ressources** (`art/icons/{gold,wood,ore,gems,mercury,crystal,sulfur}.png`, 16 × 16, affichées ×2 dans
   la barre des ressources et le royaume ; `-grand.png` en 32 × 32 pour les fenêtres à venir) : PixelLab « Pro » à 32 × 32

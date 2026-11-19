@@ -706,17 +706,8 @@ public static class MapRenderer
                 image = sheet.GetRegion(new Rect2I(frame % columns * w, frame / columns * h, w, h));
             }
             image.Convert(Image.Format.Rgba8);
-            if (id != 1 && hero != null)
-            {
-                float hue = ColorOf(hero.Owner).H;
-                for (int y = 0; y < image.GetHeight(); y++)
-                for (int x = 0; x < image.GetWidth(); x++)
-                {
-                    var p = image.GetPixel(x, y);
-                    if (p.A > 0.5f && p.S > 0.45f && (p.H < 0.05f || p.H > 0.93f))
-                        image.SetPixel(x, y, Color.FromHsv(hue, p.S, p.V, p.A));
-                }
-            }
+            if (hero != null)
+                PaintPlayerColor(image, hero);
             if (left)
                 image.FlipX();
             texture = ImageTexture.CreateFromImage(image);
@@ -725,6 +716,44 @@ public static class MapRenderer
         }
         HeroImages[key] = texture;
         return texture;
+    }
+
+    /// <summary>Les rouges vifs d'une image de héros (son étendard) à la teinte de son joueur ; le joueur rouge la garde.</summary>
+    private static void PaintPlayerColor(Image image, Hero hero)
+    {
+        if (hero.Owner.Id == 1)
+            return;
+        float hue = ColorOf(hero.Owner).H;
+        for (int y = 0; y < image.GetHeight(); y++)
+        for (int x = 0; x < image.GetWidth(); x++)
+        {
+            var p = image.GetPixel(x, y);
+            if (p.A > 0.5f && p.S > 0.45f && (p.H < 0.05f || p.H > 0.93f))
+                image.SetPixel(x, y, Color.FromHsv(hue, p.S, p.V, p.A));
+        }
+    }
+
+    /// <summary>
+    /// L'image d'un héros sur le côté du champ de bataille (heroes/battle/{nom}.png : à cheval, tourné vers la droite,
+    /// qui ressemble à son portrait), aux couleurs de son joueur comme sur la carte ; sans elle, son image de la carte.
+    /// </summary>
+    public static Texture2D? HeroBattleImage(Hero? hero)
+    {
+        if (hero == null)
+            return HeroImage(hero);
+        var name = $"heroes/battle/{Art.Slug(hero.Name)}";
+        var key = (name, hero.Owner.Id, false, -1);
+        if (!HeroImages.TryGetValue(key, out var texture))
+        {
+            if (Art.GetImage(name) is { } image)
+            {
+                image.Convert(Image.Format.Rgba8);
+                PaintPlayerColor(image, hero);
+                texture = ImageTexture.CreateFromImage(image);
+            }
+            HeroImages[key] = texture;
+        }
+        return texture ?? HeroImage(hero);
     }
 
     /// <summary>

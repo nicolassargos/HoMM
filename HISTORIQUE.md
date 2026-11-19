@@ -2788,8 +2788,20 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   elle disparaît comme avant. `--effect-preview=mort` (ou `mort:0.5`, figé) : toutes les troupes meurent en boucle.
   Images : l'état `death` de `creature.py` (cadre de la largeur de l'attaque, hauteur de l'attente), une consigne par
   gabarit et quelques-unes à part (os, pierre, magma, cristal, arbre ; `tools/art/METHODE.md`). Refaits : le Golem de
-  pierre (ne s'effondrait pas) et la Gargouille (taches blanches). À revoir avec l'utilisateur
-  (`art-candidats/en-cours/morts.html`).
+  pierre (ne s'effondrait pas) et la Gargouille (taches blanches).
+  ✅ **Des morts variées** (2026-11-19, branche `morts-variees`, revues avec l'utilisateur en six pages de choix) : presque
+  toutes tombaient en avant de la même façon ; il voulait tomber en arrière, sur le côté, un petit geste, et une mort
+  propre à certaines créatures (ses idées). 40 des 51 refaites, 11 gardées (Paysan, Homme-lézard, Homme-grenouille,
+  Aberration, Ver des profondeurs, Tyran œil, Hydre, Farfadet, Sanglier, Araignée, Chevaucheur de chèvre). Les morts
+  propres : le Démon brûle puis tombe en cendre grise, la Liche disparaît et laisse la robe, la couronne et le bâton, le
+  Roi de cristal s'évapore et laisse son marteau, le Moloch se défait en morceaux de bronze (tête à cornes devant ; les
+  jambes ne se défont pas, accepté), le Golem tombe pierre à pierre, le Squelette et le Colosse d'os en tas d'os, le
+  Fantôme se dissipe, le Vampire s'effondre dans sa cape, le Béhémoth rugit et tombe sur le dos. 137 essais,
+  2,59 $. Retouches à la main (gratuites) : le bâton du Druide sans sa lueur, les gouttes du Sapeur, la fin du Démon (un
+  corps calciné qui s'affaisse puis la cendre grise, au lieu d'un démon de nouveau entier), la robe de la Liche qui
+  s'affaisse, la tête du marteau du Roi de cristal (essai écarté : le relever recourbait le manche ; refait avec de la
+  place sous les pieds), la fin du Béhémoth (une suite animée depuis sa dernière image, collée). Méthode :
+  `tools/art/METHODE.md`.
   ✅ **Un coup reçu par créature** (2026-11-17, même branche, demandé par l'utilisateur avant de juger les morts) : une
   troupe touchée qui survit (coup, tir, sort, poison, brûlure, foudre, nuage) et qui attendait joue sa feuille
   `<id>-hit.png` une fois (6 images à 12 images/s), puis revient à l'attente (`BattleFieldView.Hurt`) ; l'éclair blanc

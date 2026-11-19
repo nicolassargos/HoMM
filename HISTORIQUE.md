@@ -2763,6 +2763,15 @@ choix de l'utilisateur) :
   Armée d'un adversaire après six semaines : moyenne 54 600 (53 700 avant) ; Tour 45 600 → 48 500 ; les
   autres bougent beaucoup (Forêt 70 000, Enfer 48 100, Château 42 000) : un sol de plus change le tirage des zones de
   chaque carte, donc les cartes mesurées.
+- ✅ **Les forêts de chaque sol** (2026-11-19, branche `vegetation`) : une forêt pousse sur le sol qui l'entoure
+  (`ForestGrounds`, comme les montagnes ; avant, une tache d'herbe sous chaque forêt) et prend les arbres de ce sol
+  (`decor/tree-<sol>`, `DecorLayer.TreesOn`) : palmiers et acacias au vert olive dans le désert, en palmeraies plus
+  clairsemées (trois arbres par case) ; cyprès, arbres morts et saules dans le marais ; arbres calcinés et souches fendues
+  qui rougeoient sur la terre brûlée ; sapins enneigés et bouleaux nus dans la neige ; les sapins seuls sur la roche.
+  Retro Diffusion, 48 candidats (2,88 $) ; écartés par l'utilisateur : des arbres brûlés fins et sombres (« des pixels,
+  sans détail »), des palmiers vert vif trop serrés. Les ombres portées prennent la teinte de leur sol : bleutées sur la
+  neige (`ShadowLayer.SnowShade`), noires ailleurs ; l'ombre de contact des arbres de la neige est bleue (`pieds.json`).
+  Reste : les arbres seuls posés près des bâtiments et des mines, encore verts partout.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

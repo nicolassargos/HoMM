@@ -97,10 +97,17 @@ public static class MountainGrounds
     /// (les cases qui se touchent) : l'herbe, le sable ou le marais ; la forêt compte comme de l'herbe, l'eau ne compte
     /// pas ; de l'herbe s'il n'y a rien autour. Une chaîne entre l'herbe et le sable change ainsi de pentes en chemin.
     /// </summary>
-    public static Dictionary<Cell, TerrainType> Of(AdventureMap map)
+    public static Dictionary<Cell, TerrainType> Of(AdventureMap map) => Under(map, TerrainType.Mountain);
+
+    /// <summary>
+    /// Le sol sous chaque case de <paramref name="covered"/> (montagne ou forêt), pris autour comme pour
+    /// <see cref="Of"/> ; pour une forêt, les montagnes ne comptent pas.
+    /// </summary>
+    internal static Dictionary<Cell, TerrainType> Under(AdventureMap map, TerrainType covered)
     {
         var result = new Dictionary<Cell, TerrainType>();
-        bool Rock(Cell c) => map.InBounds(c) && map.GetTerrain(c) == TerrainType.Mountain;
+        bool Rock(Cell c) => map.InBounds(c) && map.GetTerrain(c) == covered;
+        bool Counts(TerrainType t) => t != TerrainType.Water && t != covered && (covered != TerrainType.Forest || t != TerrainType.Mountain);
         for (int y = 0; y < map.Height; y++)
         for (int x = 0; x < map.Width; x++)
         {
@@ -119,7 +126,7 @@ public static class MountainGrounds
                         continue;
                     if (Rock(n))
                         group.Add(n);
-                    else if (map.GetTerrain(n) is var t && t != TerrainType.Water)
+                    else if (map.GetTerrain(n) is var t && Counts(t))
                     {
                         var ground = TerrainInfo.SoilOf(t);
                         around[ground] = around.GetValueOrDefault(ground) + 1;
@@ -133,7 +140,7 @@ public static class MountainGrounds
                 for (int dx = -2; dx <= 2; dx++)
                 {
                     var n = c.Offset(dx, dy);
-                    if (map.InBounds(n) && map.GetTerrain(n) is var t && t is not (TerrainType.Mountain or TerrainType.Water))
+                    if (map.InBounds(n) && map.GetTerrain(n) is var t && Counts(t) && t != TerrainType.Mountain)
                     {
                         var ground = TerrainInfo.SoilOf(t);
                         near[ground] = near.GetValueOrDefault(ground) + 1;
@@ -144,4 +151,13 @@ public static class MountainGrounds
         }
         return result;
     }
+}
+
+/// <summary>
+/// Le sol de chaque forêt (2026-11-19) : celui qui l'entoure, comme pour les montagnes ; une forêt du désert pousse sur
+/// le sable, avec les arbres de ce sol (et plus sur une tache d'herbe).
+/// </summary>
+public static class ForestGrounds
+{
+    public static Dictionary<Cell, TerrainType> Of(AdventureMap map) => MountainGrounds.Under(map, TerrainType.Forest);
 }

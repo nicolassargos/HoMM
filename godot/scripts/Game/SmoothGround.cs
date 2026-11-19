@@ -108,12 +108,14 @@ public partial class SmoothGround : ColorRect
     /// </summary>
     public static SmoothGround? Create(AdventureMap map)
     {
-        // les forêts ont un sol d'herbe, les montagnes celui qui les entoure (leur décor est dessiné à part)
+        // les forêts et les montagnes ont le sol qui les entoure (leur décor est dessiné à part)
         var mountainGrounds = MountainGrounds.Of(map);
+        var forestGrounds = ForestGrounds.Of(map);
         var ground = Create(map.Width, map.Height, cell =>
         {
             var terrain = map.GetTerrain(cell);
             var under = terrain == TerrainType.Mountain ? mountainGrounds.GetValueOrDefault(cell, TerrainType.Grass)
+                : terrain == TerrainType.Forest ? forestGrounds.GetValueOrDefault(cell, TerrainType.Grass)
                 : DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
             return (under, map.GetRoadKind(cell), map.GetRiver(cell));
         });

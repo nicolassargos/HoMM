@@ -310,6 +310,34 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     `art-candidats/references/style-carte-epeiste.png`), un dessin plus doux et lisible.
   - Pour rendre une créature moins impressionnante (le niveau 4) : un équipement modeste, un cheval ordinaire, un
     visage jeune, sans moustaches.
+- **Leçons du Loup, du Moine et du Troll** (2026-11-19) :
+  - **Vérifier le sens** : une image fixe peut regarder vers la gauche (le Moine de trois quarts) ; l'utilisateur l'a vu
+    au combat (« il ne fait pas face à son ennemi »). `miroir` dans la fiche retourne la grande image (image fixe et
+    départs des animations) ; l'attente et la marche se retournent sans dépense, mais une attaque tendue vers l'avant
+    est à refaire depuis l'image retournée.
+  - **Un lanceur de sorts** : l'attaque montre seulement le geste (lever le bâton, le pointer vers la droite et le
+    tenir) ; « no light, no glow » et le jeu dessine le sort (`projectile`). PixelLab ajoute quand même des éclairs :
+    remplacer ces images par la pose tendue (`--copier`), qui devient la pose tenue pendant que le sort part.
+  - **Une gueule fermée** (un loup moins agressif) : une image de départ gueule fermée (retouchée par `pixellab.py
+    retoucher`) et « its mouth stays fully closed the whole time » ; même ainsi, garder le cycle exact de la marche,
+    les dernières images rouvraient la gueule.
+  - **Un saut sur l'ennemi** : « crouches low, then springs forward in one long leap through the air, all four paws off
+    the ground… lands far ahead, then walks backward to its starting place », dans un cadre large.
+  - **Une grande créature de face qui marche** (le Troll) : sans consigne, ses pieds s'écartent ; « the feet always stay
+    the same distance apart and never spread wide », pieds posés « under its hip ».
+  - **Les taches que `retoucher` ne voit pas** (un vert vif proche de la peau, un anneau gris) : à la main, dans un
+    rectangle autour, effacer ce qui sort de la silhouette d'une image propre voisine (élargie d'un pixel) et les
+    couleurs vives ; ne toucher que les images tachées et seulement au-dessus des épaules, sinon un bras qui dépasse
+    est coupé (l'utilisateur l'a vu).
+  - **Une mort sort du cadre** quand la créature tombe plus bas que ses pieds (face contre terre) : la refaire avec de
+    la place sous les pieds (`marge_bas` 0,12 à 0,15 dans la fiche, le temps de la génération). Vérifier la dernière
+    rangée des images brutes (des pixels opaques sur toute une largeur : coupé).
+  - **Une mort lente et lourde** (le Troll) : 16 images (`--images=16`, environ trois fois le prix de 8) et des étapes
+    qui s'enchaînent : « sways, takes one heavy stumbling step backward, its knees bend and it sits down hard, then its
+    upper body slowly falls back… each stage flows into the next ». Basculer d'un bloc en arrière n'est « pas
+    naturel » (l'utilisateur) ; s'effondrer en avant « like a falling rock » non plus.
+  - **Le second modèle refuse 6 images** (coups reçus) : multiples de 4 seulement ; un coup reçu en 8 images marche
+    aussi (le Loup, le Moine).
 - **Leçons des Nains** (2026-11-16) :
   - **Pas de clichés** (choix de l'utilisateur) : chaque créature a sa silhouette, son âge, son visage, des traits
     exagérés (« a grotesque caricature in the style of a fantasy board game miniature, exaggerated features ») ; une

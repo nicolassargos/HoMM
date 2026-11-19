@@ -65,7 +65,7 @@
         136
       ],
       "style": "godot/art/creatures/battle/squelette.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [],
       "comparer": [
         "archer",
@@ -99,8 +99,8 @@
         104,
         120
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/chevalier-reference.png::subject reference only (armor, flail, shield), not the style and not the camera angle"
       ],
@@ -134,8 +134,8 @@
         104,
         120
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/fantome-reference.png::concept reference only (veiled ghost bride in a long flowing gown): simplify it a lot, do not copy its camera angle or its realistic modern style"
       ],
@@ -172,8 +172,8 @@
         104,
         120
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [],
       "comparer": [
         "chevalier",
@@ -211,45 +211,106 @@
     "moine": {
       "nom": "Moine",
       "gabarit": "humain",
-      "description": "a monk in a brown hooded robe holding a staff topped with a glowing orb",
-      "sujet": "a monk in a brown hooded robe holding a staff topped with a glowing orb",
+      "description": "a fat jolly friar standing: very round belly, rosy cheeks and a big red nose, a calm kind face with a gentle closed-mouth smile and a serious dignified look, steady wise eyes, a shaved tonsure with a ring of grey hair, a brown wool habit tied with a knotted rope belt, a small royal blue stole with golden fleurs-de-lis around his neck, sandals on big bare feet, holding a tall wooden staff topped with a golden sun-shaped holy symbol, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "a fat calm friar with a tonsure, a red nose, a brown habit with a rope belt and a blue stole, holding a wooden staff topped with a plain golden sun symbol, facing right",
       "hauteur": 70,
       "comparer": [
         "archer",
-        "paysan"
+        "chevalier"
       ],
       "mouvements": {
-        "attack": "the monk leans forward and stretches his arm, pointing the glowing orb of his staff at the enemy, then steps back to rest; nothing is thrown"
+        "idle": "the friar stands calmly, breathes slowly, his round belly rises and falls, he shifts his hand a little on the staff, the feet stay in place",
+        "move": "the fat friar walks forward to the right with slow steady steps, leaning on his staff, his robe swaying",
+        "attack": "the friar calmly lifts his staff and points its golden sun forward, holds it a moment, then lowers it back to his starting pose; nothing is thrown"
       },
       "grande": "art-candidats/references/derives/moine-grand.png",
       "choix": {
-        "idle": "idle-2",
-        "attack": "attack-5-propre",
-        "move": "move-1",
-        "death": "death-1",
-        "hit": "hit-1"
+        "idle": "idle-4m",
+        "attack": "attack-7-r",
+        "move": "move-4m",
+        "fixe": "L13-1",
+        "death": "death-8-r",
+        "hit": "hit-4"
       },
-      "notes": "Image d'origine gardée (modèle de style). La boule de feu sera un effet du jeu : l'attaque ne lance rien."
+      "notes": "Image d'origine gardée (modèle de style). La boule de feu sera un effet du jeu : l'attaque ne lance rien. Refonte (2026-11-17, choix de l'utilisateur) : deux idées, le frère jovial (premiers lots) et le moine guerrier (suivants). L'ancienne image, modèle de style, est gardée dans tools/art/modeles/moine.png. Choix (2026-11-17) : le frère jovial aux joues rouges (L2) ; le bâton luit un peu (L5 et suivants, d'après L2-1 ; l'image d'angle du Troll rendait la peau verte en L1). Puis (2026-11-17) : un peu plus sérieux, toujours aimable (L9 et suivants, d'après L8-3). Le bâton ne luit plus (2026-11-18, l'utilisateur : L13-1 = L10-4 retouché) ; c'est un lanceur de sorts : le jeu dessine une boule de lumière partie du bâton. Il regardait vers la gauche : « miroir » (2026-11-19) ; attaque refaite depuis l'image retournée.",
+      "generation": [
+        104,
+        120
+      ],
+      "style": "tools/art/modeles/moine.png",
+      "references": [
+        "art-candidats/references/moine-l8-3.png::the chosen character: keep this fat friar, his round belly, rosy cheeks, red nose, tonsure, brown habit, rope belt, blue stole and his staff with the softly glowing golden holy symbol; make his expression calmer and more serious but still kind, not laughing"
+      ],
+      "lots": {
+        "L1": "angle seul",
+        "L2": "angle seul",
+        "L3": "angle seul",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "références",
+        "L7": "références",
+        "L8": "références",
+        "L9": "références",
+        "L10": "références",
+        "L11": "références",
+        "L12": "références"
+      },
+      "consignes": {
+        "idle": "the friar stands calmly and breathes slowly, his round belly rises and falls, his head nods very slightly, the staff stays still, the feet stay in place",
+        "move": "the fat friar walks forward to the right in side view with short steady steps, his sandalled feet clearly alternating under his robe, his body rocking gently, the staff moving with each step, he keeps facing right and does not turn",
+        "attack": "the friar faces right and casts a spell: he lifts his staff high, then thrusts its top firmly forward to the right at arm's length and holds it pointed there for a moment, then brings it back to his starting pose; he keeps facing right; only his body and the staff move",
+        "death": "is mortally wounded: he drops his staff, sinks down to his knees and falls face down onto the ground, lying motionless at the end; no effects, no blood, no other character",
+        "hit": "flinches strongly away to the left: he jerks his head and shoulders back, his round belly wobbles, he takes a stumbling half step backward to the left with his arms pulled in, then steps back to exactly his starting pose; stays on the same spot, nothing else in the picture"
+      },
+      "miroir": true
     },
     "loup": {
       "nom": "Loup",
       "gabarit": "quadrupede",
-      "description": "a dark grey wolf, snarling",
-      "sujet": "a dark grey wolf, side view facing right, snarling",
+      "description": "a lean dark grey wolf standing on its four legs, snarling with bared white fangs, ears back, bristling fur on its neck and back, yellow eyes, a bushy tail, idle standing pose, side view",
+      "sujet": "a lean dark grey snarling wolf standing, side view, facing right",
       "hauteur": 51,
       "comparer": [
-        "gobelin",
-        "archer"
+        "archer",
+        "gobelin"
       ],
       "grande": "art-candidats/references/derives/loup-grand.png",
       "choix": {
-        "idle": "idle-2",
-        "attack": "attack-2",
-        "move": "move-2",
-        "death": "death-1",
-        "hit": "hit-3"
+        "idle": "idle-4",
+        "attack": "attack-4",
+        "move": "move-4-cycle",
+        "fixe": "L1-4",
+        "death": "death-4-n",
+        "hit": "hit-4"
       },
-      "notes": "Image d'origine gardée (modèle de style)."
+      "notes": "Image d'origine gardée (modèle de style). Refonte (2026-11-17, choix de l'utilisateur) : le même loup, redessiné ; l'ancienne image est gardée dans tools/art/modeles/loup.png.",
+      "generation": [
+        104,
+        72
+      ],
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/loup.png",
+      "references": [
+        "tools/art/modeles/loup.png::the same wolf: keep exactly this design, its dark grey fur, snarling head, proportions and pose; only redraw it cleaner and more detailed"
+      ],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul"
+      },
+      "mouvements": {
+        "idle": "the wolf stands still, breathes, turns its head slightly and its tail moves a little, the paws stay in place",
+        "move": "the wolf trots forward to the right with a natural wolf gait, its four legs moving one after another, the back level",
+        "attack": "the wolf lunges forward and snaps its jaws, then steps back to its starting pose"
+      },
+      "consignes": {
+        "idle": "the wolf stands alert: it pricks up its ears, slowly turns its head to look around, sniffs the air, then licks its muzzle once while its bushy tail sways; the paws stay in place",
+        "move": "the wolf trots steadily forward to the right with a natural wolf gait, its mouth stays fully closed the whole time, its four legs moving one after another, the back level, the head steady",
+        "attack": "the wolf crouches low on its hind legs, then springs forward in one long leap through the air to the right, all four paws off the ground, front legs stretched out and jaws open, it lands far ahead, then walks backward to its starting place",
+        "death": "is mortally wounded: it yelps, its legs buckle under it and it slumps down heavily onto its side, the head falling last, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches strongly away to the left: it ducks its head, pulls its ears back and hops backward to the left with its whole body, the front paws lifting a little, then steps back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      }
     },
     "zombie": {
       "nom": "Zombie",
@@ -261,8 +322,8 @@
         104,
         120
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/zombie-reference.jpg::concept reference only (bloated plague zombie): simplify it a lot, retro game sprite, do not copy its camera angle or its realistic modern style"
       ],
@@ -303,31 +364,84 @@
     "troll": {
       "nom": "Troll",
       "gabarit": "grand",
-      "description": "a huge hulking green troll with massive muscular arms and big fists, small head, hunched shoulders",
-      "sujet": "a huge hulking green troll with massive arms and big fists",
+      "description": "a colossal dark green forest troll, almost as wide as it is tall: enormous shoulders rising above the head, covered with grey embedded stones and long hanging moss and roots, rough bark-like hide, the head sunk deep between the shoulders and half lost in dark shadow under the hanging moss, two tiny amber eyes, a short shaggy black beard, very thick arms, a round belly, a dark red loincloth, short stumpy legs, no neck, no human features, no fangs, no tusks, no hood, no cloak, calm and impassive, standing still, a strange creature from an old bestiary, a caricature in the style of a fantasy board game miniature, full of character",
+      "sujet": "a colossal dark green mossy troll with stones in its huge shoulders, its sunken head in shadow, tiny amber eyes, a short black beard, a dark red loincloth, facing right",
       "hauteur": 96,
       "comparer": [
         "ogre",
         "archer"
       ],
       "mouvements": {
-        "idle": "the troll breathes slowly and heavily, its huge shoulders rise and fall, it flexes its big fingers, the feet stay in place",
-        "attack": "the troll raises both huge fists high above its head, then brings them down hard in front of it with all its weight, then straightens up to its starting pose",
-        "move": "the troll walks forward to the right with slow heavy stomping steps, its long arms swinging, its shoulders rolling",
+        "idle": "the troll breathes very slowly, its huge shoulders rise and fall, the long moss hanging over its head sways slightly, the feet stay in place",
+        "move": "the troll walks forward to the right with slow heavy steps, its long arms swinging a little, the moss swaying",
+        "attack": "the troll slowly raises one huge arm and brings it down heavily in front of it, then returns to its starting pose",
         "hit": "flinches away to the left: the huge body is knocked backward, the head snaps back and the torso leans back to the left, arms close to the body, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "grande": "art-candidats/references/derives/troll-grand.png",
-      "notes": "Image d'origine gardée (modèle de style). Il se régénère (capacité) : l'effet viendra du jeu.",
+      "notes": "Image d'origine gardée (modèle de style). Il se régénère (capacité) : l'effet viendra du jeu. Refonte (2026-11-17) : d'après la référence de l'utilisateur (Troll_2.png) ; l'ancienne image est gardée dans tools/art/modeles/troll.png. Choix (2026-11-17) : pas menaçant mais calme, une barbe courte (L5 et suivants, d'après L2-1). Puis (2026-11-17) : barbe sombre, visage neutre ; vert vif (L9, L10) et moussu (L11, L12), d'après L5-1. Puis : le visage trop humain (remarque de l'utilisateur) ; visage de troll (front fuyant, arcades lourdes, petits yeux, gros nez plat, mâchoire prognathe à petites défenses), vert (L13, L14) et moussu (L15, L16). Puis : toujours trop humain, pas de défenses (pas un orc) ; d'après L10-1, un visage de troll des contes : long nez tombant, petits yeux, grandes oreilles (L17 à L20). Puis (2026-11-18) : sortir des clichés, quatre idées sans référence : visage dans la poitrine (L21), museau d'élan (L22), paresseux géant (L23), tête en galet (L24). L21 jugé le plus proche de la référence : épaules plus hautes que la tête, sans cou, barbe noire en bloc (L25, L26) ; visage dans l'ombre (L27) ; tête de silure et de crapaud (L28). D'après L26-3, sans visage humain : un creux sombre avec deux yeux ambre et la barbe noire (L29, L30), un dôme avec les yeux juste au-dessus de la barbe (L31, L32). L25 et L27 plaisent : le corps de L25-2, le visage dans l'ombre d'une arcade de pierre (L33, L34) ; avec la mousse pendante de L27-3 (L35, L36). L36-4 et L35-1 plaisent : leur mélange (L37, L38), L36-4 affiné (L39), L35-1 affiné (L40). Choisi : L36-4 (2026-11-18).",
       "consignes": {
-        "attack": "the troll pulls one huge fist far back behind its shoulder, twisting its whole body, then throws a gigantic straight punch forward to the right with all its weight, its arm fully stretched, then slowly pulls back to its starting pose",
-        "idle": "the troll slowly lifts one huge hand and scratches the top of its head with its thick fingers, looking puzzled, then lowers the arm back down, the feet stay in place"
+        "attack": "the troll slowly lifts one huge arm high above its head, then swings it down in a heavy arc in front of it to the right until the fist is near the ground, holds a moment, then returns to its starting pose; the feet stay planted",
+        "idle": "the troll stands motionless and breathes very slowly: only its big chest and belly rise and fall and the moss over its head sways a little; arms, hands, legs and feet stay in place, it keeps exactly the same size and facing",
+        "move": "the huge troll walks in place with a slow heavy steady gait: it lifts its left foot a little, sets it down under its hip, then lifts its right foot and sets it down under its hip, the feet always stay the same distance apart and never spread wide; its massive body sways gently from side to side and its long arms swing a little; it keeps facing the same way, does not turn and keeps the same size",
+        "death": "is mortally wounded: the huge troll sways back, its legs give way so its hips drop down to the ground first, its heavy back then tips over backward to the left and it rolls onto its back, its long arms limp and following the fall, lying motionless at the end; a natural, heavy, gradual collapse; no effects, no blood, no dust, no other character",
+        "hit": "flinches away to the left: the huge body is knocked backward, the head snaps back and the torso leans back to the left, arms close to the body, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
-        "idle": "idle-3",
-        "attack": "attack-4",
-        "move": "move-1",
-        "death": "death-1",
-        "hit": "hit-5"
+        "idle": "idle-5",
+        "attack": "attack-5-n",
+        "move": "move-7",
+        "fixe": "L36-4",
+        "death": "death-13",
+        "hit": "hit-1-n"
+      },
+      "generation": [
+        128,
+        128
+      ],
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
+      "references": [],
+      "lots": {
+        "L1": "références",
+        "L2": "angle seul",
+        "L3": "références",
+        "L4": "angle seul",
+        "L5": "références",
+        "L6": "angle seul",
+        "L7": "références",
+        "L8": "angle seul",
+        "L9": "références",
+        "L10": "angle seul",
+        "L11": "références",
+        "L12": "angle seul",
+        "L13": "références",
+        "L14": "angle seul",
+        "L15": "références",
+        "L16": "angle seul",
+        "L17": "références",
+        "L18": "angle seul",
+        "L19": "références",
+        "L20": "angle seul",
+        "L21": "angle seul",
+        "L22": "angle seul",
+        "L23": "angle seul",
+        "L24": "angle seul",
+        "L25": "références",
+        "L26": "angle seul",
+        "L27": "références",
+        "L28": "angle seul",
+        "L29": "références",
+        "L30": "références",
+        "L31": "références",
+        "L32": "références",
+        "L33": "références",
+        "L34": "références",
+        "L35": "références",
+        "L36": "références",
+        "L37": "références",
+        "L38": "références",
+        "L39": "références",
+        "L40": "références"
       }
     },
     "ogre": {
@@ -396,8 +510,8 @@
         128,
         104
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/loup.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/loup.png",
       "references": [],
       "lots": {
         "L1": "angle seul",
@@ -447,7 +561,7 @@
         104,
         120
       ],
-      "style": "godot/art/creatures/battle/moine.png",
+      "style": "tools/art/modeles/moine.png",
       "references": [
         "art-candidats/en-cours/candidats/vampire/fixe/l4/3.png::pose, costume, cape and camera angle reference: keep this pose and this draped cape, but with empty hands and no glass",
         "art-candidats/en-cours/candidats/vampire/fixe/l6/3.png::face and hair reference only: the pale face with a widow's peak and long fangs"
@@ -471,7 +585,7 @@
         "L10": "pose de L4-3, visage de L6-3",
         "L11": "L4-3 retouché : sans verre, visage de vampire"
       },
-      "angle": "godot/art/creatures/battle/troll.png",
+      "angle": "tools/art/modeles/troll.png",
       "choix": {
         "fixe": "L11-1",
         "transform": "transform-1",
@@ -502,7 +616,7 @@
         104,
         120
       ],
-      "style": "godot/art/creatures/battle/moine.png",
+      "style": "tools/art/modeles/moine.png",
       "references": [
         "art-candidats/references/Lich.png::character reference only (hunched skeletal king, thin crown, layered tattered robes, long thin staff): make it darker, simplify it, do not copy its camera angle or its realistic style"
       ],
@@ -521,7 +635,7 @@
         "L6": "d'après L3-4, crâne plus grand",
         "L7": "texte seul, crâne plus grand"
       },
-      "angle": "godot/art/creatures/battle/troll.png",
+      "angle": "tools/art/modeles/troll.png",
       "choix": {
         "fixe": "L5-4",
         "idle": "idle-1",
@@ -550,8 +664,8 @@
         128,
         104
       ],
-      "style": "godot/art/creatures/battle/loup.png",
-      "angle": "godot/art/creatures/battle/loup.png",
+      "style": "tools/art/modeles/loup.png",
+      "angle": "tools/art/modeles/loup.png",
       "references": [],
       "comparer": [
         "loup",
@@ -594,8 +708,8 @@
         128,
         104
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/loup.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/loup.png",
       "references": [],
       "comparer": [
         "archer",
@@ -638,7 +752,7 @@
         128,
         104
       ],
-      "style": "godot/art/creatures/battle/moine.png",
+      "style": "tools/art/modeles/moine.png",
       "angle": "godot/art/creatures/battle/griffon.png",
       "references": [],
       "comparer": [
@@ -689,7 +803,7 @@
         88,
         96
       ],
-      "style": "godot/art/creatures/battle/moine.png",
+      "style": "tools/art/modeles/moine.png",
       "angle": "godot/art/creatures/battle/griffon.png",
       "references": [],
       "comparer": [
@@ -740,8 +854,8 @@
         104,
         120
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [],
       "comparer": [
         "troll",
@@ -827,8 +941,8 @@
         104,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [],
       "comparer": [
         "moine",
@@ -873,8 +987,8 @@
         96,
         104
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/squelette-actuel.png::the same creature: keep exactly its design, colors, proportions, clothes and pose, redraw it bigger with more detail; do not copy its small size or its blurry pixels"
       ],
@@ -919,7 +1033,7 @@
         128,
         104
       ],
-      "style": "godot/art/creatures/battle/loup.png",
+      "style": "tools/art/modeles/loup.png",
       "angle": "godot/art/creatures/battle/griffon.png",
       "references": [],
       "comparer": [
@@ -964,8 +1078,8 @@
         104,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [],
       "comparer": [
         "archer",
@@ -1011,7 +1125,7 @@
         128,
         128
       ],
-      "style": "godot/art/creatures/battle/loup.png",
+      "style": "tools/art/modeles/loup.png",
       "angle": "godot/art/creatures/battle/griffon.png",
       "references": [],
       "comparer": [
@@ -1056,7 +1170,7 @@
         144,
         160
       ],
-      "style": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/treant-L5-1-coupe.png::the same walking tree: keep exactly its design, colours, trunk, roots, arms and blossoms, but draw its whole large rounded crown of leaves fully visible above it (in this reference the top of the crown is cut off), leave empty space around it"
       ],
@@ -1110,8 +1224,8 @@
         104,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/druid1.png::style and costume reference (classic 1990s strategy game druid: brown pointed hood, brown robe, red belt, white beard): keep this look, but draw it bigger and more detailed, do not copy its exact pose",
         "art-candidats/references/druid2.png::concept reference only (old hooded druid, a gnarled pale staff with an owl perched on it): keep the owl on the staff, ignore its grey colours, its realistic modern style and its grey checkered background"
@@ -1163,8 +1277,8 @@
         88,
         96
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "gobelin",
         "archer"
@@ -1218,7 +1332,7 @@
         104,
         104
       ],
-      "style": "godot/art/creatures/battle/moine.png",
+      "style": "tools/art/modeles/moine.png",
       "angle": "godot/art/creatures/battle/griffon.png",
       "comparer": [
         "gnome",
@@ -1270,8 +1384,8 @@
         112,
         128
       ],
-      "style": "godot/art/creatures/battle/troll.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/troll.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "troll",
         "archer"
@@ -1322,8 +1436,8 @@
         128,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "golem-pierre",
         "archer"
@@ -1375,7 +1489,7 @@
         128,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
+      "style": "tools/art/modeles/moine.png",
       "angle": "godot/art/creatures/battle/griffon.png",
       "comparer": [
         "naga",
@@ -1426,8 +1540,8 @@
         112,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "djinn",
         "archer"
@@ -1471,8 +1585,8 @@
         120,
         136
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "mage",
         "behemoth"
@@ -1525,8 +1639,8 @@
         104,
         104
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "gnome",
         "archer"
@@ -1571,8 +1685,8 @@
         104
       ],
       "marge_bas": 0.06,
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "homme-lezard",
         "archer"
@@ -1620,8 +1734,8 @@
         128
       ],
       "marge_bas": 0.06,
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "homme-grenouille",
         "archer"
@@ -1666,8 +1780,8 @@
         128
       ],
       "marge_bas": 0.06,
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "minotaure",
         "archer"
@@ -1711,8 +1825,8 @@
         128
       ],
       "marge_bas": 0.06,
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "aberration",
         "archer"
@@ -1758,7 +1872,7 @@
         128,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
+      "style": "tools/art/modeles/moine.png",
       "angle": "godot/art/creatures/battle/griffon.png",
       "comparer": [
         "ver-des-profondeurs",
@@ -1807,8 +1921,8 @@
         160,
         136
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "geant",
         "archer"
@@ -1849,8 +1963,8 @@
         128,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "mage",
         "archer"
@@ -1895,8 +2009,8 @@
         160,
         160
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "geant",
         "archer"
@@ -1946,8 +2060,8 @@
         96,
         96
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "succube",
         "archer"
@@ -1992,8 +2106,8 @@
         104,
         120
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "diablotin",
         "archer"
@@ -2033,8 +2147,8 @@
         128,
         104
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "cultiste",
         "minotaure"
@@ -2075,8 +2189,8 @@
         128,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "succube",
         "demon"
@@ -2120,8 +2234,8 @@
         128,
         128
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "tourmenteur",
         "demon"
@@ -2164,8 +2278,8 @@
         104,
         120
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "comparer": [
         "archer",
         "cultiste"
@@ -2213,8 +2327,8 @@
       "notes": "Nains, niveau 2 : le tireur ; ses carreaux percent la défense. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
       "description": "a short pot-bellied bald dwarf crossbowman: a huge bulbous red nose, one eye squinting shut and the other magnified by a big brass monocle, ginger mutton-chop whiskers and no beard on the chin, a few warts, a patched green wool coat and a leather belt straining over his belly, an oversized heavy crossbow with a brass sighting tube, held at the shoulder and aimed forward, a quiver of bolts at the hip, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
       "sujet": "a bald pot-bellied dwarf with a big red nose, a brass monocle and ginger whiskers, aiming an oversized crossbow, facing right",
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
       ],
@@ -2257,8 +2371,8 @@
       "notes": "Nains, niveau 3 : la cavalerie de montagne, la seule troupe rapide ; pied sûr (comme la monture du héros nain). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants). Troisième passage (2026-11-16) : la même allure que L8-1, debout et immobile (L9 et suivants).",
       "description": "a wiry wild dwarf sitting on a huge ugly shaggy black-and-white mountain goat that stands still: the goat stands calmly on all four hooves planted on the ground, legs straight, not jumping, not running; it has one broken horn and one long twisted horn, a scruffy beard, mad yellow eyes with slit pupils, its tongue hanging out, iron bells on its collar; the dwarf sits upright, skinny for a dwarf, wild white hair sticking up, blue war paint, a gap-toothed grin, a long blond beard in two braids, a fur vest, a short throwing axe resting on his shoulder, riding bareback with a rope bridle, idle standing pose, side view, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
       "sujet": "a wild grinning dwarf with white hair and blue war paint sitting on a huge shaggy black-and-white goat standing still on four hooves, idle pose, side view, facing right",
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/derives/chevaucheur-chevre-L8-1.png::look reference (the same rider and goat, chosen design): keep exactly this dwarf and this goat, their colours and the pixel art rendering; but the goat now stands still on all four hooves, not leaping"
       ],
@@ -2305,8 +2419,8 @@
       "notes": "Nains, niveau 4 : la bannière des ancêtres (aura de défense) ; l'étendard rouge du héros nain. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
       "description": "an ancient hunched tiny dwarf standard-bearer: very old and wrinkled, a huge warty nose, bushy white eyebrows hiding his eyes, an enormous white beard so long it is wrapped around his waist and tucked in his belt, a grey hooded robe with bronze clasps, prayer beads of carved runestones; he carries a tall pole topped by a big carved stone head of a dwarf ancestor with glowing blue eyes, a long faded red banner with gold runes hanging below it, leaning on the pole as a walking stick, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
       "sujet": "an ancient hunched dwarf with a huge white beard wrapped around his waist, carrying a pole topped by a carved stone ancestor head and a red banner, facing right",
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
       ],
@@ -2350,8 +2464,8 @@
       "notes": "Nains, niveau 5 : le feu de près (le jeu dessine la flamme). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
       "description": "a very fat dwarf flamethrower with burn scars: his beard is burnt off to a short black frizzy stubble, no eyebrows, a bald soot-covered head, a crazy wide grin with missing teeth, round dark welding goggles, a heavy fireproof leather apron and huge padded gloves, two dented copper fuel tanks strapped on his back with leaking pipes, holding a long copper flame lance pointing forward with a tiny blue pilot flame, no fire, no big flame, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
       "sujet": "a very fat bald dwarf with a burnt frizzy beard, welding goggles and a crazy grin, two copper tanks on his back, holding a copper flame lance, no fire, facing right",
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
       ],
@@ -2377,8 +2491,8 @@
       "notes": "Nains, niveau 6 : la machine volante (façonnée) ; elle lâche une bombe. Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants). Quatrième passage (2026-11-16, idée de l'utilisateur) : un nain aux ailes de cuir, de bois et de métal, debout au repos, qui s'envole pour se déplacer et lâche ses bombes (L13 et suivants).",
       "description": "a reckless dwarf inventor standing on the ground with home-made mechanical wings on his back: two big bat-like wings of patched brown leather stretched over wooden ribs, joined by iron hinges, springs and brass gears, half folded behind him, strapped on with a leather harness; the dwarf is short and round, an enormous bushy orange beard tucked into the harness, buck teeth, a crazy eager grin, one eye bigger than the other behind cracked aviator goggles, a dented cooking pot as a helmet, bandages and plasters all over from past crashes, one arm in a sling made of rope, a bandolier of round black bombs across his chest and a bomb held in his free hand, unlit, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd and funny, full of character",
       "sujet": "a bandaged dwarf inventor with a huge orange beard, cracked goggles and a pot helmet, home-made bat wings of leather, wood and iron on his back, a bandolier of bombs, standing, facing right",
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new machine and characters are completely different"
       ],
@@ -2430,8 +2544,8 @@
       "notes": "Nains, niveau 7 : le canon à vapeur (tire, façonné ; plus tard la Forteresse ambulante). Nains : d'après le Porte-bouclier L7-4, le héros nain de la carte et le croquis de l'utilisateur (2026-11-16). Deuxième passage (2026-11-16) : plus varié et grotesque, à la demande de l'utilisateur (L5 et suivants).",
       "description": "a dwarven steam war machine shaped like a giant angry dwarf head: a squat round iron and bronze furnace on thick iron wheels, its front is a huge scowling bronze dwarf face with a riveted iron beard, the big cannon barrel comes out of its open mouth, its eyes glow orange with fire, a tall chimney with black smoke on top of its helmet; a small dwarf stoker with a soot-black face shovels coal at the back, side view, massive, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
       "sujet": "a dwarven steam war machine shaped like a giant scowling bronze dwarf head on iron wheels, a cannon coming out of its mouth, glowing eyes, a smoking chimney, side view, facing right",
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
       ],
@@ -2457,8 +2571,8 @@
       "notes": "Nains, niveau 5 : creuse sous le champ, ressort à côté d'un ennemi et frappe le premier. Nains : nouvelle créature (choix de l'utilisateur, 2026-11-16), id provisoire en attendant la session règles.",
       "description": "a hunched dwarf sapper who has lived underground too long, like a mole: tiny squinting pink eyes almost blind, a huge pale bulbous nose, very long arms with enormous dirty hands and long black nails, a beard caked with mud, pebbles and a few earthworms, a dented miner's helmet with a lit candle-lantern on top, patched leather clothes grey with dust, knee pads, a huge iron pick held in both hands, a coil of rope and small sacks on his belt, a toothless grin, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, absurd, full of character",
       "sujet": "a hunched mole-like dwarf miner with tiny eyes, a huge pale nose, a muddy beard and a lantern helmet, holding a big iron pick, facing right",
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
       ],
@@ -2497,8 +2611,8 @@
       "notes": "Nains, niveau 7 (→ Roi des ancêtres, la couronne de cristal qui luit) : renvoie les sorts néfastes ; l'obstination de toute l'armée. Nains : nouvelle créature (choix de l'utilisateur, 2026-11-16), id provisoire en attendant la session règles. Deuxième passage (2026-11-16) : plus fantomatique, à la demande de l'utilisateur (L5 et suivants).",
       "description": "the ghost of a colossal ancient dwarf king bound to crystal, woken from a thousand years under the mountain: his huge stooped body is pale and luminous, ghostly white-blue and slightly see-through like a spirit, glowing softly from inside, wisps of pale mist trailing from his robe and his long beard, his beard and one arm grown into clear pale blue crystal, crystal shards jutting from his shoulders and his old faded bronze armour, hollow glowing white eyes, a tarnished ancient crown, holding a giant warhammer with a head of raw glowing crystal, eerie, cold and terrifying, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
       "sujet": "the pale glowing ghost of a colossal ancient dwarf king, mist trailing from his beard and robe, crystal shards on his old armour, hollow glowing eyes, holding a giant crystal warhammer, facing right",
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/troll.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/troll.png",
       "references": [
         "art-candidats/references/derives/porte-bouclier-grand.png::pixel art rendering reference only (a dwarf of the same army): keep the same pixel art rendering, outline and earthy palette; the new character has a completely different face, body shape, hair and gear"
       ],
@@ -2538,8 +2652,8 @@
         160,
         136
       ],
-      "style": "godot/art/creatures/battle/moine.png",
-      "angle": "godot/art/creatures/battle/loup.png",
+      "style": "tools/art/modeles/moine.png",
+      "angle": "tools/art/modeles/loup.png",
       "references": [
         "art-candidats/references/cavalier-l20-3.png::the chosen character: keep exactly this rider, his face, helmet, mail, blue surcoat with the fleur-de-lis, the lance with its blue and gold pennant, the chestnut horse with its steel face and neck plates and blue rump cloth, and the pose; draw it larger, filling the frame"
       ],

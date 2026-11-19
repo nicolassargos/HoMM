@@ -82,8 +82,9 @@ pirates).
   léger, plus petit ; charge), le **Chevalier à pied** prend le niveau 6 (armure de plaques, grand bouclier : résiste
   aux tirs et protège les tireurs à côté de lui), l'Épéiste disparaît ; le Griffon garde ses règles. ✅ Les données et
   les images (branche `chateau-refonte`) : l'Archer en braconnier osseux, un Griffon de guerre maigre et plus petit, le
-  Cavalier en jeune sergent à cheval, la taille des Nomades ; le Chevalier garde son image de combat. Le Moine reste
-  tel quel pour l'instant.
+  Cavalier en jeune sergent à cheval, la taille des Nomades ; le Chevalier garde son image de combat. ✅ Le **Moine**
+  redessiné en frère jovial, lanceur de sorts (une boule de lumière part de son bâton), avec le **Loup** et le **Troll**
+  (branche `creatures-loup-moine-troll`, 2026-11-19 ; détail dans `HISTORIQUE.md`).
 - **Noms** : l'Hydre améliorée ; les habitations de l'Enfer, si l'utilisateur le souhaite.
 - **Règles (session règles)** : le **Démon se téléporte** (toute case libre à sa portée, sans voler ; l'animation est
   prête) et sa cible **brûle** quelques tours (à comparer d'abord avec l'aura du Moloch) ; l'**attaque du Géant**
@@ -186,9 +187,8 @@ nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles 
 **Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.
 ✅ Un **coup reçu** par créature (2026-11-17), revu et choisi avec l'utilisateur (le Dragon, l'Hydre et le Démon par le
 second modèle de PixelLab ; « encore à finir » pour le Dragon et l'Hydre, selon lui).
-✅ La mort et le coup reçu de l'Archer, du Griffon et du Cavalier (2026-11-19, branche `morts-chateau`).
-**Reste** : ceux du **Loup**, du **Moine** et du **Troll** à refaire quand leurs nouvelles images seront prêtes (en
-cours sur une autre branche : les feuilles actuelles viennent des anciennes images).
+✅ La mort et le coup reçu de l'Archer, du Griffon et du Cavalier (2026-11-19, branche `morts-chateau`) ; ceux du
+**Loup**, du **Moine** et du **Troll** refaits d'après leurs nouvelles images (2026-11-19).
 
 ### Les héros en images
 ✅ Le héros de chaque faction sur la carte (8 directions, une marche), leurs pieds revus.

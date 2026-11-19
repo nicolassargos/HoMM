@@ -115,7 +115,7 @@ def cmd_fixe(ident, lots=4, graine=0):
     donnees = charger()
     f, g = fiche(donnees, ident)
     description = g["debut"] + f["description"] + g["fin"]
-    style = f.get("style", BATAILLE + "/moine.png")
+    style = f.get("style", "tools/art/modeles/moine.png")
     angle = f"{f['angle']}::{g['usage_angle']}" if f.get("angle") else None
     refs = f.get("references", [])
     largeur, hauteur = f.get("generation", [104, 120])

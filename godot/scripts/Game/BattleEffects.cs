@@ -247,6 +247,7 @@ public sealed class BattleEffects
     private static double Speed(string kind) => kind switch
     {
         "boule-feu" => 1100,
+        "boule-lumiere" => 1100,
         "boule-poison" => 1500,
         "hache" => 1200,
         "feuilles" => 1000,
@@ -263,6 +264,7 @@ public sealed class BattleEffects
     {
         "fleche" => "piqure",
         "boule-feu" => "feu",
+        "boule-lumiere" => "lumiere",
         "eclair" => "eclair",
         "rayon" => "rayon",
         "boule-poison" => "poison",
@@ -663,6 +665,21 @@ public sealed class BattleEffects
                 Blob(canvas, here, 1, new Color(1, 0.85f + 0.15f * pulse, 0.45f));
                 break;
             }
+            case "boule-lumiere":
+            {
+                // le sort du Moine : une boule de lumière blanche et dorée qui palpite, des grains clairs qui s'éteignent derrière elle
+                float glow = 0.5f + 0.5f * MathF.Sin((float)p.Age * 30);
+                for (int k = 1; k <= 6; k++)
+                {
+                    float back = Math.Max(0, t - k * 0.035f);
+                    var c = new Color(1, 0.93f, 0.65f, 0.9f - k * 0.13f);
+                    Blob(canvas, At(back) + new Vector2(0, ((k * 37) % 5 - 2) * U * 0.6f), k < 3 ? 1 : 0, c);
+                }
+                Blob(canvas, here, 4, new Color(1, 0.8f, 0.35f, 0.75f));
+                Blob(canvas, here, 3, new Color(1, 0.93f, 0.6f));
+                Blob(canvas, here, 1, new Color(1, 1, 0.85f + 0.15f * glow));
+                break;
+            }
             case "feuilles":
             {
                 // le sort du Druide : un tourbillon de feuilles vertes qui tourne sur lui-même, et des feuilles qui
@@ -1030,6 +1047,7 @@ public sealed class BattleEffects
             // un éclat bref et discret : quelques grains qui jaillissent puis tombent et s'éteignent
             "piqure" => (5, new[] { new Color(1, 1, 0.9f), new Color(0.6f, 0.45f, 0.3f) }, 7f, 1),
             "feu" => (9, new[] { new Color(1, 0.85f, 0.4f), new Color(1, 0.5f, 0.1f), new Color(0.6f, 0.2f, 0.1f) }, 9f, 2),
+            "lumiere" => (9, new[] { new Color(1, 1, 0.9f), new Color(1, 0.88f, 0.5f), new Color(0.9f, 0.68f, 0.3f) }, 9f, 2),
             "morsure" => (6, new[] { new Color(0.85f, 0.15f, 0.15f), new Color(1, 0.9f, 0.85f) }, 6f, 1),
             "poison" => (9, new[] { new Color(0.6f, 0.95f, 0.35f), new Color(0.3f, 0.6f, 0.2f) }, 8f, 1),
             "feuilles" => (12, new[] { new Color(0.55f, 0.85f, 0.3f), new Color(0.3f, 0.6f, 0.2f), new Color(0.8f, 0.9f, 0.35f) }, 10f, 1),

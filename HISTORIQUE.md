@@ -2815,6 +2815,13 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   s'affaisse, la tête du marteau du Roi de cristal (essai écarté : le relever recourbait le manche ; refait avec de la
   place sous les pieds), la fin du Béhémoth (une suite animée depuis sa dernière image, collée). Méthode :
   `tools/art/METHODE.md`.
+  ✅ **La mort et le coup reçu de l'Archer, du Griffon et du Cavalier** (2026-11-19, branche `morts-chateau`, leurs
+  nouvelles images du Château) : trois morts différentes et deux coups reçus chacun, une page de choix, tout choisi au
+  premier tour. L'Archer s'effondre face contre terre (les trois essais tombaient en avant, même celui demandé en
+  arrière), le Griffon se cabre et s'affaisse, le cavalier du Cavalier tombe de selle puis le cheval s'écroule à côté.
+  Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
+  de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
+  worktree (non suivi par git).
   ✅ **Un coup reçu par créature** (2026-11-17, même branche, demandé par l'utilisateur avant de juger les morts) : une
   troupe touchée qui survit (coup, tir, sort, poison, brûlure, foudre, nuage) et qui attendait joue sa feuille
   `<id>-hit.png` une fois (6 images à 12 images/s), puis revient à l'attente (`BattleFieldView.Hurt`) ; l'éclair blanc

@@ -186,9 +186,9 @@ nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles 
 **Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.
 ✅ Un **coup reçu** par créature (2026-11-17), revu et choisi avec l'utilisateur (le Dragon, l'Hydre et le Démon par le
 second modèle de PixelLab ; « encore à finir » pour le Dragon et l'Hydre, selon lui).
-**Reste** : la mort et le coup reçu de l'**Archer**, du **Griffon** (refaits avec le Château) et du **Cavalier** ; ceux
-du **Loup**, du **Moine** et du **Troll** à refaire quand leurs nouvelles images seront prêtes (en cours sur une autre
-branche : les feuilles actuelles viennent des anciennes images).
+✅ La mort et le coup reçu de l'Archer, du Griffon et du Cavalier (2026-11-19, branche `morts-chateau`).
+**Reste** : ceux du **Loup**, du **Moine** et du **Troll** à refaire quand leurs nouvelles images seront prêtes (en
+cours sur une autre branche : les feuilles actuelles viennent des anciennes images).
 
 ### Les héros en images
 ✅ Le héros de chaque faction sur la carte (8 directions, une marche), leurs pieds revus.

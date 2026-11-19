@@ -358,6 +358,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     cadre), dont on colle deux images à la fin en retirant deux images presque pareilles du début (le Béhémoth, dont
     les bras restaient levés). Un objet coupé au bas du cadre ne se répare pas à la main (le marteau du Roi de
     cristal : le manche relevé se voit) : refaire l'essai avec de la place sous les pieds.
+  - **Dans un worktree, vérifier d'abord la grande image** (`grande` de la fiche) : `art-candidats/` n'est pas suivi
+    par git, chaque worktree a sa copie, parfois d'avant une refonte (l'Archer et le Griffon du Château, 2026-11-19 :
+    tout un lot animé depuis les anciennes créatures). La comparer à celle du dossier principal, ou à l'image fixe en
+    jeu, avant de dépenser.
   - Revue : une page par tour, l'essai actuel et deux nouveaux par créature, les essais commentés du tour d'avant à
     côté ; environ 20 % refaits à chaque tour.
 - **Les coups reçus** (2026-11-17) : animés directement (modèle v3), **avec retour** à l'image de départ, **6 images**

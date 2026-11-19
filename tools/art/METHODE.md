@@ -324,6 +324,27 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   rubble » (le Golem reste debout, ou une fente blanche s'ouvre) : le faire **basculer** (« topples forward and falls
   face down ») ; des taches blanches (poussière) sur la Gargouille : une autre graine. Les os qui se défont (Squelette,
   Colosse d'os), la lave qui refroidit (Limon), l'arbre qui bascule (Tréant) marchent bien.
+  **Des morts variées** (2026-11-19, revues avec l'utilisateur) : la même consigne fait tomber tout le monde en avant ;
+  l'utilisateur veut de la variété (en arrière, sur le côté, un dernier geste) et une mort propre aux créatures qui s'y
+  prêtent. Ce qui marche :
+  - **Aucune interdiction dans la consigne** : « no fire », « no flash », « no light » font **naître** le feu, l'éclair
+    ou la lueur. Décrire seulement ce qu'on veut voir, et finir par « no other character ».
+  - **En arrière** : « falls backward to the left, away from the direction it faces » (sans « to the left », PixelLab
+    le fait souvent tomber en avant). Un geste avant la chute aide : s'asseoir lourdement, rugir les bras levés, tourner
+    sur soi, se serrer la gorge.
+  - **Ce qui se défait** (os, pierres, bronze, robe vide, marteau qui tombe) : de la place sous les pieds pendant
+    l'essai (`marge_bas` 0,14 provisoire), puis remonter ce qui descend sous les pieds de départ ; sinon un morceau qui
+    tombe est coupé en bas. Nommer chaque morceau et dire qu'il reste visible au sol (« the horned bull head drops in
+    front, fully visible »). Encore difficile : le Moloch défait jusqu'aux jambes, le Golem vraiment pierre à pierre ;
+    « crumble », « dissolve » restent peu sûrs.
+  - **Une mort presque bonne se finit à la main**, sans nouvel essai : une fin recolorée (le Démon : un corps calciné
+    écrasé vers le sol, puis le tas recoloré en cendre grise) ; une robe restée debout écrasée vers le sol image après
+    image ; ou **une suite animée depuis la dernière grande image** (`--depart=<dossier de l'essai>/9.png`, même
+    cadre), dont on colle deux images à la fin en retirant deux images presque pareilles du début (le Béhémoth, dont
+    les bras restaient levés). Un objet coupé au bas du cadre ne se répare pas à la main (le marteau du Roi de
+    cristal : le manche relevé se voit) : refaire l'essai avec de la place sous les pieds.
+  - Revue : une page par tour, l'essai actuel et deux nouveaux par créature, les essais commentés du tour d'avant à
+    côté ; environ 20 % refaits à chaque tour.
 - **Les coups reçus** (2026-11-17) : animés directement (modèle v3), **avec retour** à l'image de départ, **6 images**
   (joués à 12 images/s : une demi-seconde), même cadre que la mort ; environ 0,016 $ l'essai. **Ne jamais parler du coup
   ni de la douleur** (« is struck by a blow », « recoils in pain ») : PixelLab dessine alors une étincelle ou un éclair

@@ -180,8 +180,9 @@ la zone ; les créatures du Donjon en gardiens.
 ✅ Fait : combat à ×2, effets dessinés par le jeu, animations des sorts, les options du combat, choisir le côté de
 l'attaque, les champs de l'herbe, du désert et du marais (2026-11-16), les obstacles plutôt au milieu du champ, des
 nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles (2026-11-17).
-✅ Une **animation de mort** par créature (2026-11-17, un essai chacune pour commencer : choix de l'utilisateur) ; **à
-revoir avec lui** (page `art-candidats/en-cours/morts.html` : garder ou refaire), peut-être en tombant en arrière.
+✅ Une **animation de mort** par créature (2026-11-17), revue avec l'utilisateur et **variée** (2026-11-19, branche
+`morts-variees` : en arrière, sur le côté, une mort propre au Démon, à la Liche, au Roi de cristal, au Golem…).
+**Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.
 ✅ Un **coup reçu** par créature (2026-11-17), revu et choisi avec l'utilisateur (le Dragon, l'Hydre et le Démon par le
 second modèle de PixelLab ; « encore à finir » pour le Dragon et l'Hydre, selon lui).
 **Reste** : la mort et le coup reçu de l'**Archer**, du **Griffon** (refaits avec le Château) et du **Cavalier** ; ceux

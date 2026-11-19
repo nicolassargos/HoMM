@@ -146,7 +146,7 @@ dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent da
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
 - **Les sols** : d'autres sols viendront, et peut-être des thèmes de cartes (la répartition se réglera alors) ; le sol
-  des factions encore sur l'herbe, à décider ; un champ de bataille pour la roche, la terre brûlée et la neige
+  des factions encore sur l'herbe, à décider ; un champ de bataille pour la roche et la terre brûlée
   (celui du désert en attendant) ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
@@ -180,7 +180,8 @@ la zone ; les créatures du Donjon en gardiens.
 ### Le combat
 ✅ Fait : combat à ×2, effets dessinés par le jeu, animations des sorts, les options du combat, choisir le côté de
 l'attaque, les champs de l'herbe, du désert et du marais (2026-11-16), les obstacles plutôt au milieu du champ, des
-nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles (2026-11-17).
+nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles (2026-11-17), le champ de la neige
+(2026-11-19).
 ✅ Une **animation de mort** par créature (2026-11-17), revue avec l'utilisateur et **variée** (2026-11-19, branche
 `morts-variees` : en arrière, sur le côté, une mort propre au Démon, à la Liche, au Roi de cristal, au Golem…).
 **Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.

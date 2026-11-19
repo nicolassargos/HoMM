@@ -192,9 +192,12 @@ second modèle de PixelLab ; « encore à finir » pour le Dragon et l'Hydre, se
 
 ### Les héros en images
 ✅ Le héros de chaque faction sur la carte (8 directions, une marche), leurs pieds revus.
-**Reste** : refaire le sud-est du chef barbare et du Seigneur des abîmes (tournés vers le sud) ; **une image de combat
-par héros**, sur le côté du champ, qui ressemble à son portrait (PixelLab, le portrait comme référence), à cheval ou
-non, plus tard ses animations ; cadres des portraits, bandeau de la date.
+✅ **Une image de combat par héros** (2026-11-19, branche `heros-combat`) : sur le côté du champ, à cheval sur la
+monture de sa faction, d'après son portrait (`tools/art/heros_combat.py`) ; faite pour un héros par faction (Sire
+Roland, Mortimer, Tarka, Sylvain, Maître Aldric, Zarkhan, Malachar, Brokk), choisie par l'utilisateur au premier tour.
+**Reste** : les **39 autres héros** (environ 4,50 $ : à l'accord de l'utilisateur ; sans image, un héros garde celle de
+la carte) ; plus tard ses animations ; refaire le sud-est du chef barbare et du Seigneur des abîmes (tournés vers le
+sud) ; cadres des portraits, bandeau de la date.
 
 ### L'interface
 ✅ Fait : les tailles communes (`Ui.cs`) et la police Pixel Operator, des icônes sur les boutons du combat et du

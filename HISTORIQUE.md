@@ -2848,6 +2848,14 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
   de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
   worktree (non suivi par git).
+  ✅ **Les héros au combat** (2026-11-19, branche `heros-combat`) : le combat montrait l'image de la carte du héros
+  (48 px, ×2). Désormais `MapRenderer.HeroBattleImage` prend `heroes/battle/<nom>.png` s'il existe (sinon l'image de la
+  carte), aux couleurs du joueur comme sur la carte (`PaintPlayerColor`, commun aux deux) ; celui qui se défend, à
+  droite, est retourné. Images : `tools/art/heros_combat.py`, un lot « Pro » de 4 (160 × 144, 0,12 $) par héros, à
+  cheval sur la monture de l'image de la carte de sa faction (le bélier des Nains, le cheval aux flammes de l'Enfer),
+  tourné vers la droite, à la taille du Cavalier (environ 125 px, l'étendard compris). Un héros par faction d'abord :
+  tous choisis au premier tour par l'utilisateur, 0,93 $. Méphis écarté pour l'Enfer (sa peau rouge prendrait la
+  couleur du joueur).
   ✅ **Un coup reçu par créature** (2026-11-17, même branche, demandé par l'utilisateur avant de juger les morts) : une
   troupe touchée qui survit (coup, tir, sort, poison, brûlure, foudre, nuage) et qui attendait joue sa feuille
   `<id>-hit.png` une fois (6 images à 12 images/s), puis revient à l'attente (`BattleFieldView.Hurt`) ; l'éclair blanc

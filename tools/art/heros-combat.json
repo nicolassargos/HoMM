@@ -1,0 +1,10 @@
+{
+ "sire-roland": {"description": "a broad-shouldered knight with long auburn hair and a full auburn beard, bare-headed, in polished steel plate armour and a royal blue surcoat, riding a white horse covered by a long blue caparison", "choix": "l1-1"},
+ "mortimer": {"description": "a skeletal necromancer with a grinning skull face and a long ragged grey beard, in a tattered black hooded robe, riding a gaunt black horse with a pale bony face and a dark purple saddle cloth", "choix": "l1-2"},
+ "tarka-la-balafree": {"description": "a fierce green-skinned orc warrior woman with a scarred face and a tall black topknot, in fur and leather armour with a purple sash, riding a sturdy brown horse with a shaggy fur saddle", "choix": "l1-3"},
+ "sylvain-le-druide": {"description": "an old druid with a long grey-green beard and a crown of twigs, in a brown and moss-green hooded robe, riding a brown horse with a green saddle cloth", "choix": "l1-4"},
+ "maitre-aldric": {"description": "an old wizard with a long white beard and a tall pointed blue hat with small stars, in a blue robe, riding a white horse with a blue and silver caparison", "choix": "l1-4"},
+ "zarkhan": {"description": "a demonic warlock in black spiked armour with a horned black helmet and glowing orange eyes, riding a black horse whose mane and tail are orange flames", "choix": "l1-1"},
+ "malachar": {"description": "a massive bald purple-skinned warlord with a heavy brow, in a black fur-trimmed cloak over dark purple armour, riding a black horse with a purple saddle cloth", "choix": "l1-3"},
+ "brokk-marteau-noir": {"description": "a stout bald dwarf with a huge braided black beard, in brown leather and steel armour, a black war hammer on his back, riding a big grey ram with large curled horns", "choix": "l1-3"}
+}

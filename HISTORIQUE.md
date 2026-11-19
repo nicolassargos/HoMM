@@ -966,6 +966,32 @@ Griffon 14, Cavalier 25, Moine 61, Chevalier 93, Ange 1597.
 - Le galop des **Nomades** ralenti à 8 images/s (au lieu de 16) et une image en double retirée (11 images) : les
   jambes allaient trop vite pour la vitesse du déplacement (remarque de l'utilisateur).
 
+**Le Loup, le Moine et le Troll redessinés** (2026-11-17 au 19, branche `creatures-loup-moine-troll`, PixelLab, environ
+6 $ ; choix de l'utilisateur à chaque étape). Les anciennes images servent de modèles de style ou d'angle, gardées dans
+`tools/art/modeles/` (le modèle de style par défaut de `creature.py`).
+- **Loup** : le même loup, redessiné (L1-4). Attente idle-4 (il regarde autour de lui, se lèche le museau) ; marche
+  move-4 gueule fermée (« trop agressif » gueule ouverte), coupée à son cycle exact (images 2 à 8 : 7 images, 8 images/s,
+  0,4 s par case ; la fin de l'essai avait un trait lumineux) ; attaque attack-4 : il s'accroupit et **bondit sur
+  l'ennemi**. Mort death-4 (il se cabre et retombe sur le flanc ; sang effacé), coup reçu hit-4 (il se cabre en
+  arrière).
+- **Moine** : un **frère gros et jovial aux joues rouges**, plus sérieux mais aimable (L13-1, d'après L10-4, sans le
+  bâton qui luisait) ; c'est un **lanceur de sorts** : le jeu dessine une **boule de lumière** blanche et dorée qui part
+  du haut de son bâton (`boule-lumiere`, impact `lumiere` dans `BattleEffects` ; `launchFrame` 2, `launchPoint`
+  [142, 42]). L'image générée regardait vers la gauche (remarque de l'utilisateur : il ne fait pas face à l'ennemi) :
+  `miroir` dans sa fiche, l'attente et la marche retournées, l'attaque refaite depuis l'image retournée. Attente idle-4,
+  marche move-4 (les pieds se voient), attaque attack-7 (il pointe le bâton ; deux éclairs remplacés par la pose
+  tendue) ; mort death-8 (il tombe à genoux puis face contre terre ; refaite avec de la place sous les pieds : la
+  première sortait du cadre), coup reçu hit-4.
+- **Troll** : longue recherche (40 lots) d'après la référence de l'utilisateur (`Troll_2.png`) : calme, pas menaçant,
+  barbe courte et sombre, visage neutre, **pas humain, pas de défenses (pas un orc), hors des clichés**. Refusés :
+  les visages humains, le nez tombant des contes ; essayés : visage dans la poitrine, museau d'élan, paresseux géant,
+  tête en galet. Gardé : L36-4, **le visage dans l'ombre d'une capuche de mousse pendante**, un dos de pierres
+  moussues, épaules plus hautes que la tête. Attente idle-5, marche move-7 (pieds sous les hanches, jamais écartés),
+  attaque attack-5 (le bras levé puis abattu ; la tache verte et l'anneau autour du poing effacés à la main) ; coup
+  reçu hit-1 (traits jaunes effacés au-dessus des épaules) ; mort death-13, **lente** (16 images) : il vacille,
+  s'assoit lourdement, puis bascule sur le dos.
+- **Images de la carte** (32 px) : Loup p1-4, Moine p1-2, Troll p1-1 ; pieds revus par l'utilisateur.
+
 #### Les Nains
 Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Heroes 3 ni Heroes 5 (choix de l'utilisateur).
 - **Philosophie : les halls de la montagne.** Des artisans têtus qui gravent des runes et bâtissent des machines.

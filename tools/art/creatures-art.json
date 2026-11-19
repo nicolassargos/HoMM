@@ -216,8 +216,8 @@
         "attack": "attack-7-r",
         "move": "move-4m",
         "fixe": "L13-1",
-        "death": "death-1",
-        "hit": "hit-1"
+        "death": "death-8-r",
+        "hit": "hit-4"
       },
       "notes": "Image d'origine gardée (modèle de style). La boule de feu sera un effet du jeu : l'attaque ne lance rien. Refonte (2026-11-17, choix de l'utilisateur) : deux idées, le frère jovial (premiers lots) et le moine guerrier (suivants). L'ancienne image, modèle de style, est gardée dans tools/art/modeles/moine.png. Refonte (2026-11-17, choix de l'utilisateur) : deux idées, le frère jovial (premiers lots) et le moine guerrier (suivants). L'ancienne image, modèle de style, est gardée dans tools/art/modeles/moine.png. Refonte (2026-11-17, choix de l'utilisateur) : deux idées, le frère jovial (premiers lots) et le moine guerrier (suivants). L'ancienne image, modèle de style, est gardée dans tools/art/modeles/moine.png. Choix (2026-11-17) : le frère jovial aux joues rouges (L2) ; le bâton luit un peu (L5 et suivants, d'après L2-1 ; l'image d'angle du Troll rendait la peau verte en L1). Puis (2026-11-17) : un peu plus sérieux, toujours aimable (L9 et suivants, d'après L8-3). Le bâton ne luit plus (2026-11-18, l'utilisateur : L13-1 = L10-4 retouché) ; c'est un lanceur de sorts : le jeu dessine une boule de lumière partie du bâton.",
       "generation": [
@@ -245,7 +245,9 @@
       "consignes": {
         "idle": "the friar stands calmly and breathes slowly, his round belly rises and falls, his head nods very slightly, the staff stays still, the feet stay in place",
         "move": "the fat friar walks forward to the right in side view with short steady steps, his sandalled feet clearly alternating under his robe, his body rocking gently, the staff moving with each step, he keeps facing right and does not turn",
-        "attack": "the friar faces right and casts a spell: he lifts his staff high, then thrusts its top firmly forward to the right at arm's length and holds it pointed there for a moment, then brings it back to his starting pose; he keeps facing right; only his body and the staff move"
+        "attack": "the friar faces right and casts a spell: he lifts his staff high, then thrusts its top firmly forward to the right at arm's length and holds it pointed there for a moment, then brings it back to his starting pose; he keeps facing right; only his body and the staff move",
+        "death": "is mortally wounded: he drops his staff, sinks down to his knees and falls face down onto the ground, lying motionless at the end; no effects, no blood, no other character",
+        "hit": "flinches strongly away to the left: he jerks his head and shoulders back, his round belly wobbles, he takes a stumbling half step backward to the left with his arms pulled in, then steps back to exactly his starting pose; stays on the same spot, nothing else in the picture"
       },
       "miroir": true
     },
@@ -265,8 +267,8 @@
         "attack": "attack-4",
         "move": "move-4-cycle",
         "fixe": "L1-4",
-        "death": "death-1",
-        "hit": "hit-3"
+        "death": "death-4-n",
+        "hit": "hit-4"
       },
       "notes": "Image d'origine gardée (modèle de style). Refonte (2026-11-17, choix de l'utilisateur) : le même loup, redessiné ; l'ancienne image est gardée dans tools/art/modeles/loup.png.",
       "generation": [
@@ -292,7 +294,9 @@
       "consignes": {
         "idle": "the wolf stands alert: it pricks up its ears, slowly turns its head to look around, sniffs the air, then licks its muzzle once while its bushy tail sways; the paws stay in place",
         "move": "the wolf trots steadily forward to the right with a natural wolf gait, its mouth stays fully closed the whole time, its four legs moving one after another, the back level, the head steady",
-        "attack": "the wolf crouches low on its hind legs, then springs forward in one long leap through the air to the right, all four paws off the ground, front legs stretched out and jaws open, it lands far ahead, then walks backward to its starting place"
+        "attack": "the wolf crouches low on its hind legs, then springs forward in one long leap through the air to the right, all four paws off the ground, front legs stretched out and jaws open, it lands far ahead, then walks backward to its starting place",
+        "death": "is mortally wounded: it yelps, its legs buckle under it and it slumps down heavily onto its side, the head falling last, lying motionless on the ground at the end; no effects, no blood, no other character",
+        "hit": "flinches strongly away to the left: it ducks its head, pulls its ears back and hops backward to the left with its whole body, the front paws lifting a little, then steps back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "zombie": {
@@ -364,15 +368,17 @@
       "consignes": {
         "attack": "the troll slowly lifts one huge arm high above its head, then swings it down in a heavy arc in front of it to the right until the fist is near the ground, holds a moment, then returns to its starting pose; the feet stay planted",
         "idle": "the troll stands motionless and breathes very slowly: only its big chest and belly rise and fall and the moss over its head sways a little; arms, hands, legs and feet stay in place, it keeps exactly the same size and facing",
-        "move": "the huge troll walks in place with a slow heavy steady gait: it lifts its left foot a little, sets it down under its hip, then lifts its right foot and sets it down under its hip, the feet always stay the same distance apart and never spread wide; its massive body sways gently from side to side and its long arms swing a little; it keeps facing the same way, does not turn and keeps the same size"
+        "move": "the huge troll walks in place with a slow heavy steady gait: it lifts its left foot a little, sets it down under its hip, then lifts its right foot and sets it down under its hip, the feet always stay the same distance apart and never spread wide; its massive body sways gently from side to side and its long arms swing a little; it keeps facing the same way, does not turn and keeps the same size",
+        "death": "is mortally wounded: the huge troll sways back, its legs give way so its hips drop down to the ground first, its heavy back then tips over backward to the left and it rolls onto its back, its long arms limp and following the fall, lying motionless at the end; a natural, heavy, gradual collapse; no effects, no blood, no dust, no other character",
+        "hit": "flinches away to the left: the huge body is knocked backward, the head snaps back and the torso leans back to the left, arms close to the body, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
         "idle": "idle-5",
         "attack": "attack-5-n",
         "move": "move-7",
         "fixe": "L36-4",
-        "death": "death-1",
-        "hit": "hit-5"
+        "death": "death-13",
+        "hit": "hit-1-n"
       },
       "generation": [
         128,

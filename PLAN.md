@@ -142,12 +142,12 @@ une option, une ville au plus par zone, une scierie et une mine de minerai gard�
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
-dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18).
+dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour (2026-11-19).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
 - **Les sols** : d'autres sols viendront, et peut-être des thèmes de cartes (la répartition se réglera alors) ; le sol
-  des factions encore sur l'herbe, à décider ; un champ de bataille pour la roche et la terre brûlée
-  (celui du désert en attendant) ; des arbres du désert, du marais, de la roche et de la terre brûlée (les forêts y restent vertes) ;
+  des factions encore sur l'herbe, à décider ; un champ de bataille pour la roche, la terre brûlée et la neige
+  (celui du désert en attendant) ; des arbres du désert, du marais, de la roche, de la terre brûlée et de la neige (les forêts y restent vertes) ;
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).

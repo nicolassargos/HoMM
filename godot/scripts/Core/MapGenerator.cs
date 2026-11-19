@@ -1968,7 +1968,7 @@ public sealed class MapGenerator
     }
 
     /// <summary>Les sols que peut prendre une zone, en plus de l'herbe.</summary>
-    private static readonly TerrainType[] ZoneGrounds = { TerrainType.Sand, TerrainType.Swamp, TerrainType.Rock, TerrainType.Burnt };
+    private static readonly TerrainType[] ZoneGrounds = { TerrainType.Sand, TerrainType.Swamp, TerrainType.Rock, TerrainType.Burnt, TerrainType.Snow };
 
     /// <summary>La part des zones de terre (hors départs) dont le sol n'est pas de l'herbe.</summary>
     public double ZoneGroundShare { get; init; } = 0.35;

@@ -2752,6 +2752,17 @@ choix de l'utilisateur) :
   médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
   six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
   55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
+- ✅ **La neige** (2026-11-19, branche `sol-neige`) : `TerrainType.Snow`, le sol de la Tour (comme dans Heroes 3), coût 150
+  comme dans Heroes 3 ; une zone qui change de sol en tire un parmi cinq. Mesuré dans les cartes de référence : la neige
+  sur 35 cartes de Heroes 3 sur 50 (12 % de la terre, médiane) et 19 de Heroes 2 (19 %), en peu de grandes taches. Les
+  deux cases sont celles du sable, recolorées en blanc bleuté de faible contraste (rien à payer). Le shader ajoute des
+  congères rondes (`snow_*`) : une ombre bleutée du côté abrité, une crête un peu plus claire, quelques pixels qui
+  scintillent. Écartés par l'utilisateur : de longues congères en bandes (des nuages), une neige presque lisse. Les
+  combats y prennent le champ du désert en attendant le leur. Mesuré (cartes normales, médianes) : herbe 74 %, roche 11 %, terre brûlée 8 %, neige 7 %, sable
+  6 %, marais 6 % de la terre.
+  Armée d'un adversaire après six semaines : moyenne 54 600 (53 700 avant) ; Tour 45 600 → 48 500 ; les
+  autres bougent beaucoup (Forêt 70 000, Enfer 48 100, Château 42 000) : un sol de plus change le tirage des zones de
+  chaque carte, donc les cartes mesurées.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

@@ -86,6 +86,8 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   fissure qui se lit comme telle n'est pas un bord de plaques (trop lisse : des brindilles) : c'est un trait en zigzag,
   avec des branches, noir, large au milieu et fin aux bouts, le feu seulement au fond de sa partie large ; des tailles
   très inégales, regroupées par régions. Une animation lente et décalée d'une fissure à l'autre reste discrète.
+  Neige (2026-11-19) : les cases du sable recolorées en blanc bleuté, de faible contraste. Les congères étirées en
+  longues bandes font des nuages : des congères rondes, l'ombre bleutée d'un seul côté.
 - Portraits : 64 × 64, style « retro », des visages marqués plutôt qu'idéalisés, trouvés d'après le nom du héros.
   28 portraits de plus (2026-11-07, 5,58 $ : 3 candidats chacun, 3 refaits) : barbares, chevaliers, sorciers, mages,
   gens des bois, morts-vivants, démons. Ce qui marche : décrire un détail qui se voit (cicatrice, cache-œil,

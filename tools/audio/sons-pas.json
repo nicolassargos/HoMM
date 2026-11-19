@@ -1,0 +1,361 @@
+{
+  "_": "Les pas au combat (tools/audio/pas.py) : une façon de marcher (« marches ») par sol (« sols ») ; l'id d'un son est « <marche>-<sol> », son nom dans le jeu « step-<id> ». « cadence » : le temps entre deux pas, en secondes. Les créatures de chaque marche sont dans godot/data/sounds.json (« gaits ») ; les volants n'ont pas de pas. Descriptions en anglais (« no music, no voice » est ajouté à la demande).",
+  "marches": {
+    "feet": {
+      "nom": "À pied",
+      "cadence": 0.24,
+      "qui": "Paysan, Archer, Moine, Squelette, Gobelin, Orc, Mage, les Nains, Pirate…",
+      "texte": "four footsteps of a soldier in leather boots walking at a steady pace {sol}, close, dry, each step clearly separate, short pause between steps"
+    },
+    "heavy": {
+      "nom": "Lourd",
+      "cadence": 0.42,
+      "qui": "Ogre, Béhémoth, Troll, Tréant, Golem de pierre, Géant, Minotaure, Colosse d'os, Moloch, Roi de cristal…",
+      "texte": "four heavy slow footsteps of a big troll walking barefoot {sol}, each one a single solid low thud, no rumble, no echo, short silence between steps"
+    },
+    "hooves": {
+      "nom": "Sabots",
+      "cadence": 0.16,
+      "qui": "Cavalier, Nomades, Cerf, Sanglier, Chevaucheur de chèvre",
+      "texte": "a horse trotting {sol}, distinct hoofbeats, close, dry, each hoofbeat clearly separate"
+    },
+    "paws": {
+      "nom": "Pattes",
+      "cadence": 0.15,
+      "qui": "Loup, Araignée",
+      "texte": "a large wolf running {sol}, light quick paw steps with claws, close, each step clearly separate"
+    },
+    "crawl": {
+      "nom": "Rampants",
+      "cadence": 0.35,
+      "qui": "Naga, Hydre ; Limon de magma",
+      "texte": ""
+    }
+  },
+  "sols": {
+    "grass": {
+      "nom": "Herbe",
+      "texte": "on short grass and soft earth"
+    },
+    "sand": {
+      "nom": "Sable",
+      "texte": "on dry loose desert sand"
+    },
+    "swamp": {
+      "nom": "Marais",
+      "texte": "in wet mud and shallow puddles, squelchy small splashes"
+    },
+    "rock": {
+      "nom": "Roche",
+      "texte": "on hard bare rock and stone"
+    },
+    "snow": {
+      "nom": "Neige",
+      "texte": "in fresh crunchy snow"
+    },
+    "burnt": {
+      "nom": "Sol brûlé",
+      "texte": "on burnt ground of ash, cinders and charred gravel, dry crunch"
+    }
+  },
+  "sons": [
+    {
+      "id": "feet-grass",
+      "marche": "feet",
+      "sol": "grass",
+      "libres": [
+        {
+          "source": "kenney",
+          "archive": "kenney_impact-sounds.zip",
+          "page": "https://kenney.nl/assets/impact-sounds",
+          "auteur": "Kenney (www.kenney.nl)",
+          "licence": "CC0",
+          "fichiers": [
+            "Audio/footstep_grass_000.ogg",
+            "Audio/footstep_grass_001.ogg",
+            "Audio/footstep_grass_002.ogg",
+            "Audio/footstep_grass_003.ogg",
+            "Audio/footstep_grass_004.ogg"
+          ]
+        },
+        {
+          "source": "opengameart",
+          "url": "https://opengameart.org/sites/default/files/footsteps_0.zip",
+          "page": "https://opengameart.org/content/footsteps-on-different-surfaces",
+          "auteur": "congusbongus, d'après « footstep-grass.wav » de swuing (freesound)",
+          "fichiers": [
+            "footsteps/grass/0.ogg",
+            "footsteps/grass/1.ogg",
+            "footsteps/grass/2.ogg",
+            "footsteps/grass/3.ogg",
+            "footsteps/grass/4.ogg",
+            "footsteps/grass/5.ogg",
+            "footsteps/grass/6.ogg",
+            "footsteps/grass/7.ogg",
+            "footsteps/grass/8.ogg"
+          ],
+          "licence": "CC-BY 3.0"
+        }
+      ],
+      "texte": "four footsteps of a soldier in leather boots walking on a grassy meadow, soft swish of grass and muffled earth under each step, close, dry, each step clearly separate, short pause between steps"
+    },
+    {
+      "id": "feet-sand",
+      "marche": "feet",
+      "sol": "sand"
+    },
+    {
+      "id": "feet-swamp",
+      "marche": "feet",
+      "sol": "swamp",
+      "libres": [
+        {
+          "source": "opengameart",
+          "url": "https://opengameart.org/sites/default/files/footsteps_0.zip",
+          "page": "https://opengameart.org/content/footsteps-on-different-surfaces",
+          "auteur": "congusbongus, d'après « Water Footsteps » d'EminYILDIRIM et swuing (freesound)",
+          "fichiers": [
+            "footsteps/water/0.ogg",
+            "footsteps/water/1.ogg",
+            "footsteps/water/2.ogg",
+            "footsteps/water/3.ogg",
+            "footsteps/water/4.ogg"
+          ],
+          "licence": "CC-BY 3.0"
+        }
+      ]
+    },
+    {
+      "id": "feet-rock",
+      "marche": "feet",
+      "sol": "rock",
+      "libres": [
+        {
+          "source": "kenney",
+          "archive": "kenney_impact-sounds.zip",
+          "page": "https://kenney.nl/assets/impact-sounds",
+          "auteur": "Kenney (www.kenney.nl)",
+          "licence": "CC0",
+          "fichiers": [
+            "Audio/footstep_concrete_000.ogg",
+            "Audio/footstep_concrete_001.ogg",
+            "Audio/footstep_concrete_002.ogg",
+            "Audio/footstep_concrete_003.ogg",
+            "Audio/footstep_concrete_004.ogg"
+          ]
+        },
+        {
+          "source": "opengameart",
+          "url": "https://opengameart.org/sites/default/files/footsteps_0.zip",
+          "page": "https://opengameart.org/content/footsteps-on-different-surfaces",
+          "auteur": "congusbongus, d'après « footstep-concrete.wav » de swuing (freesound)",
+          "fichiers": [
+            "footsteps/boots/0.ogg",
+            "footsteps/boots/1.ogg",
+            "footsteps/boots/2.ogg",
+            "footsteps/boots/3.ogg",
+            "footsteps/boots/4.ogg",
+            "footsteps/boots/5.ogg",
+            "footsteps/boots/6.ogg",
+            "footsteps/boots/7.ogg",
+            "footsteps/boots/8.ogg"
+          ],
+          "licence": "CC-BY 3.0"
+        }
+      ]
+    },
+    {
+      "id": "feet-snow",
+      "marche": "feet",
+      "sol": "snow",
+      "libres": [
+        {
+          "source": "kenney",
+          "archive": "kenney_impact-sounds.zip",
+          "page": "https://kenney.nl/assets/impact-sounds",
+          "auteur": "Kenney (www.kenney.nl)",
+          "licence": "CC0",
+          "fichiers": [
+            "Audio/footstep_snow_000.ogg",
+            "Audio/footstep_snow_001.ogg",
+            "Audio/footstep_snow_002.ogg",
+            "Audio/footstep_snow_003.ogg",
+            "Audio/footstep_snow_004.ogg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "feet-burnt",
+      "marche": "feet",
+      "sol": "burnt",
+      "libres": [
+        {
+          "source": "opengameart",
+          "url": "https://opengameart.org/sites/default/files/footsteps_0.zip",
+          "page": "https://opengameart.org/content/footsteps-on-different-surfaces",
+          "auteur": "congusbongus, d'après « Gravel Footsteps » d'Ali_6868 (freesound)",
+          "fichiers": [
+            "footsteps/gravel/0.ogg",
+            "footsteps/gravel/1.ogg",
+            "footsteps/gravel/2.ogg",
+            "footsteps/gravel/3.ogg",
+            "footsteps/gravel/4.ogg",
+            "footsteps/gravel/5.ogg",
+            "footsteps/gravel/6.ogg",
+            "footsteps/gravel/7.ogg",
+            "footsteps/gravel/8.ogg",
+            "footsteps/gravel/9.ogg"
+          ],
+          "licence": "CC0"
+        }
+      ],
+      "texte": "four footsteps of a soldier in leather boots walking on burnt black ash and brittle charred cinders, a soft dry crunch under each step, close, each step clearly separate, short pause between steps"
+    },
+    {
+      "id": "heavy-grass",
+      "marche": "heavy",
+      "sol": "grass",
+      "duree": 3.0,
+      "libres": [
+        {
+          "source": "kenney",
+          "archive": "kenney_impact-sounds.zip",
+          "page": "https://kenney.nl/assets/impact-sounds",
+          "auteur": "Kenney (www.kenney.nl)",
+          "licence": "CC0",
+          "fichiers": [
+            "Audio/impactSoft_heavy_000.ogg",
+            "Audio/impactSoft_heavy_001.ogg",
+            "Audio/impactSoft_heavy_002.ogg",
+            "Audio/impactSoft_heavy_003.ogg",
+            "Audio/impactSoft_heavy_004.ogg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heavy-sand",
+      "marche": "heavy",
+      "sol": "sand",
+      "duree": 3.0
+    },
+    {
+      "id": "heavy-swamp",
+      "marche": "heavy",
+      "sol": "swamp",
+      "duree": 3.0
+    },
+    {
+      "id": "heavy-rock",
+      "marche": "heavy",
+      "sol": "rock",
+      "duree": 3.0
+    },
+    {
+      "id": "heavy-snow",
+      "marche": "heavy",
+      "sol": "snow",
+      "duree": 3.0
+    },
+    {
+      "id": "heavy-burnt",
+      "marche": "heavy",
+      "sol": "burnt",
+      "duree": 3.0
+    },
+    {
+      "id": "hooves-grass",
+      "marche": "hooves",
+      "sol": "grass"
+    },
+    {
+      "id": "hooves-sand",
+      "marche": "hooves",
+      "sol": "sand"
+    },
+    {
+      "id": "hooves-swamp",
+      "marche": "hooves",
+      "sol": "swamp"
+    },
+    {
+      "id": "hooves-rock",
+      "marche": "hooves",
+      "sol": "rock",
+      "texte": "a horse walking on hard stone, clear clip-clop of iron horseshoes on rock, close, dry, each hoofbeat clearly separate"
+    },
+    {
+      "id": "hooves-snow",
+      "marche": "hooves",
+      "sol": "snow"
+    },
+    {
+      "id": "hooves-burnt",
+      "marche": "hooves",
+      "sol": "burnt",
+      "texte": "a horse walking on burnt ground of ash and charred gravel, dull hoofbeats with a dry crunch, close, each hoofbeat clearly separate"
+    },
+    {
+      "id": "paws-grass",
+      "marche": "paws",
+      "sol": "grass",
+      "libres": [
+        {
+          "source": "opengameart",
+          "url": "https://opengameart.org/sites/default/files/footsteps_0.zip",
+          "page": "https://opengameart.org/content/footsteps-on-different-surfaces",
+          "auteur": "congusbongus, d'après « Wolf run.wav » de sabotovat (freesound)",
+          "fichiers": [
+            "footsteps/dog/0.ogg",
+            "footsteps/dog/1.ogg",
+            "footsteps/dog/2.ogg",
+            "footsteps/dog/3.ogg",
+            "footsteps/dog/4.ogg",
+            "footsteps/dog/5.ogg",
+            "footsteps/dog/6.ogg",
+            "footsteps/dog/7.ogg"
+          ],
+          "licence": "CC-BY 3.0"
+        }
+      ]
+    },
+    {
+      "id": "paws-sand",
+      "marche": "paws",
+      "sol": "sand"
+    },
+    {
+      "id": "paws-swamp",
+      "marche": "paws",
+      "sol": "swamp"
+    },
+    {
+      "id": "paws-rock",
+      "marche": "paws",
+      "sol": "rock"
+    },
+    {
+      "id": "paws-snow",
+      "marche": "paws",
+      "sol": "snow"
+    },
+    {
+      "id": "paws-burnt",
+      "marche": "paws",
+      "sol": "burnt"
+    },
+    {
+      "id": "crawl",
+      "marche": "crawl",
+      "nom": "Ramper (tous les sols)",
+      "texte": "a large scaly serpent body slithering forward over the ground in short pushes: scaly scrape and drag, each push clearly separate"
+    },
+    {
+      "id": "slime",
+      "marche": "crawl",
+      "nom": "Limon de magma (tous les sols)",
+      "texte": "a small blob of hot thick slime hopping forward: a short wet squelchy plop for each hop, with a faint sizzle, close, each plop clearly separate"
+    }
+  ]
+}

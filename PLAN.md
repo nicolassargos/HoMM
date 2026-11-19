@@ -245,13 +245,16 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   dans `tools/audio/musiques-villes.json`) : les huit choisies (Nains : Five Armies ; Forêt : Mist Forest, peut-être
   à revoir avec l'image de sa ville, The Pilgrimage aussi candidate) ; ✅ la **musique de la carte** (2026-11-19,
   branche `musiques-carte`) : une par terrain autour du héros (`AdventureMap.MusicTerrain` ; herbe World Map, désert
-  Myst, marais Crystal Meadow, roche Crusade, neige Mevalian Winter, mer trois pistes qui alternent ; le sol brûlé
-  attend la sienne, Forging Flames proposée), celle du **menu** (Alandriel's Theme) et
+  Myst, marais Crystal Meadow, roche Crusade, neige Mevalian Winter, sol brûlé Forging Flames, mer trois pistes qui
+  alternent), celle du **menu** (Alandriel's Theme) et
   trois musiques de combat qui alternent (Determined Pursuit, Heroic Age, Heated Lands). Idées de l'utilisateur :
   « Death Is Just Another Path » pour l'écran de défaite ; « King's Feast » lui plaît (taverne ?) ; un **second
   désert** au thème arabe (Ibn Al-Noor, Desert City gardées) ; Forging Flames aussi pour les combats sur le sol
-  brûlé. **Reste** : les autres sorts, la carte, l'interface, les **pas au
-  combat**, les **ambiances** du combat et de la carte, de courts airs, puis la musique chez Stable Audio.
+  brûlé ; ✅ les **pas au combat** (2026-11-19, branche `sons-pas`, ElevenLabs, `tools/audio/pas.py` : une courte
+  marche coupée en pas seuls, revue en « marchant » sur la page) : cinq façons de marcher (à pied, lourd, sabots,
+  pattes, rampant ; le Limon de magma à part) sur six sols, au rythme de l'animation de marche ; rien pour les volants,
+  le Cerf qui saute et les fouisseurs (les ailes plus tard ?). **Reste** : les autres sorts, la carte, l'interface,
+  les **ambiances** du combat et de la carte, de courts airs, puis la musique chez Stable Audio.
 
 ## Étape 11 : multijoueur (à concevoir)
 Idée de l'utilisateur (2026-11-17). Les règles s'y prêtent déjà : plusieurs joueurs dans `GameState`, un brouillard

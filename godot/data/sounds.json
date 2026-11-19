@@ -57,6 +57,9 @@
     ],
     "map-snow": [
       "musique/carte-snow.mp3"
+    ],
+    "map-burnt": [
+      "musique/carte-burnt.mp3"
     ]
   },
   "sounds": {
@@ -474,10 +477,252 @@
     ],
     "zombie-impact": [
       "combat/zombie-impact.mp3"
+    ],
+    "step-feet-sand": [
+      "pas/feet-sand-1.wav",
+      "pas/feet-sand-2.wav",
+      "pas/feet-sand-3.wav"
+    ],
+    "step-feet-swamp": [
+      "pas/feet-swamp-1.wav",
+      "pas/feet-swamp-2.wav",
+      "pas/feet-swamp-3.wav"
+    ],
+    "step-feet-rock": [
+      "pas/feet-rock-1.wav",
+      "pas/feet-rock-2.wav",
+      "pas/feet-rock-3.wav",
+      "pas/feet-rock-4.wav"
+    ],
+    "step-feet-snow": [
+      "pas/feet-snow-1.wav",
+      "pas/feet-snow-2.wav",
+      "pas/feet-snow-3.wav",
+      "pas/feet-snow-4.wav"
+    ],
+    "step-heavy-sand": [
+      "pas/heavy-sand-1.wav",
+      "pas/heavy-sand-2.wav"
+    ],
+    "step-heavy-snow": [
+      "pas/heavy-snow-1.wav",
+      "pas/heavy-snow-2.wav",
+      "pas/heavy-snow-3.wav",
+      "pas/heavy-snow-4.wav"
+    ],
+    "step-hooves-grass": [
+      "pas/hooves-grass-1.wav",
+      "pas/hooves-grass-2.wav",
+      "pas/hooves-grass-3.wav",
+      "pas/hooves-grass-4.wav",
+      "pas/hooves-grass-5.wav",
+      "pas/hooves-grass-6.wav"
+    ],
+    "step-hooves-sand": [
+      "pas/hooves-sand-1.wav",
+      "pas/hooves-sand-2.wav",
+      "pas/hooves-sand-3.wav",
+      "pas/hooves-sand-4.wav",
+      "pas/hooves-sand-5.wav",
+      "pas/hooves-sand-6.wav",
+      "pas/hooves-sand-7.wav",
+      "pas/hooves-sand-8.wav",
+      "pas/hooves-sand-9.wav",
+      "pas/hooves-sand-10.wav",
+      "pas/hooves-sand-11.wav",
+      "pas/hooves-sand-12.wav"
+    ],
+    "step-hooves-swamp": [
+      "pas/hooves-swamp-1.wav",
+      "pas/hooves-swamp-2.wav",
+      "pas/hooves-swamp-3.wav",
+      "pas/hooves-swamp-4.wav",
+      "pas/hooves-swamp-5.wav",
+      "pas/hooves-swamp-6.wav"
+    ],
+    "step-hooves-snow": [
+      "pas/hooves-snow-1.wav",
+      "pas/hooves-snow-2.wav",
+      "pas/hooves-snow-3.wav",
+      "pas/hooves-snow-4.wav",
+      "pas/hooves-snow-5.wav",
+      "pas/hooves-snow-6.wav",
+      "pas/hooves-snow-7.wav",
+      "pas/hooves-snow-8.wav",
+      "pas/hooves-snow-9.wav",
+      "pas/hooves-snow-10.wav",
+      "pas/hooves-snow-11.wav",
+      "pas/hooves-snow-12.wav"
+    ],
+    "step-paws-grass": [
+      "pas/paws-grass-1.wav",
+      "pas/paws-grass-2.wav",
+      "pas/paws-grass-3.wav",
+      "pas/paws-grass-4.wav",
+      "pas/paws-grass-5.wav",
+      "pas/paws-grass-6.wav"
+    ],
+    "step-paws-sand": [
+      "pas/paws-sand-1.wav",
+      "pas/paws-sand-2.wav",
+      "pas/paws-sand-3.wav",
+      "pas/paws-sand-4.wav"
+    ],
+    "step-paws-swamp": [
+      "pas/paws-swamp-1.wav",
+      "pas/paws-swamp-2.wav",
+      "pas/paws-swamp-3.wav",
+      "pas/paws-swamp-4.wav"
+    ],
+    "step-paws-rock": [
+      "pas/paws-rock-1.wav",
+      "pas/paws-rock-2.wav",
+      "pas/paws-rock-3.wav",
+      "pas/paws-rock-4.wav",
+      "pas/paws-rock-5.wav",
+      "pas/paws-rock-6.wav",
+      "pas/paws-rock-7.wav",
+      "pas/paws-rock-8.wav"
+    ],
+    "step-paws-snow": [
+      "pas/paws-snow-1.wav",
+      "pas/paws-snow-2.wav",
+      "pas/paws-snow-3.wav",
+      "pas/paws-snow-4.wav",
+      "pas/paws-snow-5.wav",
+      "pas/paws-snow-6.wav"
+    ],
+    "step-paws-burnt": [
+      "pas/paws-burnt-1.wav",
+      "pas/paws-burnt-2.wav",
+      "pas/paws-burnt-3.wav"
+    ],
+    "step-crawl": [
+      "pas/crawl-1.wav",
+      "pas/crawl-2.wav",
+      "pas/crawl-3.wav",
+      "pas/crawl-4.wav",
+      "pas/crawl-5.wav",
+      "pas/crawl-6.wav",
+      "pas/crawl-7.wav",
+      "pas/crawl-8.wav",
+      "pas/crawl-9.wav"
+    ],
+    "step-feet-grass": [
+      "pas/feet-grass-1.wav",
+      "pas/feet-grass-2.wav",
+      "pas/feet-grass-3.wav",
+      "pas/feet-grass-4.wav",
+      "pas/feet-grass-5.wav",
+      "pas/feet-grass-6.wav",
+      "pas/feet-grass-7.wav"
+    ],
+    "step-feet-burnt": [
+      "pas/feet-burnt-1.wav",
+      "pas/feet-burnt-2.wav",
+      "pas/feet-burnt-3.wav",
+      "pas/feet-burnt-4.wav"
+    ],
+    "step-heavy-grass": [
+      "pas/heavy-grass-1.wav",
+      "pas/heavy-grass-2.wav",
+      "pas/heavy-grass-3.wav"
+    ],
+    "step-heavy-swamp": [
+      "pas/heavy-swamp-1.wav",
+      "pas/heavy-swamp-2.wav",
+      "pas/heavy-swamp-3.wav"
+    ],
+    "step-heavy-rock": [
+      "pas/heavy-rock-1.wav",
+      "pas/heavy-rock-2.wav",
+      "pas/heavy-rock-3.wav"
+    ],
+    "step-heavy-burnt": [
+      "pas/heavy-burnt-1.wav",
+      "pas/heavy-burnt-2.wav",
+      "pas/heavy-burnt-3.wav",
+      "pas/heavy-burnt-4.wav"
+    ],
+    "step-hooves-rock": [
+      "pas/hooves-rock-1.wav",
+      "pas/hooves-rock-2.wav",
+      "pas/hooves-rock-3.wav",
+      "pas/hooves-rock-4.wav"
+    ],
+    "step-hooves-burnt": [
+      "pas/hooves-burnt-1.wav",
+      "pas/hooves-burnt-2.wav",
+      "pas/hooves-burnt-3.wav",
+      "pas/hooves-burnt-4.wav",
+      "pas/hooves-burnt-5.wav",
+      "pas/hooves-burnt-6.wav"
+    ],
+    "step-slime": [
+      "pas/slime-1.wav",
+      "pas/slime-2.wav",
+      "pas/slime-3.wav",
+      "pas/slime-4.wav",
+      "pas/slime-5.wav",
+      "pas/slime-6.wav",
+      "pas/slime-7.wav",
+      "pas/slime-8.wav"
     ]
   },
   "lengths": {
     "cavalier-attack": 1.4
   },
-  "ambience": {}
+  "ambience": {},
+  "gaits": {
+    "_": "Les pas au combat (Audio.PlayStep) : pas par case traversée (une case = un cycle de l animation de marche) et les créatures de chaque façon de marcher ; les autres marchent à pied (feet). Les volants, les sauteurs et les fouisseurs n ont pas de pas.",
+    "feet": {
+      "perCell": 2
+    },
+    "heavy": {
+      "perCell": 2,
+      "creatures": [
+        "ogre",
+        "behemoth",
+        "troll",
+        "treant",
+        "golem-pierre",
+        "geant",
+        "minotaure",
+        "colosse-os",
+        "moloch",
+        "demon",
+        "roi-de-cristal"
+      ]
+    },
+    "hooves": {
+      "perCell": 4,
+      "creatures": [
+        "cavalier",
+        "nomades",
+        "cerf",
+        "sanglier",
+        "chevaucheur-chevre"
+      ]
+    },
+    "paws": {
+      "perCell": 4,
+      "creatures": [
+        "loup",
+        "araignee"
+      ]
+    },
+    "crawl": {
+      "perCell": 1,
+      "creatures": [
+        "naga",
+        "hydre"
+      ]
+    },
+    "slime": {
+      "perCell": 1,
+      "creatures": [
+        "limon-magma"
+      ]
+    }
+  }
 }

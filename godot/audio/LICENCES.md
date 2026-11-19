@@ -12,6 +12,8 @@ avant toute diffusion commerciale.
   `combat/sort-eclair.mp3`, `combat/sort-resurrection.mp3`
 - Les sons des créatures des autres factions : `combat/<créature>-<action>.mp3` (décrits dans
   `tools/audio/sons-creatures.json`, faits par `tools/audio/sons.py`).
+- Les pas au combat : `pas/<marche>-<sol>-<n>.wav` (décrits dans `tools/audio/sons-pas.json`, faits par
+  `tools/audio/pas.py` : une courte marche coupée en pas seuls).
 
 ## Bibliothèques libres (OpenGameArt)
 - `combat/cavalier-galop.ogg` : « Horse Gallop Loop », AntumDeluge, **CC-BY 3.0** (citer l'auteur),
@@ -53,6 +55,8 @@ avant toute diffusion commerciale.
     By Attribution 4.0, https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100448
   - `musique/carte-rock.mp3` : « Crusade », Kevin MacLeod (incompetech.com), Licensed under Creative Commons:
     By Attribution 4.0, https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100884
+  - `musique/carte-burnt.mp3` : « Forging Flames (Cinematic Dark) », Patrick Maney, CC-BY 3.0,
+    https://opengameart.org/content/forging-flames-cinematic-dark
   - `musique/carte-snow.mp3` : « Mevalian Winter », Tsorthan Grove, CC0, https://opengameart.org/content/mevalian-winter
 - `musique/musique-menu.ogg` : la musique du menu principal (choisie le 2026-11-19, `tools/audio/musiques.py menu`),
   « Alandriel's Theme », HitCtrl, CC-BY 3.0, https://opengameart.org/node/108463

@@ -1411,6 +1411,11 @@ public partial class BattleFieldView : Control
                     bool arrived = false;
                     // un fouisseur (le Ver des profondeurs) soulève la terre en plongeant et en avançant sous le sol
                     bool burrows = moved.Unit.Has(Ability.Burrows);
+                    // les pas : au rythme de son animation de marche (un cycle par case), sur le sol du champ ; rien pour
+                    // qui vole, saute ou passe sous terre
+                    bool walks = !transforms && !burrows && !moved.Unit.Has(Ability.Flies) && !moved.Unit.Has(Ability.Leaps);
+                    double cadence = Math.Max(0.1, StepTime(moved.Unit) / Audio.StepsPerCell(moved.Unit.Type));
+                    double nextStep = 0;
                     _animations.Enqueue(delta =>
                     {
                         if (burrows && !arrived)
@@ -1435,6 +1440,11 @@ public partial class BattleFieldView : Control
                                 return true;
                             }
                             shown.Play(Move);
+                        }
+                        if (walks && (nextStep -= delta) <= 0)
+                        {
+                            Audio.PlayStep(moved.Unit.Type, _terrain);
+                            nextStep += cadence;
                         }
                         t += delta;
                         var from = step == 0 ? start.Value : points[step - 1];

@@ -192,6 +192,22 @@ public static class MapRenderer
 
     // -------------------------------------------------------------------- objets
 
+    /// <summary>La carte affichée (posée par <see cref="TerrainLayer"/>) : le sol sous les objets.</summary>
+    public static AdventureMap? Map { get; set; }
+
+    /// <summary>
+    /// L'image d'une mine : celle de son sol s'il y en a une (2026-11-19 : la scierie et la mine de minerai, avec les
+    /// arbres de ce sol, « mine-wood-sand »…), sinon celle de l'herbe.
+    /// </summary>
+    private static Texture2D? MineImage(Mine mine)
+    {
+        var name = $"objects/mine-{Art.Name(mine.Resource)}";
+        if (Map is { } map && map.InBounds(mine.Position) && map.GetTerrain(mine.Position) is var ground && ground != TerrainType.Grass
+            && Art.Get($"{name}-{Art.Name(ground)}") is { } own)
+            return own;
+        return Art.Get(name);
+    }
+
     /// <summary>L'image d'un objet de la carte, s'il en a une.</summary>
     private static Texture2D? ObjectImage(MapObject obj) => obj switch
     {
@@ -206,7 +222,7 @@ public static class MapRenderer
         BlessingSite { Sea: true } => null, // en attendant leurs images : dessinées plus bas
         BlessingSite { Blessing: Blessing.Morale } => Art.Get("objects/temple"),
         BlessingSite => Art.Get("objects/fairy-ring"),
-        Mine mine => Art.Get($"objects/mine-{Art.Name(mine.Resource)}"),
+        Mine mine => MineImage(mine),
         MonsterGuard guard => Art.Get($"creatures/{guard.Type.Id}"),
         Town town => Art.Town(town.Faction),
         _ => null,

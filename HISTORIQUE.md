@@ -2772,6 +2772,10 @@ choix de l'utilisateur) :
   sans détail »), des palmiers vert vif trop serrés. Les ombres portées prennent la teinte de leur sol : bleutées sur la
   neige (`ShadowLayer.SnowShade`), noires ailleurs ; l'ombre de contact des arbres de la neige est bleue (`pieds.json`).
   Reste : les arbres seuls posés près des bâtiments et des mines, encore verts partout.
+- ✅ **La scierie et la mine de minerai de chaque sol** (2026-11-19, branche `mines-sols`) : une image par sol
+  (`objects/mine-wood-sand`…, `MapRenderer.MineImage` d'après le sol de l'entrée), leurs arbres verts remplacés par ceux
+  du sol (un script : rien à payer ; les pieds repris de l'image de l'herbe). Les autres mines gardent leurs arbres :
+  creusées, elles iront plutôt au flanc des montagnes (choix de l'utilisateur).
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

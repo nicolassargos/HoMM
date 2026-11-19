@@ -5,7 +5,8 @@ installés dans le jeu.
     python -I tools/audio/pas.py cout [id…]              le prix de ce qui manque (gratuit)
     python -I tools/audio/pas.py generer [id…]           génère chez ElevenLabs ce qui manque ; ce qui existe reste
     python -I tools/audio/pas.py recouper [id…]          coupe de nouveau les marches reçues en pas seuls (gratuit)
-    python -I tools/audio/pas.py refaire id…           garde l'ancienne proposition (ancien/) et en génère une autre
+    python -I tools/audio/pas.py normaliser              met les pas installés (godot/audio/pas/) au même niveau
+    python -I tools/audio/pas.py refaire id…         garde l'ancienne proposition (ancien/) et en génère une autre
     python -I tools/audio/pas.py libres                  télécharge les pas libres (champ « libres » de la liste)
     python -I tools/audio/pas.py page                    écrit la page de revue art-candidats/en-cours/pas.html
     python -I tools/audio/pas.py serveur                 sert la page (http://localhost:8768/pas.html) ; les réponses
@@ -110,6 +111,21 @@ def ecrire_wav(chemin, echantillons, taux):
         w.writeframes(array.array("h", echantillons).tobytes())
 
 
+CRETE = 0.7  # le plus fort d'un pas : 70 % du maximum (-3 dB)
+
+
+def normaliser(echantillons):
+    """
+    Monte (ou baisse) un pas pour que son plus fort atteigne CRETE : ElevenLabs rend des marches très basses (jusqu'à
+    -35 dB), qu'on n'entendait plus sous les coups. Le jeu baisse ensuite tous les pas d'un même cran.
+    """
+    haut = max((abs(x) for x in echantillons), default=0)
+    if haut == 0:
+        return echantillons
+    gain = CRETE * 32767 / haut
+    return [max(-32768, min(32767, int(x * gain))) for x in echantillons]
+
+
 def decouper(pcm, cible):
     """Écrit la marche entière (marche.wav) et chacun de ses pas (pas-N.wav, réduits à 22 050 Hz, fondus à la fin)."""
     ech = array.array("h")
@@ -134,7 +150,7 @@ def decouper(pcm, cible):
             if tranches:
                 petit[j] = petit[j] * j // fondu
         n += 1
-        ecrire_wav(os.path.join(cible, f"pas-{n}.wav"), petit, TAUX_JEU)
+        ecrire_wav(os.path.join(cible, f"pas-{n}.wav"), normaliser(petit), TAUX_JEU)
     return n
 
 
@@ -412,6 +428,19 @@ def main():
                 for f in pas_de(s["id"], source):
                     os.remove(os.path.join(dossier(s["id"], source), f))
                 print(f"  {s['id']} ({source}) : {decouper(pcm, dossier(s['id'], source))} pas")
+    elif commande == "normaliser":
+        # les pas déjà installés dans le jeu (.wav seulement : ceux que ce fichier écrit)
+        dossier_jeu = os.path.join(GODOT, "audio", "pas")
+        for f in sorted(os.listdir(dossier_jeu)):
+            if not f.endswith(".wav"):
+                continue
+            chemin = os.path.join(dossier_jeu, f)
+            with wave.open(chemin) as w:
+                taux = w.getframerate()
+                ech = array.array("h")
+                ech.frombytes(w.readframes(w.getnframes()))
+            ecrire_wav(chemin, normaliser(list(ech)), taux)
+        print("pas du jeu normalisés")
     elif commande == "refaire":
         refaire(choisis, marches, sols)
     elif commande == "libres":

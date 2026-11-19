@@ -19,6 +19,7 @@ public partial class TerrainLayer : Node2D
     {
         // Pixel art : les images agrandies restent nettes
         TextureFilter = TextureFilterEnum.Nearest;
+        MapRenderer.Map = Map;
         _smooth = SmoothGround.Create(Map);
         if (_smooth != null)
             AddChild(_smooth);

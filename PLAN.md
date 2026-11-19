@@ -147,7 +147,7 @@ dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent da
 - **À revoir ensemble** : un problème du moulin (à en parler).
 - **Les sols** : d'autres sols viendront, et peut-être des thèmes de cartes (la répartition se réglera alors) ; le sol
   des factions encore sur l'herbe, à décider ; un champ de bataille pour la roche, la terre brûlée et la neige
-  (celui du désert en attendant) ; les arbres seuls près des bâtiments et des mines, encore verts sur tous les sols ;
+  (celui du désert en attendant) ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).

@@ -1,7 +1,7 @@
 {
   "*": {"idlePauseMin": 3, "idlePauseMax": 6},
   "colosse-os": {"idle": 7, "move": 7, "attack": 7, "hit": 12, "hitFrames": 6},
-  "archer": {"idle": 7, "idlePauseMin": 10, "idlePauseMax": 20, "projectile": "fleche", "launchFrame": 5, "launchPoint": [83, 42]},
+  "archer": {"idle": 7, "idlePauseMin": 10, "idlePauseMax": 20, "projectile": "fleche", "launchFrame": 5, "launchPoint": [83, 42], "hit": 12, "hitFrames": 6},
   "zombie": {"move": 8, "moveFrames": 16, "stepTime": 0.45, "hit": 12, "hitFrames": 6},
   "troll": {"move": 7, "idle": 6, "hit": 12, "hitFrames": 6, "deathFrames": 16},
   "vampire": {"stepTime": 0.25, "impact": "morsure", "hit": 12, "hitFrames": 6},
@@ -40,7 +40,7 @@
   "arbaletrier": {"projectile": "fleche", "launchFrame": 4, "launchPoint": [79, 40], "hit": 12, "hitFrames": 6},
   "gyrocoptere": {"meleeProjectile": "bombe", "launchFrame": 5, "launchPoint": [141, 61], "stepTime": 0.25, "hit": 12, "hitFrames": 6},
   "chevaucheur-chevre": {"move": 14, "stepTime": 0.45, "hit": 12, "hitFrames": 6},
-  "cavalier": {"move": 8, "moveFrames": 9, "stepTime": 0.4},
+  "cavalier": {"move": 8, "moveFrames": 9, "stepTime": 0.4, "hit": 12, "hitFrames": 6},
   "paysan": {"hit": 12, "hitFrames": 6},
   "fantome": {"hit": 12, "hitFrames": 6},
   "roi-de-cristal": {"hit": 12, "hitFrames": 6},
@@ -55,5 +55,6 @@
   "moloch": {"hit": 12, "hitFrames": 6},
   "porte-bouclier": {"hit": 12, "hitFrames": 6},
   "porte-etendard": {"hit": 12, "hitFrames": 6},
-  "sapeur": {"hit": 12, "hitFrames": 6}
+  "sapeur": {"hit": 12, "hitFrames": 6},
+  "griffon": {"hit": 12, "hitFrames": 6}
 }

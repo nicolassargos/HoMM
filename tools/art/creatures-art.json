@@ -78,12 +78,15 @@
         "idle": "idle-1",
         "attack": "attack-9",
         "move": "move-2",
-        "death": "death-1",
+        "death": "death-4",
         "hit": "hit-1"
       },
       "notes": "D'après une image de l'utilisateur, en plus simple (style rétro). Sur une seule case. Lent : 7 images par seconde.",
       "mouvements": {
         "death": "is destroyed: its huge bones come apart and it collapses into a heap of bones on the ground; no effects, no other character"
+      },
+      "consignes": {
+        "death": "falls apart: the bones fly loose from the top down, each big bone separate and clearly visible as it falls, piling up into a large heap with the horned skull rolling to the front, motionless at the end"
       }
     },
     "chevalier": {
@@ -113,10 +116,13 @@
         "attack": "attack-7",
         "move": "move-3",
         "carte": "p1-13",
-        "death": "death-1",
+        "death": "death-3",
         "hit": "hit-1"
       },
-      "notes": "Remplacera l'Épéiste. Les candidats sortaient tournés vers la gauche (miroir). Bouclier changé avec « retoucher » de pixellab.py."
+      "notes": "Remplacera l'Épéiste. Les candidats sortaient tournés vers la gauche (miroir). Bouclier changé avec « retoucher » de pixellab.py.",
+      "consignes": {
+        "death": "is mortally wounded: sways, sits down heavily, then topples sideways with his shield falling beside him, lying motionless on the ground at the end"
+      }
     },
     "fantome": {
       "nom": "Fantôme",
@@ -143,7 +149,7 @@
         "idle": "idle-2",
         "attack": "attack-1",
         "move": "move-2",
-        "death": "death-1",
+        "death": "death-4",
         "hit": "hit-5"
       },
       "notes": "Futur mort-vivant. Son attaque projette une gerbe d'eau (gardée, choix de l'utilisateur).",
@@ -151,6 +157,9 @@
       "mouvements": {
         "death": "is destroyed: slowly sinks down to the ground and shrinks to a small heap of tattered cloth; no effects, no other character",
         "hit": "flinches away to the left: its arms pull back against its chest, its body bends and is pushed backward to the left, away from the right side, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      },
+      "consignes": {
+        "death": "is blown away: her body frays into pale mist streaming to the left like smoke in the wind, thinner in every frame, until the picture is empty"
       }
     },
     "archer": {
@@ -180,7 +189,9 @@
         "idle": "idle-2",
         "attack": "attack-2-r",
         "move": "move-2",
-        "carte": "p1-15"
+        "carte": "p1-15",
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "notes": "Refait le 2026-11-06. La corde de l'arc est tracée par l'outil (« corde »). Il regarde autour de lui, rarement. Refonte du Château (2026-11-17, choix de l'utilisateur) : un ancien braconnier, long et osseux.",
       "lots": {
@@ -192,7 +203,9 @@
       "consignes": {
         "idle": "subtle idle: slow calm breathing and one small movement, the feet stay in place",
         "move": "walking forward to the right with steady steps, the legs clearly alternating",
-        "attack": "quick shot: lifts the bow, pulls the string fully back aiming to the right, lets go, then lowers the bow; the arrow is not shown flying"
+        "attack": "quick shot: lifts the bow, pulls the string fully back aiming to the right, lets go, then lowers the bow; the arrow is not shown flying",
+        "death": "is mortally wounded: sags down to sit on the ground, leans on his tall longbow for a moment, then slowly slides over sideways, lying motionless on the ground at the end",
+        "hit": "ducks away to the left: he pulls his head down between his bony shoulders and leans to the left, his floppy hat tilting, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "moine": {
@@ -337,14 +350,15 @@
         "idle": "idle-3",
         "attack": "attack-11",
         "move": "move-10",
-        "death": "death-1",
+        "death": "death-5",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/zombie-grand.png",
       "consignes": {
         "idle": "the bloated zombie slowly raises one hand and reaches forward, its gaping mouth opens wider, then the arm sinks back down, the feet stay in place",
         "attack": "the bloated zombie leans far back on its heels, its enormous round belly swelling even bigger, then it thrusts the huge belly forward with all its weight toward the enemy in front of it, then rocks back to its starting pose",
-        "move": "the bloated zombie walks forward to the right very slowly and heavily, small shuffling steps, its huge belly swaying from side to side with each step"
+        "move": "the bloated zombie walks forward to the right very slowly and heavily, small shuffling steps, its huge belly swaying from side to side with each step",
+        "death": "is destroyed: takes one step back, sits down hard on its rump, then tips over backward to the left, away from the direction it faces onto its back, its legs kicking up once, lying motionless on the ground at the end"
       }
     },
     "troll": {
@@ -449,12 +463,13 @@
         "idle": "idle-3",
         "attack": "attack-2",
         "move": "move-1",
-        "death": "death-1",
+        "death": "death-4",
         "hit": "hit-2"
       },
       "notes": "Fait avant l'outil (session du 2026-11-04) : sa grande image n'a que 66 px. Attente et attaque refaites le 2026-11-06.",
       "consignes": {
-        "attack": "the ogre lifts his big wooden club high over his head with both hands, then brings it down in a heavy arc in front of him to the right, his whole body leaning into the swing, then raises it back to his starting pose"
+        "attack": "the ogre lifts his big wooden club high over his head with both hands, then brings it down in a heavy arc in front of him to the right, his whole body leaning into the swing, then raises it back to his starting pose",
+        "death": "is killed: spins around once with his arms flailing, then crashes onto his back, lying motionless on the ground at the end"
       }
     },
     "griffon": {
@@ -477,14 +492,18 @@
       "consignes": {
         "move": "the griffon flies forward to the right: it beats its large wings strongly, rises a little off the ground with its paws tucked, and glides forward",
         "idle": "the griffon stands still, ruffles and slightly opens its raised wings, turns its eagle head a little, its tail swishes, the paws stay in place",
-        "attack": "the griffon rears up on its hind legs with its wings spread wide, then lunges forward and rakes with its front talons and snaps its beak at the enemy in front of it, then lands back in its starting pose"
+        "attack": "the griffon rears up on its hind legs with its wings spread wide, then lunges forward and rakes with its front talons and snaps its beak at the enemy in front of it, then lands back in its starting pose",
+        "death": "is mortally wounded: stumbles sideways, falls onto its side with one wing folded under it and the other wing lying open over its body, the tail twitching once, lying motionless on the ground at the end",
+        "hit": "shies away to the left: it hunches down, ruffles its feathers, pulls its head in and shifts its weight back to the left, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
         "idle": "idle-1",
         "attack": "attack-2-r",
         "move": "move-2",
         "fixe": "L2-1",
-        "carte": "p1-1"
+        "carte": "p1-1",
+        "death": "death-1",
+        "hit": "hit-1"
       },
       "vole": true,
       "generation": [
@@ -523,12 +542,13 @@
         "move": "move-2",
         "idle": "idle-1",
         "attack": "attack-2-r",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-1"
       },
       "notes": "Fait avant l'outil (2026-11-04), animations refaites le 2026-11-06. Il lance des haches (tir court) : la hache en vol sera dessinée par le jeu.",
       "consignes": {
-        "idle": "the orc stands with a hunched brutish posture, breathes heavily and turns one axe in his hand, the feet stay in place"
+        "idle": "the orc stands with a hunched brutish posture, breathes heavily and turns one axe in his hand, the feet stay in place",
+        "death": "is mortally wounded: drops both axes, clutches its chest, staggers backward to the left and falls flat on its back, lying motionless on the ground at the end; no blood"
       }
     },
     "vampire": {
@@ -572,14 +592,15 @@
         "move": "move-1",
         "attack": "attack-14",
         "idle": "idle-1",
-        "death": "death-1",
+        "death": "death-5",
         "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/vampire-grand.png",
       "consignes": {
         "idle": "the vampire stands still, his cape sways gently, he slowly tilts his head and bares his long fangs with a thin smile, the feet stay in place",
         "move": "a small black bat with a pale vampire face flies in place, beating its wings up and down in a steady flying cycle, facing right, it stays at the same place",
-        "attack": "the vampire takes a long step forward to the right and sweeps his huge black cape forward with his outstretched arm, the cape opens enormous and wide like a dark curtain covering everything in front of him, he bends deeply forward behind it and stays completely hidden behind the cape for a long moment, only a dark shape leaning over his prey, then he slowly pulls back to his starting place and wraps the cape around himself"
+        "attack": "the vampire takes a long step forward to the right and sweeps his huge black cape forward with his outstretched arm, the cape opens enormous and wide like a dark curtain covering everything in front of him, he bends deeply forward behind it and stays completely hidden behind the cape for a long moment, only a dark shape leaning over his prey, then he slowly pulls back to his starting place and wraps the cape around himself",
+        "death": "is destroyed: wraps his cape around himself and sinks straight down into it, until only the flat empty cape lies on the ground, motionless at the end"
       },
       "mouvements": {
         "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
@@ -620,12 +641,13 @@
         "idle": "idle-1",
         "move": "move-2",
         "attack": "attack-4",
-        "death": "death-1",
+        "death": "death-4-r",
         "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/liche-grand.png",
       "consignes": {
-        "attack": "the lich straightens its hunched back and slowly raises its long staff high above its crowned skull with one bony arm, holds it up toward the sky for a moment as if calling the storm, then lowers the staff and sinks back into its hunched starting pose"
+        "attack": "the lich straightens its hunched back and slowly raises its long staff high above its crowned skull with one bony arm, holds it up toward the sky for a moment as if calling the storm, then lowers the staff and sinks back into its hunched starting pose",
+        "death": "is destroyed: the skull fades away first, then the bony hands, the hood falls empty, the robe drops flat, and the crown and staff land on it; at the end only the empty robe, the crown and the staff remain, motionless"
       },
       "mouvements": {
         "death": "is destroyed: staggers and crumples into a heap of empty robes and bones on the ground; no effects, no other character",
@@ -709,14 +731,15 @@
       },
       "choix": {
         "fixe": "L6-2 + visage",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/nomades-grand.png",
       "consignes": {
         "idle": "the small horse paws the ground with one hoof and shakes its mane, the rider shifts in the saddle and looks around, the hooves stay in place",
         "move": "the horse gallops forward to the right, its four legs in a clear fast gallop, the rider leaning forward",
-        "attack": "the horse lunges forward and the rider slashes down with the curved sabre at the enemy in front of it, then the horse wheels back to its starting place"
+        "attack": "the horse lunges forward and the rider slashes down with the curved sabre at the enemy in front of it, then the horse wheels back to its starting place",
+        "death": "is killed: the rider falls off the horse to the left and lies dead on the ground, clearly separate from the horse, while the horse collapses onto its side, both lying motionless on the ground at the end; no blood, no fire, no flames"
       }
     },
     "oiseau-tonnerre": {
@@ -758,7 +781,7 @@
         "attack": "attack-2-r",
         "move": "move-7",
         "transform": "transform-2, images 1 à 5 (sans la pose tenue), 12 images/s",
-        "death": "death-1",
+        "death": "death-7",
         "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/oiseau-tonnerre-grand.png",
@@ -766,7 +789,8 @@
         "idle": "the thunderbird stands on its talons, turns its head and slowly scratches and preens the feathers of its folded wing with its hooked beak, then looks back forward, the talons stay in place",
         "move": "the thunderbird flies to the right with its body kept horizontal, beating its great wings down and up in one full steady flying cycle, its talons stay tucked under its belly, its head forward, it stays at the same place",
         "attack": "the thunderbird stands on its talons, slowly raises its great totem-patterned wings high above its body and lifts its head toward the sky with its hooked beak wide open in a fierce cry, holds the pose for a moment, then folds its wings back along its body to its starting pose, the talons stay in place",
-        "transform": "the thunderbird takes off: standing on its talons, it crouches, spreads its great totem-patterned wings, leaps up and tilts its body forward until it is flying horizontally to the right, its talons retracting and tucking under its belly, ending in a level flying pose with the wings raised"
+        "transform": "the thunderbird takes off: standing on its talons, it crouches, spreads its great totem-patterned wings, leaps up and tilts its body forward until it is flying horizontally to the right, its talons retracting and tucking under its belly, ending in a level flying pose with the wings raised",
+        "death": "is mortally wounded: it stumbles two hops backward to the left, flapping weakly, then falls on its back with its talons curled up in the air and its wings spread on the ground, lying motionless on the ground at the end"
       }
     },
     "farfadet": {
@@ -856,14 +880,15 @@
       "choix": {
         "fixe": "L8-1",
         "attack": "attack-2-main",
-        "death": "death-1",
+        "death": "death-7-suite",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/behemoth-grand.png",
       "consignes": {
         "idle": "the behemoth looks down at its feet, then pounds the ground in front of it twice with its two huge fists, then straightens up to its starting pose, the feet stay in place",
         "move": "the behemoth walks forward to the right on its two legs with slow heavy steps; its long arms swing alternately, one after the other like a walking ape: the left arm swings forward while the right arm swings back, then the right arm forward while the left arm back, never both arms together",
-        "attack": "the behemoth raises one huge clawed hand high and rakes it down hard at the enemy in front of it, its long claws tearing, then straightens up to its starting pose"
+        "attack": "the behemoth raises one huge clawed hand high and rakes it down hard at the enemy in front of it, its long claws tearing, then straightens up to its starting pose",
+        "death": "lies on its back on the ground; its raised arms slowly drop down and rest flat on the ground, the head sinks back, and the whole body settles and goes completely still, motionless at the end"
       }
     },
     "dragon": {
@@ -876,8 +901,11 @@
         "hit": "cringes from a blow: shuts its eyes, ducks its head down and pulls its neck back toward its tail, the wings fold in tight, the whole body crouches and shrinks back toward its tail, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       },
       "choix": {
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-13"
+      },
+      "consignes": {
+        "death": "is mortally wounded: the long neck twists and writhes, swings high then low, the body sinks onto its side, and the neck coils on the ground with the head coming to rest last, lying motionless on the ground at the end"
       }
     },
     "gobelin": {
@@ -886,8 +914,11 @@
       "grande": "art-candidats/references/derives/gobelin-grand.png",
       "notes": "Fiche minimale (2026-11-09) : grande image retrouvée dans les archives pour le passage du combat à ×2.",
       "choix": {
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-1"
+      },
+      "consignes": {
+        "death": "is killed: jumps up in fright, spins halfway around and flops flat on its back to the left, arms and legs splayed out, lying motionless on the ground at the end; no blood"
       }
     },
     "paysan": {
@@ -929,7 +960,7 @@
         "idle": "idle-1",
         "move": "move-4",
         "attack": "attack-8-r",
-        "death": "death-1",
+        "death": "death-5",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/ange-grand.png",
@@ -942,7 +973,8 @@
       "consignes": {
         "idle": "the angel stands calmly with its hands joined, breathes slowly, its large wings rise and fold slightly, its robe sways a little, the feet stay in place",
         "move": "the angel hovers a little above the ground and slowly beats its large white wings in big wide strokes: the wings rise high above its head, then sweep all the way down below its waist, then rise again, one full slow flapping cycle, its body stays upright, its bare feet off the ground, it stays at the same place",
-        "attack": "the angel draws its right arm back, then swings its open hand forward horizontally at the height of its own chest in a wide sweeping slap at the enemy standing in front of it, its body twisting with the blow and its wings flaring, then it steps back to its starting pose"
+        "attack": "the angel draws its right arm back, then swings its open hand forward horizontally at the height of its own chest in a wide sweeping slap at the enemy standing in front of it, its body twisting with the blow and its wings flaring, then it steps back to its starting pose",
+        "death": "is dying: falls backward to the left, away from the direction it faces slowly like a feather, drifting down at a slant with the wings spread, and lands softly on its back, lying motionless on the ground at the end"
       }
     },
     "squelette": {
@@ -974,7 +1006,7 @@
         "idle": "idle-3",
         "move": "move-5",
         "attack": "attack-6-r",
-        "death": "death-1",
+        "death": "death-4",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/squelette-grand.png",
@@ -987,7 +1019,8 @@
       "consignes": {
         "idle": "the hunched skeleton sways slowly on its bent legs, its head twitches and turns, its clawed bony fingers flex, the feet stay in place",
         "move": "the hunched skeleton walks forward to the right in one full clear walking cycle: its left bony foot lifts off the ground and steps forward, then its right bony foot lifts and steps forward, knees bent, hunched forward, arms dangling and swinging a little, it stays at the same place",
-        "attack": "the hunched skeleton raises both its long clawed bony arms high above its skull, then brings them crashing down hard on the enemy in front of it, then straightens back to its starting pose"
+        "attack": "the hunched skeleton raises both its long clawed bony arms high above its skull, then brings them crashing down hard on the enemy in front of it, then straightens back to its starting pose",
+        "death": "is destroyed: its bones drop off one after another, arms first, then ribs, then legs, until the skull in its helmet falls last and lands on top of a neat heap of loose bones, motionless at the end"
       }
     },
     "sanglier": {
@@ -1065,7 +1098,7 @@
         "move": "move-3-sc",
         "attack": "attack-2-r",
         "idle": "idle-5-sc",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/archer-elfe-grand.png",
@@ -1078,7 +1111,8 @@
       "consignes": {
         "idle": "the hooded elf archer reaches over its shoulder, takes one arrow from its quiver, looks at it closely, then puts it back in the quiver and stands calmly again, holding its longbow, the feet stay in place",
         "move": "the hooded elf archer walks forward to the right in one full clear walking cycle: its left foot lifts off the ground and steps forward, then its right foot lifts and steps forward, it holds its longbow in one hand, its cloak sways, it stays at the same place",
-        "attack": "the hooded elf archer takes an arrow from its quiver, nocks it, raises the longbow, draws the bowstring fully back to its cheek and releases it, then lowers the bow back to its starting pose"
+        "attack": "the hooded elf archer takes an arrow from its quiver, nocks it, raises the longbow, draws the bowstring fully back to its cheek and releases it, then lowers the bow back to its starting pose",
+        "death": "is mortally wounded: drops the bow, turns away, sinks to the knees and falls softly onto its side, the green cloak settling over it, lying motionless on the ground at the end; no blood"
       }
     },
     "cerf": {
@@ -1110,7 +1144,7 @@
         "idle": "idle-2",
         "move": "move-4",
         "attack": "attack-4-r",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/cerf-grand.png",
@@ -1122,7 +1156,8 @@
       "consignes": {
         "idle": "the stag stands proudly on its four legs, its ears twitch, it lowers its head to graze for a moment, then raises its head high again and looks around, the legs stay in place",
         "move": "the stag walks forward to the right at a calm stately walk in one full walking cycle, each of its four legs lifting and stepping forward in turn, no jumping, no running, all hooves stay close to the ground, its head and antlers held high, it stays at the same place",
-        "attack": "the stag lowers its head down close to the ground, then sweeps its huge antlers upward from low to high in one powerful upward thrust, lifting its head high, then lowers it back to its starting pose"
+        "attack": "the stag lowers its head down close to the ground, then sweeps its huge antlers upward from low to high in one powerful upward thrust, lifting its head high, then lowers it back to its starting pose",
+        "death": "is mortally wounded: its front legs fold first, it kneels, then rolls onto its side with the antlered head coming to rest on the ground, lying motionless on the ground at the end; no blood"
       }
     },
     "treant": {
@@ -1161,7 +1196,7 @@
         "move": "move-6",
         "attack": "attack-4-r",
         "idle": "idle-6",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/treant-grand.png",
@@ -1175,7 +1210,8 @@
       "consignes": {
         "idle": "the walking tree shakes its big leafy crown strongly from left to right and back again several times, like an animal shaking its head, a few leaves and petals fall slowly from its crown to the ground, then it stands still again, its roots stay in place",
         "move": "the walking tree walks slowly forward to the right on its thick roots: one big root leg lifts off the ground and steps forward, then the other, heavy and lumbering, its crown swaying gently, it stays at the same place",
-        "attack": "the walking tree lashes one long flexible branch arm forward like a whip, the branch stretching far in front of it, then pulls it back to its starting pose"
+        "attack": "the walking tree lashes one long flexible branch arm forward like a whip, the branch stretching far in front of it, then pulls it back to its starting pose",
+        "death": "is destroyed: the trunk splits apart across the middle, the upper half with the leafy crown topples to the left and crashes to the ground, while the lower half stays rooted as a broken jagged stump, motionless at the end"
       }
     },
     "druide": {
@@ -1222,14 +1258,15 @@
         "idle": "idle-2-r",
         "move": "move-2",
         "attack": "attack-2-r",
-        "death": "death-1",
+        "death": "death-3-r",
         "hit": "hit-4"
       },
       "grande": "art-candidats/references/derives/druide-grand.png",
       "consignes": {
         "idle": "the stout old druid stands holding his staff, slowly strokes his long white beard with his free hand, the owl on top of the staff turns its head and ruffles its feathers, the feet stay in place",
         "move": "the stout old druid walks forward to the right slowly in one full walking cycle, leaning on his tall staff with each step, his heavy robe swaying, the owl stays perched on the staff, he stays at the same place",
-        "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff"
+        "attack": "the stout old druid raises his tall staff and points it forward toward the enemy in front of him, as if casting a spell, then lowers it back to his starting pose, the owl stays perched on the staff",
+        "death": "is mortally wounded: he sinks to his knees and falls onto his side, lying motionless; the owl flies upward and leaves through the top of the picture, the owl is completely gone at the end; no blood"
       }
     },
     "gnome": {
@@ -1271,7 +1308,7 @@
         "idle": "idle-1",
         "move": "move-2",
         "attack": "attack-2-r",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/gnome-grand.png",
@@ -1283,7 +1320,8 @@
       "consignes": {
         "idle": "the small bald gnome wizard stands leaning on his wooden staff, slowly strokes his long white beard with his free hand, blinks and looks around, the feet stay in place",
         "move": "the small bald gnome wizard walks forward to the right with small quick steps in one full walking cycle, his staff tapping the ground with each step, his robe swaying, he stays at the same place",
-        "attack": "the small bald gnome wizard grips his wooden staff with both hands, raises it and whacks it down hard in front of him, then steps back to his starting pose"
+        "attack": "the small bald gnome wizard grips his wooden staff with both hands, raises it and whacks it down hard in front of him, then steps back to his starting pose",
+        "death": "is killed: grabs his bald head with both hands, spins around dizzily and falls flat on his back to the left, his long white beard sticking up, lying motionless on the ground at the end; no blood"
       }
     },
     "gargouille": {
@@ -1320,7 +1358,7 @@
         "move": "move-4-gris",
         "transform": "transform-1",
         "attack": "attack-13-gris",
-        "death": "death-2",
+        "death": "death-3",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/gargouille-grand.png",
@@ -1334,7 +1372,8 @@
         "idle": "the stone gargoyle stays crouched on its clawed feet, slowly turns its horned head from side to side, its folded stone wings shift a little, it flexes its claws, the feet stay in place",
         "move": "the stone gargoyle flies in the air, its body leaning forward, beating its large stone wings heavily down and up in one full steady flapping cycle, its legs tucked under its belly, it stays at the same place in the air",
         "attack": "the stone gargoyle, crouching, spreads its large stone wings wide and leaps forward into the air, then in mid-air kicks hard forward with both clawed feet together, then flies back and lands crouched exactly in its starting place, its wings folding",
-        "transform": "the stone gargoyle takes off: crouching on its clawed feet, it bends lower, spreads its large stone wings, leaps up and tilts its body forward until it is flying horizontally, its legs tucking under its belly, ending in a flying pose with the wings raised"
+        "transform": "the stone gargoyle takes off: crouching on its clawed feet, it bends lower, spreads its large stone wings, leaps up and tilts its body forward until it is flying horizontally, its legs tucking under its belly, ending in a flying pose with the wings raised",
+        "death": "is destroyed: the whole gargoyle stays rigid like a stone statue, keeps its crouching pose, tips over backward to the left in one piece and ends lying on its back on the ground, motionless; no dust, no flying pieces"
       }
     },
     "golem-pierre": {
@@ -1373,14 +1412,15 @@
         "idle": "idle-9",
         "attack": "attack-8-gris",
         "carte": "p1-11",
-        "death": "death-3",
+        "death": "death-8",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/golem-pierre-grand.png",
       "consignes": {
         "idle": "crouches all the way down and touches the ground with one hand, picks up a small grey pebble, stands up, puts the pebble into the open mouth carved in its chest, chews, then stands still",
         "move": "walking slowly and heavily forward, a slow stomping stone gait",
-        "attack": "leans its heavy body back, then charges two big steps forward and throws its whole torso far forward, chest first, like a battering ram, then walks back two steps to its starting place and stance"
+        "attack": "leans its heavy body back, then charges two big steps forward and throws its whole torso far forward, chest first, like a battering ram, then walks back two steps to its starting place and stance",
+        "death": "topples to the left like a tower of stacked stones: as it falls, the stones separate in the air and land one after another in a long row on the ground, the head block with the carved face landing last at the far left, motionless at the end"
       },
       "marge_bas": 0.08,
       "mouvements": {
@@ -1426,7 +1466,7 @@
         "attack": "attack-7-sb",
         "move": "move-5",
         "carte": "p2-5",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-7"
       },
       "grande": "art-candidats/references/derives/naga-grand.png",
@@ -1434,7 +1474,8 @@
       "consignes": {
         "idle": "sways gently on her coiled snake tail, slowly rubs two of her curved swords against each other to sharpen them, the tip of her tail flicks and shakes",
         "move": "slithers forward like a snake, her long snake body making big exaggerated S-shaped waves that travel from her waist to the tip of her tail, the coils clearly rising and sliding on the ground, her upper body upright and swaying a little, the six arms holding the swords ready",
-        "attack": "leans forward on her snake tail and slashes at the enemy in front of her with her curved swords, her six arms striking one after another, then rises back to her stance"
+        "attack": "leans forward on her snake tail and slashes at the enemy in front of her with her curved swords, her six arms striking one after another, then rises back to her stance",
+        "death": "is mortally wounded: her six arms go limp and drop the scimitars, her serpent tail coils beneath her and she sinks in a spiral, ending with her head resting on her coils, lying motionless on the ground at the end; no blood"
       },
       "mouvements": {
         "hit": "flinches hard and is knocked back to the left, a big clear movement: the head whips back, the torso bends and twists backward at the waist, the arms flail in different directions and the long snake tail coils and ripples separately, a supple, loose, exaggerated movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
@@ -1477,14 +1518,15 @@
         "move": "move-2",
         "attack": "attack-2-r",
         "carte": "p1-4",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/djinn-grand.png",
       "consignes": {
         "idle": "floats in place, bobbing slowly up and down, arms crossed, his golden smoke tail swirling and curling gently",
         "move": "glides forward through the air, leaning forward, his golden smoke tail streaming and waving behind him",
-        "attack": "swoops forward and strikes the enemy in front of him with both big fists, then floats back to his place"
+        "attack": "swoops forward and strikes the enemy in front of him with both big fists, then floats back to his place",
+        "death": "vanishes: his body shrinks and swirls into thin purple smoke that rises and fades away, his green turban drops to the ground, ending with only the turban lying on the ground, motionless"
       },
       "mouvements": {
         "death": "is mortally wounded: its body sinks down and shrinks into a small heap on the ground; no effects, no other character"
@@ -1524,14 +1566,15 @@
         "move": "move-5",
         "attack": "attack-5-r",
         "carte": "p1-6",
-        "death": "death-1",
+        "death": "death-4",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/mage-grand.png",
       "consignes": {
         "idle": "stands calmly, breathing slowly, his raised hand slowly turning and his fingers moving as if weaving a spell, the wide sleeves and the loose robe swaying gently",
         "move": "walking forward with steady steps, his feet stepping out from under the long robe one after the other, both arms swinging naturally back and forth with each step, the huge sleeves swaying",
-        "attack": "raises both hands high above his head, palms open toward the sky, gathering power, then swings both hands forward toward the enemy to cast a spell, then lowers his arms back to his stance"
+        "attack": "raises both hands high above his head, palms open toward the sky, gathering power, then swings both hands forward toward the enemy to cast a spell, then lowers his arms back to his stance",
+        "death": "is mortally wounded: staggers, falls onto his side, and his head drops down to rest on the ground on top of his long sleeve, lying motionless on the ground at the end"
       }
     },
     "geant": {
@@ -1576,7 +1619,7 @@
         "move": "move-5",
         "attack": "attack-5-r",
         "carte": "p1-12",
-        "death": "death-1",
+        "death": "death-5",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/geant-grand.png",
@@ -1584,7 +1627,8 @@
         "idle": "stands calmly and breathes slowly, his free hand slowly strokes his black beard, the stone column held still",
         "move": "walks forward with slow, long, dignified steps, the stone column resting across his shoulder, held with one hand, the long tunic swinging",
         "attack": "grabs the stone column with both hands, raises it high above his head, then slams it straight down onto the ground in front of him, then lifts it back to his stance",
-        "transform": "grabs the stone column with both hands, lifts it and lays it across his right shoulder, then holds it there with one hand, standing upright"
+        "transform": "grabs the stone column with both hands, lifts it and lays it across his right shoulder, then holds it there with one hand, standing upright",
+        "death": "is mortally wounded: leans on his stone column, the column tips over, and both topple to the left together, he ends on his back with the column on his chest, lying motionless on the ground at the end"
       }
     },
     "homme-lezard": {
@@ -1716,14 +1760,15 @@
         "move": "move-1",
         "attack": "attack-2-r",
         "carte": "p1-4",
-        "death": "death-1",
+        "death": "death-4",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/minotaure-grand.png",
       "consignes": {
         "idle": "stands breathing heavily, snorting through his nose ring, his head tossing a little, his tufted tail flicking, the sledgehammer held",
         "move": "walks forward with heavy steps on his hooves, staying in place, the sledgehammer held, his tail swaying",
-        "attack": "lifts the heavy sledgehammer high over his horns with both hands, then brings it down in a big arc onto the enemy in front of him, then raises it back to his stance"
+        "attack": "lifts the heavy sledgehammer high over his horns with both hands, then brings it down in a big arc onto the enemy in front of him, then raises it back to his stance",
+        "death": "is mortally wounded: wobbles, takes two steps backward to the left, trips and falls on its back with its hooves in the air, lying motionless on the ground at the end"
       }
     },
     "aberration": {
@@ -1948,10 +1993,13 @@
         "idle": "queue-2",
         "move": "mm-pas-3",
         "carte": "p1-6",
-        "death": "death-1",
+        "death": "death-4",
         "hit": "hit-1"
       },
-      "grande": "art-candidats/references/derives/succube-grand.png"
+      "grande": "art-candidats/references/derives/succube-grand.png",
+      "consignes": {
+        "death": "is mortally wounded: her wings curl around her, she kneels with her head bowed, then folds slowly to one side, lying motionless on the ground at the end"
+      }
     },
     "demon": {
       "nom": "Démon",
@@ -1993,12 +2041,15 @@
         "move": "move-vide",
         "attack": "crache-2-r",
         "carte": "p1-5",
-        "death": "death-1",
+        "death": "death-4-r",
         "hit": "hit-14"
       },
       "grande": "art-candidats/references/derives/demon-grand.png",
       "mouvements": {
         "hit": "takes a blow and likes it: the head snaps back, then he looks up with a wide wicked grin, eyes wide with surprise and pleasure, the fat belly wobbles, the wings twitch, holding his trident, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      },
+      "consignes": {
+        "death": "catches fire: flames engulf the huge demon, wings and trident included, it blackens and collapses inside the fire, then the fire goes out, leaving a small mound of pale grey ash on the ground, motionless at the end"
       }
     },
     "diablotin": {
@@ -2036,12 +2087,15 @@
         "attack": "bond-2",
         "idle": "lecher-8",
         "carte": "p1-1",
-        "death": "death-1",
+        "death": "death-3",
         "hit": "hit-5"
       },
       "grande": "art-candidats/references/derives/diablotin-grand.png",
       "mouvements": {
         "hit": "flinches hard and is knocked back to the left, a big clear movement: its head snaps back sharply as if punched in the face, the whole small body is thrown backward to the left, arms and wings flailing, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      },
+      "consignes": {
+        "death": "is killed: shrivels and curls up tightly into a small ball on the ground with its tail wrapped around it, lying motionless on the ground at the end"
       }
     },
     "cultiste": {
@@ -2077,10 +2131,13 @@
         "move": "marche-3",
         "attack": "coup-1-r",
         "carte": "p1-2",
-        "death": "death-1",
+        "death": "death-3",
         "hit": "hit-1"
       },
-      "grande": "art-candidats/references/derives/cultiste-grand.png"
+      "grande": "art-candidats/references/derives/cultiste-grand.png",
+      "consignes": {
+        "death": "is mortally wounded: sways, the knees buckle and it crumples straight down into a heap of red robes, the hood falling over the face, lying motionless on the ground at the end; no blood, no fire, no flames"
+      }
     },
     "limon-magma": {
       "nom": "Limon de magma",
@@ -2112,13 +2169,16 @@
         "attack": "ecrase-1",
         "move": "rampe32-2",
         "carte": "p1-2",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/limon-magma-grand.png",
       "mouvements": {
         "death": "is destroyed: melts and collapses into a flat puddle of dark cooling lava on the ground; no effects, no other character",
         "hit": "flinches away to the left: its soft body is squashed flat and sags backward to the left, then bulges back up, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      },
+      "consignes": {
+        "death": "dies as its lava goes out completely: all orange and yellow glow fades away, it sinks and flattens into a low lump of dull black and dark grey cold rock, no glow and no orange left at the end, motionless, staying entirely inside the picture; no blood"
       }
     },
     "tourmenteur": {
@@ -2155,12 +2215,15 @@
         "attack": "fauche-2-r",
         "throw": "lancer-1",
         "carte": "p1-1",
-        "death": "death-1",
+        "death": "death-3",
         "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/tourmenteur-grand.png",
       "mouvements": {
         "hit": "flinches hard and is knocked back to the left, a big clear movement: its head and shoulders jerk backward and it leans back to the left, arms pulled in, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      },
+      "consignes": {
+        "death": "is killed: its knees fold, it sits hunched, the skull slumps onto its chest and it slowly tips over sideways, lying motionless on the ground at the end"
       }
     },
     "moloch": {
@@ -2199,10 +2262,13 @@
         "idle": "fournaise-2",
         "attack": "poings-3",
         "carte": "p1-6",
-        "death": "death-1",
+        "death": "death-8",
         "hit": "hit-1"
       },
-      "grande": "art-candidats/references/derives/moloch-grand.png"
+      "grande": "art-candidats/references/derives/moloch-grand.png",
+      "consignes": {
+        "death": "the bronze pieces lie on the ground; the bronze legs, still lying there, crack and come apart at the knees and hips into separate pieces that tip over and settle; the head, arms and torso stay where they are; at the end every piece lies separate and still, motionless"
+      }
     },
     "porte-bouclier": {
       "nom": "Porte-bouclier",
@@ -2238,10 +2304,13 @@
         "move": "mmarche-1",
         "attack": "mcoup-2-r1",
         "carte": "p1-3",
-        "death": "death-1",
+        "death": "death-6",
         "hit": "hit-1"
       },
-      "grande": "art-candidats/references/derives/porte-bouclier-grand.png"
+      "grande": "art-candidats/references/derives/porte-bouclier-grand.png",
+      "consignes": {
+        "death": "is mortally wounded: staggers backward to the left, away from the direction it faces, the shield slips from his arm and lands flat on the ground, and he falls on his back beside it, lying motionless on the ground at the end"
+      }
     },
     "arbaletrier": {
       "nom": "Arbalétrier",
@@ -2279,10 +2348,13 @@
         "move": "mmarche-1",
         "attack": "mtir-1-r1",
         "carte": "p1-2",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-1"
       },
-      "grande": "art-candidats/references/derives/arbaletrier-grand.png"
+      "grande": "art-candidats/references/derives/arbaletrier-grand.png",
+      "consignes": {
+        "death": "is mortally wounded: drops the crossbow, sits down heavily with a dazed look, then tips slowly over onto his side, lying motionless on the ground at the end; no blood"
+      }
     },
     "chevaucheur-chevre": {
       "nom": "Chevaucheur de chèvre",
@@ -2368,12 +2440,13 @@
         "move": "mmarche-1-r1",
         "attack": "attack-2-r2",
         "carte": "p1-2",
-        "death": "death-1",
+        "death": "death-7",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/porte-etendard-grand.png",
       "consignes": {
-        "attack": "the old dwarf grips the banner pole firmly with both hands, lifts it high above his head, then swings it down with both hands so the carved stone head comes down in front of him, then he returns to the starting pose leaning on the pole; only the body and the pole move"
+        "attack": "the old dwarf grips the banner pole firmly with both hands, lifts it high above his head, then swings it down with both hands so the carved stone head comes down in front of him, then he returns to the starting pose leaning on the pole; only the body and the pole move",
+        "death": "is dying: the very old dwarf loses his balance and falls backward to the left, away from the direction it faces still holding the pole, ending flat on his back with the standard lying across his body, lying motionless on the ground at the end"
       }
     },
     "lance-flammes": {
@@ -2444,12 +2517,13 @@
         "move": "move-4",
         "attack": "attack-2-r1",
         "carte": "p1-2",
-        "death": "death-1",
+        "death": "death-2",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/gyrocoptere-grand.png",
       "consignes": {
-        "attack": "the dwarf swings his round black bomb back and lobs it forward underarm towards the front, his wings flare open, the bomb leaves his hand and he returns to the starting pose; only the body moves, no explosion, no fire, no smoke, no spark"
+        "attack": "the dwarf swings his round black bomb back and lobs it forward underarm towards the front, his wings flare open, the bomb leaves his hand and he returns to the starting pose; only the body moves, no explosion, no fire, no smoke, no spark",
+        "death": "is mortally wounded: his mechanical wings break off and drop to the ground as he stumbles backward to the left, sits down, and falls on his back among the broken pieces, lying motionless on the ground at the end; no blood"
       },
       "mouvements": {
         "death": "is mortally wounded: his wings break, he staggers and collapses face down, lying motionless on the ground at the end; no effects, no blood, no other character"
@@ -2514,10 +2588,13 @@
         "move": "mmarche-2-r1",
         "attack": "mcoup-1-r2",
         "carte": "p1-6",
-        "death": "death-1",
+        "death": "death-3-r",
         "hit": "hit-1"
       },
-      "grande": "art-candidats/references/derives/sapeur-grand.png"
+      "grande": "art-candidats/references/derives/sapeur-grand.png",
+      "consignes": {
+        "death": "is mortally wounded: scratches weakly at the ground with his long hands, then collapses half curled with his pickaxe beside him, lying motionless on the ground at the end"
+      }
     },
     "roi-de-cristal": {
       "nom": "Roi de cristal",
@@ -2555,13 +2632,16 @@
         "move": "mmarche-2",
         "attack": "mcoup-2-r1",
         "carte": "p1-1",
-        "death": "death-1",
+        "death": "death-7",
         "hit": "hit-3"
       },
       "grande": "art-candidats/references/derives/roi-de-cristal-grand.png",
       "garder_cyan": true,
       "mouvements": {
         "death": "is destroyed: his crystal body cracks, he falls to his knees and collapses into a heap of crystal shards on the ground; no effects, no other character"
+      },
+      "consignes": {
+        "death": "vanishes: the pale ghostly king evaporates upward into thin mist, from the feet to the crown, until his body is entirely gone, his hammer drops to the ground, ending with only the hammer lying on the ground, motionless"
       }
     },
     "cavalier": {
@@ -2613,7 +2693,9 @@
         "attack": "attack-2",
         "idle": "idle-3",
         "move": "move-11-boucle",
-        "carte": "p1-1"
+        "carte": "p1-1",
+        "death": "death-3",
+        "hit": "hit-1-r"
       },
       "grande": "art-candidats/references/derives/cavalier-grand.png",
       "mouvements": {
@@ -2624,7 +2706,9 @@
       "consignes": {
         "idle": "the horse slowly lifts one front hoof, paws the ground once and puts it back down, then shakes its head a little; the pennant flutters; the rider sits still and upright; the other hooves stay in place",
         "move": "the horse gallops forward to the right, its four legs in a clear fast gallop, the rider leaning forward, the lance held upright",
-        "attack": "the horse lunges forward and the rider lowers his lance level and thrusts it forward at chest height, then raises it again and the horse steps back to its starting place"
+        "attack": "the horse lunges forward and the rider lowers his lance level and thrusts it forward at chest height, then raises it again and the horse steps back to its starting place",
+        "death": "is mortally wounded: the rider falls backward to the left, away from the direction it faces out of the saddle and lies on the ground, then the horse sways and collapses onto its side next to him, lying motionless on the ground at the end",
+        "hit": "shies away to the left: the horse lifts its front hooves a little off the ground and leans back to the left, the rider ducking his head, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     }
   }

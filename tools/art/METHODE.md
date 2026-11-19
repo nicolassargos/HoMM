@@ -86,6 +86,13 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   fissure qui se lit comme telle n'est pas un bord de plaques (trop lisse : des brindilles) : c'est un trait en zigzag,
   avec des branches, noir, large au milieu et fin aux bouts, le feu seulement au fond de sa partie large ; des tailles
   très inégales, regroupées par régions. Une animation lente et décalée d'une fissure à l'autre reste discrète.
+  Neige (2026-11-19) : les cases du sable recolorées en blanc bleuté, de faible contraste. Les congères étirées en
+  longues bandes font des nuages : des congères rondes, l'ombre bleutée d'un seul côté.
+  Arbres des sols (2026-11-19, 24 × 32) : finir la description par « single tree, … isolated object, no ground ».
+  Arbres brûlés : fins et sombres, on ne voit que des pixels ; demander un tronc épais, des reflets de cendre grise sur
+  les bords, des branches épaisses et peu nombreuses, des fentes orange, « clear readable silhouette, strong light and
+  dark contrast ». Les palmiers sortent vert vif : les ternir vers l'olive (moins saturés, un peu plus sombres). Sous les
+  arbres de la neige, retirer la tache de neige (pixels clairs et bleutés du bas, pas le tronc blanc des bouleaux).
 - Portraits : 64 × 64, style « retro », des visages marqués plutôt qu'idéalisés, trouvés d'après le nom du héros.
   28 portraits de plus (2026-11-07, 5,58 $ : 3 candidats chacun, 3 refaits) : barbares, chevaliers, sorciers, mages,
   gens des bois, morts-vivants, démons. Ce qui marche : décrire un détail qui se voit (cicatrice, cache-œil,
@@ -360,6 +367,31 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   rubble » (le Golem reste debout, ou une fente blanche s'ouvre) : le faire **basculer** (« topples forward and falls
   face down ») ; des taches blanches (poussière) sur la Gargouille : une autre graine. Les os qui se défont (Squelette,
   Colosse d'os), la lave qui refroidit (Limon), l'arbre qui bascule (Tréant) marchent bien.
+  **Des morts variées** (2026-11-19, revues avec l'utilisateur) : la même consigne fait tomber tout le monde en avant ;
+  l'utilisateur veut de la variété (en arrière, sur le côté, un dernier geste) et une mort propre aux créatures qui s'y
+  prêtent. Ce qui marche :
+  - **Aucune interdiction dans la consigne** : « no fire », « no flash », « no light » font **naître** le feu, l'éclair
+    ou la lueur. Décrire seulement ce qu'on veut voir, et finir par « no other character ».
+  - **En arrière** : « falls backward to the left, away from the direction it faces » (sans « to the left », PixelLab
+    le fait souvent tomber en avant). Un geste avant la chute aide : s'asseoir lourdement, rugir les bras levés, tourner
+    sur soi, se serrer la gorge.
+  - **Ce qui se défait** (os, pierres, bronze, robe vide, marteau qui tombe) : de la place sous les pieds pendant
+    l'essai (`marge_bas` 0,14 provisoire), puis remonter ce qui descend sous les pieds de départ ; sinon un morceau qui
+    tombe est coupé en bas. Nommer chaque morceau et dire qu'il reste visible au sol (« the horned bull head drops in
+    front, fully visible »). Encore difficile : le Moloch défait jusqu'aux jambes, le Golem vraiment pierre à pierre ;
+    « crumble », « dissolve » restent peu sûrs.
+  - **Une mort presque bonne se finit à la main**, sans nouvel essai : une fin recolorée (le Démon : un corps calciné
+    écrasé vers le sol, puis le tas recoloré en cendre grise) ; une robe restée debout écrasée vers le sol image après
+    image ; ou **une suite animée depuis la dernière grande image** (`--depart=<dossier de l'essai>/9.png`, même
+    cadre), dont on colle deux images à la fin en retirant deux images presque pareilles du début (le Béhémoth, dont
+    les bras restaient levés). Un objet coupé au bas du cadre ne se répare pas à la main (le marteau du Roi de
+    cristal : le manche relevé se voit) : refaire l'essai avec de la place sous les pieds.
+  - **Dans un worktree, vérifier d'abord la grande image** (`grande` de la fiche) : `art-candidats/` n'est pas suivi
+    par git, chaque worktree a sa copie, parfois d'avant une refonte (l'Archer et le Griffon du Château, 2026-11-19 :
+    tout un lot animé depuis les anciennes créatures). La comparer à celle du dossier principal, ou à l'image fixe en
+    jeu, avant de dépenser.
+  - Revue : une page par tour, l'essai actuel et deux nouveaux par créature, les essais commentés du tour d'avant à
+    côté ; environ 20 % refaits à chaque tour.
 - **Les coups reçus** (2026-11-17) : animés directement (modèle v3), **avec retour** à l'image de départ, **6 images**
   (joués à 12 images/s : une demi-seconde), même cadre que la mort ; environ 0,016 $ l'essai. **Ne jamais parler du coup
   ni de la douleur** (« is struck by a blow », « recoils in pain ») : PixelLab dessine alors une étincelle ou un éclair
@@ -582,6 +614,8 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (2 cases) : l'image de 64 × 64 telle quelle. Recadrer chaque image sur son dessin avant de l'installer (le jeu pose le
   bas de l'image sur le bas de la case : des rangées vides dessous le feraient flotter). `--center=windmill` (sage,
   temple…) centre la capture sur un lieu.
+  Un lieu au contour trop dur (« crunchy », le moulin, 2026-11-18) : `adoucir.py entree sortie 0.7 60 2` (plus doux : `0.85 90 2`, la tour ; le 4e nombre, `0.4`, adoucit aussi les traits de l'intérieur), puis recadrer et
+  corriger ses pieds dans `godot/art/pieds.json`.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 

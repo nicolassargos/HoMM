@@ -12,7 +12,7 @@
     { "id": "rodeur", "name": "Rôdeur", "faction": "foret",
       "attack": 3, "defense": 1, "power": 1, "knowledge": 2, "charisma": 9, "spells": ["soins"], "skill": "eclaireur", "talent": "hunter", "mainResource": "Gems", "secondaryResource": "Crystal",
       "army": [ { "creature": "farfadet", "count": 15 }, { "creature": "sanglier", "count": 5 }, { "creature": "archer-elfe", "count": 2 } ] },
-    { "id": "magicien", "name": "Magicien", "faction": "tour",
+    { "id": "magicien", "name": "Magicien", "faction": "tour", "ground": "Snow",
       "attack": 0, "defense": 1, "power": 3, "knowledge": 3, "charisma": 8, "spells": ["fleche-magique", "benediction"], "skill": "mysticisme", "talent": "scholar", "mainResource": "Gems", "secondaryResource": "Mercury",
       "army": [ { "creature": "gnome", "count": 15 }, { "creature": "gargouille", "count": 6 }, { "creature": "golem-pierre", "count": 2 } ] },
     { "id": "seigneur-abimes", "name": "Seigneur des abîmes", "faction": "donjon", "ground": "Swamp",

@@ -1468,7 +1468,7 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
   à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),
-  sage 8, roue à eau 13, moulin 12, tour 16, temple 8, cercle des fées 12. L'utilisateur trouvait les lieux petits : comme
+  sage 8, roue à eau 13, moulin 12 (remplacé le 2026-11-18 par le 8, tout brun et illisible : le 8 au contour adouci), tour 16 (contour adouci le 2026-11-19, `adoucir.py … 0.85 90 2` ; la version qui adoucit aussi les traits du haut, `… 0.85 90 2 0.4`, est gardée dans `art-candidats/archives/2026-11-19-tour/tower-c.png` si l'utilisateur change d'avis), temple 8, cercle des fées 12. L'utilisateur trouvait les lieux petits : comme
   Heroes 2 et 3, les lieux hauts prennent 2 cases (`TallSite.FootprintAt` : la porte, `Position`, et la case au-dessus,
   qui bloque ; `Large`, faux pour les sauvegardes d'avant la version 7). Une empreinte de 2 × 2 aurait mis la porte à
   côté du héros (largeur paire) : une colonne de 2 cases et une image qui déborde d'une demi-case de chaque côté, comme
@@ -2778,6 +2778,30 @@ choix de l'utilisateur) :
   médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
   six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
   55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
+- ✅ **La neige** (2026-11-19, branche `sol-neige`) : `TerrainType.Snow`, le sol de la Tour (comme dans Heroes 3), coût 150
+  comme dans Heroes 3 ; une zone qui change de sol en tire un parmi cinq. Mesuré dans les cartes de référence : la neige
+  sur 35 cartes de Heroes 3 sur 50 (12 % de la terre, médiane) et 19 de Heroes 2 (19 %), en peu de grandes taches. Les
+  deux cases sont celles du sable, recolorées en blanc bleuté de faible contraste (rien à payer). Le shader ajoute des
+  congères rondes (`snow_*`) : une ombre bleutée du côté abrité, une crête un peu plus claire, quelques pixels qui
+  scintillent ; trois fois moins de cailloux semés (`snow_stones` : sombres, ils se voyaient trop). Écartés par l'utilisateur : de longues congères en bandes (des nuages), une neige presque lisse. Les
+  combats y prennent le champ du désert en attendant le leur. Mesuré (cartes normales, médianes) : herbe 74 %, roche 11 %, terre brûlée 8 %, neige 7 %, sable
+  6 %, marais 6 % de la terre.
+  Armée d'un adversaire après six semaines : moyenne 54 600 (53 700 avant) ; Tour 45 600 → 48 500 ; les
+  autres bougent beaucoup (Forêt 70 000, Enfer 48 100, Château 42 000) : un sol de plus change le tirage des zones de
+  chaque carte, donc les cartes mesurées.
+- ✅ **Les forêts de chaque sol** (2026-11-19, branche `vegetation`) : une forêt pousse sur le sol qui l'entoure
+  (`ForestGrounds`, comme les montagnes ; avant, une tache d'herbe sous chaque forêt) et prend les arbres de ce sol
+  (`decor/tree-<sol>`, `DecorLayer.TreesOn`) : palmiers et acacias au vert olive dans le désert, en palmeraies plus
+  clairsemées (trois arbres par case) ; cyprès, arbres morts et saules dans le marais ; arbres calcinés et souches fendues
+  qui rougeoient sur la terre brûlée ; sapins enneigés et bouleaux nus dans la neige ; les sapins seuls sur la roche.
+  Retro Diffusion, 48 candidats (2,88 $) ; écartés par l'utilisateur : des arbres brûlés fins et sombres (« des pixels,
+  sans détail »), des palmiers vert vif trop serrés. Les ombres portées prennent la teinte de leur sol : bleutées sur la
+  neige (`ShadowLayer.SnowShade`), noires ailleurs ; l'ombre de contact des arbres de la neige est bleue (`pieds.json`).
+  Reste : les arbres seuls posés près des bâtiments et des mines, encore verts partout.
+- ✅ **La scierie et la mine de minerai de chaque sol** (2026-11-19, branche `mines-sols`) : une image par sol
+  (`objects/mine-wood-sand`…, `MapRenderer.MineImage` d'après le sol de l'entrée), leurs arbres verts remplacés par ceux
+  du sol (un script : rien à payer ; les pieds repris de l'image de l'herbe). Les autres mines gardent leurs arbres :
+  creusées, elles iront plutôt au flanc des montagnes (choix de l'utilisateur).
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et
@@ -2803,8 +2827,27 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   elle disparaît comme avant. `--effect-preview=mort` (ou `mort:0.5`, figé) : toutes les troupes meurent en boucle.
   Images : l'état `death` de `creature.py` (cadre de la largeur de l'attaque, hauteur de l'attente), une consigne par
   gabarit et quelques-unes à part (os, pierre, magma, cristal, arbre ; `tools/art/METHODE.md`). Refaits : le Golem de
-  pierre (ne s'effondrait pas) et la Gargouille (taches blanches). À revoir avec l'utilisateur
-  (`art-candidats/en-cours/morts.html`).
+  pierre (ne s'effondrait pas) et la Gargouille (taches blanches).
+  ✅ **Des morts variées** (2026-11-19, branche `morts-variees`, revues avec l'utilisateur en six pages de choix) : presque
+  toutes tombaient en avant de la même façon ; il voulait tomber en arrière, sur le côté, un petit geste, et une mort
+  propre à certaines créatures (ses idées). 40 des 51 refaites, 11 gardées (Paysan, Homme-lézard, Homme-grenouille,
+  Aberration, Ver des profondeurs, Tyran œil, Hydre, Farfadet, Sanglier, Araignée, Chevaucheur de chèvre). Les morts
+  propres : le Démon brûle puis tombe en cendre grise, la Liche disparaît et laisse la robe, la couronne et le bâton, le
+  Roi de cristal s'évapore et laisse son marteau, le Moloch se défait en morceaux de bronze (tête à cornes devant ; les
+  jambes ne se défont pas, accepté), le Golem tombe pierre à pierre, le Squelette et le Colosse d'os en tas d'os, le
+  Fantôme se dissipe, le Vampire s'effondre dans sa cape, le Béhémoth rugit et tombe sur le dos. 137 essais,
+  2,59 $. Retouches à la main (gratuites) : le bâton du Druide sans sa lueur, les gouttes du Sapeur, la fin du Démon (un
+  corps calciné qui s'affaisse puis la cendre grise, au lieu d'un démon de nouveau entier), la robe de la Liche qui
+  s'affaisse, la tête du marteau du Roi de cristal (essai écarté : le relever recourbait le manche ; refait avec de la
+  place sous les pieds), la fin du Béhémoth (une suite animée depuis sa dernière image, collée). Méthode :
+  `tools/art/METHODE.md`.
+  ✅ **La mort et le coup reçu de l'Archer, du Griffon et du Cavalier** (2026-11-19, branche `morts-chateau`, leurs
+  nouvelles images du Château) : trois morts différentes et deux coups reçus chacun, une page de choix, tout choisi au
+  premier tour. L'Archer s'effondre face contre terre (les trois essais tombaient en avant, même celui demandé en
+  arrière), le Griffon se cabre et s'affaisse, le cavalier du Cavalier tombe de selle puis le cheval s'écroule à côté.
+  Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
+  de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
+  worktree (non suivi par git).
   ✅ **Un coup reçu par créature** (2026-11-17, même branche, demandé par l'utilisateur avant de juger les morts) : une
   troupe touchée qui survit (coup, tir, sort, poison, brûlure, foudre, nuage) et qui attendait joue sa feuille
   `<id>-hit.png` une fois (6 images à 12 images/s), puis revient à l'attente (`BattleFieldView.Hurt`) ; l'éclair blanc

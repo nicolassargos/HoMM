@@ -21,6 +21,10 @@ avant toute diffusion commerciale.
 - `musique/combat-poursuite.wav` : « Determined Pursuit (Epic Orchestra Loop) », Emma_MA, CC0,
   https://opengameart.org/content/determined-pursuit-epic-orchestra-loop (passée en mono à 22 050 Hz pour la taille ;
   musique d'attente, à remplacer par Stable Audio plus tard)
+- `musique/combat-heroic-age.mp3` : « Heroic Age », Kevin MacLeod (incompetech.com), Licensed under Creative Commons:
+  By Attribution 4.0, https://incompetech.com/music/royalty-free/index.html?keywords=Heroic%20Age
+- `musique/combat-heated-lands.mp3` : « Heated Lands », Jonathan Shaw (InspectorJ), CC-BY 3.0,
+  https://opengameart.org/content/heated-lands-rpg-orchestral-essentials-dungeon-music
 - Les musiques des villes (choisies le 2026-11-17, `tools/audio/musiques.py`, liste dans
   `tools/audio/musiques-villes.json` ; **CC-BY** : citer l'auteur) :
   - `musique/ville-chateau.mp3` : « RPG Town Theme 1 », LarsG, CC-BY 4.0, https://opengameart.org/content/rpg-town-theme-1
@@ -33,3 +37,22 @@ avant toute diffusion commerciale.
     (la version ogg de l'aperçu du site, au lieu du wav de 67 Mo)
   - `musique/ville-morts-vivants.ogg` : « RPG - The Graveyard », HitCtrl, CC-BY 3.0,
     https://opengameart.org/content/rpg-the-graveyard
+  - `musique/ville-nains.mp3` : « Five Armies », Kevin MacLeod (incompetech.com), Licensed under Creative Commons:
+    By Attribution 4.0, https://incompetech.com/music/royalty-free/index.html?keywords=Five%20Armies
+  - `musique/ville-foret.mp3` : « Mist Forest (Orchestra) », migfus20, CC-BY 4.0,
+    https://opengameart.org/content/mist-forest-orchestra
+- Les musiques de la carte (choisies le 2026-11-18, `tools/audio/musiques.py carte`, liste dans
+  `tools/audio/musiques-carte.json` ; **CC-BY** : citer l'auteur) :
+  - `musique/carte-grass.mp3` : « World Map », Scrabbit, CC-BY 4.0, https://opengameart.org/content/world-map-1
+  - `musique/carte-water.ogg` : « Exploring the Ocean », Leonardo Paz, CC-BY 4.0,
+    https://opengameart.org/content/ocean-music-pack (la version ogg de l'aperçu du site)
+  - `musique/carte-water-2.ogg` : « Seaside Village », Leonardo Paz, CC-BY 4.0, même page, même version
+  - `musique/carte-water-3.ogg` : « Siren's Call », Leonardo Paz, CC-BY 4.0, même page, même version
+  - `musique/carte-swamp.mp3` : « Crystal Meadow », joeBaxterWebb, CC-BY 4.0, https://opengameart.org/content/crystal-meadow
+  - `musique/carte-sand.mp3` : « Myst », Kevin MacLeod (incompetech.com), Licensed under Creative Commons:
+    By Attribution 4.0, https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100448
+  - `musique/carte-rock.mp3` : « Crusade », Kevin MacLeod (incompetech.com), Licensed under Creative Commons:
+    By Attribution 4.0, https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100884
+  - `musique/carte-snow.mp3` : « Mevalian Winter », Tsorthan Grove, CC0, https://opengameart.org/content/mevalian-winter
+- `musique/musique-menu.ogg` : la musique du menu principal (choisie le 2026-11-19, `tools/audio/musiques.py menu`),
+  « Alandriel's Theme », HitCtrl, CC-BY 3.0, https://opengameart.org/node/108463

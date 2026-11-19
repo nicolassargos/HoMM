@@ -17,9 +17,11 @@ Prix (relevés le 2026-11-15) : ElevenLabs, environ 200 crédits par son et 900 
 gratuits par mois ; pas d'usage commercial sans abonnement) ; Stability, 8 crédits (0,08 $) par génération.
 """
 import html
+import http.server
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -291,6 +293,58 @@ def cout(elements):
     print(f"Stability  : {n} générations × {STABILITY_GENERATION} crédits = {n * STABILITY_GENERATION} crédits"
           f" = {n * STABILITY_GENERATION / 100:.2f} $")
     print("Bibliothèques libres : gratuit")
+
+
+MORCEAU_AUDIO = 256 * 1024
+
+
+class ServeurAudio(http.server.SimpleHTTPRequestHandler):
+    """Sert en-cours/ aux pages d'écoute. Répond aux demandes d'un morceau de fichier (« Range ») : sans elles, le
+    navigateur ne laisse pas déplacer le curseur d'une musique."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=EN_COURS, **kwargs)
+
+    def end_headers(self):
+        # un son refait garde son adresse : le navigateur ne doit pas rejouer l'ancien qu'il a gardé
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Accept-Ranges", "bytes")
+        super().end_headers()
+
+    def do_GET(self):
+        plage = re.fullmatch(r"bytes=(\d+)-(\d*)", self.headers.get("Range", ""))
+        chemin = self.translate_path(self.path)
+        if plage is None or not os.path.isfile(chemin):
+            super().do_GET()
+            return
+        taille = os.path.getsize(chemin)
+        debut = int(plage[1])
+        # par petits morceaux : le navigateur garde ouverte la connexion d'une musique en pause, et au bout de 6 il
+        # n'envoie plus rien à ce serveur (ni page, ni notes) ; une connexion finie ne le bloque pas
+        fin = min(int(plage[2] or taille - 1), taille - 1, debut + MORCEAU_AUDIO - 1)
+        if debut > fin:
+            self.send_response(416)
+            self.send_header("Content-Range", f"bytes */{taille}")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        self.send_response(206)
+        self.send_header("Content-Type", self.guess_type(chemin))
+        self.send_header("Content-Range", f"bytes {debut}-{fin}/{taille}")
+        self.send_header("Content-Length", str(fin - debut + 1))
+        self.end_headers()
+        try:
+            with open(chemin, "rb") as f:
+                f.seek(debut)
+                reste = fin - debut + 1
+                while reste > 0 and (bloc := f.read(min(reste, 65536))):
+                    self.wfile.write(bloc)
+                    reste -= len(bloc)
+        except ConnectionError:  # le curseur a encore bougé : le navigateur abandonne ce morceau
+            pass
+
+    def log_message(self, *args):
+        pass
 
 
 def main():

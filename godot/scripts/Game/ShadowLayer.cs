@@ -74,7 +74,8 @@ public partial class ShadowLayer : Node2D
     /// <summary>Applique les réglages (après un changement) : l'opacité des groupes, la forme des ombres.</summary>
     public void Apply()
     {
-        _cast.SelfModulate = new Color(0, 0, 0, Strength);
+        // les ombres portées sont blanches, teintes selon le sol (bleutées sur la neige) : le groupe ne règle que la force
+        _cast.SelfModulate = new Color(1, 1, 1, Strength);
         // les ombres de contact sont blanches, teintes image par image (couleur et opacité de pieds.json) : le groupe
         // ne règle que la force d'ensemble
         _contact.SelfModulate = new Color(1, 1, 1, Contact);
@@ -129,8 +130,28 @@ public partial class ShadowLayer : Node2D
     /// L'ombre portée d'une image dessinée en <paramref name="rect"/> : la même image, noire, couchée sur le sol à partir
     /// de son pied ; le haut de l'image va vers la gauche et un peu vers le haut.
     /// </summary>
-    private static void DrawCast(CanvasItem ci, Texture2D image, Rect2 rect) =>
-        DrawMask(ci, image, rect, CastImages, CastImage);
+    private void DrawCast(CanvasItem ci, Texture2D image, Rect2 rect) =>
+        DrawMask(ci, image, rect, CastImages, CastImage, GroundAt(rect.Position + new Vector2(rect.Size.X / 2, rect.Size.Y - 1)) == TerrainType.Snow ? SnowShade : Colors.Black);
+
+    /// <summary>La teinte de l'ombre portée sur la neige (2026-11-19) : un peu bleutée, comme le ciel qui s'y reflète.</summary>
+    private static readonly Color SnowShade = new(0.15f, 0.2f, 0.42f);
+
+    private Dictionary<Cell, TerrainType>? _forestGrounds, _mountainGrounds;
+
+    /// <summary>Le sol au point <paramref name="at"/> de la carte (celui qui entoure une forêt ou une montagne).</summary>
+    private TerrainType GroundAt(Vector2 at)
+    {
+        var map = State.Map;
+        var cell = new Cell((int)MathF.Floor(at.X / MapRenderer.TileSize), (int)MathF.Floor(at.Y / MapRenderer.TileSize));
+        if (!map.InBounds(cell))
+            return TerrainType.Grass;
+        return map.GetTerrain(cell) switch
+        {
+            TerrainType.Forest => (_forestGrounds ??= ForestGrounds.Of(map)).GetValueOrDefault(cell, TerrainType.Grass),
+            TerrainType.Mountain => (_mountainGrounds ??= MountainGrounds.Of(map)).GetValueOrDefault(cell, TerrainType.Grass),
+            var t => t,
+        };
+    }
 
     /// <summary>
     /// L'ombre de contact d'une image dessinée ailleurs que sur la carte (le décor du champ de bataille) : la même tache que
@@ -188,7 +209,7 @@ public partial class ShadowLayer : Node2D
                 float up = ground + 1 - y, down = ground - y;
                 canvas.Fill(x - Lean * up, x + 1 - Lean * down, ground + 1 - Length * up, ground + 1 - Length * down, 1);
             }
-        return canvas.ToImage(Blur);
+        return canvas.ToImage(Blur, white: true);
     }
 
     /// <summary>
@@ -387,7 +408,7 @@ public partial class ShadowLayer : Node2D
 
         /// <summary>
         /// L'image finie, floutée de <paramref name="blur"/> pixels (un flou gaussien ; 0 : bord net) : noire, ou blanche
-        /// (<paramref name="white"/> : une ombre de contact, teinte au dessin).
+        /// (<paramref name="white"/> : une ombre teinte au dessin).
         /// </summary>
         public ShadowImage ToImage(float blur, bool white = false)
         {

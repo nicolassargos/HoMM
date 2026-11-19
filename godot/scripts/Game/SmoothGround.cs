@@ -30,7 +30,8 @@ public partial class SmoothGround : ColorRect
         TerrainType.Swamp => 3,
         TerrainType.Rock => 4,
         TerrainType.Burnt => 5,
-        _ => 6, // herbe (et le sol des forêts et des montagnes)
+        TerrainType.Snow => 6,
+        _ => 7, // herbe (et le sol des forêts et des montagnes)
     };
 
     /// <summary>
@@ -107,12 +108,14 @@ public partial class SmoothGround : ColorRect
     /// </summary>
     public static SmoothGround? Create(AdventureMap map)
     {
-        // les forêts ont un sol d'herbe, les montagnes celui qui les entoure (leur décor est dessiné à part)
+        // les forêts et les montagnes ont le sol qui les entoure (leur décor est dessiné à part)
         var mountainGrounds = MountainGrounds.Of(map);
+        var forestGrounds = ForestGrounds.Of(map);
         var ground = Create(map.Width, map.Height, cell =>
         {
             var terrain = map.GetTerrain(cell);
             var under = terrain == TerrainType.Mountain ? mountainGrounds.GetValueOrDefault(cell, TerrainType.Grass)
+                : terrain == TerrainType.Forest ? forestGrounds.GetValueOrDefault(cell, TerrainType.Grass)
                 : DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
             return (under, map.GetRoadKind(cell), map.GetRiver(cell));
         });
@@ -309,7 +312,7 @@ public partial class SmoothGround : ColorRect
         material.SetShaderParameter("road_tiles", RoadTiles(size));
         material.SetShaderParameter("variants", Variants);
         material.SetShaderParameter("map_cells", new Vector2I(width, height));
-        var ranks = new int[9];
+        var ranks = new int[10];
         foreach (var terrain in terrains)
             ranks[(int)terrain] = Rank(terrain);
         ranks[(int)DirtId] = 1;
@@ -318,6 +321,7 @@ public partial class SmoothGround : ColorRect
         material.SetShaderParameter("sand", (int)TerrainType.Sand);
         material.SetShaderParameter("rock_ground", (int)TerrainType.Rock);
         material.SetShaderParameter("burnt_ground", (int)TerrainType.Burnt);
+        material.SetShaderParameter("snow_ground", (int)TerrainType.Snow);
         material.SetShaderParameter("grass", (int)TerrainType.Grass);
         // la taille d'une case en pixels d'art (celle des images des terrains) ; les longueurs du shader, réglées pour des
         // cases de 24, gardent les mêmes proportions

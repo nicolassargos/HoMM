@@ -1,15 +1,22 @@
-"""Les musiques des villes, prises dans les bibliothèques libres (CC0 ou CC-BY) d'après une liste
-(tools/audio/musiques-villes.json), écoutées sur une page où l'on choisit une musique par faction, puis installées.
+"""Les musiques des villes et de la carte, prises dans les bibliothèques libres (CC0 ou CC-BY) d'après une liste
+(tools/audio/musiques-villes.json, musiques-carte.json), écoutées sur une page où l'on choisit une musique par faction
+ou par terrain et note chaque piste, puis installées.
 
-    python -I tools/audio/musiques.py telecharger        télécharge ce qui manque (art-candidats/en-cours/musiques/)
-    python -I tools/audio/musiques.py page               écrit la page d'écoute art-candidats/en-cours/musiques.html
-    python -I tools/audio/musiques.py serveur            sert la page (http://localhost:8767/musiques.html) ; les choix
-                                                         s'écrivent aussitôt dans en-cours/musiques-reponses.json
-    python -I tools/audio/musiques.py installer          copie chaque musique choisie dans godot/audio/musique/ville-<faction>
-                                                         et la note dans godot/data/sounds.json (« town-<faction> »)
+    python -I tools/audio/musiques.py [carte] telecharger    télécharge ce qui manque (art-candidats/en-cours/musiques/,
+                                                             musiques-carte/ pour la carte)
+    python -I tools/audio/musiques.py [carte] page [tout]    écrit la page d'écoute art-candidats/en-cours/musiques.html
+                                                             (musiques-carte.html pour la carte) ; « tout » : garde
+                                                             toutes les pistes, pendant qu'un tour de notes est en cours
+    python -I tools/audio/musiques.py serveur                sert les pages (http://localhost:8767/musiques.html) ; les
+                                                             choix s'écrivent aussitôt dans en-cours/<page>-reponses.json
+    python -I tools/audio/musiques.py [carte] installer      copie chaque musique choisie dans godot/audio/musique/
+                                                             (ville-<faction>, carte-<terrain>) et la note dans
+                                                             godot/data/sounds.json (« town-<faction> », « map-<terrain> »)
 
-Chaque élément de la liste : id (« <faction>-<n> »), faction, titre, url (le fichier, ou une archive zip et « fichier »
-le nom dedans), page, auteur, licence. Les licences se recopient à la main dans godot/audio/LICENCES.md.
+Sans « carte » ni « menu » : les villes (« menu » : la musique du menu principal, parmi celles qui ne servent pas). Chaque
+élément de la liste : id (« <groupe>-<n> »), faction (le groupe : la faction ou le terrain), « nouveau » (proposée en plus
+de la musique choisie), « aussi » (jouée en plus de la musique choisie), titre, url (le fichier, ou une archive zip et « fichier » le nom dedans), page, auteur, licence. Les licences
+se recopient à la main dans godot/audio/LICENCES.md.
 Seule la bibliothèque standard de Python est utilisée.
 """
 import html
@@ -20,6 +27,7 @@ import os
 import re
 import shutil
 import sys
+import threading
 import zipfile
 
 ICI = os.path.dirname(os.path.abspath(__file__))
@@ -27,10 +35,33 @@ sys.path.insert(0, ICI)
 import essai  # noqa: E402  (les requêtes, le dossier principal)
 from sons import FACTIONS  # noqa: E402
 
-LISTE = os.path.join(ICI, "musiques-villes.json")
 EN_COURS = essai.EN_COURS
-DOSSIER = os.path.join(EN_COURS, "musiques")
-REPONSES = os.path.join(EN_COURS, "musiques-reponses.json")
+# chaque sujet : sa liste, ses groupes (une musique par groupe), son nom dans sounds.json et dans godot/audio/musique/
+SUJETS = {
+    "villes": {"liste": "musiques-villes.json", "page": "musiques", "groupes": FACTIONS, "cle": "town", "fichier": "ville",
+               "titre": "Les musiques des villes", "quoi": "Une musique par faction, jouée dans l'écran de la ville."},
+    "carte": {"liste": "musiques-carte.json", "page": "musiques-carte", "cle": "map", "fichier": "carte",
+              "groupes": {"grass": "Herbe", "sand": "Désert", "swamp": "Marais", "rock": "Roche", "burnt": "Sol brûlé",
+                         "snow": "Neige", "water": "Mer"},
+              "titre": "Les musiques de la carte",
+              "quoi": "Une musique par terrain, jouée sur la carte selon le terrain autour du héros (la mer : en bateau)."},
+    "menu": {"liste": "musiques-menu.json", "page": "musiques-menu", "cle": "", "fichier": "musique",
+             "groupes": {"menu": "Menu principal"}, "titre": "La musique du menu",
+             "quoi": "Toutes les musiques notées 3 étoiles ou plus qui ne servent encore nulle part, les mieux notées d'abord."},
+}
+SUJET = SUJETS["villes"]
+LISTE = DOSSIER = REPONSES = ""
+
+
+def choisir(nom):
+    global SUJET, LISTE, DOSSIER, REPONSES
+    SUJET = SUJETS[nom]
+    LISTE = os.path.join(ICI, SUJET["liste"])
+    DOSSIER = os.path.join(EN_COURS, SUJET["page"])
+    REPONSES = os.path.join(EN_COURS, SUJET["page"] + "-reponses.json")
+
+
+choisir("villes")
 GODOT = os.path.normpath(os.path.join(ICI, "..", "..", "godot"))
 PORT = 8767  # ni celui des revues d'images (8765), ni celui des sons (8766)
 
@@ -73,7 +104,8 @@ def telecharger(musiques):
         except (RuntimeError, KeyError, zipfile.BadZipFile) as err:
             print(f"  {m['id']} : échec, {err}")
             continue
-        ext = os.path.splitext(nom.split("?")[0])[1].lower()
+        # « format » : quand l'adresse ne dit pas le format (Free Music Archive sert ses mp3 en .bin)
+        ext = m.get("format") or os.path.splitext(nom.split("?")[0])[1].lower()
         if ext not in essai.EXTENSIONS:
             print(f"  {m['id']} : format inconnu ({ext})")
             continue
@@ -82,17 +114,18 @@ def telecharger(musiques):
         print(f"  {m['id']}{ext}  {len(contenu) // 1024} Ko")
 
 
-def page(musiques):
+def page(musiques, tout=False):
     parties, finies = [], []
     deja = reponses()
     ids = {m["id"] for m in musiques}
-    for faction, nom in FACTIONS.items():
+    for faction, nom in SUJET["groupes"].items():
         lignes = []
         for m in (m for m in musiques if m["faction"] == faction):
             # d'un tour à l'autre, ne restent que la piste choisie et celles de 4 étoiles ou plus ; une piste pas encore
-            # notée reste tant que sa faction n'a pas de musique choisie
+            # notée reste tant que sa faction n'a pas de musique choisie, ou si elle est marquée « nouveau » (proposée
+            # en plus de la musique choisie)
             etoiles = deja.get(f"etoiles:{m['id']}", m.get("etoiles"))
-            if deja.get(faction) != m["id"] and (etoiles and etoiles < 4 or not etoiles and deja.get(faction) in ids):
+            if not tout and deja.get(faction) != m["id"] and (etoiles and etoiles < 4 or not etoiles and not m.get("nouveau") and deja.get(faction) in ids):
                 continue
             chemin = existant(m["id"])
             if chemin is None:
@@ -109,12 +142,12 @@ def page(musiques):
                 f"<label><input type=radio name=\"{faction}\" value=\"{m['id']}\"> choisir celle-ci</label></div>")
         if lignes:
             # une faction dont la musique est choisie et installée passe en bas, pour noter encore ses pistes
-            choisie = deja.get(faction) in ids
+            choisie = not tout and deja.get(faction) in ids
             (finies if choisie else parties).append(
                 f"<section><h2>{nom}{' <span class=info>(dans le jeu)</span>' if choisie else ''}</h2>{''.join(lignes)}"
                 f"<label><input type=radio name=\"{faction}\" value=aucune> aucune ne va : en chercher d'autres</label>"
                 f"<textarea data-id=\"{faction}\" placeholder=\"ce qui plaît, ce qui manque\"></textarea></section>")
-    contenu = f"""<!doctype html><html lang=fr><meta charset=utf-8><title>Musiques des villes</title>
+    contenu = f"""<!doctype html><html lang=fr><meta charset=utf-8><title>{SUJET["titre"]}</title>
 <style>
 body{{font-family:system-ui,sans-serif;background:#1d1a16;color:#e8e0d0;margin:16px;max-width:900px}}
 h1{{font-size:22px}} h2{{font-size:18px;margin:0 0 8px;color:#d8b870}}
@@ -126,10 +159,10 @@ label{{display:block;margin:2px 0}} .avis{{display:flex;gap:8px;align-items:cent
 textarea{{width:100%;height:44px;background:#2a2620;color:#e8e0d0;border:1px solid #4a4035;margin-top:6px}}
 #etat{{position:fixed;top:8px;right:12px;font-size:13px;color:#a89c88}}
 </style>
-<h1>Les musiques des villes</h1>
-<p>Une musique par faction, jouée dans l'écran de la ville. Choisissez celle qui va le mieux, ou « aucune » avec un mot
+<h1>{SUJET["titre"]}</h1>
+<p>{SUJET["quoi"]} Choisissez celle qui va le mieux, ou « aucune » avec un mot
 sur ce que vous aimeriez. Chaque piste peut recevoir de 1 à 5 étoiles et un avis (cliquer de nouveau sur la même
-étoile l'efface) : ils sont gardés dans <code>tools/audio/musiques-villes.json</code> à l'installation. Tout
+étoile l'efface) : ils sont gardés dans <code>tools/audio/{SUJET["liste"]}</code> à l'installation. Tout
 s'enregistre tout seul.</p>
 <div id=etat></div>
 {''.join(parties + finies)}
@@ -138,7 +171,10 @@ const GARDES = {json.dumps({m["id"]: {k: m[k] for k in ("etoiles", "avis") if m.
 let r = {{}};
 const etat = document.getElementById("etat");
 async function charger() {{
-  try {{ r = await (await fetch("musiques-reponses.json", {{cache: "no-store"}})).json(); }} catch (e) {{ r = {{}}; }}
+  try {{
+    const rep = await fetch("{SUJET["page"]}-reponses.json", {{cache: "no-store"}});
+    if (rep.ok) r = await rep.json();
+  }} catch (e) {{ etat.textContent = "notes pas chargées : le serveur est-il lancé ? Rechargez la page quand il repart"; }}
   document.querySelectorAll("input[type=radio]").forEach(b => {{ if (r[b.name] === b.value) b.checked = true; }});
   document.querySelectorAll("textarea").forEach(t => {{ t.value = r["note:" + t.dataset.id] || ""; }});
   document.querySelectorAll(".avis input").forEach(t => {{ t.value = r["avis:" + t.dataset.id] ?? (GARDES[t.dataset.id]?.avis || ""); }});
@@ -153,59 +189,89 @@ function allumer(e) {{
 }}
 document.querySelectorAll(".etoiles button").forEach(b => b.addEventListener("click", () => {{
   const e = b.parentElement, cle = "etoiles:" + e.dataset.id, n = +b.dataset.n;
-  if (r[cle] === n) delete r[cle]; else r[cle] = n;
-  allumer(e); garder();
+  changer(cle, r[cle] === n ? undefined : n);
+  allumer(e);
 }}));
 document.querySelectorAll(".avis input").forEach(t =>
-  t.addEventListener("input", () => {{ r["avis:" + t.dataset.id] = t.value; garder(); }}));
-let attente = null;
+  t.addEventListener("input", () => changer("avis:" + t.dataset.id, t.value)));
+// seuls les changements partent vers le serveur, qui les ajoute aux réponses déjà écrites : une page ouverte depuis
+// longtemps ou mal chargée n'efface aucune note ; si le serveur ne répond pas, on réessaie jusqu'à ce qu'il revienne
+let attente = null, modifs = {{}};
+function changer(cle, valeur) {{
+  if (valeur === undefined) delete r[cle]; else r[cle] = valeur;
+  modifs[cle] = valeur ?? null;
+  garder();
+}}
 function garder() {{
   clearTimeout(attente);
   attente = setTimeout(async () => {{
+    const envoi = modifs;
+    modifs = {{}};
     try {{
-      await fetch("reponses", {{method: "POST", body: JSON.stringify(r)}});
+      const rep = await fetch("reponses?{SUJET["page"]}", {{method: "POST", body: JSON.stringify(envoi)}});
+      if (!rep.ok) throw new Error();
       etat.textContent = "enregistré";
-    }} catch (e) {{ etat.textContent = "pas enregistré : le serveur est-il lancé ?"; }}
+    }} catch (e) {{
+      modifs = {{...envoi, ...modifs}};
+      etat.textContent = "pas encore enregistré : le serveur est-il lancé ? Nouvel essai dans 3 secondes";
+      attente = setTimeout(garder, 3000);
+    }}
   }}, 300);
 }}
 document.querySelectorAll("input[type=radio]").forEach(b =>
-  b.addEventListener("change", () => {{ r[b.name] = b.value; garder(); }}));
+  b.addEventListener("change", () => changer(b.name, b.value)));
 document.querySelectorAll("textarea").forEach(t =>
-  t.addEventListener("input", () => {{ r["note:" + t.dataset.id] = t.value; garder(); }}));
+  t.addEventListener("input", () => changer("note:" + t.dataset.id, t.value)));
 // une seule lecture à la fois
 document.querySelectorAll("audio").forEach(a => a.addEventListener("play", () =>
   document.querySelectorAll("audio").forEach(b => {{ if (b !== a) b.pause(); }})));
 charger();
 </script></html>"""
     os.makedirs(EN_COURS, exist_ok=True)
-    with open(os.path.join(EN_COURS, "musiques.html"), "w", encoding="utf-8") as f:
+    nom = SUJET["page"] + ".html"
+    with open(os.path.join(EN_COURS, nom), "w", encoding="utf-8") as f:
         f.write(contenu)
-    print(f"http://localhost:{PORT}/musiques.html  ({os.path.join(EN_COURS, 'musiques.html')})")
+    print(f"http://localhost:{PORT}/{nom}  ({os.path.join(EN_COURS, nom)})")
 
 
-class Serveur(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=EN_COURS, **kwargs)
+VERROU = threading.Lock()
 
-    def end_headers(self):
-        self.send_header("Cache-Control", "no-store")
-        super().end_headers()
 
+def ecrire_json(cible, donnees):
+    """Écrit d'un coup : un arrêt du serveur en pleine écriture laisse l'ancien fichier entier."""
+    provisoire = cible + ".tmp"
+    with open(provisoire, "w", encoding="utf-8") as f:
+        json.dump(donnees, f, ensure_ascii=False, indent=2)
+    os.replace(provisoire, cible)
+
+
+class Serveur(essai.ServeurAudio):
     def do_POST(self):
-        if self.path != "/reponses":
+        chemin, _, page = self.path.partition("?")
+        if chemin != "/reponses":
             self.send_error(404)
             return
         donnees = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
         # une page de revue d'images (champ « page ») ouverte ici par erreur : ses réponses vont dans son propre fichier
-        cible = (os.path.join(EN_COURS, re.sub(r"[^\w-]", "", donnees["page"]) + ".json")
-                 if isinstance(donnees, dict) and "page" in donnees else REPONSES)
-        with open(cible, "w", encoding="utf-8") as f:
-            json.dump(donnees, f, ensure_ascii=False, indent=2)
+        if isinstance(donnees, dict) and "page" in donnees:
+            ecrire_json(os.path.join(EN_COURS, re.sub(r"[^\w-]", "", donnees["page"]) + ".json"), donnees)
+        else:
+            cible = os.path.join(EN_COURS, (re.sub(r"[^\w-]", "", page) or "musiques") + "-reponses.json")
+            # les changements s'ajoutent aux réponses déjà écrites (null : retirer) ; un fichier illisible n'est pas écrasé
+            with VERROU:
+                try:
+                    with open(cible, encoding="utf-8") as f:
+                        actuel = json.load(f)
+                except FileNotFoundError:
+                    actuel = {}
+                for cle, valeur in donnees.items():
+                    if valeur is None:
+                        actuel.pop(cle, None)
+                    else:
+                        actuel[cle] = valeur
+                ecrire_json(cible, actuel)
         self.send_response(204)
         self.end_headers()
-
-    def log_message(self, *args):
-        pass
 
 
 def installer(musiques):
@@ -216,14 +282,23 @@ def installer(musiques):
         catalogue = json.load(f)
     dossier = os.path.join(GODOT, "audio", "musique")
     os.makedirs(dossier, exist_ok=True)
-    for faction in FACTIONS:
+    for faction in SUJET["groupes"]:
         m = par_id.get(r.get(faction, ""))
         if m is None or (source := existant(m["id"])) is None:
             continue
-        nom = f"ville-{faction}{os.path.splitext(source)[1]}"
+        nom = f"{SUJET['fichier']}-{faction}{os.path.splitext(source)[1]}"
         shutil.copyfile(source, os.path.join(dossier, nom))
-        catalogue["music"][f"town-{faction}"] = [f"musique/{nom}"]
+        fichiers = [f"musique/{nom}"]
         print(f"  {nom} : « {m['titre']} », {m['auteur']}, {m['licence']}, {m['page']}")
+        # les pistes marquées « aussi » s'ajoutent à la choisie : le jeu passe de l'une à l'autre
+        autres = [a for a in musiques if a["faction"] == faction and a.get("aussi") and a is not m]
+        for n, autre in enumerate(autres, 2):
+            source = existant(autre["id"])
+            nom = f"{SUJET['fichier']}-{faction}-{n}{os.path.splitext(source)[1]}"
+            shutil.copyfile(source, os.path.join(dossier, nom))
+            fichiers.append(f"musique/{nom}")
+            print(f"  {nom} : « {autre['titre']} », {autre['auteur']}, {autre['licence']}, {autre['page']}")
+        catalogue["music"][f"{SUJET['cle']}-{faction}" if SUJET["cle"] else faction] = fichiers
     with open(catalogue_chemin, "w", encoding="utf-8") as f:
         json.dump(catalogue, f, ensure_ascii=False, indent=2)
         f.write("\n")
@@ -231,7 +306,7 @@ def installer(musiques):
 
 
 def garder_avis(musiques, r):
-    """Recopie les étoiles et les avis de la page dans tools/audio/musiques-villes.json (suivi par git)."""
+    """Recopie les étoiles et les avis de la page dans la liste (tools/audio/musiques-*.json, suivie par git)."""
     for m in musiques:
         for cle in ("etoiles", "avis"):
             valeur = r.get(f"{cle}:{m['id']}", m.get(cle))
@@ -248,16 +323,20 @@ def garder_avis(musiques, r):
 
 
 def main():
-    if len(sys.argv) < 2:
+    args = sys.argv[1:]
+    if args and args[0] in SUJETS:
+        choisir(args.pop(0))
+    if not args:
         sys.exit(__doc__)
-    commande, musiques = sys.argv[1], liste()
+    commande = args[0]
+    if commande == "serveur":
+        print(f"http://localhost:{PORT}/musiques.html, /musiques-carte.html, /musiques-menu.html")
+        http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Serveur).serve_forever()
+    musiques = liste()
     if commande == "telecharger":
         telecharger(musiques)
     elif commande == "page":
-        page(musiques)
-    elif commande == "serveur":
-        print(f"http://localhost:{PORT}/musiques.html")
-        http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Serveur).serve_forever()
+        page(musiques, "tout" in args[1:])
     elif commande == "installer":
         installer(musiques)
     else:

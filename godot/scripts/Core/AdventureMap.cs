@@ -57,6 +57,27 @@ public sealed class AdventureMap
     public bool InBounds(Cell c) => c.X >= 0 && c.Y >= 0 && c.X < Width && c.Y < Height;
 
     public TerrainType GetTerrain(Cell c) => _terrain[c.X, c.Y];
+
+    /// <summary>
+    /// Le terrain qui donne sa musique à la carte autour d'une case : la mer en bateau ; sinon le sol (herbe, sable,
+    /// marais, roche, sol brûlé, neige) le plus fréquent dans le carré de ce rayon, celui de la case à égalité. Un carré plutôt que
+    /// la seule case : la musique ne change pas à chaque pas le long d'une lisière. Les forêts sont un décor posé sur le
+    /// sol : elles n'ont pas de musique.
+    /// </summary>
+    public TerrainType MusicTerrain(Cell c, int radius = 3)
+    {
+        var own = GetTerrain(c);
+        if (own == TerrainType.Water)
+            return TerrainType.Water;
+        var counts = new Dictionary<TerrainType, int>();
+        for (int dy = -radius; dy <= radius; dy++)
+            for (int dx = -radius; dx <= radius; dx++)
+                if (c.Offset(dx, dy) is var cell && InBounds(cell)
+                    && GetTerrain(cell) is not (TerrainType.Water or TerrainType.Mountain or TerrainType.Forest))
+                    counts[GetTerrain(cell)] = counts.GetValueOrDefault(GetTerrain(cell)) + 1;
+        return counts.Count == 0 ? own
+            : counts.OrderByDescending(kv => kv.Value).ThenByDescending(kv => kv.Key == own).First().Key;
+    }
     public void SetTerrain(Cell c, TerrainType terrain) => _terrain[c.X, c.Y] = terrain;
 
     /// <summary>Une route passe-t-elle sur cette case ? La route est posée sur le terrain, sans le remplacer.</summary>

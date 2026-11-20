@@ -27,6 +27,9 @@ public partial class BattleScreen : CanvasLayer
 
     /// <summary>La musique d'avant le combat (la carte, la ville), reprise à la fin.</summary>
     private string? _musicBefore;
+
+    /// <summary>L'ambiance d'avant le combat (aucune dans une ville), reprise avec la musique.</summary>
+    private string? _ambienceBefore;
     private bool _auto;
     private double _wait;
     private string _opponent = "";
@@ -366,12 +369,12 @@ public partial class BattleScreen : CanvasLayer
         // la Tactique : le joueur place ses troupes avant le premier round
         _placing = null;
         _message.Text = battle.IsPlacing && battle.PlacementSide == _playerSide && !auto ? Texts.BattlePlacementPrompt(battle.PlacementColumns) : "";
-        // la terre brûlée n'a pas encore son champ de bataille : celui du désert, en attendant (les pas gardent le
-        // vrai sol)
-        _field.Start(battle, terrain == TerrainType.Burnt ? TerrainType.Sand : terrain, terrain);
+        _field.Start(battle, terrain);
         Visible = true;
         _musicBefore = Audio.CurrentMusic;
+        _ambienceBefore = Audio.CurrentAmbience;
         Audio.PlayMusic("battle");
+        Audio.PlayAmbience(Audio.AmbienceOf(terrain));
         Show(battle.TakeLog());
     }
 
@@ -830,7 +833,10 @@ public partial class BattleScreen : CanvasLayer
         Visible = false;
         MapCursor.Show(CursorKind.Pointer);
         if (_musicBefore is { } before)
+        {
             Audio.PlayMusic(before);
+            Audio.PlayAmbience(_ambienceBefore);
+        }
         else
             Audio.PlayMapMusic();
         finished?.Invoke();

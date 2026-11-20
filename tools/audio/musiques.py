@@ -13,6 +13,7 @@ ou par terrain et note chaque piste, puis installées.
                                                              (ville-<faction>, carte-<terrain>) et la note dans
                                                              godot/data/sounds.json (« town-<faction> », « map-<terrain> »)
 
+« ambiances » : les fonds sonores par sol (godot/audio/ambiance/, section « ambience » de sounds.json).
 Sans « carte » ni « menu » : les villes (« menu » : la musique du menu principal, parmi celles qui ne servent pas). Chaque
 élément de la liste : id (« <groupe>-<n> »), faction (le groupe : la faction ou le terrain), « nouveau » (proposée en plus
 de la musique choisie), « aussi » (jouée en plus de la musique choisie), titre, url (le fichier, ou une archive zip et « fichier » le nom dedans), page, auteur, licence. Les licences
@@ -28,6 +29,7 @@ import re
 import shutil
 import sys
 import threading
+import time
 import zipfile
 
 ICI = os.path.dirname(os.path.abspath(__file__))
@@ -48,6 +50,13 @@ SUJETS = {
     "menu": {"liste": "musiques-menu.json", "page": "musiques-menu", "cle": "", "fichier": "musique",
              "groupes": {"menu": "Menu principal"}, "titre": "La musique du menu",
              "quoi": "Toutes les musiques notées 3 étoiles ou plus qui ne servent encore nulle part, les mieux notées d'abord."},
+    "ambiances": {"liste": "ambiances.json", "page": "ambiances", "cle": "", "fichier": "ambiance",
+                  "section": "ambience", "dossier": "ambiance",
+                  "groupes": {"grass": "Herbe", "sand": "Désert", "swamp": "Marais", "rock": "Roche", "snow": "Neige",
+                              "burnt": "Sol brûlé", "water": "Mer"},
+                  "titre": "Les ambiances",
+                  "quoi": "Un fond sonore par sol, sans musique, discret sous la musique : sur la carte (le sol autour du "
+                          "héros, la mer en bateau) et au combat (le sol du champ)."},
 }
 SUJET = SUJETS["villes"]
 LISTE = DOSSIER = REPONSES = ""
@@ -95,7 +104,11 @@ def telecharger(musiques):
             continue
         try:
             if m["url"] not in archives:
-                _, archives[m["url"]], _ = essai.requete(m["url"], entetes={"User-Agent": "Mozilla/5.0"})
+                if "bigsoundbank.com" in m["url"]:
+                    time.sleep(4)  # BigSoundBank répond 403 à trop de demandes rapprochées
+                # Wikimedia refuse un nom de navigateur vague (429) : il demande un nom d'outil
+                agent = "HoMM-outils-audio/1.0 (jeu personnel)" if "wikimedia.org" in m["url"] else "Mozilla/5.0"
+                _, archives[m["url"]], _ = essai.requete(m["url"], entetes={"User-Agent": agent})
             contenu, nom = archives[m["url"]], m["url"]
             if m.get("fichier"):
                 with zipfile.ZipFile(io.BytesIO(contenu)) as z:
@@ -280,7 +293,9 @@ def installer(musiques):
     catalogue_chemin = os.path.join(GODOT, "data", "sounds.json")
     with open(catalogue_chemin, encoding="utf-8") as f:
         catalogue = json.load(f)
-    dossier = os.path.join(GODOT, "audio", "musique")
+    # « section » de sounds.json et dossier de godot/audio/ : la musique, sauf pour les ambiances
+    section, sous_dossier = SUJET.get("section", "music"), SUJET.get("dossier", "musique")
+    dossier = os.path.join(GODOT, "audio", sous_dossier)
     os.makedirs(dossier, exist_ok=True)
     for faction in SUJET["groupes"]:
         m = par_id.get(r.get(faction, ""))
@@ -288,7 +303,7 @@ def installer(musiques):
             continue
         nom = f"{SUJET['fichier']}-{faction}{os.path.splitext(source)[1]}"
         shutil.copyfile(source, os.path.join(dossier, nom))
-        fichiers = [f"musique/{nom}"]
+        fichiers = [f"{sous_dossier}/{nom}"]
         print(f"  {nom} : « {m['titre']} », {m['auteur']}, {m['licence']}, {m['page']}")
         # les pistes marquées « aussi » s'ajoutent à la choisie : le jeu passe de l'une à l'autre
         autres = [a for a in musiques if a["faction"] == faction and a.get("aussi") and a is not m]
@@ -296,9 +311,9 @@ def installer(musiques):
             source = existant(autre["id"])
             nom = f"{SUJET['fichier']}-{faction}-{n}{os.path.splitext(source)[1]}"
             shutil.copyfile(source, os.path.join(dossier, nom))
-            fichiers.append(f"musique/{nom}")
+            fichiers.append(f"{sous_dossier}/{nom}")
             print(f"  {nom} : « {autre['titre']} », {autre['auteur']}, {autre['licence']}, {autre['page']}")
-        catalogue["music"][f"{SUJET['cle']}-{faction}" if SUJET["cle"] else faction] = fichiers
+        catalogue.setdefault(section, {})[f"{SUJET['cle']}-{faction}" if SUJET["cle"] else faction] = fichiers
     with open(catalogue_chemin, "w", encoding="utf-8") as f:
         json.dump(catalogue, f, ensure_ascii=False, indent=2)
         f.write("\n")
@@ -330,7 +345,7 @@ def main():
         sys.exit(__doc__)
     commande = args[0]
     if commande == "serveur":
-        print(f"http://localhost:{PORT}/musiques.html, /musiques-carte.html, /musiques-menu.html")
+        print(f"http://localhost:{PORT}/musiques.html, /musiques-carte.html, /ambiances.html")
         http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Serveur).serve_forever()
     musiques = liste()
     if commande == "telecharger":

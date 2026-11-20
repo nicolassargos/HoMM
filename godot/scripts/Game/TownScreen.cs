@@ -231,6 +231,7 @@ public partial class TownScreen : CanvasLayer
         _recruitOverlay.Visible = false;
         Refresh();
         Audio.PlayMusic($"town-{town.Faction}", "town");
+        Audio.PlayAmbience(null); // la ville n'a que sa musique
     }
 
     public void Close()

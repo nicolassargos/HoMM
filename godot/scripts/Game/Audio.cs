@@ -50,7 +50,10 @@ public partial class Audio : Node
     private string? _musicId;
     private string? _musicFile;
 
-    private readonly AudioStreamPlayer _ambiencePlayer = new() { Bus = AmbienceBus };
+    /// <summary>Deux lecteurs d'ambiance, comme pour la musique : l'un s'efface pendant que l'autre arrive.</summary>
+    private readonly AudioStreamPlayer[] _ambiencePlayers = new AudioStreamPlayer[2];
+    private readonly Tween?[] _ambienceFades = new Tween?[2];
+    private int _ambienceIndex;
     private string? _ambienceId;
 
     /// <summary>Les lecteurs des sons courts (plusieurs peuvent jouer en même temps).</summary>
@@ -108,15 +111,21 @@ public partial class Audio : Node
             };
             AddChild(_musicPlayers[i]);
         }
-        _ambiencePlayer.Finished += () =>
+        for (int i = 0; i < _ambiencePlayers.Length; i++)
         {
-            if (_ambienceId != null && Pick(_ambiences, _ambienceId) is { } stream)
+            int index = i;
+            var player = _ambiencePlayers[i] = new AudioStreamPlayer { Bus = AmbienceBus };
+            // une ambiance finie recommence (un autre de ses fichiers, s'il y en a plusieurs)
+            player.Finished += () =>
             {
-                _ambiencePlayer.Stream = stream;
-                _ambiencePlayer.Play();
-            }
-        };
-        AddChild(_ambiencePlayer);
+                if (index == _ambienceIndex && _ambienceId != null && Pick(_ambiences, _ambienceId) is { } stream)
+                {
+                    player.Stream = stream;
+                    player.Play();
+                }
+            };
+            AddChild(player);
+        }
         for (int i = 0; i < EffectPlayers; i++)
         {
             var player = new AudioStreamPlayer { Bus = EffectsBus };
@@ -132,6 +141,11 @@ public partial class Audio : Node
         {
             _musicId = null;
             PlayMusic(id);
+        }
+        if (_ambienceId is { } ambience)
+        {
+            _ambienceId = null;
+            PlayAmbience(ambience);
         }
     }
 
@@ -250,8 +264,12 @@ public partial class Audio : Node
     /// </summary>
     public static string MapMusic { get; set; } = "map";
 
-    /// <summary>Revient à la musique de la carte (en sortant d'une ville ou d'un combat).</summary>
-    public static void PlayMapMusic() => PlayMusic(MapMusic, "map");
+    /// <summary>Revient à la musique et à l'ambiance de la carte (en sortant d'une ville ou d'un combat).</summary>
+    public static void PlayMapMusic()
+    {
+        PlayMusic(MapMusic, "map");
+        PlayAmbience(MapAmbience);
+    }
 
     /// <summary>
     /// Passe à cette musique, en fondu : le premier de ces noms qui existe (« town-chateau », sinon « town »). Rien ne
@@ -296,18 +314,56 @@ public partial class Audio : Node
             (_musicFades[index] = CreateTween()).TweenProperty(player, "volume_db", 0f, FadeTime);
     }
 
-    /// <summary>Joue cette ambiance en boucle (null : plus d'ambiance).</summary>
+    /// <summary>L'ambiance de la carte à cet instant (le sol autour du héros choisi, « water » en bateau), tenue à jour par Main.</summary>
+    public static string? MapAmbience { get; set; }
+
+    /// <summary>L'ambiance qui joue (son nom dans <c>sounds.json</c>), ou null.</summary>
+    public static string? CurrentAmbience => _instance?._ambienceId;
+
+    /// <summary>Le nom de l'ambiance d'un sol (comme les pas, mais la mer garde la sienne).</summary>
+    public static string AmbienceOf(TerrainType terrain) => terrain == TerrainType.Water ? "water" : GroundOf(terrain);
+
+    /// <summary>
+    /// Passe à cette ambiance en boucle, en fondu (null, ou une ambiance absente du catalogue : plus d'ambiance). Rien ne
+    /// change si elle joue déjà.
+    /// </summary>
     public static void PlayAmbience(string? id)
     {
-        if (_instance is not { } audio || id == audio._ambienceId)
+        if (_instance is not { } audio)
+            return;
+        if (id != null && !audio._ambiences.ContainsKey(id))
+            id = null;
+        if (id == audio._ambienceId)
             return;
         audio._ambienceId = id;
-        audio._ambiencePlayer.Stop();
-        if (id != null && audio.IsInsideTree() && audio.Pick(audio._ambiences, id) is { } stream)
+        if (!audio.IsInsideTree())
+            return;
+        int oldIndex = audio._ambienceIndex;
+        var old = audio._ambiencePlayers[oldIndex];
+        audio._ambienceFades[oldIndex]?.Kill();
+        if (old.Playing)
         {
-            audio._ambiencePlayer.Stream = stream;
-            audio._ambiencePlayer.Play();
+            var fadeOut = audio._ambienceFades[oldIndex] = audio.CreateTween();
+            fadeOut.TweenProperty(old, "volume_db", Silent, FadeTime);
+            fadeOut.TweenCallback(Callable.From(old.Stop));
         }
+        audio._ambienceIndex = 1 - oldIndex;
+        var player = audio._ambiencePlayers[audio._ambienceIndex];
+        audio._ambienceFades[audio._ambienceIndex]?.Kill();
+        audio._ambienceFades[audio._ambienceIndex] = null;
+        if (id == null || audio.Pick(audio._ambiences, id) is not { } stream)
+        {
+            player.Stop();
+            return;
+        }
+        // un seul fichier : il boucle sans le moindre blanc (préparé par tools/audio/boucler.py) ; plusieurs : ils
+        // s'enchaînent à la fin de chacun
+        if (stream is AudioStreamOggVorbis ogg)
+            ogg.Loop = audio._ambiences[id].Length == 1;
+        player.Stream = stream;
+        player.VolumeDb = Silent;
+        player.Play();
+        (audio._ambienceFades[audio._ambienceIndex] = audio.CreateTween()).TweenProperty(player, "volume_db", 0f, FadeTime);
     }
 
     /// <summary>Le son de ce que les règles viennent de faire, s'il en a un (du point de vue de <paramref name="viewer"/>).</summary>

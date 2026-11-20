@@ -140,8 +140,8 @@ public partial class SmoothGround : ColorRect
         var worn = new System.Collections.Generic.HashSet<Cell>();
         var random = new Random(seed);
         // le désert n'a pas de terre battue : son sol de pierres est dessiné à part (BattleFieldView.BuildStones) ; le marais
-        // non plus : ses flaques le sont (BattleFieldView.BuildPuddles) ; ni la neige, épaisse, ni la roche (des taches orange)
-        int patches = ground is TerrainType.Sand or TerrainType.Swamp or TerrainType.Snow or TerrainType.Rock ? 0 : 3 + random.Next(3);
+        // non plus : ses flaques le sont (BattleFieldView.BuildPuddles) ; ni la neige, épaisse, ni la roche (des taches orange), ni la terre brûlée
+        int patches = ground is TerrainType.Sand or TerrainType.Swamp or TerrainType.Snow or TerrainType.Rock or TerrainType.Burnt ? 0 : 3 + random.Next(3);
         for (int i = 0; i < patches; i++)
         {
             var cell = new Cell(2 + random.Next(Math.Max(1, width - 4)), 3 + random.Next(Math.Max(1, height - 4)));

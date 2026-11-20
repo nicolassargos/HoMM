@@ -245,14 +245,14 @@ public sealed class Hero
     /// <summary>L'Orientation : le surcoût des terrains difficiles baisse d'autant (en pourcentage).</summary>
     public int RoughTerrainReduction => SkillValue(HoMM.Core.Skills.Pathfinding);
 
-    /// <summary>Le sol de sa faction : il y marche sans ralentir (le sable, le marais, la roche).</summary>
-    public TerrainType? OwnGround => Class?.Ground;
+    /// <summary>Les sols de sa faction : il y marche sans ralentir (le sable, le marais, la roche ; son second sol aussi).</summary>
+    public IReadOnlyList<TerrainType> OwnGrounds => Class?.Grounds ?? System.Array.Empty<TerrainType>();
 
     /// <summary>Ce que coûte à ce héros un pas d'une case à sa voisine.</summary>
-    public int StepCost(AdventureMap map, Cell from, Cell to) => Pathfinder.StepCost(map, from, to, RoughTerrainReduction, OwnGround);
+    public int StepCost(AdventureMap map, Cell from, Cell to) => Pathfinder.StepCost(map, from, to, RoughTerrainReduction, OwnGrounds);
 
     /// <summary>Ce que coûte à ce héros de quitter une case (un pas tout droit).</summary>
-    public int CellCost(AdventureMap map, Cell cell) => Pathfinder.CellCost(map, cell, RoughTerrainReduction, OwnGround);
+    public int CellCost(AdventureMap map, Cell cell) => Pathfinder.CellCost(map, cell, RoughTerrainReduction, OwnGrounds);
 
     public void SpendMovement(int amount) => Movement = System.Math.Max(0, Movement - amount);
 

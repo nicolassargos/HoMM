@@ -2842,6 +2842,14 @@ choix de l'utilisateur) :
   médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
   six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
   55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
+- ✅ **Le second sol des factions** (2026-11-20, branche `sols-factions`, pour la variété) : `secondGround` dans
+  `data/classes.json` (`HeroClass.SecondGround`, `Grounds`) : les Nains la neige, la Tour le sable, l'Enfer le sable, les
+  morts-vivants la roche. Choix de l'utilisateur : le départ prend le second sol **une partie sur trois** (son propre
+  hasard, `_startGroundRng` : le reste de la carte ne change pas) ; le héros marche sans ralentir **sur ses deux sols**
+  (`Hero.OwnGrounds`) ; une ville neutre d'une zone prend une faction de ce sol, celle dont c'est le second sol comptant
+  **moitié moins** (le sable reste surtout barbare). Mesuré (`Villes_neutres_par_sol`, 12 grandes cartes) : herbe
+  Château 65, Forêt 57 ; neige Tour 13, Nains 3 ; terre brûlée Enfer 19 ; marais Donjon 8, morts-vivants 7 ; roche
+  Nains 7, morts-vivants 6 ; sable Tour 3, Barbares 3, Enfer 1 (peu de villes sur ces sols : à suivre).
 - ✅ **La neige** (2026-11-19, branche `sol-neige`) : `TerrainType.Snow`, le sol de la Tour (comme dans Heroes 3), coût 150
   comme dans Heroes 3 ; une zone qui change de sol en tire un parmi cinq. Mesuré dans les cartes de référence : la neige
   sur 35 cartes de Heroes 3 sur 50 (12 % de la terre, médiane) et 19 de Heroes 2 (19 %), en peu de grandes taches. Les

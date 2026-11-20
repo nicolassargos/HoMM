@@ -59,22 +59,22 @@ public static class Pathfinder
     /// de départ qui compte, et un pas en diagonale coûte environ 1,41 fois plus.
     /// </summary>
     /// <paramref name="roughReduction"/> : la part (en pourcentage) du surcoût des terrains difficiles (plus de 100) que
-    /// le héros ne paie pas (Orientation). <paramref name="ownGround"/> : le sol de sa faction, où il ne paie aucun surcoût.
-    public static int StepCost(AdventureMap map, Cell from, Cell to, int roughReduction = 0, TerrainType? ownGround = null)
+    /// le héros ne paie pas (Orientation). <paramref name="ownGrounds"/> : les sols de sa faction, où il ne paie aucun surcoût.
+    public static int StepCost(AdventureMap map, Cell from, Cell to, int roughReduction = 0, IReadOnlyList<TerrainType>? ownGrounds = null)
     {
-        int cost = CellCost(map, from, roughReduction, ownGround);
+        int cost = CellCost(map, from, roughReduction, ownGrounds);
         bool diagonal = from.X != to.X && from.Y != to.Y;
         return diagonal ? (int)(cost * Math.Sqrt(2)) : cost;
     }
 
     /// <summary>Le coût pour quitter une case, pour un héros (voir <see cref="StepCost"/>).</summary>
-    public static int CellCost(AdventureMap map, Cell cell, int roughReduction = 0, TerrainType? ownGround = null)
+    public static int CellCost(AdventureMap map, Cell cell, int roughReduction = 0, IReadOnlyList<TerrainType>? ownGrounds = null)
     {
         int cost = map.MoveCost(cell);
         int grass = TerrainInfo.MoveCost(TerrainType.Grass);
         if (cost <= grass)
             return cost;
-        return map.GetTerrain(cell) == ownGround ? grass : grass + (cost - grass) * (100 - roughReduction) / 100;
+        return ownGrounds?.Contains(map.GetTerrain(cell)) == true ? grass : grass + (cost - grass) * (100 - roughReduction) / 100;
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public static class Pathfinder
     /// <paramref name="blocked"/> : cases interdites en plus (les autres héros).
     /// </summary>
     public static List<Cell>? FindPath(AdventureMap map, Cell start, Cell goal, IReadOnlySet<Cell>? blocked = null, int roughReduction = 0,
-        TerrainType? ownGround = null)
+        IReadOnlyList<TerrainType>? ownGrounds = null)
     {
         if (start == goal || !(map.IsPassable(goal) || map.IsWater(goal)) || blocked?.Contains(goal) == true)
             return null;
@@ -124,7 +124,7 @@ public static class Pathfinder
                 // Pas de diagonale qui « coupe » un coin infranchissable
                 if (dx != 0 && dy != 0 && !CornersOpen(map, cell, next))
                     continue;
-                int newCost = cost + StepCost(map, cell, next, roughReduction, ownGround) + (Boards(map, cell, next) ? BoardingPenalty : 0)
+                int newCost = cost + StepCost(map, cell, next, roughReduction, ownGrounds) + (Boards(map, cell, next) ? BoardingPenalty : 0)
                     + (map.IsGuarded(next) ? GuardPenalty : 0);
                 if (newCost < bestCost.GetValueOrDefault(next, int.MaxValue))
                 {

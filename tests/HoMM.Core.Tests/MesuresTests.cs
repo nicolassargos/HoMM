@@ -144,6 +144,28 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Les villes neutres de chaque sol, par faction (2026-11-20 : les seconds sols des factions, qui comptent moitié moins
+    /// que le sol principal) : sur des cartes grandes, toutes les graines.
+    /// </summary>
+    [Mesure]
+    public void Villes_neutres_par_sol()
+    {
+        var towns = new Dictionary<TerrainType, Dictionary<string, int>>();
+        foreach (int seed in Seeds.Concat(Seeds.Select(s => s + 100)))
+        {
+            var map = new GameState(seed, TestData.Data, MapSize.Large).Map;
+            foreach (var town in map.Objects.OfType<Town>().Where(t => !map.Starts.Contains(t.Position)))
+            {
+                var ground = map.GetTerrain(town.Position);
+                var list = towns.TryGetValue(ground, out var l) ? l : towns[ground] = new Dictionary<string, int>();
+                list[town.Faction] = list.GetValueOrDefault(town.Faction) + 1;
+            }
+        }
+        foreach (var (ground, list) in towns.OrderBy(t => t.Key))
+            output.WriteLine($"{ground} : {string.Join(", ", list.OrderByDescending(f => f.Value).Select(f => $"{f.Key} {f.Value}"))}");
+    }
+
+    /// <summary>
     /// Les sols des cartes (2026-11-17, à comparer avec Heroes 2 et 3 : tools/cartes/terrains.py) : la part de la terre de
     /// chaque sol (la forêt compte comme l'herbe, la montagne comme le sol qui l'entoure), et ses taches (cases du même sol
     /// qui se touchent par un côté) : combien de 4 cases et plus, leur taille, la part de la plus grande, la part en taches

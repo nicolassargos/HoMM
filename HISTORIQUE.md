@@ -1501,6 +1501,20 @@ six semaines. Avec la règle retenue : Château 42 100 (42 200 avant), morts-viv
 (60 000). Leçon pour les bâtiments spéciaux et de croissance : ce qui donne de l'or vaut plus, ce qui donne des
 créatures vaut moins que dans Heroes 3.
 
+#### Les premiers bâtiments spéciaux (2026-11-20, branche `batiments-speciaux-1`)
+Les trois plus simples de « Les bâtiments des villes » (`PLAN.md`) ; prix proposés, à revoir : **Le Grand Comptoir** des
+Nains (3000 or, 5 minerai, après le marché ; `ExtraMarkets` 2 : `Market.Count` compte `Town.MarketCount`), les
+**Sentiers des rôdeurs** de la Forêt (2000 or, 10 bois ; `DayMovementBonus` 400 : un héros du joueur qui commence sa
+journée dans la ville), le **Tourbillon de mana** du Donjon (3000 or, 5 mercure, après la guilde ; `ManaVortex` : le
+premier héros du joueur qui vient dans la semaine a deux fois ses points de sort, `Town.ManaVortexReady` sauvegardé,
+événement `ManaVortexUsed`). L'IA les bâtit après le niveau 6.
+**Mesures** (`Adversaires_par_faction`, armée à six semaines) : la base a changé avec les zones plus grandes (PR #213,
+fusionnée le même jour) : Château 59 400, morts-vivants 64 100, Barbares 77 300, Forêt 84 600, Tour 70 900, Donjon
+68 800, Enfer 72 700, Nains 66 500. Avec les trois bâtiments : Château 56 300, morts-vivants 62 100, Barbares 71 800,
+Forêt 83 700, Tour 68 500, Donjon 68 500, Enfer 74 600, Nains 65 100 : peu de chose à six semaines (ils coûtent un peu,
+et servent surtout plus tard) ; les autres factions bougent aussi, parce que l'IA bâtit ces bâtiments dans les villes
+neutres qu'elle prend (sans eux dans son ordre, le Château retrouve 59 400).
+
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
   à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),

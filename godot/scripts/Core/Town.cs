@@ -69,6 +69,18 @@ public sealed class Town : MapObject
     /// <summary>Un seul bâtiment par jour, comme dans Heroes.</summary>
     public bool BuiltToday { get; internal set; }
 
+    /// <summary>Le Tourbillon de mana n'a pas encore servi cette semaine (il revient chaque semaine).</summary>
+    public bool ManaVortexReady { get; internal set; } = true;
+
+    /// <summary>Le Tourbillon de mana est bâti et n'a pas encore servi cette semaine.</summary>
+    public bool CanUseManaVortex => ManaVortexReady && BuiltBuildings.Any(b => b.ManaVortex);
+
+    /// <summary>Le mouvement en plus d'un héros qui commence sa journée dans la ville (les Sentiers des rôdeurs).</summary>
+    public int DayMovementBonus => BuiltBuildings.Sum(b => b.DayMovementBonus);
+
+    /// <summary>Les marchés que la ville compte pour les taux d'échange : son marché, et le Grand Comptoir des Nains.</summary>
+    public int MarketCount => (BuiltBuildings.Any(b => b.Market) ? 1 : 0) + BuiltBuildings.Sum(b => b.ExtraMarkets);
+
     /// <summary>
     /// La case d'eau où son chantier naval met ses bateaux (null : la ville n'est pas au bord de l'eau, pas de chantier
     /// naval). Calculée d'après la carte (<see cref="GameState"/>), pas sauvegardée.
@@ -214,6 +226,7 @@ public sealed class Town : MapObject
     /// </summary>
     public void NewWeek(int growthBonus = 0)
     {
+        ManaVortexReady = true;
         foreach (var building in BuiltBuildings)
             if (DwellingCreature(building) is { } creature)
                 Available[creature] = Available.GetValueOrDefault(creature) + WeeklyGrowth(creature, growthBonus);
@@ -261,6 +274,9 @@ public sealed record SpellsLearned(Hero Hero, Town Town, IReadOnlyList<SpellType
 
 /// <summary>Un bâtiment a été construit dans une ville.</summary>
 public sealed record BuildingBuilt(Town Town, BuildingType Building) : GameEvent;
+
+/// <summary>Le Tourbillon de mana d'une ville a doublé les points de sort d'un héros (une fois par semaine).</summary>
+public sealed record ManaVortexUsed(Hero Hero, Town Town) : GameEvent;
 
 /// <summary>Des créatures ont été recrutées dans une ville. <paramref name="ToHero"/> : elles ont rejoint le héros présent (garnison pleine).</summary>
 public sealed record CreaturesRecruited(Town Town, CreatureType Type, int Count, bool ToHero) : GameEvent;

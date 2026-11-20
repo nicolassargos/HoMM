@@ -102,7 +102,7 @@ public static class ComputerPlayer
         return new[]
         {
             Dwelling(2), "taverne", "hotel-ville", Dwelling(3), "marche", Dwelling(4), Dwelling(5), "guilde-mages-1",
-            Dwelling(6), "guilde-mages-2", "grand-hotel-ville", Dwelling(7), "guilde-mages-3",
+            Dwelling(6), "guilde-mages-2", "grand-comptoir", "sentiers-rodeurs", "tourbillon-mana", "grand-hotel-ville", Dwelling(7), "guilde-mages-3",
             "guilde-mages-4", "fort", "citadelle", "chateau-fort", "silo", "capitole",
         }.OfType<string>();
     }

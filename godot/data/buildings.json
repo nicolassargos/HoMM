@@ -60,6 +60,7 @@
     { "id": "cercle-druides",    "name": "Cercle des druides",    "faction": "foret", "cost": { "Gold": 3000, "Wood": 5, "Ore": 5, "Crystal": 2 }, "requires": ["clairiere-cerfs"],       "dwelling": "druide",      "view": [1110, 110, 130, 130] },
     { "id": "bois-treants",      "name": "Bois des tréants",      "faction": "foret", "cost": { "Gold": 2000, "Wood": 10, "Crystal": 2 }, "requires": ["camp-archers", "clairiere-cerfs"], "dwelling": "treant",    "view": [380, 280, 190, 90] },
     { "id": "antre-troll",       "name": "Antre du troll",        "faction": "foret", "cost": { "Gold": 10000, "Gems": 5 },             "requires": ["cercle-druides", "bois-treants"], "dwelling": "troll",       "view": [610, 230, 110, 150] },
+    { "id": "sentiers-rodeurs",    "name": "Sentiers des rôdeurs",   "faction": "foret"   , "cost": { "Gold": 2000, "Wood": 10 },                "requires": [],                                      "dayMovementBonus": 400 },
     { "id": "atelier-gnomes",       "name": "Atelier des gnomes",       "faction": "tour", "cost": { "Gold": 500, "Ore": 10 },               "requires": [],                                       "dwelling": "gnome",        "view": [90, 210, 130, 100] },
     { "id": "perchoir-gargouilles", "name": "Perchoir des gargouilles", "faction": "tour", "cost": { "Gold": 1000, "Wood": 5, "Ore": 5 },    "requires": ["atelier-gnomes"],                       "dwelling": "gargouille",   "view": [250, 200, 90, 150] },
     { "id": "carriere-golems",      "name": "Carrière des golems",      "faction": "tour", "cost": { "Gold": 1000, "Ore": 5 },               "requires": ["perchoir-gargouilles"],                 "dwelling": "golem-pierre", "view": [770, 150, 110, 150] },
@@ -74,6 +75,7 @@
     { "id": "galeries-vers", "name": "Galeries des vers", "faction": "donjon", "cost": { "Gold": 3000, "Wood": 5, "Ore": 5, "Mercury": 2 }, "requires": ["fosse-aberrations"], "dwelling": "ver-des-profondeurs", "view": [1110, 110, 130, 130] },
     { "id": "chambre-tyrans", "name": "Chambre des tyrans", "faction": "donjon", "cost": { "Gold": 2000, "Wood": 10, "Mercury": 2 }, "requires": ["labyrinthe", "fosse-aberrations"], "dwelling": "tyran-oeil", "view": [380, 280, 190, 90] },
     { "id": "gouffre-hydre", "name": "Gouffre de l'hydre", "faction": "donjon", "cost": { "Gold": 10000, "Sulfur": 5 }, "requires": ["galeries-vers", "chambre-tyrans"], "dwelling": "hydre", "view": [610, 230, 110, 150] },
+    { "id": "tourbillon-mana",     "name": "Tourbillon de mana",     "faction": "donjon"  , "cost": { "Gold": 3000, "Mercury": 5 },              "requires": ["guilde-mages-1"],                      "manaVortex": true },
     { "id": "puits-diablotins", "name": "Puits des diablotins", "faction": "enfer", "cost": { "Gold": 500, "Ore": 10 }, "requires": [], "dwelling": "diablotin", "view": [90, 210, 130, 100] },
     { "id": "temple-culte", "name": "Temple du culte", "faction": "enfer", "cost": { "Gold": 1000, "Wood": 5, "Ore": 5 }, "requires": ["puits-diablotins"], "dwelling": "cultiste", "view": [250, 200, 90, 150] },
     { "id": "coulee-magma", "name": "Coulée de magma", "faction": "enfer", "cost": { "Gold": 1000, "Ore": 5 }, "requires": ["temple-culte"], "dwelling": "limon-magma", "view": [770, 150, 110, 150] },
@@ -87,6 +89,7 @@
     { "id": "salle-ancetres", "name": "Salle des ancêtres", "faction": "nains", "cost": { "Gold": 2000, "Wood": 5 }, "requires": ["atelier-arbaletriers"], "dwelling": "porte-etendard", "view": [910, 240, 170, 100] },
     { "id": "galeries-sapeurs", "name": "Galeries des sapeurs", "faction": "nains", "cost": { "Gold": 3000, "Wood": 5, "Ore": 5, "Sulfur": 2 }, "requires": ["salle-ancetres"], "dwelling": "sapeur", "view": [1110, 110, 130, 130] },
     { "id": "hangar-gyrocopteres", "name": "Hangar des gyrocoptères", "faction": "nains", "cost": { "Gold": 2000, "Wood": 10, "Sulfur": 2 }, "requires": ["enclos-chevres", "salle-ancetres"], "dwelling": "gyrocoptere", "view": [380, 280, 190, 90] },
-    { "id": "caveau-rois", "name": "Caveau des rois", "faction": "nains", "cost": { "Gold": 10000, "Crystal": 5 }, "requires": ["galeries-sapeurs", "hangar-gyrocopteres"], "dwelling": "roi-de-cristal", "view": [610, 230, 110, 150] }
+    { "id": "caveau-rois", "name": "Caveau des rois", "faction": "nains", "cost": { "Gold": 10000, "Crystal": 5 }, "requires": ["galeries-sapeurs", "hangar-gyrocopteres"], "dwelling": "roi-de-cristal", "view": [610, 230, 110, 150] },
+    { "id": "grand-comptoir",      "name": "Le Grand Comptoir",      "faction": "nains"   , "cost": { "Gold": 3000, "Ore": 5 },                  "requires": ["marche"],                              "extraMarkets": 2 }
   ]
 }

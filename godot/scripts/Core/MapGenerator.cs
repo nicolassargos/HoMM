@@ -76,16 +76,11 @@ public sealed class MapGenerator
     /// </summary>
     public double GuardSizeGrowth { get; init; } = 1.0;
 
-    /// <summary>Une mine par zone, et au moins une de chaque ressource.</summary>
-    // une mine par zone comme avant (les gemmes comprises), plus une de chacune des trois autres ressources rares : autant
-    // de mines d'or, de bois et de minerai qu'avant
-    public int MineCount => Math.Max(ResourceInfo.All.Length, (int)Math.Round(LandZones * MinesPerZone) + ResourceInfo.Rare.Length - 1);
+    /// <summary>Après <see cref="Generate"/>, pour les mesures : les mines prévues zone par zone qui n'ont pas trouvé de place.</summary>
+    public int MinesNotPlaced { get; private set; }
 
     /// <summary>Le nombre de zones de terre (les zones de mer n'ont ni mine ni ville).</summary>
     private int LandZones => _zones.Count(z => !z.Sea);
-
-    /// <summary>Mines par zone (la carte paraissait vide avec une seule ; Heroes 3 en met souvent 2 à 4).</summary>
-    public double MinesPerZone { get; init; } = 1.5;
 
     /// <summary>
     /// Les factions dont viennent les monstres de la carte : les neutres, les morts-vivants, les Barbares et la Forêt
@@ -116,9 +111,32 @@ public sealed class MapGenerator
     public int ChestCount { get; init; } = 6;
     public int PileCount { get; init; } = 42; // 28 avant (la carte paraissait vide)
 
-    /// <summary>Taille visée d'une zone, en cases : la carte est découpée en autant de zones qu'il en rentre.</summary>
-    public const int ZoneWidth = 18;
-    public const int ZoneHeight = 13;
+    /// <summary>
+    /// Taille visée d'une zone, en cases : la carte est découpée en autant de zones qu'il en rentre, au moins 2 × 2. Plus
+    /// grandes depuis le 2026-11-20 (18 × 13 avant ; remarque de l'utilisateur : « très, très petites ») : mesurées sur 50
+    /// cartes de Heroes 3 (tools/cartes/zones_h3.py), leurs régions étaient 3 à 7 fois plus grandes que les nôtres. Carrées :
+    /// des cartes carrées découpées en 3 × 3, 4 × 4, 6 × 6 zones (28 × 20 donnait 2 × 3, un quart de la carte sans ville).
+    /// </summary>
+    public const int ZoneWidth = 24;
+    public const int ZoneHeight = 24;
+
+    /// <summary>
+    /// Les îles et l'archipel gardent les zones d'avant (18 × 13) : chaque île est faite de zones, une ville au plus par île
+    /// (avec les grandes zones, trop peu d'îles et de villes).
+    /// </summary>
+    public const int IslandZoneWidth = 18, IslandZoneHeight = 13;
+
+    /// <summary>
+    /// Le nombre de colonnes et de rangées de zones d'une carte : au moins 2 × 2 (des zones jusqu'à deux fois plus étroites)
+    /// sur une carte qui le permet, une seule sur une toute petite.
+    /// </summary>
+    public static (int Cols, int Rows) ZoneGrid(int width, int height, MapType type = MapType.Continent)
+    {
+        bool islands = type is MapType.Islands or MapType.Archipelago;
+        int zoneWidth = islands ? IslandZoneWidth : ZoneWidth, zoneHeight = islands ? IslandZoneHeight : ZoneHeight;
+        return (Math.Max(Math.Clamp(width / (zoneWidth / 2), 1, 2), width / zoneWidth),
+                Math.Max(Math.Clamp(height / (zoneHeight / 2), 1, 2), height / zoneHeight));
+    }
 
     /// <summary>
     /// Chance d'ouvrir un passage de plus entre deux zones voisines (en plus de ceux qui relient tout, et de la deuxième
@@ -507,6 +525,16 @@ public sealed class MapGenerator
     /// <summary>Nombre d'objets à poser pour cette carte, à partir du nombre prévu pour la carte de référence.</summary>
     private int Scaled(int count) => (int)Math.Round((double)count * _landArea / ReferenceArea);
 
+    /// <summary>Après <see cref="Generate"/>, pour les mesures : les coffres et les tas prévus.</summary>
+    public int PlannedChests => Scaled(ChestCount);
+    public int PlannedPiles => Scaled(PileCount);
+
+    /// <summary>Après <see cref="Generate"/>, pour les mesures : la zone d'une case (null sans zones), et si c'est une zone de départ.</summary>
+    public int? ZoneIndexOf(Cell c) => _zones.Count == 0 || !_map.InBounds(c) ? null : _zoneOf[c.X, c.Y];
+    public bool IsStartZone(int zone) => _map.Starts.Any(s => _zoneOf[s.X, s.Y] == zone);
+    public bool IsSeaZone(int zone) => _zones[zone].Sea;
+    public int ZoneCount => _zones.Count;
+
     /// <summary>Le nombre de cases de terre (toute la carte sur un continent ; sans la mer sur une carte où l'on navigue).</summary>
     private int _landArea;
 
@@ -649,7 +677,7 @@ public sealed class MapGenerator
     /// </summary>
     private void MakeZones()
     {
-        int cols = Math.Max(1, _map.Width / ZoneWidth), rows = Math.Max(1, _map.Height / ZoneHeight);
+        var (cols, rows) = ZoneGrid(_map.Width, _map.Height, Type);
         double cellWidth = (double)_map.Width / cols, cellHeight = (double)_map.Height / rows;
         // les zones des départs (des coins de la grille) ne sont pas décalées : chaque départ reste bien à l'intérieur
         var startSlots = _map.Starts.Select(s => ((int)(s.Y / cellHeight), (int)(s.X / cellWidth))).ToHashSet();
@@ -1611,11 +1639,12 @@ public sealed class MapGenerator
     // ------------------------------------------------------------------ villes
 
     /// <summary>
-    /// Le nombre de villes neutres : une pour trois zones, sans dépasser <see cref="TownsPerLand"/> villes (châteaux
-    /// compris) pour 1000 cases de terre ; et au moins une par joueur (sa ville voisine).
+    /// Le nombre de villes neutres : une par zone qui n'est pas un départ (une pour trois zones avant les grandes zones du
+    /// 2026-11-20 : comme dans Heroes 3, à peu près une ville par région), sans dépasser <see cref="TownsPerLand"/> villes
+    /// (châteaux compris) pour 1000 cases de terre ; et au moins une par joueur (sa ville voisine).
     /// </summary>
     private int TownCount => Math.Max(_map.Starts.Count,
-        Math.Min(LandZones / 3, (int)Math.Round(TownsPerLand * _landArea / 1000) - _map.Starts.Count));
+        Math.Min(LandZones - _map.Starts.Count, (int)Math.Round(TownsPerLand * _landArea / 1000) - _map.Starts.Count));
 
     /// <summary>
     /// Les villes pour 1000 cases de terre, châteaux compris : comme les cartes de Heroes 2 et 3 (mesuré sur 160 cartes,
@@ -1975,6 +2004,12 @@ public sealed class MapGenerator
         foreach (var (terrain, count, size) in patches)
             for (int i = 0; i < count; i++)
                 Patch(terrain, size, paint: terrain is not (TerrainType.Sand or TerrainType.Swamp) || i % 4 == 0);
+        // autant de montagnes en plus depuis les grandes zones (2026-11-20) : moins de murs entre elles, la terre s'ouvrait
+        // trop (montagne et forêt : 18 à 22 % de la terre au lieu de 23 à 27) ; leur propre hasard ; pas sur les îles, qui
+        // gardent les petites zones
+        var extra = new Random(_seed * 3203 + 7);
+        for (int i = 0; i < (Type is MapType.Islands or MapType.Archipelago ? 0 : area / 500); i++)
+            Patch(TerrainType.Mountain, 18, rng: extra);
     }
 
     /// <summary>Les sols que peut prendre une zone, en plus de l'herbe.</summary>
@@ -2033,9 +2068,10 @@ public sealed class MapGenerator
         _zones.Count > 0 && _zoneGround.TryGetValue(_zoneOf[c.X, c.Y], out var ground) ? ground : TerrainType.Grass;
 
     /// <summary>Pose une « tache » de terrain par marche aléatoire.</summary>
-    private void Patch(TerrainType terrain, int steps, bool paint = true)
+    private void Patch(TerrainType terrain, int steps, bool paint = true, Random? rng = null)
     {
-        int x = _rng.Next(_map.Width), y = _rng.Next(_map.Height);
+        rng ??= _rng;
+        int x = rng.Next(_map.Width), y = rng.Next(_map.Height);
         for (int i = 0; i < steps; i++)
         {
             for (int dx = 0; dx <= 1; dx++)
@@ -2045,8 +2081,8 @@ public sealed class MapGenerator
                 if (paint && _map.InBounds(c))
                     _map.SetTerrain(c, terrain);
             }
-            x = Math.Clamp(x + _rng.Next(-1, 2), 0, _map.Width - 1);
-            y = Math.Clamp(y + _rng.Next(-1, 2), 0, _map.Height - 1);
+            x = Math.Clamp(x + rng.Next(-1, 2), 0, _map.Width - 1);
+            y = Math.Clamp(y + rng.Next(-1, 2), 0, _map.Height - 1);
         }
     }
 
@@ -2413,6 +2449,30 @@ public sealed class MapGenerator
     /// </summary>
     private bool Travelable(Cell c) => _map.IsPassable(c) || Type is MapType.Islands or MapType.Archipelago && _map.IsWater(c);
 
+    /// <summary>
+    /// Mélange les cases libres, puis les range pour que les objets posés tour à tour (mines, coffres, tas, lieux) passent
+    /// d'une zone à l'autre selon la place libre de chacune (2026-11-20 : tirés dans toute la carte, une zone avait 1 mine
+    /// et 5 trésors, une autre 9 mines et 40 trésors) : chaque fois, la zone qui en a le moins pour sa place.
+    /// </summary>
+    private void SpreadByZone(List<Cell> free)
+    {
+        Shuffle(free);
+        if (_zones.Count <= 1)
+            return;
+        var queues = free.GroupBy(c => _zoneOf[c.X, c.Y]).ToDictionary(g => g.Key, g => new Queue<Cell>(g));
+        var room = queues.ToDictionary(q => q.Key, q => (double)q.Value.Count);
+        var taken = queues.Keys.ToDictionary(k => k, _ => 0);
+        var order = new List<Cell>(free.Count);
+        while (order.Count < free.Count)
+        {
+            int zone = queues.Where(q => q.Value.Count > 0).OrderBy(q => (taken[q.Key] + 1) / room[q.Key]).ThenBy(q => q.Key).First().Key;
+            order.Add(queues[zone].Dequeue());
+            taken[zone]++;
+        }
+        free.Clear();
+        free.AddRange(order);
+    }
+
     private void PlaceObjects()
     {
         var free = ReachableCells()
@@ -2423,36 +2483,34 @@ public sealed class MapGenerator
             .Where(c => !_reserved.Contains(c) && !_roadCorners.Contains(c)) // les passages et les coins des routes restent libres
             .OrderBy(c => c.Y).ThenBy(c => c.X) // ordre stable avant le mélange
             .ToList();
-        Shuffle(free);
-        int next = 0;
+        SpreadByZone(free);
 
         // Sur une petite carte, on pose ce qui rentre : les mines d'abord, puis les coffres, puis les tas
-        // Les mines au-delà d'une de chaque ressource, tour à tour : or, rare, bois, or, rare, minerai (le bois et le minerai
-        // abondent déjà : chaque zone de départ en a) ; les rares tour à tour, les gemmes et le soufre d'abord (le cristal
-        // et le mercure ont déjà une mine près des départs du Château et des morts-vivants)
-        var extraPattern = new ResourceType?[] { ResourceType.Gold, null, ResourceType.Wood, ResourceType.Gold, null, ResourceType.Ore };
-        var extraRare = new[] { ResourceType.Gems, ResourceType.Sulfur, ResourceType.Crystal, ResourceType.Mercury };
-        ResourceType ExtraMine(int i)
-        {
-            if (extraPattern[i % extraPattern.Length] is { } common)
-                return common;
-            // la n-ième mine rare de la suite (deux par tour du motif)
-            int rare = i / extraPattern.Length * 2 + (i % extraPattern.Length == 1 ? 0 : 1);
-            return extraRare[rare % extraRare.Length];
-        }
-        IEnumerable<ResourceType> mines;
+        // Les objets répartis zone par zone (2026-11-20 : tirés dans toute la carte, une zone avait 1 mine et 5 trésors, une
+        // autre 9 mines et 40 trésors) : chaque objet va dans la zone qui en a le moins de sa sorte pour sa place libre ;
+        // dans la zone, les cases dans l'ordre tiré au sort. Une case essayée (posée ou non) ne resert pas.
+        var used = new HashSet<Cell>();
+        int ZoneOf(Cell c) => _zones.Count <= 1 ? 0 : _zoneOf[c.X, c.Y];
+        var room = free.GroupBy(ZoneOf).ToDictionary(g => g.Key, g => (double)g.Count());
+        var placedIn = new Dictionary<(string Kind, int Zone), int>();
+        List<Cell> Balanced(string kind) => free.Where(c => !used.Contains(c))
+            .OrderBy(c => (placedIn.GetValueOrDefault((kind, ZoneOf(c))) + 1) / room[ZoneOf(c)]).ThenBy(ZoneOf).ToList();
+        void Count(string kind, Cell c) => placedIn[(kind, ZoneOf(c))] = placedIn.GetValueOrDefault((kind, ZoneOf(c))) + 1;
         // Un objet bloque sa case : on n'en pose pas un qui couperait le chemin vers un autre
-        bool Place(Func<Cell, MapObject> make)
+        bool Place(Func<Cell, MapObject> make, string kind)
         {
-            while (next < free.Count)
+            foreach (var cell in Balanced(kind))
             {
-                var cell = free[next++];
+                used.Add(cell);
                 if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null)
                     continue; // une case d'une mine (ses murs, la case devant son entrée)
                 var obj = make(cell);
                 _map.AddObject(obj);
                 if (AllObjectsReachable())
+                {
+                    Count(kind, cell);
                     return true;
+                }
                 _map.RemoveObject(obj);
             }
             return false;
@@ -2598,24 +2656,62 @@ public sealed class MapGenerator
             PlaceSeaObjects(free, freeSet);
         }
 
-        // Puis les autres : la carte prévoit une mine de chaque ressource, et d'autres tour à tour (voir ExtraMine) ; celles
-        // posées près des départs en font partie (elles ne s'y ajoutent que si elles dépassent ce qui était prévu)
-        var planned = ResourceInfo.All.Concat(Enumerable.Range(0, MineCount - ResourceInfo.All.Length).Select(ExtraMine)).ToList();
-        foreach (var resource in startMines)
-            planned.Remove(resource);
-        mines = planned;
-        foreach (var resource in mines)
+        // Puis les mines de chaque zone (2026-11-20, choix de l'utilisateur : une zone a la plupart des sortes de mines) :
+        // la scierie et la mine de minerai de sa ville (les deux, sans ville), 2 ou 3 ressources rares différentes, à tour de
+        // rôle d'une zone à l'autre, et une mine d'or une zone sur deux (moins de mines d'or, mais à 1000 or par jour). Une
+        // mine qui ne tient pas dans sa zone n'est pas posée et n'empêche pas la suite.
+        var rares = new[] { ResourceType.Gems, ResourceType.Sulfur, ResourceType.Crystal, ResourceType.Mercury };
+        var planned = new List<(ResourceType Resource, int? Zone)>();
+        var zonesWithMines = _zones.Where(z => !z.Sea && !_map.Starts.Any(st => ZoneAt(st) == z)).OrderBy(z => z.Index).ToList();
+        // les îles gardent les petites zones (18 × 13) : une ressource rare de moins, une mine d'or une zone sur trois
+        bool small = Type is MapType.Islands or MapType.Archipelago;
+        foreach (var (zone, k) in zonesWithMines.Select((z, k) => (z, k)))
         {
-            // une mine creusée : d'abord une place au flanc d'une montagne, la première de la liste tirée au sort
-            bool placed = Dug(resource) && free.Skip(next).Where(c => Backed(c) == 1).Any(c => TryPlaceMine(c, resource, freeSet) is not null);
-            while (!placed && next < free.Count)
-                placed = TryPlaceMine(free[next++], resource, freeSet) is not null;
-            if (!placed)
-                return;
+            if (!_map.Objects.OfType<Town>().Any(t => ZoneAt(t.Position) == zone))
+            {
+                planned.Add((ResourceType.Wood, zone.Index));
+                planned.Add((ResourceType.Ore, zone.Index));
+            }
+            int rareCount = (small ? 1 : 2) + (k % 3 == 2 ? 1 : 0);
+            for (int j = 0; j < rareCount; j++)
+                planned.Add((rares[((small ? 1 : 2) * k + j) % rares.Length], zone.Index));
+            if (k % (small ? 3 : 2) == 0)
+                planned.Add((ResourceType.Gold, zone.Index));
+        }
+        // au moins une de chaque ressource sur la carte (une carte sans autre zone que les départs : où elles tiennent)
+        foreach (var resource in ResourceInfo.All.Where(r => !startMines.Contains(r) && planned.All(p => p.Resource != r)))
+            planned.Add((resource, null));
+        MinesNotPlaced = 0;
+        foreach (var (resource, zoneIndex) in planned)
+        {
+            // une mine creusée : d'abord une place au flanc d'une montagne ; dans sa zone, sinon (une petite zone pleine) dans
+            // la zone la moins pourvue où elle tient
+            var balanced = Balanced("mine");
+            var order = balanced.Where(c => zoneIndex == null || ZoneOf(c) == zoneIndex)
+                .Concat(balanced.Where(c => zoneIndex != null && ZoneOf(c) != zoneIndex)).ToList();
+            Mine? mine = null;
+            if (Dug(resource))
+                foreach (var c in order.Where(c => (zoneIndex == null || ZoneOf(c) == zoneIndex) && Backed(c) == 1))
+                    if ((mine = TryPlaceMine(c, resource, freeSet)) != null)
+                        break;
+            foreach (var c in order)
+            {
+                if (mine != null)
+                    break;
+                used.Add(c);
+                mine = TryPlaceMine(c, resource, freeSet);
+            }
+            if (mine != null)
+            {
+                used.Add(mine.Position);
+                Count("mine", mine.Position);
+            }
+            else
+                MinesNotPlaced++;
         }
         for (int i = 0; i < Scaled(ChestCount); i++)
-            if (!Place(c => new TreasureChest(c, _rng)))
-                return;
+            if (!Place(c => new TreasureChest(c, _rng), "trésor"))
+                break;
 
         // L'or, le bois et le minerai sont plus fréquents que les ressources rares (deux tas sur huit, l'une des quatre)
         var pileTypes = new[] { ResourceType.Gold, ResourceType.Gold, ResourceType.Wood, ResourceType.Wood,
@@ -2625,12 +2721,13 @@ public sealed class MapGenerator
             var type = pileTypes[_rng.Next(pileTypes.Length)];
             if (ResourceInfo.IsRare(type))
                 type = ResourceInfo.Rare[_rng.Next(ResourceInfo.Rare.Length)];
-            if (!Place(c => new ResourcePile(c, type, _rng)))
-                return;
+            if (!Place(c => new ResourcePile(c, type, _rng), "trésor"))
+                break;
         }
 
-        PlaceObelisks(free, next);
-        PlaceSites(free.Skip(next).ToList());
+        var rest = free.Where(c => !used.Contains(c)).ToList();
+        PlaceObelisks(rest, 0);
+        PlaceSites(rest);
     }
 
     /// <summary>Les cases de terre d'où l'on monte dans un bateau amarré : ni objet ni monstre n'y va.</summary>
@@ -2999,7 +3096,12 @@ public sealed class MapGenerator
 
     private void PlaceSites(List<Cell> free)
     {
-        int next = 0;
+        // répartis zone par zone, comme les mines et les trésors (2026-11-20) : chaque lieu va dans la zone qui en a le moins
+        // pour sa place libre
+        var used = new HashSet<Cell>();
+        int ZoneOf(Cell c) => _zones.Count <= 1 ? 0 : _zoneOf[c.X, c.Y];
+        var room = free.GroupBy(ZoneOf).ToDictionary(g => g.Key, g => (double)g.Count());
+        var placedIn = new Dictionary<int, int>();
         bool Fits(MapObject obj)
         {
             var cells = obj.Footprint.ToList();
@@ -3016,12 +3118,13 @@ public sealed class MapGenerator
         // <where> : seulement sur ces cases ; les autres restent pour les lieux suivants
         bool Place(Func<Cell, MapObject> make, Func<Cell, bool>? where = null)
         {
-            for (int j = next; j < free.Count; j++)
+            var order = free.Where(c => !used.Contains(c) && (where == null || where(c)))
+                .OrderBy(c => (placedIn.GetValueOrDefault(ZoneOf(c)) + 1) / room[ZoneOf(c)]).ThenBy(ZoneOf).ToList();
+            foreach (var cell in order)
             {
-                if (where != null && !where(free[j]))
-                    continue;
-                (free[j], free[next]) = (free[next], free[j]);
-                var cell = free[next++];
+                if (where != null && !where(cell))
+                    continue; // une tour posée entre-temps
+                used.Add(cell);
                 if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null || cell == _map.Treasure)
                     continue;
                 var obj = make(cell);
@@ -3033,6 +3136,7 @@ public sealed class MapGenerator
                     var footprint = obj.Footprint.ToList();
                     if (footprint.Count > 1)
                         _overhang.UnionWith(Sides(footprint));
+                    placedIn[ZoneOf(cell)] = placedIn.GetValueOrDefault(ZoneOf(cell)) + 1;
                     return true;
                 }
                 _map.RemoveObject(obj);
@@ -3055,22 +3159,22 @@ public sealed class MapGenerator
             {
                 var spell = spells[_rng.Next(spells.Count)];
                 if (!Place(c => new SageHut(c, spell)))
-                    return;
+                    break;
             }
         for (int i = 0; i < Scaled(ProducerCount); i++)
         {
             var resource = i % 2 == 0 ? ResourceType.Gold : ResourceInfo.Rare[_rng.Next(ResourceInfo.Rare.Length)];
             if (!Place(c => new WeeklyProducer(c, resource)))
-                return;
+                break;
         }
         var stats = Enum.GetValues<HeroStat>();
         for (int i = 0; i < Scaled(ShrineCount); i++)
             if (!Place(c => new Shrine(c, stats[i % stats.Length])))
-                return;
+                break;
         // en dernier : les cartes d'avant gardent leurs autres lieux
         for (int i = 0; i < Scaled(BlessingCount); i++)
             if (!Place(c => new BlessingSite(c, i % 2 == 0 ? Blessing.Morale : Blessing.Luck)))
-                return;
+                break;
     }
 
     /// <summary>Nombre d'obélisques : autant de morceaux de la carte au trésor.</summary>

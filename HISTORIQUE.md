@@ -1485,6 +1485,36 @@ départ, talent **Nécromancie** : après une victoire, 10 % des ennemis tués +
 sans dépasser son charisme). À choisir avec la ville : les noms des habitations (proposés : Ossuaire, Cimetière, Étang
 des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
 
+#### Les bâtiments communs des villes (2026-11-20, branche `villes-batiments-communs`)
+Premier pas de « Les bâtiments des villes » (`PLAN.md`), aux prix de Heroes 3 (`data/buildings.json`) : **fort** (5000
+or, 20 minerai ; murs 1), **citadelle** (2500 or, 5 minerai ; murs 2, +50 % de croissance), **château fort** (5000 or,
+10 bois, 10 minerai ; murs 3, +100 %), **capitole** (10000 or, après le grand hôtel de ville et le château fort ; 2400
+or par jour, un seul par joueur : celui d'une ville prise par un joueur qui en a déjà un redevient un grand hôtel de
+ville), **silo** (5000 or, 5 minerai, après le marché ; +1 par jour de la ressource principale de la faction, celle de
+sa classe). Champs de `BuildingType` : `Walls` (le niveau des murs, pour les sièges, plus tard), `GrowthPercent`,
+`Silo`, `Capitol` ; `Town.WeeklyGrowth` (la croissance montrée dans les habitations compte la citadelle).
+**L'IA** les bâtit en dernier, et seulement quand la ville n'a plus rien à recruter. Mesuré (`Adversaires_par_faction`,
+armée à six semaines) : bâtis avant le niveau 6, puis après le niveau 7, ils affaiblissaient toutes les factions de 10
+à 30 % : **l'or manque plus que les créatures**, et les créatures en plus de la citadelle ne payaient pas son prix à
+six semaines. Avec la règle retenue : Château 42 100 (42 200 avant), morts-vivants 41 800 (43 400), Barbares 61 700
+(65 400), Forêt 62 600 (70 100), Tour 45 700 (45 700), Donjon 58 100 (60 500), Enfer 50 500 (50 500), Nains 58 000
+(60 000). Leçon pour les bâtiments spéciaux et de croissance : ce qui donne de l'or vaut plus, ce qui donne des
+créatures vaut moins que dans Heroes 3.
+
+#### Les premiers bâtiments spéciaux (2026-11-20, branche `batiments-speciaux-1`)
+Les trois plus simples de « Les bâtiments des villes » (`PLAN.md`) ; prix proposés, à revoir : **Le Grand Comptoir** des
+Nains (3000 or, 5 minerai, après le marché ; `ExtraMarkets` 2 : `Market.Count` compte `Town.MarketCount`), les
+**Sentiers des rôdeurs** de la Forêt (2000 or, 10 bois ; `DayMovementBonus` 400 : un héros du joueur qui commence sa
+journée dans la ville), le **Tourbillon de mana** du Donjon (3000 or, 5 mercure, après la guilde ; `ManaVortex` : le
+premier héros du joueur qui vient dans la semaine a deux fois ses points de sort, `Town.ManaVortexReady` sauvegardé,
+événement `ManaVortexUsed`). L'IA les bâtit après le niveau 6.
+**Mesures** (`Adversaires_par_faction`, armée à six semaines) : la base a changé avec les zones plus grandes (PR #213,
+fusionnée le même jour) : Château 59 400, morts-vivants 64 100, Barbares 77 300, Forêt 84 600, Tour 70 900, Donjon
+68 800, Enfer 72 700, Nains 66 500. Avec les trois bâtiments : Château 56 300, morts-vivants 62 100, Barbares 71 800,
+Forêt 83 700, Tour 68 500, Donjon 68 500, Enfer 74 600, Nains 65 100 : peu de chose à six semaines (ils coûtent un peu,
+et servent surtout plus tard) ; les autres factions bougent aussi, parce que l'IA bâtit ces bâtiments dans les villes
+neutres qu'elle prend (sans eux dans son ordre, le Château retrouve 59 400).
+
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
   à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),
@@ -2878,6 +2908,32 @@ choix de l'utilisateur) :
   médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
   six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
   55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
+- ✅ **Les mines et les objets zone par zone** (2026-11-20, branche `objets-carte`). Mesuré (`Objets_par_zone`) : toutes
+  les mines prévues étaient posées, mais les objets, tirés dans toute la carte, se répartissaient mal : de 1 à 9 mines,
+  de 10 à 79 trésors pour 1000 cases et de 0 à 16 lieux par zone. Maintenant **chaque objet va dans la zone qui en a le
+  moins de sa sorte pour sa place libre** (mines, coffres et tas, lieux) : de 16 à 58 trésors pour 1000 cases, de 1 à 10
+  lieux. **Les mines de chaque zone** (choix de l'utilisateur : la plupart des sortes) : la scierie et la mine de minerai
+  de sa ville (les deux sans ville), 2 ou 3 ressources rares différentes à tour de rôle, une mine d'or une zone sur deux
+  (sur les îles, aux petites zones : 1 ou 2 rares, l'or une zone sur trois) ; de 4 à 6 sortes par zone. **Mines d'or à
+  1000 or par jour** (comme Heroes 3) : 4 sur une carte normale au lieu de 11 à 500. Un objet qui ne tient pas n'arrête
+  plus la pose de la suite (avant, une mine sans place arrêtait les coffres, les tas et les lieux) ; une mine qui ne tient
+  pas dans sa zone va dans la moins pourvue. Le test des mines adossées passe à 35 % (40 : chaque zone a ses mines, elles
+  ne vont plus toutes où sont les montagnes). Équilibre : la simulation seule gagne la carte normale vers le jour 194
+  (192 avant), la grande 4 fois sur 6 vers le jour 397 (6 sur 6 vers 388 : à la limite du temps donné) ; un adversaire
+  après six semaines (`Adversaires_en_six_semaines`) : armée 44 100 (facile), 59 400 (normal), 72 200 (difficile).
+- ✅ **Des zones plus grandes** (2026-11-20, branche `zones-plus-grandes` ; l'utilisateur : « très, très petites »).
+  Mesuré (`tools/cartes/zones_h3.py`, 50 cartes de Heroes 3, et `Zones_vues_du_joueur` pour les nôtres) : les régions
+  où l'on marche, séparées par les obstacles et les monstres (leur case et ses 8 voisines) ; la région d'une case
+  typique (médiane pondérée par les cases) : Heroes 3 environ 710 cases libres sur 72 × 72, 350 sur 108, 260 sur 144 ;
+  les nôtres environ 115 et 100 (des zones de 18 × 13, toutes pareilles). Maintenant des **zones carrées de 24 × 24**
+  (`MapGenerator.ZoneGrid` : au moins 2 × 2 ; 3 × 3, 4 × 4, 6 × 6 sur les cartes normale, grande, très grande ; 28 × 20
+  donnait 2 × 3, un quart de la carte sans ville) : environ 255, 325 et 225 cases. **Une ville neutre par zone** hors
+  départs (une pour trois avant), toujours au plus 1,5 pour 1000 cases de terre : 8 villes sur une carte normale, 15 sur
+  une grande ; **3,5 mines par zone** (1,5 avant : autant pour la même surface) ; **autant de taches de montagne en plus**
+  à l'intérieur des zones, leur propre hasard (moins de murs : montagne et forêt tombaient de 23-27 % à 18-22 % de la
+  terre ; 21 à 25 % maintenant). Les îles et l'archipel gardent les zones de 18 × 13 (une île est faite de zones, une ville
+  au plus par île). La simulation seule (`Simulation_seule`) : carte normale gagnée vers le jour 192 (211 avant), grande
+  vers le jour 388 (jamais avant, dans le temps donné).
 - ✅ **Le second sol des factions** (2026-11-20, branche `sols-factions`, pour la variété) : `secondGround` dans
   `data/classes.json` (`HeroClass.SecondGround`, `Grounds`) : les Nains la neige, la Tour le sable, l'Enfer le sable, les
   morts-vivants la roche. Choix de l'utilisateur : le départ prend le second sol **une partie sur trois** (son propre
@@ -2956,6 +3012,14 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
   de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
   worktree (non suivi par git).
+  ✅ **La mort du Moloch qui se défait** (2026-11-20, branche `moloch-jambes`) : l'utilisateur veut voir la statue se
+  démonter (jambes, torse, bras, tête), pas tomber d'un bloc. Essais écartés : quatre suites depuis l'image à genoux
+  (PixelLab v3 et second modèle : il se relève, ou ne se défait pas ; 1,38 $, le second modèle coûtant environ 0,65 $
+  l'essai pour une créature de cette taille, dépensés sans accord) ; une chute en neuf morceaux faite par le code
+  (« shattered, not dismantled » : on dirait qu'elle éclate). Gardé : « Nouveau 2 » du 2026-11-19 (death-6, les bras
+  tombent, le corps se démonte en tas), dont la tête devenait une masse informe : la vraie tête, découpée dans l'image
+  2, posée par le code sur le même chemin (elle glisse du cou, tombe devant, rebondit, reste sur le tas), les
+  étincelles retirées. Les jambes s'affaissent dans le tas sans se défaire : « good enough ».
   ✅ **Le coup reçu du Dragon et de l'Hydre, fini** (2026-11-20, branche `coups-dragon-hydre`) : ceux du 2026-11-17
   bougeaient à peine (« encore à finir », selon l'utilisateur, qui voulait un Dragon qui recule). Le modèle v3, 8 images
   avec retour, une consigne qui fait **se cabrer en arrière** : « rears back to the left: it throws its head and long

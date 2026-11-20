@@ -17,7 +17,7 @@ public class VillesIATests
         state.EndTurn();
         var rival = state.CurrentPlayer;
         var hero = rival.Heroes[0];
-        foreach (var obj in state.Map.Objects.Where(o => o is ResourcePile or TreasureChest or Mine or Obelisk or MonsterGuard or Town).ToList())
+        foreach (var obj in state.Map.Objects.ToList()) // tout, les lieux compris : la ville de l'essai a besoin de place
             state.Map.RemoveObject(obj);
         var town = Enumerable.Range(2, 4).SelectMany(d => new[] { hero.Position.Offset(0, d), hero.Position.Offset(d, 0), hero.Position.Offset(-d, 0) })
             .Select(c => new Town(c, "Testville", "chateau", TestData.Data))

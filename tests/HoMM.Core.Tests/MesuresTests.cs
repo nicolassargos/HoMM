@@ -144,6 +144,140 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Les zones telles que le joueur les voit (2026-11-20, à comparer avec Heroes 3 : tools/cartes/zones_h3.py) : les
+    /// régions où l'on marche, séparées par ce qui bloque et par les monstres (leur case et ses 8 voisines comptent comme un
+    /// mur ; un objet aussi, comme dans Heroes 3 où on le visite d'à côté) ; les régions d'au moins 20 cases.
+    /// </summary>
+    [Mesure]
+    public void Zones_vues_du_joueur()
+    {
+        foreach (var size in new[] { MapSize.Small, MapSize.Normal, MapSize.Large, MapSize.Huge })
+        {
+            var townCounts = new List<int>();
+            var mineCounts = new List<int>();
+            var blocked = new List<int>();
+            var weighted = new List<int>();
+            var counts = new List<int>();
+            var all = new List<int>();
+            var big = new List<int>();
+            foreach (int seed in Seeds)
+            {
+                var map = new GameState(seed, TestData.Data, size).Map;
+                townCounts.Add(map.Objects.OfType<Town>().Count());
+                mineCounts.Add(map.Objects.OfType<Mine>().Count());
+                var land = Enumerable.Range(0, map.Height).SelectMany(y => Enumerable.Range(0, map.Width).Select(x => new Cell(x, y)))
+                    .Where(c => !map.IsWater(c)).ToList();
+                blocked.Add(100 * land.Count(c => map.GetTerrain(c) is TerrainType.Mountain or TerrainType.Forest) / land.Count);
+                var wall = new bool[map.Width, map.Height];
+                for (int y = 0; y < map.Height; y++)
+                for (int x = 0; x < map.Width; x++)
+                {
+                    var c = new Cell(x, y);
+                    wall[x, y] = !map.IsPassable(c) || map.ObjectAt(c) is { } o && o is not Town;
+                }
+                foreach (var guard in map.Objects.OfType<MonsterGuard>())
+                    for (int dx = -1; dx <= 1; dx++)
+                    for (int dy = -1; dy <= 1; dy++)
+                        if (map.InBounds(guard.Position.Offset(dx, dy)))
+                            wall[guard.Position.X + dx, guard.Position.Y + dy] = true;
+                var seen = new bool[map.Width, map.Height];
+                var sizes = new List<int>();
+                for (int y0 = 0; y0 < map.Height; y0++)
+                for (int x0 = 0; x0 < map.Width; x0++)
+                {
+                    if (wall[x0, y0] || seen[x0, y0])
+                        continue;
+                    seen[x0, y0] = true;
+                    var stack = new Stack<Cell>(new[] { new Cell(x0, y0) });
+                    int n = 0;
+                    while (stack.Count > 0)
+                    {
+                        var c = stack.Pop();
+                        n++;
+                        for (int dx = -1; dx <= 1; dx++)
+                        for (int dy = -1; dy <= 1; dy++)
+                        {
+                            var next = c.Offset(dx, dy);
+                            if (map.InBounds(next) && !wall[next.X, next.Y] && !seen[next.X, next.Y])
+                            {
+                                seen[next.X, next.Y] = true;
+                                stack.Push(next);
+                            }
+                        }
+                    }
+                    if (n >= 20)
+                        sizes.Add(n);
+                }
+                int free = sizes.Sum(), acc = 0;
+                foreach (var v in sizes.OrderBy(v => v))
+                    if ((acc += v) * 2 >= free)
+                    {
+                        weighted.Add(v);
+                        break;
+                    }
+                counts.Add(sizes.Count);
+                all.AddRange(sizes);
+                big.AddRange(sizes.Where(v => v >= 150));
+            }
+            string Q(List<int> v) => v.Count == 0 ? "-" : $"min {v.Min()} médiane {v.OrderBy(x => x).ElementAt(v.Count / 2)} max {v.Max()} (n={v.Count})";
+            output.WriteLine($"{size} : régions par carte {Q(counts)} ; taille {Q(all)} ; villes {Q(townCounts)} ; mines {Q(mineCounts)} ; montagne et forêt {Q(blocked)} % de la terre");
+            output.WriteLine($"  la région d'une case typique {Q(weighted)} ; zones d'au moins 150 cases {Q(big)}");
+        }
+    }
+
+    /// <summary>
+    /// Les objets de la carte (2026-11-20) : les mines prévues et posées, par ressource ; les coffres et les tas prévus et
+    /// posés ; et, zone par zone (zones de terre hors départs), combien de mines, de trésors (coffres et tas) et de lieux.
+    /// </summary>
+    [Mesure]
+    public void Objets_par_zone()
+    {
+        foreach (var size in new[] { MapSize.Normal, MapSize.Large })
+        {
+            var (w, h) = MapSizes.Dimensions(size);
+            var missingMines = new List<int>();
+            var missingChests = new List<int>();
+            var missingPiles = new List<int>();
+            var perResource = new Dictionary<ResourceType, List<int>>();
+            var zoneMines = new List<int>();
+            var zoneMineKinds = new List<int>();
+            var zoneTreasures = new List<int>();
+            var zoneSites = new List<int>();
+            var zoneTreasureDensity = new List<int>();
+            foreach (int seed in Seeds)
+            {
+                var generator = new MapGenerator(seed, TestData.Data);
+                var map = generator.Generate(w, h);
+                var mines = map.Objects.OfType<Mine>().ToList();
+                missingMines.Add(generator.MinesNotPlaced);
+                missingChests.Add(generator.PlannedChests - map.Objects.OfType<TreasureChest>().Count());
+                missingPiles.Add(generator.PlannedPiles - map.Objects.OfType<ResourcePile>().Count());
+                foreach (var resource in ResourceInfo.All)
+                    (perResource.TryGetValue(resource, out var l) ? l : perResource[resource] = new List<int>()).Add(mines.Count(m => m.Resource == resource));
+                var cells = Enumerable.Range(0, h).SelectMany(y => Enumerable.Range(0, w).Select(x => new Cell(x, y))).ToList();
+                for (int zone = 0; zone < generator.ZoneCount; zone++)
+                {
+                    if (generator.IsSeaZone(zone) || generator.IsStartZone(zone))
+                        continue;
+                    var objects = map.Objects.Where(o => generator.ZoneIndexOf(o.Position) == zone).ToList();
+                    int land = cells.Count(c => generator.ZoneIndexOf(c) == zone && !map.IsWater(c));
+                    zoneMines.Add(objects.Count(o => o is Mine));
+                    zoneMineKinds.Add(objects.OfType<Mine>().Select(m => m.Resource).Distinct().Count());
+                    int treasures = objects.Count(o => o is TreasureChest or ResourcePile);
+                    zoneTreasures.Add(treasures);
+                    zoneTreasureDensity.Add(land == 0 ? 0 : 1000 * treasures / land);
+                    zoneSites.Add(objects.Count(o => o is Shrine or SageHut or WeeklyProducer or BlessingSite or ObservationTower or Obelisk));
+                }
+            }
+            string Q(List<int> v) => v.Count == 0 ? "-" : $"min {v.Min()} médiane {v.OrderBy(x => x).ElementAt(v.Count / 2)} max {v.Max()}";
+            output.WriteLine($"{size} : mines manquantes {Q(missingMines)} ; coffres manquants {Q(missingChests)} ; tas manquants {Q(missingPiles)}");
+            output.WriteLine("  mines par ressource : " + string.Join(", ", perResource.Select(r => $"{r.Key} {Q(r.Value)}")));
+            output.WriteLine($"  par zone : sortes de mines {Q(zoneMineKinds)} ; mines {Q(zoneMines)} (sans mine : {zoneMines.Count(m => m == 0)} sur {zoneMines.Count}) ; "
+                + $"trésors {Q(zoneTreasures)} ; trésors pour 1000 cases {Q(zoneTreasureDensity)} ; lieux {Q(zoneSites)} (sans lieu : {zoneSites.Count(s => s == 0)})");
+        }
+    }
+
+    /// <summary>
     /// Les villes neutres de chaque sol, par faction (2026-11-20 : les seconds sols des factions, qui comptent moitié moins
     /// que le sol principal) : sur des cartes grandes, toutes les graines.
     /// </summary>

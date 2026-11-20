@@ -135,6 +135,9 @@ images) ; les onglets en marque-pages (à l'essai) ; la taille de l'écran, à r
 Décidé avec l'utilisateur (2026-11-20) : la liste complète d'abord, puis les scènes des villes. Aujourd'hui, 17
 bâtiments par ville (10 communs, 7 habitations, `data/buildings.json`) ; demain **environ 32**, comme Heroes 3 (une
 amélioration garde la place de son bâtiment, avec sa propre image : 18 places, dans les 25 prévues par scène).
+- ✅ **Le fort, la citadelle, le château fort, le capitole et le silo** (2026-11-20, branche `villes-batiments-communs` ;
+  l'IA les bâtit quand sa ville n'a plus rien à recruter : l'or manque plus que les créatures ; détail dans
+  `HISTORIQUE.md`).
 - **Communs (9 places)** : salle du village → hôtel de ville → grand hôtel de ville → **capitole** (un par joueur,
   2400 or par jour) ; **fort → citadelle → château** (les murs des sièges ; +50 % puis +100 % de croissance) ; guilde
   des mages 1 à 4 ; taverne ; marché ; **silo** (+1 par jour de la ressource principale de la faction) ; **forge**
@@ -151,11 +154,11 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
 |---|---|---|
 | Morts-vivants | **Cortège funèbre** | après chaque combat gagné par un héros du joueur, où qu'il soit, les morts des deux camps reviennent à la ville : des Squelettes à recruter la semaine suivante |
 | Barbares | **La Marmite** | on y jette de petites créatures, il en sort de plus fortes (4 Gobelins → 1 Orc, 3 Loups → 1 Ogre…) |
-| Tour de magie | **La Tour qui pousse** | un étage de plus par semaine (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
+| Tour de magie | **La Tour qui pousse** | un étage de plus par semaine, **5 au plus** (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
 | Château | **Les Hérauts** | plus un héros a gagné de combats, plus les monstres neutres proposent de le rejoindre ; héros de taverne moins chers |
-| Nains | **Le Grand Comptoir** | compte pour 2 marchés de plus (meilleurs taux d'échange) |
-| Donjon | **Tourbillon de mana** | une fois par semaine, les points de sort d'un héros qui le visite sont doublés |
-| Forêt | **Sentiers des rôdeurs** | les héros qui quittent la ville ont plus de mouvement ce jour-là |
+| Nains | **Le Grand Comptoir** ✅ | compte pour 2 marchés de plus (meilleurs taux d'échange) |
+| Donjon | **Tourbillon de mana** ✅ | une fois par semaine, les points de sort d'un héros qui le visite sont doublés |
+| Forêt | **Sentiers des rôdeurs** ✅ | les héros qui quittent la ville ont plus de mouvement ce jour-là (+400, un peu plus d'un quart) |
 | Enfer | **Portail infernal** | aller d'une ville de l'Enfer du joueur à une autre |
 
 - **Les murs et les sièges** (avec l'utilisateur, 2026-11-20) :
@@ -184,11 +187,11 @@ qui grossissent, Loups qui frappent deux fois) : elle perd parfois son héros da
 ### La carte
 ✅ Fait (détail dans `HISTORIQUE.md`) : forêts qui bloquent, coffres au choix, lieux (autels, sage, roue à eau, moulin,
 tour d'observation, temple, cercle des fées), gardiens justes, les tailles de Heroes 3, les passages entre zones selon
-une option, une ville au plus par zone, une scierie et une mine de minerai gardées près de chaque ville, victoire par
+une option, une ville au plus par zone, une scierie et une mine de minerai gardées près de chaque ville, la plupart des sortes de mines dans chaque zone et les objets répartis zone par zone (2026-11-20), victoire par
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
-dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19).
+dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19) ; des zones 2,5 fois plus grandes, comme les régions de Heroes 3 (2026-11-20).
 **Reste** :
 - **Les sols** : **six sols suffisent** (herbe, sable, marais, roche, neige, terre brûlée ; choix de l'utilisateur,
   2026-11-20) : pas un par faction, des factions les partagent ; plus tard, des **variantes** d'un même sol pour les
@@ -235,7 +238,8 @@ nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles 
 (2026-11-19), celui de la roche, une terre désolée, et celui de la terre brûlée, aux feux qui respirent (2026-11-20).
 ✅ Une **animation de mort** par créature (2026-11-17), revue avec l'utilisateur et **variée** (2026-11-19, branche
 `morts-variees` : en arrière, sur le côté, une mort propre au Démon, à la Liche, au Roi de cristal, au Golem…).
-**Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.
+✅ La mort du **Moloch** qui se défait vraiment, sa tête visible au sol (2026-11-20, branche `moloch-jambes` ; « good
+enough », selon l'utilisateur : les jambes s'affaissent dans le tas sans se défaire).
 ✅ Un **coup reçu** par créature (2026-11-17), revu et choisi avec l'utilisateur (le Dragon, l'Hydre et le Démon par le
 second modèle de PixelLab) ; ceux du **Dragon** et de l'**Hydre** finis (2026-11-20, branche `coups-dragon-hydre` : ils
 se cabrent en arrière ; préférés par l'utilisateur à ceux de `animations-dragon-hydre-ver`, faits le même jour).
@@ -258,18 +262,29 @@ bandeau de la date.
 panneau de la carte, les écrans revus pour la nouvelle police.
 **Reste** : des icônes sur les autres écrans, au fil des besoins ; des icônes pour les récompenses (coffre, niveau) ;
 l'écran de recrutement, à revoir pour gagner de la place ; la poignée des barres de défilement comme taillée dans la
-pierre ; vérifier les pieds des mines de mercure, minerai et soufre, et la force de l'ombre de contact en jeu.
+pierre. ✅ Les pieds des mines de mercure, de minerai (ses six sols) et de soufre, et la force de leur ombre de
+contact, revus par l'utilisateur (2026-11-20, avec ceux du Seigneur des abîmes) ; environ 110 images ont encore des
+pieds non revus (champ de la roche, massifs, arbres des sols, ponts).
 
 ### La ville vue de face par faction (rien n'est encore fait)
 La liste de ses bâtiments : « Les bâtiments des villes », plus haut.
-Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de 640 × 195
-affiché ×3, et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque
+Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 292,
+affiché ×2** comme tout le pixel art (choix de l'utilisateur, 2026-11-20 ; d'abord prévu 640 × 195 à ×3), et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque
 amélioration a sa propre image au même pied. Bâtiments dessinés de l'arrière vers l'avant ; clic et survol sur les
 pixels de l'image, léger contour au survol. Chaque faction place aussi les bâtiments communs ; un test vérifie que la
 scène couvre tous ses bâtiments. Choix de l'utilisateur : une place vide ne montre **rien** ; **un seul fond** par
 faction ; place pour **au moins 25 bâtiments** ; petits détails animés plus tard. Images : un concept de la ville
 entière, puis le fond, puis chaque bâtiment avec le fond comme référence ; une page HTML pour placer les bâtiments à
 la souris et écrire `scene.json`.
+**Choix de l'utilisateur (2026-11-20)**, après des esquisses (`art-candidats/en-cours/villes-esquisses/index.html`, une
+par faction, placements dans `placements.json`) :
+- **Une mise en scène libre par faction**, chacune son point de vue (pas de plan commun) ; chaque ville **inspirée de
+  son image sur la carte**.
+- **Pas d'eau dans les fonds** : le chantier naval apporte la sienne (un quai, un peu d'eau) et n'existe que dans une
+  ville au bord de l'eau (il n'est même pas proposé ailleurs).
+- Le **capitole** est la 4e image de l'hôtel de ville ; **La Tour qui pousse** a 5 étages au plus (une image par
+  étage) ; le **Donjon** s'ouvre sur une caverne ; la forteresse des **Nains** fait partie de la montagne : un fond
+  surtout de roche.
 
 ### L'IA et l'équilibre
 Entraîner les profils de difficulté par des parties entre IA, jouées sans affichage ; petits détails et équilibrage
@@ -333,7 +348,7 @@ par joueur, un humain peut diriger sa défense, et une partie se rejoue pareil a
 - **Château** : départ 30 paysans, 15 archers, 4 griffons ; prix 3 or par « paysan équivalent » (Archer 18, Griffon
   40, Cavalier 80, Moine 150, Chevalier 300, Ange 4900 et 1 cristal) ; croissance 30, 18, 14, 8, 6, 4, 2 ; paysans
   pour vaincre une unité : Archer 8, Griffon 14, Cavalier 25, Moine 61, Chevalier 93, Ange 1597 (`UnitCurveTests`).
-- **Économie** : villes 300 / 600 / 1200 or par jour, mines d'or 500 (doublés le 2026-11-11), autres mines 2 bois ou
+- **Économie** : villes 300 / 600 / 1200 or par jour, mines d'or 1000 (comme Heroes 3, deux fois moins nombreuses : 2026-11-20), autres mines 2 bois ou
   minerai, 1 d'une ressource rare ; héros de taverne 2500 or (8 au plus).
 - **Combat** : dégâts tirés au sort puis règle attaque / défense de Heroes 3 ; tir à moitié au-delà de 6 cases ou
   au corps à corps ; défense +20 % ; fuite : 50 à 90 % de pertes ; un combat se rejoue pareil avec la même graine.
@@ -342,9 +357,9 @@ par joueur, un humain peut diriger sa défense, et une partie se rejoue pareil a
 - **Difficulté** (`ComputerProfile`) : pertes acceptées 20 / 30 / 40 %, attaque le joueur dès le jour 21 / 0 / 0,
   héros au plus 2 / 3 / 4, revenu d'or 75 / 100 / 125 %.
 - **Équilibre mesuré** (`Mesures`, 2026-11-11, six cartes) : la simulation seule gagne les petites cartes vers le jour
-  68, les normales vers le jour 86, les grandes vers le jour 147 ; un adversaire après six semaines (Normal, or
-  d'armée) : Château 57 100, morts-vivants 47 700, Barbares 54 700, Forêt 61 700, Tour 56 200, Donjon 60 000, Enfer
-  65 200.
+  68, les normales vers le jour 86, les grandes vers le jour 147. Un adversaire après six semaines (Normal, or
+  d'armée ; `Adversaires_par_faction`, 2026-11-20, après les zones plus grandes) : Château 59 400, morts-vivants
+  64 100, Barbares 77 300, Forêt 84 600, Tour 70 900, Donjon 68 800, Enfer 72 700, Nains 66 500.
 
 ## Choix à respecter
 - **Tout le pixel art à ×2** (un pixel d'image = 2 × 2 pixels d'écran ; choix de l'utilisateur, 2026-11-10) : la taille à

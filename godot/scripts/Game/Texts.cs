@@ -428,6 +428,7 @@ public static class Texts
         BuildResult.NotEnoughResources => "Ressources insuffisantes",
         BuildResult.NotOwner => "Ville ennemie",
         BuildResult.NotCoastal => "Pas au bord de l'eau",
+        BuildResult.CapitolElsewhere => "Un seul capitole par royaume",
         _ => result.ToString(),
     };
 
@@ -450,9 +451,17 @@ public static class Texts
     public static string BuildingEffect(Town town, BuildingType building) => building switch
     {
         { Dwelling: not null } when town.DwellingCreature(building) is { } creature => town.Has(building.Id)
-            ? Dwelling(creature, town.Available.GetValueOrDefault(creature))
-            : $"Produit des {creature.Plural} (+{creature.Growth} par semaine)",
+            ? Dwelling(creature, town.Available.GetValueOrDefault(creature), town.WeeklyGrowth(creature))
+            : $"Produit des {creature.Plural} (+{town.WeeklyGrowth(creature)} par semaine)",
+        { Capitol: true } => $"+{building.DailyGold} or par jour (un seul capitole par royaume)",
         { DailyGold: > 0 } => $"+{building.DailyGold} or par jour",
+        { Walls: > 0, GrowthPercent: > 0 } => $"Des murs plus solides ; +{building.GrowthPercent} % de créatures chaque semaine",
+        { Walls: > 0 } => "Des murs autour de la ville",
+        { Silo: true } when town.MainResource is { } resource => $"+1 {Resource(resource)} par jour",
+        { ExtraMarkets: > 0 } => $"Compte pour {building.ExtraMarkets} marchés de plus : de meilleurs taux d'échange",
+        { DayMovementBonus: > 0 } => $"Un héros qui part d'ici le matin a {building.DayMovementBonus * 100 / Hero.DefaultMovement} % de mouvement en plus ce jour-là",
+        { ManaVortex: true } => "Une fois par semaine, double les points de sort du premier héros qui vient"
+                                + (town.Has(building.Id) && !town.ManaVortexReady ? " (déjà servi cette semaine)" : ""),
         { Tavern: true } => "Permet de recruter des héros",
         { MageGuild: > 0 } => $"Enseigne {town.GuildSpellsAt(building.MageGuild)} sorts de niveau {building.MageGuild} aux héros"
                               + " et recharge leurs points de sort",
@@ -460,8 +469,8 @@ public static class Texts
     };
 
     /// <summary>Ce que produit une habitation : « 14 Paysans disponibles (+14 par semaine) ».</summary>
-    public static string Dwelling(CreatureType creature, int available) =>
-        $"{available} {Creature(creature, available)} disponible{(available > 1 ? "s" : "")} (+{creature.Growth} par semaine)";
+    public static string Dwelling(CreatureType creature, int available, int growth) =>
+        $"{available} {Creature(creature, available)} disponible{(available > 1 ? "s" : "")} (+{growth} par semaine)";
 
     public static string RecruitTitle(CreatureType type) => $"Recruter des {type.Plural}";
 
@@ -637,7 +646,7 @@ public static class Texts
         _ => "Très grande",
     };
     public static string MapSizeDetails(MapSize size, int width, int height) =>
-        $"{width} × {height} cases, {width / MapGenerator.ZoneWidth * (height / MapGenerator.ZoneHeight)} régions"
+        $"{width} × {height} cases, {MapGenerator.ZoneGrid(width, height).Cols * MapGenerator.ZoneGrid(width, height).Rows} régions"
         + (size >= MapSize.Large ? " : une longue partie" : "");
     public static string SeedLabel => "Graine";
     public static string SeedPlaceholder => "au hasard";
@@ -763,6 +772,8 @@ public static class Texts
         BuildingBuilt built => $"{built.Building.Name} : construit à {built.Town.Name}.",
         DeadRaised raised when raised.Hero.Owner != viewer => null,
         DeadRaised raised => $"Nécromancie : {raised.Count} {Creature(raised.Type, raised.Count)} se relève{(raised.Count == 1 ? "" : "nt")} dans l'armée de {raised.Hero.Name}.",
+        ManaVortexUsed vortex when vortex.Hero.Owner != viewer => null,
+        ManaVortexUsed vortex => $"Le Tourbillon de mana de {vortex.Town.Name} double les points de sort de {vortex.Hero.Name}.",
         SpellsLearned learned when learned.Hero.Owner != viewer => null,
         SpellsLearned learned => $"{learned.Hero.Name} apprend {List(learned.Spells.Select(s => s.Name).ToList())} à la guilde des mages de {learned.Town.Name}.",
         ResourcesTraded traded when traded.Player != viewer => null,
@@ -848,7 +859,7 @@ public static class Texts
     public static string ResourceTooltip(Player player, ResourceType resource)
     {
         var lines = new List<string>();
-        int towns = resource == ResourceType.Gold ? player.Towns.Sum(t => t.DailyGold) : 0;
+        int towns = resource == ResourceType.Gold ? player.Towns.Sum(t => t.DailyGold) : player.Towns.Count(t => t.SiloResource == resource);
         var mines = player.Mines.Where(m => m.Resource == resource).ToList();
         int total = towns + mines.Sum(m => m.DailyProduction);
         lines.Add($"{Capitalize(Resource(resource))} : {(total > 0 ? $"+{total}" : "rien")} par jour");
@@ -1339,8 +1350,8 @@ public static class Texts
         $"Att {type.Attack} · Déf {type.Defense} · dégâts {type.MinDamage}–{type.MaxDamage}\nPV {type.HitPoints} · vitesse {type.Speed}";
 
     /// <summary>« 28 disponibles (+28 par semaine) ».</summary>
-    public static string AvailableLine(CreatureType type, int available) =>
-        $"{available} disponible{(available > 1 ? "s" : "")} (+{type.Growth} par semaine)";
+    public static string AvailableLine(int available, int growth) =>
+        $"{available} disponible{(available > 1 ? "s" : "")} (+{growth} par semaine)";
 
     public static string PriceLine(CreatureType type) => $"Prix : {Cost(type.Cost)}";
 

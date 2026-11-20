@@ -41,7 +41,7 @@ public class TextsTests
         var player = state.Players[0];
         var mine = state.Map.Objects.OfType<Mine>().First(m => m.Resource == ResourceType.Gold);
 
-        Assert.Equal("Mine d'or capturée ! +500 or par jour.", Texts.Message(mine.Visit(hero), player));
+        Assert.Equal("Mine d'or capturée ! +1000 or par jour.", Texts.Message(mine.Visit(hero), player));
         Assert.Equal("Mine d'or vous appartient déjà.", Texts.Message(mine.Visit(hero), player));
         Assert.Equal("Vous trouvez 7 bois.",
             Texts.Message(new ResourcesFound(hero, mine, ResourceType.Wood, 7), player));

@@ -17,7 +17,7 @@ public enum MapSize
 /// Les dimensions de chaque taille de carte : celles de Heroes 3 (36, 72, 108 et 144 cases de côté, choix de
 /// l'utilisateur, 2026-11-14 ; avant : de 54 × 27 à 90 × 66), et une toute petite pour les tests. Le générateur découpe
 /// la carte en zones de <see cref="MapGenerator.ZoneWidth"/> × <see cref="MapGenerator.ZoneHeight"/> cases environ :
-/// 4, 4, 20, 48 et 88 zones. La force des monstres suit le niveau de la zone par rapport à la plus lointaine,
+/// 4, 4, 9, 16 et 36 zones (au moins 2 × 2). La force des monstres suit le niveau de la zone par rapport à la plus lointaine,
 /// les coffres, tas et monstres errants la surface de la carte.
 /// </summary>
 public static class MapSizes

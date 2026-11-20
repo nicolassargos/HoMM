@@ -409,6 +409,19 @@ public partial class BattleFieldView : Control
         var ground = DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
         var images = Art.VariantsOf($"battle/detail-{Art.Name(ground)}");
         var details = new List<(Texture2D, Vector2)>();
+        // des tas de pierres et d'éboulis pris dans le sol (la roche, 2026-11-19 : dessinés par le shader, ils faisaient des
+        // taches ou un pavage ; les dalles rondes ou carrées, écartées : pas naturelles), dessinés avant les petits détails et
+        // un peu écartés les uns des autres
+        var slabs = Art.VariantsOf($"battle/slab-{Art.Name(ground)}");
+        var placed = new Random(seed * 5 + 1);
+        for (int i = 0, tries = 0; slabs.Length > 0 && i < 16 && tries < 200; tries++)
+        {
+            var at = Snap(new Vector2(30 + placed.Next((int)FieldSize.X - 60), 180 + placed.Next((int)FieldSize.Y - 200)));
+            if (details.Any(d => d.Item2.DistanceTo(at) < 70))
+                continue;
+            details.Add((slabs[placed.Next(slabs.Length)], at));
+            i++;
+        }
         if (images.Length == 0)
             return details;
         var random = new Random(seed * 7 + 3);
@@ -688,11 +701,24 @@ public partial class BattleFieldView : Control
         new Color[] { new(0.89f, 0.91f, 0.95f), new(0.86f, 0.89f, 0.94f) },
         new Color(0.80f, 0.85f, 0.92f), new Color(0.93f, 0.95f, 0.98f), new Color(0.05f, 0.08f, 0.18f));
 
+    /// <summary>
+    /// La roche, le sol des Nains (2026-11-19) : un ciel clair de montagne, de hauts sommets gris bleuté au loin, des collines
+    /// de roche gris brun devant, un pré de la couleur du sol rocheux, une brume grise. Une terre désolée (2026-11-20) : un
+    /// ciel plus pâle et voilé, un pré plus gris.
+    /// </summary>
+    private static readonly ScenePalette RockPalette = new(
+        new Color[] { new(0.55f, 0.65f, 0.76f), new(0.64f, 0.72f, 0.80f), new(0.73f, 0.78f, 0.83f), new(0.82f, 0.84f, 0.85f) },
+        new Color[] { new(0.62f, 0.65f, 0.70f), new(0.54f, 0.57f, 0.62f), new(0.46f, 0.49f, 0.54f) },
+        new Color[] { new(0.55f, 0.52f, 0.47f), new(0.48f, 0.45f, 0.41f), new(0.41f, 0.39f, 0.36f) },
+        new Color[] { new(0.49f, 0.46f, 0.41f), new(0.46f, 0.43f, 0.39f) },
+        new Color(0.62f, 0.62f, 0.62f), new Color(0.82f, 0.83f, 0.84f), new Color(0.08f, 0.06f, 0.04f));
+
     private static ScenePalette PaletteOf(TerrainType terrain) => terrain switch
     {
         TerrainType.Sand => SandPalette,
         TerrainType.Swamp => SwampPalette,
         TerrainType.Snow => SnowPalette,
+        TerrainType.Rock => RockPalette,
         _ => GrassPalette,
     };
 

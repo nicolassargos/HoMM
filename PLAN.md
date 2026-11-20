@@ -147,8 +147,13 @@ roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et dr
 dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19).
 **Reste** :
 - **À revoir ensemble** : un problème du moulin (à en parler).
-- **Les sols** : d'autres sols viendront, et peut-être des thèmes de cartes (la répartition se réglera alors) ; le sol
-  des factions encore sur l'herbe, à décider ; un champ de bataille pour la roche et la terre brûlée
+- **Les sols** : **six sols suffisent** (herbe, sable, marais, roche, neige, terre brûlée ; choix de l'utilisateur,
+  2026-11-20) : pas un par faction, des factions les partagent ; plus tard, des **variantes** d'un même sol pour les
+  factions qui le partagent (teinte, arbres, détails ; le même champ de bataille, une autre palette). Une faction peut
+  aussi avoir **plus d'un sol** : les Nains la roche ou la neige, la Tour la neige ou le sable, l'Enfer la terre brûlée
+  ou le sable, les morts-vivants le marais ou la roche (à faire). Peut-être plus tard un sol souterrain pour le Donjon,
+  s'il y a un souterrain. Des thèmes de cartes (la répartition se réglera alors) ; le sol
+  des factions encore sur l'herbe, à décider ; un champ de bataille pour la terre brûlée
   (celui du désert en attendant) ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
@@ -183,7 +188,7 @@ la zone ; les créatures du Donjon en gardiens.
 ✅ Fait : combat à ×2, effets dessinés par le jeu, animations des sorts, les options du combat, choisir le côté de
 l'attaque, les champs de l'herbe, du désert et du marais (2026-11-16), les obstacles plutôt au milieu du champ, des
 nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles (2026-11-17), le champ de la neige
-(2026-11-19).
+(2026-11-19), celui de la roche, une terre désolée (2026-11-20).
 ✅ Une **animation de mort** par créature (2026-11-17), revue avec l'utilisateur et **variée** (2026-11-19, branche
 `morts-variees` : en arrière, sur le côté, une mort propre au Démon, à la Liche, au Roi de cristal, au Golem…).
 **Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.

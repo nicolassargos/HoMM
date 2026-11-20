@@ -483,6 +483,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   que bleu) ni écorce prend la couleur de la neige du champ, à 65 % au pied puis 38, 30, 12 et 8 % (les retouches de
   l'utilisateur) ; l'ombre de contact au bas du tronc, bleue et légère. La neige bleutée a plus de bleu que de vert : ce
   qui la distingue des aiguilles vert-bleu.
+- Roche (2026-11-20) : la roche de la carte vue de près fait du cuir (petites dalles, fissures fortes) ou un pavage
+  (grandes dalles) ; les affleurements du shader non plus. Les roches plates générées (« flat rock slab ») sortent
+  rondes ou carrées, comme des objets posés : ne garder que les éboulis irréguliers, les fondre dans le sol (moins de
+  couleur, tirés vers la teinte du sol, bord à 55 puis 90 %). Ce qui marche : une terre sèche dessinée par le shader,
+  avec de grandes plaques en paliers, des ravins de gravier pâle à très basse fréquence (plus fins, ils faisaient des
+  courbes de niveau), des fissures sèches (`vein_at` de la terre brûlée) et des cailloux tirés vers la couleur du sol
+  (pâles, ils faisaient des points blancs). Les touffes dessinées par le shader faisaient des croix : prendre des
+  images de l'herbe et les sécher (gris-jaune `l × 1,07, l, l × 0,78`, sans bleu ni orange). Décaler le dessin du
+  sol d'un combat à l'autre (`rock_shift`), sinon les mêmes ravins reviennent.
 
 ## Effets du combat (dessinés par le jeu)
 - **Pas d'effet dans les animations des créatures** : projectiles, impacts, auras sont dessinés par `Game/BattleEffects.cs`,

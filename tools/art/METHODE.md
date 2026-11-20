@@ -392,6 +392,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     tombe est coupé en bas. Nommer chaque morceau et dire qu'il reste visible au sol (« the horned bull head drops in
     front, fully visible »). Encore difficile : le Moloch défait jusqu'aux jambes, le Golem vraiment pierre à pierre ;
     « crumble », « dissolve » restent peu sûrs.
+  - **Une partie qui disparaît ou devient une masse** (la tête du Moloch, 2026-11-20) : la découper dans une image où
+    elle est nette et la poser par le code, image par image, sur le chemin que PixelLab lui donnait (elle recouvre la
+    masse). Une créature découpée en morceaux qui tombent par le code « éclate » au lieu de « se démonter » : refusé.
+    **Prix** : le second modèle coûte environ 0,65 $ l'essai pour une grande créature (le Moloch) ; vérifier avant.
   - **Une mort presque bonne se finit à la main**, sans nouvel essai : une fin recolorée (le Démon : un corps calciné
     écrasé vers le sol, puis le tas recoloré en cendre grise) ; une robe restée debout écrasée vers le sol image après
     image ; ou **une suite animée depuis la dernière grande image** (`--depart=<dossier de l'essai>/9.png`, même

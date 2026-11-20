@@ -22,8 +22,8 @@ public static class Market
     /// <summary>La part de la valeur, en dixièmes (2 = 20 %), selon le nombre de marchés ; 0 sans marché.</summary>
     public static int RateTenths(int markets) => markets <= 0 ? 0 : Math.Min(6, 1 + markets);
 
-    /// <summary>Le nombre de marchés du joueur (un par ville qui en a un).</summary>
-    public static int Count(Player player) => player.Towns.Count(t => t.BuiltBuildings.Any(b => b.Market));
+    /// <summary>Le nombre de marchés du joueur : un par ville qui en a un, et ceux que compte le Grand Comptoir des Nains.</summary>
+    public static int Count(Player player) => player.Towns.Sum(t => t.MarketCount);
 
     /// <summary>Ce que rapporte une unité vendue, en or (l'or lui-même : 1).</summary>
     private static decimal SellValue(ResourceType resource, int tenths) =>

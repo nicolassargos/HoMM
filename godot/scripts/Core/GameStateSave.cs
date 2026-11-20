@@ -148,7 +148,8 @@ public sealed partial class GameState
         Town town => new ObjectData("town", obj.Id, obj.Position, Owner: town.Owner?.Id,
             Name: town.Name, Faction: town.Faction, Buildings: town.Built.ToList(), BuiltToday: town.BuiltToday,
             Available: town.Available.ToDictionary(a => a.Key.Id, a => a.Value), Garrison: Stacks(town.Garrison),
-            GuildSpells: town.GuildSpells.Count > 0 ? town.GuildSpells.Select(s => s.Id).ToList() : null, Small: town.Large ? null : true),
+            GuildSpells: town.GuildSpells.Count > 0 ? town.GuildSpells.Select(s => s.Id).ToList() : null, Small: town.Large ? null : true,
+            Stocked: town.ManaVortexReady ? null : false), // le Tourbillon de mana a servi cette semaine
         _ => throw new InvalidOperationException($"Objet de carte non prévu dans la sauvegarde : {obj.GetType().Name}"),
     };
 
@@ -406,6 +407,7 @@ public sealed partial class GameState
         {
             Owner = o.Owner is { } id ? owner(id) : null,
             BuiltToday = o.BuiltToday,
+            ManaVortexReady = o.Stocked ?? true,
             // avant la version 4, une ville occupait 3 × 3 cases : les cases voisines peuvent être prises
             Large = large,
         };

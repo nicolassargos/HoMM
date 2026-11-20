@@ -1485,6 +1485,36 @@ départ, talent **Nécromancie** : après une victoire, 10 % des ennemis tués +
 sans dépasser son charisme). À choisir avec la ville : les noms des habitations (proposés : Ossuaire, Cimetière, Étang
 des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
 
+#### Les bâtiments communs des villes (2026-11-20, branche `villes-batiments-communs`)
+Premier pas de « Les bâtiments des villes » (`PLAN.md`), aux prix de Heroes 3 (`data/buildings.json`) : **fort** (5000
+or, 20 minerai ; murs 1), **citadelle** (2500 or, 5 minerai ; murs 2, +50 % de croissance), **château fort** (5000 or,
+10 bois, 10 minerai ; murs 3, +100 %), **capitole** (10000 or, après le grand hôtel de ville et le château fort ; 2400
+or par jour, un seul par joueur : celui d'une ville prise par un joueur qui en a déjà un redevient un grand hôtel de
+ville), **silo** (5000 or, 5 minerai, après le marché ; +1 par jour de la ressource principale de la faction, celle de
+sa classe). Champs de `BuildingType` : `Walls` (le niveau des murs, pour les sièges, plus tard), `GrowthPercent`,
+`Silo`, `Capitol` ; `Town.WeeklyGrowth` (la croissance montrée dans les habitations compte la citadelle).
+**L'IA** les bâtit en dernier, et seulement quand la ville n'a plus rien à recruter. Mesuré (`Adversaires_par_faction`,
+armée à six semaines) : bâtis avant le niveau 6, puis après le niveau 7, ils affaiblissaient toutes les factions de 10
+à 30 % : **l'or manque plus que les créatures**, et les créatures en plus de la citadelle ne payaient pas son prix à
+six semaines. Avec la règle retenue : Château 42 100 (42 200 avant), morts-vivants 41 800 (43 400), Barbares 61 700
+(65 400), Forêt 62 600 (70 100), Tour 45 700 (45 700), Donjon 58 100 (60 500), Enfer 50 500 (50 500), Nains 58 000
+(60 000). Leçon pour les bâtiments spéciaux et de croissance : ce qui donne de l'or vaut plus, ce qui donne des
+créatures vaut moins que dans Heroes 3.
+
+#### Les premiers bâtiments spéciaux (2026-11-20, branche `batiments-speciaux-1`)
+Les trois plus simples de « Les bâtiments des villes » (`PLAN.md`) ; prix proposés, à revoir : **Le Grand Comptoir** des
+Nains (3000 or, 5 minerai, après le marché ; `ExtraMarkets` 2 : `Market.Count` compte `Town.MarketCount`), les
+**Sentiers des rôdeurs** de la Forêt (2000 or, 10 bois ; `DayMovementBonus` 400 : un héros du joueur qui commence sa
+journée dans la ville), le **Tourbillon de mana** du Donjon (3000 or, 5 mercure, après la guilde ; `ManaVortex` : le
+premier héros du joueur qui vient dans la semaine a deux fois ses points de sort, `Town.ManaVortexReady` sauvegardé,
+événement `ManaVortexUsed`). L'IA les bâtit après le niveau 6.
+**Mesures** (`Adversaires_par_faction`, armée à six semaines) : la base a changé avec les zones plus grandes (PR #213,
+fusionnée le même jour) : Château 59 400, morts-vivants 64 100, Barbares 77 300, Forêt 84 600, Tour 70 900, Donjon
+68 800, Enfer 72 700, Nains 66 500. Avec les trois bâtiments : Château 56 300, morts-vivants 62 100, Barbares 71 800,
+Forêt 83 700, Tour 68 500, Donjon 68 500, Enfer 74 600, Nains 65 100 : peu de chose à six semaines (ils coûtent un peu,
+et servent surtout plus tard) ; les autres factions bougent aussi, parce que l'IA bâtit ces bâtiments dans les villes
+neutres qu'elle prend (sans eux dans son ordre, le Château retrouve 59 400).
+
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
   à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),
@@ -2970,6 +3000,14 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
   de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
   worktree (non suivi par git).
+  ✅ **La mort du Moloch qui se défait** (2026-11-20, branche `moloch-jambes`) : l'utilisateur veut voir la statue se
+  démonter (jambes, torse, bras, tête), pas tomber d'un bloc. Essais écartés : quatre suites depuis l'image à genoux
+  (PixelLab v3 et second modèle : il se relève, ou ne se défait pas ; 1,38 $, le second modèle coûtant environ 0,65 $
+  l'essai pour une créature de cette taille, dépensés sans accord) ; une chute en neuf morceaux faite par le code
+  (« shattered, not dismantled » : on dirait qu'elle éclate). Gardé : « Nouveau 2 » du 2026-11-19 (death-6, les bras
+  tombent, le corps se démonte en tas), dont la tête devenait une masse informe : la vraie tête, découpée dans l'image
+  2, posée par le code sur le même chemin (elle glisse du cou, tombe devant, rebondit, reste sur le tas), les
+  étincelles retirées. Les jambes s'affaissent dans le tas sans se défaire : « good enough ».
   ✅ **Le coup reçu du Dragon et de l'Hydre, fini** (2026-11-20, branche `coups-dragon-hydre`) : ceux du 2026-11-17
   bougeaient à peine (« encore à finir », selon l'utilisateur, qui voulait un Dragon qui recule). Le modèle v3, 8 images
   avec retour, une consigne qui fait **se cabrer en arrière** : « rears back to the left: it throws its head and long

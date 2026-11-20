@@ -672,7 +672,27 @@
   "lengths": {
     "cavalier-attack": 1.4
   },
-  "ambience": {},
+  "ambience": {
+    "grass": [
+      "ambiance/ambiance-grass.ogg"
+    ],
+    "sand": [
+      "ambiance/ambiance-sand.ogg",
+      "ambiance/ambiance-sand-2.ogg"
+    ],
+    "swamp": [
+      "ambiance/ambiance-swamp.ogg"
+    ],
+    "rock": [
+      "ambiance/ambiance-rock.ogg"
+    ],
+    "burnt": [
+      "ambiance/ambiance-burnt.ogg"
+    ],
+    "water": [
+      "ambiance/ambiance-water.ogg"
+    ]
+  },
   "gaits": {
     "_": "Les pas au combat (Audio.PlayStep) : pas par case traversée (une case = un cycle de l animation de marche) et les créatures de chaque façon de marcher ; les autres marchent à pied (feet). Les volants, les sauteurs et les fouisseurs n ont pas de pas.",
     "feet": {

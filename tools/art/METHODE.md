@@ -652,6 +652,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   temple…) centre la capture sur un lieu.
   Un lieu au contour trop dur (« crunchy », le moulin, 2026-11-18) : `adoucir.py entree sortie 0.7 60 2` (plus doux : `0.85 90 2`, la tour ; le 4e nombre, `0.4`, adoucit aussi les traits de l'intérieur), puis recadrer et
   corriger ses pieds dans `godot/art/pieds.json`.
+- **Objets de la mer (2026-11-20)** : la même recette que les lieux (« pro » à 64, mine d'or comme style), avec pour ce
+  qui flotte « it floats on the sea: draw only the object, its bottom cut flat at the waterline, the water itself is not
+  drawn » : propre du premier coup, sans eau autour. Le tourbillon : « seen from above at an angle… its edges fading out
+  to transparent » donne un disque net, qui passe bien sur l'eau. Les petits objets réduits à 32 px, le navire, le phare
+  et le chantier gardés à 64. La page de choix où l'on clique (choix, « à refaire », commentaire, enregistrés par
+  `revue.py serveur`) plaît à l'utilisateur : en faire une pour chaque lot.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 

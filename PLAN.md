@@ -131,6 +131,37 @@ pieds, divers), un **coffre de 16 places**. **Une image de 32 × 32 par artefact
 images) ; les onglets en marque-pages (à l'essai) ; la taille de l'écran, à régler avec la maquette
 `art-candidats/en-cours/maquettes/heros.html`.
 
+### Les bâtiments des villes (à faire, avant les villes en images)
+Décidé avec l'utilisateur (2026-11-20) : la liste complète d'abord, puis les scènes des villes. Aujourd'hui, 17
+bâtiments par ville (10 communs, 7 habitations, `data/buildings.json`) ; demain **environ 32**, comme Heroes 3 (une
+amélioration garde la place de son bâtiment, avec sa propre image : 18 places, dans les 25 prévues par scène).
+- **Communs (9 places)** : salle du village → hôtel de ville → grand hôtel de ville → **capitole** (un par joueur,
+  2400 or par jour) ; **fort → citadelle → château** (les murs des sièges ; +50 % puis +100 % de croissance) ; guilde
+  des mages 1 à 4 ; taverne ; marché ; **silo** (+1 par jour de la ressource principale de la faction) ; **forge**
+  (machines de guerre : baliste, tente de soins, chariot de munitions ; **à décider** : maintenant, ou seulement sa
+  place dans la scène) ; chantier naval ; **bâtiment du Graal** (bâti avec le trésor enfoui des obélisques, un grand
+  bonus propre à la faction).
+- **Par faction (9 places)** : les 7 habitations, chacune avec son **amélioration** (d'où viennent les créatures
+  améliorées) ; un **bâtiment de croissance** d'un petit niveau (les « hordes » de Heroes 3) ; un **bâtiment spécial**.
+- **Les bâtiments spéciaux** (choix de l'utilisateur, 2026-11-20, après trois tours d'idées : des effets qui changent la
+  façon de jouer ; forts pour les factions faibles des `Mesures`, utiles mais doux pour les fortes ; à régler en
+  refaisant les `Mesures`) :
+
+| Faction | Bâtiment | Effet |
+|---|---|---|
+| Morts-vivants | **Cortège funèbre** | après chaque combat gagné par un héros du joueur, où qu'il soit, les morts des deux camps reviennent à la ville : des Squelettes à recruter la semaine suivante |
+| Barbares | **La Marmite** | on y jette de petites créatures, il en sort de plus fortes (4 Gobelins → 1 Orc, 3 Loups → 1 Ogre…) |
+| Tour de magie | **La Tour qui pousse** | un étage de plus par semaine (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
+| Château | **Les Hérauts** | plus un héros a gagné de combats, plus les monstres neutres proposent de le rejoindre ; héros de taverne moins chers |
+| Nains | **Le Grand Comptoir** | compte pour 2 marchés de plus (meilleurs taux d'échange) |
+| Donjon | **Tourbillon de mana** | une fois par semaine, les points de sort d'un héros qui le visite sont doublés |
+| Forêt | **Sentiers des rôdeurs** | les héros qui quittent la ville ont plus de mouvement ce jour-là |
+| Enfer | **Portail infernal** | aller d'une ville de l'Enfer du joueur à une autre |
+
+- **Règles à faire (session règles)** : les sièges et les murs, les machines de guerre, les créatures améliorées, le
+  bonus du Graal de chaque faction, les bâtiments spéciaux et de croissance ; leurs noms (français) ; puis les `Mesures`.
+  Les images des villes peuvent commencer dès que la liste est fixée.
+
 ### L'économie ✅
 7 ressources (or, bois, minerai ; mercure, cristal, soufre, gemmes) ; le marché ; mines sur 3 × 2 cases et villes sur
 5 × 4 cases (`HISTORIQUE.md`). **Reste** : les taux du marché, à revoir en jouant (l'utilisateur n'en est pas sûr).
@@ -146,7 +177,6 @@ rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruissea
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
 dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19).
 **Reste** :
-- **À revoir ensemble** : un problème du moulin (à en parler).
 - **Les sols** : **six sols suffisent** (herbe, sable, marais, roche, neige, terre brûlée ; choix de l'utilisateur,
   2026-11-20) : pas un par faction, des factions les partagent ; plus tard, des **variantes** d'un même sol pour les
   factions qui le partagent (teinte, arbres, détails ; le même champ de bataille, une autre palette). Une faction peut
@@ -166,7 +196,8 @@ dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent da
 ### La mer
 ✅ Fait (2026-11-14 et 15) : bateaux, chantiers navals, embarquer et débarquer, les types de cartes (continent, mers,
 îles, archipel), les objets de la mer, la Navigation, les navires abandonnés, les pirates, les gardiens de la mer.
-**Reste** : les images (session images) ; un pont de navire comme champ des combats en mer ; peut-être une faction
+✅ Les images des objets de la mer, du phare, du chantier de la côte et du navire abandonné (2026-11-20, branche
+`images-mer`). **Reste** : les images du bateau (8 directions, la voile aux couleurs du joueur) et du Pirate ; un pont de navire comme champ des combats en mer ; peut-être une faction
 « pirates et monstres de la mer ».
 
 ### Les habitations sur la carte (à concevoir)
@@ -214,6 +245,7 @@ l'écran de recrutement, à revoir pour gagner de la place ; la poignée des bar
 pierre ; vérifier les pieds des mines de mercure, minerai et soufre, et la force de l'ombre de contact en jeu.
 
 ### La ville vue de face par faction (rien n'est encore fait)
+La liste de ses bâtiments : « Les bâtiments des villes », plus haut.
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de 640 × 195
 affiché ×3, et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque
 amélioration a sa propre image au même pied. Bâtiments dessinés de l'arrière vers l'avant ; clic et survol sur les
@@ -259,8 +291,12 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   brûlé ; ✅ les **pas au combat** (2026-11-19, branche `sons-pas`, ElevenLabs, `tools/audio/pas.py` : une courte
   marche coupée en pas seuls, revue en « marchant » sur la page) : cinq façons de marcher (à pied, lourd, sabots,
   pattes, rampant ; le Limon de magma à part) sur six sols, au rythme de l'animation de marche ; rien pour les volants,
-  le Cerf qui saute et les fouisseurs (les ailes plus tard ?). **Reste** : les autres sorts, la carte, l'interface,
-  les **ambiances** du combat et de la carte, de courts airs, puis la musique chez Stable Audio.
+  le Cerf qui saute et les fouisseurs (les ailes plus tard ?) ; ✅ les **ambiances** (2026-11-20, branche
+  `sons-ambiances`, bibliothèques libres CC0, `musiques.py ambiances`) : une boucle par sol sous la musique, sur la
+  carte (le sol autour du héros) comme au combat, en fondu ; rien en ville ni au menu ; herbe Evening Birds, désert
+  Wind puis des cigales, marais Swamp Environment, roche Whistling of the Wind, terre brûlée un grand feu, mer la
+  plage de Dellec ; **pas encore la neige** (aucune ne plaisait) ; « Lava loop » gardé pour de futurs lacs de lave.
+  **Reste** : les autres sorts, la carte, l'interface, de courts airs, puis la musique chez Stable Audio.
 
 ## Étape 11 : multijoueur (à concevoir)
 Idée de l'utilisateur (2026-11-17). Les règles s'y prêtent déjà : plusieurs joueurs dans `GameState`, un brouillard

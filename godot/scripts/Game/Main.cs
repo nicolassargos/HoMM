@@ -328,6 +328,7 @@ public partial class Main : Node2D
             Whirlpool => "whirlpool",
             Lighthouse => "lighthouse",
             AbandonedShip => "abandoned-ship",
+            Shipyard => "shipyard",
             MonsterGuard { Type.Sea: true } => "pirates",
             _ => null,
         };
@@ -758,6 +759,7 @@ public partial class Main : Node2D
     {
         _inMenu = true;
         Audio.PlayMusic("menu");
+        Audio.PlayAmbience(null);
         var menu = new MainMenu();
         AddChild(menu);
         menu.Build(GetViewportRect().Size);
@@ -823,9 +825,10 @@ public partial class Main : Node2D
     /// </summary>
     private void UpdateMapMusic()
     {
-        Audio.MapMusic = _state.CurrentHero is { } hero
-            ? "map-" + _state.Map.MusicTerrain(hero.Position).ToString().ToLowerInvariant()
-            : "map";
+        var terrain = _state.CurrentHero is { } hero ? _state.Map.MusicTerrain(hero.Position) : (TerrainType?)null;
+        Audio.MapMusic = terrain is { } t ? "map-" + t.ToString().ToLowerInvariant() : "map";
+        // l'ambiance suit le même sol (la mer en bateau)
+        Audio.MapAmbience = terrain is { } ground ? Audio.AmbienceOf(ground) : null;
         if (!_townScreen.IsOpen && !_battleScreen.IsOpen && !_inMenu)
             Audio.PlayMapMusic();
     }

@@ -1898,6 +1898,16 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   (trois quarts, le même cheval que les autres vues) pour l'instant, comme le chef barbare. Marches : sud 1, sud-est 1,
   est 2, nord-est 2, nord 1 ; posées au sol commun (rangée 45) avec le rebond. L'image fixe est le sud-est. Pieds mesurés
   à la main, pas encore revus. Vu en jeu avec `--hero-walk`.
+  ✅ **Son sud-est refait** (2026-11-20, branche `heros-sud-est`, PixelLab, environ 1 $) : lots « Pro » de 25 à 48 px.
+  Avec l'est du héros en modèle, le cheval reste de côté ; sans lui (style : le sud-est du rôdeur ; modèles : le sud du
+  héros et deux bons sud-est, Nains et Enfer), l'angle est juste mais le cheval devient un poney (l'utilisateur) ;
+  avec en plus l'ancien sud-est du héros en modèle et « a big tall heavy war horse… much bigger than the rider », le
+  grand cheval revient, un peu moins tourné vers nous (choisi le 1 de ce lot). Agrandi au plus proche voisin de 41 à
+  45 pixels, pieds à la rangée 45. **Le casque** sortait gris : éclairci par le code, trop blanc ; puis chaque pixel
+  du casque prend la teinte de même rang de luminosité dans le casque de l'ancien sud-est (gardé). Marche refaite
+  (`animer --enrichir`, deux essais, choisi le 2 sur une page où elles se jouent) ; l'image fixe `hero-donjon.png`
+  suit le sud-est ; pieds mesurés, pas encore revus. **Le chef barbare** : 50 essais au bon angle, mais ni lisibles ni
+  du même cheval (l'utilisateur) : il garde l'ancien sud-est.
 - ✅ Le héros des Nains sur la carte (2026-11-15, branche `heros-carte-nains`, PixelLab, environ 0,75 $) : les idées
   dessinées de côté d'emblée : a, un thane nain en armure d'acier et d'or, heaume ailé, longue barbe tressée, marteau aux
   runes bleues, sur un grand bélier des montagnes aux cornes enroulées (comme les chevaucheurs de chèvre) ; b, le même sur

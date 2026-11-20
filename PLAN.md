@@ -135,6 +135,9 @@ images) ; les onglets en marque-pages (à l'essai) ; la taille de l'écran, à r
 Décidé avec l'utilisateur (2026-11-20) : la liste complète d'abord, puis les scènes des villes. Aujourd'hui, 17
 bâtiments par ville (10 communs, 7 habitations, `data/buildings.json`) ; demain **environ 32**, comme Heroes 3 (une
 amélioration garde la place de son bâtiment, avec sa propre image : 18 places, dans les 25 prévues par scène).
+- ✅ **Le fort, la citadelle, le château fort, le capitole et le silo** (2026-11-20, branche `villes-batiments-communs` ;
+  l'IA les bâtit quand sa ville n'a plus rien à recruter : l'or manque plus que les créatures ; détail dans
+  `HISTORIQUE.md`).
 - **Communs (9 places)** : salle du village → hôtel de ville → grand hôtel de ville → **capitole** (un par joueur,
   2400 or par jour) ; **fort → citadelle → château** (les murs des sièges ; +50 % puis +100 % de croissance) ; guilde
   des mages 1 à 4 ; taverne ; marché ; **silo** (+1 par jour de la ressource principale de la faction) ; **forge**

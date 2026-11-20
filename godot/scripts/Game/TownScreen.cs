@@ -619,7 +619,7 @@ public partial class TownScreen : CanvasLayer
             return card;
         }
         int available = town.Available.GetValueOrDefault(creature);
-        Centered(Texts.AvailableLine(creature, available), 12, TextColor);
+        Centered(Texts.AvailableLine(available, town.WeeklyGrowth(creature)), 12, TextColor);
         Centered(Texts.PriceLine(creature), 12, TextColor);
         Gap();
         Centered(Texts.CreatureStats(creature), 11, SoftTextColor);

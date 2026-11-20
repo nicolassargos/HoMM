@@ -116,6 +116,20 @@ public sealed record BuildingType
     public bool Shipyard { get; init; }
 
     /// <summary>
+    /// Les murs de la ville (fort 1, citadelle 2, château 3), pour les sièges, plus tard. Seul le plus élevé compte.
+    /// </summary>
+    public int Walls { get; init; }
+
+    /// <summary>Les créatures en plus chaque semaine dans toutes les habitations, en pour cent (citadelle 50, château 100).</summary>
+    public int GrowthPercent { get; init; }
+
+    /// <summary>Le silo : chaque jour, 1 de la ressource principale de la faction (<see cref="HeroClass.MainResource"/>).</summary>
+    public bool Silo { get; init; }
+
+    /// <summary>Le capitole : un seul par joueur.</summary>
+    public bool Capitol { get; init; }
+
+    /// <summary>
     /// Le bâtiment que celui-ci remplace (l'hôtel de ville remplace la salle du village) : à l'écran, seul le plus récent
     /// est dessiné, à la même place.
     /// </summary>

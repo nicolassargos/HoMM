@@ -259,6 +259,8 @@ bandeau de la date.
 ### L'interface
 ✅ Fait : les tailles communes (`Ui.cs`) et la police Pixel Operator, des icônes sur les boutons du combat et du
 panneau de la carte, les écrans revus pour la nouvelle police.
+✅ Dans la ville, « Tout donner au héros » et « Tout laisser en garnison » en boutons à icône (2026-11-20, branche
+`ville-boutons-garnison` ; l'interface de la ville avancera par petits pas, choix de l'utilisateur).
 **Reste** : des icônes sur les autres écrans, au fil des besoins ; des icônes pour les récompenses (coffre, niveau) ;
 l'écran de recrutement, à revoir pour gagner de la place ; la poignée des barres de défilement comme taillée dans la
 pierre. ✅ Les pieds des mines de mercure, de minerai (ses six sols) et de soufre, et la force de leur ombre de

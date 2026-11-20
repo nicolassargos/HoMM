@@ -794,6 +794,9 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   commencer 62 ; fuir refait (« de profil, vers la gauche, tête basse de honte » : n° 4 ; le premier lot, vu de dos,
   ressemblait à des cosmonautes). Le jeu les **incruste** dans la pierre du bouton (`BattleScreen.Engrave` : un creux
   autour de l'argent, l'ombre en haut à gauche, la lumière en bas à droite, contrastes doux).
+  La même recette pour la ville (2026-11-20) : « a thick bold arrow pointing straight down onto a knight's helmet » et
+  « … up into a small castle tower » (le héros est sous la garnison), un lot de 64 chacune, choisies au premier tour
+  (`donner-heros` 56, `laisser-garnison` 9).
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

@@ -424,7 +424,10 @@ public sealed partial class GameState
         Day++;
         foreach (var hero in AllHeroes)
         {
-            hero.NewDay(DayMovement(hero, hero.AtSea(Map)));
+            // une journée commencée dans une ville du joueur qui a les Sentiers des rôdeurs : du mouvement en plus
+            int trails = Map.ObjectAt(hero.Position) is Town home && home.Position == hero.Position && home.Owner == hero.Owner
+                ? home.DayMovementBonus : 0;
+            hero.NewDay(DayMovement(hero, hero.AtSea(Map)) + trails);
             // une journée commencée dans une ville qui a une guilde des mages : tous les points de sort
             if (Map.ObjectAt(hero.Position) is Town { MageGuildLevel: > 0 } town && town.Position == hero.Position && town.Owner == hero.Owner)
                 hero.SpellPoints = Math.Max(hero.SpellPoints, hero.MaxSpellPoints);
@@ -1247,6 +1250,8 @@ public sealed partial class GameState
             if (VisitingHero(town) is { } hero && hero.Owner == town.Owner)
                 VisitGuild(hero, town);
         }
+        else if (building.ManaVortex && VisitingHero(town) is { } visitor && visitor.Owner == town.Owner)
+            VisitGuild(visitor, town);
         return BuildResult.Ok;
     }
 
@@ -1283,11 +1288,19 @@ public sealed partial class GameState
 
     /// <summary>
     /// Un héros dans une ville de son joueur qui a une guilde des mages : il apprend les sorts qu'il ne connaît pas encore
-    /// et retrouve tous ses points de sort.
+    /// et retrouve tous ses points de sort. Le Tourbillon de mana du Donjon, s'il n'a pas servi cette semaine, les double.
     /// </summary>
     private void VisitGuild(Hero hero, Town town)
     {
-        if (town.Owner != hero.Owner || town.MageGuildLevel == 0)
+        if (town.Owner != hero.Owner)
+            return;
+        if (town.CanUseManaVortex && hero.SpellPoints < 2 * hero.MaxSpellPoints)
+        {
+            town.ManaVortexReady = false;
+            hero.SpellPoints = 2 * hero.MaxSpellPoints;
+            Emit(new ManaVortexUsed(hero, town));
+        }
+        if (town.MageGuildLevel == 0)
             return;
         hero.SpellPoints = Math.Max(hero.SpellPoints, hero.MaxSpellPoints);
         var learned = new List<SpellType>();

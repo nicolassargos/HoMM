@@ -156,9 +156,9 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
 | Barbares | **La Marmite** | on y jette de petites créatures, il en sort de plus fortes (4 Gobelins → 1 Orc, 3 Loups → 1 Ogre…) |
 | Tour de magie | **La Tour qui pousse** | un étage de plus par semaine, **5 au plus** (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
 | Château | **Les Hérauts** | plus un héros a gagné de combats, plus les monstres neutres proposent de le rejoindre ; héros de taverne moins chers |
-| Nains | **Le Grand Comptoir** | compte pour 2 marchés de plus (meilleurs taux d'échange) |
-| Donjon | **Tourbillon de mana** | une fois par semaine, les points de sort d'un héros qui le visite sont doublés |
-| Forêt | **Sentiers des rôdeurs** | les héros qui quittent la ville ont plus de mouvement ce jour-là |
+| Nains | **Le Grand Comptoir** ✅ | compte pour 2 marchés de plus (meilleurs taux d'échange) |
+| Donjon | **Tourbillon de mana** ✅ | une fois par semaine, les points de sort d'un héros qui le visite sont doublés |
+| Forêt | **Sentiers des rôdeurs** ✅ | les héros qui quittent la ville ont plus de mouvement ce jour-là (+400, un peu plus d'un quart) |
 | Enfer | **Portail infernal** | aller d'une ville de l'Enfer du joueur à une autre |
 
 - **Les murs et les sièges** (avec l'utilisateur, 2026-11-20) :
@@ -356,9 +356,9 @@ par joueur, un humain peut diriger sa défense, et une partie se rejoue pareil a
 - **Difficulté** (`ComputerProfile`) : pertes acceptées 20 / 30 / 40 %, attaque le joueur dès le jour 21 / 0 / 0,
   héros au plus 2 / 3 / 4, revenu d'or 75 / 100 / 125 %.
 - **Équilibre mesuré** (`Mesures`, 2026-11-11, six cartes) : la simulation seule gagne les petites cartes vers le jour
-  68, les normales vers le jour 86, les grandes vers le jour 147 ; un adversaire après six semaines (Normal, or
-  d'armée) : Château 57 100, morts-vivants 47 700, Barbares 54 700, Forêt 61 700, Tour 56 200, Donjon 60 000, Enfer
-  65 200.
+  68, les normales vers le jour 86, les grandes vers le jour 147. Un adversaire après six semaines (Normal, or
+  d'armée ; `Adversaires_par_faction`, 2026-11-20, après les zones plus grandes) : Château 59 400, morts-vivants
+  64 100, Barbares 77 300, Forêt 84 600, Tour 70 900, Donjon 68 800, Enfer 72 700, Nains 66 500.
 
 ## Choix à respecter
 - **Tout le pixel art à ×2** (un pixel d'image = 2 × 2 pixels d'écran ; choix de l'utilisateur, 2026-11-10) : la taille à

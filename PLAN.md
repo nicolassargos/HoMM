@@ -188,7 +188,7 @@ une option, une ville au plus par zone, une scierie et une mine de minerai gard�
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
-dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19).
+dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19) ; des zones 2,5 fois plus grandes, comme les régions de Heroes 3 (2026-11-20).
 **Reste** :
 - **Les sols** : **six sols suffisent** (herbe, sable, marais, roche, neige, terre brûlée ; choix de l'utilisateur,
   2026-11-20) : pas un par faction, des factions les partagent ; plus tard, des **variantes** d'un même sol pour les
@@ -210,7 +210,7 @@ dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent da
 ✅ Fait (2026-11-14 et 15) : bateaux, chantiers navals, embarquer et débarquer, les types de cartes (continent, mers,
 îles, archipel), les objets de la mer, la Navigation, les navires abandonnés, les pirates, les gardiens de la mer.
 ✅ Les images des objets de la mer, du phare, du chantier de la côte et du navire abandonné (2026-11-20, branche
-`images-mer`). **Reste** : les images du bateau (8 directions, la voile aux couleurs du joueur) et du Pirate ; un pont de navire comme champ des combats en mer ; peut-être une faction
+`images-mer`). ✅ Le bateau des héros, le navire des pirates et le Pirate (2026-11-20, branche `bateau-pirate`). **Reste** : un pont de navire comme champ des combats en mer ; peut-être une faction
 « pirates et monstres de la mer ».
 
 ### Les habitations sur la carte (à concevoir)

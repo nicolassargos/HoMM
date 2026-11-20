@@ -144,6 +144,88 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Les zones telles que le joueur les voit (2026-11-20, à comparer avec Heroes 3 : tools/cartes/zones_h3.py) : les
+    /// régions où l'on marche, séparées par ce qui bloque et par les monstres (leur case et ses 8 voisines comptent comme un
+    /// mur ; un objet aussi, comme dans Heroes 3 où on le visite d'à côté) ; les régions d'au moins 20 cases.
+    /// </summary>
+    [Mesure]
+    public void Zones_vues_du_joueur()
+    {
+        foreach (var size in new[] { MapSize.Small, MapSize.Normal, MapSize.Large, MapSize.Huge })
+        {
+            var townCounts = new List<int>();
+            var mineCounts = new List<int>();
+            var blocked = new List<int>();
+            var weighted = new List<int>();
+            var counts = new List<int>();
+            var all = new List<int>();
+            var big = new List<int>();
+            foreach (int seed in Seeds)
+            {
+                var map = new GameState(seed, TestData.Data, size).Map;
+                townCounts.Add(map.Objects.OfType<Town>().Count());
+                mineCounts.Add(map.Objects.OfType<Mine>().Count());
+                var land = Enumerable.Range(0, map.Height).SelectMany(y => Enumerable.Range(0, map.Width).Select(x => new Cell(x, y)))
+                    .Where(c => !map.IsWater(c)).ToList();
+                blocked.Add(100 * land.Count(c => map.GetTerrain(c) is TerrainType.Mountain or TerrainType.Forest) / land.Count);
+                var wall = new bool[map.Width, map.Height];
+                for (int y = 0; y < map.Height; y++)
+                for (int x = 0; x < map.Width; x++)
+                {
+                    var c = new Cell(x, y);
+                    wall[x, y] = !map.IsPassable(c) || map.ObjectAt(c) is { } o && o is not Town;
+                }
+                foreach (var guard in map.Objects.OfType<MonsterGuard>())
+                    for (int dx = -1; dx <= 1; dx++)
+                    for (int dy = -1; dy <= 1; dy++)
+                        if (map.InBounds(guard.Position.Offset(dx, dy)))
+                            wall[guard.Position.X + dx, guard.Position.Y + dy] = true;
+                var seen = new bool[map.Width, map.Height];
+                var sizes = new List<int>();
+                for (int y0 = 0; y0 < map.Height; y0++)
+                for (int x0 = 0; x0 < map.Width; x0++)
+                {
+                    if (wall[x0, y0] || seen[x0, y0])
+                        continue;
+                    seen[x0, y0] = true;
+                    var stack = new Stack<Cell>(new[] { new Cell(x0, y0) });
+                    int n = 0;
+                    while (stack.Count > 0)
+                    {
+                        var c = stack.Pop();
+                        n++;
+                        for (int dx = -1; dx <= 1; dx++)
+                        for (int dy = -1; dy <= 1; dy++)
+                        {
+                            var next = c.Offset(dx, dy);
+                            if (map.InBounds(next) && !wall[next.X, next.Y] && !seen[next.X, next.Y])
+                            {
+                                seen[next.X, next.Y] = true;
+                                stack.Push(next);
+                            }
+                        }
+                    }
+                    if (n >= 20)
+                        sizes.Add(n);
+                }
+                int free = sizes.Sum(), acc = 0;
+                foreach (var v in sizes.OrderBy(v => v))
+                    if ((acc += v) * 2 >= free)
+                    {
+                        weighted.Add(v);
+                        break;
+                    }
+                counts.Add(sizes.Count);
+                all.AddRange(sizes);
+                big.AddRange(sizes.Where(v => v >= 150));
+            }
+            string Q(List<int> v) => v.Count == 0 ? "-" : $"min {v.Min()} médiane {v.OrderBy(x => x).ElementAt(v.Count / 2)} max {v.Max()} (n={v.Count})";
+            output.WriteLine($"{size} : régions par carte {Q(counts)} ; taille {Q(all)} ; villes {Q(townCounts)} ; mines {Q(mineCounts)} ; montagne et forêt {Q(blocked)} % de la terre");
+            output.WriteLine($"  la région d'une case typique {Q(weighted)} ; zones d'au moins 150 cases {Q(big)}");
+        }
+    }
+
+    /// <summary>
     /// Les villes neutres de chaque sol, par faction (2026-11-20 : les seconds sols des factions, qui comptent moitié moins
     /// que le sol principal) : sur des cartes grandes, toutes les graines.
     /// </summary>

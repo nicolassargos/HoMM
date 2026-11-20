@@ -2714,6 +2714,50 @@
         "death": "is mortally wounded: the rider falls backward to the left, away from the direction it faces out of the saddle and lies on the ground, then the horse sways and collapses onto its side next to him, lying motionless on the ground at the end",
         "hit": "shies away to the left: the horse lifts its front hooves a little off the ground and leans back to the left, the rider ducking his head, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
+    },
+    "pirate": {
+      "nom": "Pirate",
+      "gabarit": "humain",
+      "description": "a wiry, sun-scorched old sea raider standing: a long crooked neck, a huge hooked nose, deep-set squinting eyes, a wide grin of gold and missing teeth, a scraggly white beard knotted with tiny shells, leathery cracked brown skin with patches of barnacles on the shoulders, a faded sea-green sash and ragged salt-bleached canvas trousers, bare feet, a coil of tarred rope over one shoulder, a rusty boarding hook in his left hand and a heavy notched cleaver in his right hand, no hat, no eyepatch, no parrot, no wooden leg, a grotesque caricature in the style of a fantasy board game miniature, exaggerated features, full of character",
+      "sujet": "a wiry old sea raider with a hooked nose, a shell-knotted white beard, a sea-green sash, a rope coil on his shoulder, a boarding hook in one hand and a cleaver in the other, facing right",
+      "hauteur": 72,
+      "comparer": [
+        "archer",
+        "chevalier"
+      ],
+      "mouvements": {
+        "idle": "the old sea raider stands with his knees bent as if on a rolling deck, sways gently, grins, taps the cleaver against his leg, the feet stay in place",
+        "move": "the old sea raider walks forward to the right with a rolling sailor's gait, bare feet slapping, the rope coil bouncing",
+        "attack": "the sea raider lunges forward, slashes with the cleaver then strikes again with the boarding hook, two quick blows, then returns to exactly his starting pose"
+      },
+      "style": "tools/art/modeles/moine.png",
+      "generation": [
+        104,
+        120
+      ],
+      "choix": {
+        "fixe": "L4-2",
+        "idle": "idle-1",
+        "move": "move-3",
+        "attack": "attack-2-r",
+        "hit": "hit-4-r",
+        "death": "death-3"
+      },
+      "notes": "Créature neutre de la mer (niveau 3, double attaque : deux coups, le hachoir puis le croc). Loin du cliché (ni tricorne, ni bandeau, ni perroquet, ni jambe de bois : choix de l'utilisateur pour toutes les créatures).",
+      "lots": {
+        "L1": "texte seul",
+        "L2": "texte seul",
+        "L3": "texte seul",
+        "L4": "texte seul"
+      },
+      "grande": "art-candidats/references/derives/pirate-grand.png",
+      "consignes": {
+        "idle": "the old sea raider stands with his knees bent as if on a rolling deck, sways gently, grins, taps the cleaver against his leg, the feet stay in place",
+        "move": "the old sea raider walks forward to the right with a rolling sailor's gait, bare feet slapping, the rope coil bouncing",
+        "attack": "the sea raider lunges forward, slashes with the cleaver then strikes again with the boarding hook, two quick blows, then returns to exactly his starting pose",
+        "hit": "takes a blow and recoils backward to the left: he flinches, his head and shoulders jerk back, he staggers half a step, then recovers to exactly his starting pose; stays on the same spot; no effects, no blood, no sparks, no other character",
+        "death": "is mortally wounded: he drops the cleaver, clutches his chest, sinks down to his knees and falls face down onto the ground, lying motionless at the end; no effects, no blood, no other character"
+      }
     }
   }
 }

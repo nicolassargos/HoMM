@@ -473,6 +473,9 @@ public partial class TownScreen : CanvasLayer
     /// </summary>
     private static bool ShownInBuild(Town town, BuildingType building)
     {
+        // le chantier naval n'existe que dans une ville au bord de l'eau (choix de l'utilisateur, 2026-11-20)
+        if (building.Shipyard && town.BoatSpot == null)
+            return false;
         bool hasNext = town.Buildings.Any(b => b.Replaces == building.Id);
         return town.Has(building.Id)
             ? !hasNext // construit : seulement s'il n'y a pas de niveau au-dessus

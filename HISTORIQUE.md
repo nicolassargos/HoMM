@@ -1912,6 +1912,16 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   (trois quarts, le même cheval que les autres vues) pour l'instant, comme le chef barbare. Marches : sud 1, sud-est 1,
   est 2, nord-est 2, nord 1 ; posées au sol commun (rangée 45) avec le rebond. L'image fixe est le sud-est. Pieds mesurés
   à la main, pas encore revus. Vu en jeu avec `--hero-walk`.
+  ✅ **Son sud-est refait** (2026-11-20, branche `heros-sud-est`, PixelLab, environ 1 $) : lots « Pro » de 25 à 48 px.
+  Avec l'est du héros en modèle, le cheval reste de côté ; sans lui (style : le sud-est du rôdeur ; modèles : le sud du
+  héros et deux bons sud-est, Nains et Enfer), l'angle est juste mais le cheval devient un poney (l'utilisateur) ;
+  avec en plus l'ancien sud-est du héros en modèle et « a big tall heavy war horse… much bigger than the rider », le
+  grand cheval revient, un peu moins tourné vers nous (choisi le 1 de ce lot). Agrandi au plus proche voisin de 41 à
+  45 pixels, pieds à la rangée 45. **Le casque** sortait gris : éclairci par le code, trop blanc ; puis chaque pixel
+  du casque prend la teinte de même rang de luminosité dans le casque de l'ancien sud-est (gardé). Marche refaite
+  (`animer --enrichir`, deux essais, choisi le 2 sur une page où elles se jouent) ; l'image fixe `hero-donjon.png`
+  suit le sud-est ; pieds mesurés, pas encore revus. **Le chef barbare** : 50 essais au bon angle, mais ni lisibles ni
+  du même cheval (l'utilisateur) : il garde l'ancien sud-est.
 - ✅ Le héros des Nains sur la carte (2026-11-15, branche `heros-carte-nains`, PixelLab, environ 0,75 $) : les idées
   dessinées de côté d'emblée : a, un thane nain en armure d'acier et d'or, heaume ailé, longue barbe tressée, marteau aux
   runes bleues, sur un grand bélier des montagnes aux cornes enroulées (comme les chevaucheurs de chèvre) ; b, le même sur
@@ -1994,6 +2004,20 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   plantes vertes séchées par un script (gris-jaune, l'ombrage gardé), les touffes et brindilles copiées de l'herbe et
   séchées ; les pins restent verts. Les combats sur la roche n'empruntent plus le champ du désert (la terre brûlée,
   encore).
+- ✅ Champ de bataille de la terre brûlée (2026-11-20, branche `champ-brule`). Le sol est celui de la carte, tel quel
+  (choix de l'utilisateur : ni moins de cendre, ni un sol tiré vers la cendre pour que les obstacles se voient) :
+  **ce sont les images qui doivent se lire** sur ce sol sombre. `BurntPalette` : un ciel de fumée rouge sombre, orangé
+  vers l'horizon, des volcans brun-violet, des collines calcinées. Images Retro Diffusion (3,84 $, 16 sujets, 47
+  images gardées) : pierre gris cendre et bois blanchi plutôt que noirs, **une forte lueur orange par-dessous** (aimée
+  de l'utilisateur, à renforcer) : arbres morts et troncs calcinés fendus de lave, flèches de basalte sur un cercle de
+  feu, rochers aux fissures de lave, cheminées de lave, souches rougeoyantes, tas de braises ; seules les brindilles
+  à braise comme détails (16 : les cailloux pâles faisaient des taches). **Le disque de sol peint sous chaque objet**
+  (« bizarre ») fondu dans le sol comme sous les arbres de la neige (`tools/art/sans_disque.py`), le feu gardé ; les
+  cheminées de lave gardent leur bord. **Pas d'ombre de contact** (choix de l'utilisateur : le feu au pied pose
+  l'objet). **Le feu des images respire** comme les fissures du sol (`BattleFieldView.DrawGlow`) : ses pixels orange,
+  plus chauds, par-dessus l'image, un cycle de 5 secondes en trois paliers, chaque objet à son rythme ; discret
+  (à 75 %, « un peu trop »). Les petits arbres lointains du paysage ouvert, cuits dans son image, ne respirent pas.
+  Tous les sols ont maintenant leur champ de bataille.
 - ✅ Finitions des champs (2026-11-17, branche `champ-finitions`). **Nuages** dans le ciel des paysages ouverts : 1 à 3,
   plats dessous, des bosses bombées dessus (gardées dans le nuage : une bosse coupée au bout faisait un mur) ; gris sous
   le ciel couvert du marais (drapeau `Overcast` : le haut blanc y brillait trop, remarque de l'utilisateur). **Rochers**
@@ -2842,6 +2866,14 @@ choix de l'utilisateur) :
   médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
   six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
   55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
+- ✅ **Le second sol des factions** (2026-11-20, branche `sols-factions`, pour la variété) : `secondGround` dans
+  `data/classes.json` (`HeroClass.SecondGround`, `Grounds`) : les Nains la neige, la Tour le sable, l'Enfer le sable, les
+  morts-vivants la roche. Choix de l'utilisateur : le départ prend le second sol **une partie sur trois** (son propre
+  hasard, `_startGroundRng` : le reste de la carte ne change pas) ; le héros marche sans ralentir **sur ses deux sols**
+  (`Hero.OwnGrounds`) ; une ville neutre d'une zone prend une faction de ce sol, celle dont c'est le second sol comptant
+  **moitié moins** (le sable reste surtout barbare). Mesuré (`Villes_neutres_par_sol`, 12 grandes cartes) : herbe
+  Château 65, Forêt 57 ; neige Tour 13, Nains 3 ; terre brûlée Enfer 19 ; marais Donjon 8, morts-vivants 7 ; roche
+  Nains 7, morts-vivants 6 ; sable Tour 3, Barbares 3, Enfer 1 (peu de villes sur ces sols : à suivre).
 - ✅ **La neige** (2026-11-19, branche `sol-neige`) : `TerrainType.Snow`, le sol de la Tour (comme dans Heroes 3), coût 150
   comme dans Heroes 3 ; une zone qui change de sol en tire un parmi cinq. Mesuré dans les cartes de référence : la neige
   sur 35 cartes de Heroes 3 sur 50 (12 % de la terre, médiane) et 19 de Heroes 2 (19 %), en peu de grandes taches. Les

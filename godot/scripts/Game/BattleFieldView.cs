@@ -426,8 +426,9 @@ public partial class BattleFieldView : Control
             return details;
         var random = new Random(seed * 7 + 3);
         // moins dans le désert (remarque de l'utilisateur : moins de crânes et de touffes) : ses taches de sol ont déjà leurs marques
-        // ; peu sur la neige épaisse, qui recouvre presque tout
-        int count = ground switch { TerrainType.Sand => 30, TerrainType.Snow => 16, _ => 44 };
+        // ; peu sur la neige épaisse, qui recouvre presque tout, et sur la terre brûlée (ses braises et ses fissures en font
+        // déjà beaucoup)
+        int count = ground switch { TerrainType.Sand => 30, TerrainType.Snow or TerrainType.Burnt => 16, _ => 44 };
         for (int i = 0; i < count; i++)
         {
             var image = images[random.Next(images.Length)];
@@ -713,8 +714,20 @@ public partial class BattleFieldView : Control
         new Color[] { new(0.49f, 0.46f, 0.41f), new(0.46f, 0.43f, 0.39f) },
         new Color(0.62f, 0.62f, 0.62f), new Color(0.82f, 0.83f, 0.84f), new Color(0.08f, 0.06f, 0.04f));
 
+    /// <summary>
+    /// La terre brûlée, le sol de l'Enfer (2026-11-20) : un ciel de fumée, rouge sombre en haut, orangé vers l'horizon ;
+    /// des volcans brun-violet au loin, des collines calcinées devant, un pré de la couleur du sol, une brume de cendre.
+    /// </summary>
+    private static readonly ScenePalette BurntPalette = new(
+        new Color[] { new(0.36f, 0.27f, 0.27f), new(0.50f, 0.36f, 0.32f), new(0.66f, 0.46f, 0.36f), new(0.80f, 0.58f, 0.42f) },
+        new Color[] { new(0.48f, 0.38f, 0.38f), new(0.40f, 0.31f, 0.32f), new(0.33f, 0.26f, 0.27f) },
+        new Color[] { new(0.36f, 0.31f, 0.29f), new(0.29f, 0.25f, 0.24f), new(0.23f, 0.20f, 0.19f) },
+        new Color[] { new(0.33f, 0.29f, 0.27f), new(0.31f, 0.27f, 0.25f) },
+        new Color(0.40f, 0.33f, 0.31f), new Color(0.72f, 0.56f, 0.46f), new Color(0.10f, 0.03f, 0.02f), Overcast: true);
+
     private static ScenePalette PaletteOf(TerrainType terrain) => terrain switch
     {
+        TerrainType.Burnt => BurntPalette,
         TerrainType.Sand => SandPalette,
         TerrainType.Swamp => SwampPalette,
         TerrainType.Snow => SnowPalette,
@@ -2650,6 +2663,7 @@ public partial class BattleFieldView : Control
                 var rect = new Rect2(at, detail.GetSize() * GroundScale);
                 ShadowLayer.DrawContactShadow(this, detail, rect, BattleContact);
                 DrawTextureRect(detail, rect, false);
+                DrawGlow(detail, rect);
             }
             foreach (var (shown, original, foot) in _edge)
             {
@@ -2658,6 +2672,7 @@ public partial class BattleFieldView : Control
                 // l'ombre de contact de la carte (ShadowLayer), d'après les pieds de l'image d'origine
                 ShadowLayer.DrawContactShadow(this, original, rect, BattleContact);
                 DrawTextureRect(shown, rect, false);
+                DrawGlow(shown, rect);
             }
         }
         else if (ground != null)
@@ -2791,10 +2806,56 @@ public partial class BattleFieldView : Control
             var rect = new Rect2(center + new Vector2(-size.X / 2, HexHeight / 2 - Ui.Px(8) - size.Y), size);
             ShadowLayer.DrawContactShadow(this, image, rect, BattleContact);
             DrawTextureRect(image, rect, false);
+            DrawGlow(image, rect);
             return;
         }
         DrawColoredPolygon(new[] { center + Ui.V(-22, 18), center + Ui.V(-8, -16), center + Ui.V(10, -10), center + Ui.V(24, 18) },
             MapRenderer.Rgb(110, 105, 100));
+    }
+
+    /// <summary>Les feux des images, par image (null : elle n'en a pas).</summary>
+    private static readonly Dictionary<Texture2D, Texture2D?> Glows = new();
+
+    /// <summary>
+    /// Le feu d'une image du décor : ses pixels orange (feu, lave, braises), plus chauds (vers le jaune), le reste
+    /// transparent ; null si elle n'en a pas.
+    /// </summary>
+    private static Texture2D? GlowOf(Texture2D texture)
+    {
+        if (Glows.TryGetValue(texture, out var glow))
+            return glow;
+        var image = texture.GetImage();
+        if (image.IsCompressed())
+            image.Decompress();
+        var result = Image.CreateEmpty(image.GetWidth(), image.GetHeight(), false, Image.Format.Rgba8);
+        bool any = false;
+        for (int y = 0; y < image.GetHeight(); y++)
+        for (int x = 0; x < image.GetWidth(); x++)
+        {
+            var c = image.GetPixel(x, y);
+            if (c.A < 0.15f || c.R < 0.47f || c.R < c.G + 0.12f || c.R < c.B + 0.24f)
+                continue;
+            result.SetPixel(x, y, new Color(Math.Min(1, c.R + 0.1f), Math.Min(1, c.G + 0.18f), Math.Min(1, c.B + 0.06f), c.A));
+            any = true;
+        }
+        glow = any ? ImageTexture.CreateFromImage(result) : null;
+        Glows[texture] = glow;
+        return glow;
+    }
+
+    /// <summary>
+    /// Sur la terre brûlée, le feu des images respire comme les fissures du sol (2026-11-20, demandé par l'utilisateur) : un
+    /// cycle de 5 secondes, chaque objet à son rythme (selon sa place), en trois paliers ; discret (« un peu trop » à 75 %).
+    /// </summary>
+    private void DrawGlow(Texture2D texture, Rect2 rect)
+    {
+        if (_terrain != TerrainType.Burnt || GlowOf(texture) is not { } glow)
+            return;
+        float phase = (rect.Position.X * 0.013f + rect.Position.Y * 0.029f) % 1f;
+        float breath = 0.5f + 0.5f * MathF.Sin(MathF.Tau * ((float)_time / 5f + phase));
+        float alpha = MathF.Floor(breath * 3.99f) / 3f * 0.4f;
+        if (alpha > 0)
+            DrawTextureRect(glow, rect, false, new Color(1, 1, 1, alpha));
     }
 
     /// <summary>La feuille d'animation d'une créature pour cet état, ou null.</summary>

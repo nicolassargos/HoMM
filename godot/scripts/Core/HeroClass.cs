@@ -87,6 +87,17 @@ public sealed record HeroClass
     /// zone de ce sol (le sable, le marais, la roche) ; sans sol, l'herbe.
     /// </summary>
     public TerrainType? Ground { get; init; }
+
+    /// <summary>
+    /// Un second sol (2026-11-20, choix de l'utilisateur : de la variété) : les Nains la neige, la Tour le sable, l'Enfer le
+    /// sable, les morts-vivants la roche. Le départ le prend une partie sur trois ; le héros y marche aussi sans ralentir ; une
+    /// ville neutre de cette faction peut s'y trouver, moins souvent que sur le sol principal.
+    /// </summary>
+    public TerrainType? SecondGround { get; init; }
+
+    /// <summary>Les sols où vit la faction : le principal (l'herbe sans sol), puis le second s'il y en a un.</summary>
+    public IReadOnlyList<TerrainType> Grounds =>
+        SecondGround is { } second ? new[] { Ground ?? TerrainType.Grass, second } : new[] { Ground ?? TerrainType.Grass };
 }
 
 /// <summary>Une troupe de l'armée de départ d'une classe.</summary>

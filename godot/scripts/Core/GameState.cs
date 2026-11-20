@@ -471,7 +471,7 @@ public sealed partial class GameState
         // Un clic sur les murs d'une ville mène à son entrée
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction, hero.OwnGround);
+        Path = Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction, hero.OwnGrounds);
     }
 
     public void ClearPath() => Path = null;
@@ -960,7 +960,7 @@ public sealed partial class GameState
             return null;
         if (Map.OccupantAt(target) is { } occupant)
             target = occupant.Position;
-        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction, hero.OwnGround) is not { } path)
+        if (Pathfinder.FindPath(Map, hero.Position, target, OtherHeroCells(hero, target), hero.RoughTerrainReduction, hero.OwnGrounds) is not { } path)
             return null;
         int days = 1, movement = hero.Movement;
         var previous = hero.Position;

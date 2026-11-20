@@ -492,6 +492,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (pâles, ils faisaient des points blancs). Les touffes dessinées par le shader faisaient des croix : prendre des
   images de l'herbe et les sécher (gris-jaune `l × 1,07, l, l × 0,78`, sans bleu ni orange). Décaler le dessin du
   sol d'un combat à l'autre (`rock_shift`), sinon les mêmes ravins reviennent.
+- Terre brûlée (2026-11-20) : sur un sol sombre, des objets noirs ne se lisent pas ; plutôt que changer le sol, demander
+  « pale ash grey » (pierre, bois blanchi) et « strongly lit from below by a bright orange fire glow, glowing orange rim
+  light on its lower edges and sides, must stand out on a very dark ground ». Retro Diffusion pose presque chaque objet
+  sur un disque de sol (pierre grise, cendre) : `tools/art/sans_disque.py` le fond dans le sol (`--sombre` pour les tas
+  de rochers) ; à vérifier image par image (les dessous sombres des rochers, les racines, le bord des cratères).
 
 ## Effets du combat (dessinés par le jeu)
 - **Pas d'effet dans les animations des créatures** : projectiles, impacts, auras sont dessinés par `Game/BattleEffects.cs`,
@@ -722,7 +727,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   de combat en modèles, sans style), puis tourner l'est choisi : une seule recette, le même cheval partout. Le sud-est
   tourné vers le sud reste le point faible : le cheval y prend souvent un cou arqué tête basse (« un chameau ») ;
   regarder le cou à ×6 avant de montrer une page. Une retouche (« Edit images ») d'un sud-est déjà réussi garde la pose
-  mais raccourcit les jambes.
+  mais raccourcit les jambes. **Refait le 2026-11-20** : l'est du héros en modèle ramène le cheval de côté ; le style du
+  sud-est du rôdeur, le sud du héros et deux bons sud-est (Nains, Enfer) en modèles donnent l'angle, mais **un poney** ;
+  ajouter **l'ancien sud-est du héros** en modèle et « a big tall heavy war horse with long legs… much bigger than the
+  rider » rend le grand cheval (un peu moins tourné vers nous). Une couleur à corriger (le casque trop gris) : ne pas
+  éclaircir d'un bloc (trop blanc), mais donner à chaque pixel la teinte de même rang de luminosité dans l'image
+  installée (les gris peu saturés du haut, classés par luminosité des deux côtés).
 - **Le thane des Nains** (2026-11-15) : la même recette (idées de côté, rotation de l'est choisi, sud-est au style du
   rôdeur) a marché du premier coup sur un bélier. Passer les rouges hors du drapeau au brun **avant** de tourner l'image
   (sinon toutes les vues les gardent). Regarder la hampe du drapeau : PixelLab la coupe souvent à la main du cavalier ;

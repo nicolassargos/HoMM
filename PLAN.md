@@ -158,6 +158,19 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
 | Forêt | **Sentiers des rôdeurs** | les héros qui quittent la ville ont plus de mouvement ce jour-là |
 | Enfer | **Portail infernal** | aller d'une ville de l'Enfer du joueur à une autre |
 
+- **Les murs et les sièges** (avec l'utilisateur, 2026-11-20) :
+  - **Dans la scène de la ville** : le fort, la citadelle et le château changent le mur autour de la ville, une image
+    par étape à la même place, devant les autres bâtiments, en bas de la scène. **Des murs simples** (choix de
+    l'utilisateur) : bois, briques ou pierre, selon la faction, sans formes trop particulières.
+  - **Au combat (les sièges)** : contre une ville qui a un fort, un mur coupe le champ, avec une porte que seuls les
+    défenseurs passent et des tireurs sur les murs ; la citadelle ajoute un fossé et une tour qui tire, le château
+    deux tours de plus. L'attaquant doit ouvrir une brèche : les troupes barbares frappent les murs (déjà prévu), des
+    sorts comme le Séisme. Sans fort, la ville se défend en terrain ouvert, comme aujourd'hui.
+  - **Les engins de siège** (la catapulte, avec les machines de guerre de la forge) : **plus tard** (choix de
+    l'utilisateur). En attendant, à décider avec la session règles : comment ouvrir une brèche sans eux (par exemple,
+    toutes les troupes au corps à corps frappent la porte).
+  - **Ensuite** : l'IA apprend à attaquer et à défendre les murs ; refaire les `Mesures` (une ville sans fort devient
+    plus facile à prendre) ; peut-être des bâtiments spéciaux qui touchent les murs.
 - **Règles à faire (session règles)** : les sièges et les murs, les machines de guerre, les créatures améliorées, le
   bonus du Graal de chaque faction, les bâtiments spéciaux et de croissance ; leurs noms (français) ; puis les `Mesures`.
   Les images des villes peuvent commencer dès que la liste est fixée.
@@ -181,10 +194,9 @@ dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent da
   2026-11-20) : pas un par faction, des factions les partagent ; plus tard, des **variantes** d'un même sol pour les
   factions qui le partagent (teinte, arbres, détails ; le même champ de bataille, une autre palette). Une faction peut
   aussi avoir **plus d'un sol** : les Nains la roche ou la neige, la Tour la neige ou le sable, l'Enfer la terre brûlée
-  ou le sable, les morts-vivants le marais ou la roche (à faire). Peut-être plus tard un sol souterrain pour le Donjon,
+  ou le sable, les morts-vivants le marais ou la roche (✅ 2026-11-20). Peut-être plus tard un sol souterrain pour le Donjon,
   s'il y a un souterrain. Des thèmes de cartes (la répartition se réglera alors) ; le sol
-  des factions encore sur l'herbe, à décider ; un champ de bataille pour la terre brûlée
-  (celui du désert en attendant) ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
+  des factions encore sur l'herbe, à décider ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
@@ -219,7 +231,7 @@ la zone ; les créatures du Donjon en gardiens.
 ✅ Fait : combat à ×2, effets dessinés par le jeu, animations des sorts, les options du combat, choisir le côté de
 l'attaque, les champs de l'herbe, du désert et du marais (2026-11-16), les obstacles plutôt au milieu du champ, des
 nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles (2026-11-17), le champ de la neige
-(2026-11-19), celui de la roche, une terre désolée (2026-11-20).
+(2026-11-19), celui de la roche, une terre désolée, et celui de la terre brûlée, aux feux qui respirent (2026-11-20).
 ✅ Une **animation de mort** par créature (2026-11-17), revue avec l'utilisateur et **variée** (2026-11-19, branche
 `morts-variees` : en arrière, sur le côté, une mort propre au Démon, à la Liche, au Roi de cristal, au Golem…).
 **Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.
@@ -235,7 +247,9 @@ se cabrent en arrière ; préférés par l'utilisateur à ceux de `animations-dr
 monture de sa faction, d'après son portrait (`tools/art/heros_combat.py`) ; faite pour un héros par faction (Sire
 Roland, Mortimer, Tarka, Sylvain, Maître Aldric, Zarkhan, Malachar, Brokk), choisie par l'utilisateur au premier tour.
 **Pas pour les 39 autres héros** (choix de l'utilisateur, 2026-11-19) : ils gardent leur image de la carte au combat.
-**Reste** : plus tard, peut-être des animations pour ces huit ; refaire le sud-est du chef barbare et du Seigneur des abîmes (tournés vers le sud) ; cadres des portraits,
+✅ Le sud-est du **Seigneur des abîmes** tourné vers le sud, son grand cheval gardé (2026-11-20, branche
+`heros-sud-est`) ; celui du **chef barbare** reste l'ancien (l'utilisateur le trouve lisible, aucun essai ne l'était).
+**Reste** : plus tard, peut-être des animations pour ces huit ; cadres des portraits,
 bandeau de la date.
 
 ### L'interface

@@ -2866,6 +2866,19 @@ choix de l'utilisateur) :
   médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
   six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
   55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
+- ✅ **Des zones plus grandes** (2026-11-20, branche `zones-plus-grandes` ; l'utilisateur : « très, très petites »).
+  Mesuré (`tools/cartes/zones_h3.py`, 50 cartes de Heroes 3, et `Zones_vues_du_joueur` pour les nôtres) : les régions
+  où l'on marche, séparées par les obstacles et les monstres (leur case et ses 8 voisines) ; la région d'une case
+  typique (médiane pondérée par les cases) : Heroes 3 environ 710 cases libres sur 72 × 72, 350 sur 108, 260 sur 144 ;
+  les nôtres environ 115 et 100 (des zones de 18 × 13, toutes pareilles). Maintenant des **zones carrées de 24 × 24**
+  (`MapGenerator.ZoneGrid` : au moins 2 × 2 ; 3 × 3, 4 × 4, 6 × 6 sur les cartes normale, grande, très grande ; 28 × 20
+  donnait 2 × 3, un quart de la carte sans ville) : environ 255, 325 et 225 cases. **Une ville neutre par zone** hors
+  départs (une pour trois avant), toujours au plus 1,5 pour 1000 cases de terre : 8 villes sur une carte normale, 15 sur
+  une grande ; **3,5 mines par zone** (1,5 avant : autant pour la même surface) ; **autant de taches de montagne en plus**
+  à l'intérieur des zones, leur propre hasard (moins de murs : montagne et forêt tombaient de 23-27 % à 18-22 % de la
+  terre ; 21 à 25 % maintenant). Les îles et l'archipel gardent les zones de 18 × 13 (une île est faite de zones, une ville
+  au plus par île). La simulation seule (`Simulation_seule`) : carte normale gagnée vers le jour 192 (211 avant), grande
+  vers le jour 388 (jamais avant, dans le temps donné).
 - ✅ **Le second sol des factions** (2026-11-20, branche `sols-factions`, pour la variété) : `secondGround` dans
   `data/classes.json` (`HeroClass.SecondGround`, `Grounds`) : les Nains la neige, la Tour le sable, l'Enfer le sable, les
   morts-vivants la roche. Choix de l'utilisateur : le départ prend le second sol **une partie sur trois** (son propre

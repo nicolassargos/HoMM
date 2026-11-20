@@ -195,6 +195,7 @@ public partial class BattleFieldView : Control
 
     public TacticalBattle Battle { get; private set; } = null!;
     private TerrainType _terrain;
+    private TerrainType _soundTerrain;
 
     /// <summary>Ce que l'écran montre de chaque troupe (en retard sur le combat pendant les animations).</summary>
     private sealed class Shown
@@ -295,9 +296,14 @@ public partial class BattleFieldView : Control
     /// <summary>Le joueur a cliqué sur le champ : la case, et le point exact (pour choisir de quel côté attaquer).</summary>
     public event Action<Hex, Vector2>? Clicked;
 
-    public void Start(TacticalBattle battle, TerrainType terrain)
+    /// <summary>
+    /// Ouvre le champ de ce combat, dessiné sur <paramref name="terrain"/> ; <paramref name="soundTerrain"/> : le vrai sol,
+    /// pour les pas, quand le champ en montre un autre en attendant le sien (la roche sur celui du désert).
+    /// </summary>
+    public void Start(TacticalBattle battle, TerrainType terrain, TerrainType? soundTerrain = null)
     {
         Battle = battle;
+        _soundTerrain = DevTerrain ?? soundTerrain ?? terrain;
         terrain = DevTerrain ?? terrain;
         _terrain = terrain;
         _shown.Clear();
@@ -1448,7 +1454,7 @@ public partial class BattleFieldView : Control
                         }
                         if (walks && (nextStep -= delta) <= 0)
                         {
-                            Audio.PlayStep(moved.Unit.Type, _terrain);
+                            Audio.PlayStep(moved.Unit.Type, _soundTerrain);
                             nextStep += cadence;
                         }
                         t += delta;

@@ -366,8 +366,9 @@ public partial class BattleScreen : CanvasLayer
         // la Tactique : le joueur place ses troupes avant le premier round
         _placing = null;
         _message.Text = battle.IsPlacing && battle.PlacementSide == _playerSide && !auto ? Texts.BattlePlacementPrompt(battle.PlacementColumns) : "";
-        // la roche et la terre brûlée n'ont pas encore leur champ de bataille : celui du désert, en attendant
-        _field.Start(battle, terrain is TerrainType.Rock or TerrainType.Burnt ? TerrainType.Sand : terrain);
+        // la roche et la terre brûlée n'ont pas encore leur champ de bataille : celui du désert, en attendant (les pas
+        // gardent le vrai sol)
+        _field.Start(battle, terrain is TerrainType.Rock or TerrainType.Burnt ? TerrainType.Sand : terrain, terrain);
         Visible = true;
         _musicBefore = Audio.CurrentMusic;
         Audio.PlayMusic("battle");

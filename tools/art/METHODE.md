@@ -492,6 +492,13 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (pâles, ils faisaient des points blancs). Les touffes dessinées par le shader faisaient des croix : prendre des
   images de l'herbe et les sécher (gris-jaune `l × 1,07, l, l × 0,78`, sans bleu ni orange). Décaler le dessin du
   sol d'un combat à l'autre (`rock_shift`), sinon les mêmes ravins reviennent.
+- Le pont d'un navire (2026-11-20) : le sol, la rambarde, la mer et le ciel dessinés par le jeu (`BuildDeck`). Les
+  **obstacles à la taille d'une créature** (remarque de l'utilisateur : « un tonneau doit être aussi grand qu'une
+  unité ») : à 56 × 48, un groupe de trois tonneaux donne de tout petits tonneaux ; demander **un seul** objet « as tall
+  as a man, filling the whole picture » à 48 × 64 ou 64 × 80 (le Pirate fait 74 pixels de haut ; les comparer à côté de
+  lui sur la page). Retro Diffusion ne sait pas dessiner un gros mât brisé (de minces poteaux, ou des arbres morts) ;
+  « rope and folded sail » donne de petits bateaux. Un poisson de 16 px n'est qu'une tache : 32 × 16, « a clear fish
+  shape with a forked tail fin, a dorsal fin and a round eye ».
 - Terre brûlée (2026-11-20) : sur un sol sombre, des objets noirs ne se lisent pas ; plutôt que changer le sol, demander
   « pale ash grey » (pierre, bois blanchi) et « strongly lit from below by a bright orange fire glow, glowing orange rim
   light on its lower edges and sides, must stand out on a very dark ground ». Retro Diffusion pose presque chaque objet

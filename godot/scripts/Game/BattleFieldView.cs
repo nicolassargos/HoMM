@@ -336,7 +336,7 @@ public partial class BattleFieldView : Control
     /// </summary>
     private static List<(Texture2D, Texture2D, Vector2)> BuildEdge(TerrainType terrain, int seed, bool open = false)
     {
-        string name = Art.Name(DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain);
+        string name = SceneName(terrain);
         var trees = Art.VariantsOf($"battle/edge-{name}");
         var trunks = Art.VariantsOf($"battle/trunk-{name}");
         var bushes = Art.VariantsOf($"battle/bush-{name}");
@@ -407,12 +407,12 @@ public partial class BattleFieldView : Control
     private static List<(Texture2D, Vector2)> BuildDetails(TerrainType terrain, int seed)
     {
         var ground = DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
-        var images = Art.VariantsOf($"battle/detail-{Art.Name(ground)}");
+        var images = Art.VariantsOf($"battle/detail-{SceneName(terrain)}");
         var details = new List<(Texture2D, Vector2)>();
         // des tas de pierres et d'éboulis pris dans le sol (la roche, 2026-11-19 : dessinés par le shader, ils faisaient des
         // taches ou un pavage ; les dalles rondes ou carrées, écartées : pas naturelles), dessinés avant les petits détails et
         // un peu écartés les uns des autres
-        var slabs = Art.VariantsOf($"battle/slab-{Art.Name(ground)}");
+        var slabs = Art.VariantsOf($"battle/slab-{SceneName(terrain)}");
         var placed = new Random(seed * 5 + 1);
         for (int i = 0, tries = 0; slabs.Length > 0 && i < 16 && tries < 200; tries++)
         {
@@ -428,11 +428,13 @@ public partial class BattleFieldView : Control
         // moins dans le désert (remarque de l'utilisateur : moins de crânes et de touffes) : ses taches de sol ont déjà leurs marques
         // ; peu sur la neige épaisse, qui recouvre presque tout, et sur la terre brûlée (ses braises et ses fissures en font
         // déjà beaucoup)
-        int count = ground switch { TerrainType.Sand => 30, TerrainType.Snow or TerrainType.Burnt => 16, _ => 44 };
+        // ; sur le pont d'un navire, quelques objets seulement, sous la rambarde (DeckTop)
+        int count = ground switch { TerrainType.Sand => 30, TerrainType.Snow or TerrainType.Burnt => 16, TerrainType.Water => 14, _ => 44 };
+        int top = ground == TerrainType.Water ? DeckTop * GroundScale + 10 : 170;
         for (int i = 0; i < count; i++)
         {
             var image = images[random.Next(images.Length)];
-            var at = new Vector2(20 + random.Next((int)FieldSize.X - 40), 170 + random.Next((int)FieldSize.Y - 190));
+            var at = new Vector2(20 + random.Next((int)FieldSize.X - 40), top + random.Next((int)FieldSize.Y - top - 20));
             details.Add((image, Snap(at)));
         }
         return details;
@@ -640,7 +642,7 @@ public partial class BattleFieldView : Control
         }
         // les petits arbres lointains, au pied des collines proches, brumeux
         // de petits arbres vus de côté (art/battle/far-grass.png… ; ceux de la carte, vus de dessus, juraient)
-        var trees = Art.VariantsOf($"battle/far-{Art.Name(DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain)}");
+        var trees = Art.VariantsOf($"battle/far-{SceneName(terrain)}");
         int spacing = palette.Dunes ? 40 : 6; // le désert : quelques arbres seulement
         for (float x = random.Next(30); trees.Length > 0 && x < w; x += spacing + random.Next(26 + spacing))
         {
@@ -650,6 +652,146 @@ public partial class BattleFieldView : Control
             int foot = (int)meadow((int)x) - 1 - random.Next(3);
             image.BlendRect(tree, new Rect2I(0, 0, tree.GetWidth(), tree.GetHeight()), new Vector2I((int)x - tree.GetWidth() / 2, foot - tree.GetHeight()));
         }
+        return ImageTexture.CreateFromImage(image);
+    }
+
+    /// <summary>
+    /// Le nom des images du décor d'un terrain (art/battle/edge-grass.png…) : la forêt et la montagne prennent celles de
+    /// l'herbe ; l'eau (un combat en mer) : celles du pont d'un navire (« deck »).
+    /// </summary>
+    private static string SceneName(TerrainType terrain) =>
+        terrain == TerrainType.Water ? "deck" : Art.Name(DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain);
+
+    /// <summary>Le pont du navire d'un combat en mer (×2), ou null.</summary>
+    private Texture2D? _deck;
+
+    /// <summary>Le haut du pont, sous la rambarde (pixels d'art) : juste au-dessus de la première rangée de cases.</summary>
+    private const int DeckTop = 86;
+
+    /// <summary>
+    /// Le pont d'un navire (choix de l'utilisateur, 2026-11-20 : tout le champ est un grand pont, une rambarde en haut et
+    /// en bas, la mer et le ciel au-delà), dessiné par le jeu, différent à chaque combat (selon <paramref name="seed"/>).
+    /// En haut, le ciel et la mer jusqu'à l'horizon, des crêtes de vagues ; la rambarde (une main courante claire, des
+    /// balustres entre lesquels on voit la mer, de gros poteaux, un pied sombre) ; puis des rangées de planches dans le
+    /// sens du navire, de longueurs et de tons différents, joints décalés d'une rangée à l'autre, des clous aux bouts,
+    /// quelques veines et nœuds ; l'ombre de la rambarde sur le haut du pont ; en bas, le haut du bordage.
+    /// </summary>
+    private static Texture2D BuildDeck(int seed)
+    {
+        int[,] bayer = { { 0, 8, 2, 10 }, { 12, 4, 14, 6 }, { 3, 11, 1, 9 }, { 15, 7, 13, 5 } };
+        int w = (int)Math.Ceiling(FieldSize.X / GroundScale), h = (int)Math.Ceiling(FieldSize.Y / GroundScale);
+        var image = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        var random = new Random(seed * 19 + 7);
+        int Hash(int x, int y) => ((x * 73856093) ^ (y * 19349663) ^ seed) & 0x7fffffff;
+        Color Banded(Color[] tones, float t, int x, int y)
+        {
+            float u = Math.Clamp(t, 0, 0.999f) * (tones.Length - 1);
+            int band = (int)u;
+            return bayer[y % 4, x % 4] < (u - band) * 16 ? tones[band + 1] : tones[band];
+        }
+
+        // le ciel et la mer, au-dessus de la rambarde
+        Color[] sky = { new(0.50f, 0.66f, 0.82f), new(0.60f, 0.74f, 0.86f), new(0.72f, 0.82f, 0.89f), new(0.84f, 0.89f, 0.91f) };
+        Color[] sea = { new(0.36f, 0.56f, 0.70f), new(0.25f, 0.45f, 0.62f), new(0.18f, 0.36f, 0.54f), new(0.14f, 0.30f, 0.47f) };
+        const int Horizon = 34, RailTop = 62;
+        for (int y = 0; y < DeckTop; y++)
+        for (int x = 0; x < w; x++)
+        {
+            Color c;
+            if (y < Horizon)
+                c = Banded(sky, (float)y / Horizon, x, y);
+            else if (y == Horizon)
+                c = sky[^1].Lerp(sea[0], 0.5f);
+            else
+            {
+                c = Banded(sea, (float)(y - Horizon) / (DeckTop - Horizon), x, y);
+                // des crêtes de vagues : de courts traits clairs, plus longs et plus espacés vers l'avant
+                int depth = y - Horizon, period = 9 + depth / 2;
+                if (Hash(x / period, y) % (6 + depth / 6) == 0 && x % period < 2 + depth / 6)
+                    c = c.Lightened(0.22f);
+            }
+            image.SetPixel(x, y, c);
+        }
+
+        // les planches, de DeckTop jusqu'en bas, dans le sens du navire ; chaque rangée a sa hauteur (6 ou 7) et ses joints
+        var wood = new Color(0.55f, 0.40f, 0.26f);
+        var seam = new Color(0.20f, 0.13f, 0.08f);
+        // les joints des planches, moins sombres que le pied de la rambarde (des traits noirs faisaient un mur de briques)
+        var joint = wood.Darkened(0.42f);
+        for (int y0 = DeckTop, row = 0; y0 < h; row++)
+        {
+            int height = row % 3 == 1 ? 9 : 8;
+            for (int x0 = -random.Next(160); x0 < w; )
+            {
+                int length = 110 + random.Next(150);
+                float tone = (float)(random.NextDouble() - 0.5) * 0.14f;
+                var plank = tone > 0 ? wood.Lightened(tone) : wood.Darkened(-tone);
+                // un nœud par-ci par-là
+                int knot = random.Next(4) == 0 ? x0 + 8 + random.Next(Math.Max(1, length - 16)) : int.MinValue;
+                int knotY = y0 + 2 + random.Next(Math.Max(1, height - 3));
+                for (int x = Math.Max(0, x0); x < Math.Min(w, x0 + length); x++)
+                for (int y = y0; y < Math.Min(h, y0 + height); y++)
+                {
+                    int dy = y - y0;
+                    var c = dy == 0 ? joint // le joint entre deux rangées
+                        : dy == 1 ? plank.Lightened(0.10f) // l'arête éclairée
+                        : dy == height - 1 ? plank.Darkened(0.12f) : plank;
+                    // des veines : de longs traits un peu plus sombres
+                    if (dy > 1 && dy < height - 1 && Hash(x / 23 + row * 7, y) % 5 == 0 && Hash(x, y) % 3 != 0)
+                        c = c.Darkened(0.07f);
+                    // l'usure : quelques pixels plus clairs
+                    if (dy > 1 && Hash(x, y + 999) % 41 == 0)
+                        c = c.Lightened(0.06f);
+                    if (knot != int.MinValue && Math.Abs(x - knot) <= 1 && y == knotY)
+                        c = plank.Darkened(x == knot ? 0.32f : 0.18f);
+                    if (x == x0 + length - 1)
+                        c = joint; // le bout de la planche
+                    // deux clous discrets près de chaque bout
+                    else if ((x == x0 + 2 || x == x0 + length - 4) && (dy == 3 || dy == height - 3))
+                        c = plank.Darkened(0.30f);
+                    image.SetPixel(x, y, c);
+                }
+                x0 += length;
+            }
+            y0 += height;
+        }
+        // l'ombre de la rambarde sur le haut du pont, en paliers (50, 30, 15 %), au bord un peu irrégulier
+        float[] shadow = { 0.5f, 0.3f, 0.15f };
+        for (int x = 0; x < w; x++)
+        for (int i = 0; i < shadow.Length; i++)
+        for (int k = 0; k < 2; k++)
+        {
+            int y = DeckTop + i * 2 + k + (Hash(x / 5, i) % 3 == 0 ? 1 : 0);
+            if (y < h)
+                image.SetPixel(x, y, image.GetPixel(x, y).Lerp(seam, shadow[i]));
+        }
+
+        // la rambarde : une main courante, des balustres (la mer entre eux), de gros poteaux, un pied sombre
+        var rail = new Color(0.62f, 0.46f, 0.30f);
+        int balusterShift = seed % 11, postShift = seed % 97;
+        for (int x = 0; x < w; x++)
+        {
+            for (int y = RailTop + 16; y < DeckTop; y++)
+                image.SetPixel(x, y, y == RailTop + 16 ? rail.Lightened(0.08f) : y == DeckTop - 1 ? seam
+                    : rail.Darkened(0.28f + 0.04f * (y - RailTop - 16)));
+            // les balustres, tous les 11 pixels, ronds : clairs à gauche, sombres à droite
+            int b = (x + balusterShift) % 11;
+            if (b < 4)
+                for (int y = RailTop + 4; y < RailTop + 16; y++)
+                    image.SetPixel(x, y, b == 0 ? rail.Lightened(0.12f) : b == 3 ? rail.Darkened(0.35f) : rail.Darkened(0.08f * b));
+            for (int y = RailTop; y < RailTop + 4; y++)
+                image.SetPixel(x, y, y == RailTop ? rail.Lightened(0.22f) : y == RailTop + 3 ? rail.Darkened(0.30f) : rail.Lightened(0.04f));
+            // de gros poteaux, plus espacés, qui dépassent un peu de la main courante
+            int post = (x + postShift) % 97;
+            if (post < 6)
+                for (int y = RailTop - 3; y < DeckTop; y++)
+                    image.SetPixel(x, y, post == 0 ? rail.Lightened(0.15f) : post == 5 ? seam
+                        : y < RailTop ? rail.Lightened(0.10f) : rail.Darkened(0.05f * post));
+        }
+        // en bas : le haut du bordage, sur les dernières rangées
+        for (int x = 0; x < w; x++)
+        for (int y = h - 5; y < h; y++)
+            image.SetPixel(x, y, y == h - 5 ? seam : y == h - 4 ? rail.Lightened(0.18f) : rail.Darkened(0.06f * (y - h + 4)));
         return ImageTexture.CreateFromImage(image);
     }
 
@@ -1318,7 +1460,16 @@ public partial class BattleFieldView : Control
         // deux décors, tirés selon le combat : la lisière d'une forêt, ou un paysage ouvert (collines lointaines et ciel)
         // sans arbres de lisière pour ce terrain (le désert), toujours le paysage ouvert
         bool open = DevScene switch { "open" => true, "forest" => false, _ => (seed & 1) == 1 }
-            || Art.VariantsOf($"battle/edge-{Art.Name(DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain)}").Length == 0;
+            || Art.VariantsOf($"battle/edge-{SceneName(terrain)}").Length == 0;
+        // en mer : le pont d'un navire, tout entier dessiné par le jeu (ni paysage, ni sol de la carte)
+        _deck = terrain == TerrainType.Water ? BuildDeck(seed) : null;
+        if (_deck != null)
+        {
+            _edge = new();
+            _landscape = _shade = _relief = _stones = _puddles = null;
+            _details = BuildDetails(terrain, seed);
+            return;
+        }
         _edge = BuildEdge(terrain, seed, open);
         _landscape = open ? BuildLandscape(terrain, seed) : null;
         _shade = open ? BuildMist(terrain, seed) : BuildShade(terrain, seed);
@@ -2644,7 +2795,9 @@ public partial class BattleFieldView : Control
             return;
         // le sol : celui du shader de la carte (_backdrop, dessiné dessous), sinon l'image du terrain, ×2 (comme la carte)
         var ground = Art.Terrain(DecorLayer.Covers(_terrain) ? TerrainType.Grass : _terrain, 0);
-        if (_backdrop != null)
+        if (_deck != null)
+            DrawTextureRect(_deck, new Rect2(Vector2.Zero, _deck.GetSize() * GroundScale), false);
+        if (_backdrop != null || _deck != null)
         {
             if (_landscape != null)
                 DrawTextureRect(_landscape, new Rect2(Vector2.Zero, _landscape.GetSize() * GroundScale), false);
@@ -2796,9 +2949,8 @@ public partial class BattleFieldView : Control
     private void DrawObstacle(Vector2 center, Hex hex)
     {
         // les obstacles du terrain (art/battle/obstacle-grass.png, -2, -3… : arbres, rochers), sinon le décor de la carte
-        var ground = DecorLayer.Covers(_terrain) ? TerrainType.Grass : _terrain;
         int pick = hex.Col * 5 + hex.Row * 3 + hex.Col * hex.Row;
-        var image = Art.Variant($"battle/obstacle-{Art.Name(ground)}", pick)
+        var image = Art.Variant($"battle/obstacle-{SceneName(_terrain)}", pick)
             ?? (_terrain == TerrainType.Forest ? Art.Variant("decor/pine", (int)center.X) : Art.Variant("decor/peak-small", (int)center.X));
         if (image != null)
         {

@@ -1677,6 +1677,18 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   (adversaires, six semaines, Normal, or d'armée) : continent 46 000, des mers 48 300, îles 31 600, archipel 31 600
   (comme avant). Dessinés par le jeu en attendant leurs images ; `--center=abandoned-ship`, `pirates`. Tests :
   `ObjetsMerTests`.
+- ✅ **Le pont d'un navire, champ des combats en mer** (2026-11-20, branche `champ-navire`, choix de l'utilisateur : tout
+  le champ est un grand pont, pas deux navires côte à côte). Un combat en mer avait déjà l'eau pour terrain (la case du
+  bateau) ; il prenait le sol de la mer, le décor de l'herbe et des pics en obstacles. Désormais `BattleFieldView`
+  dessine pour l'eau le **pont** (`BuildDeck`, tout par le jeu, différent à chaque combat) : en haut le ciel et la mer
+  jusqu'à l'horizon, des crêtes de vagues ; une rambarde (main courante, balustres entre lesquels on voit la mer, gros
+  poteaux, pied sombre) ; des rangées de longues planches dans le sens du navire (joints décalés, clous discrets, veines,
+  nœuds ; des planches courtes et des clous noirs faisaient un mur de briques) ; l'ombre de la rambarde ; le haut du
+  bordage en bas. Les images de son décor s'appellent `deck` (`SceneName`) : obstacles `obstacle-deck` (deux mâts,
+  une grande pile de caisses, deux grands tonneaux, un grand tas de cordages), détails `detail-deck` (cordage, anneau,
+  pièces, planche, flaque, seau, poisson ; quatre maquereaux ajoutés à la demande de l'utilisateur). Retro Diffusion,
+  environ 4,8 $. Écartés : les cabestans et les mâts brisés (toujours de minces poteaux), un « tas de cordage et voile »
+  (de petits bateaux). `--battle-terrain=water` montre le pont.
 - ✅ **Le bateau, le navire des pirates et le Pirate** (2026-11-20, branche `bateau-pirate`, PixelLab, environ 2,1 $, choix
   de l'utilisateur sur des pages où l'on clique, `tools/art/page_choix.py`) : le **bateau des héros** est un cogue vu de
   côté (« pro » à 48, l'est du chevalier comme style ; des drakkars écartés : l'utilisateur pensait à des pirates), tourné

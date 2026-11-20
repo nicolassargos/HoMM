@@ -902,10 +902,11 @@
       },
       "choix": {
         "death": "death-2",
-        "hit": "hit-13"
+        "hit": "hit-2"
       },
       "consignes": {
-        "death": "is mortally wounded: the long neck twists and writhes, swings high then low, the body sinks onto its side, and the neck coils on the ground with the head coming to rest last, lying motionless on the ground at the end"
+        "death": "is mortally wounded: the long neck twists and writhes, swings high then low, the body sinks onto its side, and the neck coils on the ground with the head coming to rest last, lying motionless on the ground at the end",
+        "hit": "recoils violently from a blow: it rears back onto its hind legs, its front claws lift off the ground, its long neck and head are thrown back to the left, its wings snap wide open, its tail lashes, then it drops back down to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "gobelin": {
@@ -1854,14 +1855,16 @@
         "move": "move-vide",
         "carte": "p1-3",
         "death": "death-1",
-        "hit": "hit-1"
+        "hit": "hit-1",
+        "swallow": "swallow-6-r"
       },
       "grande": "art-candidats/references/derives/ver-des-profondeurs-grand.png",
       "consignes": {
         "idle": "stays in place in its mound of earth, its body swaying slowly from side to side like a snake, its round toothy mouth slowly opening and closing, drool dripping",
         "move": "the worm swims forward through the earth like a sea serpent, staying in place: the spiky arches of its back rise out of the soil and plunge back in one after another, pushing up dirt and stones, the earth churning around it",
         "attack": "rears its body up very high, then stretches its long body far forward to the right in a big arc and plunges its head down onto the ground far in front of it, a full body length away from its mound, its round toothy mouth wide open facing the ground, closes its mouth there, then pulls its long body back into its stance",
-        "transform": "dives head first down into its mound of earth and disappears underground, only the churned earth remains"
+        "transform": "dives head first down into its mound of earth and disappears underground, only the churned earth remains",
+        "swallow": "the giant worm rises very tall out of its hole, its body arching high up and over to the right, then its head comes straight down from above, mouth-first, its huge round mouth gaping wide and pointing at the ground in front of it, it slams down and snaps its mouth shut on the ground, lifts its head back up and gulps: a big round lump slides down inside its pale body toward the ground, then it settles back to exactly its starting pose; the base stays in its hole; no other creature, nothing else in the picture, no effects"
       }
     },
     "tyran-oeil": {
@@ -1948,11 +1951,14 @@
         "attack": "mm-proche-6",
         "carte": "p1-7",
         "death": "death-1",
-        "hit": "hit-18"
+        "hit": "hit-4-r"
       },
       "grande": "art-candidats/references/derives/hydre-grand.png",
       "mouvements": {
         "hit": "cringes from a blow: all the heads duck and pull back toward the tail at once, then each head shakes and sways in its own way, mouths open, the body crouches back, a very lively movement, then recovers back to exactly its starting pose; stays on the same spot, nothing else in the picture"
+      },
+      "consignes": {
+        "hit": "recoils violently from a blow: the whole body rears back to the left, all the heads are thrown back on their long necks like whips, then they swing forward again one after another, mouths open, the tail lashes, then it settles back to exactly its starting pose; stays on the same spot, nothing else in the picture"
       }
     },
     "succube": {

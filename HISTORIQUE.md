@@ -2908,6 +2908,16 @@ choix de l'utilisateur) :
   médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
   six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
   55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
+- ✅ **Des routes en courbes** (2026-11-20, branche `routes-sinueuses` ; l'utilisateur : « trop droites »). Le bruit des
+  détours seul ne les faisait pas tourner (sur une grille, tant de chemins droits ont la même longueur). Maintenant une
+  route de plus de 9 cases suit une courbe douce (Bézier) entre ses deux bouts, un arc ou, au-delà de 18 cases, un S une
+  fois sur deux, écartée d'environ 20 % de sa longueur (5 cases au plus), par des étapes toutes les 4 cases
+  (`MapGenerator.Road`, `RoadSegment`) ; le bruit plus contrasté (une exponentielle, des creux de 9 cases) et son propre
+  hasard (régler les routes ne change plus le reste de la carte) ; plus d'attirance vers la ligne droite. Choisi parmi
+  trois essais (aujourd'hui, courbes douces, courbes fortes) : les courbes douces. Corrigé en passant : une mine qui ne
+  tenait nulle part marquait toutes les cases comme essayées (une carte d'îles restait sans obélisque) ; les obélisques et
+  les lieux se posent maintenant avant les coffres et les tas ; un bateau amarré sur une carte à mers doit garder une côte
+  qu'on atteint à pied (un objet posé après lui l'enfermait). Les mines adossées à la montagne : 30 % au moins.
 - ✅ **Les mines et les objets zone par zone** (2026-11-20, branche `objets-carte`). Mesuré (`Objets_par_zone`) : toutes
   les mines prévues étaient posées, mais les objets, tirés dans toute la carte, se répartissaient mal : de 1 à 9 mines,
   de 10 à 79 trésors pour 1000 cases et de 0 à 16 lieux par zone. Maintenant **chaque objet va dans la zone qui en a le

@@ -162,7 +162,8 @@ dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent da
 ### La mer
 ✅ Fait (2026-11-14 et 15) : bateaux, chantiers navals, embarquer et débarquer, les types de cartes (continent, mers,
 îles, archipel), les objets de la mer, la Navigation, les navires abandonnés, les pirates, les gardiens de la mer.
-**Reste** : les images (session images) ; un pont de navire comme champ des combats en mer ; peut-être une faction
+✅ Les images des objets de la mer, du phare, du chantier de la côte et du navire abandonné (2026-11-20, branche
+`images-mer`). **Reste** : les images du bateau (8 directions, la voile aux couleurs du joueur) et du Pirate ; un pont de navire comme champ des combats en mer ; peut-être une faction
 « pirates et monstres de la mer ».
 
 ### Les habitations sur la carte (à concevoir)

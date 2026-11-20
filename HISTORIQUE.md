@@ -1676,6 +1676,12 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   (adversaires, six semaines, Normal, or d'armée) : continent 46 000, des mers 48 300, îles 31 600, archipel 31 600
   (comme avant). Dessinés par le jeu en attendant leurs images ; `--center=abandoned-ship`, `pirates`. Tests :
   `ObjetsMerTests`.
+- ✅ **Les images de la mer, premier lot** (2026-11-20, branche `images-mer`, PixelLab « pro », 0,66 $, choix de
+  l'utilisateur sur une page où l'on clique) : 16 candidats par objet à 64 × 64, la mine d'or comme style. Bouée 16 (un
+  tonneau rayé à lanterne), sirènes 7, épave flottante 8, coffre de la mer 16, tourbillon 15, réduits à une case (32 px) ;
+  navire abandonné 4, phare 10 (lieu haut, le drapeau du propriétaire dessiné sur sa galerie), chantier de la côte 16,
+  gardés à 64 px. Ce qui flotte se balance encore (`MapRenderer.DrawObject`) ; le tourbillon ne tourne pas (plus tard,
+  peut-être). `--center=shipyard` ajouté. Reste : le bateau (8 directions, voile aux couleurs du joueur) et le Pirate.
 - ✅ La mer, les objets de la mer, première partie (2026-11-14, branche `objets-mer`, choix de l'utilisateur) : sur l'eau,
   l'**épave flottante** (`Flotsam`, comme Heroes 3 : rien, 5 bois, 5 bois et 200 or, ou 10 bois et 500 or), le **coffre
   de la mer** (`SeaChest` : vide une fois sur cinq, sinon 1000 ou 1500 or ; un artefact plus tard), la **bouée** (+1 moral)
@@ -1690,7 +1696,7 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   de tourbillons (à 20 cases au moins l'un de l'autre), 0,7 phare (hors des zones de départ, à 20 cases l'un de l'autre) ;
   loin de la côte (leurs 8 voisines sont de l'eau) et à 3 cases de tout autre objet. Carte normale : 5 à 7 épaves avec des
   mers, 11 ou 12 sur les îles et l'archipel. L'IA ramasse épaves et coffres, prend les phares, apprend la Navigation en
-  dernier. Dessinés par le jeu en attendant leurs images. Développement : `--center=flotsam`, `sea-chest`, `buoy`,
+  dernier. Dessinés par le jeu en attendant leurs images (faites le 2026-11-20, voir plus bas). Développement : `--center=flotsam`, `sea-chest`, `buoy`,
   `mermaids`, `whirlpool`, `lighthouse`. Tests : `ObjetsMerTests`.
 - ✅ La mer, les types de cartes (2026-11-14, branche `types-cartes`, choix de l'utilisateur) : une option de la nouvelle
   partie (`MapType`, liste « Carte » à côté de la graine, continent par défaut ; `--map-type=`). Le générateur part des

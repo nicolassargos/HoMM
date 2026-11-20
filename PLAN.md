@@ -234,7 +234,8 @@ nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles 
 (2026-11-19), celui de la roche, une terre désolée, et celui de la terre brûlée, aux feux qui respirent (2026-11-20).
 ✅ Une **animation de mort** par créature (2026-11-17), revue avec l'utilisateur et **variée** (2026-11-19, branche
 `morts-variees` : en arrière, sur le côté, une mort propre au Démon, à la Liche, au Roi de cristal, au Golem…).
-**Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.
+✅ La mort du **Moloch** qui se défait vraiment, sa tête visible au sol (2026-11-20, branche `moloch-jambes` ; « good
+enough », selon l'utilisateur : les jambes s'affaissent dans le tas sans se défaire).
 ✅ Un **coup reçu** par créature (2026-11-17), revu et choisi avec l'utilisateur (le Dragon, l'Hydre et le Démon par le
 second modèle de PixelLab) ; ceux du **Dragon** et de l'**Hydre** finis (2026-11-20, branche `coups-dragon-hydre` : ils
 se cabrent en arrière ; préférés par l'utilisateur à ceux de `animations-dragon-hydre-ver`, faits le même jour).

@@ -2266,7 +2266,7 @@
         "idle": "fournaise-2",
         "attack": "poings-3",
         "carte": "p1-6",
-        "death": "death-8",
+        "death": "tete-1",
         "hit": "hit-1"
       },
       "grande": "art-candidats/references/derives/moloch-grand.png",

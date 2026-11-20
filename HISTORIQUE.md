@@ -2930,6 +2930,14 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
   de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
   worktree (non suivi par git).
+  ✅ **La mort du Moloch qui se défait** (2026-11-20, branche `moloch-jambes`) : l'utilisateur veut voir la statue se
+  démonter (jambes, torse, bras, tête), pas tomber d'un bloc. Essais écartés : quatre suites depuis l'image à genoux
+  (PixelLab v3 et second modèle : il se relève, ou ne se défait pas ; 1,38 $, le second modèle coûtant environ 0,65 $
+  l'essai pour une créature de cette taille, dépensés sans accord) ; une chute en neuf morceaux faite par le code
+  (« shattered, not dismantled » : on dirait qu'elle éclate). Gardé : « Nouveau 2 » du 2026-11-19 (death-6, les bras
+  tombent, le corps se démonte en tas), dont la tête devenait une masse informe : la vraie tête, découpée dans l'image
+  2, posée par le code sur le même chemin (elle glisse du cou, tombe devant, rebondit, reste sur le tas), les
+  étincelles retirées. Les jambes s'affaissent dans le tas sans se défaire : « good enough ».
   ✅ **Le coup reçu du Dragon et de l'Hydre, fini** (2026-11-20, branche `coups-dragon-hydre`) : ceux du 2026-11-17
   bougeaient à peine (« encore à finir », selon l'utilisateur, qui voulait un Dragon qui recule). Le modèle v3, 8 images
   avec retour, une consigne qui fait **se cabrer en arrière** : « rears back to the left: it throws its head and long

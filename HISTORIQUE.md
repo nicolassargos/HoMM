@@ -1974,6 +1974,20 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   plantes vertes séchées par un script (gris-jaune, l'ombrage gardé), les touffes et brindilles copiées de l'herbe et
   séchées ; les pins restent verts. Les combats sur la roche n'empruntent plus le champ du désert (la terre brûlée,
   encore).
+- ✅ Champ de bataille de la terre brûlée (2026-11-20, branche `champ-brule`). Le sol est celui de la carte, tel quel
+  (choix de l'utilisateur : ni moins de cendre, ni un sol tiré vers la cendre pour que les obstacles se voient) :
+  **ce sont les images qui doivent se lire** sur ce sol sombre. `BurntPalette` : un ciel de fumée rouge sombre, orangé
+  vers l'horizon, des volcans brun-violet, des collines calcinées. Images Retro Diffusion (3,84 $, 16 sujets, 47
+  images gardées) : pierre gris cendre et bois blanchi plutôt que noirs, **une forte lueur orange par-dessous** (aimée
+  de l'utilisateur, à renforcer) : arbres morts et troncs calcinés fendus de lave, flèches de basalte sur un cercle de
+  feu, rochers aux fissures de lave, cheminées de lave, souches rougeoyantes, tas de braises ; seules les brindilles
+  à braise comme détails (16 : les cailloux pâles faisaient des taches). **Le disque de sol peint sous chaque objet**
+  (« bizarre ») fondu dans le sol comme sous les arbres de la neige (`tools/art/sans_disque.py`), le feu gardé ; les
+  cheminées de lave gardent leur bord. **Pas d'ombre de contact** (choix de l'utilisateur : le feu au pied pose
+  l'objet). **Le feu des images respire** comme les fissures du sol (`BattleFieldView.DrawGlow`) : ses pixels orange,
+  plus chauds, par-dessus l'image, un cycle de 5 secondes en trois paliers, chaque objet à son rythme ; discret
+  (à 75 %, « un peu trop »). Les petits arbres lointains du paysage ouvert, cuits dans son image, ne respirent pas.
+  Tous les sols ont maintenant leur champ de bataille.
 - ✅ Finitions des champs (2026-11-17, branche `champ-finitions`). **Nuages** dans le ciel des paysages ouverts : 1 à 3,
   plats dessous, des bosses bombées dessus (gardées dans le nuage : une bosse coupée au bout faisait un mur) ; gris sous
   le ciel couvert du marais (drapeau `Overcast` : le haut blanc y brillait trop, remarque de l'utilisateur). **Rochers**

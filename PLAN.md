@@ -131,6 +131,37 @@ pieds, divers), un **coffre de 16 places**. **Une image de 32 × 32 par artefact
 images) ; les onglets en marque-pages (à l'essai) ; la taille de l'écran, à régler avec la maquette
 `art-candidats/en-cours/maquettes/heros.html`.
 
+### Les bâtiments des villes (à faire, avant les villes en images)
+Décidé avec l'utilisateur (2026-11-20) : la liste complète d'abord, puis les scènes des villes. Aujourd'hui, 17
+bâtiments par ville (10 communs, 7 habitations, `data/buildings.json`) ; demain **environ 32**, comme Heroes 3 (une
+amélioration garde la place de son bâtiment, avec sa propre image : 18 places, dans les 25 prévues par scène).
+- **Communs (9 places)** : salle du village → hôtel de ville → grand hôtel de ville → **capitole** (un par joueur,
+  2400 or par jour) ; **fort → citadelle → château** (les murs des sièges ; +50 % puis +100 % de croissance) ; guilde
+  des mages 1 à 4 ; taverne ; marché ; **silo** (+1 par jour de la ressource principale de la faction) ; **forge**
+  (machines de guerre : baliste, tente de soins, chariot de munitions ; **à décider** : maintenant, ou seulement sa
+  place dans la scène) ; chantier naval ; **bâtiment du Graal** (bâti avec le trésor enfoui des obélisques, un grand
+  bonus propre à la faction).
+- **Par faction (9 places)** : les 7 habitations, chacune avec son **amélioration** (d'où viennent les créatures
+  améliorées) ; un **bâtiment de croissance** d'un petit niveau (les « hordes » de Heroes 3) ; un **bâtiment spécial**.
+- **Les bâtiments spéciaux** (choix de l'utilisateur, 2026-11-20, après trois tours d'idées : des effets qui changent la
+  façon de jouer ; forts pour les factions faibles des `Mesures`, utiles mais doux pour les fortes ; à régler en
+  refaisant les `Mesures`) :
+
+| Faction | Bâtiment | Effet |
+|---|---|---|
+| Morts-vivants | **Cortège funèbre** | après chaque combat gagné par un héros du joueur, où qu'il soit, les morts des deux camps reviennent à la ville : des Squelettes à recruter la semaine suivante |
+| Barbares | **La Marmite** | on y jette de petites créatures, il en sort de plus fortes (4 Gobelins → 1 Orc, 3 Loups → 1 Ogre…) |
+| Tour de magie | **La Tour qui pousse** | un étage de plus par semaine (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
+| Château | **Les Hérauts** | plus un héros a gagné de combats, plus les monstres neutres proposent de le rejoindre ; héros de taverne moins chers |
+| Nains | **Le Grand Comptoir** | compte pour 2 marchés de plus (meilleurs taux d'échange) |
+| Donjon | **Tourbillon de mana** | une fois par semaine, les points de sort d'un héros qui le visite sont doublés |
+| Forêt | **Sentiers des rôdeurs** | les héros qui quittent la ville ont plus de mouvement ce jour-là |
+| Enfer | **Portail infernal** | aller d'une ville de l'Enfer du joueur à une autre |
+
+- **Règles à faire (session règles)** : les sièges et les murs, les machines de guerre, les créatures améliorées, le
+  bonus du Graal de chaque faction, les bâtiments spéciaux et de croissance ; leurs noms (français) ; puis les `Mesures`.
+  Les images des villes peuvent commencer dès que la liste est fixée.
+
 ### L'économie ✅
 7 ressources (or, bois, minerai ; mercure, cristal, soufre, gemmes) ; le marché ; mines sur 3 × 2 cases et villes sur
 5 × 4 cases (`HISTORIQUE.md`). **Reste** : les taux du marché, à revoir en jouant (l'utilisateur n'en est pas sûr).
@@ -215,6 +246,7 @@ l'écran de recrutement, à revoir pour gagner de la place ; la poignée des bar
 pierre ; vérifier les pieds des mines de mercure, minerai et soufre, et la force de l'ombre de contact en jeu.
 
 ### La ville vue de face par faction (rien n'est encore fait)
+La liste de ses bâtiments : « Les bâtiments des villes », plus haut.
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de 640 × 195
 affiché ×3, et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque
 amélioration a sa propre image au même pied. Bâtiments dessinés de l'arrière vers l'avant ; clic et survol sur les

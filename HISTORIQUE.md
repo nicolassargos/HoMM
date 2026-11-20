@@ -2866,6 +2866,19 @@ choix de l'utilisateur) :
   médianes) : herbe 74 %, marais 10 %, sable 9 %, terre brûlée 7 %, roche 4 % de la terre. Armée d'un adversaire après
   six semaines : moyenne 53 700 (51 500 avant) ; Nains 64 100, Barbares 62 200, Enfer 58 600, Forêt 55 400, Donjon
   55 100, Château 47 200, Tour 45 600, morts-vivants 41 500.
+- ✅ **Les mines et les objets zone par zone** (2026-11-20, branche `objets-carte`). Mesuré (`Objets_par_zone`) : toutes
+  les mines prévues étaient posées, mais les objets, tirés dans toute la carte, se répartissaient mal : de 1 à 9 mines,
+  de 10 à 79 trésors pour 1000 cases et de 0 à 16 lieux par zone. Maintenant **chaque objet va dans la zone qui en a le
+  moins de sa sorte pour sa place libre** (mines, coffres et tas, lieux) : de 16 à 58 trésors pour 1000 cases, de 1 à 10
+  lieux. **Les mines de chaque zone** (choix de l'utilisateur : la plupart des sortes) : la scierie et la mine de minerai
+  de sa ville (les deux sans ville), 2 ou 3 ressources rares différentes à tour de rôle, une mine d'or une zone sur deux
+  (sur les îles, aux petites zones : 1 ou 2 rares, l'or une zone sur trois) ; de 4 à 6 sortes par zone. **Mines d'or à
+  1000 or par jour** (comme Heroes 3) : 4 sur une carte normale au lieu de 11 à 500. Un objet qui ne tient pas n'arrête
+  plus la pose de la suite (avant, une mine sans place arrêtait les coffres, les tas et les lieux) ; une mine qui ne tient
+  pas dans sa zone va dans la moins pourvue. Le test des mines adossées passe à 35 % (40 : chaque zone a ses mines, elles
+  ne vont plus toutes où sont les montagnes). Équilibre : la simulation seule gagne la carte normale vers le jour 194
+  (192 avant), la grande 4 fois sur 6 vers le jour 397 (6 sur 6 vers 388 : à la limite du temps donné) ; un adversaire
+  après six semaines (`Adversaires_en_six_semaines`) : armée 44 100 (facile), 59 400 (normal), 72 200 (difficile).
 - ✅ **Des zones plus grandes** (2026-11-20, branche `zones-plus-grandes` ; l'utilisateur : « très, très petites »).
   Mesuré (`tools/cartes/zones_h3.py`, 50 cartes de Heroes 3, et `Zones_vues_du_joueur` pour les nôtres) : les régions
   où l'on marche, séparées par les obstacles et les monstres (leur case et ses 8 voisines) ; la région d'une case

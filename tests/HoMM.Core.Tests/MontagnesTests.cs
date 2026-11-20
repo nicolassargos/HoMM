@@ -63,7 +63,8 @@ public class MontagnesTests
                     backed++;
             }
         }
-        Assert.True(backed * 10 >= total * 4, $"{backed} mines adossées sur {total}");
+        // 35 % (40 avant le 2026-11-20 : chaque zone a maintenant ses mines, elles ne vont plus toutes où il y a des montagnes)
+        Assert.True(backed * 100 >= total * 35, $"{backed} mines adossées sur {total}");
     }
 
     [Fact]

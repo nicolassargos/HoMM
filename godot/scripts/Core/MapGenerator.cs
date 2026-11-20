@@ -350,15 +350,17 @@ public sealed class MapGenerator
     /// </summary>
     private double WindingCost(Cell c)
     {
-        _roadNoise ??= SmoothNoise(RoadWindingStep);
-        return 1 + RoadWinding * _roadNoise(c.X, c.Y);
+        // son propre hasard (2026-11-20) : régler les détours ne change pas le reste de la carte ; plus contrasté (une
+        // exponentielle), les creux larges
+        _roadNoise ??= SmoothNoise(RoadWindingStep, new Random(_seed * 7349 + 13));
+        return Math.Exp(RoadWinding * _roadNoise(c.X, c.Y));
     }
 
     private Func<int, int, double>? _roadNoise;
 
-    /// <summary>La force des détours des routes (de 0 : tout droit, à presque 1), et la taille des creux qu'elles suivent.</summary>
-    private const double RoadWinding = 0.6;
-    private const int RoadWindingStep = 5;
+    /// <summary>La force des détours des routes et la taille des creux qu'elles suivent (0,6 et 5 avant le 2026-11-20).</summary>
+    private const double RoadWinding = 1.1;
+    private const int RoadWindingStep = 9;
 
     /// <summary>
     /// Le réseau principal des routes, un arbre (2026-11-15, d'après les cartes de Heroes 2 et 3 : leurs routes couvrent 3
@@ -1124,13 +1126,14 @@ public sealed class MapGenerator
     /// Un bruit doux sur la carte, de −1 à 1 : des valeurs au hasard toutes les <paramref name="step"/> cases, mêlées en
     /// douceur entre elles.
     /// </summary>
-    private Func<int, int, double> SmoothNoise(int step)
+    private Func<int, int, double> SmoothNoise(int step, Random? rng = null)
     {
+        rng ??= _rng;
         int w = _map.Width / step + 2, h = _map.Height / step + 2;
         var values = new double[w, h];
         for (int j = 0; j < h; j++)
         for (int i = 0; i < w; i++)
-            values[i, j] = _rng.NextDouble() * 2 - 1;
+            values[i, j] = rng.NextDouble() * 2 - 1;
         static double Smooth(double t) => t * t * (3 - 2 * t);
         return (x, y) =>
         {
@@ -1476,18 +1479,70 @@ public sealed class MapGenerator
     /// <summary>
     /// Trace une route (ponts et cols compris) par le plus court chemin à l'intérieur d'une zone,
     /// sans passer par ses murs (sauf les passages ouverts) ni par les cases interdites. Elle va aussi en diagonale
-    /// (comme Heroes : des lignes à 45° plutôt que des escaliers ; choix de l'utilisateur, 2026-11-14), au plus près de
-    /// la ligne droite entre ses deux bouts ; un pas en diagonale ne passe pas entre deux coins interdits.
+    /// (comme Heroes : des lignes à 45° plutôt que des escaliers ; choix de l'utilisateur, 2026-11-14), en suivant une
+    /// courbe douce entre ses deux bouts (2026-11-20) ; un pas en diagonale ne passe pas entre deux coins interdits.
     /// </summary>
     private void Road(Cell from, Cell to, int zone, HashSet<Cell> carved, HashSet<Cell>? forbidden = null, bool joinRoad = false)
+    {
+        // des courbes (2026-11-20, remarque de l'utilisateur : des routes trop droites) : une route longue suit une courbe
+        // douce entre ses deux bouts, un arc ou un S, par des étapes toutes les quelques cases (le bruit des détours, seul,
+        // ne la faisait pas tourner : sur une grille, tant de chemins droits ont la même longueur ; deux étapes seules
+        // faisaient des morceaux droits et des angles)
+        double length = Math.Sqrt(SquaredDistance(from, to));
+        if (joinRoad || length < RoadBendLength || RoadBend <= 0)
+        {
+            RoadSegment(from, to, zone, carved, forbidden, joinRoad);
+            return;
+        }
+        _bendRng ??= new Random(_seed * 6007 + 41);
+        bool Allowed(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone && !IsSea(c)
+            && (!_border[c.X, c.Y] || carved.Contains(c)) && forbidden?.Contains(c) != true && !InStartingTown(c);
+        double nx = -(to.Y - from.Y) / length, ny = (to.X - from.X) / length;
+        // les deux points d'appui de la courbe (Bézier), au tiers et aux deux tiers, écartés du même côté (un arc) ou de part
+        // et d'autre (un S, sur une route longue)
+        double side = _bendRng.Next(2) == 0 ? -1 : 1;
+        double bend = Math.Min(RoadBendMax, length * RoadBend) * (0.7 + 0.6 * _bendRng.NextDouble()) * 4 / 3;
+        bool s = length >= 2 * RoadBendLength && _bendRng.Next(2) == 0;
+        (double X, double Y) P(double t, double offset) => (from.X + (to.X - from.X) * t + nx * offset, from.Y + (to.Y - from.Y) * t + ny * offset);
+        var p1 = P(1.0 / 3, side * bend);
+        var p2 = P(2.0 / 3, (s ? -side : side) * bend);
+        var stops = new List<Cell> { from };
+        int count = Math.Max(2, (int)(length / RoadBendSpacing));
+        for (int i = 1; i < count; i++)
+        {
+            double t = (double)i / count, u = 1 - t;
+            double x = u * u * u * from.X + 3 * u * u * t * p1.X + 3 * u * t * t * p2.X + t * t * t * to.X;
+            double y = u * u * u * from.Y + 3 * u * u * t * p1.Y + 3 * u * t * t * p2.Y + t * t * t * to.Y;
+            var wanted = new Cell((int)Math.Round(x), (int)Math.Round(y));
+            // la case permise la plus proche (sinon, pas d'étape)
+            var stop = Around(wanted, 2).Where(Allowed).OrderBy(c => SquaredDistance(c, wanted)).ThenBy(c => c.Y).ThenBy(c => c.X)
+                .Cast<Cell?>().FirstOrDefault();
+            if (stop is { } st && st != stops[^1])
+                stops.Add(st);
+        }
+        stops.Add(to);
+        for (int i = 0; i + 1 < stops.Count; i++)
+            RoadSegment(stops[i], stops[i + 1], zone, carved, forbidden, false);
+    }
+
+    private Random? _bendRng;
+
+    /// <summary>
+    /// Les courbes des routes (choix de l'utilisateur, 2026-11-20 : des courbes douces) : au-delà de
+    /// <see cref="RoadBendLength"/> cases, un arc (un S, une fois sur deux, au-delà du double) écarté de la ligne droite
+    /// d'environ cette part de la longueur, au plus de <see cref="RoadBendMax"/> cases.
+    /// </summary>
+    private const double RoadBend = 0.2, RoadBendMax = 5, RoadBendLength = 9;
+    /// <summary>L'écart entre deux étapes le long de la courbe, en cases.</summary>
+    private const double RoadBendSpacing = 4;
+
+    /// <summary>Un morceau de route, au plus court (voir <see cref="Road"/>).</summary>
+    private void RoadSegment(Cell from, Cell to, int zone, HashSet<Cell> carved, HashSet<Cell>? forbidden, bool joinRoad)
     {
         bool Allowed(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone && !IsSea(c)
             && (!_border[c.X, c.Y] || carved.Contains(c)) && forbidden?.Contains(c) != true && !InStartingTown(c);
         bool Enter(Cell c) => Allowed(c) || c == to;
         bool NextToRoad(Cell c) => Neighbours(c).Any(n => _map.InBounds(n) && _map.HasRoad(n));
-        // l'écart à la ligne droite, qui départage les chemins de même longueur (pas pour rejoindre une route)
-        double dx = to.X - from.X, dy = to.Y - from.Y, length = Math.Sqrt(dx * dx + dy * dy);
-        double OffLine(Cell c) => joinRoad || length == 0 ? 0 : Math.Abs((c.X - from.X) * dy - (c.Y - from.Y) * dx) / length;
 
         var previous = new Dictionary<Cell, Cell> { [from] = from };
         var cost = new Dictionary<Cell, double> { [from] = 0 };
@@ -1513,7 +1568,7 @@ public sealed class MapGenerator
                 // suivre une route déjà tracée coûte moins, longer une route à côté coûte plus : les routes se rejoignent au
                 // lieu de courir côte à côte (deux routes voisines faisaient une « échelle »)
                 double step = (diagonal ? Math.Sqrt(2) : 1) * (_map.HasRoad(next) ? 0.6 : NextToRoad(next) ? 1.6 : WindingCost(next));
-                double total = known + step + 0.05 * OffLine(next);
+                double total = known + step;
                 if (cost.TryGetValue(next, out double old) && old <= total)
                     continue;
                 cost[next] = total;
@@ -2502,8 +2557,8 @@ public sealed class MapGenerator
             foreach (var cell in Balanced(kind))
             {
                 used.Add(cell);
-                if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null)
-                    continue; // une case d'une mine (ses murs, la case devant son entrée)
+                if (_mineCells.Contains(cell) || _map.OccupantAt(cell) != null || _overhang.Contains(cell))
+                    continue; // une case d'une mine (ses murs, la case devant son entrée), le côté d'un grand lieu
                 var obj = make(cell);
                 _map.AddObject(obj);
                 if (AllObjectsReachable())
@@ -2698,7 +2753,7 @@ public sealed class MapGenerator
             {
                 if (mine != null)
                     break;
-                used.Add(c);
+                // une case où une mine (3 × 2 cases) ne tient pas reste libre pour un petit objet
                 mine = TryPlaceMine(c, resource, freeSet);
             }
             if (mine != null)
@@ -2709,6 +2764,12 @@ public sealed class MapGenerator
             else
                 MinesNotPlaced++;
         }
+        // les obélisques et les lieux avant les trésors (2026-11-20) : sur une petite île, les coffres et les tas essayaient
+        // toutes les cases et il ne restait rien pour eux (une carte sans obélisque, où le trésor ne se trouve pas)
+        var rest = free.Where(c => !used.Contains(c)).ToList();
+        PlaceObelisks(rest, 0);
+        PlaceSites(rest);
+
         for (int i = 0; i < Scaled(ChestCount); i++)
             if (!Place(c => new TreasureChest(c, _rng), "trésor"))
                 break;
@@ -2724,10 +2785,6 @@ public sealed class MapGenerator
             if (!Place(c => new ResourcePile(c, type, _rng), "trésor"))
                 break;
         }
-
-        var rest = free.Where(c => !used.Contains(c)).ToList();
-        PlaceObelisks(rest, 0);
-        PlaceSites(rest);
     }
 
     /// <summary>Les cases de terre d'où l'on monte dans un bateau amarré : ni objet ni monstre n'y va.</summary>
@@ -3350,9 +3407,10 @@ public sealed class MapGenerator
         bool Reached(Cell c) => reachable[c.X, c.Y];
         // les monstres aussi : un monstre ne doit pas en enfermer un autre (on ne passe pas à travers un monstre) ; un
         // bateau, depuis la terre à côté
-        // (avec des mers, le parcours reste à terre : un objet sur l'eau s'atteint en bateau, il ne coupe aucun chemin)
+        // (avec des mers, le parcours reste à terre : un objet sur l'eau s'atteint en bateau, il ne coupe aucun chemin ; sauf
+        // un bateau amarré, qu'on rejoint à pied : 2026-11-20, un objet posé après lui en enfermait la côte)
         return _map.Objects.All(o => Reached(o.Position) || o is Boat && Neighbours(o.Position).Any(n => _map.InBounds(n) && Reached(n))
-                                     || Type == MapType.Seas && _map.IsWater(o.Position))
+                                     || Type == MapType.Seas && _map.IsWater(o.Position) && o is not Boat)
             && (_map.Treasure is not { } treasure || Reached(treasure))
             && _map.Starts.All(Reached)
             && _harbourChecks.GroupBy(h => h.Start).All(g => OnFootGrid(g.Key) is var walk && g.All(h => walk[h.Cell.X, h.Cell.Y]));

@@ -2859,6 +2859,13 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
   de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
   worktree (non suivi par git).
+  ✅ **Le coup reçu du Dragon et de l'Hydre, fini** (2026-11-20, branche `coups-dragon-hydre`) : ceux du 2026-11-17
+  bougeaient à peine (« encore à finir », selon l'utilisateur, qui voulait un Dragon qui recule). Le modèle v3, 8 images
+  avec retour, une consigne qui fait **se cabrer en arrière** : « rears back to the left: it throws its head and long
+  neck back to the left, jaws open, rises onto its hind legs with its front claws lifted, the wings snapping open… »
+  (Dragon, essai 1) ; « all five heads whip back to the left at once… the body rocks back onto its hind legs… » (Hydre,
+  essai 6, elle lève les pattes de devant). Le second modèle, cette fois, tournait le Dragon vers nous et lançait les
+  têtes de l'Hydre en avant (on dirait une attaque). 12 essais, 0,17 $, choisis au premier tour.
   ✅ **Les héros au combat** (2026-11-19, branche `heros-combat`) : le combat montrait l'image de la carte du héros
   (48 px, ×2). Désormais `MapRenderer.HeroBattleImage` prend `heroes/battle/<nom>.png` s'il existe (sinon l'image de la
   carte), aux couleurs du joueur comme sur la carte (`PaintPlayerColor`, commun aux deux) ; celui qui se défend, à

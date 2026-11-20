@@ -414,7 +414,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   retour à la pose de départ, 8 images)**, sans image clé : « takes a heavy blow to the chest and recoils: the head and
   neck jerk back, the wings flinch, the body sways back on its legs, then it recovers; no effects » (le Dragon se tasse,
   le Démon se plie un peu) ; il dessine un effet sur les 1 ou 2 premières images : les remplacer par une image suivante.
-  À essayer en premier pour une grande créature.
+  **Mieux encore (2026-11-20, choisi par l'utilisateur) : le modèle v3 avec un geste qui se cabre en arrière**, 8
+  images avec retour : « rears back to the left: it throws its head and long neck back to the left, jaws open, rises
+  onto its hind legs with its front claws lifted, the wings snapping open, then recovers back to exactly its starting
+  pose… » ; le corps entier recule, la tête en arrière. Le second modèle, avec la même consigne, tourne le Dragon vers
+  nous et lance les têtes de l'Hydre en avant. Faire 3 ou 4 graines : environ une sur trois dessine un éclat (le
+  retirer avec `retoucher … --eclats=partout`, et `--copier` pour une image trop tachée).
   Le jeu ajoute un recul de 9 pixels de l'écran (`Recoil`) : la page de revue le montre aussi. Retirer des effets à la
   main : par rectangles, n'effacer que les pixels clairs (ou jaune vif sur des cheveux blonds) ; sur le corps, leur donner
   la couleur du corps voisine plutôt que de faire un trou ; ou reprendre une image voisine.

@@ -187,7 +187,8 @@ nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles 
 `morts-variees` : en arrière, sur le côté, une mort propre au Démon, à la Liche, au Roi de cristal, au Golem…).
 **Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.
 ✅ Un **coup reçu** par créature (2026-11-17), revu et choisi avec l'utilisateur (le Dragon, l'Hydre et le Démon par le
-second modèle de PixelLab ; « encore à finir » pour le Dragon et l'Hydre, selon lui).
+second modèle de PixelLab) ; ceux du **Dragon** et de l'**Hydre** finis (2026-11-20, branche `coups-dragon-hydre` : ils
+se cabrent en arrière).
 ✅ La mort et le coup reçu de l'Archer, du Griffon et du Cavalier (2026-11-19, branche `morts-chateau`) ; ceux du
 **Loup**, du **Moine** et du **Troll** refaits d'après leurs nouvelles images (2026-11-19).
 

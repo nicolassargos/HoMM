@@ -204,7 +204,9 @@ se cabrent en arrière ; préférés par l'utilisateur à ceux de `animations-dr
 monture de sa faction, d'après son portrait (`tools/art/heros_combat.py`) ; faite pour un héros par faction (Sire
 Roland, Mortimer, Tarka, Sylvain, Maître Aldric, Zarkhan, Malachar, Brokk), choisie par l'utilisateur au premier tour.
 **Pas pour les 39 autres héros** (choix de l'utilisateur, 2026-11-19) : ils gardent leur image de la carte au combat.
-**Reste** : plus tard, peut-être des animations pour ces huit ; refaire le sud-est du chef barbare et du Seigneur des abîmes (tournés vers le sud) ; cadres des portraits,
+✅ Le sud-est du **Seigneur des abîmes** tourné vers le sud, son grand cheval gardé (2026-11-20, branche
+`heros-sud-est`) ; celui du **chef barbare** reste l'ancien (l'utilisateur le trouve lisible, aucun essai ne l'était).
+**Reste** : plus tard, peut-être des animations pour ces huit ; cadres des portraits,
 bandeau de la date.
 
 ### L'interface

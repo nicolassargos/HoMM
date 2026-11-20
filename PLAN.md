@@ -261,7 +261,9 @@ bandeau de la date.
 panneau de la carte, les écrans revus pour la nouvelle police.
 **Reste** : des icônes sur les autres écrans, au fil des besoins ; des icônes pour les récompenses (coffre, niveau) ;
 l'écran de recrutement, à revoir pour gagner de la place ; la poignée des barres de défilement comme taillée dans la
-pierre ; vérifier les pieds des mines de mercure, minerai et soufre, et la force de l'ombre de contact en jeu.
+pierre. ✅ Les pieds des mines de mercure, de minerai (ses six sols) et de soufre, et la force de leur ombre de
+contact, revus par l'utilisateur (2026-11-20, avec ceux du Seigneur des abîmes) ; environ 110 images ont encore des
+pieds non revus (champ de la roche, massifs, arbres des sols, ponts).
 
 ### La ville vue de face par faction (rien n'est encore fait)
 La liste de ses bâtiments : « Les bâtiments des villes », plus haut.

@@ -492,6 +492,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   (pâles, ils faisaient des points blancs). Les touffes dessinées par le shader faisaient des croix : prendre des
   images de l'herbe et les sécher (gris-jaune `l × 1,07, l, l × 0,78`, sans bleu ni orange). Décaler le dessin du
   sol d'un combat à l'autre (`rock_shift`), sinon les mêmes ravins reviennent.
+- Terre brûlée (2026-11-20) : sur un sol sombre, des objets noirs ne se lisent pas ; plutôt que changer le sol, demander
+  « pale ash grey » (pierre, bois blanchi) et « strongly lit from below by a bright orange fire glow, glowing orange rim
+  light on its lower edges and sides, must stand out on a very dark ground ». Retro Diffusion pose presque chaque objet
+  sur un disque de sol (pierre grise, cendre) : `tools/art/sans_disque.py` le fond dans le sol (`--sombre` pour les tas
+  de rochers) ; à vérifier image par image (les dessous sombres des rochers, les racines, le bord des cratères).
 
 ## Effets du combat (dessinés par le jeu)
 - **Pas d'effet dans les animations des créatures** : projectiles, impacts, auras sont dessinés par `Game/BattleEffects.cs`,

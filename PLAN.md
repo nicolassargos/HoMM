@@ -183,8 +183,7 @@ dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent da
   aussi avoir **plus d'un sol** : les Nains la roche ou la neige, la Tour la neige ou le sable, l'Enfer la terre brûlée
   ou le sable, les morts-vivants le marais ou la roche (à faire). Peut-être plus tard un sol souterrain pour le Donjon,
   s'il y a un souterrain. Des thèmes de cartes (la répartition se réglera alors) ; le sol
-  des factions encore sur l'herbe, à décider ; un champ de bataille pour la terre brûlée
-  (celui du désert en attendant) ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
+  des factions encore sur l'herbe, à décider ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
@@ -219,7 +218,7 @@ la zone ; les créatures du Donjon en gardiens.
 ✅ Fait : combat à ×2, effets dessinés par le jeu, animations des sorts, les options du combat, choisir le côté de
 l'attaque, les champs de l'herbe, du désert et du marais (2026-11-16), les obstacles plutôt au milieu du champ, des
 nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles (2026-11-17), le champ de la neige
-(2026-11-19), celui de la roche, une terre désolée (2026-11-20).
+(2026-11-19), celui de la roche, une terre désolée, et celui de la terre brûlée, aux feux qui respirent (2026-11-20).
 ✅ Une **animation de mort** par créature (2026-11-17), revue avec l'utilisateur et **variée** (2026-11-19, branche
 `morts-variees` : en arrière, sur le côté, une mort propre au Démon, à la Liche, au Roi de cristal, au Golem…).
 **Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.

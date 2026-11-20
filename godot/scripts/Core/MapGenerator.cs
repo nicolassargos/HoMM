@@ -18,6 +18,8 @@ public sealed class MapGenerator
     private readonly Random _factionRng;
     /// <summary>Le hasard du sol des zones (à part : le reste de la carte ne change pas avec lui).</summary>
     private readonly Random _groundRng;
+    /// <summary>Le hasard du sol d'un départ (le principal ou le second de sa faction), à part lui aussi.</summary>
+    private readonly Random _startGroundRng;
     /// <summary>Le hasard des massifs de montagnes, à part : il ne change pas le reste de la carte.</summary>
     private readonly Random _massifRng;
     private readonly GameData? _data;
@@ -48,6 +50,7 @@ public sealed class MapGenerator
         _seed = seed;
         _factionRng = new Random(seed * 7919 + 17);
         _groundRng = new Random(seed * 4421 + 3);
+        _startGroundRng = new Random(seed * 5381 + 11);
         _massifRng = new Random(seed * 6271 + 29);
         _data = data;
     }
@@ -1733,7 +1736,8 @@ public sealed class MapGenerator
 
     /// <summary>
     /// La faction d'une ville neutre : une des factions qu'on peut jouer, au hasard, parmi celles du sol de sa zone (le
-    /// sable, le marais ; l'herbe : celles qui n'ont pas de sol) s'il y en a.
+    /// sable, le marais ; l'herbe : celles qui n'ont pas de sol) s'il y en a. Une faction dont c'est le second sol compte
+    /// moitié moins (choix de l'utilisateur, 2026-11-20 : le sable reste surtout barbare).
     /// </summary>
     private string NeutralTownFaction(GameData data, Cell cell)
     {
@@ -1741,9 +1745,15 @@ public sealed class MapGenerator
         if (factions.Count == 0)
             return DefaultFaction;
         var ground = _zones.Count > 0 && _zoneGround.TryGetValue(_zoneOf[cell.X, cell.Y], out var g) ? g : TerrainType.Grass;
-        var native = factions.Where(f => (data.Classes.ForFaction(f)?.Ground ?? TerrainType.Grass) == ground).ToList();
-        var pool = native.Count > 0 ? native : factions.ToList();
-        return pool[_factionRng.Next(pool.Count)];
+        var native = factions.SelectMany(f => (data.Classes.ForFaction(f)?.Grounds ?? new[] { TerrainType.Grass })
+            .Select((g, i) => (Faction: f, Ground: g, Weight: i == 0 ? 2 : 1))).Where(n => n.Ground == ground).ToList();
+        if (native.Count == 0)
+            return factions[_factionRng.Next(factions.Count)];
+        int pick = _factionRng.Next(native.Sum(n => n.Weight));
+        foreach (var n in native)
+            if ((pick -= n.Weight) < 0)
+                return n.Faction;
+        return native[^1].Faction;
     }
 
     /// <summary>
@@ -1980,7 +1990,8 @@ public sealed class MapGenerator
     /// Le sol des zones (2026-11-17, mesuré sur Heroes 2 et 3 : un sol y forme une ou deux grandes régions par carte, pas
     /// des taches semées) : une zone de terre sur trois à peu près prend l'un des autres sols en entier (son herbe ; la
     /// forêt, la montagne et l'eau restent). Une ville neutre y prend une faction de ce sol (<see cref="HeroClass.Ground"/>) ;
-    /// la zone d'un départ prend le sol de la faction du joueur (l'herbe si elle n'en a pas).
+    /// la zone d'un départ prend le sol de la faction du joueur (l'herbe si elle n'en a pas ; son second sol une partie sur
+    /// trois, s'il en a un).
     /// </summary>
     private void PaintZoneGrounds()
     {
@@ -1994,8 +2005,9 @@ public sealed class MapGenerator
             _zoneGround[zone.Index] = ZoneGrounds[_groundRng.Next(ZoneGrounds.Length)];
         }
         foreach (var (start, i) in _map.Starts.Select((s, i) => (s, i)))
-            if (_data?.Classes.ForFaction(i < PlayerFactions.Count ? PlayerFactions[i] : DefaultFaction)?.Ground is { } native)
-                _zoneGround.TryAdd(_zoneOf[start.X, start.Y], native);
+            if (_data?.Classes.ForFaction(i < PlayerFactions.Count ? PlayerFactions[i] : DefaultFaction) is { Ground: { } native } heroClass)
+                _zoneGround.TryAdd(_zoneOf[start.X, start.Y],
+                    heroClass.SecondGround is { } second && _startGroundRng.NextDouble() < 1.0 / 3 ? second : native);
         foreach (var c in AllCells())
             if (_zoneGround.TryGetValue(_zoneOf[c.X, c.Y], out var ground) && _map.GetTerrain(c) == TerrainType.Grass)
                 _map.SetTerrain(c, ground);

@@ -181,7 +181,7 @@ dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent da
   2026-11-20) : pas un par faction, des factions les partagent ; plus tard, des **variantes** d'un même sol pour les
   factions qui le partagent (teinte, arbres, détails ; le même champ de bataille, une autre palette). Une faction peut
   aussi avoir **plus d'un sol** : les Nains la roche ou la neige, la Tour la neige ou le sable, l'Enfer la terre brûlée
-  ou le sable, les morts-vivants le marais ou la roche (à faire). Peut-être plus tard un sol souterrain pour le Donjon,
+  ou le sable, les morts-vivants le marais ou la roche (✅ 2026-11-20). Peut-être plus tard un sol souterrain pour le Donjon,
   s'il y a un souterrain. Des thèmes de cartes (la répartition se réglera alors) ; le sol
   des factions encore sur l'herbe, à décider ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).

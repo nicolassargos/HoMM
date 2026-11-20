@@ -3009,7 +3009,8 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   défaut, **prendre toutes les villes**, comme Heroes 3 ; **les parties longues sont acceptées** (la simulation seule
   prend toutes les villes de la normale vers le jour 210).
   Puis (2026-11-14, remarques de l'utilisateur) : ✅ les tours d'observation à 15 cases des bords et à 30 cases l'une de
-  l'autre. **À revoir ensemble** : un problème du moulin (à en parler).
+  l'autre. Le problème du moulin, à revoir ensemble, était son image : refaite le 2026-11-18 (PR #186), l'utilisateur
+  la trouve bien ainsi (2026-11-20).
   ✅ **Les rivières et les ponts (2026-11-15, branche `rivieres-ponts`, détail dans `HISTORIQUE.md`)**, en deux tours
   avec l'utilisateur : **deux sortes**, une couche posée sur le terrain comme la route (`RiverKind`). **Les rivières**
   bloquent : chacune va d'un bord de la carte à un autre (ou jusqu'à la mer) en suivant les frontières des zones ; on ne

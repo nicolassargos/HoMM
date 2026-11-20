@@ -146,7 +146,6 @@ rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruissea
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; leur
 dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19).
 **Reste** :
-- **À revoir ensemble** : un problème du moulin (à en parler).
 - **Les sols** : **six sols suffisent** (herbe, sable, marais, roche, neige, terre brûlée ; choix de l'utilisateur,
   2026-11-20) : pas un par faction, des factions les partagent ; plus tard, des **variantes** d'un même sol pour les
   factions qui le partagent (teinte, arbres, détails ; le même champ de bataille, une autre palette). Une faction peut

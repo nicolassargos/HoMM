@@ -260,8 +260,12 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   brûlé ; ✅ les **pas au combat** (2026-11-19, branche `sons-pas`, ElevenLabs, `tools/audio/pas.py` : une courte
   marche coupée en pas seuls, revue en « marchant » sur la page) : cinq façons de marcher (à pied, lourd, sabots,
   pattes, rampant ; le Limon de magma à part) sur six sols, au rythme de l'animation de marche ; rien pour les volants,
-  le Cerf qui saute et les fouisseurs (les ailes plus tard ?). **Reste** : les autres sorts, la carte, l'interface,
-  les **ambiances** du combat et de la carte, de courts airs, puis la musique chez Stable Audio.
+  le Cerf qui saute et les fouisseurs (les ailes plus tard ?) ; ✅ les **ambiances** (2026-11-20, branche
+  `sons-ambiances`, bibliothèques libres CC0, `musiques.py ambiances`) : une boucle par sol sous la musique, sur la
+  carte (le sol autour du héros) comme au combat, en fondu ; rien en ville ni au menu ; herbe Evening Birds, désert
+  Wind puis des cigales, marais Swamp Environment, roche Whistling of the Wind, terre brûlée un grand feu, mer la
+  plage de Dellec ; **pas encore la neige** (aucune ne plaisait) ; « Lava loop » gardé pour de futurs lacs de lave.
+  **Reste** : les autres sorts, la carte, l'interface, de courts airs, puis la musique chez Stable Audio.
 
 ## Étape 11 : multijoueur (à concevoir)
 Idée de l'utilisateur (2026-11-17). Les règles s'y prêtent déjà : plusieurs joueurs dans `GameState`, un brouillard

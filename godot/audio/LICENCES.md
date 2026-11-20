@@ -60,3 +60,17 @@ avant toute diffusion commerciale.
   - `musique/carte-snow.mp3` : « Mevalian Winter », Tsorthan Grove, CC0, https://opengameart.org/content/mevalian-winter
 - `musique/musique-menu.ogg` : la musique du menu principal (choisie le 2026-11-19, `tools/audio/musiques.py menu`),
   « Alandriel's Theme », HitCtrl, CC-BY 3.0, https://opengameart.org/node/108463
+- Les ambiances de la carte et du combat, une par sol (choisies le 2026-11-20, `tools/audio/musiques.py ambiances`,
+  liste dans `tools/audio/ambiances.json` ; toutes **CC0**) ; coupées, fondues en boucle et mises à la même force par
+  `tools/audio/boucler.py` :
+  - `ambiance/ambiance-grass.ogg` : « Evening Birds », Joseph Sardin, CC0, https://bigsoundbank.com/evening-birds-s1859.html
+  - `ambiance/ambiance-sand.ogg` : « Wind », Joseph Sardin, CC0, https://bigsoundbank.com/wind-s0595.html
+  - `ambiance/ambiance-sand-2.ogg` : « cicada sounds », syncopika, CC0, https://opengameart.org/content/cicada-sounds
+  - `ambiance/ambiance-swamp.ogg` : « Swamp Environment Audio », LokiF, CC0,
+    https://opengameart.org/content/swamp-environment-audio
+  - `ambiance/ambiance-rock.ogg` : « Whistling of the Wind #2 », Joseph Sardin, CC0,
+    https://bigsoundbank.com/whistling-of-the-wind-2-s0155.html
+  - `ambiance/ambiance-burnt.ogg` : « Big branching fire #3 », Joseph Sardin, CC0,
+    https://bigsoundbank.com/big-branching-fire-3-s0989.html
+  - `ambiance/ambiance-water.ogg` : « Sea of the Beach of Dellec #2 », Joseph Sardin, CC0,
+    https://bigsoundbank.com/sea-of-the-beach-of-dellec-2-s2565.html

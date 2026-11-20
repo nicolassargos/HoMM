@@ -70,4 +70,5 @@ Décision de l'utilisateur, valable pour toutes les sessions :
 - Lire des cartes de Heroes 2 et 3 (dans `maps references/`, non suivi) pour en tirer des règles : `tools/cartes/` (voir son `LISEZMOI.md`)
 - Compiler : `dotnet build` (dans `godot/`)
 - Lancer : `godot\lancer.bat` (Godot attendu dans `C:\Godot\`) : le menu principal ; toute option (ou `-- --play`) entre directement dans une partie ; plein écran (F11 ou Alt+Entrée : fenêtre agrandie ; `-- --windowed` pour démarrer en fenêtre), option `-- --seed=42` pour une carte fixe, `-- --load` pour reprendre la dernière sauvegarde, `-- --mute` sans aucun son (les captures sont toujours muettes)
+- Mettre le dossier à jour puis montrer le jeu : `godot\demo-a-jour.bat` (tire `main` depuis GitHub, seulement si le dossier est sur `main` sans fichier suivi modifié, puis lance `demo.bat`)
 - Montrer le jeu : `godot\demo.bat` (ou l'option `--demo`) : le menu principal, on choisit sa faction et son héros dans Nouvelle partie ; or et ressources sans fin, tous les bâtiments dans la ville du joueur (habitations pleines, sorts de la guilde), sans brouillard

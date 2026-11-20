@@ -158,6 +158,19 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
 | Forêt | **Sentiers des rôdeurs** | les héros qui quittent la ville ont plus de mouvement ce jour-là |
 | Enfer | **Portail infernal** | aller d'une ville de l'Enfer du joueur à une autre |
 
+- **Les murs et les sièges** (avec l'utilisateur, 2026-11-20) :
+  - **Dans la scène de la ville** : le fort, la citadelle et le château changent le mur autour de la ville, une image
+    par étape à la même place, devant les autres bâtiments, en bas de la scène. **Des murs simples** (choix de
+    l'utilisateur) : bois, briques ou pierre, selon la faction, sans formes trop particulières.
+  - **Au combat (les sièges)** : contre une ville qui a un fort, un mur coupe le champ, avec une porte que seuls les
+    défenseurs passent et des tireurs sur les murs ; la citadelle ajoute un fossé et une tour qui tire, le château
+    deux tours de plus. L'attaquant doit ouvrir une brèche : les troupes barbares frappent les murs (déjà prévu), des
+    sorts comme le Séisme. Sans fort, la ville se défend en terrain ouvert, comme aujourd'hui.
+  - **Les engins de siège** (la catapulte, avec les machines de guerre de la forge) : **plus tard** (choix de
+    l'utilisateur). En attendant, à décider avec la session règles : comment ouvrir une brèche sans eux (par exemple,
+    toutes les troupes au corps à corps frappent la porte).
+  - **Ensuite** : l'IA apprend à attaquer et à défendre les murs ; refaire les `Mesures` (une ville sans fort devient
+    plus facile à prendre) ; peut-être des bâtiments spéciaux qui touchent les murs.
 - **Règles à faire (session règles)** : les sièges et les murs, les machines de guerre, les créatures améliorées, le
   bonus du Graal de chaque faction, les bâtiments spéciaux et de croissance ; leurs noms (français) ; puis les `Mesures`.
   Les images des villes peuvent commencer dès que la liste est fixée.

@@ -992,6 +992,27 @@ Griffon 14, Cavalier 25, Moine 61, Chevalier 93, Ange 1597.
   s'assoit lourdement, puis bascule sur le dos.
 - **Images de la carte** (32 px) : Loup p1-4, Moine p1-2, Troll p1-1 ; pieds revus par l'utilisateur.
 
+**Le Dragon, l'Hydre et le Ver des profondeurs** (2026-11-20, branche `animations-dragon-hydre-ver`, PixelLab, environ
+1,2 $ ; choix de l'utilisateur).
+- **Coups reçus du Dragon et de l'Hydre** (« encore à finir » : l'utilisateur voulait un recul plus visible) : le
+  second modèle, 8 images, « recoils violently from a blow: it rears back… wings snap wide open… » (Dragon hit-2 : il
+  se cabre sur ses pattes arrière, ailes ouvertes) et « all the heads are thrown back on their long necks like whips,
+  then they swing forward again one after another » (Hydre hit-4, nettoyée). 8 essais coûtent environ 1,05 $ pour ces
+  grandes créatures. Remplacés le même jour par ceux de la branche `coups-dragon-hydre` (modèle v3), que l'utilisateur
+  a préférés en comparant les deux versions.
+- **Ver des profondeurs** :
+  - **Il glisse vers sa cible** en attaquant : réglage `lunge` d'`animations.json` (0,45 : la part du chemin jusqu'à la
+    cible), commun à toutes les créatures ; `Shown.Lunge` avance pendant l'élan de l'attaque (`UnitStruck`), puis revient
+    à sa case (`_Process`).
+  - **Le sol se fend** devant lui quand il creuse (`BattleEffects.DrawCracks`) : une fente dentelée dans le sens de sa
+    marche, plus large au milieu, une lèvre de terre claire au-dessus, 3 ou 4 fentes plus fines ; juste avant son
+    passage, des mottes et un caillou tremblent au bord.
+  - **Il avale** (feuille `ver-des-profondeurs-swallow.png`, état `swallow` de `creature.py`) : swallow-6, il se dresse
+    très haut, se courbe et **plonge d'en haut**, bouche ouverte, sur sa proie (l'utilisateur : qu'il vienne d'en haut ;
+    le premier choix mordait de côté), puis une grosse boule descend dans son corps. La créature disparaît à l'image
+    `swallowFrame` (4 par défaut) ; il glisse aussi vers la proie. `--effect-preview=avaler` : chaque créature qui a une
+    feuille `swallow` avale l'ennemi le plus proche toutes les 2,5 s, sans rien changer aux nombres.
+
 #### Les Nains
 Commencé avec l'utilisateur (2026-11-11). Des créatures qui ne copient ni Heroes 3 ni Heroes 5 (choix de l'utilisateur).
 - **Philosophie : les halls de la montagne.** Des artisans têtus qui gravent des runes et bâtissent des machines.
@@ -1212,9 +1233,8 @@ creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objec
    Homme-lézard à la lance, Homme-grenouille frondeur, Minotaure mineur, Aberration à la chair pâle, Ver des profondeurs
    qui creuse une galerie dessinée par le jeu, Tyran œil qui flotte et tire un rayon violet, Hydre verte à cinq têtes qui
    mordent tout autour : images de combat, animations, petites images de la carte. Détail dans `HISTORIQUE.md`.
-   ✅ La ville sur la carte. **Plus tard** (choix de l'utilisateur,
-   2026-11-14) : revoir les animations du Ver des profondeurs (il devrait glisser vers sa cible en attaquant ; les
-   fissures devant lui quand il creuse sont à améliorer ; peut-être une animation où il avale une créature).
+   ✅ La ville sur la carte. ✅ Les animations du Ver des profondeurs revues (2026-11-20 : glisser, fissures,
+   avaler ; détail plus bas, « Le Dragon, l'Hydre et le Ver des profondeurs »).
    **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui frappe le sol avec sa colonne
    pourrait toucher une zone (les cases autour de sa cible) : une règle à concevoir avec la session règles.
 
@@ -2080,7 +2100,7 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
     mottes, vue un peu d'en haut, dessus éclairé selon la pente, flanc à l'ombre, pierres, racines, herbe arrachée, miettes ;
     elle s'affaisse en s'effaçant). Essayés et écartés : des buttes soulevées en chemin, un bourrelet continu vu d'en haut
     (« liquide »), la galerie vue de côté. Images d'attaque et de transformation descendues pour que la terre touche le bas
-    de la case. Carte p1-3. **Plus tard** : glisser vers sa cible en attaquant, de meilleures fissures, peut-être avaler.
+    de la case. Carte p1-3. Glisser, fissures et avaler : 2026-11-20 (« Le Dragon, l'Hydre et le Ver des profondeurs »).
   - **Tyran œil** (64 px, L2-1, peau marbrée violet-brun) : il **flotte** (« flotte » : 14 pixels vides sous lui) ;
     attente calme-2, vol vent-4 (ses tentacules ondulent ; 6 images/s, 0,18 s par case ; attente 7 images/s, pause de 1 à
     3 s), attaque regard-3 (son œil s'ouvre tout grand). Son tir : le **rayon** du jeu (`rayon`, violet, droit, plus épais,
@@ -2872,6 +2892,13 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
   de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
   worktree (non suivi par git).
+  ✅ **Le coup reçu du Dragon et de l'Hydre, fini** (2026-11-20, branche `coups-dragon-hydre`) : ceux du 2026-11-17
+  bougeaient à peine (« encore à finir », selon l'utilisateur, qui voulait un Dragon qui recule). Le modèle v3, 8 images
+  avec retour, une consigne qui fait **se cabrer en arrière** : « rears back to the left: it throws its head and long
+  neck back to the left, jaws open, rises onto its hind legs with its front claws lifted, the wings snapping open… »
+  (Dragon, essai 1) ; « rears back to the left: the body lifts its front legs off the ground, the five necks thrash in
+  every direction with jaws open, hissing, then it drops back down… » (Hydre, essai 6). Le second modèle, cette fois, tournait le Dragon vers nous et lançait les
+  têtes de l'Hydre en avant (on dirait une attaque). 12 essais, 0,17 $, choisis au premier tour.
   ✅ **Les héros au combat** (2026-11-19, branche `heros-combat`) : le combat montrait l'image de la carte du héros
   (48 px, ×2). Désormais `MapRenderer.HeroBattleImage` prend `heroes/battle/<nom>.png` s'il existe (sinon l'image de la
   carte), aux couleurs du joueur comme sur la carte (`PaintPlayerColor`, commun aux deux) ; celui qui se défend, à

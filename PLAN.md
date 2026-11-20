@@ -99,7 +99,8 @@ pirates).
   Mage un peu faible en duel ; la horde barbare devrait dominer les premières semaines (son moral la freine) ; les
   gardiens du Donjon ralentissent certaines petites cartes ; vus par `Duels_a_prix_egal`, à revoir avec l'utilisateur :
   l'Archer perd contre tous les niveaux 2, le Griffon bat largement les niveaux 3, le Vampire écrase le Moine ; le Squelette peut-être trop fort face aux paysans.
-- **Animations** (plus tard) : le Ver des profondeurs (glisser vers sa cible, les fissures, peut-être avaler).
+- ✅ **Animations du Ver des profondeurs** (2026-11-20, branche `animations-dragon-hydre-ver`) : il glisse vers sa
+  cible, le sol se fend devant lui, il avale en plongeant d'en haut.
 - L'IA apprend chaque nouvelle faction.
 
 ### Les héros, leurs classes et leurs compétences
@@ -192,7 +193,8 @@ nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles 
 `morts-variees` : en arrière, sur le côté, une mort propre au Démon, à la Liche, au Roi de cristal, au Golem…).
 **Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.
 ✅ Un **coup reçu** par créature (2026-11-17), revu et choisi avec l'utilisateur (le Dragon, l'Hydre et le Démon par le
-second modèle de PixelLab ; « encore à finir » pour le Dragon et l'Hydre, selon lui).
+second modèle de PixelLab) ; ceux du **Dragon** et de l'**Hydre** finis (2026-11-20, branche `coups-dragon-hydre` : ils
+se cabrent en arrière ; préférés par l'utilisateur à ceux de `animations-dragon-hydre-ver`, faits le même jour).
 ✅ La mort et le coup reçu de l'Archer, du Griffon et du Cavalier (2026-11-19, branche `morts-chateau`) ; ceux du
 **Loup**, du **Moine** et du **Troll** refaits d'après leurs nouvelles images (2026-11-19).
 
@@ -201,9 +203,9 @@ second modèle de PixelLab ; « encore à finir » pour le Dragon et l'Hydre, se
 ✅ **Une image de combat par héros** (2026-11-19, branche `heros-combat`) : sur le côté du champ, à cheval sur la
 monture de sa faction, d'après son portrait (`tools/art/heros_combat.py`) ; faite pour un héros par faction (Sire
 Roland, Mortimer, Tarka, Sylvain, Maître Aldric, Zarkhan, Malachar, Brokk), choisie par l'utilisateur au premier tour.
-**Reste** : les **39 autres héros** (environ 4,50 $ : à l'accord de l'utilisateur ; sans image, un héros garde celle de
-la carte) ; plus tard ses animations ; refaire le sud-est du chef barbare et du Seigneur des abîmes (tournés vers le
-sud) ; cadres des portraits, bandeau de la date.
+**Pas pour les 39 autres héros** (choix de l'utilisateur, 2026-11-19) : ils gardent leur image de la carte au combat.
+**Reste** : plus tard, peut-être des animations pour ces huit ; refaire le sud-est du chef barbare et du Seigneur des abîmes (tournés vers le sud) ; cadres des portraits,
+bandeau de la date.
 
 ### L'interface
 ✅ Fait : les tailles communes (`Ui.cs`) et la police Pixel Operator, des icônes sur les boutons du combat et du
@@ -250,13 +252,16 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   dans `tools/audio/musiques-villes.json`) : les huit choisies (Nains : Five Armies ; Forêt : Mist Forest, peut-être
   à revoir avec l'image de sa ville, The Pilgrimage aussi candidate) ; ✅ la **musique de la carte** (2026-11-19,
   branche `musiques-carte`) : une par terrain autour du héros (`AdventureMap.MusicTerrain` ; herbe World Map, désert
-  Myst, marais Crystal Meadow, roche Crusade, neige Mevalian Winter, mer trois pistes qui alternent ; le sol brûlé
-  attend la sienne, Forging Flames proposée), celle du **menu** (Alandriel's Theme) et
+  Myst, marais Crystal Meadow, roche Crusade, neige Mevalian Winter, sol brûlé Forging Flames, mer trois pistes qui
+  alternent), celle du **menu** (Alandriel's Theme) et
   trois musiques de combat qui alternent (Determined Pursuit, Heroic Age, Heated Lands). Idées de l'utilisateur :
   « Death Is Just Another Path » pour l'écran de défaite ; « King's Feast » lui plaît (taverne ?) ; un **second
   désert** au thème arabe (Ibn Al-Noor, Desert City gardées) ; Forging Flames aussi pour les combats sur le sol
-  brûlé. **Reste** : les autres sorts, la carte, l'interface, les **pas au
-  combat**, les **ambiances** du combat et de la carte, de courts airs, puis la musique chez Stable Audio.
+  brûlé ; ✅ les **pas au combat** (2026-11-19, branche `sons-pas`, ElevenLabs, `tools/audio/pas.py` : une courte
+  marche coupée en pas seuls, revue en « marchant » sur la page) : cinq façons de marcher (à pied, lourd, sabots,
+  pattes, rampant ; le Limon de magma à part) sur six sols, au rythme de l'animation de marche ; rien pour les volants,
+  le Cerf qui saute et les fouisseurs (les ailes plus tard ?). **Reste** : les autres sorts, la carte, l'interface,
+  les **ambiances** du combat et de la carte, de courts airs, puis la musique chez Stable Audio.
 
 ## Étape 11 : multijoueur (à concevoir)
 Idée de l'utilisateur (2026-11-17). Les règles s'y prêtent déjà : plusieurs joueurs dans `GameState`, un brouillard

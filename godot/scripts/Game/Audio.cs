@@ -13,7 +13,8 @@ namespace HoMM.Game;
 ///   « music »    : les musiques (« menu », « map », « town », « town-chateau », « battle »…), qui bouclent ;
 ///   « sounds »   : les sons courts (« click », « build », « victory »…) ;
 ///   « ambience » : les ambiances, de longues boucles discrètes ;
-///   « lengths »  : la durée où couper un son court trop long (en secondes, il s'efface à la fin).
+///   « lengths »  : la durée où couper un son court trop long (en secondes, il s'efface à la fin) ;
+///   « gaits »    : les façons de marcher au combat (pas par case, créatures), pour les pas (<see cref="PlayStep"/>).
 /// Chaque nom donne un ou plusieurs fichiers de <c>audio/</c> (.ogg, .wav ou .mp3), tirés au hasard pour ne pas répéter.
 /// Au combat, une créature a ses sons : « archer-shoot », « griffon-attack », « ange-impact », « ange-death »… (son id
 /// et son action, <see cref="PlayCreature"/>) ; les sorts, « spell-boule-de-feu »….
@@ -149,13 +150,61 @@ public partial class Audio : Node
         if (document.RootElement.TryGetProperty("lengths", out var lengths))
             foreach (var entry in lengths.EnumerateObject())
                 _lengths[entry.Name] = entry.Value.GetDouble();
+        if (document.RootElement.TryGetProperty("gaits", out var gaits))
+            foreach (var gait in gaits.EnumerateObject().Where(g => g.Value.ValueKind == JsonValueKind.Object))
+            {
+                _stepsPerCell[gait.Name] = gait.Value.GetProperty("perCell").GetInt32();
+                if (gait.Value.TryGetProperty("creatures", out var creatures))
+                    foreach (var creature in creatures.EnumerateArray())
+                        _gaits[creature.GetString() ?? ""] = gait.Name;
+            }
     }
+
+    /// <summary>La façon de marcher de chaque créature (« heavy », « hooves »…) ; « feet » pour celles qui n'en ont pas.</summary>
+    private readonly Dictionary<string, string> _gaits = new();
+
+    /// <summary>Le nombre de pas par case traversée, par façon de marcher.</summary>
+    private readonly Dictionary<string, int> _stepsPerCell = new();
+
+    private static string GaitOf(CreatureType creature) =>
+        _instance?._gaits.GetValueOrDefault(creature.Id) ?? "feet";
+
+    /// <summary>Combien de pas fait cette créature pour traverser une case (2 à pied, 4 au trot…).</summary>
+    public static int StepsPerCell(CreatureType creature) =>
+        _instance?._stepsPerCell.GetValueOrDefault(GaitOf(creature), 2) ?? 2;
+
+    /// <summary>
+    /// Un pas d'une créature au combat, selon sa façon de marcher et le sol du champ : « step-heavy-snow », sinon
+    /// « step-heavy » (un même son sur tous les sols : ramper), sinon le pas à pied sur ce sol.
+    /// </summary>
+    public static void PlayStep(CreatureType creature, TerrainType terrain)
+    {
+        if (_instance is not { } audio)
+            return;
+        string gait = GaitOf(creature), ground = GroundOf(terrain);
+        Play(new[] { $"step-{gait}-{ground}", $"step-{gait}", $"step-feet-{ground}" }.FirstOrDefault(audio._sounds.ContainsKey) ?? "",
+            StepVolume);
+    }
+
+    /// <summary>Les pas restent derrière les coups et les cris.</summary>
+    private const float StepVolume = -8;
+
+    /// <summary>Le sol des pas : la forêt et la mer (en attendant un pont de navire) sonnent comme l'herbe, la montagne comme la roche.</summary>
+    private static string GroundOf(TerrainType terrain) => terrain switch
+    {
+        TerrainType.Sand => "sand",
+        TerrainType.Swamp => "swamp",
+        TerrainType.Rock or TerrainType.Mountain => "rock",
+        TerrainType.Snow => "snow",
+        TerrainType.Burnt => "burnt",
+        _ => "grass",
+    };
 
     /// <summary>
     /// Joue un son court (s'il existe : un son absent du catalogue ne fait rien). Sa hauteur varie un peu à chaque fois,
-    /// pour qu'il ne paraisse pas répété.
+    /// pour qu'il ne paraisse pas répété. <paramref name="volumeDb"/> : plus bas pour un son de fond (les pas).
     /// </summary>
-    public static void Play(string id)
+    public static void Play(string id, float volumeDb = 0)
     {
         if (_instance is not { } audio || !audio.IsInsideTree() || audio.Pick(audio._sounds, id) is not { } stream)
             return;
@@ -165,7 +214,7 @@ public partial class Audio : Node
         if (audio._cuts.Remove(player, out var cut))
             cut.Kill();
         player.Stream = stream;
-        player.VolumeDb = 0;
+        player.VolumeDb = volumeDb;
         player.PitchScale = 1 + (float)(audio._rng.NextDouble() - 0.5) * 0.04f;
         player.Play();
         if (audio._lengths.TryGetValue(id, out double length))

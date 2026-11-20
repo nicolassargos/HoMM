@@ -336,6 +336,18 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     qui s'enchaînent : « sways, takes one heavy stumbling step backward, its knees bend and it sits down hard, then its
     upper body slowly falls back… each stage flows into the next ». Basculer d'un bloc en arrière n'est « pas
     naturel » (l'utilisateur) ; s'effondrer en avant « like a falling rock » non plus.
+  - **Un recul bien visible pour une grande créature** (Dragon, Hydre, 2026-11-20) : le second modèle, 8 images,
+    « recoils violently from a blow: it rears back onto its hind legs… its wings snap wide open, its tail lashes, then
+    it drops back down to exactly its starting pose » ; pour l'Hydre, « all the heads are thrown back on their long
+    necks like whips, then they swing forward again one after another ». **Prix** : une grande créature coûte bien plus
+    par essai (8 coups reçus du Dragon et de l'Hydre : environ 1,05 $). Le même jour, l'utilisateur leur a préféré
+    ceux du modèle v3 (voir « Les coups reçus » plus bas) : les ailes de ce Dragon s'ouvrent jusqu'à le tourner vers nous.
+  - **Une créature qui avale** (le Ver, état `swallow`) : « rises very tall out of its hole, its body arching high up
+    and over to the right, then its head comes straight down from above, mouth-first… a big round lump slides down
+    inside its pale body ». Sans « from above », il mord de côté et crache parfois une boule ou un œuf. Les alertes
+    « pixels en plus » et « éclat » sont fausses ici (corps pâle, plus haut que d'habitude). 4 essais : environ 0,06 $.
+  - **Filmer le jeu** pour vérifier un geste : `--record=dossier --record-delay=s --record-time=s
+    --record-rect=x,y,l,h` (images WebP), avec `--effect-preview=coup`, `mort` ou `avaler`.
   - **Le second modèle refuse 6 images** (coups reçus) : multiples de 4 seulement ; un coup reçu en 8 images marche
     aussi (le Loup, le Moine).
 - **Leçons des Nains** (2026-11-16) :
@@ -414,7 +426,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   retour à la pose de départ, 8 images)**, sans image clé : « takes a heavy blow to the chest and recoils: the head and
   neck jerk back, the wings flinch, the body sways back on its legs, then it recovers; no effects » (le Dragon se tasse,
   le Démon se plie un peu) ; il dessine un effet sur les 1 ou 2 premières images : les remplacer par une image suivante.
-  À essayer en premier pour une grande créature.
+  **Mieux encore (2026-11-20, choisi par l'utilisateur) : le modèle v3 avec un geste qui se cabre en arrière**, 8
+  images avec retour : « rears back to the left: it throws its head and long neck back to the left, jaws open, rises
+  onto its hind legs with its front claws lifted, the wings snapping open, then recovers back to exactly its starting
+  pose… » ; le corps entier recule, la tête en arrière. Le second modèle, avec la même consigne, tourne le Dragon vers
+  nous et lance les têtes de l'Hydre en avant. Faire 3 ou 4 graines : environ une sur trois dessine un éclat (le
+  retirer avec `retoucher … --eclats=partout`, et `--copier` pour une image trop tachée).
   Le jeu ajoute un recul de 9 pixels de l'écran (`Recoil`) : la page de revue le montre aussi. Retirer des effets à la
   main : par rectangles, n'effacer que les pixels clairs (ou jaune vif sur des cheveux blonds) ; sur le corps, leur donner
   la couleur du corps voisine plutôt que de faire un trou ; ou reprendre une image voisine.

@@ -647,6 +647,19 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   temple…) centre la capture sur un lieu.
   Un lieu au contour trop dur (« crunchy », le moulin, 2026-11-18) : `adoucir.py entree sortie 0.7 60 2` (plus doux : `0.85 90 2`, la tour ; le 4e nombre, `0.4`, adoucit aussi les traits de l'intérieur), puis recadrer et
   corriger ses pieds dans `godot/art/pieds.json`.
+- **Le bateau des héros (2026-11-20)** : « pro » à 48, vu de côté, l'est du chevalier comme style, « no red anywhere
+  except the sail » (la voile prend la couleur du joueur) ; « a small sturdy medieval wooden sailing ship, a cog… a plain
+  wooden prow with no carving » (sans cela, des drakkars à tête de dragon). Puis `tourner` « Pro » (vue « high
+  top-down », 0,08 $) : des vues justes et la même taille ; la v3 (0,02 $) déforme la coque. Les noms des fichiers de
+  `tourner` : sud, sud-est, est, nord-est et nord sont justes, « ouest » est un second est (inutile : l'ouest en miroir).
+  Un navire de pirates : « two tattered black sails, a black flag with a white skull and crossbones ».
+- **Les coups reçus et les morts d'un humain** (le Pirate) : sans consigne, des éclairs, du sang, et une mort qui ne
+  tombe pas. « takes a blow and recoils backward… no effects, no blood, no sparks » dessine encore des étoiles collées au
+  corps (le modèle v3) ; celles qui sont devant lui partent avec `retoucher --eclats --detaches --copier=1:8`. Pour la
+  mort : « drops the cleaver, clutches his chest, sinks down to his knees and falls face down… no effects, no blood ».
+- **Les pages de choix** : `tools/art/page_choix.py <sujet> description.json` fait la page où l'on clique pour tout lot
+  (les feuilles d'animation y jouent en boucle, `"anim"`) ; réponses dans `en-cours/revue-<sujet>.json` (`revue.py
+  serveur`).
 - **Objets de la mer (2026-11-20)** : la même recette que les lieux (« pro » à 64, mine d'or comme style), avec pour ce
   qui flotte « it floats on the sea: draw only the object, its bottom cut flat at the waterline, the water itself is not
   drawn » : propre du premier coup, sans eau autour. Le tourbillon : « seen from above at an angle… its edges fading out

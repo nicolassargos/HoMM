@@ -1677,6 +1677,20 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   (adversaires, six semaines, Normal, or d'armée) : continent 46 000, des mers 48 300, îles 31 600, archipel 31 600
   (comme avant). Dessinés par le jeu en attendant leurs images ; `--center=abandoned-ship`, `pirates`. Tests :
   `ObjetsMerTests`.
+- ✅ **Le bateau, le navire des pirates et le Pirate** (2026-11-20, branche `bateau-pirate`, PixelLab, environ 2,1 $, choix
+  de l'utilisateur sur des pages où l'on clique, `tools/art/page_choix.py`) : le **bateau des héros** est un cogue vu de
+  côté (« pro » à 48, l'est du chevalier comme style ; des drakkars écartés : l'utilisateur pensait à des pirates), tourné
+  par `pixellab.py tourner` (« Pro ») : `heroes/boat-{s,se,e,ne,n}.png`, l'ouest en miroir. En mer, le héros n'est plus
+  dessiné : le marin à la barre, c'est lui (`MapRenderer.BoatImage`, `HeroOrBoat`, aussi pour l'ombre) ; la voile rouge
+  prend la couleur du joueur (`PaintPlayerColor`), et le bateau amarré une voile de toile écrue (`PaintCanvas`) ; il
+  tangue d'un pixel. Les **bandes de pirates** en mer sont un **navire noir à tête de mort** (`objects/pirate-ship.png`,
+  choix de l'utilisateur), qui se balance. Le **Pirate** au combat : un vieux pillard des mers sec et voûté, barbe
+  blanche nouée de coquillages, croc d'abordage et hachoir (ni tricorne, ni bandeau, ni perroquet) : image L4-2, attente
+  idle-1, marche move-3, attaque attack-2 (deux coups ; l'éclair effacé, dont une étincelle à la main), coup reçu hit-4
+  (effets effacés, première image remplacée), mort death-3 (il lâche le hachoir et tombe face contre terre). Sa petite
+  image (32 px, p1-7 : `pro` à 32 avec le style de la petite image de l'Épéiste et son image de combat ; elle sert dans
+  l'ordre des tours et les armées). `--boat=sail` : le héros monte aussitôt dans le
+  bateau (par un chemin sans gardien).
 - ✅ **Les images de la mer, premier lot** (2026-11-20, branche `images-mer`, PixelLab « pro », 0,66 $, choix de
   l'utilisateur sur une page où l'on clique) : 16 candidats par objet à 64 × 64, la mine d'or comme style. Bouée 16 (un
   tonneau rayé à lanterne), sirènes 7, épave flottante 8, coffre de la mer 16, tourbillon 15, réduits à une case (32 px) ;

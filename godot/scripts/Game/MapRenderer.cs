@@ -230,7 +230,9 @@ public static class MapRenderer
         BlessingSite { Blessing: Blessing.Morale } => Art.Get("objects/temple"),
         BlessingSite => Art.Get("objects/fairy-ring"),
         Mine mine => MineImage(mine),
+        MonsterGuard { Type.Sea: true } => Art.Get("objects/pirate-ship") ?? Art.Get("creatures/pirate"),
         MonsterGuard guard => Art.Get($"creatures/{guard.Type.Id}"),
+        Boat => BoatImage(null),
         Town town => Art.Town(town.Faction),
         _ => null,
     };
@@ -241,7 +243,7 @@ public static class MapRenderer
         if (ObjectImage(obj) is { } image)
         {
             var area = ObjectArea(obj, o);
-            if (obj is BlessingSite { Sea: true } or Flotsam or SeaChest or AbandonedShip)
+            if (obj is BlessingSite { Sea: true } or Flotsam or SeaChest or AbandonedShip or Boat or MonsterGuard { Type.Sea: true })
                 area.Position += V(0, MathF.Round((float)Math.Sin(time * 2.5) * 1.5f)); // ce qui flotte se balance
             var drawn = DrawArt(ci, image, area);
             // Le drapeau du propriétaire reste dessiné par-dessus (en haut à gauche de la mine)
@@ -419,7 +421,11 @@ public static class MapRenderer
 
     /// <summary>L'image du héros posé sur la case <paramref name="o"/> et l'endroit où elle est dessinée (pour son ombre).</summary>
     public static (Texture2D Image, Rect2 Rect)? HeroArt(Hero hero, Vector2 o, HeroFacing facing = default, int frame = -1) =>
-        HeroImage(hero, facing, frame) is { } image ? (image, ArtRect(image, HeroArea(o + V(T / 2f, T / 2f + 4)))) : null;
+        HeroOrBoat(hero, facing, frame) is { } image ? (image, ArtRect(image, HeroArea(o + V(T / 2f, T / 2f + 4)))) : null;
+
+    /// <summary>L'image d'un héros, ou celle de son bateau s'il est en mer (le marin à la barre, c'est lui).</summary>
+    private static Texture2D? HeroOrBoat(Hero hero, HeroFacing facing, int frame) =>
+        (Map is { } map && hero.AtSea(map) ? BoatImage(hero.Owner, facing) : null) ?? HeroImage(hero, facing, frame);
 
     /// <summary>La case où se pose l'image du héros, <paramref name="c"/> étant le point où il est dessiné.</summary>
     private static Rect2 HeroArea(Vector2 c) => new(c - V(T / 2f, T / 2f + 4), T, T);
@@ -729,12 +735,55 @@ public static class MapRenderer
         return texture;
     }
 
-    /// <summary>Les rouges vifs d'une image de héros (son étendard) à la teinte de son joueur ; le joueur rouge la garde.</summary>
-    private static void PaintPlayerColor(Image image, Hero hero)
+    /// <summary>
+    /// Le bateau (heroes/boat-{direction}.png, 2026-11-20 : un cogue vu de côté, tourné par PixelLab ; l'ouest en miroir),
+    /// tourné vers <paramref name="facing"/>, sa voile rouge à la couleur de <paramref name="owner"/> ; sans propriétaire
+    /// (amarré), une voile de toile écrue.
+    /// </summary>
+    public static Texture2D? BoatImage(Player? owner, HeroFacing facing = default)
     {
-        if (hero.Owner.Id == 1)
+        var name = $"heroes/boat-{DirectionCode(facing)}";
+        bool left = facing.X < 0;
+        var key = (name, owner?.Id ?? 0, left, -1);
+        if (HeroImages.TryGetValue(key, out var cached))
+            return cached;
+        Texture2D? texture = null;
+        if (Art.GetImage(name) is { } still)
+        {
+            var image = (Image)still.Duplicate();
+            image.Convert(Image.Format.Rgba8);
+            if (owner != null)
+                PaintPlayerColor(image, owner);
+            else
+                PaintCanvas(image);
+            if (left)
+                image.FlipX();
+            texture = ImageTexture.CreateFromImage(image);
+        }
+        HeroImages[key] = texture;
+        return texture;
+    }
+
+    /// <summary>Les rouges vifs d'une voile sans propriétaire en toile écrue (l'ombrage gardé).</summary>
+    private static void PaintCanvas(Image image)
+    {
+        for (int y = 0; y < image.GetHeight(); y++)
+        for (int x = 0; x < image.GetWidth(); x++)
+        {
+            var p = image.GetPixel(x, y);
+            if (p.A > 0.5f && p.S > 0.45f && (p.H < 0.05f || p.H > 0.93f))
+                image.SetPixel(x, y, Color.FromHsv(0.11f, 0.18f, Math.Min(1, 0.45f + p.V * 0.6f), p.A));
+        }
+    }
+
+    /// <summary>Les rouges vifs d'une image de héros (son étendard) à la teinte de son joueur ; le joueur rouge la garde.</summary>
+    private static void PaintPlayerColor(Image image, Hero hero) => PaintPlayerColor(image, hero.Owner);
+
+    private static void PaintPlayerColor(Image image, Player owner)
+    {
+        if (owner.Id == 1)
             return;
-        float hue = ColorOf(hero.Owner).H;
+        float hue = ColorOf(owner).H;
         for (int y = 0; y < image.GetHeight(); y++)
         for (int x = 0; x < image.GetWidth(); x++)
         {
@@ -789,6 +838,12 @@ public static class MapRenderer
     public static void DrawHero(CanvasItem ci, Vector2 c, double time, Hero hero, HeroFacing facing = default, int frame = -1, bool atSea = false)
     {
         var owner = hero.Owner;
+        if (atSea && BoatImage(owner, facing) is { } boat)
+        {
+            // il tangue : un pixel d'art de haut en bas
+            DrawArt(ci, boat, HeroArea(c + V(0, (int)(time * 2) % 2 == 0 ? 0 : ArtScale)));
+            return;
+        }
         if (atSea)
             DrawBoat(ci, c, time, ColorOf(owner));
         if (HeroImage(hero, facing, frame) is { } image)

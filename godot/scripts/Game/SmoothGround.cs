@@ -140,8 +140,8 @@ public partial class SmoothGround : ColorRect
         var worn = new System.Collections.Generic.HashSet<Cell>();
         var random = new Random(seed);
         // le désert n'a pas de terre battue : son sol de pierres est dessiné à part (BattleFieldView.BuildStones) ; le marais
-        // non plus : ses flaques le sont (BattleFieldView.BuildPuddles) ; ni la neige, épaisse
-        int patches = ground is TerrainType.Sand or TerrainType.Swamp or TerrainType.Snow ? 0 : 3 + random.Next(3);
+        // non plus : ses flaques le sont (BattleFieldView.BuildPuddles) ; ni la neige, épaisse, ni la roche (des taches orange)
+        int patches = ground is TerrainType.Sand or TerrainType.Swamp or TerrainType.Snow or TerrainType.Rock ? 0 : 3 + random.Next(3);
         for (int i = 0; i < patches; i++)
         {
             var cell = new Cell(2 + random.Next(Math.Max(1, width - 4)), 3 + random.Next(Math.Max(1, height - 4)));
@@ -162,6 +162,15 @@ public partial class SmoothGround : ColorRect
             material.SetShaderParameter("flower_density", 0.22f);
             material.SetShaderParameter("pebble_share", 0.35f);
             material.SetShaderParameter("ground_stones", 0f); // le champ a ses propres pierres (BattleFieldView)
+            if (ground == TerrainType.Rock)
+            {
+                // vue de près, la roche de la carte faisait du cuir, ses dalles un pavage (remarques de l'utilisateur) : au
+                // combat, une terre désolée de gravier (2026-11-20 : entre le désert et la terre brûlée ; ses ravins et ses
+                // fissures décalés selon le combat), et la roche en images posées dessus (BattleFieldView.BuildDetails)
+                material.SetShaderParameter("rock_outcrops", 0.02f);
+                material.SetShaderParameter("rock_grain", 0.1f);
+                material.SetShaderParameter("rock_shift", new Vector2(random.Next(2000), random.Next(2000)));
+            }
             ApplyDevelopmentSettings(material);
         }
         return result;

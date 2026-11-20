@@ -1677,6 +1677,12 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   (adversaires, six semaines, Normal, or d'armée) : continent 46 000, des mers 48 300, îles 31 600, archipel 31 600
   (comme avant). Dessinés par le jeu en attendant leurs images ; `--center=abandoned-ship`, `pirates`. Tests :
   `ObjetsMerTests`.
+- ✅ **Les images de la mer, premier lot** (2026-11-20, branche `images-mer`, PixelLab « pro », 0,66 $, choix de
+  l'utilisateur sur une page où l'on clique) : 16 candidats par objet à 64 × 64, la mine d'or comme style. Bouée 16 (un
+  tonneau rayé à lanterne), sirènes 7, épave flottante 8, coffre de la mer 16, tourbillon 15, réduits à une case (32 px) ;
+  navire abandonné 4, phare 10 (lieu haut, le drapeau du propriétaire dessiné sur sa galerie), chantier de la côte 16,
+  gardés à 64 px. Ce qui flotte se balance encore (`MapRenderer.DrawObject`) ; le tourbillon ne tourne pas (plus tard,
+  peut-être). `--center=shipyard` ajouté. Reste : le bateau (8 directions, voile aux couleurs du joueur) et le Pirate.
 - ✅ La mer, les objets de la mer, première partie (2026-11-14, branche `objets-mer`, choix de l'utilisateur) : sur l'eau,
   l'**épave flottante** (`Flotsam`, comme Heroes 3 : rien, 5 bois, 5 bois et 200 or, ou 10 bois et 500 or), le **coffre
   de la mer** (`SeaChest` : vide une fois sur cinq, sinon 1000 ou 1500 or ; un artefact plus tard), la **bouée** (+1 moral)
@@ -1691,7 +1697,7 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   de tourbillons (à 20 cases au moins l'un de l'autre), 0,7 phare (hors des zones de départ, à 20 cases l'un de l'autre) ;
   loin de la côte (leurs 8 voisines sont de l'eau) et à 3 cases de tout autre objet. Carte normale : 5 à 7 épaves avec des
   mers, 11 ou 12 sur les îles et l'archipel. L'IA ramasse épaves et coffres, prend les phares, apprend la Navigation en
-  dernier. Dessinés par le jeu en attendant leurs images. Développement : `--center=flotsam`, `sea-chest`, `buoy`,
+  dernier. Dessinés par le jeu en attendant leurs images (faites le 2026-11-20, voir plus bas). Développement : `--center=flotsam`, `sea-chest`, `buoy`,
   `mermaids`, `whirlpool`, `lighthouse`. Tests : `ObjetsMerTests`.
 - ✅ La mer, les types de cartes (2026-11-14, branche `types-cartes`, choix de l'utilisateur) : une option de la nouvelle
   partie (`MapType`, liste « Carte » à côté de la graine, continent par défaut ; `--map-type=`). Le générateur part des
@@ -1961,6 +1967,19 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   l'utilisateur : tout ce qui, sous l'arbre, n'est ni aiguilles ni écorce prend la couleur de la neige du champ, à 65 %
   au pied puis 38, 30, 12 et 8 % en s'éloignant ; leur ombre de contact est bleue et plus légère (`pieds.json`), posée au
   bas du tronc.
+- ✅ Champ de bataille de la roche (2026-11-20, branche `champ-roche`). Choix de l'utilisateur : **une terre désolée,
+  entre le désert et la terre brûlée**. Essayés et écartés : la roche de la carte vue de près (des dalles et des
+  fissures : « du cuir », puis « un pavage »), des affleurements dessinés par le shader, des roches plates générées
+  (« pas des formes naturelles » : 7 gardées sur 15, des éboulis pris dans le sol, fondus dans le sol par un
+  script). Retenu : `SmoothGround.CreateBattle` met presque tout en terre (`rock_outcrops` 0,02) ; dans
+  `terrain.gdshader`, une terre gris-brun (`rock_soil`) avec de grandes plaques en trois paliers (`rock_patches`),
+  des ravins secs de gravier pâle (`rock_washes`), du gravier et des pierres plus nombreux dans les zones
+  caillouteuses et les ravins, des fissures sèches fines et grandes (le générateur des fissures de la terre brûlée,
+  `vein_at`, sans feu) ; `rock_shift`, tiré du combat, décale ravins et fissures d'un combat à l'autre. Ciel plus pâle
+  et voilé, pré plus gris (`RockPalette`). Images Retro Diffusion (arbres, pins, buissons, rochers, obstacles) ; les
+  plantes vertes séchées par un script (gris-jaune, l'ombrage gardé), les touffes et brindilles copiées de l'herbe et
+  séchées ; les pins restent verts. Les combats sur la roche n'empruntent plus le champ du désert (la terre brûlée,
+  encore).
 - ✅ Finitions des champs (2026-11-17, branche `champ-finitions`). **Nuages** dans le ciel des paysages ouverts : 1 à 3,
   plats dessous, des bosses bombées dessus (gardées dans le nuage : une bosse coupée au bout faisait un mur) ; gris sous
   le ciel couvert du marais (drapeau `Overcast` : le haut blanc y brillait trop, remarque de l'utilisateur). **Rochers**

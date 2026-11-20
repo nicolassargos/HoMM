@@ -328,6 +328,7 @@ public partial class Main : Node2D
             Whirlpool => "whirlpool",
             Lighthouse => "lighthouse",
             AbandonedShip => "abandoned-ship",
+            Shipyard => "shipyard",
             MonsterGuard { Type.Sea: true } => "pirates",
             _ => null,
         };

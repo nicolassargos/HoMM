@@ -483,6 +483,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   que bleu) ni écorce prend la couleur de la neige du champ, à 65 % au pied puis 38, 30, 12 et 8 % (les retouches de
   l'utilisateur) ; l'ombre de contact au bas du tronc, bleue et légère. La neige bleutée a plus de bleu que de vert : ce
   qui la distingue des aiguilles vert-bleu.
+- Roche (2026-11-20) : la roche de la carte vue de près fait du cuir (petites dalles, fissures fortes) ou un pavage
+  (grandes dalles) ; les affleurements du shader non plus. Les roches plates générées (« flat rock slab ») sortent
+  rondes ou carrées, comme des objets posés : ne garder que les éboulis irréguliers, les fondre dans le sol (moins de
+  couleur, tirés vers la teinte du sol, bord à 55 puis 90 %). Ce qui marche : une terre sèche dessinée par le shader,
+  avec de grandes plaques en paliers, des ravins de gravier pâle à très basse fréquence (plus fins, ils faisaient des
+  courbes de niveau), des fissures sèches (`vein_at` de la terre brûlée) et des cailloux tirés vers la couleur du sol
+  (pâles, ils faisaient des points blancs). Les touffes dessinées par le shader faisaient des croix : prendre des
+  images de l'herbe et les sécher (gris-jaune `l × 1,07, l, l × 0,78`, sans bleu ni orange). Décaler le dessin du
+  sol d'un combat à l'autre (`rock_shift`), sinon les mêmes ravins reviennent.
 
 ## Effets du combat (dessinés par le jeu)
 - **Pas d'effet dans les animations des créatures** : projectiles, impacts, auras sont dessinés par `Game/BattleEffects.cs`,
@@ -638,6 +647,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   temple…) centre la capture sur un lieu.
   Un lieu au contour trop dur (« crunchy », le moulin, 2026-11-18) : `adoucir.py entree sortie 0.7 60 2` (plus doux : `0.85 90 2`, la tour ; le 4e nombre, `0.4`, adoucit aussi les traits de l'intérieur), puis recadrer et
   corriger ses pieds dans `godot/art/pieds.json`.
+- **Objets de la mer (2026-11-20)** : la même recette que les lieux (« pro » à 64, mine d'or comme style), avec pour ce
+  qui flotte « it floats on the sea: draw only the object, its bottom cut flat at the waterline, the water itself is not
+  drawn » : propre du premier coup, sans eau autour. Le tourbillon : « seen from above at an angle… its edges fading out
+  to transparent » donne un disque net, qui passe bien sur l'eau. Les petits objets réduits à 32 px, le navire, le phare
+  et le chantier gardés à 64. La page de choix où l'on clique (choix, « à refaire », commentaire, enregistrés par
+  `revue.py serveur`) plaît à l'utilisateur : en faire une pour chaque lot.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
 

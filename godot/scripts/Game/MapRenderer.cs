@@ -219,7 +219,14 @@ public static class MapRenderer
         WeeklyProducer { IsWaterWheel: true } => Art.Get("objects/water-wheel"),
         WeeklyProducer => Art.Get("objects/windmill"),
         ObservationTower => Art.Get("objects/tower"),
-        BlessingSite { Sea: true } => null, // en attendant leurs images : dessinées plus bas
+        BlessingSite { Sea: true, Blessing: Blessing.Morale } => Art.Get("objects/buoy"),
+        BlessingSite { Sea: true } => Art.Get("objects/mermaids"),
+        Flotsam => Art.Get("objects/flotsam"),
+        SeaChest => Art.Get("objects/sea-chest"),
+        Whirlpool => Art.Get("objects/whirlpool"),
+        AbandonedShip => Art.Get("objects/abandoned-ship"),
+        Lighthouse => Art.Get("objects/lighthouse"),
+        Shipyard => Art.Get("objects/shipyard"),
         BlessingSite { Blessing: Blessing.Morale } => Art.Get("objects/temple"),
         BlessingSite => Art.Get("objects/fairy-ring"),
         Mine mine => MineImage(mine),
@@ -234,10 +241,14 @@ public static class MapRenderer
         if (ObjectImage(obj) is { } image)
         {
             var area = ObjectArea(obj, o);
+            if (obj is BlessingSite { Sea: true } or Flotsam or SeaChest or AbandonedShip)
+                area.Position += V(0, MathF.Round((float)Math.Sin(time * 2.5) * 1.5f)); // ce qui flotte se balance
             var drawn = DrawArt(ci, image, area);
             // Le drapeau du propriétaire reste dessiné par-dessus (en haut à gauche de la mine)
             if (obj is Mine mine)
                 DrawFlag(ci, area.Position + new Vector2(0.3f * T, 0.45f * T), ColorOf(mine.Owner), 0);
+            else if (obj is Lighthouse lighthouse)
+                DrawFlag(ci, drawn.Position + new Vector2(drawn.Size.X * 0.8f, Art.OpaqueTop(image, 0.5f) * drawn.Size.Y + 3), ColorOf(lighthouse.Owner), time);
             else if (obj is Town town)
             {
                 // planté sur le dessin (sa tour ou son rempart de gauche), pas dans le fond transparent au-dessus

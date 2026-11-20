@@ -583,23 +583,49 @@ public sealed class BattleEffects
             float open = Math.Clamp((CrackReach - ahead) / (CrackReach - CrackNear), 0, 1);
             int seed = d.Seed * 1000 + (int)MathF.Round((d.Travelled + ahead) / CrackStep);
             var center = d.At + d.Dir * ahead + side * (Noise(seed, 1) - 0.5f) * 5 * U;
-            // deux ou trois fentes qui partent du même point, plutôt vers l'avant et les côtés, aplaties comme le sol
-            int branches = 2 + (int)(Noise(seed, 2) * 2);
+            // une fente principale le long du chemin (le sol se fend dans le sens où il avance), et deux ou trois
+            // fentes plus fines qui partent sur les côtés ; aplaties comme le sol
+            int branches = 3 + (int)(Noise(seed, 2) * 2);
             for (int k = 0; k < branches; k++)
             {
-                float angle = Noise(seed, 10 + k) * MathF.Tau;
+                float angle = k == 0
+                    ? MathF.Atan2(d.Dir.Y, d.Dir.X) + (Noise(seed, 10) - 0.5f) * 0.8f
+                    : Noise(seed, 10 + k) * MathF.Tau;
                 var dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle) * 0.45f);
-                float length = open * (4 + Noise(seed, 20 + k) * 6) * U;
+                float length = open * (k == 0 ? 10 + Noise(seed, 20) * 6 : 3 + Noise(seed, 20 + k) * 5) * U;
+                // la fente principale s'élargit à deux pixels quand elle est bien ouverte
+                bool wide = k == 0 && open > 0.55f;
                 var at = center;
                 for (float run = 0; run < length; run += Pixel)
                 {
                     // une fente brisée : elle dévie d'un pixel de temps en temps
                     at += dir * Pixel + (Noise(seed, 30 + k * 50 + (int)(run / Pixel)) < 0.3f ? new Vector2(0, Pixel) : Vector2.Zero)
                         - (Noise(seed, 60 + k * 50 + (int)(run / Pixel)) < 0.3f ? new Vector2(0, Pixel) : Vector2.Zero);
-                    Dot(canvas, at, new Color(EarthDark, 0.9f * open));
-                    // le bord soulevé de la fente : un pixel de terre claire, quand elle est bien ouverte
-                    if (open > 0.5f && run < length * 0.6f)
-                        Dot(canvas, at - new Vector2(0, Pixel), new Color(EarthMid, 0.8f * open));
+                    // plus étroite vers le bout
+                    bool tip = run > length * 0.75f;
+                    Dot(canvas, at, new Color(EarthDark, 0.95f * open));
+                    if (wide && !tip)
+                        Dot(canvas, at + new Vector2(0, Pixel), new Color(EarthDark.Darkened(0.3f), 0.95f * open));
+                    // le bord soulevé de la fente : de la terre claire au-dessus, éclairée ; de la terre au-dessous
+                    if (open > 0.35f && !tip)
+                    {
+                        Dot(canvas, at - new Vector2(0, Pixel), new Color(EarthLight, 0.85f * open));
+                        if (wide)
+                            Dot(canvas, at + new Vector2(0, 2 * Pixel), new Color(EarthMid, 0.7f * open));
+                    }
+                }
+            }
+            // tout près de lui, le sol tremble : des mottes et un caillou sautillent au bord des fentes
+            if (ahead < CrackNear * 1.3f)
+            {
+                float shake = MathF.Abs(MathF.Sin(d.Travelled / U * 0.9f + seed));
+                for (int k = 0; k < 3; k++)
+                {
+                    var bit = center + new Vector2((Noise(seed, 80 + k) - 0.5f) * 12 * U, (Noise(seed, 90 + k) - 0.5f) * 4 * U)
+                        - new Vector2(0, MathF.Round(shake * (1 + k % 2)) * Pixel);
+                    var color = k == 2 ? Pebble : k == 1 ? EarthMid : EarthLight;
+                    Dot(canvas, bit, color);
+                    Dot(canvas, bit + new Vector2(Pixel, 0), color.Darkened(0.25f));
                 }
             }
         }

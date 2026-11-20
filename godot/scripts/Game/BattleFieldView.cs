@@ -51,7 +51,8 @@ public partial class BattleFieldView : Control
     /// (facultatif) : <c>{ "colosse-os": { "idle": 6, "move": 7 } }</c>, en images par seconde. L'entrée « * » vaut
     /// pour toutes les créatures (une créature peut la remplacer). Aussi les effets de la créature : « projectile »
     /// (« fleche », « boule-feu »), « launchFrame » (l'image de l'attaque où le tir part), « launchPoint » ([x, y] dans
-    /// cette image, en pixels d'art), « impact » (« choc » par défaut, « morsure »…).
+    /// cette image, en pixels d'art), « impact » (« choc » par défaut, « morsure »…), « lunge » (la part du chemin vers
+    /// sa cible que la créature parcourt en glissant pendant son attaque).
     /// </summary>
     private static Dictionary<string, Dictionary<string, System.Text.Json.JsonElement>>? _speeds;
 
@@ -149,7 +150,7 @@ public partial class BattleFieldView : Control
     /// l'envers à l'arrivée.</summary>
     // « throw » : le lancer du crochet (le Tourmenteur), joué une fois, sa feuille facultative ; « hit » : le coup reçu,
     // joué une fois par une troupe touchée qui survit
-    private const string Idle = "idle", Move = "move", AttackState = "attack", Transform = "transform", Throw = "throw", Death = "death", Hit = "hit";
+    private const string Idle = "idle", Move = "move", AttackState = "attack", Transform = "transform", Throw = "throw", Death = "death", Hit = "hit", Swallow = "swallow";
 
     /// <summary>Une troupe morte reste couchée un moment après son animation de mort, puis s'efface (secondes).</summary>
     private const double DeathHold = 0.7, DeathFade = 0.6;
@@ -216,6 +217,10 @@ public partial class BattleFieldView : Control
 
         /// <summary>Le recul d'une troupe touchée (de 1 au coup à 0), et son sens (+1 : vers la droite).</summary>
         public float Recoil, RecoilDirection;
+
+        /// <summary>L'élan d'une troupe qui glisse vers sa cible en attaquant (« lunge », le Ver des profondeurs) : le
+        /// décalage de l'écran où elle est dessinée ; elle revient à sa place une fois son geste fini.</summary>
+        public Vector2 Lunge;
 
         /// <summary>Une lueur verte qui s'éteint (de 1 à 0) : la troupe vient de se régénérer.</summary>
         public float Glow;
@@ -1552,6 +1557,12 @@ public partial class BattleFieldView : Control
                         if (striker.State == AttackState && wind < release)
                         {
                             wind += delta;
+                            // « lunge » : la part du chemin vers la cible parcourue en glissant, au plus loin quand le coup porte
+                            if (!struck.Ranged && Setting(struck.Attacker, "lunge") is double reach)
+                            {
+                                float k = (float)Math.Min(1, wind / release);
+                                striker.Lunge = (_shown[struck.Target].Position - striker.Position) * (float)reach * (1 - (1 - k) * (1 - k));
+                            }
                             return false;
                         }
                         wind = Math.Max(wind, 1e-6);
@@ -1800,21 +1811,48 @@ public partial class BattleFieldView : Control
                     break;
                 case UnitSwallowed swallowed:
                     double gulp = 0;
+                    bool swallowedOne = false;
+                    Vector2 lungeFrom = Vector2.Zero;
                     _animations.Enqueue(delta =>
                     {
-                        if (gulp == 0)
+                        // le Ver des profondeurs plonge de nouveau sur sa cible, la gueule ouverte, et avale (sa feuille
+                        // « swallow », s'il en a une) ; la créature disparaît quand sa gueule se referme
+                        var worm = _shown[swallowed.Worm];
+                        var prey = _shown[swallowed.Unit];
+                        bool sheet = Sheet(swallowed.Worm, Swallow) != null;
+                        double length = sheet ? Frames(swallowed.Worm, Swallow) / Fps(swallowed.Worm, Swallow) : 0.3;
+                        // la gueule se referme vers la moitié du geste (la 4e image sur 8)
+                        double bite = sheet ? (Setting(swallowed.Worm, "swallowFrame") ?? 4) / Fps(swallowed.Worm, Swallow) : 0;
+                        if (gulp == 0 && sheet)
                         {
-                            // une créature entière de moins (le Ver des profondeurs)
-                            var target = _shown[swallowed.Unit];
-                            target.Count = Math.Max(0, target.Count - 1);
-                            target.Flash = 1;
-                            _floating.Add(("Avalé !", target.Position + Ui.V(0, -70), 0, MapRenderer.Rgb(230, 110, 90)));
+                            if (Math.Abs(prey.Position.X - worm.Position.X) > 1)
+                                worm.FacesLeft = prey.Position.X < worm.Position.X;
+                            worm.Play(Swallow);
+                            // il repart d'où son attaque l'a laissé (il n'est peut-être pas encore revenu à sa place)
+                            lungeFrom = worm.Lunge;
                         }
-                        gulp += delta;
-                        if (gulp < 0.3)
+                        gulp += Math.Max(delta, 1e-6);
+                        if (sheet && Setting(swallowed.Worm, "lunge") is double reach)
+                        {
+                            // il glisse vers sa proie jusqu'à la bouchée, puis revient
+                            float k = (float)Math.Min(1, gulp / Math.Max(bite, 1e-6));
+                            worm.Lunge = lungeFrom.Lerp((prey.Position - worm.Position) * (float)reach, 1 - (1 - k) * (1 - k));
+                        }
+                        if (!swallowedOne && gulp >= bite)
+                        {
+                            // une créature entière de moins
+                            swallowedOne = true;
+                            prey.Count = Math.Max(0, prey.Count - 1);
+                            prey.Flash = 1;
+                            _floating.Add(("Avalé !", prey.Position + Ui.V(0, -70), 0, MapRenderer.Rgb(230, 110, 90)));
+                            if (prey.Count == 0)
+                                Kill(swallowed.Unit);
+                        }
+                        if (gulp < length)
                             return false;
-                        if (_shown[swallowed.Unit].Count == 0)
-                            Kill(swallowed.Unit);
+                        if (worm.State == Swallow)
+                            worm.Play(Idle);
+                        worm.FacesLeft = null;
                         return true;
                     });
                     break;
@@ -2196,6 +2234,11 @@ public partial class BattleFieldView : Control
             PreviewHit(delta);
             return;
         }
+        if (parts[0] == "avaler")
+        {
+            PreviewSwallow(delta);
+            return;
+        }
         if (parts[0] == "cristal")
         {
             PreviewMirror(delta, parts.Length > 1 && double.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var still) ? still : null);
@@ -2280,6 +2323,39 @@ public partial class BattleFieldView : Control
         foreach (var (unit, shown) in _shown)
             if (!shown.Gone && Sheet(unit, Hit) != null)
                 shown.Play(Hit);
+    }
+
+    /// <summary>
+    /// Développement (« --effect-preview=avaler ») : toutes les 2,5 secondes, chaque troupe qui sait avaler (sa feuille
+    /// « swallow ») plonge sur la troupe ennemie la plus proche et avale, sans rien lui retirer ; elle glisse comme au combat.
+    /// </summary>
+    private void PreviewSwallow(double delta)
+    {
+        double before = _previewClock;
+        _previewClock = _previewClock < 0 ? 0 : _previewClock + delta;
+        bool start = before < 0 || Math.Floor(before / 2.5) != Math.Floor(_previewClock / 2.5);
+        foreach (var (unit, shown) in _shown)
+        {
+            if (shown.Gone || Sheet(unit, Swallow) == null)
+                continue;
+            var prey = _shown.Where(p => p.Key.Side != unit.Side && !p.Value.Gone)
+                .OrderBy(p => p.Value.Position.DistanceTo(shown.Position)).Select(p => p.Value).FirstOrDefault();
+            if (prey == null)
+                continue;
+            if (start)
+            {
+                shown.FacesLeft = prey.Position.X < shown.Position.X;
+                shown.Play(Swallow);
+            }
+            if (shown.State == Swallow && Setting(unit, "lunge") is double reach)
+            {
+                double bite = (Setting(unit, "swallowFrame") ?? 4) / Fps(unit, Swallow);
+                float k = (float)Math.Min(1, shown.StateTime / bite);
+                shown.Lunge = (prey.Position - shown.Position) * (float)reach * (1 - (1 - k) * (1 - k));
+                if (shown.StateTime >= Frames(unit, Swallow) / Fps(unit, Swallow))
+                    shown.Play(Idle);
+            }
+        }
     }
 
     /// <summary>
@@ -2481,6 +2557,9 @@ public partial class BattleFieldView : Control
         {
             shown.Flash = Math.Max(0, shown.Flash - (float)delta * 3);
             shown.Recoil = Math.Max(0, shown.Recoil - (float)delta * 4);
+            // le geste fini, la troupe qui avait glissé vers sa cible revient à sa place
+            if (shown.State != AttackState && shown.State != Swallow && shown.Lunge != Vector2.Zero)
+                shown.Lunge = shown.Lunge.MoveToward(Vector2.Zero, (float)delta * Ui.Px(260));
             shown.Glow = Math.Max(0, shown.Glow - (float)delta * 1.2f);
             shown.StateTime += delta;
             if (shown.State == Hit && shown.StateTime >= Frames(unit, Hit) / Fps(unit, Hit))
@@ -2717,7 +2796,7 @@ public partial class BattleFieldView : Control
             : (int)(time * Fps(unit, state));
         // l'attaque, le lancer, la transformation, la mort et le coup reçu sont joués une fois (la transformation parfois
         // à l'envers)
-        index = state is AttackState or Transform or Throw or Death or Hit ? Math.Min(index, frames - 1) : index % frames;
+        index = state is AttackState or Transform or Throw or Death or Hit or Swallow ? Math.Min(index, frames - 1) : index % frames;
         if (state == Transform && shown.Backwards)
             index = frames - 1 - index;
         int rows = (frames + AnimationColumns - 1) / AnimationColumns;
@@ -2823,7 +2902,8 @@ public partial class BattleFieldView : Control
     private void DrawUnit(BattleUnit unit, Shown shown)
     {
         // une troupe touchée recule d'un coup (3 pixels d'art) puis revient à sa place
-        var foot = shown.Position + new Vector2(shown.RecoilDirection * shown.Recoil * BattleEffects.U * 3, HexHeight / 2 - Ui.Px(10));
+        var foot = shown.Position + shown.Lunge
+            + new Vector2(shown.RecoilDirection * shown.Recoil * BattleEffects.U * 3, HexHeight / 2 - Ui.Px(10));
         var tint = shown.Flash > 0 ? new Color(1, 1 - shown.Flash * 0.6f, 1 - shown.Flash * 0.6f) : Colors.White;
         // une troupe qui se régénère s'éclaire de vert un instant
         if (shown.Glow > 0)

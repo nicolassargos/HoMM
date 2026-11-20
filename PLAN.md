@@ -99,7 +99,8 @@ pirates).
   Mage un peu faible en duel ; la horde barbare devrait dominer les premières semaines (son moral la freine) ; les
   gardiens du Donjon ralentissent certaines petites cartes ; vus par `Duels_a_prix_egal`, à revoir avec l'utilisateur :
   l'Archer perd contre tous les niveaux 2, le Griffon bat largement les niveaux 3, le Vampire écrase le Moine ; le Squelette peut-être trop fort face aux paysans.
-- **Animations** (plus tard) : le Ver des profondeurs (glisser vers sa cible, les fissures, peut-être avaler).
+- ✅ **Animations du Ver des profondeurs** (2026-11-20, branche `animations-dragon-hydre-ver`) : il glisse vers sa
+  cible, le sol se fend devant lui, il avale en plongeant d'en haut.
 - L'IA apprend chaque nouvelle faction.
 
 ### Les héros, leurs classes et leurs compétences
@@ -188,7 +189,7 @@ nuages et des rochers dans les paysages ouverts, les flaques loin des obstacles 
 **Plus tard, si l'occasion se présente** : les jambes du Moloch qui se défont aussi.
 ✅ Un **coup reçu** par créature (2026-11-17), revu et choisi avec l'utilisateur (le Dragon, l'Hydre et le Démon par le
 second modèle de PixelLab) ; ceux du **Dragon** et de l'**Hydre** finis (2026-11-20, branche `coups-dragon-hydre` : ils
-se cabrent en arrière).
+se cabrent en arrière ; préférés par l'utilisateur à ceux de `animations-dragon-hydre-ver`, faits le même jour).
 ✅ La mort et le coup reçu de l'Archer, du Griffon et du Cavalier (2026-11-19, branche `morts-chateau`) ; ceux du
 **Loup**, du **Moine** et du **Troll** refaits d'après leurs nouvelles images (2026-11-19).
 

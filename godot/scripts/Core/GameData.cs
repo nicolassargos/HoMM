@@ -129,6 +129,21 @@ public sealed record BuildingType
     /// <summary>Le capitole : un seul par joueur.</summary>
     public bool Capitol { get; init; }
 
+    /// <summary>Les marchés que ce bâtiment compte en plus pour les taux d'échange (le Grand Comptoir des Nains).</summary>
+    public int ExtraMarkets { get; init; }
+
+    /// <summary>
+    /// Le mouvement en plus d'un héros du joueur qui commence sa journée dans la ville (les Sentiers des rôdeurs de la
+    /// Forêt), en points de mouvement (<see cref="Hero.DefaultMovement"/> par jour sans compétence).
+    /// </summary>
+    public int DayMovementBonus { get; init; }
+
+    /// <summary>
+    /// Le Tourbillon de mana du Donjon : une fois par semaine, le premier héros du joueur qui vient dans la ville a deux
+    /// fois ses points de sort.
+    /// </summary>
+    public bool ManaVortex { get; init; }
+
     /// <summary>
     /// Le bâtiment que celui-ci remplace (l'hôtel de ville remplace la salle du village) : à l'écran, seul le plus récent
     /// est dessiné, à la même place.

@@ -457,7 +457,11 @@ public static class Texts
         { DailyGold: > 0 } => $"+{building.DailyGold} or par jour",
         { Walls: > 0, GrowthPercent: > 0 } => $"Des murs plus solides ; +{building.GrowthPercent} % de créatures chaque semaine",
         { Walls: > 0 } => "Des murs autour de la ville",
-        { Silo: true } when town.MainResource is { } resource =>$"+1 {Resource(resource)} par jour",
+        { Silo: true } when town.MainResource is { } resource => $"+1 {Resource(resource)} par jour",
+        { ExtraMarkets: > 0 } => $"Compte pour {building.ExtraMarkets} marchés de plus : de meilleurs taux d'échange",
+        { DayMovementBonus: > 0 } => $"Un héros qui part d'ici le matin a {building.DayMovementBonus * 100 / Hero.DefaultMovement} % de mouvement en plus ce jour-là",
+        { ManaVortex: true } => "Une fois par semaine, double les points de sort du premier héros qui vient"
+                                + (town.Has(building.Id) && !town.ManaVortexReady ? " (déjà servi cette semaine)" : ""),
         { Tavern: true } => "Permet de recruter des héros",
         { MageGuild: > 0 } => $"Enseigne {town.GuildSpellsAt(building.MageGuild)} sorts de niveau {building.MageGuild} aux héros"
                               + " et recharge leurs points de sort",
@@ -768,6 +772,8 @@ public static class Texts
         BuildingBuilt built => $"{built.Building.Name} : construit à {built.Town.Name}.",
         DeadRaised raised when raised.Hero.Owner != viewer => null,
         DeadRaised raised => $"Nécromancie : {raised.Count} {Creature(raised.Type, raised.Count)} se relève{(raised.Count == 1 ? "" : "nt")} dans l'armée de {raised.Hero.Name}.",
+        ManaVortexUsed vortex when vortex.Hero.Owner != viewer => null,
+        ManaVortexUsed vortex => $"Le Tourbillon de mana de {vortex.Town.Name} double les points de sort de {vortex.Hero.Name}.",
         SpellsLearned learned when learned.Hero.Owner != viewer => null,
         SpellsLearned learned => $"{learned.Hero.Name} apprend {List(learned.Spells.Select(s => s.Name).ToList())} à la guilde des mages de {learned.Town.Name}.",
         ResourcesTraded traded when traded.Player != viewer => null,

@@ -5,7 +5,8 @@
 <description.json> : {"titre": "…", "groupes": [{"id": "bouee", "titre": "Bouée", "fond": "eau"|"herbe"|"#rrggbb",
 "echelle": 2, "images": ["chemin/1.png", …], "anim": {"colonnes": 4, "lignes": 2, "fps": 8}}, …]} ; chemins depuis la
 racine du dépôt. Chaque image est montrée à <echelle> (2 : la taille du jeu) ; avec « anim », chaque image est une
-feuille d'animation jouée en boucle (une courte pause à la fin). Sur la page : un clic choisit un candidat (et vaut « Garder »), « À refaire »,
+feuille d'animation jouée en boucle (une courte pause à la fin) ; avec « "plusieurs": true », on garde autant de
+candidats qu'on veut (« choix » est alors une liste). Sur la page : un clic choisit un candidat (et vaut « Garder »), « À refaire »,
 un commentaire. Les réponses restent dans le navigateur et partent sur le disque si `revue.py serveur` tourne :
 art-candidats/en-cours/revue-<sujet>.json ({"items": {"<id>": {"choix": "<chemin>", "avis": …, "commentaire": …}}}).
 Écrit art-candidats/en-cours/<sujet>.html. Seule la bibliothèque standard de Python est utilisée.
@@ -45,7 +46,8 @@ def page(sujet, desc):
                 dessin = f'<img src="{html.escape(rel)}" style="width:{w * k}px" alt="">'
             boutons.append(f'<button class="cand" data-c="{html.escape(chemin)}" style="background:{fond}">'
                            f'{dessin}<span>{html.escape(nom)}</span></button>')
-        sections.append(f"""<section data-o="{html.escape(g['id'])}"><div class="tete"><h2>{html.escape(g['titre'])}</h2>
+        multi = ' data-multi="1"' if g.get("plusieurs") else ""
+        sections.append(f"""<section data-o="{html.escape(g['id'])}"{multi}><div class="tete"><h2>{html.escape(g['titre'])}</h2>
 <span class="etat"></span><button class="avis" data-a="refaire">À refaire</button></div>
 <div class="rang">{''.join(boutons)}</div><textarea placeholder="Commentaire (facultatif)"></textarea></section>""")
     return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>{html.escape(desc['titre'])}</title>
@@ -78,17 +80,19 @@ const CLE={json.dumps('choix-' + sujet + '-' + os.path.basename(RACINE))}, PAGE=
 let etat={{}};try{{etat=JSON.parse(localStorage.getItem(CLE))||{{}}}}catch(e){{}}
 function it(o){{return etat[o]||(etat[o]={{choix:null,avis:'',commentaire:''}})}}
 function rendre(){{let n=0;document.querySelectorAll('section').forEach(s=>{{const o=s.dataset.o,v=it(o);
- s.querySelectorAll('.cand').forEach(b=>b.classList.toggle('choisi',b.dataset.c===v.choix&&v.avis==='garder'));
+ s.querySelectorAll('.cand').forEach(b=>b.classList.toggle('choisi',v.avis==='garder'&&(Array.isArray(v.choix)?v.choix.includes(b.dataset.c):b.dataset.c===v.choix)));
  s.querySelector('.avis').classList.toggle('actif',v.avis==='refaire');
  s.classList.toggle('garder',v.avis==='garder');s.classList.toggle('refaire',v.avis==='refaire');
- s.querySelector('.etat').textContent=v.avis==='refaire'?'à refaire':v.avis==='garder'?'choisi : '+v.choix.split('/').slice(-2).join('/'):'rien de choisi';
+ s.querySelector('.etat').textContent=v.avis==='refaire'?'à refaire':v.avis==='garder'?(Array.isArray(v.choix)?v.choix.length+' gardés':'choisi : '+v.choix.split('/').slice(-2).join('/')):'rien de choisi';
  if(v.avis)n++;}});document.getElementById('compte').textContent=n+' / '+document.querySelectorAll('section').length+' répondus';}}
 function sauver(){{try{{localStorage.setItem(CLE,JSON.stringify(etat))}}catch(e){{}}rendre();clearTimeout(sauver.t);sauver.t=setTimeout(envoyer,300)}}
 async function envoyer(){{const d=document.getElementById('disque');try{{const r=await fetch('http://127.0.0.1:8765/reponses',{{method:'POST',
  headers:{{'Content-Type':'text/plain'}},body:JSON.stringify({{page:PAGE,dossier:DOSSIER,items:etat}},null,1)}});if(!r.ok)throw 0;
  d.textContent='✓ enregistré';d.style.color='var(--vert)'}}catch(e){{d.textContent='non enregistré (serveur arrêté ?)';d.style.color='var(--rouge)'}}}}
-document.querySelectorAll('.cand').forEach(b=>b.onclick=()=>{{const v=it(b.closest('section').dataset.o);
- if(v.choix===b.dataset.c&&v.avis==='garder'){{v.avis='';v.choix=null}}else{{v.choix=b.dataset.c;v.avis='garder'}}sauver()}});
+document.querySelectorAll('.cand').forEach(b=>b.onclick=()=>{{const s=b.closest('section'),v=it(s.dataset.o);
+ if(s.dataset.multi){{const l=Array.isArray(v.choix)?v.choix:[];const i=l.indexOf(b.dataset.c);if(i>=0)l.splice(i,1);else l.push(b.dataset.c);
+  v.choix=l;v.avis=l.length?'garder':''}}
+ else if(v.choix===b.dataset.c&&v.avis==='garder'){{v.avis='';v.choix=null}}else{{v.choix=b.dataset.c;v.avis='garder'}}sauver()}});
 document.querySelectorAll('.avis').forEach(b=>b.onclick=()=>{{const v=it(b.closest('section').dataset.o);v.avis=v.avis==='refaire'?'':'refaire';sauver()}});
 document.querySelectorAll('section textarea').forEach(t=>{{t.value=it(t.closest('section').dataset.o).commentaire;
  t.oninput=()=>{{it(t.closest('section').dataset.o).commentaire=t.value;sauver()}}}});

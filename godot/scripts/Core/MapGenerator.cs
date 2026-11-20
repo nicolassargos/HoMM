@@ -79,13 +79,20 @@ public sealed class MapGenerator
     /// <summary>Une mine par zone, et au moins une de chaque ressource.</summary>
     // une mine par zone comme avant (les gemmes comprises), plus une de chacune des trois autres ressources rares : autant
     // de mines d'or, de bois et de minerai qu'avant
-    public int MineCount => Math.Max(ResourceInfo.All.Length, (int)Math.Round(LandZones * MinesPerZone) + ResourceInfo.Rare.Length - 1);
+    public int MineCount => Math.Max(ResourceInfo.All.Length, (int)Math.Round(LandZones * MinesPerZone * ZoneAreaShare) + ResourceInfo.Rare.Length - 1);
+
+    /// <summary>La surface d'une zone de cette carte par rapport à une grande zone (les îles gardent de plus petites zones).</summary>
+    private double ZoneAreaShare => Type is MapType.Islands or MapType.Archipelago
+        ? (double)(IslandZoneWidth * IslandZoneHeight) / (ZoneWidth * ZoneHeight) : 1.0;
 
     /// <summary>Le nombre de zones de terre (les zones de mer n'ont ni mine ni ville).</summary>
     private int LandZones => _zones.Count(z => !z.Sea);
 
-    /// <summary>Mines par zone (la carte paraissait vide avec une seule ; Heroes 3 en met souvent 2 à 4).</summary>
-    public double MinesPerZone { get; init; } = 1.5;
+    /// <summary>
+    /// Mines par zone (la carte paraissait vide avec une seule ; Heroes 3 en met souvent 2 à 4) : 1,5 dans les zones de
+    /// 18 × 13 cases, 3,5 dans celles de 24 × 24 (2026-11-20), à peu près autant de mines pour la même surface.
+    /// </summary>
+    public double MinesPerZone { get; init; } = 3.5;
 
     /// <summary>
     /// Les factions dont viennent les monstres de la carte : les neutres, les morts-vivants, les Barbares et la Forêt
@@ -116,9 +123,32 @@ public sealed class MapGenerator
     public int ChestCount { get; init; } = 6;
     public int PileCount { get; init; } = 42; // 28 avant (la carte paraissait vide)
 
-    /// <summary>Taille visée d'une zone, en cases : la carte est découpée en autant de zones qu'il en rentre.</summary>
-    public const int ZoneWidth = 18;
-    public const int ZoneHeight = 13;
+    /// <summary>
+    /// Taille visée d'une zone, en cases : la carte est découpée en autant de zones qu'il en rentre, au moins 2 × 2. Plus
+    /// grandes depuis le 2026-11-20 (18 × 13 avant ; remarque de l'utilisateur : « très, très petites ») : mesurées sur 50
+    /// cartes de Heroes 3 (tools/cartes/zones_h3.py), leurs régions étaient 3 à 7 fois plus grandes que les nôtres. Carrées :
+    /// des cartes carrées découpées en 3 × 3, 4 × 4, 6 × 6 zones (28 × 20 donnait 2 × 3, un quart de la carte sans ville).
+    /// </summary>
+    public const int ZoneWidth = 24;
+    public const int ZoneHeight = 24;
+
+    /// <summary>
+    /// Les îles et l'archipel gardent les zones d'avant (18 × 13) : chaque île est faite de zones, une ville au plus par île
+    /// (avec les grandes zones, trop peu d'îles et de villes).
+    /// </summary>
+    public const int IslandZoneWidth = 18, IslandZoneHeight = 13;
+
+    /// <summary>
+    /// Le nombre de colonnes et de rangées de zones d'une carte : au moins 2 × 2 (des zones jusqu'à deux fois plus étroites)
+    /// sur une carte qui le permet, une seule sur une toute petite.
+    /// </summary>
+    public static (int Cols, int Rows) ZoneGrid(int width, int height, MapType type = MapType.Continent)
+    {
+        bool islands = type is MapType.Islands or MapType.Archipelago;
+        int zoneWidth = islands ? IslandZoneWidth : ZoneWidth, zoneHeight = islands ? IslandZoneHeight : ZoneHeight;
+        return (Math.Max(Math.Clamp(width / (zoneWidth / 2), 1, 2), width / zoneWidth),
+                Math.Max(Math.Clamp(height / (zoneHeight / 2), 1, 2), height / zoneHeight));
+    }
 
     /// <summary>
     /// Chance d'ouvrir un passage de plus entre deux zones voisines (en plus de ceux qui relient tout, et de la deuxième
@@ -649,7 +679,7 @@ public sealed class MapGenerator
     /// </summary>
     private void MakeZones()
     {
-        int cols = Math.Max(1, _map.Width / ZoneWidth), rows = Math.Max(1, _map.Height / ZoneHeight);
+        var (cols, rows) = ZoneGrid(_map.Width, _map.Height, Type);
         double cellWidth = (double)_map.Width / cols, cellHeight = (double)_map.Height / rows;
         // les zones des départs (des coins de la grille) ne sont pas décalées : chaque départ reste bien à l'intérieur
         var startSlots = _map.Starts.Select(s => ((int)(s.Y / cellHeight), (int)(s.X / cellWidth))).ToHashSet();
@@ -1611,11 +1641,12 @@ public sealed class MapGenerator
     // ------------------------------------------------------------------ villes
 
     /// <summary>
-    /// Le nombre de villes neutres : une pour trois zones, sans dépasser <see cref="TownsPerLand"/> villes (châteaux
-    /// compris) pour 1000 cases de terre ; et au moins une par joueur (sa ville voisine).
+    /// Le nombre de villes neutres : une par zone qui n'est pas un départ (une pour trois zones avant les grandes zones du
+    /// 2026-11-20 : comme dans Heroes 3, à peu près une ville par région), sans dépasser <see cref="TownsPerLand"/> villes
+    /// (châteaux compris) pour 1000 cases de terre ; et au moins une par joueur (sa ville voisine).
     /// </summary>
     private int TownCount => Math.Max(_map.Starts.Count,
-        Math.Min(LandZones / 3, (int)Math.Round(TownsPerLand * _landArea / 1000) - _map.Starts.Count));
+        Math.Min(LandZones - _map.Starts.Count, (int)Math.Round(TownsPerLand * _landArea / 1000) - _map.Starts.Count));
 
     /// <summary>
     /// Les villes pour 1000 cases de terre, châteaux compris : comme les cartes de Heroes 2 et 3 (mesuré sur 160 cartes,
@@ -1975,6 +2006,12 @@ public sealed class MapGenerator
         foreach (var (terrain, count, size) in patches)
             for (int i = 0; i < count; i++)
                 Patch(terrain, size, paint: terrain is not (TerrainType.Sand or TerrainType.Swamp) || i % 4 == 0);
+        // autant de montagnes en plus depuis les grandes zones (2026-11-20) : moins de murs entre elles, la terre s'ouvrait
+        // trop (montagne et forêt : 18 à 22 % de la terre au lieu de 23 à 27) ; leur propre hasard ; pas sur les îles, qui
+        // gardent les petites zones
+        var extra = new Random(_seed * 3203 + 7);
+        for (int i = 0; i < (ZoneAreaShare < 1 ? 0 : area / 500); i++)
+            Patch(TerrainType.Mountain, 18, rng: extra);
     }
 
     /// <summary>Les sols que peut prendre une zone, en plus de l'herbe.</summary>
@@ -2033,9 +2070,10 @@ public sealed class MapGenerator
         _zones.Count > 0 && _zoneGround.TryGetValue(_zoneOf[c.X, c.Y], out var ground) ? ground : TerrainType.Grass;
 
     /// <summary>Pose une « tache » de terrain par marche aléatoire.</summary>
-    private void Patch(TerrainType terrain, int steps, bool paint = true)
+    private void Patch(TerrainType terrain, int steps, bool paint = true, Random? rng = null)
     {
-        int x = _rng.Next(_map.Width), y = _rng.Next(_map.Height);
+        rng ??= _rng;
+        int x = rng.Next(_map.Width), y = rng.Next(_map.Height);
         for (int i = 0; i < steps; i++)
         {
             for (int dx = 0; dx <= 1; dx++)
@@ -2045,8 +2083,8 @@ public sealed class MapGenerator
                 if (paint && _map.InBounds(c))
                     _map.SetTerrain(c, terrain);
             }
-            x = Math.Clamp(x + _rng.Next(-1, 2), 0, _map.Width - 1);
-            y = Math.Clamp(y + _rng.Next(-1, 2), 0, _map.Height - 1);
+            x = Math.Clamp(x + rng.Next(-1, 2), 0, _map.Width - 1);
+            y = Math.Clamp(y + rng.Next(-1, 2), 0, _map.Height - 1);
         }
     }
 

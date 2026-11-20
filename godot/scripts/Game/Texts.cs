@@ -637,7 +637,7 @@ public static class Texts
         _ => "Très grande",
     };
     public static string MapSizeDetails(MapSize size, int width, int height) =>
-        $"{width} × {height} cases, {width / MapGenerator.ZoneWidth * (height / MapGenerator.ZoneHeight)} régions"
+        $"{width} × {height} cases, {MapGenerator.ZoneGrid(width, height).Cols * MapGenerator.ZoneGrid(width, height).Rows} régions"
         + (size >= MapSize.Large ? " : une longue partie" : "");
     public static string SeedLabel => "Graine";
     public static string SeedPlaceholder => "au hasard";

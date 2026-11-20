@@ -340,7 +340,8 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     « recoils violently from a blow: it rears back onto its hind legs… its wings snap wide open, its tail lashes, then
     it drops back down to exactly its starting pose » ; pour l'Hydre, « all the heads are thrown back on their long
     necks like whips, then they swing forward again one after another ». **Prix** : une grande créature coûte bien plus
-    par essai (8 coups reçus du Dragon et de l'Hydre : environ 1,05 $).
+    par essai (8 coups reçus du Dragon et de l'Hydre : environ 1,05 $). Le même jour, l'utilisateur leur a préféré
+    ceux du modèle v3 (voir « Les coups reçus » plus bas) : les ailes de ce Dragon s'ouvrent jusqu'à le tourner vers nous.
   - **Une créature qui avale** (le Ver, état `swallow`) : « rises very tall out of its hole, its body arching high up
     and over to the right, then its head comes straight down from above, mouth-first… a big round lump slides down
     inside its pale body ». Sans « from above », il mord de côté et crache parfois une boule ou un œuf. Les alertes
@@ -425,7 +426,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   retour à la pose de départ, 8 images)**, sans image clé : « takes a heavy blow to the chest and recoils: the head and
   neck jerk back, the wings flinch, the body sways back on its legs, then it recovers; no effects » (le Dragon se tasse,
   le Démon se plie un peu) ; il dessine un effet sur les 1 ou 2 premières images : les remplacer par une image suivante.
-  À essayer en premier pour une grande créature.
+  **Mieux encore (2026-11-20, choisi par l'utilisateur) : le modèle v3 avec un geste qui se cabre en arrière**, 8
+  images avec retour : « rears back to the left: it throws its head and long neck back to the left, jaws open, rises
+  onto its hind legs with its front claws lifted, the wings snapping open, then recovers back to exactly its starting
+  pose… » ; le corps entier recule, la tête en arrière. Le second modèle, avec la même consigne, tourne le Dragon vers
+  nous et lance les têtes de l'Hydre en avant. Faire 3 ou 4 graines : environ une sur trois dessine un éclat (le
+  retirer avec `retoucher … --eclats=partout`, et `--copier` pour une image trop tachée).
   Le jeu ajoute un recul de 9 pixels de l'écran (`Recoil`) : la page de revue le montre aussi. Retirer des effets à la
   main : par rectangles, n'effacer que les pixels clairs (ou jaune vif sur des cheveux blonds) ; sur le corps, leur donner
   la couleur du corps voisine plutôt que de faire un trou ; ou reprendre une image voisine.
@@ -477,6 +483,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   que bleu) ni écorce prend la couleur de la neige du champ, à 65 % au pied puis 38, 30, 12 et 8 % (les retouches de
   l'utilisateur) ; l'ombre de contact au bas du tronc, bleue et légère. La neige bleutée a plus de bleu que de vert : ce
   qui la distingue des aiguilles vert-bleu.
+- Roche (2026-11-20) : la roche de la carte vue de près fait du cuir (petites dalles, fissures fortes) ou un pavage
+  (grandes dalles) ; les affleurements du shader non plus. Les roches plates générées (« flat rock slab ») sortent
+  rondes ou carrées, comme des objets posés : ne garder que les éboulis irréguliers, les fondre dans le sol (moins de
+  couleur, tirés vers la teinte du sol, bord à 55 puis 90 %). Ce qui marche : une terre sèche dessinée par le shader,
+  avec de grandes plaques en paliers, des ravins de gravier pâle à très basse fréquence (plus fins, ils faisaient des
+  courbes de niveau), des fissures sèches (`vein_at` de la terre brûlée) et des cailloux tirés vers la couleur du sol
+  (pâles, ils faisaient des points blancs). Les touffes dessinées par le shader faisaient des croix : prendre des
+  images de l'herbe et les sécher (gris-jaune `l × 1,07, l, l × 0,78`, sans bleu ni orange). Décaler le dessin du
+  sol d'un combat à l'autre (`rock_shift`), sinon les mêmes ravins reviennent.
 
 ## Effets du combat (dessinés par le jeu)
 - **Pas d'effet dans les animations des créatures** : projectiles, impacts, auras sont dessinés par `Game/BattleEffects.cs`,

@@ -148,6 +148,21 @@ uniform float slab_relief = 0.11;
 uniform float rock_grain = 0.5;
 uniform float slab_stretch = 1.7;
 uniform float rock_cool = 0.04;
+// au combat (rock_outcrops > 0 : la part de roche) : la roche en affleurements (des taches de rock_outcrop_scale pixels
+// d'art, le bord du haut éclairé, la face du bas dans l'ombre, une ombre portée à leur pied) dans une terre de gravier
+// (rock_soil), dont les cailloux (rock_gravel) se serrent près de la roche ; sur la carte, la roche partout
+uniform float rock_outcrops = 0.0;
+uniform float rock_outcrop_scale = 60.0;
+// une terre désolée, entre le désert et la terre brûlée (2026-11-20) : gris-brun, des fissures sèches sans feu (celles de
+// la terre brûlée, plus petites ; rock_cracks : la part du sol où elles se montrent), des cailloux et des pierres
+uniform vec3 rock_soil = vec3(0.43, 0.40, 0.36);
+uniform float rock_gravel = 0.5;
+uniform float rock_cracks = 0.5;
+// pour que ce ne soit pas qu'un sol uni : de grandes plaques plus claires ou plus sombres (rock_patches), des ravins secs de
+// gravier pâle (rock_washes) ; les touffes d'herbe sèche sont des images (battle/detail-rock)
+uniform float rock_patches = 0.08;
+uniform float rock_washes = 1.0;
+uniform vec2 rock_shift = vec2(0.0);
 // Le pied des montagnes (0 : rien ; 0,35 sans terre ni gravier, 2026-11-17 : les pentes se fondent dans l'herbe) : jusqu'à foothill_reach cases d'une montagne, l'herbe sèche (foothill),
 // des plaques de terre et de gravier (foothill_soil : leur part au pied), des éboulis (foothill_scree : la part des
 // carrés de 6 pixels d'art qui ont une pierre, au pied) ; le bord ondule de foothill_wave cases
@@ -839,6 +854,11 @@ vec4 vein_at(vec2 p) {
 	return best;
 }
 
+// La roche affleure-t-elle au pixel d'art p ? (sa valeur, à comparer à outcrop_level)
+float outcrop_at(vec2 p) {
+	return noise((p + 0.5) / rock_outcrop_scale + vec2(37.0, 81.0)) * 0.75 + noise((p + 0.5) / (rock_outcrop_scale * 0.3) + vec2(12.0, 7.0)) * 0.25;
+}
+
 // Une fissure du sol rocheux au pixel d'art p ?
 bool crack_at(vec2 p) {
 	vec2 id;
@@ -1100,17 +1120,70 @@ void fragment() {
 			float cool = floor(smoothstep(0.35, 0.65, noise((p + 0.5) / 70.0 + vec2(61.0, 29.0))) * 2.0 + bayer(p)) / 2.0;
 			color *= mix(vec3(1.0), vec3(1.0 - rock_cool, 1.0, 1.0 + rock_cool * 1.2), cool);
 		}
+		bool on_rock = true;
+		if (rock_outcrops > 0.0) {
+			float level = mix(1.01, 0.32, rock_outcrops);
+			float o = outcrop_at(p);
+			on_rock = o > level;
+			if (!on_rock) {
+				// la terre de gravier : la couleur rock_soil, avec le relief de l'image ; des cailloux, serrés près de la roche
+				color = rock_soil * (0.8 + 0.45 * dot(color, vec3(0.3, 0.59, 0.11)) / 0.45);
+				vec2 q = p + rock_shift; // le même dessin décalé : chaque combat a ses ravins et ses fissures
+				// de grandes plaques : une poussière plus claire et chaude, une terre plus sombre et pierreuse (en trame)
+				float dust = noise((q + 0.5) / 46.0 + vec2(13.0, 88.0)) * 0.7 + noise((q + 0.5) / 15.0 + vec2(40.0, 2.0)) * 0.3;
+				float patch = floor(clamp((dust - 0.5) * 4.0, -1.0, 1.0) * 2.0 + bayer(p)) / 2.0;
+				color *= 1.0 + patch * rock_patches * (patch > 0.0 ? vec3(1.0, 0.95, 0.75) : vec3(1.0));
+				float stony = smoothstep(0.45, 0.25, dust);
+				// un ravin sec qui serpente : une bande de gravier pâle, plus de cailloux
+				float wash_line = abs(noise((q + 0.5) / vec2(240.0, 130.0) + vec2(7.0, 51.0)) - 0.5)
+					+ (noise((q + 0.5) / 7.0 + vec2(3.0, 9.0)) - 0.5) * 0.03;
+				float wash = rock_washes > 0.0 ? smoothstep(0.05, 0.025, wash_line) * rock_washes : 0.0;
+				color = mix(color, rock_soil * vec3(1.22, 1.2, 1.14), floor(wash * 2.0 + bayer(p)) / 2.0 * 0.8);
+				vec2 cell = floor(p / 3.0);
+				if (hash(cell + vec2(5.1, 3.3)) < rock_gravel * (0.25 + smoothstep(level - 0.14, level, o) + stony * 0.6 + wash * 1.2)) {
+					vec2 spot = cell * 3.0 + floor(vec2(hash(cell + vec2(1.7, 8.2)), hash(cell + vec2(6.4, 2.9))) * 2.0);
+					if (p == spot) color = mix(vec3(0.56, 0.53, 0.49), vec3(0.36, 0.34, 0.32), hash(cell + vec2(9.0, 2.0)));
+					else if (p == spot + vec2(0.0, 1.0)) color *= 0.72;
+				}
+				// des pierres plus grosses, çà et là
+				vec2 big = floor(p / 7.0);
+				if (hash(big + vec2(33.4, 70.2)) < rock_gravel * (0.12 + stony * 0.4 + wash * 0.3)) {
+					vec2 spot = big * 7.0 + 2.0 + floor(vec2(hash(big + vec2(4.6, 1.3)), hash(big + vec2(7.2, 5.5))) * 3.0);
+					vec3 stone;
+					if (stone_shape(p - spot, stone_size(big + vec2(8.1)), big, color, stone)) color = mix(stone, rock_soil * 1.05, 0.45); // pas les cailloux clairs de la carte
+				}
+				// les fissures sèches : celles de la terre brûlée, plus petites et plus fines, sans feu, par endroits
+				if (rock_cracks > 0.0 && noise((q + 0.5) / 30.0 + vec2(71.0, 6.0)) > 1.0 - rock_cracks) {
+					vec4 crack = vein_at((q + 0.5) * 1.4 + vec2(517.0, 203.0));
+					if (crack.x < 0.0 && crack.y < 0.5 + crack.z * 1.2) color *= 0.6;
+					else if (crack.x < 1.0 && vein_at((q + vec2(0.5, -0.5)) * 1.4 + vec2(517.0, 203.0)).x < 0.0) color *= 1.08;
+				}
+				// quelques grandes fissures, plus larges, loin des ravins
+				if (rock_cracks > 0.0 && wash < 0.1 && noise((q + 0.5) / 60.0 + vec2(27.0, 64.0)) > 1.0 - rock_cracks * 0.6) {
+					vec4 crack = vein_at((q + 0.5) * 0.75 + vec2(91.0, 377.0));
+					if (crack.x < 0.0 && crack.y < 0.6 + crack.z * 1.6) color *= crack.y < 0.5 + crack.z * 0.8 ? 0.45 : 0.68;
+					else if (crack.x < 1.5 && vein_at((q + vec2(0.5, -0.5)) * 0.75 + vec2(91.0, 377.0)).x < 0.0) color *= 1.1;
+				}
+				if (outcrop_at(p - vec2(0.0, 2.0)) > level) color *= 0.72; // l'ombre au pied de la roche
+			} else {
+				color *= 1.06;
+				if (outcrop_at(p + vec2(0.0, 2.0)) <= level) color *= 0.7; // la face du bas, dans l'ombre
+				else if (outcrop_at(p - vec2(0.0, 1.0)) <= level) color *= 1.18; // le bord du haut, éclairé
+			}
+		}
 		vec2 slab;
 		vec2 from;
 		slab_edge(p, slab, from);
-		color *= 1.0 + (floor(hash(slab + vec2(2.7, 4.4)) * 3.0) - 1.0) * slab_tone;
-		float tilt = hash(slab + vec2(8.3, 1.9)) * 6.2832;
-		float facet = clamp(dot(from, vec2(cos(tilt), sin(tilt))) * 2.0, -1.0, 1.0);
-		// certaines dalles penchent à peine, et par endroits aucune : l'effet ne dessine pas un pavage
-		facet *= mix(0.35, 1.0, hash(slab + vec2(4.1, 9.6))) * smoothstep(0.25, 0.6, noise((p + 0.5) / 48.0 + vec2(19.0, 43.0)));
-		color *= 1.0 + clamp(floor(facet * 2.5 + bayer(p)) / 2.5, -1.0, 1.0) * slab_relief;
-		if (crack_at(p)) color *= slab_dark;
-		else if (crack_at(p + vec2(1.0, 0.0))) color *= slab_light;
+		if (on_rock) {
+			color *= 1.0 + (floor(hash(slab + vec2(2.7, 4.4)) * 3.0) - 1.0) * slab_tone;
+			float tilt = hash(slab + vec2(8.3, 1.9)) * 6.2832;
+			float facet = clamp(dot(from, vec2(cos(tilt), sin(tilt))) * 2.0, -1.0, 1.0);
+			// certaines dalles penchent à peine, et par endroits aucune : l'effet ne dessine pas un pavage
+			facet *= mix(0.35, 1.0, hash(slab + vec2(4.1, 9.6))) * smoothstep(0.25, 0.6, noise((p + 0.5) / 48.0 + vec2(19.0, 43.0)));
+			color *= 1.0 + clamp(floor(facet * 2.5 + bayer(p)) / 2.5, -1.0, 1.0) * slab_relief;
+			if (crack_at(p)) color *= slab_dark;
+			else if (crack_at(p + vec2(1.0, 0.0))) color *= slab_light;
+		}
 	}
 	// La terre brûlée : la cendre, les fissures rougeoyantes et les braises
 	if (t == burnt_ground && !in_water && stream_depth(p) <= 0.0 && shore_distance(p) > 2.0) {

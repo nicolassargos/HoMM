@@ -998,7 +998,8 @@ Griffon 14, Cavalier 25, Moine 61, Chevalier 93, Ange 1597.
   second modèle, 8 images, « recoils violently from a blow: it rears back… wings snap wide open… » (Dragon hit-2 : il
   se cabre sur ses pattes arrière, ailes ouvertes) et « all the heads are thrown back on their long necks like whips,
   then they swing forward again one after another » (Hydre hit-4, nettoyée). 8 essais coûtent environ 1,05 $ pour ces
-  grandes créatures.
+  grandes créatures. Remplacés le même jour par ceux de la branche `coups-dragon-hydre` (modèle v3), que l'utilisateur
+  a préférés en comparant les deux versions.
 - **Ver des profondeurs** :
   - **Il glisse vers sa cible** en attaquant : réglage `lunge` d'`animations.json` (0,45 : la part du chemin jusqu'à la
     cible), commun à toutes les créatures ; `Shown.Lunge` avance pendant l'élan de l'attaque (`UnitStruck`), puis revient
@@ -1966,6 +1967,19 @@ des noyées, Antre des araignées, Crypte, Tour de la liche, Charnier).
   l'utilisateur : tout ce qui, sous l'arbre, n'est ni aiguilles ni écorce prend la couleur de la neige du champ, à 65 %
   au pied puis 38, 30, 12 et 8 % en s'éloignant ; leur ombre de contact est bleue et plus légère (`pieds.json`), posée au
   bas du tronc.
+- ✅ Champ de bataille de la roche (2026-11-20, branche `champ-roche`). Choix de l'utilisateur : **une terre désolée,
+  entre le désert et la terre brûlée**. Essayés et écartés : la roche de la carte vue de près (des dalles et des
+  fissures : « du cuir », puis « un pavage »), des affleurements dessinés par le shader, des roches plates générées
+  (« pas des formes naturelles » : 7 gardées sur 15, des éboulis pris dans le sol, fondus dans le sol par un
+  script). Retenu : `SmoothGround.CreateBattle` met presque tout en terre (`rock_outcrops` 0,02) ; dans
+  `terrain.gdshader`, une terre gris-brun (`rock_soil`) avec de grandes plaques en trois paliers (`rock_patches`),
+  des ravins secs de gravier pâle (`rock_washes`), du gravier et des pierres plus nombreux dans les zones
+  caillouteuses et les ravins, des fissures sèches fines et grandes (le générateur des fissures de la terre brûlée,
+  `vein_at`, sans feu) ; `rock_shift`, tiré du combat, décale ravins et fissures d'un combat à l'autre. Ciel plus pâle
+  et voilé, pré plus gris (`RockPalette`). Images Retro Diffusion (arbres, pins, buissons, rochers, obstacles) ; les
+  plantes vertes séchées par un script (gris-jaune, l'ombrage gardé), les touffes et brindilles copiées de l'herbe et
+  séchées ; les pins restent verts. Les combats sur la roche n'empruntent plus le champ du désert (la terre brûlée,
+  encore).
 - ✅ Finitions des champs (2026-11-17, branche `champ-finitions`). **Nuages** dans le ciel des paysages ouverts : 1 à 3,
   plats dessous, des bosses bombées dessus (gardées dans le nuage : une bosse coupée au bout faisait un mur) ; gris sous
   le ciel couvert du marais (drapeau `Overcast` : le haut blanc y brillait trop, remarque de l'utilisateur). **Rochers**
@@ -2884,6 +2898,13 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
   de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
   worktree (non suivi par git).
+  ✅ **Le coup reçu du Dragon et de l'Hydre, fini** (2026-11-20, branche `coups-dragon-hydre`) : ceux du 2026-11-17
+  bougeaient à peine (« encore à finir », selon l'utilisateur, qui voulait un Dragon qui recule). Le modèle v3, 8 images
+  avec retour, une consigne qui fait **se cabrer en arrière** : « rears back to the left: it throws its head and long
+  neck back to the left, jaws open, rises onto its hind legs with its front claws lifted, the wings snapping open… »
+  (Dragon, essai 1) ; « rears back to the left: the body lifts its front legs off the ground, the five necks thrash in
+  every direction with jaws open, hissing, then it drops back down… » (Hydre, essai 6). Le second modèle, cette fois, tournait le Dragon vers nous et lançait les
+  têtes de l'Hydre en avant (on dirait une attaque). 12 essais, 0,17 $, choisis au premier tour.
   ✅ **Les héros au combat** (2026-11-19, branche `heros-combat`) : le combat montrait l'image de la carte du héros
   (48 px, ×2). Désormais `MapRenderer.HeroBattleImage` prend `heroes/battle/<nom>.png` s'il existe (sinon l'image de la
   carte), aux couleurs du joueur comme sur la carte (`PaintPlayerColor`, commun aux deux) ; celui qui se défend, à

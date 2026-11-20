@@ -148,15 +148,14 @@ public partial class TownScreen : CanvasLayer
         _visitorPortrait = Picture(null!, new Vector2(2, 2), new Vector2(128, 128)); // le portrait ×2
         portraitFrame.AddChild(_visitorPortrait);
         _visitor = MakeArmy(V(ArmyX, y + 22));
-        _giveAll = MakeButton(Texts.GiveAllToHero, 13);
-        _giveAll.Position = V(exchangeX + 14, y + 52);
-        Sized(_giveAll, Px(250), ButtonHeight);
-        _giveAll.Pressed += GiveAll;
+        // deux boutons à icône (choix de l'utilisateur, 2026-11-20) : la flèche descend vers le héros, ou monte vers la
+        // garnison ; le texte en info-bulle
+        _giveAll = IconButtons.Make("donner-heros", Texts.GiveAllToHero, "", GiveAll);
+        // à la hauteur du milieu de la rangée du héros
+        _giveAll.Position = new Vector2(Px(exchangeX + 14), Snap(Px(y + 22 + 44) - IconButtonSide / 2));
         _root.AddChild(_giveAll);
-        _leaveAll = MakeButton(Texts.LeaveAllInGarrison, 13);
-        _leaveAll.Position = V(exchangeX + 276, y + 52);
-        Sized(_leaveAll, Px(250), ButtonHeight);
-        _leaveAll.Pressed += LeaveAll;
+        _leaveAll = IconButtons.Make("laisser-garnison", Texts.LeaveAllInGarrison, "", LeaveAll);
+        _leaveAll.Position = _giveAll.Position + new Vector2(IconButtonSide + ButtonGap, 0);
         _root.AddChild(_leaveAll);
 
         BuildRecruitWindow();
@@ -281,6 +280,7 @@ public partial class TownScreen : CanvasLayer
         _visitorPortrait.Texture = hero != null ? Art.Portrait(hero.Name) : null;
         _giveAll.Disabled = hero == null || town.Garrison.Stacks.Count == 0;
         _leaveAll.Disabled = hero == null || hero.Army.Stacks.Count <= 1;
+        IconButtons.Dim(new[] { _giveAll, _leaveAll });
         _reopen?.Invoke();
     }
 

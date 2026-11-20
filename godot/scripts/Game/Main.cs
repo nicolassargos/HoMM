@@ -122,16 +122,39 @@ public partial class Main : Node2D
             foreach (var town in _state.Players.Where(p => !p.IsComputer).SelectMany(p => p.Towns))
                 _state.AddAllBuildings(town);
         // Développement : « --boat » : un bateau amarré sur l'eau la plus proche du héros, au bord d'une rive
-        if (loaded == null && OS.GetCmdlineUserArgs().Contains("--boat") && _state.CurrentHero is { } sailor)
+        if (loaded == null && OS.GetCmdlineUserArgs().Any(a => a is "--boat" or "--boat=sail") && _state.CurrentHero is { } sailor)
         {
             var map = _state.Map;
+            bool sail = OS.GetCmdlineUserArgs().Contains("--boat=sail");
+            // pour monter à bord : un chemin qui ne passe à côté d'aucun gardien (sinon le combat l'arrête)
+            bool Guarded(Cell c) => Enumerable.Range(-1, 3).Any(dx => Enumerable.Range(-1, 3).Any(dy =>
+                map.InBounds(c.Offset(dx, dy)) && map.ObjectAt(c.Offset(dx, dy)) is MonsterGuard));
+            bool Free(Cell c)
+            {
+                if (!sail)
+                    return true;
+                map.AddObject(new Boat(c));
+                _state.SetDestination(c);
+                bool free = _state.Path is { Count: > 0 } path && path.All(step => !Guarded(step));
+                _state.ClearPath();
+                map.RemoveObject(map.ObjectAt(c)!);
+                return free;
+            }
             var shore = Enumerable.Range(0, map.Width).SelectMany(x => Enumerable.Range(0, map.Height).Select(y => new Cell(x, y)))
                 .Where(c => map.IsWater(c) && map.ObjectAt(c) == null
                     && new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) }.Any(n => map.IsPassable(n) && map.ObjectAt(n) == null))
                 .OrderBy(c => Math.Abs(c.X - sailor.Position.X) + Math.Abs(c.Y - sailor.Position.Y))
-                .Cast<Cell?>().FirstOrDefault();
+                .Take(40).Where(Free).Cast<Cell?>().FirstOrDefault();
             if (shore is { } boatCell)
+            {
                 map.AddObject(new Boat(boatCell));
+                // « --boat=sail » : le héros y monte aussitôt (pour voir un héros en mer)
+                if (sail)
+                {
+                    _state.SetDestination(boatCell);
+                    while (sailor.Position != boatCell && _state.StepAlongPath()) { }
+                }
+            }
         }
         // Option de développement : « -- --reveal » retire le brouillard (de même « --demo »)
         if (OS.GetCmdlineUserArgs().Contains("--reveal") || Demo)

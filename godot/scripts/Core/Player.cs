@@ -64,6 +64,10 @@ public sealed class Player
         int townGold = Towns.Sum(t => t.DailyGold) + Heroes.Sum(h => h.SkillValue(Skills.Estates));
         if (townGold > 0)
             income[ResourceType.Gold] = income.GetValueOrDefault(ResourceType.Gold) + townGold;
+        // le silo d'une ville : 1 de la ressource principale de sa faction
+        foreach (var town in Towns)
+            if (town.SiloResource is { } resource)
+                income[resource] = income.GetValueOrDefault(resource) + 1;
         return income;
     }
 }

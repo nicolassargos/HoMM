@@ -92,7 +92,9 @@ public static class ComputerPlayer
     /// <summary>
     /// L'ordre de construction d'une ville, pour toutes les factions : l'habitation du niveau 2, la taverne, l'hôtel de
     /// ville, les habitations des niveaux 3 à 5, la guilde, le niveau 6, la guilde 2, le grand hôtel de ville, le niveau 7,
-    /// puis la fin de la guilde (comme la simulation d'équilibrage pour le Château).
+    /// la fin de la guilde (comme la simulation d'équilibrage pour le Château), puis le fort, la citadelle, le château, le
+    /// silo et le capitole. Bâtis plus tôt (2026-11-20), ils coûtaient trop : l'or manque plus que les créatures, et à six
+    /// semaines les créatures en plus de la citadelle ne l'avaient pas payée (armées plus faibles de 10 à 20 %).
     /// </summary>
     private static IEnumerable<string> BuildOrder(Town town)
     {
@@ -100,7 +102,8 @@ public static class ComputerPlayer
         return new[]
         {
             Dwelling(2), "taverne", "hotel-ville", Dwelling(3), "marche", Dwelling(4), Dwelling(5), "guilde-mages-1",
-            Dwelling(6), "guilde-mages-2", "grand-hotel-ville", Dwelling(7), "guilde-mages-3", "guilde-mages-4",
+            Dwelling(6), "guilde-mages-2", "grand-hotel-ville", Dwelling(7), "guilde-mages-3",
+            "guilde-mages-4", "fort", "citadelle", "chateau-fort", "silo", "capitole",
         }.OfType<string>();
     }
 
@@ -145,14 +148,19 @@ public static class ComputerPlayer
     /// Un bâtiment par jour, dans l'ordre de construction : le premier qu'on peut bâtir (ses bâtiments requis sont là).
     /// S'il manque de quoi le payer, on peut bâtir un bâtiment plus loin dans l'ordre, mais seulement s'il ne retarde pas
     /// le premier : il n'utilise aucune des ressources qui lui manquent, et laisse assez des autres (sinon la guilde des
-    /// mages, par exemple, prenait le bois et le minerai que la caserne attendait).
+    /// mages, par exemple, prenait le bois et le minerai que la caserne attendait). Le fort et ses étapes, le silo et le
+    /// capitole attendent que la ville n'ait plus rien à recruter : tant que l'or manque pour acheter ses créatures, des
+    /// troupes valent mieux que des créatures en plus ou un revenu lointain.
     /// </summary>
     private static void BuildNext(GameState state, Town town, Player player)
     {
         BuildingType? waiting = null;
+        bool troopsLeft = town.Available.Values.Any(n => n > 0);
         foreach (var id in BuildOrder(town))
         {
             if (town.Buildings.FirstOrDefault(b => b.Id == id) is not { } building || town.Has(id))
+                continue;
+            if (troopsLeft && (building.Walls > 0 || building.Silo || building.Capitol))
                 continue;
             var result = town.CanBuild(building, player);
             if (result == BuildResult.AlreadyBuiltToday)

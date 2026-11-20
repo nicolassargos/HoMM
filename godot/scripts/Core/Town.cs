@@ -4,7 +4,7 @@ using System.Linq;
 namespace HoMM.Core;
 
 /// <summary>Pourquoi un bâtiment peut (ou ne peut pas) être construit.</summary>
-public enum BuildResult { Ok, NotOwner, AlreadyBuilt, AlreadyBuiltToday, MissingRequirement, NotEnoughResources, NotCoastal }
+public enum BuildResult { Ok, NotOwner, AlreadyBuilt, AlreadyBuiltToday, MissingRequirement, NotEnoughResources, NotCoastal, CapitolElsewhere }
 
 /// <summary>Pourquoi un recrutement peut (ou ne peut pas) se faire.</summary>
 public enum RecruitResult { Ok, NotOwner, NotAvailable, NotEnoughResources, NoRoom }
@@ -89,6 +89,20 @@ public sealed class Town : MapObject
     /// <summary>Or rapporté chaque jour : seul le meilleur bâtiment compte (hôtel de ville remplace la salle du village).</summary>
     public int DailyGold => BuiltBuildings.Select(b => b.DailyGold).DefaultIfEmpty(0).Max();
 
+    /// <summary>Les murs de la ville : 0 sans fort, puis 1 (fort), 2 (citadelle), 3 (château).</summary>
+    public int Walls => BuiltBuildings.Select(b => b.Walls).DefaultIfEmpty(0).Max();
+
+    /// <summary>Les créatures en plus chaque semaine, en pour cent (la citadelle, le château).</summary>
+    public int GrowthPercent => BuiltBuildings.Select(b => b.GrowthPercent).DefaultIfEmpty(0).Max();
+
+    /// <summary>La ressource rare principale de la faction de la ville (celle de son niveau 7).</summary>
+    public ResourceType? MainResource => _data.Classes.ForFaction(Faction)?.MainResource;
+
+    /// <summary>La ressource que le silo rapporte chaque jour (la ressource principale de la faction), s'il est bâti.</summary>
+    public ResourceType? SiloResource => BuiltBuildings.Any(b => b.Silo) ? MainResource : null;
+
+    public bool HasCapitol => BuiltBuildings.Any(b => b.Capitol);
+
     public BuildResult CanBuild(BuildingType building, Player player)
     {
         if (Owner != player)
@@ -98,6 +112,8 @@ public sealed class Town : MapObject
         // Les raisons durables d'abord : c'est ce que le joueur a besoin de savoir
         if (building.Shipyard && BoatSpot == null)
             return BuildResult.NotCoastal;
+        if (building.Capitol && player.Towns.Any(t => t != this && t.HasCapitol))
+            return BuildResult.CapitolElsewhere;
         if (building.RequirementChoices.Any(choices => !choices.Any(Has)))
             return BuildResult.MissingRequirement;
         if (!player.CanAfford(building.Cost))
@@ -194,18 +210,27 @@ public sealed class Town : MapObject
 
     /// <summary>
     /// Chaque semaine, chaque habitation produit de nouvelles créatures ; <paramref name="growthBonus"/> : un pourcentage
-    /// en plus (le Recruteur d'un héros qui commence la semaine dans la ville).
+    /// en plus (le Recruteur d'un héros qui commence la semaine dans la ville), ajouté à celui de la citadelle ou du château.
     /// </summary>
     public void NewWeek(int growthBonus = 0)
     {
         foreach (var building in BuiltBuildings)
             if (DwellingCreature(building) is { } creature)
-                Available[creature] = Available.GetValueOrDefault(creature) + creature.Growth * (100 + growthBonus) / 100;
+                Available[creature] = Available.GetValueOrDefault(creature) + WeeklyGrowth(creature, growthBonus);
     }
 
-    /// <summary>La ville change de propriétaire.</summary>
+    /// <summary>Les créatures de ce type que la ville produit chaque semaine, la citadelle ou le château compris.</summary>
+    public int WeeklyGrowth(CreatureType creature, int growthBonus = 0) =>
+        creature.Growth * (100 + GrowthPercent + growthBonus) / 100;
+
+    /// <summary>
+    /// La ville change de propriétaire. Un joueur n'a qu'un capitole : celui d'une ville prise par un joueur qui en a
+    /// déjà un redevient un grand hôtel de ville (comme dans Heroes 3).
+    /// </summary>
     public void SetOwner(Player? player)
     {
+        if (player != null && HasCapitol && player.Towns.Any(t => t != this && t.HasCapitol))
+            _built.RemoveWhere(id => _data.Buildings.Get(id).Capitol);
         Owner?.Towns.Remove(this);
         Owner = player;
         player?.Towns.Add(this);

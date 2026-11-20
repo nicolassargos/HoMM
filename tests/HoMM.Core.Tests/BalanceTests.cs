@@ -64,8 +64,8 @@ internal static class BalanceSimulation
     /// <summary>Ordre de construction : les habitations d'abord, puis l'économie.</summary>
     private static readonly string[] BuildOrder =
     {
-        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "ecuries", "monastere",
-        "commanderie", "grand-hotel-ville", "portail-gloire",
+        "tour-archers", "taverne", "hotel-ville", "tour-griffons", "ecuries", "monastere", "fort", "citadelle",
+        "commanderie", "grand-hotel-ville", "portail-gloire", "chateau-fort",
     };
 
     /// <summary>

@@ -135,6 +135,9 @@ images) ; les onglets en marque-pages (à l'essai) ; la taille de l'écran, à r
 Décidé avec l'utilisateur (2026-11-20) : la liste complète d'abord, puis les scènes des villes. Aujourd'hui, 17
 bâtiments par ville (10 communs, 7 habitations, `data/buildings.json`) ; demain **environ 32**, comme Heroes 3 (une
 amélioration garde la place de son bâtiment, avec sa propre image : 18 places, dans les 25 prévues par scène).
+- ✅ **Le fort, la citadelle, le château fort, le capitole et le silo** (2026-11-20, branche `villes-batiments-communs` ;
+  l'IA les bâtit quand sa ville n'a plus rien à recruter : l'or manque plus que les créatures ; détail dans
+  `HISTORIQUE.md`).
 - **Communs (9 places)** : salle du village → hôtel de ville → grand hôtel de ville → **capitole** (un par joueur,
   2400 or par jour) ; **fort → citadelle → château** (les murs des sièges ; +50 % puis +100 % de croissance) ; guilde
   des mages 1 à 4 ; taverne ; marché ; **silo** (+1 par jour de la ressource principale de la faction) ; **forge**
@@ -151,7 +154,7 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
 |---|---|---|
 | Morts-vivants | **Cortège funèbre** | après chaque combat gagné par un héros du joueur, où qu'il soit, les morts des deux camps reviennent à la ville : des Squelettes à recruter la semaine suivante |
 | Barbares | **La Marmite** | on y jette de petites créatures, il en sort de plus fortes (4 Gobelins → 1 Orc, 3 Loups → 1 Ogre…) |
-| Tour de magie | **La Tour qui pousse** | un étage de plus par semaine (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
+| Tour de magie | **La Tour qui pousse** | un étage de plus par semaine, **5 au plus** (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
 | Château | **Les Hérauts** | plus un héros a gagné de combats, plus les monstres neutres proposent de le rejoindre ; héros de taverne moins chers |
 | Nains | **Le Grand Comptoir** | compte pour 2 marchés de plus (meilleurs taux d'échange) |
 | Donjon | **Tourbillon de mana** | une fois par semaine, les points de sort d'un héros qui le visite sont doublés |
@@ -264,14 +267,23 @@ pieds non revus (champ de la roche, massifs, arbres des sols, ponts).
 
 ### La ville vue de face par faction (rien n'est encore fait)
 La liste de ses bâtiments : « Les bâtiments des villes », plus haut.
-Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de 640 × 195
-affiché ×3, et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque
+Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 292,
+affiché ×2** comme tout le pixel art (choix de l'utilisateur, 2026-11-20 ; d'abord prévu 640 × 195 à ×3), et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque
 amélioration a sa propre image au même pied. Bâtiments dessinés de l'arrière vers l'avant ; clic et survol sur les
 pixels de l'image, léger contour au survol. Chaque faction place aussi les bâtiments communs ; un test vérifie que la
 scène couvre tous ses bâtiments. Choix de l'utilisateur : une place vide ne montre **rien** ; **un seul fond** par
 faction ; place pour **au moins 25 bâtiments** ; petits détails animés plus tard. Images : un concept de la ville
 entière, puis le fond, puis chaque bâtiment avec le fond comme référence ; une page HTML pour placer les bâtiments à
 la souris et écrire `scene.json`.
+**Choix de l'utilisateur (2026-11-20)**, après des esquisses (`art-candidats/en-cours/villes-esquisses/index.html`, une
+par faction, placements dans `placements.json`) :
+- **Une mise en scène libre par faction**, chacune son point de vue (pas de plan commun) ; chaque ville **inspirée de
+  son image sur la carte**.
+- **Pas d'eau dans les fonds** : le chantier naval apporte la sienne (un quai, un peu d'eau) et n'existe que dans une
+  ville au bord de l'eau (il n'est même pas proposé ailleurs).
+- Le **capitole** est la 4e image de l'hôtel de ville ; **La Tour qui pousse** a 5 étages au plus (une image par
+  étage) ; le **Donjon** s'ouvre sur une caverne ; la forteresse des **Nains** fait partie de la montagne : un fond
+  surtout de roche.
 
 ### L'IA et l'équilibre
 Entraîner les profils de difficulté par des parties entre IA, jouées sans affichage ; petits détails et équilibrage

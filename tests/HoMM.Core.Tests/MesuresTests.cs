@@ -226,6 +226,58 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Les objets de la carte (2026-11-20) : les mines prévues et posées, par ressource ; les coffres et les tas prévus et
+    /// posés ; et, zone par zone (zones de terre hors départs), combien de mines, de trésors (coffres et tas) et de lieux.
+    /// </summary>
+    [Mesure]
+    public void Objets_par_zone()
+    {
+        foreach (var size in new[] { MapSize.Normal, MapSize.Large })
+        {
+            var (w, h) = MapSizes.Dimensions(size);
+            var missingMines = new List<int>();
+            var missingChests = new List<int>();
+            var missingPiles = new List<int>();
+            var perResource = new Dictionary<ResourceType, List<int>>();
+            var zoneMines = new List<int>();
+            var zoneMineKinds = new List<int>();
+            var zoneTreasures = new List<int>();
+            var zoneSites = new List<int>();
+            var zoneTreasureDensity = new List<int>();
+            foreach (int seed in Seeds)
+            {
+                var generator = new MapGenerator(seed, TestData.Data);
+                var map = generator.Generate(w, h);
+                var mines = map.Objects.OfType<Mine>().ToList();
+                missingMines.Add(generator.MinesNotPlaced);
+                missingChests.Add(generator.PlannedChests - map.Objects.OfType<TreasureChest>().Count());
+                missingPiles.Add(generator.PlannedPiles - map.Objects.OfType<ResourcePile>().Count());
+                foreach (var resource in ResourceInfo.All)
+                    (perResource.TryGetValue(resource, out var l) ? l : perResource[resource] = new List<int>()).Add(mines.Count(m => m.Resource == resource));
+                var cells = Enumerable.Range(0, h).SelectMany(y => Enumerable.Range(0, w).Select(x => new Cell(x, y))).ToList();
+                for (int zone = 0; zone < generator.ZoneCount; zone++)
+                {
+                    if (generator.IsSeaZone(zone) || generator.IsStartZone(zone))
+                        continue;
+                    var objects = map.Objects.Where(o => generator.ZoneIndexOf(o.Position) == zone).ToList();
+                    int land = cells.Count(c => generator.ZoneIndexOf(c) == zone && !map.IsWater(c));
+                    zoneMines.Add(objects.Count(o => o is Mine));
+                    zoneMineKinds.Add(objects.OfType<Mine>().Select(m => m.Resource).Distinct().Count());
+                    int treasures = objects.Count(o => o is TreasureChest or ResourcePile);
+                    zoneTreasures.Add(treasures);
+                    zoneTreasureDensity.Add(land == 0 ? 0 : 1000 * treasures / land);
+                    zoneSites.Add(objects.Count(o => o is Shrine or SageHut or WeeklyProducer or BlessingSite or ObservationTower or Obelisk));
+                }
+            }
+            string Q(List<int> v) => v.Count == 0 ? "-" : $"min {v.Min()} médiane {v.OrderBy(x => x).ElementAt(v.Count / 2)} max {v.Max()}";
+            output.WriteLine($"{size} : mines manquantes {Q(missingMines)} ; coffres manquants {Q(missingChests)} ; tas manquants {Q(missingPiles)}");
+            output.WriteLine("  mines par ressource : " + string.Join(", ", perResource.Select(r => $"{r.Key} {Q(r.Value)}")));
+            output.WriteLine($"  par zone : sortes de mines {Q(zoneMineKinds)} ; mines {Q(zoneMines)} (sans mine : {zoneMines.Count(m => m == 0)} sur {zoneMines.Count}) ; "
+                + $"trésors {Q(zoneTreasures)} ; trésors pour 1000 cases {Q(zoneTreasureDensity)} ; lieux {Q(zoneSites)} (sans lieu : {zoneSites.Count(s => s == 0)})");
+        }
+    }
+
+    /// <summary>
     /// Les villes neutres de chaque sol, par faction (2026-11-20 : les seconds sols des factions, qui comptent moitié moins
     /// que le sol principal) : sur des cartes grandes, toutes les graines.
     /// </summary>

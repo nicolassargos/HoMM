@@ -998,7 +998,8 @@ Griffon 14, Cavalier 25, Moine 61, Chevalier 93, Ange 1597.
   second modèle, 8 images, « recoils violently from a blow: it rears back… wings snap wide open… » (Dragon hit-2 : il
   se cabre sur ses pattes arrière, ailes ouvertes) et « all the heads are thrown back on their long necks like whips,
   then they swing forward again one after another » (Hydre hit-4, nettoyée). 8 essais coûtent environ 1,05 $ pour ces
-  grandes créatures.
+  grandes créatures. Remplacés le même jour par ceux de la branche `coups-dragon-hydre` (modèle v3), que l'utilisateur
+  a préférés en comparant les deux versions.
 - **Ver des profondeurs** :
   - **Il glisse vers sa cible** en attaquant : réglage `lunge` d'`animations.json` (0,45 : la part du chemin jusqu'à la
     cible), commun à toutes les créatures ; `Shown.Lunge` avance pendant l'élan de l'attaque (`UnitStruck`), puis revient
@@ -2878,6 +2879,13 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Une étincelle cyan effacée sur le coup reçu du Cavalier. 25 essais, 0,42 $ dont 0,17 $ perdus : les premiers essais
   de l'Archer et du Griffon partaient des anciennes grandes images, restées dans le dossier `art-candidats` du
   worktree (non suivi par git).
+  ✅ **Le coup reçu du Dragon et de l'Hydre, fini** (2026-11-20, branche `coups-dragon-hydre`) : ceux du 2026-11-17
+  bougeaient à peine (« encore à finir », selon l'utilisateur, qui voulait un Dragon qui recule). Le modèle v3, 8 images
+  avec retour, une consigne qui fait **se cabrer en arrière** : « rears back to the left: it throws its head and long
+  neck back to the left, jaws open, rises onto its hind legs with its front claws lifted, the wings snapping open… »
+  (Dragon, essai 1) ; « rears back to the left: the body lifts its front legs off the ground, the five necks thrash in
+  every direction with jaws open, hissing, then it drops back down… » (Hydre, essai 6). Le second modèle, cette fois, tournait le Dragon vers nous et lançait les
+  têtes de l'Hydre en avant (on dirait une attaque). 12 essais, 0,17 $, choisis au premier tour.
   ✅ **Les héros au combat** (2026-11-19, branche `heros-combat`) : le combat montrait l'image de la carte du héros
   (48 px, ×2). Désormais `MapRenderer.HeroBattleImage` prend `heroes/battle/<nom>.png` s'il existe (sinon l'image de la
   carte), aux couleurs du joueur comme sur la carte (`PaintPlayerColor`, commun aux deux) ; celui qui se défend, à

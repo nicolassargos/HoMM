@@ -336,6 +336,17 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     qui s'enchaînent : « sways, takes one heavy stumbling step backward, its knees bend and it sits down hard, then its
     upper body slowly falls back… each stage flows into the next ». Basculer d'un bloc en arrière n'est « pas
     naturel » (l'utilisateur) ; s'effondrer en avant « like a falling rock » non plus.
+  - **Un recul bien visible pour une grande créature** (Dragon, Hydre, 2026-11-20) : le second modèle, 8 images,
+    « recoils violently from a blow: it rears back onto its hind legs… its wings snap wide open, its tail lashes, then
+    it drops back down to exactly its starting pose » ; pour l'Hydre, « all the heads are thrown back on their long
+    necks like whips, then they swing forward again one after another ». **Prix** : une grande créature coûte bien plus
+    par essai (8 coups reçus du Dragon et de l'Hydre : environ 1,05 $).
+  - **Une créature qui avale** (le Ver, état `swallow`) : « rises very tall out of its hole, its body arching high up
+    and over to the right, then its head comes straight down from above, mouth-first… a big round lump slides down
+    inside its pale body ». Sans « from above », il mord de côté et crache parfois une boule ou un œuf. Les alertes
+    « pixels en plus » et « éclat » sont fausses ici (corps pâle, plus haut que d'habitude). 4 essais : environ 0,06 $.
+  - **Filmer le jeu** pour vérifier un geste : `--record=dossier --record-delay=s --record-time=s
+    --record-rect=x,y,l,h` (images WebP), avec `--effect-preview=coup`, `mort` ou `avaler`.
   - **Le second modèle refuse 6 images** (coups reçus) : multiples de 4 seulement ; un coup reçu en 8 images marche
     aussi (le Loup, le Moine).
 - **Leçons des Nains** (2026-11-16) :

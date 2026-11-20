@@ -1856,7 +1856,7 @@
         "carte": "p1-3",
         "death": "death-1",
         "hit": "hit-1",
-        "swallow": "swallow-4-r"
+        "swallow": "swallow-6-r"
       },
       "grande": "art-candidats/references/derives/ver-des-profondeurs-grand.png",
       "consignes": {
@@ -1864,7 +1864,7 @@
         "move": "the worm swims forward through the earth like a sea serpent, staying in place: the spiky arches of its back rise out of the soil and plunge back in one after another, pushing up dirt and stones, the earth churning around it",
         "attack": "rears its body up very high, then stretches its long body far forward to the right in a big arc and plunges its head down onto the ground far in front of it, a full body length away from its mound, its round toothy mouth wide open facing the ground, closes its mouth there, then pulls its long body back into its stance",
         "transform": "dives head first down into its mound of earth and disappears underground, only the churned earth remains",
-        "swallow": "the giant worm rears its head back, then lunges forward and down to the right with its huge round mouth gaping wide, snaps its mouth shut on the ground in front of it, lifts its head and gulps: a big round lump slides down inside its pale body toward the ground, then it settles back to exactly its starting pose; the base stays in its hole; no other creature, nothing else in the picture, no effects"
+        "swallow": "the giant worm rises very tall out of its hole, its body arching high up and over to the right, then its head comes straight down from above, mouth-first, its huge round mouth gaping wide and pointing at the ground in front of it, it slams down and snaps its mouth shut on the ground, lifts its head back up and gulps: a big round lump slides down inside its pale body toward the ground, then it settles back to exactly its starting pose; the base stays in its hole; no other creature, nothing else in the picture, no effects"
       }
     },
     "tyran-oeil": {

@@ -432,6 +432,8 @@ public static class ComputerPlayer
                 ObservationTower tower when !tower.Visitors.Contains(player.Id) => 1.2,
                 // le moral ou la chance, jusqu'au prochain combat : moins pressé que le reste
                 BlessingSite site when !site.AlreadyGiven(hero) => 1.5,
+                // un portail dont on ne connaît pas l'autre côté : de quoi explorer (et ce qu'il garde)
+                Portal portal when !player.Fog.IsExplored(portal.Exit) => 1.2,
                 _ => 0,
             };
             if (weight == 0 || obj.Position == hero.Position || !costs.TryGetValue(obj.Position, out int cost))
@@ -537,7 +539,7 @@ public static class ComputerPlayer
     /// <summary>
     /// Le coût du chemin le plus court jusqu'à chaque case qu'on peut atteindre sans combat, par les cases que le joueur
     /// connaît : ni zone de monstre, ni objet à traverser (on peut seulement s'y arrêter ; un bateau : on y monte, et l'on
-    /// continue en mer), ni autre héros. Les règles des pas sont celles du <see cref="Pathfinder"/>.
+    /// continue en mer ; un portail : on ressort par l'autre), ni autre héros. Les règles des pas sont celles du <see cref="Pathfinder"/>.
     /// </summary>
     private static Dictionary<Cell, int> SafeCosts(GameState state, Hero hero)
     {
@@ -546,13 +548,25 @@ public static class ComputerPlayer
         var heroes = state.AllHeroes.Where(h => h != hero && h.Owner == hero.Owner).Select(h => h.Position).ToHashSet();
         var enemies = state.AllHeroes.Where(h => h.Owner != hero.Owner).Select(h => h.Position).ToHashSet();
         var costs = new Dictionary<Cell, int> { [hero.Position] = 0 };
+        var exits = new HashSet<Cell>(); // les sorties de portail où l'on arrive : on en repart
         var open = new PriorityQueue<Cell, int>();
         open.Enqueue(hero.Position, 0);
         while (open.TryDequeue(out var cell, out int cost))
         {
             if (cost > costs[cell])
                 continue;
-            if (cell != hero.Position && (map.ObjectAt(cell) is not (null or Boat) || enemies.Contains(cell)))
+            if (cell != hero.Position && !exits.Contains(cell) && map.ObjectAt(cell) is Portal { Exit: var exit })
+            {
+                if (exit != hero.Position && !heroes.Contains(exit) && !enemies.Contains(exit)
+                    && cost < costs.GetValueOrDefault(exit, int.MaxValue))
+                {
+                    costs[exit] = cost;
+                    exits.Add(exit);
+                    open.Enqueue(exit, cost);
+                }
+                continue;
+            }
+            if (cell != hero.Position && !exits.Contains(cell) && (map.ObjectAt(cell) is not (null or Boat) || enemies.Contains(cell)))
                 continue; // on visite un objet (on attaque un héros ennemi), on ne le traverse pas
             foreach (var next in Neighbours(cell))
             {

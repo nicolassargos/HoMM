@@ -62,10 +62,15 @@ public static class Pathfinder
     /// le héros ne paie pas (Orientation). <paramref name="ownGrounds"/> : les sols de sa faction, où il ne paie aucun surcoût.
     public static int StepCost(AdventureMap map, Cell from, Cell to, int roughReduction = 0, IReadOnlyList<TerrainType>? ownGrounds = null)
     {
+        if (Teleports(map, from, to))
+            return 0;
         int cost = CellCost(map, from, roughReduction, ownGrounds);
         bool diagonal = from.X != to.X && from.Y != to.Y;
         return diagonal ? (int)(cost * Math.Sqrt(2)) : cost;
     }
+
+    /// <summary>Ce « pas » est le saut d'un portail à l'autre (sans coût : on a payé le pas qui entre dans le portail).</summary>
+    public static bool Teleports(AdventureMap map, Cell from, Cell to) => map.ObjectAt(from) is Portal portal && portal.Exit == to;
 
     /// <summary>Le coût pour quitter une case, pour un héros (voir <see cref="StepCost"/>).</summary>
     public static int CellCost(AdventureMap map, Cell cell, int roughReduction = 0, IReadOnlyList<TerrainType>? ownGrounds = null)
@@ -81,7 +86,8 @@ public static class Pathfinder
     /// Renvoie les cases à parcourir, de la première après <paramref name="start"/> jusqu'à
     /// <paramref name="goal"/> incluse, ou null s'il n'y a pas de chemin.
     /// Un objet bloque le passage : on peut seulement s'arrêter dessus (un bateau : on y monte, et le chemin continue en
-    /// mer). Le chemin évite si possible les cases gardées par un monstre (voir <see cref="GuardPenalty"/>).
+    /// mer ; un portail : on ressort par l'autre, et le chemin continue de là). Le chemin évite si possible les cases
+    /// gardées par un monstre (voir <see cref="GuardPenalty"/>).
     /// <paramref name="blocked"/> : cases interdites en plus (les autres héros).
     /// </summary>
     public static List<Cell>? FindPath(AdventureMap map, Cell start, Cell goal, IReadOnlySet<Cell>? blocked = null, int roughReduction = 0,
@@ -90,15 +96,24 @@ public static class Pathfinder
         if (start == goal || !(map.IsPassable(goal) || map.IsWater(goal)) || blocked?.Contains(goal) == true)
             return null;
 
-        double Estimate(Cell c)
+        // Distance « octile » au coût de la route, le terrain le moins cher.
+        // Le pas en diagonale utilise le même arrondi que StepCost, pour ne jamais
+        // surestimer le coût restant (sinon A* peut rater le meilleur chemin).
+        static double Octile(Cell a, Cell b)
         {
-            int dx = Math.Abs(c.X - goal.X), dy = Math.Abs(c.Y - goal.Y);
-            // Distance « octile » au coût de la route, le terrain le moins cher.
-            // Le pas en diagonale utilise le même arrondi que StepCost, pour ne jamais
-            // surestimer le coût restant (sinon A* peut rater le meilleur chemin).
+            int dx = Math.Abs(a.X - b.X), dy = Math.Abs(a.Y - b.Y);
             int diagonals = Math.Min(dx, dy);
             int straights = Math.Max(dx, dy) - diagonals;
             return straights * MinStepCost + diagonals * MinDiagonalCost;
+        }
+        // par un portail, le reste peut être plus court : l'estimation prend le meilleur des deux
+        var portals = map.Objects.OfType<Portal>().ToList();
+        double Estimate(Cell c)
+        {
+            double best = Octile(c, goal);
+            foreach (var portal in portals)
+                best = Math.Min(best, Octile(c, portal.Position) + Octile(portal.Exit, goal));
+            return best;
         }
 
         var open = new PriorityQueue<(Cell Cell, int Cost), double>();
@@ -113,7 +128,20 @@ public static class Pathfinder
                 return Rebuild(cameFrom, start, goal);
             if (cost > bestCost[cell])
                 continue;
-            if (cell != start && map.ObjectAt(cell) is not (null or Boat))
+            // arrivé par un portail : on repart de sa sortie
+            bool arrived = cell != start && Teleports(map, cameFrom[cell], cell);
+            // un portail : on ressort par l'autre (sans coût), s'il n'y a personne
+            if (cell != start && !arrived && map.ObjectAt(cell) is Portal { Exit: var exit })
+            {
+                if (exit != start && blocked?.Contains(exit) != true && cost < bestCost.GetValueOrDefault(exit, int.MaxValue))
+                {
+                    bestCost[exit] = cost;
+                    cameFrom[exit] = cell;
+                    open.Enqueue((exit, cost), cost + Estimate(exit));
+                }
+                continue;
+            }
+            if (cell != start && !arrived && map.ObjectAt(cell) is not (null or Boat))
                 continue;
 
             foreach (var (dx, dy) in Directions)

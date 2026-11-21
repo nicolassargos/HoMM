@@ -141,6 +141,7 @@ public sealed partial class GameState
         Flotsam flotsam => new ObjectData("flotsam", obj.Id, obj.Position, Amount: flotsam.Gold, Wood: flotsam.Wood),
         SeaChest seaChest => new ObjectData("sea-chest", obj.Id, obj.Position, Amount: seaChest.Gold),
         Whirlpool whirlpool => new ObjectData("whirlpool", obj.Id, obj.Position, Spot: whirlpool.Exit),
+        Portal portal => new ObjectData("portal", obj.Id, obj.Position, Spot: portal.Exit),
         Lighthouse lighthouse => new ObjectData("lighthouse", obj.Id, obj.Position, Owner: lighthouse.Owner?.Id),
         AbandonedShip ship => new ObjectData("abandoned-ship", obj.Id, obj.Position, Resource: ship.Resource, Amount: ship.Amount,
             Gold: ship.Gold, Garrison: Stacks(ship.Crew)),
@@ -261,6 +262,7 @@ public sealed partial class GameState
                 "flotsam" => new Flotsam(o.Position, o.Wood!.Value, o.Amount!.Value),
                 "sea-chest" => new SeaChest(o.Position, o.Amount!.Value),
                 "whirlpool" => new Whirlpool(o.Position, o.Spot!.Value),
+                "portal" => new Portal(o.Position, o.Spot!.Value),
                 "lighthouse" => new Lighthouse(o.Position) { Owner = o.Owner is { } id ? Owner(id) : null },
                 "abandoned-ship" => WithCrew(new AbandonedShip(o.Position, o.Gold!.Value, o.Resource!.Value, o.Amount!.Value), o.Garrison, data),
                 // avant la version 3, une mine n'occupait qu'une case : ses voisines peuvent être prises

@@ -663,6 +663,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   temple…) centre la capture sur un lieu.
   Un lieu au contour trop dur (« crunchy », le moulin, 2026-11-18) : `adoucir.py entree sortie 0.7 60 2` (plus doux : `0.85 90 2`, la tour ; le 4e nombre, `0.4`, adoucit aussi les traits de l'intérieur), puis recadrer et
   corriger ses pieds dans `godot/art/pieds.json`.
+- **Le portail (2026-11-21)** : un lieu haut, « pro » à 64, la mine d'or comme style donnait des arches de face ; avec
+  un monolithe choisi comme modèle et « seen in three-quarter view from above, turned slightly to the side so the depth
+  and the thickness of the arch are visible », des arches de trois quarts comme l'obélisque (choisies). L'obélisque
+  comme modèle donne des arches plus sombres, au tourbillon turquoise, plus petites. Une page à plusieurs choix
+  (`"plusieurs": true`) pour des variantes : `portal`, `portal-2`, `portal-3`. La taille jugée en collant un héros de
+  la carte (×2) à côté, dans une capture.
 - **Le bateau des héros (2026-11-20)** : « pro » à 48, vu de côté, l'est du chevalier comme style, « no red anywhere
   except the sail » (la voile prend la couleur du joueur) ; « a small sturdy medieval wooden sailing ship, a cog… a plain
   wooden prow with no carving » (sans cela, des drakkars à tête de dragon). Puis `tourner` « Pro » (vue « high

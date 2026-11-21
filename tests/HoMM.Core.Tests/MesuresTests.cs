@@ -226,6 +226,110 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Les poches de terre où aucun héros n'entre (2026-11-21, remarque de l'utilisateur : des régions vides sur certaines
+    /// cartes) : les cases libres et praticables que l'on n'atteint pas depuis le premier départ, à pied (en battant les
+    /// monstres, sans traverser les objets, par les portails) ou en bateau ; leur nombre et leur taille, et les plus grandes ;
+    /// ce qu'en font les trouées dans la forêt, les arbres et les portails.
+    /// </summary>
+    [Mesure]
+    public void Poches_inaccessibles()
+    {
+        foreach (var type in new[] { MapType.Continent, MapType.Seas, MapType.Islands, MapType.Archipelago })
+        foreach (var size in new[] { MapSize.Small, MapSize.Normal, MapSize.Large })
+        {
+            var share = new List<double>();
+            var pockets = new List<int>();
+            var sizes = new List<int>();
+            var biggest = new List<string>();
+            var opened = new List<double>();
+            var filled = new List<double>();
+            var portals = new List<int>();
+            var rewards = new List<int>();
+            foreach (int seed in Seeds)
+            {
+                var generator = new MapGenerator(seed, TestData.Data) { Players = 2, Access = ZoneAccess.Normal, Type = type };
+                var (width, height) = MapSizes.Dimensions(size);
+                var map = generator.Generate(width, height);
+                bool Open(Cell c) => map.InBounds(c) && (map.IsPassable(c) || type != MapType.Continent && map.IsWater(c));
+                var seen = new bool[map.Width, map.Height];
+                var queue = new Queue<Cell>(new[] { map.Start });
+                var exits = new HashSet<Cell>();
+                seen[map.Start.X, map.Start.Y] = true;
+                while (queue.Count > 0)
+                {
+                    var c = queue.Dequeue();
+                    if (c != map.Start && !exits.Contains(c) && map.ObjectAt(c) is { } o && o is not MonsterGuard and not Boat)
+                    {
+                        // un portail mène à l'autre
+                        if (o is Portal portal && !seen[portal.Exit.X, portal.Exit.Y])
+                        {
+                            seen[portal.Exit.X, portal.Exit.Y] = true;
+                            exits.Add(portal.Exit);
+                            queue.Enqueue(portal.Exit);
+                        }
+                        continue;
+                    }
+                    for (int dx = -1; dx <= 1; dx++)
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        var n = c.Offset(dx, dy);
+                        if (!Open(n) || seen[n.X, n.Y] || dx != 0 && dy != 0 && !(Open(c.Offset(dx, 0)) && Open(c.Offset(0, dy))))
+                            continue;
+                        seen[n.X, n.Y] = true;
+                        queue.Enqueue(n);
+                    }
+                }
+                // (un ruisseau qui traverse une forêt n'est pas de la terre perdue)
+                bool Lost(Cell c) => map.InBounds(c) && map.IsPassable(c) && !seen[c.X, c.Y] && map.ObjectAt(c) == null && map.GetRiver(c) == RiverKind.None;
+                int land = 0, lost = 0;
+                var done = new bool[map.Width, map.Height];
+                var found = new List<(int Size, Cell At)>();
+                for (int y = 0; y < map.Height; y++)
+                for (int x = 0; x < map.Width; x++)
+                {
+                    var c0 = new Cell(x, y);
+                    if (!map.IsWater(c0))
+                        land++;
+                    if (!Lost(c0) || done[x, y])
+                        continue;
+                    done[x, y] = true;
+                    var stack = new Stack<Cell>(new[] { c0 });
+                    int n = 0;
+                    while (stack.Count > 0)
+                    {
+                        var c = stack.Pop();
+                        n++;
+                        for (int dx = -1; dx <= 1; dx++)
+                        for (int dy = -1; dy <= 1; dy++)
+                        {
+                            var next = c.Offset(dx, dy);
+                            if (Lost(next) && !done[next.X, next.Y])
+                            {
+                                done[next.X, next.Y] = true;
+                                stack.Push(next);
+                            }
+                        }
+                    }
+                    lost += n;
+                    found.Add((n, c0));
+                }
+                share.Add(100.0 * lost / land);
+                opened.Add(100.0 * generator.PocketCellsOpened / land);
+                filled.Add(100.0 * generator.PocketCellsFilled / land);
+                portals.Add(generator.PortalCount);
+                rewards.Add(generator.PortalRewards);
+                pockets.Add(found.Count(f => f.Size >= 4));
+                sizes.AddRange(found.Select(f => f.Size));
+                biggest.AddRange(found.OrderByDescending(f => f.Size).Take(2).Select(f => $"{f.Size} en {f.At} (graine {seed})"));
+            }
+            string Q(List<int> v) => v.Count == 0 ? "-" : $"min {v.Min()} médiane {v.OrderBy(x => x).ElementAt(v.Count / 2)} max {v.Max()} (n={v.Count})";
+            output.WriteLine($"{type} {size} : terre perdue {string.Join(" ", share.Select(v => $"{v:0.0}"))} % ; poches de 4 cases et plus par carte {Q(pockets)} ; taille {Q(sizes)}");
+            output.WriteLine($"  ouvertes {string.Join(" ", opened.Select(v => $"{v:0.0}"))} % ; remplies d'arbres {string.Join(" ", filled.Select(v => $"{v:0.0}"))} % ; portails {string.Join(" ", portals)} ; récompenses {string.Join(" ", rewards)}");
+            output.WriteLine($"  les plus grandes : {string.Join(", ", biggest.OrderByDescending(b => int.Parse(b.Split(' ')[0])).Take(4))}");
+        }
+    }
+
+    /// <summary>
     /// Les détours des routes (2026-11-20, à comparer avec Heroes 3 : tools/cartes/sinuosite_h3.py) : entre deux cases de
     /// route distantes de 10 à 20 cases, le chemin le plus court par la route (√2 en diagonale) divisé par la distance à vol
     /// d'oiseau ; 1 : tout droit.

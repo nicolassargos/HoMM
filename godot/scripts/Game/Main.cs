@@ -305,13 +305,13 @@ public partial class Main : Node2D
         if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--center=")) is { } centerArg)
         {
             var kind = centerArg["--center=".Length..] is "sites" ? "tower" : centerArg["--center=".Length..];
-            if (_state.Map.Objects.FirstOrDefault(o => SiteKind(o) == kind) is { } site)
+            // (« --center=road-change:3 » : le troisième endroit de ce genre ; « portal:2 » : le deuxième portail)
+            int rank = kind.Split(':') is [_, var r] && int.TryParse(r, out int n) ? Math.Max(1, n) : 1;
+            kind = kind.Split(':')[0];
+            if (_state.Map.Objects.Where(o => SiteKind(o) == kind).Skip(rank - 1).FirstOrDefault() is { } site)
                 _camera.CenterOn(site.Position);
             // « --center=bridge » : le premier pont d'une rivière ; « stream » : un ruisseau ; « ford » : une route qui croise
             // un ruisseau
-            // (« --center=road-change:3 » : le troisième endroit de ce genre)
-            int rank = kind.Split(':') is [_, var r] && int.TryParse(r, out int n) ? Math.Max(1, n) : 1;
-            kind = kind.Split(':')[0];
             var map = _state.Map;
             Func<Cell, bool>? wanted = kind switch
             {
@@ -349,6 +349,7 @@ public partial class Main : Node2D
             Flotsam => "flotsam",
             SeaChest => "sea-chest",
             Whirlpool => "whirlpool",
+            Portal => "portal",
             Lighthouse => "lighthouse",
             AbandonedShip => "abandoned-ship",
             Shipyard => "shipyard",

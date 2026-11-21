@@ -208,6 +208,16 @@ public static class MapRenderer
         return Art.Get(name);
     }
 
+    /// <summary>
+    /// L'image d'un portail, parmi « portal », « portal-2 », « portal-3 »… (de la variété, choix de l'utilisateur,
+    /// 2026-11-21) : les deux portails d'une paire prennent la même, tirée de la case du premier (le plus à gauche).
+    /// </summary>
+    private static Texture2D? PortalImage(Portal portal)
+    {
+        var first = (portal.Position.X, portal.Position.Y).CompareTo((portal.Exit.X, portal.Exit.Y)) <= 0 ? portal.Position : portal.Exit;
+        return Art.Variant("objects/portal", (first.X * 73856093 ^ first.Y * 19349663) & int.MaxValue);
+    }
+
     /// <summary>L'image d'un objet de la carte, s'il en a une.</summary>
     private static Texture2D? ObjectImage(MapObject obj) => obj switch
     {
@@ -224,6 +234,7 @@ public static class MapRenderer
         Flotsam => Art.Get("objects/flotsam"),
         SeaChest => Art.Get("objects/sea-chest"),
         Whirlpool => Art.Get("objects/whirlpool"),
+        Portal portal => PortalImage(portal),
         AbandonedShip => Art.Get("objects/abandoned-ship"),
         Lighthouse => Art.Get("objects/lighthouse"),
         Shipyard => Art.Get("objects/shipyard"),
@@ -281,6 +292,18 @@ public static class MapRenderer
 
             case Shrine or SageHut or WeeklyProducer or ObservationTower or BlessingSite:
                 DrawSite(ci, obj, c, time);
+                break;
+
+            case Portal:
+                // en attendant son image : deux pierres levées (deux cases de haut), une lueur bleue qui tourne entre elles
+                ci.DrawRect(new Rect2(c + V(-26, -56), 12, 68), Rgb(120, 115, 110));
+                ci.DrawRect(new Rect2(c + V(14, -56), 12, 68), Rgb(120, 115, 110));
+                ci.DrawRect(new Rect2(c + V(-30, -66), 60, 12), Rgb(140, 135, 128));
+                for (int i = 0; i < 12; i++)
+                {
+                    double a = time * 2.5 + i * Math.Tau / 12;
+                    ci.DrawCircle(c + V((float)(Math.Cos(a) * 10), (float)(Math.Sin(a) * 22) - 20), 3, Rgb(140, 200, 255));
+                }
                 break;
 
             case Boat:

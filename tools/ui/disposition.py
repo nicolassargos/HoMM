@@ -1,8 +1,9 @@
 """La disposition d'un écran, réglée à la souris (choix de l'utilisateur, 2026-11-21) : une page où l'on déplace, aligne,
 agrandit ou cache les éléments de l'écran, qui écrit godot/data/layouts/<écran>.json (lu par Game/ScreenLayout.cs).
 
-    python -I tools/ui/disposition.py [écran]     (« town » par défaut : l'écran de ville ; « town-haute » : une autre
-                                                  disposition du même écran, data/layouts/town-haute.json, à comparer)
+    python -I tools/ui/disposition.py [écran]     (« town » par défaut : l'écran de ville ; « town-xxx » : une autre
+                                                  disposition du même écran, data/layouts/town-xxx.json, à comparer
+                                                  en jeu avec l'option --layout=town-xxx)
 
 Compile le jeu, le lance une fois pour relever l'écran (--layout-dump : la place de chaque élément, l'écran entier, le fond
 seul, dans art-candidats/en-cours/disposition-<écran>/), puis sert la page sur http://127.0.0.1:8769/ et l'ouvre.

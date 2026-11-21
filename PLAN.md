@@ -262,6 +262,10 @@ bandeau de la date.
 panneau de la carte, les écrans revus pour la nouvelle police.
 ✅ Dans la ville, « Tout donner au héros » et « Tout laisser en garnison » en boutons à icône (2026-11-20, branche
 `ville-boutons-garnison` ; l'interface de la ville avancera par petits pas, choix de l'utilisateur).
+✅ **L'écran de ville façon Heroes 2** (2026-11-21, branche `disposition-ville`) : la vue sur toute la largeur, les
+ressources en grille, Quitter seul visible (Construire et Recruter glissent au survol), le nom dans un onglet, une barre
+d'état ; la disposition se règle à la souris (`tools/ui/disposition.py`). **Reste** : l'accès au marché d'une ville qui
+n'en a pas ; peut-être un fond derrière chaque créature, comme Heroes 2.
 **Reste** : des icônes sur les autres écrans, au fil des besoins ; des icônes pour les récompenses (coffre, niveau) ;
 l'écran de recrutement, à revoir pour gagner de la place ; la poignée des barres de défilement comme taillée dans la
 pierre. ✅ Les pieds des mines de mercure, de minerai (ses six sols) et de soufre, et la force de leur ombre de
@@ -270,8 +274,9 @@ pieds non revus (champ de la roche, massifs, arbres des sols, ponts).
 
 ### La ville vue de face par faction (rien n'est encore fait)
 La liste de ses bâtiments : « Les bâtiments des villes », plus haut.
-Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 292,
-affiché ×2** comme tout le pixel art (choix de l'utilisateur, 2026-11-20 ; d'abord prévu 640 × 195 à ×3), et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque
+Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,
+affiché ×2** sur toute la largeur de l'écran comme tout le pixel art (choix de l'utilisateur, 2026-11-21, avec la
+disposition de l'écran ; d'abord 640 × 195 à ×3, puis 960 × 292), et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque
 amélioration a sa propre image au même pied. Bâtiments dessinés de l'arrière vers l'avant ; clic et survol sur les
 pixels de l'image, léger contour au survol. Chaque faction place aussi les bâtiments communs ; un test vérifie que la
 scène couvre tous ses bâtiments. Choix de l'utilisateur : une place vide ne montre **rien** ; **un seul fond** par

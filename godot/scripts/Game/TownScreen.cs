@@ -36,6 +36,7 @@ public partial class TownScreen : CanvasLayer
     private Label _header = null!;
     private PanelContainer _nameTab = null!;
     private Button[] _townArrows = null!;
+    private bool _trialBackground; // un fond de scène à l'essai (--town-background)
     // la barre d'état, en bas (comme Heroes 2) : ce que montre la souris, et la date
     private Label _status = null!, _statusDate = null!;
     private Control _view = null!;
@@ -159,7 +160,8 @@ public partial class TownScreen : CanvasLayer
         // « --town-background=fichier.png » : un fond de scène à l'essai (pas encore dans le jeu), ×2, centré en bas de la
         // vue, sous les bâtiments, pour le juger en place
         if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--town-background=")) is { } background
-            && Image.LoadFromFile(background["--town-background=".Length..]) is { } image && !image.IsEmpty())
+            && Image.LoadFromFile(background["--town-background=".Length..]) is { } image && !image.IsEmpty()
+            && (_trialBackground = true))
             _view.AddChild(new TextureRect
             {
                 Texture = ImageTexture.CreateFromImage(image), ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
@@ -463,7 +465,9 @@ public partial class TownScreen : CanvasLayer
             TooltipText = Texts.BuildingTooltip(town, building), MouseFilter = Control.MouseFilterEnum.Stop,
             MouseDefaultCursorShape = Control.CursorShape.PointingHand,
         };
-        box.AddThemeStyleboxOverride("panel", Box(MapRenderer.Rgb(107, 98, 86), MapRenderer.Rgb(200, 184, 144), 1, 1, 1, 1));
+        // sur un fond à l'essai, la boîte presque transparente : le fond reste visible derrière
+        var fill = MapRenderer.Rgb(107, 98, 86);
+        box.AddThemeStyleboxOverride("panel", Box(_trialBackground ? fill with { A = 0.2f } : fill, MapRenderer.Rgb(200, 184, 144), 1, 1, 1, 1));
         var name = MakeLabel(building.Name, 12, TextColor);
         name.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         name.HorizontalAlignment = HorizontalAlignment.Center;

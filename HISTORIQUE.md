@@ -2975,8 +2975,10 @@ choix de l'utilisateur) :
   2. `PlacePortals` : une poche d'au moins 10 cases (8-connexes) reçoit une paire de **portails** (`Core/Portal.cs`, comme
      le tourbillon : chacun mène à l'autre, `PortalCrossed` ; un héros à la sortie empêche de passer). Le portail du
      dehors : une case qu'on atteint à pied (`WalkableGrid`), à 6 pas au moins du départ et 4 d'une ville, avec de la
-     place dessous ; son **gardien** posé tout de suite dans la rangée du dessous (1,5 fois l'armée, danger de la zone
-     + 0,3) ; celui du dedans là où la poche a le plus de voisins. Dedans, de 2 à 6 **récompenses** (une pour 6 cases) :
+     place dessous ; son **gardien** posé tout de suite dans la rangée du dessous (2,5 fois l'armée, danger de la zone
+     + 0,5 ; d'abord 1,5 fois et + 0,3 : plus fort que 78 à 99 % des monstres de la carte, mais pas plus que le plus fort
+     des alentours, un gardien de passage ; l'utilisateur le veut « much harder than most armies » ; maintenant plus fort
+     que tous les monstres de la carte, 2 à 3 fois le plus fort à 15 cases, mesure `Gardiens_des_portails`) ; celui du dedans là où la poche a le plus de voisins. Dedans, de 2 à 6 **récompenses** (une pour 6 cases) :
      coffre de 2500 à 3000, tas de ressource rare de 6 à 10, tas d'or de 2000 à 3000. Sans gardien ou sans 2
      récompenses, rien n'est posé. Jusqu'à 6 paires environ sur une grande carte ;
   3. `FillPockets` (à la fin) : ce qui reste sans chemin (à travers monstres, bateaux et portails) devient forêt, les

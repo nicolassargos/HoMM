@@ -416,8 +416,11 @@ public sealed class MapGenerator
     private const int PocketForPortal = 10;
     /// <summary>Une récompense pour tant de cases de la poche, de 2 à <see cref="PortalMaxRewards"/>.</summary>
     private const int PortalCellsPerReward = 6, PortalMaxRewards = 6;
-    /// <summary>Le gardien d'un portail : la force d'une zone plus loin, une troupe plus nombreuse.</summary>
-    private const double PortalGuardDanger = 0.3, PortalGuardSize = 1.5;
+    /// <summary>
+    /// Le gardien d'un portail : bien plus fort que la plupart des armées (l'utilisateur, 2026-11-21) ; mesuré
+    /// (`Gardiens_des_portails`) : plus fort que tous les monstres de la carte, 2 à 3 fois le plus fort des alentours.
+    /// </summary>
+    private const double PortalGuardDanger = 0.5, PortalGuardSize = 2.5;
 
     /// <summary>Une grande récompense, tour à tour : un riche coffre, un gros tas de ressource rare, un gros tas d'or.</summary>
     private static MapObject PortalReward(Cell cell, int index, Random rng) => (index % 3) switch

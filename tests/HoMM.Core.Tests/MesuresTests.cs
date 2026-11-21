@@ -226,6 +226,47 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// La force des gardiens des portails (2026-11-21, l'utilisateur : « much harder than most armies ») : en or à vaincre
+    /// (<see cref="CreatureStrength.GoldToBeat"/>), comparée aux autres monstres de la carte (la part qui est plus faible)
+    /// et au plus fort de ceux qui sont à 15 cases au plus.
+    /// </summary>
+    [Mesure]
+    public void Gardiens_des_portails()
+    {
+        var creatures = TestData.Data.Creatures;
+        foreach (var size in new[] { MapSize.Normal, MapSize.Large })
+        {
+            var weaker = new List<double>();
+            var versusNear = new List<double>();
+            var shown = new List<string>();
+            foreach (int seed in Seeds)
+            {
+                var (width, height) = MapSizes.Dimensions(size);
+                var map = new MapGenerator(seed, TestData.Data) { Players = 2, Access = ZoneAccess.Normal }.Generate(width, height);
+                double Strength(MonsterGuard g) => CreatureStrength.GoldToBeat(g.Type, creatures) * g.Count;
+                var guards = map.Objects.OfType<MonsterGuard>().Where(g => !g.Type.Sea).ToList();
+                foreach (var portal in map.Objects.OfType<Portal>())
+                {
+                    if (guards.FirstOrDefault(g => Math.Abs(g.Position.X - portal.Position.X) <= 1 && g.Position.Y == portal.Position.Y + 1) is not { } keeper)
+                        continue; // celui du dedans
+                    double s = Strength(keeper);
+                    var others = guards.Where(g => g != keeper).ToList();
+                    weaker.Add(100.0 * others.Count(g => Strength(g) < s) / others.Count);
+                    var near = others.Where(g => Math.Max(Math.Abs(g.Position.X - keeper.Position.X), Math.Abs(g.Position.Y - keeper.Position.Y)) <= 15).ToList();
+                    if (near.Count > 0)
+                        versusNear.Add(s / near.Max(Strength));
+                    if (shown.Count < 6)
+                        shown.Add($"{keeper.Count} {keeper.Type.Id} ({s:0})");
+                }
+            }
+            output.WriteLine($"{size} : {weaker.Count} gardiens ; plus forts que {Median(weaker):0} % des monstres de la carte (min {Min(weaker):0}) ; "
+                + $"{Median(versusNear):0.0} fois le plus fort à 15 cases (min {Min(versusNear):0.0}) ; ex. {string.Join(", ", shown)}");
+        }
+        static double Median(List<double> v) => v.Count == 0 ? 0 : v.OrderBy(x => x).ElementAt(v.Count / 2);
+        static double Min(List<double> v) => v.Count == 0 ? 0 : v.Min();
+    }
+
+    /// <summary>
     /// Les poches de terre où aucun héros n'entre (2026-11-21, remarque de l'utilisateur : des régions vides sur certaines
     /// cartes) : les cases libres et praticables que l'on n'atteint pas depuis le premier départ, à pied (en battant les
     /// monstres, sans traverser les objets, par les portails) ou en bateau ; leur nombre et leur taille, et les plus grandes ;

@@ -466,6 +466,32 @@ public partial class Main : Node2D
             _state.Map.Treasure = _state.CurrentHero!.Position;
             _state.Dig();
         }
+        // Développement : « --artifacts=a,b » : le héros porte ces artefacts ; « --artifacts-map=a,b » : posés sur la carte à
+        // sa droite ; « --artifact-found=a » : posé à côté de lui, et il le ramasse (la fenêtre « Un artefact ! »)
+        string? Arg(string name) => OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith(name + "="))?[(name.Length + 1)..];
+        void PutArtifact(Cell cell, string id)
+        {
+            foreach (var obj in _state.Map.Objects.Where(o => o.Footprint.Contains(cell)).ToList())
+                _state.Map.RemoveObject(obj);
+            _state.Map.SetTerrain(cell, TerrainType.Grass);
+            _state.Map.AddObject(new ArtifactPile(cell, _state.Data.Artifacts.Get(id)));
+        }
+        if (Arg("--artifacts") is { } worn)
+            foreach (var id in worn.Split(','))
+                _state.CurrentHero!.Equip(_state.Data.Artifacts.Get(id));
+        if (Arg("--artifacts-map") is { } lying)
+        {
+            var ids = lying.Split(',');
+            for (int i = 0; i < ids.Length; i++)
+                PutArtifact(_state.CurrentHero!.Position.Offset(2 + i, 0), ids[i]);
+        }
+        if (Arg("--artifact-found") is { } foundId)
+        {
+            var cell = _state.CurrentHero!.Position.Offset(1, 0);
+            PutArtifact(cell, foundId);
+            _state.SetDestination(cell);
+            _state.StepAlongPath();
+        }
         // Développement : « --treasure-map » montre la carte au trésor (avec deux morceaux dévoilés)
         if (OS.GetCmdlineUserArgs().Contains("--treasure-map"))
         {

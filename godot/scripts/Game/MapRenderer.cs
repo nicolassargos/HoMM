@@ -480,13 +480,7 @@ public static class MapRenderer
         return drawn;
     }
 
-    /// <summary>La couleur d'un rang d'artefact : argent, bleu, violet.</summary>
-    private static Color RankColor(ArtifactRank rank) => rank switch
-    {
-        ArtifactRank.Relic => Rgb(190, 110, 240),
-        ArtifactRank.Major => Rgb(80, 150, 240),
-        _ => Rgb(200, 210, 220),
-    };
+    private static Color RankColor(ArtifactRank rank) => ArtifactLook.RankColor(rank);
 
     /// <summary>La lueur sous un artefact posé (couleur de son rang), qui respire doucement.</summary>
     private static void DrawArtifactGlow(CanvasItem ci, ArtifactRank rank, Vector2 center, double time)

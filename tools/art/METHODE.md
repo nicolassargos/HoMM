@@ -625,7 +625,7 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   le contour noir épais des villes de PixelLab s'adoucit avec `adoucir.py` (0,7, 60, 2 passes : le bord prend une teinte
   sombre de sa couleur), sans dépense. Le candidat aimé, donné comme modèle, garde la disposition d'un lot à l'autre.
 
-## Scènes des villes vues de face (960 × 292, 2026-11-21)
+## Scènes des villes vues de face (960 × 270, 2026-11-21)
 - **Concepts de la ville entière** (Château, six tours, environ 2 € ; archives `2026-11-21-ville-chateau`) : PixelLab
   « Pro » à **792 × 241** au plus (la largeur maximale ; `retoucher` refuse plus de 512), `objects/town.png` comme style,
   **notre esquisse à plat** (formes simples) comme modèle avec l'usage « layout and camera angle: keep the place and size
@@ -640,6 +640,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   framing » ; réduite au milieu d'un cadre plus grand, elle est agrandie (encore plus coupée), pas complétée.
 - Ce qui manque à un concept (un bâtiment entier, du ciel) se règle dans la vraie scène, faite pièce par pièce.
 - Retro Diffusion `rd_plus__environment` : 480 × 146 (0,06 $ l'image), une vue de rue sans image de départ ; trop petit.
+- **Le fond** : le paysage seul (montagnes, collines, places vides, sans château ni maisons), d'après notre esquisse à
+  plat, à 792 × 241 ; puis **`agrandir.py`** le porte à 960 × 270 : l'ancien `/inpaint` de PixelLab, par morceaux de
+  200 × 200 qui se recouvrent (0,145 $ ; `/inpaint-v3`, notre `repeindre`, demande l'abonnement Tier 2). Élargir sur
+  les côtés ne laisse pas de couture ; ajouter du ciel en haut laisse des rectangles d'un bleu un peu différent.
+- **`affiner.py`** ensuite : PixelLab dessine parfois des traits de 2 px (noir et brun sombre : bord du rocher, haut du
+  muret), ramenés à 1 px. Juger à ×2 exactement : une page qui réduit l'image à la largeur de la fenêtre double des traits.
 
 ## Ponts de la carte (Retro Diffusion, 2026-11-15)
 - Les juger **en jeu, sur la rivière**, à ×2 : à leur taille, on ne voit rien. Les captures : `--center=bridge`,

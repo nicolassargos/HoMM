@@ -304,12 +304,12 @@ par faction, placements dans `placements.json`) :
   surtout de roche.
 
 **Choix de l'utilisateur (2026-11-21)** :
-- **Le ×2 est gardé** pour les villes : le fond et les bâtiments sont dessinés à leur vraie taille (fond de 960 × 292),
+- **Le ×2 est gardé** pour les villes : le fond et les bâtiments sont dessinés à leur vraie taille (fond de 960 × 270),
   comme tout le pixel art (sinon des pixels plus gros que ceux des créatures et des boutons posés dessus). À 1920 de
   large, cela fait le détail d'une ville de Heroes 3 (800 de large, ×2,4), pas celui de Heroes 2 (640, ×3). Les
   **concepts** de la ville entière peuvent avoir n'importe quelle taille : ils ne servent qu'à la mise en scène et à
-  l'ambiance. Aucun outil ne dessine 960 de large d'un coup (PixelLab 792, Retro Diffusion 480) : chaque bâtiment est
-  une petite image à part ; le fond se dessine à 792 puis s'élargit sur les côtés, ou en deux moitiés.
+  l'ambiance. PixelLab ne dessine pas plus de 792 de large : chaque bâtiment est une petite image à part ; le fond se
+  dessine à 792 × 241, puis PixelLab l'élargit à 960 × 270 (`tools/art/agrandir.py`, puis `affiner.py`).
 - **Chaque ville a son angle** (certaines vues plus d'en haut, d'autres plus de face) et ses bâtiments le suivent.
 - Une place pour la **forge** dans chaque scène.
 - Le **Château d'abord**. Son concept (2026-11-21, six tours) : la **disposition de E1** (vue de face, un peu d'en

@@ -28,8 +28,8 @@ public sealed class Hero
     /// <summary>Le mouvement de chaque jour, sans compétence (celui de la sauvegarde).</summary>
     public int BaseMovement { get; set; } = DefaultMovement;
 
-    /// <summary>Le mouvement de chaque jour : la Logistique en ajoute.</summary>
-    public int MaxMovement => BaseMovement * (100 + SkillValue(HoMM.Core.Skills.Logistics)) / 100;
+    /// <summary>Le mouvement de chaque jour sur terre : la Logistique et les artefacts en ajoutent.</summary>
+    public int MaxMovement => BaseMovement * (100 + SkillValue(HoMM.Core.Skills.Logistics) + ArtifactSum(a => a.LandMovement)) / 100;
 
     public int Movement { get; internal set; }
 
@@ -40,17 +40,19 @@ public sealed class Hero
     public int DayMovement { get; internal set; }
 
     /// <summary>
-    /// Le mouvement d'une journée commencée en mer : la Navigation en ajoute (en pourcentage), et chaque phare de son joueur
-    /// <see cref="Lighthouse.SeaMovementBonus"/>.
+    /// Le mouvement d'une journée commencée en mer : la Navigation et les artefacts de mer en ajoutent (en pourcentage,
+    /// ceux de terre non), et chaque phare de son joueur <see cref="Lighthouse.SeaMovementBonus"/>.
     /// </summary>
     public int SeaMovement(int lighthouses) =>
-        MaxMovement * (100 + SkillValue(HoMM.Core.Skills.Navigation)) / 100 + lighthouses * Lighthouse.SeaMovementBonus;
+        BaseMovement * (100 + SkillValue(HoMM.Core.Skills.Logistics)) / 100
+        * (100 + SkillValue(HoMM.Core.Skills.Navigation) + ArtifactSum(a => a.SeaMovement)) / 100
+        + lighthouses * Lighthouse.SeaMovementBonus;
 
     /// <summary>La vue, sans compétence (celle de la sauvegarde).</summary>
     public int BaseVisionRadius { get; set; } = 5;
 
-    /// <summary>Jusqu'où le héros voit : l'Éclaireur voit plus loin.</summary>
-    public int VisionRadius => BaseVisionRadius + SkillValue(HoMM.Core.Skills.Scouting);
+    /// <summary>Jusqu'où le héros voit : l'Éclaireur et les artefacts de vue voient plus loin.</summary>
+    public int VisionRadius => BaseVisionRadius + SkillValue(HoMM.Core.Skills.Scouting) + ArtifactSum(a => a.Vision);
 
     // ------------------------------------------------------------------ compétences (étape 9)
 
@@ -122,7 +124,8 @@ public sealed class Hero
     /// <summary>La force en plus (en pourcentage) des sorts : son école, et le talent Érudit (Magicien).</summary>
     public int SpellBonus(SpellType spell) =>
         (SchoolOf(spell) is { Skill: { } skill, Rank: var rank } ? skill.Value2At(rank) : 0)
-        + (Class?.Talent == Talents.Scholar ? Talents.ScholarPercentPerLevel * Level : 0);
+        + (Class?.Talent == Talents.Scholar ? Talents.ScholarPercentPerLevel * Level : 0)
+        + ArtifactSum(a => spell.School != null && a.School == spell.School ? a.SchoolBonus : 0);
 
     // Caractéristiques. Attaque et défense s'ajoutent à celles des créatures en combat.
     // (internal set : remises telles quelles au chargement d'une partie)
@@ -145,7 +148,7 @@ public sealed class Hero
     public const int SpellPointsPerKnowledge = 10;
 
     /// <summary>Les points de sort au plus : 10 par point de savoir.</summary>
-    public int MaxSpellPoints => SpellPointsPerKnowledge * Knowledge;
+    public int MaxSpellPoints => SpellPointsPerKnowledge * Knowledge + ArtifactSum(a => a.SpellPoints);
 
     /// <summary>Les points de sort qui restent (le héros commence plein, en regagne 1 par jour).</summary>
     public int SpellPoints { get; internal set; } = SpellPointsPerKnowledge;
@@ -199,6 +202,23 @@ public sealed class Hero
     /// <summary>Les artefacts que porte le héros (leurs bonus sont déjà comptés dans ses caractéristiques).</summary>
     public List<ArtifactType> Artifacts { get; } = new();
 
+    /// <summary>La somme d'un effet sur tous ses artefacts (moral, vue, mouvement… : comptés à chaque fois, pas gardés).</summary>
+    public int ArtifactSum(System.Func<ArtifactType, int> effect) => Artifacts.Sum(effect);
+
+    /// <summary>Ce que ses artefacts rapportent chaque jour (sa ressource de faction comprise).</summary>
+    public Dictionary<ResourceType, int> ArtifactIncome()
+    {
+        var income = new Dictionary<ResourceType, int>();
+        foreach (var artifact in Artifacts)
+        {
+            foreach (var (resource, amount) in artifact.Income)
+                income[resource] = income.GetValueOrDefault(resource) + amount;
+            if (artifact.FactionResource > 0 && Class?.MainResource is { } main)
+                income[main] = income.GetValueOrDefault(main) + artifact.FactionResource;
+        }
+        return income;
+    }
+
     /// <summary>Le héros prend un artefact : ses bonus s'ajoutent à ses caractéristiques, pour toujours.</summary>
     internal void Equip(ArtifactType artifact)
     {
@@ -242,8 +262,10 @@ public sealed class Hero
     /// <summary>Le héros est en mer (dans son bateau) : sur une case d'eau.</summary>
     public bool AtSea(AdventureMap map) => map.IsWater(Position);
 
-    /// <summary>L'Orientation : le surcoût des terrains difficiles baisse d'autant (en pourcentage).</summary>
-    public int RoughTerrainReduction => SkillValue(HoMM.Core.Skills.Pathfinding);
+    /// <summary>
+    /// L'Orientation : le surcoût des terrains difficiles baisse d'autant (en pourcentage) ; un artefact peut l'effacer.
+    /// </summary>
+    public int RoughTerrainReduction => Artifacts.Any(a => a.NoTerrainPenalty) ? 100 : SkillValue(HoMM.Core.Skills.Pathfinding);
 
     /// <summary>Les sols de sa faction : il y marche sans ralentir (le sable, le marais, la roche ; son second sol aussi).</summary>
     public IReadOnlyList<TerrainType> OwnGrounds => Class?.Grounds ?? System.Array.Empty<TerrainType>();

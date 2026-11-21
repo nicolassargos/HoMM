@@ -119,9 +119,20 @@ le moral et la chance ; la Tactique ; la Navigation ; les talents des classes.
 - Plus tard : les héros de force achètent leur livre de sorts ; les **cavernes** de la carte, où l'on apprend une
   compétence ou trouve un artefact.
 
-### Les artefacts (à concevoir)
-Les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs effets, où on les trouve (gardiens,
-coffres, cavernes), peut-être des ensembles. À concevoir avec l'utilisateur, l'idée d'abord, puis le détail.
+### Les artefacts (en cours)
+Décidé avec l'utilisateur (2026-11-21) : trois rangs (mineur, majeur, relique), des pouvoirs uniques, trouvés partout,
+les ensembles plus tard.
+✅ **La liste et leurs effets** (2026-11-21, branche `artefacts`) : 46 artefacts dans `data/artifacts.json`, tous leurs
+effets en jeu sauf les pouvoirs uniques (détail dans `HISTORIQUE.md`).
+**Reste**, dans l'ordre proposé :
+1. **Les trouver** : posés sur la carte (les mineurs seuls, les majeurs et les reliques gardés), dans les coffres (la
+   Chance), en récompense des gros gardiens, dans les cavernes et le Donjon ; combien par carte et par taille.
+2. **Les images** : une de 32 × 32 par artefact (46), Retro Diffusion ; posées sur la carte ×2.
+3. **Les déplacer à la main** sur l'écran du héros (porter, ranger au coffre, échanger entre deux héros).
+4. **Les pouvoirs uniques**, un par un (la lame qui boit, le bouclier du marais, le masque de l'épouvante, le collier
+   aux cent clochettes, la cape d'ombre, les ailes, les bottes de la marée, l'anneau du semeur, le sablier).
+5. **Le marchand d'artefacts** (un bâtiment de ville : acheter et vendre).
+6. L'IA : ramasser, porter les meilleurs, payer le marchand.
 ✅ **L'écran du héros** est prêt pour eux (2026-11-09, images d'attente) : à gauche le portrait et les
 caractéristiques ; trois onglets Équipement, Compétences, Magie. Équipement : le héros en pied, **11 emplacements**
 reliés par un trait à l'endroit où ils se portent (tête, cou, cape, torse, arme, bouclier, deux anneaux, ceinture,

@@ -13,17 +13,19 @@ namespace HoMM.Core;
 /// <param name="Overload">La troupe dépasse la limite de commandement du héros : −1 (jusqu'à 1,5 fois), −2 (2 fois), −3.</param>
 /// <param name="Skill">La compétence Moral.</param>
 /// <param name="Site">Un lieu de la carte visité (temple), jusqu'au prochain combat.</param>
-public readonly record struct MoraleParts(int Aura, int Factions, int Overload, int Skill, int Site)
+/// <param name="Artifacts">Les artefacts du héros.</param>
+public readonly record struct MoraleParts(int Aura, int Factions, int Overload, int Skill, int Site, int Artifacts = 0)
 {
-    public int Total => Math.Clamp(Aura + Factions + Overload + Skill + Site, Morale.Min, Morale.Max);
+    public int Total => Math.Clamp(Aura + Factions + Overload + Skill + Site + Artifacts, Morale.Min, Morale.Max);
 }
 
 /// <summary>La chance d'une troupe, et d'où elle vient (entre −3 et +3).</summary>
 /// <param name="Skill">La compétence Chance.</param>
 /// <param name="Site">Un lieu de la carte visité (cercle des fées), jusqu'au prochain combat.</param>
-public readonly record struct LuckParts(int Skill, int Site)
+/// <param name="Artifacts">Les artefacts du héros.</param>
+public readonly record struct LuckParts(int Skill, int Site, int Artifacts = 0)
 {
-    public int Total => Math.Clamp(Skill + Site, Morale.Min, Morale.Max);
+    public int Total => Math.Clamp(Skill + Site + Artifacts, Morale.Min, Morale.Max);
 }
 
 /// <summary>
@@ -76,7 +78,7 @@ public static class Morale
         hero == null
             ? default
             : new MoraleParts(Aura(hero.Charisma), Factions(army), Overload(type, count, hero.CommandLimit),
-                hero.SkillValue(Skills.Morale), hero.SiteMorale);
+                hero.SkillValue(Skills.Morale), hero.SiteMorale, hero.ArtifactSum(a => a.Morale));
 
     /// <summary>Le moral d'une troupe de l'armée du héros (pour l'écran du héros).</summary>
     public static MoraleParts Of(Hero hero, CreatureStack stack) =>
@@ -85,11 +87,11 @@ public static class Morale
     /// <summary>Le moral de toute l'armée du héros, sans compter le dépassement de la limite d'une troupe.</summary>
     public static MoraleParts OfArmy(Hero hero) =>
         new(Aura(hero.Charisma), Factions(hero.Army.Stacks.Where(s => s.Count > 0).Select(s => s.Type)), 0,
-            hero.SkillValue(Skills.Morale), hero.SiteMorale);
+            hero.SkillValue(Skills.Morale), hero.SiteMorale, hero.ArtifactSum(a => a.Morale));
 
     /// <summary>La chance des troupes de ce héros (la même pour toutes). Sans héros : rien.</summary>
     public static LuckParts LuckOf(Hero? hero) =>
-        hero == null ? default : new LuckParts(hero.SkillValue(Skills.Luck), hero.SiteLuck);
+        hero == null ? default : new LuckParts(hero.SkillValue(Skills.Luck), hero.SiteLuck, hero.ArtifactSum(a => a.Luck));
 }
 
 /// <summary>Bon moral : la troupe rejoue aussitôt.</summary>

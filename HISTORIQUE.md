@@ -1515,6 +1515,21 @@ Forêt 83 700, Tour 68 500, Donjon 68 500, Enfer 74 600, Nains 65 100 : peu de c
 et servent surtout plus tard) ; les autres factions bougent aussi, parce que l'IA bâtit ces bâtiments dans les villes
 neutres qu'elle prend (sans eux dans son ordre, le Château retrouve 59 400).
 
+#### Les artefacts : la liste et leurs effets (2026-11-21, branche `artefacts`)
+Choisis avec l'utilisateur (page de choix `art-candidats/en-cours/artefacts.html`) : environ 40 artefacts en **trois
+rangs** (mineur, majeur, relique), des pouvoirs uniques permis, trouvés partout (sur la carte, coffres et gardiens,
+cavernes et Donjon, un marchand en ville), les ensembles plus tard. Le premier jet de 43 : 40 gardés tels quels ;
+changés : les bottes de liège (+50 % en mer), le Plastron des Rois (+5 à toutes les caractéristiques), la Ceinture du
+titan devenue **Ceinture du Sauveur** ; ajoutés à sa demande : l'Amulette de glaise (sorts de terre +50 %, la quatrième
+école), le Creuset de l'alchimiste (+1 par jour de la ressource principale de la faction du héros), les Bottes du
+coureur des bois (aucun terrain ne ralentit). **46 en tout** (14 mineurs, 19 majeurs, 13 reliques) dans
+`data/artifacts.json`. `ArtifactType` gagne `Rank`, `Morale`, `Luck`, `Vision`, `LandMovement` et `SeaMovement` (en
+pourcentage ; les bottes de terre ne servent pas en mer), `NoTerrainPenalty`, `SpellPoints`, `School` et `SchoolBonus`,
+`Income`, `FactionResource`, `PowerText` (le pouvoir unique, décrit mais pas encore en jeu). Les caractéristiques
+s'ajoutent une fois pour toutes (`Hero.Equip`) ; les autres effets sont comptés à chaque fois (`Hero.ArtifactSum`) :
+`MoraleParts.Artifacts`, `LuckParts.Artifacts`, la vue, le mouvement, les points de sort, `SpellBonus`,
+`RoughTerrainReduction`, `Player.DailyIncome`. L'infobulle de l'artefact (`Texts.Bonus`) dit tous ses effets.
+
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
   à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),

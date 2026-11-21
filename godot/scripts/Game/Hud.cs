@@ -51,7 +51,7 @@ public partial class Hud : CanvasLayer
     private Label _charisma = null!;
     private ProgressBar _movementBar = null!;
     private Label _movementText = null!;
-    private HBoxContainer _artifacts = null!;
+    private Label _artifacts = null!;
     private string? _artifactsKey;
     private ArmySlots _army = null!;
 
@@ -331,9 +331,11 @@ public partial class Hud : CanvasLayer
         _movementText.Size = new Vector2(_movementBar.Size.X, textHeight);
         card.AddChild(_movementText);
 
-        // ses artefacts : de petites images à côté du charisme (le nom et l'effet au survol)
-        _artifacts = new HBoxContainer { Position = new Vector2(textX + column, Px(61)), Size = new Vector2(column, Px(16)) };
-        _artifacts.AddThemeConstantOverride("separation", (int)Px(2));
+        // ses artefacts : leur nombre à côté du charisme, leurs noms et effets au survol (leurs images, ×2, ne tiennent
+        // pas dans la ligne : elles sont sur l'écran du héros)
+        _artifacts = MakeLabel("", 12, TextColor);
+        _artifacts.Position = new Vector2(textX + column, Px(34 + 2 * 14));
+        _artifacts.MouseFilter = Control.MouseFilterEnum.Stop;
         card.AddChild(_artifacts);
         return y + card.Size.Y;
     }
@@ -545,25 +547,16 @@ public partial class Hud : CanvasLayer
     }
 
 
-    /// <summary>Les images des artefacts du héros, reconstruites seulement quand la liste change.</summary>
+    /// <summary>Le nombre d'artefacts du héros (« Art 3 »), et au survol chacun avec ses effets.</summary>
     private void RefreshArtifacts(Hero? hero)
     {
         string key = hero == null ? "" : $"{hero.Id}:{string.Join(",", hero.Artifacts.Select(a => a.Id))}";
         if (key == _artifactsKey)
             return;
         _artifactsKey = key;
-        Clear(_artifacts);
-        foreach (var artifact in hero?.Artifacts ?? new List<ArtifactType>())
-        {
-            if (Art.Get($"artifacts/{artifact.Id}") is not { } image)
-                continue;
-            _artifacts.AddChild(new TextureRect
-            {
-                Texture = image, CustomMinimumSize = new Vector2(24, 24),
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-                TextureFilter = CanvasItem.TextureFilterEnum.Nearest, TooltipText = Texts.ArtifactTooltip(artifact),
-            });
-        }
+        var artifacts = hero?.Artifacts ?? new List<ArtifactType>();
+        _artifacts.Text = artifacts.Count > 0 ? $"Art {artifacts.Count}" : "";
+        _artifacts.TooltipText = string.Join("\n", artifacts.Select(Texts.ArtifactTooltip));
     }
 
     /// <summary>Ajoute un message : le dernier s'affiche sous la carte, tous restent dans le journal.</summary>
@@ -979,7 +972,7 @@ public partial class Hud : CanvasLayer
     /// <summary>Un message dans une fenêtre, qu'on ferme avec OK (le trésor déterré…).</summary>
     public void ShowMessage(string title, string text) => ShowDialog(title, text, "OK", null);
 
-    /// <summary>Le trésor est déterré : l'image de l'artefact en grand (×3, pixels nets), puis ce qu'il apporte.</summary>
+    /// <summary>Un artefact trouvé (ou le trésor déterré) : son image ×2 (la règle du pixel art), puis ce qu'il apporte.</summary>
     public void ShowArtifactFound(string title, string text, ArtifactType artifact) => Enqueue(done =>
     {
         var dialog = new GameDialog { Title = title, OkButtonText = "OK", Exclusive = true, Unresizable = true };
@@ -990,7 +983,7 @@ public partial class Hud : CanvasLayer
             var center = new CenterContainer();
             center.AddChild(new TextureRect
             {
-                Texture = image, CustomMinimumSize = image.GetSize() * 4,
+                Texture = image, CustomMinimumSize = image.GetSize() * 2,
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
                 TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
             });

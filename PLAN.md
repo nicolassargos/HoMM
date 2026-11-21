@@ -129,7 +129,9 @@ mineurs seuls, les majeurs et les reliques gardés ; un coffre sur cinq cache un
 la couleur du rang sur une lueur.
 **Reste**, dans l'ordre proposé :
 1. Les trouver ailleurs : dans les cavernes et le Donjon (quand ils existeront) ; peut-être la Chance sur les coffres.
-2. **Les images** : une de 32 × 32 par artefact (46), Retro Diffusion ; posées sur la carte ×2.
+2. **Les images** : une de **24 × 24** par artefact, ×2 partout (la règle) ; PixelLab « pro », le coffre de la carte
+   comme style (`tools/art/METHODE.md`). ✅ Les 3 premières (2026-11-21) : bottes cloutées, fiole de sève, hache du
+   bourreau. Reste les 43 autres, dont un nouveau Plastron des Rois (l'actuel est en 32 × 32, l'ancien style).
 3. **Les déplacer à la main** sur l'écran du héros (porter, ranger au coffre, échanger entre deux héros).
 4. **Les pouvoirs uniques**, un par un (la lame qui boit, le bouclier du marais, le masque de l'épouvante, le collier
    aux cent clochettes, la cape d'ombre, les ailes, les bottes de la marée, l'anneau du semeur, le sablier).
@@ -138,8 +140,9 @@ la couleur du rang sur une lueur.
 ✅ **L'écran du héros** est prêt pour eux (2026-11-09, images d'attente) : à gauche le portrait et les
 caractéristiques ; trois onglets Équipement, Compétences, Magie. Équipement : le héros en pied, **11 emplacements**
 reliés par un trait à l'endroit où ils se portent (tête, cou, cape, torse, arme, bouclier, deux anneaux, ceinture,
-pieds, divers), un **coffre de 16 places**. **Une image de 32 × 32 par artefact** sert partout (×3 à l'écran du héros,
-×2 posé sur la carte, une ombre ou une lueur dessinée dessous).
+pieds, divers), un **coffre de 16 places**. **Une image de 24 × 24 par artefact** sert partout, ×2 (la
+case de 48 de l'écran du héros, posé sur la carte avec une lueur dessous, la fenêtre « Un artefact ! ») ; le panneau du
+héros ne montre que leur nombre (« Art 3 », la liste au survol).
 **Reste** : déplacer les artefacts à la main ; les images (41 héros en pied, une icône par compétence : session
 images) ; les onglets en marque-pages (à l'essai) ; la taille de l'écran, à régler avec la maquette
 `art-candidats/en-cours/maquettes/heros.html`.

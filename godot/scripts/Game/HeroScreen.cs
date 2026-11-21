@@ -224,7 +224,7 @@ public partial class HeroScreen : ScreenWindow
         return slot;
     }
 
-    /// <summary>Met un artefact (son image ×3) dans un emplacement, ou le vide.</summary>
+    /// <summary>Met un artefact (son image ×2) dans un emplacement, ou le vide.</summary>
     private static void Fill(Panel slot, ArtifactType? artifact)
     {
         foreach (var child in slot.GetChildren().OfType<TextureRect>().ToList())
@@ -238,7 +238,7 @@ public partial class HeroScreen : ScreenWindow
             return;
         if (Art.Get($"artifacts/{artifact.Id}") is { } image)
         {
-            var size = image.GetSize() * 2; // l'artefact de 32 pixels, ×2 (la règle du pixel art)
+            var size = image.GetSize() * 2; // l'artefact de 24 pixels, ×2 (la règle du pixel art) : la case de 48
             slot.AddChild(Picture(image, ((slot.Size - size) / 2).Floor(), size));
         }
         else if (slot.GetNodeOrNull<Label>("Name") is { } label)

@@ -804,6 +804,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   La même recette pour la ville (2026-11-20) : « a thick bold arrow pointing straight down onto a knight's helmet » et
   « … up into a small castle tower » (le héros est sous la garnison), un lot de 64 chacune, choisies au premier tour
   (`donner-heros` 56, `laisser-garnison` 9).
+- **Artefacts** (2026-11-21, `art/artifacts/<id>.png`, **24 × 24**, ×2 partout : la case de l'écran du héros fait 48) :
+  PixelLab « pro » 24 × 24, **le coffre de la carte (`objects/chest.png`) comme image de style**, 64 candidats par
+  artefact (0,08 $). Début de la description, le même pour tous : « single small fantasy item lying alone, drawn in the
+  same soft muted painterly pixel art style as the reference treasure chest, thin soft dark outline, gentle shading,
+  earthy colours, readable at small size, centered, transparent background: » puis l'objet. Un objet long (hache,
+  épée) : « …the blade filling most of the picture ». **Écarté** (l'utilisateur) : Retro Diffusion `rd_tile__tile_object`
+  en 32 × 32 (comme le Plastron des Rois) : de belles icônes de jeu de rôle, mais trop vives, au contour noir épais,
+  pas le style de la carte, et 32 × 32 à ×2 déborde de la case ; les objets longs y sortaient minces et petits.
+  Choisis : bottes cloutées 38, fiole de sève 26, hache du bourreau 44.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

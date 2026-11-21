@@ -419,6 +419,7 @@ public static class ComputerPlayer
             double weight = obj switch
             {
                 ResourcePile or TreasureChest or Flotsam or SeaChest => 1,
+                ArtifactPile => 0.5, // un artefact sert toute la partie
                 Lighthouse lighthouse when lighthouse.Owner != player => 0.8,
                 // un navire abandonné : son trésor vaut le combat, si l'équipage se bat sans trop de pertes
                 AbandonedShip ship when ship.Crew.IsEmpty || WorthFighting(state, hero, ship.Crew, stuck: stuck) => 0.6,

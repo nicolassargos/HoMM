@@ -94,6 +94,7 @@ public static class Texts
     {
         ResourcePile pile => $"Tas de {Resource(pile.Resource)}",
         TreasureChest => "Coffre au trésor",
+        ArtifactPile pile => $"Artefact : {pile.Artifact.Name}",
         Obelisk => "Obélisque",
         Boat => "Bateau",
         Shipyard => "Chantier naval",
@@ -568,14 +569,38 @@ public static class Texts
         ? "Il n'y a pas d'obélisque sur cette carte."
         : $"Morceaux trouvés : {found} sur {total}. Chaque obélisque en dévoile un. Creusez (touche F) là où est la croix.";
 
-    /// <summary>« +5 attaque, +5 défense, +5 charisme »</summary>
-    public static string Bonus(ArtifactType artifact) => string.Join(", ", new[]
+    /// <summary>« +5 attaque, +5 défense, +5 charisme », puis les autres effets et le pouvoir unique.</summary>
+    public static string Bonus(ArtifactType artifact)
     {
-        (artifact.Attack, "attaque"), (artifact.Defense, "défense"), (artifact.Power, "puissance"),
-        (artifact.Knowledge, "savoir"), (artifact.Charisma, "charisme"),
-    }.Where(b => b.Item1 != 0).Select(b => $"+{b.Item1} {b.Item2}"));
+        var parts = new[]
+        {
+            (artifact.Attack, "attaque"), (artifact.Defense, "défense"), (artifact.Power, "puissance"),
+            (artifact.Knowledge, "savoir"), (artifact.Charisma, "charisme"), (artifact.Morale, "moral"),
+            (artifact.Luck, "chance"), (artifact.Vision, "cases de vue"), (artifact.SpellPoints, "points de sort maximum"),
+        }.Where(b => b.Item1 != 0).Select(b => $"{Signed(b.Item1)} {b.Item2}").ToList();
+        if (artifact.LandMovement != 0)
+            parts.Add($"{Signed(artifact.LandMovement)} % de mouvement sur terre");
+        if (artifact.SeaMovement != 0)
+            parts.Add($"{Signed(artifact.SeaMovement)} % de mouvement en mer");
+        if (artifact.NoTerrainPenalty)
+            parts.Add("aucun terrain ne ralentit le héros");
+        if (artifact.School != null && artifact.SchoolBonus != 0)
+            parts.Add($"sorts {(artifact.School is "eau" or "air" ? "d'" : "de ")}{artifact.School} : {Signed(artifact.SchoolBonus)} %");
+        parts.AddRange(artifact.Income.Select(i => $"{Signed(i.Value)} {Resource(i.Key)} par jour"));
+        if (artifact.FactionResource != 0)
+            parts.Add($"{Signed(artifact.FactionResource)} par jour de la ressource de sa faction");
+        if (artifact.PowerText != null)
+            parts.Add(artifact.PowerText.TrimEnd('.') + " (pas encore en jeu)");
+        return string.Join(", ", parts);
+    }
 
     public static string TreasureDugTitle => "Le trésor !";
+
+    public static string ArtifactFoundTitle => "Un artefact !";
+
+    public static string ArtifactFoundText(ArtifactFound found) =>
+        (found.Object is TreasureChest ? $"Au fond du coffre, {found.Hero.Name} trouve un artefact : " : $"{found.Hero.Name} ramasse un artefact : ")
+        + $"{found.Artifact.Name}.\n{Bonus(found.Artifact)}.";
 
     public static string TreasureDugText(TreasureDug dug) =>
         $"{dug.Hero.Name} déterre le {dug.Artifact.Name}, l'armure légendaire des anciens rois.\n{Bonus(dug.Artifact)}.";
@@ -764,6 +789,7 @@ public static class Texts
         ChestChosen { Gold: true } chosen => $"Un coffre au trésor ! +{chosen.Amount} or.",
         ChestChosen chosen => $"Un coffre au trésor ! {chosen.Hero.Name} gagne {chosen.Amount} points d'expérience.",
         ResourcesFound found => $"Vous trouvez {found.Amount} {Resource(found.Resource)}.",
+        ArtifactFound found => $"{found.Hero.Name} prend un artefact : {found.Artifact.Name} ({Bonus(found.Artifact)}).",
         MineCaptured captured =>
             $"{MineName(captured.Mine)} capturée ! +{captured.Mine.DailyProduction} {Resource(captured.Mine.Resource)} par jour.",
         MineAlreadyOwned owned => $"{MineName(owned.Mine)} vous appartient déjà.",
@@ -962,6 +988,7 @@ public static class Texts
         Part(morale.Overload, "Troupe trop nombreuse pour le charisme");
         Part(morale.Skill, "Compétence Moral");
         Part(morale.Site, "Temple (jusqu'au prochain combat)");
+        Part(morale.Artifacts, "Artefacts");
         lines.Add("Une seule faction : +1 ; trois : −1 ; quatre ou plus : −2.");
         return string.Join("\n", lines);
     }
@@ -981,6 +1008,8 @@ public static class Texts
             lines.Add($"Compétence Chance : {Signed(luck.Skill)}");
         if (luck.Site != 0)
             lines.Add($"Cercle des fées (jusqu'au prochain combat) : {Signed(luck.Site)}");
+        if (luck.Artifacts != 0)
+            lines.Add($"Artefacts : {Signed(luck.Artifacts)}");
         return string.Join("\n", lines);
     }
 

@@ -376,7 +376,7 @@ public partial class Audio : Node
     private static string? SoundFor(GameEvent e, Player viewer) => e switch
     {
         ResourcesFound or FlotsamFound when ((ObjectVisited)e).Hero.Owner == viewer => "pickup",
-        ChestOpened or SeaChestOpened or AbandonedShipLooted when ((ObjectVisited)e).Hero.Owner == viewer => "chest",
+        ChestOpened or SeaChestOpened or AbandonedShipLooted or ArtifactFound when ((ObjectVisited)e).Hero.Owner == viewer => "chest",
         MineCaptured or TownCaptured when ((ObjectVisited)e).Hero.Owner == viewer => "capture",
         BuildingBuilt built when built.Town.Owner == viewer => "build",
         HeroLevelChoice choice when choice.Hero.Owner == viewer => "level-up",

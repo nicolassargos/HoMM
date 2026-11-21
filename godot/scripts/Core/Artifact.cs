@@ -5,12 +5,13 @@ namespace HoMM.Core;
 
 /// <summary>
 /// Un artefact : un objet que porte un héros et qui augmente ses caractéristiques. Les valeurs viennent de
-/// data/artifacts.json. Pour l'instant, il n'y en a qu'un : le trésor enfoui de chaque carte.
+/// data/artifacts.json. La liste (46, en trois rangs) a été choisie avec l'utilisateur le 2026-11-21.
 /// </summary>
 public sealed record ArtifactType
 {
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
+    public ArtifactRank Rank { get; init; } = ArtifactRank.Minor;
     public int Attack { get; init; }
     public int Defense { get; init; }
     public int Power { get; init; }
@@ -19,7 +20,43 @@ public sealed record ArtifactType
 
     /// <summary>Où il se porte (un anneau va à l'une des deux mains ; sans place précise : divers).</summary>
     public ArtifactSlot Slot { get; init; } = ArtifactSlot.Misc;
+
+    public int Morale { get; init; }
+    public int Luck { get; init; }
+
+    /// <summary>Cases de vue en plus sur la carte.</summary>
+    public int Vision { get; init; }
+
+    /// <summary>Mouvement en plus sur terre, en pourcentage.</summary>
+    public int LandMovement { get; init; }
+
+    /// <summary>Mouvement en plus en mer, en pourcentage.</summary>
+    public int SeaMovement { get; init; }
+
+    /// <summary>Le surcoût des terrains difficiles disparaît (sable, neige, marais…).</summary>
+    public bool NoTerrainPenalty { get; init; }
+
+    /// <summary>Points de sort maximum en plus.</summary>
+    public int SpellPoints { get; init; }
+
+    /// <summary>Une école de magie (« feu », « eau », « terre », « air ») dont les sorts sont plus forts…</summary>
+    public string? School { get; init; }
+
+    /// <summary>… de ce pourcentage.</summary>
+    public int SchoolBonus { get; init; }
+
+    /// <summary>Ce qu'il rapporte chaque jour.</summary>
+    public Dictionary<ResourceType, int> Income { get; init; } = new();
+
+    /// <summary>Chaque jour, autant de la ressource principale de la faction du héros.</summary>
+    public int FactionResource { get; init; }
+
+    /// <summary>Un pouvoir unique (il change une règle), décrit ici ; pas encore en jeu.</summary>
+    public string? PowerText { get; init; }
 }
+
+/// <summary>Le rang d'un artefact : mineur (courant), majeur (gardé), relique (rare).</summary>
+public enum ArtifactRank { Minor, Major, Relic }
 
 /// <summary>Les places d'un artefact sur le héros (décidées avec l'utilisateur, 2026-11-09, proches de Heroes 3).</summary>
 public enum ArtifactSlot { Head, Neck, Shoulders, Torso, Weapon, Shield, Ring, Belt, Feet, Misc }

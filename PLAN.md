@@ -119,9 +119,22 @@ le moral et la chance ; la Tactique ; la Navigation ; les talents des classes.
 - Plus tard : les héros de force achètent leur livre de sorts ; les **cavernes** de la carte, où l'on apprend une
   compétence ou trouve un artefact.
 
-### Les artefacts (à concevoir)
-Les objets que porte un héros (aujourd'hui un seul, `data/artifacts.json`) : leurs effets, où on les trouve (gardiens,
-coffres, cavernes), peut-être des ensembles. À concevoir avec l'utilisateur, l'idée d'abord, puis le détail.
+### Les artefacts (en cours)
+Décidé avec l'utilisateur (2026-11-21) : trois rangs (mineur, majeur, relique), des pouvoirs uniques, trouvés partout,
+les ensembles plus tard.
+✅ **La liste et leurs effets** (2026-11-21, branche `artefacts`) : 46 artefacts dans `data/artifacts.json`, tous leurs
+effets en jeu sauf les pouvoirs uniques (détail dans `HISTORIQUE.md`).
+✅ **Sur la carte** (2026-11-21, branche `artefacts-carte`) : 8 posés par carte de 40 × 30 (plus sur une grande), les
+mineurs seuls, les majeurs et les reliques gardés ; un coffre sur cinq cache un mineur. Image d'attente : une pierre de
+la couleur du rang sur une lueur.
+**Reste**, dans l'ordre proposé :
+1. Les trouver ailleurs : dans les cavernes et le Donjon (quand ils existeront) ; peut-être la Chance sur les coffres.
+2. **Les images** : une de 32 × 32 par artefact (46), Retro Diffusion ; posées sur la carte ×2.
+3. **Les déplacer à la main** sur l'écran du héros (porter, ranger au coffre, échanger entre deux héros).
+4. **Les pouvoirs uniques**, un par un (la lame qui boit, le bouclier du marais, le masque de l'épouvante, le collier
+   aux cent clochettes, la cape d'ombre, les ailes, les bottes de la marée, l'anneau du semeur, le sablier).
+5. **Le marchand d'artefacts** (un bâtiment de ville : acheter et vendre).
+6. L'IA : ramasser, porter les meilleurs, payer le marchand.
 ✅ **L'écran du héros** est prêt pour eux (2026-11-09, images d'attente) : à gauche le portrait et les
 caractéristiques ; trois onglets Équipement, Compétences, Magie. Équipement : le héros en pied, **11 emplacements**
 reliés par un trait à l'endroit où ils se portent (tête, cou, cape, torse, arme, bouclier, deux anneaux, ceinture,
@@ -290,6 +303,17 @@ par faction, placements dans `placements.json`) :
 - Le **capitole** est la 4e image de l'hôtel de ville ; **La Tour qui pousse** a 5 étages au plus (une image par
   étage) ; le **Donjon** s'ouvre sur une caverne ; la forteresse des **Nains** fait partie de la montagne : un fond
   surtout de roche.
+
+**Choix de l'utilisateur (2026-11-21)** :
+- **Le ×2 est gardé** pour les villes : le fond et les bâtiments sont dessinés à leur vraie taille (fond de 960 × 292),
+  comme tout le pixel art (sinon des pixels plus gros que ceux des créatures et des boutons posés dessus). À 1920 de
+  large, cela fait le détail d'une ville de Heroes 3 (800 de large, ×2,4), pas celui de Heroes 2 (640, ×3). Les
+  **concepts** de la ville entière peuvent avoir n'importe quelle taille : ils ne servent qu'à la mise en scène et à
+  l'ambiance. Aucun outil ne dessine 960 de large d'un coup (PixelLab 792, Retro Diffusion 480) : chaque bâtiment est
+  une petite image à part ; le fond se dessine à 792 puis s'élargit sur les côtés, ou en deux moitiés.
+- **Chaque ville a son angle** (certaines vues plus d'en haut, d'autres plus de face) et ses bâtiments le suivent.
+- Une place pour la **forge** dans chaque scène.
+- Le **Château d'abord** (concepts en cours : `art-candidats/en-cours/ville-chateau/index.html`).
 
 ### L'IA et l'équilibre
 Entraîner les profils de difficulté par des parties entre IA, jouées sans affichage ; petits détails et équilibrage

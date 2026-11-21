@@ -59,7 +59,8 @@ public sealed partial class GameState
         Blessing? Blessing = null, // temple ou cercle des fées (version 6)
         Cell? Spot = null, // la case d'eau d'un chantier naval de la côte, la sortie d'un tourbillon
         int? Wood = null, bool? Sea = null, // une épave flottante ; une bouée ou des sirènes
-        int? Gold = null); // un navire abandonné (son équipage dans Garrison)
+        int? Gold = null, // un navire abandonné (son équipage dans Garrison)
+        string? Artifact = null); // un artefact posé, ou dans un coffre
 
     private sealed record StackData(string Creature, int Count);
 
@@ -126,7 +127,8 @@ public sealed partial class GameState
     private static ObjectData SaveObject(MapObject obj) => obj switch
     {
         ResourcePile pile => new ObjectData("pile", obj.Id, obj.Position, Resource: pile.Resource, Amount: pile.Amount),
-        TreasureChest chest => new ObjectData("chest", obj.Id, obj.Position, Amount: chest.Gold),
+        TreasureChest chest => new ObjectData("chest", obj.Id, obj.Position, Amount: chest.Gold, Artifact: chest.Artifact?.Id),
+        ArtifactPile pile => new ObjectData("artifact", obj.Id, obj.Position, Artifact: pile.Artifact.Id),
         Obelisk => new ObjectData("obelisk", obj.Id, obj.Position),
         Boat => new ObjectData("boat", obj.Id, obj.Position),
         Shipyard shipyard => new ObjectData("shipyard", obj.Id, obj.Position, Spot: shipyard.BoatSpot),
@@ -247,7 +249,8 @@ public sealed partial class GameState
             MapObject obj = o.Kind switch
             {
                 "pile" => new ResourcePile(o.Position, o.Resource!.Value, o.Amount!.Value),
-                "chest" => new TreasureChest(o.Position, o.Amount!.Value),
+                "chest" => new TreasureChest(o.Position, o.Amount!.Value, o.Artifact != null ? data.Artifacts.Get(o.Artifact) : null),
+                "artifact" => new ArtifactPile(o.Position, data.Artifacts.Get(o.Artifact!)),
                 "obelisk" => new Obelisk(o.Position),
                 "boat" => new Boat(o.Position),
                 "shipyard" => new Shipyard(o.Position, o.Spot!.Value),

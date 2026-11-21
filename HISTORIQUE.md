@@ -1515,6 +1515,34 @@ Forêt 83 700, Tour 68 500, Donjon 68 500, Enfer 74 600, Nains 65 100 : peu de c
 et servent surtout plus tard) ; les autres factions bougent aussi, parce que l'IA bâtit ces bâtiments dans les villes
 neutres qu'elle prend (sans eux dans son ordre, le Château retrouve 59 400).
 
+#### Les artefacts : la liste et leurs effets (2026-11-21, branche `artefacts`)
+Choisis avec l'utilisateur (page de choix `art-candidats/en-cours/artefacts.html`) : environ 40 artefacts en **trois
+rangs** (mineur, majeur, relique), des pouvoirs uniques permis, trouvés partout (sur la carte, coffres et gardiens,
+cavernes et Donjon, un marchand en ville), les ensembles plus tard. Le premier jet de 43 : 40 gardés tels quels ;
+changés : les bottes de liège (+50 % en mer), le Plastron des Rois (+5 à toutes les caractéristiques), la Ceinture du
+titan devenue **Ceinture du Sauveur** ; ajoutés à sa demande : l'Amulette de glaise (sorts de terre +50 %, la quatrième
+école), le Creuset de l'alchimiste (+1 par jour de la ressource principale de la faction du héros), les Bottes du
+coureur des bois (aucun terrain ne ralentit). **46 en tout** (14 mineurs, 19 majeurs, 13 reliques) dans
+`data/artifacts.json`. `ArtifactType` gagne `Rank`, `Morale`, `Luck`, `Vision`, `LandMovement` et `SeaMovement` (en
+pourcentage ; les bottes de terre ne servent pas en mer), `NoTerrainPenalty`, `SpellPoints`, `School` et `SchoolBonus`,
+`Income`, `FactionResource`, `PowerText` (le pouvoir unique, décrit mais pas encore en jeu). Les caractéristiques
+s'ajoutent une fois pour toutes (`Hero.Equip`) ; les autres effets sont comptés à chaque fois (`Hero.ArtifactSum`) :
+`MoraleParts.Artifacts`, `LuckParts.Artifacts`, la vue, le mouvement, les points de sort, `SpellBonus`,
+`RoughTerrainReduction`, `Player.DailyIncome`. L'infobulle de l'artefact (`Texts.Bonus`) dit tous ses effets.
+
+#### Les artefacts sur la carte (2026-11-21, branche `artefacts-carte`)
+`ArtifactPile` (un artefact posé : le héros qui s'arrête dessus le prend, événement `ArtifactFound`, fenêtre « Un
+artefact ! » avec son image, son du coffre). `MapGenerator.ArtifactCount` = 8 pour une carte de 40 × 30 (`Scaled`),
+répartis zone par zone ; le rang suit le danger de la case : mineur sous 0,35, majeur sous 0,8, au-delà une relique une
+fois sur trois. Chaque artefact une fois au plus par carte (`_artifactPool`), le Plastron des Rois restant le trésor
+enfoui ; s'il n'en reste plus d'un rang, celui d'en dessous, sinon d'au-dessus. Les majeurs et les reliques ont un gardien
+voisin (`PlaceGuards`, comme les mines et les coffres ; une relique un gardien 1,5 fois plus gros) ; un majeur qui n'en a
+pas eu (pas de place) devient un mineur (`UnguardedArtifactsBecomeMinor`). `ChestArtifactShare` = 0,2 : un coffre sur
+cinq cache un mineur, que le héros prend sans choisir. Sauvegarde : `ObjectData.Artifact` (« artifact », et le coffre).
+L'IA va vers un artefact deux fois plus volontiers que vers un tas. Sur la carte, sans image : une pierre taillée de la
+couleur du rang (argent, bleu, violet) ; sous l'artefact, avec ou sans image, une lueur de cette couleur qui respire.
+`--center=artifact`, `major-artifact`, `relic`.
+
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
   à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),

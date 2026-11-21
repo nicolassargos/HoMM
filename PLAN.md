@@ -283,8 +283,9 @@ panneau de la carte, les écrans revus pour la nouvelle police.
 `ville-boutons-garnison` ; l'interface de la ville avancera par petits pas, choix de l'utilisateur).
 ✅ **L'écran de ville façon Heroes 2** (2026-11-21, branche `disposition-ville`) : la vue sur toute la largeur, les
 ressources en grille, Quitter seul visible (Construire et Recruter glissent au survol), le nom dans un onglet, une barre
-d'état ; la disposition se règle à la souris (`tools/ui/disposition.py`). **Reste** : l'accès au marché d'une ville qui
-n'en a pas ; peut-être un fond derrière chaque créature, comme Heroes 2.
+d'état ; la disposition se règle à la souris (`tools/ui/disposition.py`) ; un clic sur les ressources ouvre le marché,
+des flèches autour du nom passent d'une ville à l'autre (branche `ville-marche-fleches`). **Reste** : peut-être un fond
+derrière chaque créature, comme Heroes 2.
 **Reste** : des icônes sur les autres écrans, au fil des besoins ; des icônes pour les récompenses (coffre, niveau) ;
 l'écran de recrutement, à revoir pour gagner de la place ; la poignée des barres de défilement comme taillée dans la
 pierre. ✅ Les pieds des mines de mercure, de minerai (ses six sols) et de soufre, et la force de leur ombre de

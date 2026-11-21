@@ -81,7 +81,7 @@ public partial class ResourceBar : Panel
                 label.HorizontalAlignment = HorizontalAlignment.Center;
                 label.Position = new Vector2(x, y + icon);
                 label.Size = new Vector2(cellWidth, text);
-                label.MouseFilter = MouseFilterEnum.Stop; // pour son info-bulle
+                label.MouseFilter = MouseFilterEnum.Pass; // pour son info-bulle ; le clic va à la colonne (le marché, en ville)
                 AddChild(label);
                 _amounts[row[i]] = label;
             }

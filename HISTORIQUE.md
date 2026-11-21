@@ -2445,9 +2445,12 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
     icônes de 32 pixels à ×2 (`ResourceIcon.Large`), le revenu du jour entre parenthèses.
   - **Trois boutons seulement** : Quitter toujours visible en haut à droite de la vue ; Construire et Recruter glissent
     de la droite au survol. La taverne, la guilde et le marché s'ouvrent en cliquant leur bâtiment dans la vue (leurs
-    boutons et leurs icônes sont retirés ; une ville sans marché n'y a plus accès : à revoir).
+    boutons et leurs icônes sont retirés). Puisqu'on échange dans toute ville dès qu'on a un marché quelque part
+    (`Market.Count` compte ceux de toutes ses villes), **un clic sur la grille des ressources ouvre le marché**
+    (branche `ville-marche-fleches`, « Marché (clic) » dans la barre d'état ; les nombres laissent passer le clic).
   - **Le nom de la ville dans un onglet** au bas de la vue (nom, or par jour, construction du jour), et une **barre
-    d'état** en bas de l'écran : le texte de l'élément survolé et la date.
+    d'état** en bas de l'écran : le texte de l'élément survolé et la date. **Deux flèches** de part et d'autre du nom
+    passent à la ville précédente ou suivante du joueur, en boucle (idée de l'utilisateur ; cachées avec une seule ville).
   - Le fond B du Château (960 × 292 de PixelLab) a été élargi en 960 × 270 par la session des images (`/inpaint`
     par morceaux de 200 × 200), puis ses contours doublés amincis : `art-candidats/en-cours/ville-chateau-fond/`.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).

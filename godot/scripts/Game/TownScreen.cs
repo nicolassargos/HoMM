@@ -35,6 +35,7 @@ public partial class TownScreen : CanvasLayer
     private Label _title = null!;
     private Label _header = null!;
     private PanelContainer _nameTab = null!;
+    private Button[] _townArrows = null!;
     // la barre d'état, en bas (comme Heroes 2) : ce que montre la souris, et la date
     private Label _status = null!, _statusDate = null!;
     private Control _view = null!;
@@ -115,8 +116,21 @@ public partial class TownScreen : CanvasLayer
         _header = MakeLabel("", 14, SoftTextColor);
         _header.VerticalAlignment = VerticalAlignment.Center;
         _header.SizeFlagsVertical = Control.SizeFlags.Fill;
+        // de part et d'autre, les flèches passent à la ville précédente ou suivante du joueur (idée de l'utilisateur,
+        // 2026-11-21) ; cachées s'il n'a qu'une ville
+        _townArrows = new[] { TownArrow('<', -1), TownArrow('>', +1) };
+        tabLine.AddChild(_townArrows[0]);
         tabLine.AddChild(_title);
         tabLine.AddChild(_header);
+        tabLine.AddChild(_townArrows[1]);
+
+        // un clic sur les ressources ouvre le marché, si le joueur en a un dans l'une de ses villes (ses boutons sont
+        // retirés : le bâtiment du marché n'est pas dans toutes les villes)
+        _bar.GuiInput += e =>
+        {
+            if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && Market.Count(_state.CurrentPlayer) > 0)
+                OpenMarket();
+        };
 
         var statusBar = new Panel { Position = new Vector2(0, screenSize.Y - Px(22)), Size = new Vector2(screenSize.X, Px(22)) };
         statusBar.AddThemeStyleboxOverride("panel", Frame(PanelColor));
@@ -339,6 +353,25 @@ public partial class TownScreen : CanvasLayer
         }
     }
 
+    /// <summary>Une flèche de l'onglet du nom : passe à la ville d'à côté du joueur, en boucle.</summary>
+    private Button TownArrow(char direction, int step)
+    {
+        var button = FixedButton("", 12, new Vector2(Px(22), Px(26)));
+        button.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        button.TooltipText = step < 0 ? Texts.PreviousTown : Texts.NextTown;
+        var arrow = Picture(Arrow(direction, SilverColor), Vector2.Zero, Vector2.Zero);
+        arrow.Size = arrow.Texture.GetSize();
+        arrow.Position = ((button.Size - arrow.Size) / 2).Floor();
+        button.AddChild(arrow);
+        button.Pressed += () =>
+        {
+            var towns = _state.CurrentPlayer.Towns;
+            if (_town != null && towns.Count > 1)
+                Open(towns[(towns.IndexOf(_town) + step + towns.Count) % towns.Count]);
+        };
+        return button;
+    }
+
     /// <summary>L'onglet du nom au milieu de la vue, posé sur son bas.</summary>
     private void CenterNameTab()
     {
@@ -354,6 +387,10 @@ public partial class TownScreen : CanvasLayer
             return;
         _bar.Refresh(_state, _state.CurrentPlayer);
         _title.Text = town.Name;
+        foreach (var arrow in _townArrows)
+            arrow.Visible = _state.CurrentPlayer.Towns.Count > 1;
+        // les ressources ouvrent le marché (voir le constructeur) : la barre d'état le dit
+        _bar.TooltipText = Market.Count(_state.CurrentPlayer) > 0 ? Texts.MarketFromResources : "";
         _header.Text = Texts.TownHeader(town);
         // sans barre d'état (retirée dans la disposition), la date suit le revenu sur l'onglet
         if (!_statusDate.GetParent<Control>().Visible)

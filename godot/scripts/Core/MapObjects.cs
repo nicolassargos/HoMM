@@ -132,15 +132,48 @@ public sealed class TreasureChest : MapObject
     {
     }
 
-    public TreasureChest(Cell position, int gold) : base(position) => Gold = gold;
+    public TreasureChest(Cell position, int gold, ArtifactType? artifact = null) : base(position)
+    {
+        Gold = gold;
+        Artifact = artifact;
+    }
 
     public int Gold { get; }
 
     /// <summary>L'expérience offerte à la place de l'or.</summary>
     public int Experience => Gold - 500;
 
-    /// <summary>Rien n'est donné tout de suite : le joueur choisit (voir <see cref="ChestOpened"/>).</summary>
-    public override ObjectVisited Visit(Hero hero) => new ChestOpened(hero, this);
+    /// <summary>Un artefact mineur, dans certains coffres : le héros le prend, sans choix (comme dans Heroes 3).</summary>
+    public ArtifactType? Artifact { get; internal set; }
+
+    /// <summary>Rien n'est donné tout de suite : le joueur choisit (voir <see cref="ChestOpened"/>) ; sauf l'artefact.</summary>
+    public override ObjectVisited Visit(Hero hero)
+    {
+        if (Artifact == null)
+            return new ChestOpened(hero, this);
+        hero.Equip(Artifact);
+        return new ArtifactFound(hero, this, Artifact);
+    }
+}
+
+/// <summary>Le héros a pris un artefact (posé sur la carte, ou dans un coffre).</summary>
+public sealed record ArtifactFound(Hero Hero, MapObject Object, ArtifactType Artifact) : ObjectVisited(Hero, Object);
+
+/// <summary>
+/// Un artefact posé sur la carte (choix de l'utilisateur, 2026-11-21) : les mineurs seuls, les majeurs et les reliques
+/// sous la garde d'un monstre. Le héros qui s'arrête dessus le prend.
+/// </summary>
+public sealed class ArtifactPile : MapObject
+{
+    public ArtifactPile(Cell position, ArtifactType artifact) : base(position) => Artifact = artifact;
+
+    public ArtifactType Artifact { get; }
+
+    public override ObjectVisited Visit(Hero hero)
+    {
+        hero.Equip(Artifact);
+        return new ArtifactFound(hero, this, Artifact);
+    }
 }
 
 /// <summary>Le héros a visité un obélisque. <paramref name="FirstVisit"/> : un nouveau morceau de la carte au trésor.</summary>

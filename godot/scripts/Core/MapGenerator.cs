@@ -112,6 +112,14 @@ public sealed class MapGenerator
     public int PileCount { get; init; } = 42; // 28 avant (la carte paraissait vide)
 
     /// <summary>
+    /// Artefacts posés, pour une carte de 40 × 30 ; la part des coffres qui en cachent un (mineur) ; la taille du gardien
+    /// d'une relique, comparée à celui d'une mine ou d'un artefact majeur.
+    /// </summary>
+    public int ArtifactCount { get; init; } = 8;
+    public double ChestArtifactShare { get; init; } = 0.2;
+    private const double RelicGuardFactor = 1.5;
+
+    /// <summary>
     /// Taille visée d'une zone, en cases : la carte est découpée en autant de zones qu'il en rentre, au moins 2 × 2. Plus
     /// grandes depuis le 2026-11-20 (18 × 13 avant ; remarque de l'utilisateur : « très, très petites ») : mesurées sur 50
     /// cartes de Heroes 3 (tools/cartes/zones_h3.py), leurs régions étaient 3 à 7 fois plus grandes que les nôtres. Carrées :
@@ -214,6 +222,7 @@ public sealed class MapGenerator
         if (_data != null)
             PlaceGuards(_data.Creatures);
         RemoveUnreachableGuards();
+        UnguardedArtifactsBecomeMinor();
         KeepMainNetwork();
         ConnectToRoads();
         RemoveDeadEndRoads(mainOnly: false);
@@ -530,6 +539,7 @@ public sealed class MapGenerator
     /// <summary>Après <see cref="Generate"/>, pour les mesures : les coffres et les tas prévus.</summary>
     public int PlannedChests => Scaled(ChestCount);
     public int PlannedPiles => Scaled(PileCount);
+    public int PlannedArtifacts => Scaled(ArtifactCount);
 
     /// <summary>Après <see cref="Generate"/>, pour les mesures : la zone d'une case (null sans zones), et si c'est une zone de départ.</summary>
     public int? ZoneIndexOf(Cell c) => _zones.Count == 0 || !_map.InBounds(c) ? null : _zoneOf[c.X, c.Y];
@@ -2806,6 +2816,75 @@ public sealed class MapGenerator
             if (!Place(c => new ResourcePile(c, type, _rng), "trésor"))
                 break;
         }
+
+        // Les artefacts (choix de l'utilisateur, 2026-11-21) : les mineurs près du départ, les majeurs plus loin, quelques
+        // reliques dans les zones les plus dangereuses (les deux derniers gardés, voir PlaceGuards) ; chacun une fois au plus
+        // sur la carte, le Plastron des Rois restant le trésor enfoui. Un coffre sur cinq cache un mineur.
+        if (_data == null)
+            return;
+        var pool = _artifactPool;
+        pool.Clear();
+        pool.AddRange(_data.Artifacts.All.Where(a => a.Id != ArtifactCatalog.TreasureId).OrderBy(a => a.Id));
+        ArtifactRank RankAt(Cell c) => Danger(c) switch
+        {
+            < 0.35 => ArtifactRank.Minor,
+            < 0.8 => ArtifactRank.Major,
+            _ => _rng.Next(3) == 0 ? ArtifactRank.Relic : ArtifactRank.Major,
+        };
+        for (int i = 0; i < Scaled(ArtifactCount) && pool.Count > 0; i++)
+        {
+            ArtifactType? placed = null;
+            if (!Place(c => new ArtifactPile(c, placed = DrawArtifact(RankAt(c))!), "artefact"))
+                break;
+            pool.Remove(placed!);
+        }
+        foreach (var chest in _map.Objects.OfType<TreasureChest>().ToList())
+        {
+            if (_rng.NextDouble() < ChestArtifactShare && DrawArtifact(ArtifactRank.Minor) is { Rank: ArtifactRank.Minor } found)
+            {
+                chest.Artifact = found;
+                pool.Remove(found);
+            }
+        }
+    }
+
+    /// <summary>Les artefacts pas encore posés sur la carte (chacun une fois au plus).</summary>
+    private readonly List<ArtifactType> _artifactPool = new();
+
+    /// <summary>
+    /// Un artefact de ce rang, tiré au sort parmi ceux qui restent ; s'il n'y en a plus, du rang en dessous, sinon au-dessus.
+    /// </summary>
+    private ArtifactType? DrawArtifact(ArtifactRank rank)
+    {
+        var ranks = Enum.GetValues<ArtifactRank>().OrderBy(r => r <= rank ? (int)rank - (int)r : 10 + (int)r - (int)rank);
+        foreach (var r in ranks)
+        {
+            var choices = _artifactPool.Where(a => a.Rank == r).ToList();
+            if (choices.Count > 0)
+                return choices[_rng.Next(choices.Count)];
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Un artefact majeur ou une relique sans gardien (pas de place pour lui à côté) devient un mineur, ou disparaît s'il
+    /// n'en reste plus : les meilleurs ne se prennent jamais sans combat.
+    /// </summary>
+    private void UnguardedArtifactsBecomeMinor()
+    {
+        foreach (var pile in _map.Objects.OfType<ArtifactPile>().Where(p => p.Artifact.Rank != ArtifactRank.Minor).ToList())
+        {
+            if (_map.IsGuarded(pile.Position))
+                continue;
+            _map.RemoveObject(pile);
+            _artifactPool.Add(pile.Artifact);
+            var minor = _artifactPool.Where(a => a.Rank == ArtifactRank.Minor).ToList();
+            if (minor.Count == 0)
+                continue;
+            var replacement = minor[_rng.Next(minor.Count)];
+            _artifactPool.Remove(replacement);
+            _map.AddObject(new ArtifactPile(pile.Position, replacement));
+        }
     }
 
     /// <summary>Les cases de terre d'où l'on monte dans un bateau amarré : ni objet ni monstre n'y va.</summary>
@@ -3340,7 +3419,8 @@ public sealed class MapGenerator
 
         // les mines de la zone de départ ne sont pas gardées (comme dans Heroes 3) : elles assurent à chacun de quoi bâtir,
         // sans combat risqué dès les premiers jours
-        var guarded = _map.Objects.Where(o => o is Mine or TreasureChest && !_startZoneMines.Contains(o))
+        var guarded = _map.Objects
+            .Where(o => o is Mine or TreasureChest or ArtifactPile { Artifact.Rank: not ArtifactRank.Minor } && !_startZoneMines.Contains(o))
             .OrderBy(o => o.Position.Y).ThenBy(o => o.Position.X)
             .ToList();
         // le plus à l'étroit d'abord (le moins de places possibles pour son gardien) : dans une zone où les objets se
@@ -3354,7 +3434,8 @@ public sealed class MapGenerator
             var spots = Neighbours(target.Position).ToList();
             Shuffle(spots);
             // une mine près d'une ville sans son gardien (pas de créatures au moment de la poser) : une petite armée
-            double size = _townMines.Contains(target) ? TownMineGuardFactor : 1;
+            double size = _townMines.Contains(target) ? TownMineGuardFactor
+                : target is ArtifactPile { Artifact.Rank: ArtifactRank.Relic } ? RelicGuardFactor : 1;
             foreach (var spot in spots)
             {
                 if (CanPlaceGuard(spot) && TryAddGuard(creatures, spot, size))

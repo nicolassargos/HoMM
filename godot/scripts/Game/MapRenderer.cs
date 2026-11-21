@@ -213,6 +213,7 @@ public static class MapRenderer
     {
         ResourcePile pile => Art.Get($"objects/pile-{Art.Name(pile.Resource)}"),
         TreasureChest => Art.Get("objects/chest"),
+        ArtifactPile pile => Art.Get($"artifacts/{pile.Artifact.Id}"),
         Obelisk => Art.Get("objects/obelisk"),
         Shrine shrine => Art.Get($"objects/shrine-{shrine.Stat.ToString().ToLowerInvariant()}"),
         SageHut => Art.Get("objects/sage"),
@@ -240,6 +241,8 @@ public static class MapRenderer
     public static void DrawObject(CanvasItem ci, MapObject obj, Vector2 o, double time)
     {
         var c = o + V(T / 2f, T / 2f);
+        if (obj is ArtifactPile artifact)
+            DrawArtifactGlow(ci, artifact.Artifact.Rank, o + V(T / 2f, T * 0.82f), time);
         if (ObjectImage(obj) is { } image)
         {
             var area = ObjectArea(obj, o);
@@ -265,6 +268,18 @@ public static class MapRenderer
                 foreach (var d in new[] { V(-6, 2), V(6, 2), V(0, -5) })
                     DrawResourceIcon(ci, pile.Resource, c + d);
                 break;
+
+            case ArtifactPile pile:
+                {
+                    // en attendant les images : une pierre taillée de la couleur de son rang, qui scintille
+                    var gem = RankColor(pile.Artifact.Rank);
+                    var top = c + V(0, -10);
+                    ci.DrawColoredPolygon(new[] { top, c + V(8, 0), c + V(0, 10), c + V(-8, 0) }, gem);
+                    ci.DrawColoredPolygon(new[] { top, c + V(8, 0), c + V(0, 2), c + V(-8, 0) }, gem.Lightened(0.35f));
+                    if ((int)(time * 2) % 2 == 0)
+                        ci.DrawCircle(c + V(5, -8), 2, Rgb(255, 255, 220));
+                    break;
+                }
 
             case TreasureChest:
                 ci.DrawRect(new Rect2(c + V(-13, -6), 26, 18), Rgb(110, 70, 30));
@@ -440,6 +455,32 @@ public static class MapRenderer
         var drawn = ArtRect(image, area);
         ci.DrawTextureRect(image, drawn, false);
         return drawn;
+    }
+
+    /// <summary>La couleur d'un rang d'artefact : argent, bleu, violet.</summary>
+    private static Color RankColor(ArtifactRank rank) => rank switch
+    {
+        ArtifactRank.Relic => Rgb(190, 110, 240),
+        ArtifactRank.Major => Rgb(80, 150, 240),
+        _ => Rgb(200, 210, 220),
+    };
+
+    /// <summary>La lueur sous un artefact posé (couleur de son rang), qui respire doucement.</summary>
+    private static void DrawArtifactGlow(CanvasItem ci, ArtifactRank rank, Vector2 center, double time)
+    {
+        float pulse = 0.5f + 0.5f * MathF.Sin((float)time * 2.2f);
+        var color = RankColor(rank);
+        for (int ring = 0; ring < 3; ring++)
+        {
+            float rx = T * (0.42f - ring * 0.1f), ry = rx * 0.4f;
+            var points = new Vector2[16];
+            for (int i = 0; i < points.Length; i++)
+            {
+                float a = i * MathF.Tau / points.Length;
+                points[i] = center + new Vector2(MathF.Cos(a) * rx, MathF.Sin(a) * ry);
+            }
+            ci.DrawColoredPolygon(points, color with { A = 0.12f + 0.08f * pulse });
+        }
     }
 
     /// <summary>Où <see cref="DrawArt"/> dessine une image dans <paramref name="area"/>.</summary>

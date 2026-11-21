@@ -175,9 +175,11 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
 | Enfer | **Portail infernal** | aller d'une ville de l'Enfer du joueur à une autre |
 
 - **Les murs et les sièges** (avec l'utilisateur, 2026-11-20) :
-  - **Dans la scène de la ville** : le fort, la citadelle et le château changent le mur autour de la ville, une image
-    par étape à la même place, devant les autres bâtiments, en bas de la scène. **Des murs simples** (choix de
-    l'utilisateur) : bois, briques ou pierre, selon la faction, sans formes trop particulières.
+  - **Dans la scène de la ville** (choix de l'utilisateur, 2026-11-21) : le fort, la citadelle et le château sont **le
+    château de la ville**, un bâtiment comme les autres, une image par étape à la même place (au fond pour le Château,
+    comme Heroes 3) ; **avant le fort, une simple demeure du héros** à cette place, qui devient le château. Le fond de
+    la scène n'a pas de château. **Des murs simples** (choix de l'utilisateur) : bois, briques ou pierre, selon la
+    faction, sans formes trop particulières.
   - **Au combat (les sièges)** : contre une ville qui a un fort, un mur coupe le champ, avec une porte que seuls les
     défenseurs passent et des tireurs sur les murs ; la citadelle ajoute un fossé et une tour qui tire, le château
     deux tours de plus. L'attaquant doit ouvrir une brèche : les troupes barbares frappent les murs (déjà prévu), des
@@ -314,6 +316,11 @@ par faction, placements dans `placements.json`) :
   haut : chaque bâtiment entier, côte à côte) avec **l'allure de C2** (bâtiments serrés et vivants, grès, toits rouges
   et bleus) ; le rempart et le donjon au fond, le Portail de gloire sur un rocher à gauche, la statue à droite. La
   scène se construit pièce par pièce (le fond, puis chaque bâtiment seul), pas d'une seule image générée.
+- **Le fond « B »** (paysage seul, montagnes, collines, places vides ; `art-candidats/en-cours/ville-chateau-fond/`) :
+  son **style graphique** (ombrage doux, peint, couleurs claires) est celui que l'utilisateur préfère. **Un même style
+  partout** : les bâtiments et les scènes des autres villes le suivent.
+- Comme **Heroes 2** (les villes préférées de l'utilisateur), un bâtiment peut être **coupé par le bord** de l'image
+  ou posé tout au bord, pourvu qu'on en voie la plus grande partie.
 
 ### L'IA et l'équilibre
 Entraîner les profils de difficulté par des parties entre IA, jouées sans affichage ; petits détails et équilibrage

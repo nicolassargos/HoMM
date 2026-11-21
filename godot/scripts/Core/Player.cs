@@ -54,7 +54,7 @@ public sealed class Player
             Resources[resource] = Resources.GetValueOrDefault(resource) - amount;
     }
 
-    /// <summary>Ce que rapportent chaque jour les mines, les villes et l'Intendance des héros.</summary>
+    /// <summary>Ce que rapportent chaque jour les mines, les villes, l'Intendance et les artefacts des héros.</summary>
     public Dictionary<ResourceType, int> DailyIncome()
     {
         var income = new Dictionary<ResourceType, int>();
@@ -68,6 +68,9 @@ public sealed class Player
         foreach (var town in Towns)
             if (town.SiloResource is { } resource)
                 income[resource] = income.GetValueOrDefault(resource) + 1;
+        // les artefacts des héros (bourses, brouette, creuset)
+        foreach (var (resource, amount) in Heroes.SelectMany(h => h.ArtifactIncome()))
+            income[resource] = income.GetValueOrDefault(resource) + amount;
         return income;
     }
 }

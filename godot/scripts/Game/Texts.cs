@@ -1518,6 +1518,9 @@ public static class Texts
     // ------------------------------------------------------------------ marché
 
     public static string MarketTitle => "Marché";
+    public static string MarketFromResources => "Marché (clic)";
+    public static string PreviousTown => "Ville précédente";
+    public static string NextTown => "Ville suivante";
     public static string MarketGive => "Donner";
     public static string MarketReceive => "Recevoir";
     public static string TradeButton => "Échanger";

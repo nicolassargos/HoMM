@@ -156,6 +156,18 @@ public partial class TownScreen : CanvasLayer
         // le ciel sur les 4 dixièmes du haut, le sol dessous, quelle que soit la taille de la vue (voir la disposition)
         _view.AddChild(new ColorRect { AnchorRight = 1, AnchorBottom = 0.4f, Color = MapRenderer.Rgb(58, 72, 92), MouseFilter = Control.MouseFilterEnum.Ignore });
         _view.AddChild(new ColorRect { AnchorTop = 0.4f, AnchorRight = 1, AnchorBottom = 1, Color = MapRenderer.Rgb(60, 74, 48), MouseFilter = Control.MouseFilterEnum.Ignore });
+        // « --town-background=fichier.png » : un fond de scène à l'essai (pas encore dans le jeu), ×2, centré en bas de la
+        // vue, sous les bâtiments, pour le juger en place
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--town-background=")) is { } background
+            && Image.LoadFromFile(background["--town-background=".Length..]) is { } image && !image.IsEmpty())
+            _view.AddChild(new TextureRect
+            {
+                Texture = ImageTexture.CreateFromImage(image), ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.Scale, TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+                AnchorLeft = 0.5f, AnchorRight = 0.5f, AnchorTop = 1, AnchorBottom = 1,
+                OffsetLeft = -image.GetWidth(), OffsetRight = image.GetWidth(), OffsetTop = -2 * image.GetHeight(),
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            });
 
         // les actions de la ville en boutons à icône, le nom en info-bulle (choix de l'utilisateur, 2026-11-21) : Quitter
         // toujours visible, en haut à droite de la vue ; Construire et Recruter glissent du bord droit, dessous, quand la

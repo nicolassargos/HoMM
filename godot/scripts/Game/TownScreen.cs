@@ -139,8 +139,9 @@ public partial class TownScreen : CanvasLayer
         _view = new Control { Position = new Vector2(0, Px(ViewTop)), Size = new Vector2(screenSize.X, Px(ViewHeight)), ClipContents = true };
         _root.AddChild(Layout.Add("view", _view, resizable: true));
         _root.AddChild(Layout.Add("name-tab", _nameTab));
-        _view.AddChild(new ColorRect { Size = new Vector2(screenSize.X, Px(ViewHeight * 0.4f)), Color = MapRenderer.Rgb(58, 72, 92), MouseFilter = Control.MouseFilterEnum.Ignore });
-        _view.AddChild(new ColorRect { Position = new Vector2(0, Px(ViewHeight * 0.4f)), Size = new Vector2(screenSize.X, Px(ViewHeight * 0.6f)), Color = MapRenderer.Rgb(60, 74, 48), MouseFilter = Control.MouseFilterEnum.Ignore });
+        // le ciel sur les 4 dixièmes du haut, le sol dessous, quelle que soit la taille de la vue (voir la disposition)
+        _view.AddChild(new ColorRect { AnchorRight = 1, AnchorBottom = 0.4f, Color = MapRenderer.Rgb(58, 72, 92), MouseFilter = Control.MouseFilterEnum.Ignore });
+        _view.AddChild(new ColorRect { AnchorTop = 0.4f, AnchorRight = 1, AnchorBottom = 1, Color = MapRenderer.Rgb(60, 74, 48), MouseFilter = Control.MouseFilterEnum.Ignore });
 
         // les actions de la ville en boutons à icône, le nom en info-bulle (choix de l'utilisateur, 2026-11-21) : Quitter
         // toujours visible, en haut à droite de la vue ; Construire et Recruter glissent du bord droit, dessous, quand la

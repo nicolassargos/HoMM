@@ -1,17 +1,68 @@
 {
   "elements": {
-    "view": { "x": 0, "y": 0, "w": 1584, "h": 482 },
-    "actions": { "x": 1498, "y": 6 },
-    "resources": { "x": 1612, "y": 8 },
-    "give-all": { "x": 1668, "y": 392 },
-    "leave-all": { "x": 1756, "y": 392 },
-    "town-picture": { "x": 8, "y": 490 },
-    "garrison": { "x": 152, "y": 490, "w": 1748, "h": 286 },
-    "portrait": { "x": 8, "y": 784 },
-    "hero-army": { "x": 152, "y": 784, "w": 1748, "h": 286 },
-    "status": { "x": 0, "y": 1046, "w": 1920, "h": 34, "hidden": true },
-    "garrison-label": { "x": 24, "y": 724, "hidden": true },
-    "hint": { "x": 1088, "y": 774, "hidden": true },
-    "hero-label": { "x": 24, "y": 888, "hidden": true }
+    "resources": {
+      "x": 1612,
+      "y": 8
+    },
+    "status": {
+      "x": 0,
+      "y": 1048,
+      "w": 1920,
+      "h": 32,
+      "hidden": true
+    },
+    "view": {
+      "x": 0,
+      "y": 0,
+      "w": 1584,
+      "h": 482
+    },
+    "actions": {
+      "x": 1498,
+      "y": 6
+    },
+    "garrison-label": {
+      "x": 24,
+      "y": 724,
+      "hidden": true
+    },
+    "town-picture": {
+      "x": 8,
+      "y": 490
+    },
+    "garrison": {
+      "x": 152,
+      "y": 490,
+      "w": 1748,
+      "h": 286
+    },
+    "hint": {
+      "x": 1088,
+      "y": 774,
+      "hidden": true
+    },
+    "hero-label": {
+      "x": 24,
+      "y": 888,
+      "hidden": true
+    },
+    "portrait": {
+      "x": 8,
+      "y": 784
+    },
+    "hero-army": {
+      "x": 152,
+      "y": 784,
+      "w": 1748,
+      "h": 286
+    },
+    "give-all": {
+      "x": 1668,
+      "y": 392
+    },
+    "leave-all": {
+      "x": 1756,
+      "y": 392
+    }
   }
 }

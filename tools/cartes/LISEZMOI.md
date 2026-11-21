@@ -17,6 +17,8 @@ cartes elles-mêmes sont dans `maps references/` (non suivi par git) ; on n'en c
   monstres) : leur nombre, leur taille, la région d'une case typique, par taille de carte.
 - `road_h2.py` : une carte de Heroes 2 (`.mp2`) ; une route est une image du fond de la série ROAD (30), comme fheroes2.
 - `routes_h2.py dossier` : les mêmes mesures pour Heroes 2.
+- `sinuosite_h3.py dossier [près loin]` : les détours des routes de Heroes 3 (le chemin par la route entre deux de ses
+  cases, divisé par la distance à vol d'oiseau), à comparer avec la mesure `Detours_des_routes` de nos cartes.
 
 Mesuré (2026-11-15) : la route couvre 4,7 % de la terre dans Heroes 3 (3 à 8 %), 0,4 % dans Heroes 2 (3 à 9 % pour les
 cartes qui en ont) ; 1,3 et 1,5 villes pour 1000 cases de terre ; les routes finissent surtout aux villes, aux mines, aux
@@ -36,3 +38,7 @@ Le sable : 5 et 2 taches par carte, la plus grande en fait 60 et 70 % ; le marai
 Mesuré (2026-11-20, 50 cartes, `zones_h3.py`) : la région d'une case typique (médiane pondérée par les cases libres)
 fait environ 710 cases sur les cartes de 72 × 72, 350 sur 108 × 108, 260 sur 144 × 144 ; 7, 17 et 30 régions d'au moins
 20 cases par carte (médianes) ; beaucoup de petites poches gardées autour des trésors.
+
+Mesuré (2026-11-21, 50 cartes, `sinuosite_h3.py`) : le chemin par la route divisé par la distance à vol d'oiseau, médianes
+1,19 entre 10 et 20 cases, 1,10 entre 5 et 8 (les nôtres : 1,32 et 1,24). Les routes de Heroes 3 ne font pas plus de
+détours, mais changent de direction toutes les 1 à 3 cases, en escaliers irréguliers, et sont dessinées en courbes.

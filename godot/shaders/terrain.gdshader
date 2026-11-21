@@ -339,45 +339,68 @@ float segment(vec2 q, vec2 a, vec2 b) {
 	return length(qa - ba * h);
 }
 
+// Distance de q à la courbe de Bézier du second degré a, b, c (Inigo Quilez, « sdBezier »)
+float bezier(vec2 q, vec2 a, vec2 b, vec2 c) {
+	vec2 A = b - a;
+	vec2 B = a - 2.0 * b + c;
+	// trois points alignés à égale distance : un segment
+	if (dot(B, B) < 1e-4) return segment(q, a, c);
+	vec2 C = A * 2.0;
+	vec2 D = a - q;
+	float kk = 1.0 / dot(B, B);
+	float kx = kk * dot(A, B);
+	float ky = kk * (2.0 * dot(A, A) + dot(D, B)) / 3.0;
+	float kz = kk * dot(D, A);
+	float p = ky - kx * kx;
+	float p3 = p * p * p;
+	float qq = kx * (2.0 * kx * kx - 3.0 * ky) + kz;
+	float h = qq * qq + 4.0 * p3;
+	float res;
+	if (h >= 0.0) {
+		h = sqrt(h);
+		vec2 x = (vec2(h, -h) - qq) / 2.0;
+		vec2 uv = sign(x) * pow(abs(x), vec2(1.0 / 3.0));
+		float t = clamp(uv.x + uv.y - kx, 0.0, 1.0);
+		vec2 v = D + (C + B * t) * t;
+		res = dot(v, v);
+	} else {
+		float z = sqrt(-p);
+		float v = acos(qq / (p * z * 2.0)) / 3.0;
+		float m = cos(v);
+		float n = sin(v) * 1.732050808;
+		vec3 t = clamp(vec3(m + m, -n - m, n - m) * z - kx, 0.0, 1.0);
+		vec2 v1 = D + (C + B * t.x) * t.x;
+		vec2 v2 = D + (C + B * t.y) * t.y;
+		res = min(dot(v1, v1), dot(v2, v2));
+	}
+	return sqrt(res);
+}
+
 // Distance de q à la ligne médiane de la route dans la case n (qui a une route). Chaque case dessine sa moitié de
 // chaque liaison : jusqu'au milieu du bord vers une voisine en ligne droite, ou jusqu'au coin vers une voisine en
-// diagonale (seulement si aucune case de route ne les relie déjà par un côté). Un virage (deux voisines à angle
-// droit, rien d'autre) devient un quart de cercle : un escalier de virages devient une route sinueuse.
+// diagonale (seulement si aucune case de route ne les relie déjà par un côté). Une case qui n'a que deux liaisons (la
+// route la traverse) les joint par une courbe qui passe près de son centre (Bézier : du bout d'une liaison au bout de
+// l'autre, le centre pour point de contrôle) : la courbe d'une case continue celle de la suivante sans cassure, une
+// route en escalier ou qui passe de la ligne droite à la diagonale ondule en douceur, comme dans Heroes 3.
 float road_in_cell(vec2 q, ivec2 n) {
 	vec2 center = (vec2(n) + 0.5) * ART;
-	bool east = road_at(n + ivec2(1, 0));
-	bool west = road_at(n + ivec2(-1, 0));
-	bool south = road_at(n + ivec2(0, 1));
-	bool north = road_at(n + ivec2(0, -1));
-	int count = int(east) + int(west) + int(south) + int(north);
-	float best = 1e5;
-	// virage : quart de cercle centré sur le coin, entre les milieux des deux bords
-	if (count == 2 && (east != west)) {
-		vec2 d1 = east ? vec2(1.0, 0.0) : vec2(-1.0, 0.0);
-		vec2 d2 = south ? vec2(0.0, 1.0) : vec2(0.0, -1.0);
-		vec2 k = center + (d1 + d2) * ART * 0.5;
-		vec2 v = q - k;
-		if (dot(v, -d1) >= 0.0 && dot(v, -d2) >= 0.0)
-			best = abs(length(v) - ART * 0.5);
-		else
-			best = min(length(q - (center + d1 * ART * 0.5)), length(q - (center + d2 * ART * 0.5)));
-	} else {
-		if (east) best = min(best, segment(q, center, center + vec2(ART * 0.5, 0.0)));
-		if (west) best = min(best, segment(q, center, center - vec2(ART * 0.5, 0.0)));
-		if (south) best = min(best, segment(q, center, center + vec2(0.0, ART * 0.5)));
-		if (north) best = min(best, segment(q, center, center - vec2(0.0, ART * 0.5)));
-	}
-	// liaisons en diagonale, quand aucun côté ne relie déjà les deux cases
-	bool diagonal = false;
-	for (int ey = -1; ey <= 1; ey += 2) {
-		for (int ex = -1; ex <= 1; ex += 2) {
-			if (!road_at(n + ivec2(ex, ey))) continue;
-			if (road_at(n + ivec2(ex, 0)) || road_at(n + ivec2(0, ey))) continue;
-			diagonal = true;
-			best = min(best, segment(q, center, center + vec2(float(ex), float(ey)) * ART * 0.5));
+	vec2 ends[8];
+	int count = 0;
+	for (int dy = -1; dy <= 1; dy++) {
+		for (int dx = -1; dx <= 1; dx++) {
+			if (dx == 0 && dy == 0) continue;
+			if (!road_at(n + ivec2(dx, dy))) continue;
+			// une diagonale déjà reliée par un côté n'est pas une liaison
+			if (dx != 0 && dy != 0 && (road_at(n + ivec2(dx, 0)) || road_at(n + ivec2(0, dy)))) continue;
+			ends[count] = center + vec2(float(dx), float(dy)) * ART * 0.5;
+			count++;
 		}
 	}
-	if (count == 0 && !diagonal) best = length(q - center); // une route d'une seule case : un rond
+	if (count == 0) return length(q - center); // une route d'une seule case : un rond
+	if (count == 2) return bezier(q, ends[0], center, ends[1]);
+	float best = 1e5;
+	for (int i = 0; i < count; i++)
+		best = min(best, segment(q, center, ends[i]));
 	return best;
 }
 

@@ -67,7 +67,7 @@ public class RivieresTests
             Assert.True(Sides.Count(d => streams.Contains(cell.Offset(d.X, d.Y))) <= 2, $"ruisseau trop large en {cell}");
             // une route le croise tout droit
             if (map.HasRoad(cell))
-                Assert.True(Sides.Count(d => map.HasRoad(cell.Offset(d.X, d.Y))) <= 2, $"route le long du ruisseau en {cell}");
+                Assert.True(Sides.Count(d => map.InBounds(cell.Offset(d.X, d.Y)) && map.HasRoad(cell.Offset(d.X, d.Y))) <= 2, $"route le long du ruisseau en {cell}");
         }
     }
 

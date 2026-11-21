@@ -2918,6 +2918,25 @@ choix de l'utilisateur) :
   tenait nulle part marquait toutes les cases comme essayées (une carte d'îles restait sans obélisque) ; les obélisques et
   les lieux se posent maintenant avant les coffres et les tas ; un bateau amarré sur une carte à mers doit garder une côte
   qu'on atteint à pied (un objet posé après lui l'enfermait). Les mines adossées à la montagne : 30 % au moins.
+- ✅ **Des routes sinueuses comme dans Heroes 3** (2026-11-21, branche `routes-plus-sinueuses` ; l'utilisateur : « encore
+  plus sinueuses »). Mesuré sur 50 cartes de Heroes 3 (`tools/cartes/sinuosite_h3.py`) : leurs routes ne sont **pas plus
+  longues** que les nôtres (le chemin par la route divisé par la distance à vol d'oiseau, médianes : 1,19 entre 10 et
+  20 cases, 1,10 entre 5 et 8 ; les nôtres 1,32 et 1,24, mesure `Detours_des_routes` ; 1,40 et 1,24 après ce
+  travail). La différence était ailleurs :
+  1. **le dessin** (montré par l'utilisateur sur une capture de Heroes 3) : leurs routes tournent en courbes arrondies ;
+     les nôtres cassaient en angle à chaque passage de la ligne droite à la diagonale. Le shader (`road_in_cell`) joint
+     maintenant les deux liaisons d'une case que la route traverse par une courbe (Bézier, le centre de la case pour
+     point de contrôle) : d'une case à l'autre, sans cassure ; les carrefours et les bouts gardent leurs segments ;
+  2. **le tracé** : leurs routes changent de direction toutes les 1 à 3 cases. Les étapes de la courbe sont maintenant
+     toutes les 3 cases (4 avant) et dérivent chacune de part et d'autre (jusqu'à 2 cases d'un pas, 3 au plus de la
+     courbe) ; une route qui rejoint la plus proche (les villes neutres) cherche d'abord où elle la rejoint, puis s'y
+     rend de même ;
+  3. **la largeur** : 3,75 pixels d'art de demi-largeur à l'échelle 24 (3 avant), un peu plus près de Heroes 3 (un tiers
+     de case).
+  Choisi parmi quatre essais (le dessin d'avant, les courbes avec une petite ou une grande dérive, la grande plus large) :
+  le dernier. Essayé et écarté : un bruit fin du coût des cases (des bosses de 2 à 3 cases sur toutes les routes, liens
+  des mines et des lieux compris). Une route peut encore filer droit quand la courbe et la dérive tombent sur une même
+  rangée (une capture de Heroes 3 en montre aussi).
 - ✅ **Les mines et les objets zone par zone** (2026-11-20, branche `objets-carte`). Mesuré (`Objets_par_zone`) : toutes
   les mines prévues étaient posées, mais les objets, tirés dans toute la carte, se répartissaient mal : de 1 à 9 mines,
   de 10 à 79 trésors pour 1000 cases et de 0 à 16 lieux par zone. Maintenant **chaque objet va dans la zone qui en a le

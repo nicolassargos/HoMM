@@ -613,17 +613,24 @@ public sealed partial class GameState
                 }
                 Path = null;
             }
-            // un portail : le héros ressort par l'autre (s'il n'y a personne), de même
+            // un portail : le héros ressort par l'autre (s'il n'y a personne) ; le chemin prévu continue de là s'il passait
+            // par ce portail
             if (visit is PortalCrossed { Exit: { } portalExit } portal)
             {
                 if (AllHeroes.Any(h => h != hero && h.Position == portalExit))
+                {
                     visit = portal with { Exit = null };
+                    Path = null;
+                }
                 else
                 {
                     hero.Position = portalExit;
                     hero.Owner.Fog.Reveal(portalExit, hero.VisionRadius);
+                    if (Path is { Count: > 0 } through && through[0] == portalExit)
+                        through.RemoveAt(0);
+                    else
+                        Path = null;
                 }
-                Path = null;
             }
             Emit(visit);
             if (obj is Town town)

@@ -2982,7 +2982,10 @@ choix de l'utilisateur) :
   3. `FillPockets` (à la fin) : ce qui reste sans chemin (à travers monstres, bateaux et portails) devient forêt, les
      routes qui y entraient comprises : 1 à 3 % de la terre (7,6 % sur une carte de mers).
   Après : 0 % de terre perdue sur tous les types de cartes. `WalkableGrid` et `AllObjectsReachable` passent par les
-  portails ; le `Pathfinder` non (comme Heroes 3 : on ne trace pas un chemin à travers un monolithe).
+  portails. Le **chemin** aussi (à la demande de l'utilisateur, avant la fusion) : le `Pathfinder` saute d'un portail à
+  l'autre sans coût (son estimation compte le raccourci), le héros continue sa marche de l'autre côté, la vue le suit ;
+  les **adversaires** les prennent (`SafeCosts` passe par eux) et vont voir un portail dont ils ne connaissent pas
+  l'autre côté (poids 1,2, comme une tour d'observation).
   Le portail est un **lieu haut** (sa case et celle du dessus ; l'utilisateur : « much bigger, we barely see it ») :
   trois arches de pierre vues de trois quarts, aux runes bleues (PixelLab « pro » 64 × 64, le monolithe choisi d'abord
   comme modèle ; l'utilisateur a préféré l'arche, « like the obelisk »), le contour adouci (`adoucir.py 0.7 60 2`) ;

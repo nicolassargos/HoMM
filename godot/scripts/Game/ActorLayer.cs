@@ -59,8 +59,10 @@ public partial class ActorLayer : Node2D
 
     private void Step(Hero hero, Cell to, bool ahead)
     {
-        var (from, left, steps) = (hero.Position, false, 0);
-        if (_motion.TryGetValue(hero, out var motion))
+        var at = ShownAt.TryGetValue(hero, out var shown) ? shown : hero.Position;
+        var (from, left, steps) = (at, false, 0);
+        // (un saut de plus d'une case depuis le dernier pas, un portail : la marche repart d'où il est)
+        if (_motion.TryGetValue(hero, out var motion) && Math.Abs(motion.To.X - at.X) <= 1 && Math.Abs(motion.To.Y - at.Y) <= 1)
         {
             from = motion.To;
             left = motion.Facing.Left;

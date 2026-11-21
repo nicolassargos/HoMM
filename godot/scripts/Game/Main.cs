@@ -1156,6 +1156,11 @@ public partial class Main : Node2D
                     _camera.Follow(moved.To);
                     UpdateMapMusic();
                     break;
+                // passé par un portail : la vue suit le héros de l'autre côté
+                case PortalCrossed { Exit: { } exit } crossed when crossed.Hero == _state.CurrentHero:
+                    _camera.Follow(exit);
+                    UpdateMapMusic();
+                    break;
                 // un pas d'un héros adverse là où le joueur peut voir : il sera rejoué (et montré d'où il part)
                 case HeroMoved moved when moved.Hero.Owner != viewer
                                           && (viewer.Fog.IsExplored(moved.From) || viewer.Fog.IsExplored(moved.To)):

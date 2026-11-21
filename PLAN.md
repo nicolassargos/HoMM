@@ -217,9 +217,7 @@ arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en mass
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
 - **L'herbe** : embellir les fleurs (l'utilisateur, plus tard) ; le bord des routes suivra.
-- **Les portails** : les adversaires ne les prennent pas encore, et le chemin d'un héros ne passe pas par eux (on va au
-  portail, puis on repart de l'autre, comme les monolithes de Heroes 3) ; leur gardien et leurs récompenses, à revoir en
-  jouant.
+- **Les portails** : leur gardien et leurs récompenses, à revoir en jouant.
 - **Plus tard** : un style de sol par zone de faction (herbe fleurie du Château, sèche des Barbares, morte des
   morts-vivants…) ; une route enneigée ; un coût de marche par sorte de route (pavés 50 %, gravier 65 %, terre 75 %) ;
   une entrée pavée devant chaque ville ; des ornières ou des flaques ; redessiner le petit pont de bois d'ouest en est

@@ -66,6 +66,78 @@ public class PortailsTests
         Assert.Equal(portal.Position, Assert.IsType<Portal>(loaded.ObjectAt(new Cell(30, 30))).Exit);
     }
 
+    [Fact]
+    public void Le_chemin_passe_par_le_portail()
+    {
+        // deux moitiés séparées par une rangée de forêt, un portail de chaque côté
+        var map = new AdventureMap(20, 6);
+        for (int y = 0; y < 6; y++)
+            map.SetTerrain(new Cell(10, y), TerrainType.Forest);
+        map.AddObject(new Portal(new Cell(3, 3), new Cell(15, 3)));
+        map.AddObject(new Portal(new Cell(15, 3), new Cell(3, 3)));
+
+        var path = Pathfinder.FindPath(map, new Cell(1, 3), new Cell(18, 3));
+
+        Assert.NotNull(path);
+        int entrance = path!.IndexOf(new Cell(3, 3));
+        Assert.Equal(new Cell(15, 3), path[entrance + 1]);
+        Assert.Equal(0, Pathfinder.StepCost(map, new Cell(3, 3), new Cell(15, 3)));
+        // un héros à la sortie : plus de chemin
+        Assert.Null(Pathfinder.FindPath(map, new Cell(1, 3), new Cell(18, 3), new HashSet<Cell> { new Cell(15, 3) }));
+    }
+
+    [Fact]
+    public void Le_heros_continue_sa_marche_de_l_autre_cote()
+    {
+        var far = new Cell(30, 30);
+        var (state, hero, portal) = GameNextToPortal(far);
+        var target = far.Offset(2, 1);
+        if (state.Map.ObjectAt(target) is { } there)
+            state.Map.RemoveObject(there);
+        foreach (var guard in state.Map.Objects.OfType<MonsterGuard>().Where(g => Math.Max(Math.Abs(g.Position.X - far.X), Math.Abs(g.Position.Y - far.Y)) <= 4).ToList())
+            state.Map.RemoveObject(guard);
+        foreach (var c in new[] { far.Offset(1, 0), far.Offset(1, 1), target })
+            state.Map.SetTerrain(c, TerrainType.Grass);
+
+        Assert.Equal(1, state.DaysTo(target));
+        state.SetDestination(target);
+        Assert.Contains(portal.Position, state.Path!);
+        while (state.StepAlongPath())
+        {
+        }
+
+        Assert.Equal(target, hero.Position);
+        Assert.Null(state.Path);
+    }
+
+    [Fact]
+    public void Un_adversaire_prend_le_portail_pour_voir_l_autre_cote()
+    {
+        var state = new GameState(3, TestData.Data, 54, 40, opponents: 1, startingTowns: false);
+        state.EndTurn();
+        var hero = state.CurrentPlayer.Heroes[0];
+        var map = state.Map;
+        // rien d'autre à faire autour de lui
+        foreach (var obj in map.Objects.Where(o => o is not Town && Math.Max(Math.Abs(o.Position.X - hero.Position.X),
+                     Math.Abs(o.Position.Y - hero.Position.Y)) <= 12).ToList())
+            map.RemoveObject(obj);
+        var cell = hero.Position.Offset(hero.Position.X < 27 ? 2 : -2, 0);
+        var far = new Cell(hero.Position.X < 27 ? 50 : 3, hero.Position.Y < 20 ? 35 : 4);
+        foreach (var c in TallSite.FootprintAt(cell).Concat(TallSite.FootprintAt(far)).Append(hero.Position.Offset(Math.Sign(cell.X - hero.Position.X), 0)))
+        {
+            if (map.ObjectAt(c) is { } there)
+                map.RemoveObject(there);
+            map.SetTerrain(c, TerrainType.Grass);
+        }
+        map.AddObject(new Portal(cell, far));
+        map.AddObject(new Portal(far, cell));
+        Assert.False(hero.Owner.Fog.IsExplored(far));
+
+        ComputerPlayer.PlayTurn(state);
+
+        Assert.True(hero.Owner.Fog.IsExplored(far));
+    }
+
     /// <summary>
     /// Sur la carte générée : les portails vont par paires ; celui du dehors (atteint à pied depuis le départ) a un gardien
     /// à côté, plus fort que ceux de sa zone ; celui du dedans mène à au moins deux récompenses.

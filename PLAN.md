@@ -124,9 +124,11 @@ Décidé avec l'utilisateur (2026-11-21) : trois rangs (mineur, majeur, relique)
 les ensembles plus tard.
 ✅ **La liste et leurs effets** (2026-11-21, branche `artefacts`) : 46 artefacts dans `data/artifacts.json`, tous leurs
 effets en jeu sauf les pouvoirs uniques (détail dans `HISTORIQUE.md`).
+✅ **Sur la carte** (2026-11-21, branche `artefacts-carte`) : 8 posés par carte de 40 × 30 (plus sur une grande), les
+mineurs seuls, les majeurs et les reliques gardés ; un coffre sur cinq cache un mineur. Image d'attente : une pierre de
+la couleur du rang sur une lueur.
 **Reste**, dans l'ordre proposé :
-1. **Les trouver** : posés sur la carte (les mineurs seuls, les majeurs et les reliques gardés), dans les coffres (la
-   Chance), en récompense des gros gardiens, dans les cavernes et le Donjon ; combien par carte et par taille.
+1. Les trouver ailleurs : dans les cavernes et le Donjon (quand ils existeront) ; peut-être la Chance sur les coffres.
 2. **Les images** : une de 32 × 32 par artefact (46), Retro Diffusion ; posées sur la carte ×2.
 3. **Les déplacer à la main** sur l'écran du héros (porter, ranger au coffre, échanger entre deux héros).
 4. **Les pouvoirs uniques**, un par un (la lame qui boit, le bouclier du marais, le masque de l'épouvante, le collier

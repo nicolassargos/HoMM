@@ -353,6 +353,9 @@ public partial class Main : Node2D
             AbandonedShip => "abandoned-ship",
             Shipyard => "shipyard",
             MonsterGuard { Type.Sea: true } => "pirates",
+            ArtifactPile { Artifact.Rank: ArtifactRank.Relic } => "relic",
+            ArtifactPile { Artifact.Rank: ArtifactRank.Major } => "major-artifact",
+            ArtifactPile => "artifact",
             _ => null,
         };
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)
@@ -1210,6 +1213,10 @@ public partial class Main : Node2D
                 case ObeliskVisited { FirstVisit: true } obelisk when obelisk.Hero.Owner == viewer:
                     _walking = false;
                     _hud.ShowTreasureMap(_state, viewer);
+                    break;
+                case ArtifactFound found when found.Hero.Owner == viewer:
+                    _walking = false;
+                    _hud.ShowArtifactFound(Texts.ArtifactFoundTitle, Texts.ArtifactFoundText(found), found.Artifact);
                     break;
                 case TreasureDug dug when dug.Hero.Owner == viewer:
                     _walking = false;

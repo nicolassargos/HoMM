@@ -94,6 +94,7 @@ public static class Texts
     {
         ResourcePile pile => $"Tas de {Resource(pile.Resource)}",
         TreasureChest => "Coffre au trésor",
+        ArtifactPile pile => $"Artefact : {pile.Artifact.Name}",
         Obelisk => "Obélisque",
         Boat => "Bateau",
         Shipyard => "Chantier naval",
@@ -593,6 +594,12 @@ public static class Texts
 
     public static string TreasureDugTitle => "Le trésor !";
 
+    public static string ArtifactFoundTitle => "Un artefact !";
+
+    public static string ArtifactFoundText(ArtifactFound found) =>
+        (found.Object is TreasureChest ? $"Au fond du coffre, {found.Hero.Name} trouve un artefact : " : $"{found.Hero.Name} ramasse un artefact : ")
+        + $"{found.Artifact.Name}.\n{Bonus(found.Artifact)}.";
+
     public static string TreasureDugText(TreasureDug dug) =>
         $"{dug.Hero.Name} déterre le {dug.Artifact.Name}, l'armure légendaire des anciens rois.\n{Bonus(dug.Artifact)}.";
 
@@ -780,6 +787,7 @@ public static class Texts
         ChestChosen { Gold: true } chosen => $"Un coffre au trésor ! +{chosen.Amount} or.",
         ChestChosen chosen => $"Un coffre au trésor ! {chosen.Hero.Name} gagne {chosen.Amount} points d'expérience.",
         ResourcesFound found => $"Vous trouvez {found.Amount} {Resource(found.Resource)}.",
+        ArtifactFound found => $"{found.Hero.Name} prend un artefact : {found.Artifact.Name} ({Bonus(found.Artifact)}).",
         MineCaptured captured =>
             $"{MineName(captured.Mine)} capturée ! +{captured.Mine.DailyProduction} {Resource(captured.Mine.Resource)} par jour.",
         MineAlreadyOwned owned => $"{MineName(owned.Mine)} vous appartient déjà.",

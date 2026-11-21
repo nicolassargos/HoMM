@@ -178,9 +178,11 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
 | Enfer | **Portail infernal** | aller d'une ville de l'Enfer du joueur à une autre |
 
 - **Les murs et les sièges** (avec l'utilisateur, 2026-11-20) :
-  - **Dans la scène de la ville** : le fort, la citadelle et le château changent le mur autour de la ville, une image
-    par étape à la même place, devant les autres bâtiments, en bas de la scène. **Des murs simples** (choix de
-    l'utilisateur) : bois, briques ou pierre, selon la faction, sans formes trop particulières.
+  - **Dans la scène de la ville** (choix de l'utilisateur, 2026-11-21) : le fort, la citadelle et le château sont **le
+    château de la ville**, un bâtiment comme les autres, une image par étape à la même place (au fond pour le Château,
+    comme Heroes 3) ; **avant le fort, une simple demeure du héros** à cette place, qui devient le château. Le fond de
+    la scène n'a pas de château. **Des murs simples** (choix de l'utilisateur) : bois, briques ou pierre, selon la
+    faction, sans formes trop particulières.
   - **Au combat (les sièges)** : contre une ville qui a un fort, un mur coupe le champ, avec une porte que seuls les
     défenseurs passent et des tireurs sur les murs ; la citadelle ajoute un fossé et une tour qui tire, le château
     deux tours de plus. L'attaquant doit ouvrir une brèche : les troupes barbares frappent les murs (déjà prévu), des
@@ -306,15 +308,23 @@ par faction, placements dans `placements.json`) :
   surtout de roche.
 
 **Choix de l'utilisateur (2026-11-21)** :
-- **Le ×2 est gardé** pour les villes : le fond et les bâtiments sont dessinés à leur vraie taille (fond de 960 × 292),
+- **Le ×2 est gardé** pour les villes : le fond et les bâtiments sont dessinés à leur vraie taille (fond de 960 × 270),
   comme tout le pixel art (sinon des pixels plus gros que ceux des créatures et des boutons posés dessus). À 1920 de
   large, cela fait le détail d'une ville de Heroes 3 (800 de large, ×2,4), pas celui de Heroes 2 (640, ×3). Les
   **concepts** de la ville entière peuvent avoir n'importe quelle taille : ils ne servent qu'à la mise en scène et à
-  l'ambiance. Aucun outil ne dessine 960 de large d'un coup (PixelLab 792, Retro Diffusion 480) : chaque bâtiment est
-  une petite image à part ; le fond se dessine à 792 puis s'élargit sur les côtés, ou en deux moitiés.
+  l'ambiance. PixelLab ne dessine pas plus de 792 de large : chaque bâtiment est une petite image à part ; le fond se
+  dessine à 792 × 241, puis PixelLab l'élargit à 960 × 270 (`tools/art/agrandir.py`, puis `affiner.py`).
 - **Chaque ville a son angle** (certaines vues plus d'en haut, d'autres plus de face) et ses bâtiments le suivent.
 - Une place pour la **forge** dans chaque scène.
-- Le **Château d'abord** (concepts en cours : `art-candidats/en-cours/ville-chateau/index.html`).
+- Le **Château d'abord**. Son concept (2026-11-21, six tours) : la **disposition de E1** (vue de face, un peu d'en
+  haut : chaque bâtiment entier, côte à côte) avec **l'allure de C2** (bâtiments serrés et vivants, grès, toits rouges
+  et bleus) ; le rempart et le donjon au fond, le Portail de gloire sur un rocher à gauche, la statue à droite. La
+  scène se construit pièce par pièce (le fond, puis chaque bâtiment seul), pas d'une seule image générée.
+- **Le fond « B »** (paysage seul, montagnes, collines, places vides ; `art-candidats/en-cours/ville-chateau-fond/`) :
+  son **style graphique** (ombrage doux, peint, couleurs claires) est celui que l'utilisateur préfère. **Un même style
+  partout** : les bâtiments et les scènes des autres villes le suivent.
+- Comme **Heroes 2** (les villes préférées de l'utilisateur), un bâtiment peut être **coupé par le bord** de l'image
+  ou posé tout au bord, pourvu qu'on en voie la plus grande partie.
 
 ### L'IA et l'équilibre
 Entraîner les profils de difficulté par des parties entre IA, jouées sans affichage ; petits détails et équilibrage

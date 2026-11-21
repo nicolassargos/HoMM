@@ -310,7 +310,10 @@ par faction, placements dans `placements.json`) :
   une petite image à part ; le fond se dessine à 792 puis s'élargit sur les côtés, ou en deux moitiés.
 - **Chaque ville a son angle** (certaines vues plus d'en haut, d'autres plus de face) et ses bâtiments le suivent.
 - Une place pour la **forge** dans chaque scène.
-- Le **Château d'abord** (concepts en cours : `art-candidats/en-cours/ville-chateau/index.html`).
+- Le **Château d'abord**. Son concept (2026-11-21, six tours) : la **disposition de E1** (vue de face, un peu d'en
+  haut : chaque bâtiment entier, côte à côte) avec **l'allure de C2** (bâtiments serrés et vivants, grès, toits rouges
+  et bleus) ; le rempart et le donjon au fond, le Portail de gloire sur un rocher à gauche, la statue à droite. La
+  scène se construit pièce par pièce (le fond, puis chaque bâtiment seul), pas d'une seule image générée.
 
 ### L'IA et l'équilibre
 Entraîner les profils de difficulté par des parties entre IA, jouées sans affichage ; petits détails et équilibrage

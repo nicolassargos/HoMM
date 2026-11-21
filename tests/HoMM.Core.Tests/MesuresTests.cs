@@ -226,6 +226,74 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Les détours des routes (2026-11-20, à comparer avec Heroes 3 : tools/cartes/sinuosite_h3.py) : entre deux cases de
+    /// route distantes de 10 à 20 cases, le chemin le plus court par la route (√2 en diagonale) divisé par la distance à vol
+    /// d'oiseau ; 1 : tout droit.
+    /// </summary>
+    [Mesure]
+    public void Detours_des_routes()
+    {
+        foreach (var (near, far) in new[] { (5, 8), (10, 20) })
+        {
+        var all = new List<double>();
+        var perMap = new List<double>();
+        foreach (int seed in Seeds)
+        {
+            var map = new GameState(seed, TestData.Data, MapSize.Normal).Map;
+            var road = Enumerable.Range(0, map.Height).SelectMany(y => Enumerable.Range(0, map.Width).Select(x => new Cell(x, y)))
+                .Where(map.HasRoad).ToList();
+            var set = road.ToHashSet();
+            var rng = new System.Random(7);
+            var ratios = new List<double>();
+            for (int tries = 0; ratios.Count < 150 && tries < 4500; tries++)
+            {
+                var a = road[rng.Next(road.Count)];
+                var b = road[rng.Next(road.Count)];
+                double d = System.Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+                if (d < near || d > far)
+                    continue;
+                var best = new Dictionary<Cell, double> { [a] = 0 };
+                var queue = new PriorityQueue<Cell, double>();
+                queue.Enqueue(a, 0);
+                double? found = null;
+                while (queue.TryDequeue(out var c, out double g))
+                {
+                    if (c == b)
+                    {
+                        found = g;
+                        break;
+                    }
+                    if (g > best[c] || g > 3 * d)
+                        continue;
+                    for (int dx = -1; dx <= 1; dx++)
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        var n = c.Offset(dx, dy);
+                        if ((dx == 0 && dy == 0) || !set.Contains(n))
+                            continue;
+                        double ng = g + (dx != 0 && dy != 0 ? 1.4142 : 1);
+                        if (ng < best.GetValueOrDefault(n, double.MaxValue))
+                        {
+                            best[n] = ng;
+                            queue.Enqueue(n, ng);
+                        }
+                    }
+                }
+                if (found is { } f)
+                    ratios.Add(f / d);
+            }
+            ratios.Sort();
+            perMap.Add(ratios[ratios.Count / 2]);
+            all.AddRange(ratios);
+        }
+        all.Sort();
+        perMap.Sort();
+        output.WriteLine($"de {near} à {far} cases : détour médian par carte : min {perMap[0]:F3} médiane {perMap[perMap.Count / 2]:F3} max {perMap[^1]:F3}");
+        output.WriteLine($"toutes les paires : quart {all[all.Count / 4]:F3} médiane {all[all.Count / 2]:F3} trois quarts {all[3 * all.Count / 4]:F3} 90 % {all[9 * all.Count / 10]:F3}");
+        }
+    }
+
+    /// <summary>
     /// Les objets de la carte (2026-11-20) : les mines prévues et posées, par ressource ; les coffres et les tas prévus et
     /// posés ; et, zone par zone (zones de terre hors départs), combien de mines, de trésors (coffres et tas) et de lieux.
     /// </summary>

@@ -1489,9 +1489,17 @@ public sealed class MapGenerator
         // ne la faisait pas tourner : sur une grille, tant de chemins droits ont la même longueur ; deux étapes seules
         // faisaient des morceaux droits et des angles)
         double length = Math.Sqrt(SquaredDistance(from, to));
-        if (joinRoad || length < RoadBendLength || RoadBend <= 0)
+        // une route qui rejoint la plus proche : on cherche d'abord où elle la rejoint, puis on la trace en tremblant jusque-là
+        if (joinRoad)
         {
-            RoadSegment(from, to, zone, carved, forbidden, joinRoad);
+            if (RoadSegment(from, to, zone, carved, forbidden, true, pave: false) is not { } meet)
+                return;
+            to = meet;
+            length = Math.Sqrt(SquaredDistance(from, to));
+        }
+        if (length < RoadWobbleLength)
+        {
+            RoadSegment(from, to, zone, carved, forbidden, false);
             return;
         }
         _bendRng ??= new Random(_seed * 6007 + 41);
@@ -1501,18 +1509,22 @@ public sealed class MapGenerator
         // les deux points d'appui de la courbe (Bézier), au tiers et aux deux tiers, écartés du même côté (un arc) ou de part
         // et d'autre (un S, sur une route longue)
         double side = _bendRng.Next(2) == 0 ? -1 : 1;
-        double bend = Math.Min(RoadBendMax, length * RoadBend) * (0.7 + 0.6 * _bendRng.NextDouble()) * 4 / 3;
+        double bend = length < RoadBendLength ? 0 : Math.Min(RoadBendMax, length * RoadBend) * (0.7 + 0.6 * _bendRng.NextDouble()) * 4 / 3;
         bool s = length >= 2 * RoadBendLength && _bendRng.Next(2) == 0;
         (double X, double Y) P(double t, double offset) => (from.X + (to.X - from.X) * t + nx * offset, from.Y + (to.Y - from.Y) * t + ny * offset);
         var p1 = P(1.0 / 3, side * bend);
         var p2 = P(2.0 / 3, (s ? -side : side) * bend);
         var stops = new List<Cell> { from };
-        int count = Math.Max(2, (int)(length / RoadBendSpacing));
+        int count = Math.Max(2, (int)Math.Round(length / RoadBendSpacing));
+        // un écart qui dérive d'une étape à l'autre, de part et d'autre de la courbe (2026-11-20 : comme les routes de Heroes 3,
+        // qui changent de direction toutes les 1 à 3 cases ; une courbe seule faisait de longs morceaux droits)
+        double wobble = 0;
         for (int i = 1; i < count; i++)
         {
             double t = (double)i / count, u = 1 - t;
-            double x = u * u * u * from.X + 3 * u * u * t * p1.X + 3 * u * t * t * p2.X + t * t * t * to.X;
-            double y = u * u * u * from.Y + 3 * u * u * t * p1.Y + 3 * u * t * t * p2.Y + t * t * t * to.Y;
+            wobble = Math.Clamp(wobble + (_bendRng.NextDouble() * 2 - 1) * RoadWobble, -1.5 * RoadWobble, 1.5 * RoadWobble);
+            double x = u * u * u * from.X + 3 * u * u * t * p1.X + 3 * u * t * t * p2.X + t * t * t * to.X + nx * wobble;
+            double y = u * u * u * from.Y + 3 * u * u * t * p1.Y + 3 * u * t * t * p2.Y + t * t * t * to.Y + ny * wobble;
             var wanted = new Cell((int)Math.Round(x), (int)Math.Round(y));
             // la case permise la plus proche (sinon, pas d'étape)
             var stop = Around(wanted, 2).Where(Allowed).OrderBy(c => SquaredDistance(c, wanted)).ThenBy(c => c.Y).ThenBy(c => c.X)
@@ -1534,10 +1546,16 @@ public sealed class MapGenerator
     /// </summary>
     private const double RoadBend = 0.2, RoadBendMax = 5, RoadBendLength = 9;
     /// <summary>L'écart entre deux étapes le long de la courbe, en cases.</summary>
-    private const double RoadBendSpacing = 4;
+    private const double RoadBendSpacing = 3;
+    /// <summary>La dérive de chaque étape de part et d'autre de la courbe (en cases), et la longueur d'une route qui en a.</summary>
+    private const double RoadWobble = 2;
+    private const double RoadWobbleLength = 5;
 
-    /// <summary>Un morceau de route, au plus court (voir <see cref="Road"/>).</summary>
-    private void RoadSegment(Cell from, Cell to, int zone, HashSet<Cell> carved, HashSet<Cell>? forbidden, bool joinRoad)
+    /// <summary>
+    /// Un morceau de route, au plus court (voir <see cref="Road"/>) ; sa dernière case, ou null s'il n'y en a pas ;
+    /// <paramref name="pave"/> faux : seulement chercher où il arrive.
+    /// </summary>
+    private Cell? RoadSegment(Cell from, Cell to, int zone, HashSet<Cell> carved, HashSet<Cell>? forbidden, bool joinRoad, bool pave = true)
     {
         bool Allowed(Cell c) => _map.InBounds(c) && _zoneOf[c.X, c.Y] == zone && !IsSea(c)
             && (!_border[c.X, c.Y] || carved.Contains(c)) && forbidden?.Contains(c) != true && !InStartingTown(c);
@@ -1577,7 +1595,9 @@ public sealed class MapGenerator
             }
         }
         if (!previous.ContainsKey(to))
-            return;
+            return null;
+        if (!pave)
+            return to;
         for (var c = to; c != from; c = previous[c])
         {
             PaveRoad(c);
@@ -1595,6 +1615,7 @@ public sealed class MapGenerator
             }
         }
         PaveRoad(from);
+        return to;
     }
 
     /// <summary>

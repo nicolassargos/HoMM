@@ -813,6 +813,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   en 32 × 32 (comme le Plastron des Rois) : de belles icônes de jeu de rôle, mais trop vives, au contour noir épais,
   pas le style de la carte, et 32 × 32 à ×2 déborde de la case ; les objets longs y sortaient minces et petits.
   Choisis : bottes cloutées 38, fiole de sève 26, hache du bourreau 44.
+  **Hors de la carte**, sur le fond sombre des cases, elles se lisaient mal : le jeu ajoute **un contour d'un pixel de la
+  couleur du rang** (argent, bleu, violet) **et un halo plus pâle** (`ArtifactLook`, choix de l'utilisateur parmi quatre
+  essais : une lueur derrière, un contour clair, ce contour coloré, un fond plus clair ; la lueur plaisait aussi). Sur la
+  carte, l'image seule sur sa lueur.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

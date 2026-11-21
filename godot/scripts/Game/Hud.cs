@@ -978,7 +978,7 @@ public partial class Hud : CanvasLayer
         var dialog = new GameDialog { Title = title, OkButtonText = "OK", Exclusive = true, Unresizable = true };
         var content = new VBoxContainer();
         content.AddThemeConstantOverride("separation", (int)Px(10));
-        if (Art.Get($"artifacts/{artifact.Id}") is { } image)
+        if (ArtifactLook.Image(artifact) is { } image)
         {
             var center = new CenterContainer();
             center.AddChild(new TextureRect

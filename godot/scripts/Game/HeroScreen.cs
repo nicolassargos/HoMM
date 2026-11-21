@@ -236,9 +236,9 @@ public partial class HeroScreen : ScreenWindow
             name.Visible = artifact == null;
         if (artifact == null)
             return;
-        if (Art.Get($"artifacts/{artifact.Id}") is { } image)
+        if (ArtifactLook.Image(artifact) is { } image)
         {
-            var size = image.GetSize() * 2; // l'artefact de 24 pixels, ×2 (la règle du pixel art) : la case de 48
+            var size = image.GetSize() * 2; // l'artefact de 24 pixels et son contour, ×2 (la règle du pixel art)
             slot.AddChild(Picture(image, ((slot.Size - size) / 2).Floor(), size));
         }
         else if (slot.GetNodeOrNull<Label>("Name") is { } label)

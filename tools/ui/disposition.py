@@ -1,7 +1,8 @@
 """La disposition d'un écran, réglée à la souris (choix de l'utilisateur, 2026-11-21) : une page où l'on déplace, aligne,
 agrandit ou cache les éléments de l'écran, qui écrit godot/data/layouts/<écran>.json (lu par Game/ScreenLayout.cs).
 
-    python -I tools/ui/disposition.py [écran]     (« town » par défaut : l'écran de ville)
+    python -I tools/ui/disposition.py [écran]     (« town » par défaut : l'écran de ville ; « town-haute » : une autre
+                                                  disposition du même écran, data/layouts/town-haute.json, à comparer)
 
 Compile le jeu, le lance une fois pour relever l'écran (--layout-dump : la place de chaque élément, l'écran entier, le fond
 seul, dans art-candidats/en-cours/disposition-<écran>/), puis sert la page sur http://127.0.0.1:8769/ et l'ouvre.
@@ -47,10 +48,15 @@ def godot():
     sys.exit("Godot 4.7.2 .NET introuvable (C:\\Godot\\ ou la variable GODOT)")
 
 
+def base(ecran):
+    """L'écran d'une disposition : « town-haute » est une disposition de « town »."""
+    return ecran.split("-")[0]
+
+
 def releve(ecran, dossier):
     """Lance le jeu sur l'écran : elements.json, ecran.png, fond.png."""
     os.makedirs(dossier, exist_ok=True)
-    r = subprocess.run([godot(), "--path", GODOT_DIR, "--", *ECRANS[ecran]["options"],
+    r = subprocess.run([godot(), "--path", GODOT_DIR, "--", *ECRANS[base(ecran)]["options"], "--layout=" + ecran,
                         "--layout-dump=" + dossier.replace("\\", "/")], capture_output=True, text=True, timeout=300)
     if not os.path.exists(os.path.join(dossier, "elements.json")):
         raise RuntimeError("le relevé a échoué :\n" + (r.stdout + r.stderr)[-2000:])
@@ -62,7 +68,7 @@ def fichier_disposition(ecran):
 
 def servir(ecran, dossier):
     page = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "disposition.html"), encoding="utf-8").read()
-    page = page.replace("@@NOMS@@", json.dumps(ECRANS[ecran]["noms"], ensure_ascii=False)).replace("@@ECRAN@@", ecran)
+    page = page.replace("@@NOMS@@", json.dumps(ECRANS[base(ecran)]["noms"], ensure_ascii=False)).replace("@@ECRAN@@", ecran)
     verrou = threading.Lock()
 
     class Page(BaseHTTPRequestHandler):
@@ -132,7 +138,7 @@ def servir(ecran, dossier):
 
 def main():
     ecran = sys.argv[1] if len(sys.argv) > 1 else "town"
-    if ecran not in ECRANS:
+    if base(ecran) not in ECRANS:
         sys.exit(f"écran inconnu : {ecran} (connus : {', '.join(ECRANS)})")
     dossier = os.path.join(RACINE, "art-candidats", "en-cours", f"disposition-{ecran}")
     print("Compilation…", flush=True)

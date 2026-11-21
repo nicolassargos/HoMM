@@ -20,9 +20,10 @@ public partial class TownScreen : CanvasLayer
     // en unités de l'interface (×1,5 à l'écran), comme les places des bâtiments dans buildings.json (vue de 1280 × 390)
     private const float ViewTop = 84, ViewHeight = 390;
     private const float ArmyX = 100;
-    // une place de l'armée, en pixels (choix de l'utilisateur, 2026-11-21 : de grandes places, la créature toujours ×2,
-    // entière pour 54 des 60 ; le nombre par-dessus ; plus hautes ensuite, la place gagnée en haut) ; l'image de la ville et le portrait, plus étroits, devant chaque rangée
-    private static readonly Vector2 Cell = new(210, 244), FirstCell = new(140, 244);
+    // une place de l'armée, en pixels (choix de l'utilisateur, 2026-11-21 : de grandes places, la créature toujours ×2, le
+    // nombre par-dessus) : la taille de la garnison dans la disposition, divisée en 7 ; l'image de la ville et le
+    // portrait, plus étroits, devant chaque rangée
+    private Vector2 _cell = new(210, 244), _firstCell = new(140, 244);
 
     private GameState _state = null!;
     private Town? _town;
@@ -85,6 +86,11 @@ public partial class TownScreen : CanvasLayer
         _state = state;
         _screen = screenSize;
         Layout = new ScreenLayout("town");
+        if (Layout.SizeOf("garrison") is { } armySize)
+        {
+            _cell = new Vector2(MathF.Floor((armySize.X - (Army.MaxStacks - 1) * Px(2)) / Army.MaxStacks), armySize.Y);
+            _firstCell = new Vector2(_firstCell.X, armySize.Y);
+        }
         Layer = 5; // au-dessus de la carte, du panneau et des grandes fenêtres
         Visible = false;
 
@@ -166,13 +172,13 @@ public partial class TownScreen : CanvasLayer
         // la garnison et le héros présent, toujours visibles
         float y = ViewTop + ViewHeight + 8;
         _root.AddChild(Layout.Add("garrison-label", At(MakeLabel(Texts.GarrisonHeader, 15, TextColor), 16, y)));
-        var townPicture = new Panel { Position = V(12, y + 22), Size = FirstCell };
+        var townPicture = new Panel { Position = V(12, y + 22), Size = _firstCell };
         townPicture.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         // l'image de 96 pixels, ×1, au milieu : celle de la faction de la ville ouverte (voir Open)
-        _townPicture = Picture(null!, ((FirstCell - new Vector2(96, 96)) / 2).Floor(), new Vector2(96, 96));
+        _townPicture = Picture(null!, ((_firstCell - new Vector2(96, 96)) / 2).Floor(), new Vector2(96, 96));
         townPicture.AddChild(_townPicture);
         _root.AddChild(Layout.Add("town-picture", townPicture));
-        _garrison = Layout.Add("garrison", MakeArmy(V(ArmyX, y + 22)));
+        _garrison = Layout.Add("garrison", MakeArmy(V(ArmyX, y + 22)), resizable: true);
         // à droite des armées : l'aide sur les troupes, et dessous les deux boutons d'échange
         float exchangeX = ArmyX + 7 * 86 + 10;
         var hint = At(MakeLabel(Texts.DragHint, 13, SoftTextColor), exchangeX + 14, y + 34);
@@ -182,20 +188,20 @@ public partial class TownScreen : CanvasLayer
         _visitorLabel = At(MakeLabel("", 15, TextColor), 16, y);
         _root.AddChild(Layout.Add("hero-label", _visitorLabel));
         // le nom du héros en info-bulle (voir Refresh)
-        var portraitFrame = _portraitFrame = new Panel { Position = V(12, y + 22), Size = FirstCell };
+        var portraitFrame = _portraitFrame = new Panel { Position = V(12, y + 22), Size = _firstCell };
         portraitFrame.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
         _root.AddChild(Layout.Add("portrait", portraitFrame));
         // le portrait ×2 au milieu, dans un fin cadre d'argent
         var portraitBorder = new Panel
         {
-            Position = ((FirstCell - new Vector2(132, 132)) / 2).Floor(), Size = new Vector2(132, 132),
+            Position = ((_firstCell - new Vector2(132, 132)) / 2).Floor(), Size = new Vector2(132, 132),
             MouseFilter = Control.MouseFilterEnum.Ignore,
         };
         portraitBorder.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 1, 1, 1, 1));
         portraitFrame.AddChild(portraitBorder);
         _visitorPortrait = Picture(null!, new Vector2(2, 2), new Vector2(128, 128));
         portraitBorder.AddChild(_visitorPortrait);
-        _visitor = Layout.Add("hero-army", MakeArmy(V(ArmyX, y + 22)));
+        _visitor = Layout.Add("hero-army", MakeArmy(V(ArmyX, y + 22)), resizable: true);
         // deux boutons à icône (choix de l'utilisateur, 2026-11-20) : la flèche descend vers le héros, ou monte vers la
         // garnison ; le texte en info-bulle
         _giveAll = IconButtons.Make("donner-heros", Texts.GiveAllToHero, "", GiveAll);
@@ -212,7 +218,7 @@ public partial class TownScreen : CanvasLayer
 
     private ArmySlots MakeArmy(Vector2 position)
     {
-        var slots = new ArmySlots { Position = position, SlotSize = Cell, CountFontSize = 16, CountOverlay = true, DragGroup = this };
+        var slots = new ArmySlots { Position = position, SlotSize = _cell, CountFontSize = 16, CountOverlay = true, DragGroup = this };
         slots.SlotClicked += index => Act(() => _state.TransferStack(_town!, fromGarrison: slots == _garrison, index));
         slots.SlotRightClicked += index => Split(slots, index, slots, null);
         slots.TroopDropped += (source, from, to, split) =>
@@ -332,12 +338,11 @@ public partial class TownScreen : CanvasLayer
         }
     }
 
-    /// <summary>L'onglet du nom au milieu des armées, posé sur le bas de la vue.</summary>
+    /// <summary>L'onglet du nom au milieu de la vue, posé sur son bas.</summary>
     private void CenterNameTab()
     {
         _nameTab.Size = _nameTab.GetCombinedMinimumSize();
-        float armiesRight = _garrison.Position.X + Army.MaxStacks * Cell.X + (Army.MaxStacks - 1) * Px(2);
-        _nameTab.Position = new Vector2(Snap((armiesRight - _nameTab.Size.X) / 2),
+        _nameTab.Position = new Vector2(Snap(_view.Position.X + (_view.Size.X - _nameTab.Size.X) / 2),
             Snap(_view.Position.Y + _view.Size.Y - _nameTab.Size.Y));
     }
 
@@ -349,6 +354,9 @@ public partial class TownScreen : CanvasLayer
         _bar.Refresh(_state, _state.CurrentPlayer);
         _title.Text = town.Name;
         _header.Text = Texts.TownHeader(town);
+        // sans barre d'état (retirée dans la disposition), la date suit le revenu sur l'onglet
+        if (!_statusDate.GetParent<Control>().Visible)
+            _header.Text += " · " + Texts.Date(_state.Day);
         _statusDate.Text = Texts.Date(_state.Day);
         _statusDate.TooltipText = Texts.GoalTooltip(_state, _state.CurrentPlayer);
         if (!Layout.Placed("name-tab"))

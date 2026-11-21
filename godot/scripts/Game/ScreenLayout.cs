@@ -23,7 +23,7 @@ public sealed class ScreenLayout
     public ScreenLayout(string screen)
     {
         _screen = screen;
-        string path = $"res://data/layouts/{screen}.json";
+        string path = $"res://data/layouts/{Variant(screen)}.json";
         if (!Godot.FileAccess.FileExists(path))
             return;
         using var json = JsonDocument.Parse(Godot.FileAccess.GetFileAsString(path));
@@ -35,6 +35,18 @@ public sealed class ScreenLayout
                 Optional("w"), Optional("h"), Optional("scale") ?? 1, e.TryGetProperty("hidden", out var h) && h.GetBoolean());
         }
     }
+
+    /// <summary>
+    /// Le fichier de disposition de l'écran : « --layout=town-haute » essaie <c>data/layouts/town-haute.json</c> pour
+    /// l'écran « town » (plusieurs dispositions à comparer en jeu) ; sinon celui qui porte le nom de l'écran.
+    /// </summary>
+    private static string Variant(string screen) =>
+        OS.GetCmdlineUserArgs().Select(a => a.StartsWith("--layout=") ? a["--layout=".Length..] : null)
+            .FirstOrDefault(v => v != null && (v == screen || v.StartsWith(screen + "-"))) ?? screen;
+
+    /// <summary>La taille choisie pour un élément (en pixels de l'écran), s'il en a une.</summary>
+    public Vector2? SizeOf(string id) =>
+        _placed.TryGetValue(id, out var p) && !p.Hidden && p.W is { } w && p.H is { } h ? new Vector2(w, h) : null;
 
     /// <summary>Nomme un élément de l'écran ; <paramref name="resizable"/> : la page peut aussi changer sa taille.</summary>
     public T Add<T>(string id, T control, bool resizable = false) where T : Control

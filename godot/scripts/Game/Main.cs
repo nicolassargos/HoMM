@@ -90,12 +90,16 @@ public partial class Main : Node2D
         if (!_windowModeSet)
         {
             _windowModeSet = true;
-            if (!OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--capture=") || a == "--windowed"))
+            if (!OS.GetCmdlineUserArgs().Any(a => a.StartsWith("--capture=") || a.StartsWith("--layout-dump=") || a == "--windowed"))
                 DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
         }
         Ui.UsePixelFont();
         Ui.ApplyTheme();
         _capturePath = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--capture="))?["--capture=".Length..];
+        // « --layout-dump=dossier » (avec --town) : pour la page de disposition (tools/ui/disposition.py)
+        _layoutDump = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--layout-dump="))?["--layout-dump=".Length..];
+        if (_layoutDump != null)
+            _capturePath = $"{_layoutDump}/ecran.png";
         if (_goToMenu && _loadedState == null)
         {
             _goToMenu = false;
@@ -980,6 +984,7 @@ public partial class Main : Node2D
     /// <summary>Option de développement : fichier où enregistrer une image de l'écran (voir <see cref="Capture"/>).</summary>
     private string? _capturePath;
     private double _captureTimer = 1.0;
+    private string? _layoutDump;
 
     /// <summary>Enregistre une image de l'écran (pour vérifier les graphismes sans jouer), puis quitte.</summary>
     private void Capture(double delta)
@@ -987,8 +992,32 @@ public partial class Main : Node2D
         _captureTimer -= delta;
         if (_captureTimer > 0)
             return;
+        if (_layoutDump != null)
+        {
+            _captureTimer = double.MaxValue;
+            DumpLayout(_townScreen.Layout, _layoutDump);
+            return;
+        }
         var error = GetViewport().GetTexture().GetImage().SavePng(_capturePath!);
         GD.Print(error == Error.Ok ? $"Image enregistrée : {_capturePath}" : $"Image non enregistrée : {error}");
+        GetTree().Quit();
+    }
+
+    /// <summary>
+    /// Pour la page de disposition : la place des éléments, l'écran avec tous ses éléments (<c>ecran.png</c>), puis le fond
+    /// seul (<c>fond.png</c>), et quitte.
+    /// </summary>
+    private async void DumpLayout(ScreenLayout layout, string folder)
+    {
+        layout.Dump($"{folder}/elements.json");
+        layout.ShowParts(true);
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        GetViewport().GetTexture().GetImage().SavePng($"{folder}/ecran.png");
+        layout.ShowParts(false);
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        GetViewport().GetTexture().GetImage().SavePng($"{folder}/fond.png");
+        GD.Print($"Disposition enregistrée : {folder}");
         GetTree().Quit();
     }
 

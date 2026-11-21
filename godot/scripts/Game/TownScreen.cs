@@ -20,6 +20,9 @@ public partial class TownScreen : CanvasLayer
     // en unités de l'interface (×1,5 à l'écran), comme les places des bâtiments dans buildings.json (vue de 1280 × 390)
     private const float ViewTop = 84, ViewHeight = 390;
     private const float ArmyX = 100;
+    // une place de l'armée, en pixels (choix de l'utilisateur, 2026-11-21 : de grandes places, la créature toujours ×2,
+    // entière pour 54 des 60 ; le nombre par-dessus ; plus hautes ensuite, la place gagnée en haut) ; l'image de la ville et le portrait, plus étroits, devant chaque rangée
+    private static readonly Vector2 Cell = new(210, 244), FirstCell = new(140, 244);
 
     private GameState _state = null!;
     private Town? _town;
@@ -30,12 +33,17 @@ public partial class TownScreen : CanvasLayer
     private ResourceBar _bar = null!;
     private Label _title = null!;
     private Label _header = null!;
+    private PanelContainer _nameTab = null!;
+    // la barre d'état, en bas (comme Heroes 2) : ce que montre la souris, et la date
+    private Label _status = null!, _statusDate = null!;
     private Control _view = null!;
     private readonly Dictionary<string, Control> _buildingBoxes = new();
     private string? _viewKey;
-    private Button _tavernShortcut = null!;
-    private Button _guildShortcut = null!;
-    private Button _marketShortcut = null!;
+    private readonly List<Button> _actions = new();
+    // les actions par-dessus la vue, à droite : Quitter toujours visible, les autres sortent du bord au survol
+    private Control _drawer = null!;
+    private bool _drawerOpen;
+    private Tween? _drawerTween;
 
     // le marché : ce qu'on donne, ce qu'on reçoit, et combien (gardés tant que la fenêtre se reconstruit)
     private ResourceType _marketGive = ResourceType.Wood, _marketReceive = ResourceType.Gold;
@@ -45,6 +53,7 @@ public partial class TownScreen : CanvasLayer
     private ArmySlots _visitor = null!;
     private Label _visitorLabel = null!;
     private TextureRect _visitorPortrait = null!;
+    private Panel _portraitFrame = null!;
     private Button _giveAll = null!, _leaveAll = null!;
 
     // les fenêtres par-dessus la ville : une à la fois ; le curseur de recrutement par-dessus tout
@@ -67,12 +76,15 @@ public partial class TownScreen : CanvasLayer
     private CreatureType? _recruitType;
 
     public bool IsOpen => _town != null;
+    /// <summary>La place des éléments, réglée à la souris (<c>tools/ui/disposition.py</c>).</summary>
+    public ScreenLayout Layout { get; private set; } = null!;
     public event Action? Closed;
 
     public void Build(GameState state, Vector2 screenSize)
     {
         _state = state;
         _screen = screenSize;
+        Layout = new ScreenLayout("town");
         Layer = 5; // au-dessus de la carte, du panneau et des grandes fenêtres
         Visible = false;
 
@@ -82,88 +94,125 @@ public partial class TownScreen : CanvasLayer
         AddChild(_root);
 
         _bar = new ResourceBar();
-        _root.AddChild(_bar);
-        _bar.Build(screenSize.X - Hud.PanelWidth, Hud.TopBarHeight);
-        var back = MakeButton(Texts.QuitTown, 15);
-        back.TooltipText = Texts.KeyTooltip(Texts.QuitTownTooltip, "Échap");
-        back.Position = new Vector2(screenSize.X - Hud.PanelWidth + Px(12), Px(4));
-        Sized(back, Hud.PanelWidth - Px(24), ButtonHeight);
-        back.Pressed += Close;
-        _root.AddChild(back);
+        _root.AddChild(Layout.Add("resources", _bar));
+        // en colonne, en bas à droite (comme Heroes 2, choix de l'utilisateur, 2026-11-21)
+        _bar.BuildColumn(Px(188));
 
-        _title = At(MakeLabel("", 22, TextColor), 16, Hud.TopBarHeight / Ui.Scale + 6);
-        _root.AddChild(_title);
-        _header = At(MakeLabel("", 14, SoftTextColor), 16, Hud.TopBarHeight / Ui.Scale + 10);
-        _root.AddChild(_header);
+        // le nom de la ville sur un onglet, posé sur le bas de la vue (comme Heroes 2), avec le revenu à la suite ;
+        // centré au-dessus des armées (voir Refresh), sauf si l'utilisateur l'a placé lui-même
+        _nameTab = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        _nameTab.AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        var tabLine = new HBoxContainer();
+        tabLine.AddThemeConstantOverride("separation", (int)Px(12));
+        _nameTab.AddChild(tabLine);
+        _title = MakeLabel("", 22, TextColor);
+        _header = MakeLabel("", 14, SoftTextColor);
+        _header.VerticalAlignment = VerticalAlignment.Center;
+        _header.SizeFlagsVertical = Control.SizeFlags.Fill;
+        tabLine.AddChild(_title);
+        tabLine.AddChild(_header);
+
+        var statusBar = new Panel { Position = new Vector2(0, screenSize.Y - Px(22)), Size = new Vector2(screenSize.X, Px(22)) };
+        statusBar.AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        _status = MakeLabel("", 14, TextColor);
+        _status.HorizontalAlignment = HorizontalAlignment.Center;
+        _status.VerticalAlignment = VerticalAlignment.Center;
+        _status.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _status.MouseFilter = Control.MouseFilterEnum.Ignore;
+        statusBar.AddChild(_status);
+        _statusDate = MakeLabel("", 14, SoftTextColor);
+        _statusDate.HorizontalAlignment = HorizontalAlignment.Right;
+        _statusDate.VerticalAlignment = VerticalAlignment.Center;
+        _statusDate.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _statusDate.OffsetRight = -Px(12);
+        _statusDate.MouseFilter = Control.MouseFilterEnum.Stop; // pour l'objectif en info-bulle
+        statusBar.AddChild(_statusDate);
+        _root.AddChild(Layout.Add("status", statusBar, resizable: true));
 
         // la ville vue de face : un ciel, un sol, les bâtiments
         _view = new Control { Position = new Vector2(0, Px(ViewTop)), Size = new Vector2(screenSize.X, Px(ViewHeight)), ClipContents = true };
-        _root.AddChild(_view);
+        _root.AddChild(Layout.Add("view", _view, resizable: true));
+        _root.AddChild(Layout.Add("name-tab", _nameTab));
         _view.AddChild(new ColorRect { Size = new Vector2(screenSize.X, Px(ViewHeight * 0.4f)), Color = MapRenderer.Rgb(58, 72, 92), MouseFilter = Control.MouseFilterEnum.Ignore });
         _view.AddChild(new ColorRect { Position = new Vector2(0, Px(ViewHeight * 0.4f)), Size = new Vector2(screenSize.X, Px(ViewHeight * 0.6f)), Color = MapRenderer.Rgb(60, 74, 48), MouseFilter = Control.MouseFilterEnum.Ignore });
 
-        // les raccourcis, à droite de la bande du nom (au-dessus de la vue : ils ne cachent aucun bâtiment)
-        float bx = screenSize.X - Px(12 + 5 * 126 - 8);
-        foreach (var (text, open) in new (string, Action)[]
+        // les actions de la ville en boutons à icône, le nom en info-bulle (choix de l'utilisateur, 2026-11-21) : Quitter
+        // toujours visible, en haut à droite de la vue ; Construire et Recruter glissent du bord droit, dessous, quand la
+        // souris approche. La taverne, la guilde et le marché s'ouvrent d'un clic sur leur bâtiment.
+        _drawer = new Control
+        {
+            Position = new Vector2(screenSize.X - IconButtonSide - Px(6), Px(6)),
+            Size = new Vector2(IconButtonSide, 3 * IconButtonSide + 2 * ButtonGap),
+            ClipContents = true, MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        _root.AddChild(Layout.Add("actions", _drawer));
+        float by = 0;
+        foreach (var (icon, text, key, open) in new (string, string, string, Action)[]
                  {
-                     (Texts.BuildButton, OpenBuild), (Texts.RecruitButton, () => OpenRecruitWindow(null)),
-                     (Texts.TavernButton, OpenTavern), (Texts.GuildButton, OpenGuild), (Texts.MarketButton, OpenMarket),
+                     ("quitter", Texts.QuitTownTooltip, "Échap", Close),
+                     ("construire", Texts.BuildButton, "", OpenBuild),
+                     ("recruter", Texts.RecruitButton, "", () => OpenRecruitWindow(null)),
                  })
         {
-            var button = MakeButton(text, 14);
-            button.Position = new Vector2(bx, Hud.TopBarHeight + Px(3));
-            Sized(button, Px(118), ButtonHeight);
-            button.Pressed += open;
-            _root.AddChild(button);
-            if (text == Texts.TavernButton)
-                _tavernShortcut = button;
-            if (text == Texts.GuildButton)
-                _guildShortcut = button;
-            if (text == Texts.MarketButton)
-                _marketShortcut = button;
-            bx += Px(126);
+            var button = IconButtons.Make(icon, text, key, open);
+            button.Position = new Vector2(_actions.Count == 0 ? 0 : IconButtonSide, by);
+            if (_actions.Count > 0)
+                button.MouseFilter = Control.MouseFilterEnum.Ignore;
+            _drawer.AddChild(button);
+            _actions.Add(button);
+            by += IconButtonSide + ButtonGap;
         }
 
         // la garnison et le héros présent, toujours visibles
         float y = ViewTop + ViewHeight + 8;
-        _root.AddChild(At(MakeLabel(Texts.GarrisonHeader, 15, TextColor), 16, y));
-        var townPicture = new Panel { Position = V(12, y + 22), Size = new Vector2(132, 132) };
+        _root.AddChild(Layout.Add("garrison-label", At(MakeLabel(Texts.GarrisonHeader, 15, TextColor), 16, y)));
+        var townPicture = new Panel { Position = V(12, y + 22), Size = FirstCell };
         townPicture.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
-        // l'image de 96 pixels, ×1 : celle de la faction de la ville ouverte (voir Open)
-        _townPicture = Picture(null!, new Vector2(18, 18), new Vector2(96, 96));
+        // l'image de 96 pixels, ×1, au milieu : celle de la faction de la ville ouverte (voir Open)
+        _townPicture = Picture(null!, ((FirstCell - new Vector2(96, 96)) / 2).Floor(), new Vector2(96, 96));
         townPicture.AddChild(_townPicture);
-        _root.AddChild(townPicture);
-        _garrison = MakeArmy(V(ArmyX, y + 22));
+        _root.AddChild(Layout.Add("town-picture", townPicture));
+        _garrison = Layout.Add("garrison", MakeArmy(V(ArmyX, y + 22)));
         // à droite des armées : l'aide sur les troupes, et dessous les deux boutons d'échange
         float exchangeX = ArmyX + 7 * 86 + 10;
         var hint = At(MakeLabel(Texts.DragHint, 13, SoftTextColor), exchangeX + 14, y + 34);
-        _root.AddChild(hint);
+        _root.AddChild(Layout.Add("hint", hint));
 
         y += 110;
         _visitorLabel = At(MakeLabel("", 15, TextColor), 16, y);
-        _root.AddChild(_visitorLabel);
-        var portraitFrame = new Panel { Position = V(12, y + 22), Size = new Vector2(132, 132) };
-        portraitFrame.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 1, 1, 1, 1));
-        _root.AddChild(portraitFrame);
-        _visitorPortrait = Picture(null!, new Vector2(2, 2), new Vector2(128, 128)); // le portrait ×2
-        portraitFrame.AddChild(_visitorPortrait);
-        _visitor = MakeArmy(V(ArmyX, y + 22));
+        _root.AddChild(Layout.Add("hero-label", _visitorLabel));
+        // le nom du héros en info-bulle (voir Refresh)
+        var portraitFrame = _portraitFrame = new Panel { Position = V(12, y + 22), Size = FirstCell };
+        portraitFrame.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
+        _root.AddChild(Layout.Add("portrait", portraitFrame));
+        // le portrait ×2 au milieu, dans un fin cadre d'argent
+        var portraitBorder = new Panel
+        {
+            Position = ((FirstCell - new Vector2(132, 132)) / 2).Floor(), Size = new Vector2(132, 132),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        portraitBorder.AddThemeStyleboxOverride("panel", Box(Colors.Black, SilverColor, 1, 1, 1, 1));
+        portraitFrame.AddChild(portraitBorder);
+        _visitorPortrait = Picture(null!, new Vector2(2, 2), new Vector2(128, 128));
+        portraitBorder.AddChild(_visitorPortrait);
+        _visitor = Layout.Add("hero-army", MakeArmy(V(ArmyX, y + 22)));
         // deux boutons à icône (choix de l'utilisateur, 2026-11-20) : la flèche descend vers le héros, ou monte vers la
         // garnison ; le texte en info-bulle
         _giveAll = IconButtons.Make("donner-heros", Texts.GiveAllToHero, "", GiveAll);
         // à la hauteur du milieu de la rangée du héros
         _giveAll.Position = new Vector2(Px(exchangeX + 14), Snap(Px(y + 22 + 44) - IconButtonSide / 2));
-        _root.AddChild(_giveAll);
+        _root.AddChild(Layout.Add("give-all", _giveAll));
         _leaveAll = IconButtons.Make("laisser-garnison", Texts.LeaveAllInGarrison, "", LeaveAll);
         _leaveAll.Position = _giveAll.Position + new Vector2(IconButtonSide + ButtonGap, 0);
-        _root.AddChild(_leaveAll);
+        _root.AddChild(Layout.Add("leave-all", _leaveAll));
 
+        Layout.Apply();
         BuildRecruitWindow();
     }
 
     private ArmySlots MakeArmy(Vector2 position)
     {
-        var slots = new ArmySlots { Position = position, SlotSize = V(84, 88), CountFontSize = 14, DragGroup = this };
+        var slots = new ArmySlots { Position = position, SlotSize = Cell, CountFontSize = 16, CountOverlay = true, DragGroup = this };
         slots.SlotClicked += index => Act(() => _state.TransferStack(_town!, fromGarrison: slots == _garrison, index));
         slots.SlotRightClicked += index => Split(slots, index, slots, null);
         slots.TroopDropped += (source, from, to, split) =>
@@ -258,6 +307,40 @@ public partial class TownScreen : CanvasLayer
         GetViewport().SetInputAsHandled();
     }
 
+    public override void _Process(double delta)
+    {
+        if (!Visible)
+            return;
+        // la barre d'état : la première ligne de l'info-bulle de ce que montre la souris (ou d'un de ses parents)
+        Node? hovered = GetViewport().GuiGetHoveredControl();
+        while (hovered is Control c && string.IsNullOrEmpty(c.TooltipText))
+            hovered = c.GetParent();
+        _status.Text = hovered is Control shown && shown != _statusDate ? shown.TooltipText.Split('\n')[0] : "";
+
+        // les actions sortent quand la souris est sur leur colonne (pas pendant qu'une fenêtre est ouverte)
+        bool open = _window == null && _drawer.GetGlobalRect().HasPoint(_drawer.GetGlobalMousePosition());
+        if (open != _drawerOpen)
+        {
+            _drawerOpen = open;
+            _drawerTween?.Kill();
+            _drawerTween = _drawer.CreateTween().SetParallel().SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+            foreach (var button in _actions.Skip(1))
+            {
+                _drawerTween.TweenProperty(button, "position:x", open ? 0 : IconButtonSide, 0.18);
+                button.MouseFilter = open ? Control.MouseFilterEnum.Stop : Control.MouseFilterEnum.Ignore;
+            }
+        }
+    }
+
+    /// <summary>L'onglet du nom au milieu des armées, posé sur le bas de la vue.</summary>
+    private void CenterNameTab()
+    {
+        _nameTab.Size = _nameTab.GetCombinedMinimumSize();
+        float armiesRight = _garrison.Position.X + Army.MaxStacks * Cell.X + (Army.MaxStacks - 1) * Px(2);
+        _nameTab.Position = new Vector2(Snap((armiesRight - _nameTab.Size.X) / 2),
+            Snap(_view.Position.Y + _view.Size.Y - _nameTab.Size.Y));
+    }
+
     /// <summary>Met l'écran à jour d'après l'état de la ville (après chaque action).</summary>
     public void Refresh()
     {
@@ -265,22 +348,22 @@ public partial class TownScreen : CanvasLayer
             return;
         _bar.Refresh(_state, _state.CurrentPlayer);
         _title.Text = town.Name;
-        _header.Position = new Vector2(_title.Position.X + _title.GetMinimumSize().X + Px(16), _header.Position.Y);
         _header.Text = Texts.TownHeader(town);
+        _statusDate.Text = Texts.Date(_state.Day);
+        _statusDate.TooltipText = Texts.GoalTooltip(_state, _state.CurrentPlayer);
+        if (!Layout.Placed("name-tab"))
+            Callable.From(CenterNameTab).CallDeferred(); // une fois sa taille connue, avec le nouveau texte
         RefreshView(town);
-        _tavernShortcut.Disabled = !town.Buildings.Any(b => b.Tavern && town.Has(b.Id));
-        _guildShortcut.Disabled = town.MageGuildLevel == 0;
-        // le marché sert depuis toute ville du joueur qui en a un (comme dans Heroes 3) : il suffit d'en avoir un
-        _marketShortcut.Disabled = Market.Count(_state.CurrentPlayer) == 0;
 
         var hero = _state.VisitingHero(town);
         _garrison.Show(town.Garrison, null);
         _visitor.Show(hero?.Army, hero?.CommandLimit);
         _visitorLabel.Text = hero != null ? Texts.VisitingHero(hero) : Texts.NoVisitor;
         _visitorPortrait.Texture = hero != null ? Art.Portrait(hero.Name) : null;
+        _portraitFrame.TooltipText = _visitorLabel.Text;
         _giveAll.Disabled = hero == null || town.Garrison.Stacks.Count == 0;
         _leaveAll.Disabled = hero == null || hero.Army.Stacks.Count <= 1;
-        IconButtons.Dim(new[] { _giveAll, _leaveAll });
+        IconButtons.Dim(_actions.Append(_giveAll).Append(_leaveAll));
         _reopen?.Invoke();
     }
 
@@ -410,8 +493,8 @@ public partial class TownScreen : CanvasLayer
         CloseWindow();
         var veil = new ColorRect
         {
-            Position = new Vector2(0, overView ? Px(ViewTop) : Hud.TopBarHeight),
-            Size = new Vector2(_screen.X, overView ? Px(ViewHeight) : _screen.Y - Hud.TopBarHeight),
+            Position = overView ? _view.Position : Vector2.Zero,
+            Size = overView ? _view.Size : _screen,
             Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Stop,
         };
         _root.AddChild(veil);

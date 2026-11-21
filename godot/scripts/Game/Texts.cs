@@ -1305,16 +1305,14 @@ public static class Texts
     // ------------------------------------------------------------------ écran de ville (étape 7)
 
     public static string CancelButton => "Annuler";
-    public static string QuitTown => "Quitter";
     public static string QuitTownTooltip => "Revenir à la carte";
 
-    /// <summary>Sous le nom de la ville : son revenu et si l'on peut encore construire aujourd'hui.</summary>
+    /// <summary>Sous le nom de la ville, sur deux lignes : son revenu et si l'on peut encore construire aujourd'hui.</summary>
     public static string TownHeader(Town town) =>
-        $"revenu +{town.DailyGold} or par jour · construction : {(town.BuiltToday ? "déjà faite aujourd'hui" : "possible aujourd'hui")}";
+        $"+{town.DailyGold} or par jour · {(town.BuiltToday ? "Déjà construit" : "Peut construire")}";
 
     public static string BuildButton => "Construire";
     public static string RecruitButton => "Recruter";
-    public static string TavernButton => "Taverne";
     public static string GarrisonHeader => "Garnison";
     public static string VisitingHero(Hero hero) => $"{hero.Name} (en visite)";
     public static string NoVisitor => "Aucun héros dans la ville";
@@ -1420,7 +1418,6 @@ public static class Texts
     public static string Initials(string name) =>
         string.Concat(name.Split(' ').Where(w => w.Length > 2).Take(2).Select(w => char.ToUpper(w[0])));
 
-    public static string GuildButton => "Guilde";
     public static string GuildTitle(Town town) => $"Guilde des mages de {town.Name}";
     public static string GuildText =>
         "Un héros qui entre dans la ville apprend tous les sorts de la guilde et retrouve ses points de sort.";
@@ -1487,7 +1484,6 @@ public static class Texts
 
     // ------------------------------------------------------------------ marché
 
-    public static string MarketButton => "Marché";
     public static string MarketTitle => "Marché";
     public static string MarketGive => "Donner";
     public static string MarketReceive => "Recevoir";

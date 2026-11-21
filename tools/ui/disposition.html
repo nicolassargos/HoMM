@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Disposition de l'écran</title>
+<style>
+  :root { --fond: #1b1611; --panneau: #2a221a; --bord: #5a4a36; --texte: #e8dcc4; --doux: #a8987c; --choix: #ffd34d; --guide: #ff4d6d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 13px system-ui, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  header { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 10px; background: var(--panneau); border-bottom: 1px solid var(--bord); }
+  header h1 { font-size: 15px; margin: 0 10px 0 0; }
+  header .groupe { display: flex; gap: 3px; align-items: center; padding: 0 8px; border-left: 1px solid var(--bord); }
+  button, select { background: #3b3024; color: var(--texte); border: 1px solid var(--bord); border-radius: 3px; padding: 4px 8px; font: inherit; cursor: pointer; }
+  button:hover:not(:disabled) { background: #4d3f2e; }
+  button:disabled { opacity: .4; cursor: default; }
+  button.principal { background: #6b5320; border-color: #a8873a; }
+  #etat { margin-left: auto; color: var(--doux); }
+  main { flex: 1; display: flex; min-height: 0; }
+  #zone { flex: 1; position: relative; overflow: hidden; }
+  #ecran { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background-size: 100% 100%; image-rendering: pixelated; outline: 1px solid var(--bord); }
+  #ecran.avant::after { content: ""; position: absolute; inset: 0; background: var(--avant) 0 0 / 100% 100%; opacity: .35; pointer-events: none; image-rendering: pixelated; }
+  .el { position: absolute; cursor: move; outline: 1px dashed rgba(255,255,255,.18); }
+  .el canvas { position: absolute; left: 0; top: 0; image-rendering: pixelated; pointer-events: none; transform-origin: 0 0; }
+  .el:hover { outline: 2px solid rgba(255,211,77,.5); }
+  .el.choisi { outline: 3px solid var(--choix); z-index: 5; }
+  .el.cache { opacity: .25; background: repeating-linear-gradient(45deg, transparent 0 10px, rgba(255,255,255,.15) 10px 20px); }
+  .el .poignee { position: absolute; right: -9px; bottom: -9px; width: 18px; height: 18px; background: var(--choix); border: 2px solid #000; cursor: nwse-resize; display: none; }
+  .el.choisi.seul .poignee { display: block; }
+  .el .poignee.echelle { border-radius: 50%; background: #7fd4ff; }
+  .guide { position: absolute; background: var(--guide); pointer-events: none; z-index: 10; }
+  #cadre { position: absolute; border: 2px dashed var(--choix); background: rgba(255,211,77,.08); pointer-events: none; display: none; z-index: 10; }
+  aside { width: 330px; background: var(--panneau); border-left: 1px solid var(--bord); overflow-y: auto; padding: 8px; }
+  aside h2 { font-size: 13px; color: var(--doux); margin: 4px 0 8px; font-weight: normal; }
+  .ligne { display: grid; grid-template-columns: 20px 1fr repeat(4, 44px) 50px; gap: 3px; align-items: center; padding: 3px; border-radius: 3px; cursor: pointer; }
+  .ligne:hover { background: #3b3024; }
+  .ligne.choisi { background: #5a4520; }
+  .ligne .nom.place::after { content: " •"; color: var(--choix); }
+  .ligne select { padding: 1px; font: 11px monospace; }
+  .ligne input[type=number] { width: 44px; background: #1b1611; color: var(--texte); border: 1px solid var(--bord); padding: 2px; font: 11px monospace; }
+  .ligne input:disabled { opacity: .35; }
+  .entete { font-size: 11px; color: var(--doux); cursor: default; }
+  .entete:hover { background: none; }
+  #aide { color: var(--doux); font-size: 12px; line-height: 1.5; margin-top: 12px; border-top: 1px solid var(--bord); padding-top: 8px; }
+  kbd { background: #3b3024; border: 1px solid var(--bord); border-radius: 3px; padding: 0 4px; font-size: 11px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Disposition : @@ECRAN@@</h1>
+  <div class="groupe">
+    <button id="annuler" title="Ctrl+Z">↶ Annuler</button>
+    <button id="refaire" title="Ctrl+Y">↷ Refaire</button>
+  </div>
+  <div class="groupe" title="Aligner les éléments choisis (Maj+clic pour en choisir plusieurs)">
+    Aligner
+    <button data-aligner="gauche">⇤ gauche</button>
+    <button data-aligner="centreX">↔ milieu</button>
+    <button data-aligner="droite">⇥ droite</button>
+    <button data-aligner="haut">⤒ haut</button>
+    <button data-aligner="centreY">↕ milieu</button>
+    <button data-aligner="bas">⤓ bas</button>
+  </div>
+  <div class="groupe" title="Mettre le même écart entre les éléments choisis">
+    Répartir
+    <button data-repartir="x">↔</button>
+    <button data-repartir="y">↕</button>
+    <button id="memeTaille" title="La taille du premier choisi pour tous (ceux qu'on peut agrandir)">même taille</button>
+  </div>
+  <div class="groupe">
+    Grille <select id="grille"><option>2</option><option>8</option><option selected>16</option><option>32</option></select>
+    <label><input type="checkbox" id="avant"> l'écran d'avant</label>
+  </div>
+  <div class="groupe">
+    <button id="supprimer" title="Retirer les éléments choisis de l'écran (Suppr) ; la case de la liste les remet">✕ supprimer</button>
+    <button id="remettre" title="Les éléments choisis reprennent la place que leur donne le code">place du code</button>
+    <button id="voir" class="principal" title="Le jeu relit la disposition : on voit le vrai résultat">Voir dans le jeu</button>
+  </div>
+  <span id="etat"></span>
+</header>
+<main>
+  <div id="zone"><div id="ecran"><div id="cadre"></div></div></div>
+  <aside>
+    <h2>Éléments (• : placé à la main ; la case : affiché)</h2>
+    <div class="ligne entete"><span></span><span>nom</span><span>x</span><span>y</span><span>larg.</span><span>haut.</span><span>×</span></div>
+    <div id="liste"></div>
+    <div id="aide">
+      Glisser un élément pour le déplacer ; <kbd>Maj</kbd>+clic ou un cadre tiré sur le fond pour en choisir plusieurs.<br>
+      Le carré jaune change la taille (boutons, vue de la ville) ; le rond bleu agrandit tout l'élément, par demi (×1, ×1,5,
+      ×2… : les pixels restent nets) ; <kbd>Ctrl</kbd> sur le carré jaune : agrandir aussi.<br>
+      <kbd>Suppr</kbd> retire les éléments choisis de l'écran ; cocher leur case dans la liste les remet.<br>
+      <kbd>←↑→↓</kbd> : d'un cran de la grille, <kbd>Maj</kbd> : d'un pixel (2).<br>
+      Les bords et les milieux s'aimantent à ceux des autres éléments (lignes rouges) ; <kbd>Alt</kbd> en glissant : sans aimant.<br>
+      Tout s'enregistre seul dans le jeu. « Voir dans le jeu » montre le vrai écran (une dizaine de secondes).
+    </div>
+  </aside>
+</main>
+<script>
+const NOMS = @@NOMS@@;
+const L = 1920, H = 1080, PIXEL = 2, AIMANT = 8;
+const ecranDiv = document.getElementById("ecran"), zone = document.getElementById("zone"), cadre = document.getElementById("cadre");
+let base = {};        // la place relevée dans le jeu (avec la disposition actuelle)
+let cur = {};         // id -> {x, y, w, h, hidden, place, resizable}
+let ordre = [];
+let choisis = new Set();
+let images = {};
+let echelle = 1;
+const passe = [], futur = [];
+
+const etat = t => document.getElementById("etat").textContent = t;
+const grille = () => +document.getElementById("grille").value;
+const arrondi = (v, pas = PIXEL) => Math.round(v / pas) * pas;
+
+async function charger() {
+  etat("Chargement…");
+  const t = Date.now();
+  const [elements, disposition] = await Promise.all([
+    fetch("elements.json?" + t).then(r => r.json()), fetch("disposition.json?" + t).then(r => r.json())]);
+  const [ecranImg, fondImg] = await Promise.all(["ecran.png", "fond.png"].map(n => new Promise(ok => {
+    const i = new Image(); i.onload = () => ok(i); i.src = n + "?" + t; })));
+  ecranDiv.style.backgroundImage = `url(fond.png?${t})`;
+  ecranDiv.style.setProperty("--avant", `url(ecran.png?${t})`);
+  // chaque élément : sa partie de l'écran, transparente là où elle est pareille au fond
+  const lire = img => { const c = document.createElement("canvas"); c.width = L; c.height = H; const g = c.getContext("2d"); g.drawImage(img, 0, 0); return g.getImageData(0, 0, L, H).data; };
+  const e = lire(ecranImg), f = lire(fondImg);
+  base = {}; cur = {}; ordre = []; images = {};
+  for (const el of elements.elements) {
+    const r = { x: Math.round(el.x), y: Math.round(el.y), w: Math.max(2, Math.round(el.w)), h: Math.max(2, Math.round(el.h)) };
+    base[el.id] = r;
+    const placeAvant = disposition.elements[el.id];
+    r.s = el.scale || 1;
+    cur[el.id] = { ...r, hidden: el.hidden, place: !!placeAvant, resizable: el.resizable };
+    // la place enregistrée l'emporte sur le relevé (la page rechargée avant « Voir dans le jeu »)
+    if (placeAvant && !placeAvant.hidden) {
+      const c = cur[el.id], s = placeAvant.scale || 1;
+      c.x = placeAvant.x; c.y = placeAvant.y; c.hidden = !!placeAvant.hidden;
+      c.w = el.resizable && placeAvant.w ? placeAvant.w * s : r.w / r.s * s;
+      c.h = el.resizable && placeAvant.h ? placeAvant.h * s : r.h / r.s * s;
+      c.s = s;
+    }
+    ordre.push(el.id);
+    // l'image à l'agrandissement relevé (affichée ensuite à l'agrandissement voulu)
+    const c = document.createElement("canvas"); c.width = r.w; c.height = r.h;
+    const g = c.getContext("2d"), d = g.createImageData(r.w, r.h);
+    for (let y = 0; y < r.h; y++) for (let x = 0; x < r.w; x++) {
+      const X = r.x + x, Y = r.y + y;
+      if (X < 0 || Y < 0 || X >= L || Y >= H) continue;
+      const k = (Y * L + X) * 4, o = (y * r.w + x) * 4;
+      const pareil = Math.abs(e[k] - f[k]) + Math.abs(e[k + 1] - f[k + 1]) + Math.abs(e[k + 2] - f[k + 2]) < 6;
+      d.data[o] = e[k]; d.data[o + 1] = e[k + 1]; d.data[o + 2] = e[k + 2]; d.data[o + 3] = pareil ? 0 : 255;
+    }
+    g.putImageData(d, 0, 0);
+    images[el.id] = c;
+  }
+  passe.length = 0; futur.length = 0;
+  dessiner(true);
+  etat("Prêt");
+}
+
+function ajuster() {
+  echelle = Math.min(zone.clientWidth / L, zone.clientHeight / H);
+  ecranDiv.style.transform = `scale(${echelle})`;
+}
+
+function dessiner(tout) {
+  if (tout) {
+    ecranDiv.querySelectorAll(".el").forEach(n => n.remove());
+    for (const id of ordre) {
+      const n = document.createElement("div");
+      n.className = "el"; n.dataset.id = id; n.title = NOMS[id] || id;
+      n.appendChild(images[id]);
+      const p = document.createElement("div"); p.className = "poignee" + (cur[id].resizable ? "" : " echelle"); n.appendChild(p);
+      ecranDiv.appendChild(n);
+    }
+  }
+  for (const id of ordre) {
+    const n = ecranDiv.querySelector(`.el[data-id="${id}"]`), r = cur[id];
+    Object.assign(n.style, { left: r.x + "px", top: r.y + "px", width: r.w + "px", height: r.h + "px" });
+    // l'image à l'agrandissement voulu ; dans une boîte plus grande, au milieu (le vrai rendu : « Voir dans le jeu »)
+    const img = images[id], k = r.s / base[id].s;
+    img.style.transform = `scale(${k})`;
+    img.style.left = Math.round((r.w - img.width * k) / 2) + "px"; img.style.top = Math.round((r.h - img.height * k) / 2) + "px";
+    n.classList.toggle("choisi", choisis.has(id));
+    n.classList.toggle("seul", choisis.size === 1);
+    n.classList.toggle("cache", r.hidden);
+  }
+  liste();
+  document.getElementById("annuler").disabled = !passe.length;
+  document.getElementById("refaire").disabled = !futur.length;
+}
+
+function liste() {
+  const div = document.getElementById("liste");
+  if (div.children.length !== ordre.length) {
+    div.innerHTML = "";
+    for (const id of ordre) {
+      const l = document.createElement("div"); l.className = "ligne"; l.dataset.id = id;
+      l.innerHTML = `<input type="checkbox"><span class="nom"></span>` +
+        ["x", "y", "w", "h"].map(k => `<input type="number" step="2" data-k="${k}">`).join("") +
+        `<select>${[0.5, 1, 1.5, 2, 2.5, 3, 4].map(v => `<option value="${v}">×${v}</option>`).join("")}</select>`;
+      l.querySelector(".nom").textContent = NOMS[id] || id;
+      l.addEventListener("click", ev => { if (ev.target.tagName === "INPUT") return; choisir(id, ev.shiftKey || ev.ctrlKey); });
+      l.querySelector("input[type=checkbox]").addEventListener("change", ev => {
+        memoriser(); cur[id].hidden = !ev.target.checked; cur[id].place = true; changer(); });
+      l.querySelector("select").addEventListener("change", ev => { memoriser(); mettreA(id, +ev.target.value); cur[id].place = true; changer(); });
+      l.querySelectorAll("input[type=number]").forEach(i => i.addEventListener("change", () => {
+        memoriser(); cur[id][i.dataset.k] = Math.max(i.dataset.k === "w" || i.dataset.k === "h" ? 2 : -9999, arrondi(+i.value)); cur[id].place = true; changer(); }));
+      div.appendChild(l);
+    }
+  }
+  for (const l of div.children) {
+    const id = l.dataset.id, r = cur[id];
+    l.classList.toggle("choisi", choisis.has(id));
+    l.querySelector(".nom").classList.toggle("place", r.place);
+    l.querySelector("input[type=checkbox]").checked = !r.hidden;
+    l.querySelectorAll("input[type=number]").forEach(i => {
+      if (document.activeElement !== i) i.value = r[i.dataset.k];
+      i.disabled = (i.dataset.k === "w" || i.dataset.k === "h") && !r.resizable;
+    });
+    const sel = l.querySelector("select");
+    if (![...sel.options].some(o => +o.value === r.s)) sel.add(new Option("×" + r.s, r.s));
+    sel.value = r.s;
+  }
+}
+
+function choisir(id, ajouter) {
+  if (!ajouter) choisis.clear();
+  if (ajouter && choisis.has(id)) choisis.delete(id); else choisis.add(id);
+  dessiner();
+}
+
+// ------------------------------------------------------------ annuler, enregistrer
+const photo = () => JSON.stringify(cur);
+function memoriser() { passe.push(photo()); futur.length = 0; if (passe.length > 200) passe.shift(); }
+document.getElementById("annuler").onclick = () => { if (!passe.length) return; futur.push(photo()); cur = JSON.parse(passe.pop()); changer(); };
+document.getElementById("refaire").onclick = () => { if (!futur.length) return; passe.push(photo()); cur = JSON.parse(futur.pop()); changer(); };
+
+let minuterie;
+function changer() { dessiner(); clearTimeout(minuterie); minuterie = setTimeout(enregistrer, 300); etat("…"); }
+async function enregistrer() {
+  clearTimeout(minuterie);
+  const elements = {};
+  for (const id of ordre) {
+    const r = cur[id];
+    if (!r.place) continue;
+    const e = { x: arrondi(r.x), y: arrondi(r.y) };
+    if (r.resizable) { e.w = arrondi(r.w / r.s); e.h = arrondi(r.h / r.s); }
+    if (r.s !== 1) e.scale = r.s;
+    if (r.hidden) e.hidden = true;
+    elements[id] = e;
+  }
+  const rep = await fetch("enregistrer", { method: "POST", body: JSON.stringify({ elements }) });
+  etat(rep.ok ? `Enregistré (${Object.keys(elements).length} placés à la main)` : "Pas enregistré !");
+}
+
+// ------------------------------------------------------------ souris
+const point = ev => { const b = ecranDiv.getBoundingClientRect(); return { x: (ev.clientX - b.left) / echelle, y: (ev.clientY - b.top) / echelle }; };
+let geste = null;
+
+ecranDiv.addEventListener("mousedown", ev => {
+  if (ev.button !== 0) return;
+  const p = point(ev), n = ev.target.closest(".el");
+  if (n) {
+    const id = n.dataset.id;
+    if (ev.shiftKey || ev.ctrlKey) { choisir(id, true); return; }
+    if (!choisis.has(id)) { choisis.clear(); choisis.add(id); }
+    const depart = Object.fromEntries([...choisis].map(i => [i, { ...cur[i] }]));
+    const poignee = ev.target.classList.contains("poignee");
+    geste = { sorte: !poignee ? "deplacer" : cur[id].resizable && !ev.ctrlKey ? "taille" : "echelle", id, p, depart, avant: photo(), bouge: false };
+  } else {
+    if (!(ev.shiftKey || ev.ctrlKey)) choisis.clear();
+    geste = { sorte: "cadre", p, garde: new Set(choisis) };
+  }
+  dessiner();
+  ev.preventDefault();
+});
+
+window.addEventListener("mousemove", ev => {
+  if (!geste) return;
+  const p = point(ev), dx = p.x - geste.p.x, dy = p.y - geste.p.y;
+  effacerGuides();
+  if (geste.sorte === "cadre") {
+    const x = Math.min(p.x, geste.p.x), y = Math.min(p.y, geste.p.y), w = Math.abs(dx), h = Math.abs(dy);
+    Object.assign(cadre.style, { display: "block", left: x + "px", top: y + "px", width: w + "px", height: h + "px" });
+    choisis = new Set(geste.garde);
+    for (const id of ordre) { const r = cur[id]; if (r.x < x + w && r.x + r.w > x && r.y < y + h && r.y + r.h > y) choisis.add(id); }
+    dessiner(); return;
+  }
+  if (!geste.bouge && Math.abs(dx) + Math.abs(dy) < 3) return;
+  geste.bouge = true;
+  const ids = Object.keys(geste.depart);
+  if (geste.sorte === "deplacer") {
+    // la boîte de tous les choisis, posée sur la grille, puis aimantée aux autres éléments
+    const b = boite(ids.map(i => geste.depart[i]));
+    let nx = arrondi(b.x + dx, grille()), ny = arrondi(b.y + dy, grille());
+    if (!ev.altKey) { const a = aimanter({ x: b.x + dx, y: b.y + dy, w: b.w, h: b.h }, ids); if (a.x != null) nx = a.x; if (a.y != null) ny = a.y; }
+    for (const i of ids) { cur[i].x = geste.depart[i].x + nx - b.x; cur[i].y = geste.depart[i].y + ny - b.y; cur[i].place = true; }
+  } else if (geste.sorte === "echelle") {
+    // l'agrandissement par demi, d'après le coin tiré
+    const d = geste.depart[geste.id], w0 = d.w / d.s;
+    const s = Math.max(0.5, Math.round((d.w + Math.max(dx, dy * d.w / d.h)) / w0 * 2) / 2);
+    mettreA(geste.id, s); cur[geste.id].place = true;
+    etat("×" + s);
+  } else {
+    const r = cur[geste.id], d = geste.depart[geste.id];
+    let x2 = arrondi(d.x + d.w + dx, grille()), y2 = arrondi(d.y + d.h + dy, grille());
+    if (!ev.altKey) { const a = aimanterBord(x2, y2, [geste.id]); if (a.x != null) x2 = a.x; if (a.y != null) y2 = a.y; }
+    r.w = Math.max(16, x2 - d.x); r.h = Math.max(16, y2 - d.y); r.place = true;
+  }
+  dessiner();
+});
+
+window.addEventListener("mouseup", () => {
+  if (!geste) return;
+  if (geste.sorte !== "cadre" && geste.bouge) { passe.push(geste.avant); futur.length = 0; changer(); }
+  cadre.style.display = "none";
+  effacerGuides();
+  geste = null;
+  dessiner();
+});
+
+// un élément à cet agrandissement (sa taille à l'écran suit)
+function mettreA(id, s) {
+  const r = cur[id];
+  r.w = arrondi(r.w / r.s * s); r.h = arrondi(r.h / r.s * s); r.s = s;
+}
+
+function boite(rs) {
+  const x = Math.min(...rs.map(r => r.x)), y = Math.min(...rs.map(r => r.y));
+  return { x, y, w: Math.max(...rs.map(r => r.x + r.w)) - x, h: Math.max(...rs.map(r => r.y + r.h)) - y };
+}
+
+// les repères des autres éléments (et de l'écran) : bords et milieux
+function reperes(sauf) {
+  const xs = [0, L / 2, L], ys = [0, H / 2, H];
+  for (const id of ordre) {
+    if (sauf.includes(id) || cur[id].hidden) continue;
+    const r = cur[id];
+    xs.push(r.x, r.x + r.w / 2, r.x + r.w); ys.push(r.y, r.y + r.h / 2, r.y + r.h);
+  }
+  return { xs, ys };
+}
+
+function proche(valeurs, cibles) {
+  // le décalage le plus petit qui pose l'une des valeurs sur une cible
+  let mieux = null;
+  for (const [i, v] of valeurs.entries()) for (const c of cibles) {
+    const d = c - v;
+    if (Math.abs(d) <= AIMANT / Math.max(echelle, .3) && (mieux == null || Math.abs(d) < Math.abs(mieux.d))) mieux = { d, c, i };
+  }
+  return mieux;
+}
+
+function aimanter(b, sauf) {
+  const { xs, ys } = reperes(sauf), sortie = {};
+  const mx = proche([b.x, b.x + b.w / 2, b.x + b.w], xs), my = proche([b.y, b.y + b.h / 2, b.y + b.h], ys);
+  if (mx) { sortie.x = arrondi(b.x + mx.d); guide("v", mx.c); }
+  if (my) { sortie.y = arrondi(b.y + my.d); guide("h", my.c); }
+  return sortie;
+}
+
+function aimanterBord(x2, y2, sauf) {
+  const { xs, ys } = reperes(sauf), sortie = {};
+  const mx = proche([x2], xs), my = proche([y2], ys);
+  if (mx) { sortie.x = arrondi(mx.c); guide("v", mx.c); }
+  if (my) { sortie.y = arrondi(my.c); guide("h", my.c); }
+  return sortie;
+}
+
+function guide(sens, v) {
+  const g = document.createElement("div"); g.className = "guide";
+  const e = 2 / echelle;
+  Object.assign(g.style, sens === "v" ? { left: v - e / 2 + "px", top: 0, width: e + "px", height: H + "px" }
+                                      : { top: v - e / 2 + "px", left: 0, height: e + "px", width: L + "px" });
+  ecranDiv.appendChild(g);
+}
+function effacerGuides() { ecranDiv.querySelectorAll(".guide").forEach(g => g.remove()); }
+
+// ------------------------------------------------------------ clavier et outils
+window.addEventListener("keydown", ev => {
+  if (ev.target.tagName === "INPUT" || ev.target.tagName === "SELECT") return;
+  if (ev.ctrlKey && ev.key.toLowerCase() === "z") { document.getElementById("annuler").click(); ev.preventDefault(); return; }
+  if (ev.ctrlKey && ev.key.toLowerCase() === "y") { document.getElementById("refaire").click(); ev.preventDefault(); return; }
+  if (ev.key === "Escape") { choisis.clear(); dessiner(); return; }
+  if (ev.key === "Delete" || ev.key === "Backspace") { supprimer(); ev.preventDefault(); return; }
+  const fleches = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  if (fleches[ev.key] && choisis.size) {
+    const pas = ev.shiftKey ? PIXEL : grille(), [fx, fy] = fleches[ev.key];
+    memoriser();
+    for (const id of choisis) { cur[id].x += fx * pas; cur[id].y += fy * pas; cur[id].place = true; }
+    changer(); ev.preventDefault();
+  }
+});
+
+document.querySelectorAll("[data-aligner]").forEach(b => b.onclick = () => {
+  const ids = [...choisis]; if (ids.length < 2) return etat("Choisir au moins deux éléments (Maj+clic)");
+  memoriser();
+  const bt = boite(ids.map(i => cur[i]));
+  for (const id of ids) {
+    const r = cur[id];
+    switch (b.dataset.aligner) {
+      case "gauche": r.x = bt.x; break;
+      case "droite": r.x = bt.x + bt.w - r.w; break;
+      case "centreX": r.x = arrondi(bt.x + bt.w / 2 - r.w / 2); break;
+      case "haut": r.y = bt.y; break;
+      case "bas": r.y = bt.y + bt.h - r.h; break;
+      case "centreY": r.y = arrondi(bt.y + bt.h / 2 - r.h / 2); break;
+    }
+    r.place = true;
+  }
+  changer();
+});
+
+document.querySelectorAll("[data-repartir]").forEach(b => b.onclick = () => {
+  const ids = [...choisis]; if (ids.length < 3) return etat("Choisir au moins trois éléments (Maj+clic)");
+  const [p, t] = b.dataset.repartir === "x" ? ["x", "w"] : ["y", "h"];
+  memoriser();
+  ids.sort((a, c) => cur[a][p] - cur[c][p]);
+  const debut = cur[ids[0]][p], fin = cur[ids.at(-1)][p] + cur[ids.at(-1)][t];
+  const ecart = (fin - debut - ids.reduce((s, i) => s + cur[i][t], 0)) / (ids.length - 1);
+  let pos = debut;
+  for (const id of ids) { cur[id][p] = arrondi(pos); cur[id].place = true; pos += cur[id][t] + ecart; }
+  changer();
+});
+
+document.getElementById("memeTaille").onclick = () => {
+  const ids = [...choisis].filter(i => cur[i].resizable); if (ids.length < 2) return etat("Choisir au moins deux éléments qu'on peut agrandir");
+  memoriser();
+  const modele = cur[ids[0]];
+  for (const id of ids) { cur[id].w = modele.w; cur[id].h = modele.h; cur[id].place = true; }
+  changer();
+};
+
+function supprimer() {
+  if (!choisis.size) return etat("Choisir d'abord les éléments");
+  memoriser();
+  for (const id of choisis) { cur[id].hidden = true; cur[id].place = true; }
+  choisis.clear();
+  changer();
+}
+document.getElementById("supprimer").onclick = supprimer;
+
+document.getElementById("avant").onchange = ev => ecranDiv.classList.toggle("avant", ev.target.checked);
+
+async function voir() {
+  const bouton = document.getElementById("voir");
+  bouton.disabled = true;
+  await enregistrer();
+  etat("Le jeu relève l'écran… (une dizaine de secondes)");
+  const rep = await fetch("voir", { method: "POST", body: "{}" });
+  bouton.disabled = false;
+  if (!rep.ok) { etat("Le relevé a échoué : " + ((await rep.json()).erreur || "").slice(0, 200)); return; }
+  const garde = new Set(choisis);
+  await charger();
+  choisis = new Set([...garde].filter(i => cur[i]));
+  dessiner();
+  etat("Voici le vrai écran du jeu");
+}
+document.getElementById("voir").onclick = voir;
+
+document.getElementById("remettre").onclick = async () => {
+  if (!choisis.size) return etat("Choisir d'abord les éléments");
+  memoriser();
+  for (const id of choisis) cur[id].place = false;
+  await voir();
+};
+
+window.addEventListener("resize", ajuster);
+ajuster();
+charger();
+</script>
+</body>
+</html>

@@ -22,6 +22,12 @@ public partial class ArmySlots : HBoxContainer
     public bool Compact { get; set; }
     public int CountFontSize { get; set; } = 12;
 
+    /// <summary>
+    /// Le nombre écrit par-dessus l'image, en bas à droite (la ville, choix de l'utilisateur, 2026-11-21) : l'image prend
+    /// tout l'emplacement.
+    /// </summary>
+    public bool CountOverlay { get; set; }
+
     /// <summary>Écrire aussi, sous le nombre, les points de commandement de la troupe (« 30 / 100 pts »).</summary>
     public bool ShowCommandPoints { get; set; }
 
@@ -100,7 +106,7 @@ public partial class ArmySlots : HBoxContainer
             : Texts.StackTooltip(stack, commandLimit);
         // la hauteur des lignes : celle du texte (une taille commune, voir Ui.TextSize)
         float countHeight = TextSize(CountFontSize), pointsHeight = TextSize(11);
-        float textHeight = countHeight + (ShowCommandPoints ? pointsHeight : 0);
+        float textHeight = CountOverlay ? 0 : countHeight + (ShowCommandPoints ? pointsHeight : 0);
         var place = new Rect2(Px(2), Px(2), SlotSize.X - Px(4), SlotSize.Y - textHeight - Px(4));
         if (!Compact && CreaturePicture(stack.Type, place) is { } image)
             slot.AddChild(image);
@@ -125,9 +131,15 @@ public partial class ArmySlots : HBoxContainer
             bottom -= pointsHeight;
         }
         var count = MakeLabel(stack.Count.ToString(), CountFontSize, risky ? MapRenderer.Rgb(255, 150, 130) : TextColor);
-        count.HorizontalAlignment = HorizontalAlignment.Center;
+        count.HorizontalAlignment = CountOverlay ? HorizontalAlignment.Right : HorizontalAlignment.Center;
         count.Position = new Vector2(0, bottom - countHeight);
-        count.Size = new Vector2(SlotSize.X, countHeight);
+        count.Size = new Vector2(SlotSize.X - (CountOverlay ? Px(6) : 0), countHeight);
+        if (CountOverlay)
+        {
+            // un contour noir : le nombre se lit sur l'image
+            count.AddThemeConstantOverride("outline_size", (int)Px(4));
+            count.AddThemeColorOverride("font_outline_color", Colors.Black);
+        }
         count.MouseFilter = MouseFilterEnum.Ignore;
         slot.AddChild(count);
         return slot;

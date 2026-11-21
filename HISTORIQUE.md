@@ -2431,6 +2431,25 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
     porte).
   - Gardé : les petites images de l'armée dans la colonne de la carte restent ×1 (choix de l'utilisateur du
     2026-11-08, entières plutôt que ×2 coupées), à revoir avec la colonne.
+- ✅ L'écran de ville façon Heroes 2 (2026-11-21, branche `disposition-ville`, avec l'utilisateur) :
+  - **Un outil de disposition** : `tools/ui/disposition.py [écran]` lance le jeu une fois (`--layout-dump` : la place
+    de chaque élément, l'écran, le fond seul), puis sert une page où l'on déplace, agrandit ou cache les éléments ; elle
+    écrit `godot/data/layouts/<écran>.json`, lu par `Game/ScreenLayout.cs`. `--layout=town-xxx` lit une autre
+    disposition (`data/layouts/town-xxx.json`) pour en comparer plusieurs en jeu.
+  - **La vue de la ville sur toute la largeur**, 1920 × 540 : les scènes des villes feront **960 × 270** (à ×2), au
+    lieu de 960 × 292. Trois dispositions essayées : la vue de 1584 × 482 avec les ressources à droite (écartée : trop
+    peu de place pour l'image, la plus importante de l'écran), une vue de 1584 × 600 (scènes de 792 × 300, places des
+    troupes plus basses) et la pleine largeur, choisie (« la vue sur le village est bien meilleure, et chaque troupe
+    reste bien visible »). Les places des troupes gardent 210 × 244.
+  - **Les ressources en grille**, comme Heroes 2 (`ResourceBar.BuildColumn`) : deux par rangée, l'or seul en bas, les
+    icônes de 32 pixels à ×2 (`ResourceIcon.Large`), le revenu du jour entre parenthèses.
+  - **Trois boutons seulement** : Quitter toujours visible en haut à droite de la vue ; Construire et Recruter glissent
+    de la droite au survol. La taverne, la guilde et le marché s'ouvrent en cliquant leur bâtiment dans la vue (leurs
+    boutons et leurs icônes sont retirés ; une ville sans marché n'y a plus accès : à revoir).
+  - **Le nom de la ville dans un onglet** au bas de la vue (nom, or par jour, construction du jour), et une **barre
+    d'état** en bas de l'écran : le texte de l'élément survolé et la date.
+  - Le fond B du Château (960 × 292 de PixelLab) a été élargi en 960 × 270 par la session des images (`/inpaint`
+    par morceaux de 200 × 200), puis ses contours doublés amincis : `art-candidats/en-cours/ville-chateau-fond/`.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

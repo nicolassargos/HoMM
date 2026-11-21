@@ -2965,6 +2965,36 @@ choix de l'utilisateur) :
   le dernier. Essayé et écarté : un bruit fin du coût des cases (des bosses de 2 à 3 cases sur toutes les routes, liens
   des mines et des lieux compris). Une route peut encore filer droit quand la courbe et la dérive tombent sur une même
   rangée (une capture de Heroes 3 en montre aussi).
+- ✅ **Plus de terre sans chemin, les portails** (2026-11-21, branche `zones-inaccessibles` ; l'utilisateur : des régions
+  vides, « it should never happen » ; puis : une région sans chemin s'atteint par un téléporteur, d'au moins 10 cases,
+  gardé par une forte armée, avec une grande récompense). Mesuré avant (`Poches_inaccessibles`, tous les types de cartes,
+  trois tailles) : 2 à 6 % de la terre des continents coupée de tout, des poches jusqu'à 135 cases. Dans
+  `MapGenerator.Generate`, après les ruisseaux :
+  1. `OpenPockets` : une poche d'au moins 12 cases (4-connexes, dans une seule zone) s'ouvre par le plus court chemin à
+     travers la forêt de sa zone (la forêt redevient le sol de la zone) : 0 à 4 % de la terre ;
+  2. `PlacePortals` : une poche d'au moins 10 cases (8-connexes) reçoit une paire de **portails** (`Core/Portal.cs`, comme
+     le tourbillon : chacun mène à l'autre, `PortalCrossed` ; un héros à la sortie empêche de passer). Le portail du
+     dehors : une case qu'on atteint à pied (`WalkableGrid`), à 6 pas au moins du départ et 4 d'une ville, avec de la
+     place dessous ; son **gardien** posé tout de suite dans la rangée du dessous (2,5 fois l'armée, danger de la zone
+     + 0,5 ; d'abord 1,5 fois et + 0,3 : plus fort que 78 à 99 % des monstres de la carte, mais pas plus que le plus fort
+     des alentours, un gardien de passage ; l'utilisateur le veut « much harder than most armies » ; maintenant plus fort
+     que tous les monstres de la carte, 2 à 3 fois le plus fort à 15 cases, mesure `Gardiens_des_portails`) ; celui du dedans là où la poche a le plus de voisins. Dedans, de 2 à 6 **récompenses** (une pour 6 cases) :
+     coffre de 2500 à 3000, tas de ressource rare de 6 à 10, tas d'or de 2000 à 3000. Sans gardien ou sans 2
+     récompenses, rien n'est posé. Jusqu'à 6 paires environ sur une grande carte ;
+  3. `FillPockets` (à la fin) : ce qui reste sans chemin (à travers monstres, bateaux et portails) devient forêt, les
+     routes qui y entraient comprises : 1 à 3 % de la terre (7,6 % sur une carte de mers).
+  Après : 0 % de terre perdue sur tous les types de cartes. `WalkableGrid` et `AllObjectsReachable` passent par les
+  portails. Le **chemin** aussi (à la demande de l'utilisateur, avant la fusion) : le `Pathfinder` saute d'un portail à
+  l'autre sans coût (son estimation compte le raccourci), le héros continue sa marche de l'autre côté, la vue le suit ;
+  les **adversaires** les prennent (`SafeCosts` passe par eux) et vont voir un portail dont ils ne connaissent pas
+  l'autre côté (poids 1,2, comme une tour d'observation).
+  Le portail est un **lieu haut** (sa case et celle du dessus ; l'utilisateur : « much bigger, we barely see it ») :
+  trois arches de pierre vues de trois quarts, aux runes bleues (PixelLab « pro » 64 × 64, le monolithe choisi d'abord
+  comme modèle ; l'utilisateur a préféré l'arche, « like the obelisk »), le contour adouci (`adoucir.py 0.7 60 2`) ;
+  les deux portails d'une paire prennent la même (`MapRenderer.PortalImage`). Sa taille, comparée à un héros (aussi haut
+  que le cavalier), gardée. Écartés : un monolithe (aimé, mais l'arche « fits better »), une image de 32 px (« barely
+  see it »). `--center=portal` (`portal:2` : le deuxième) pour une capture ; ajouter `--access=open` pour la carte des
+  tests (`GameState(seed, data, size)`).
 - ✅ **Les mines et les objets zone par zone** (2026-11-20, branche `objets-carte`). Mesuré (`Objets_par_zone`) : toutes
   les mines prévues étaient posées, mais les objets, tirés dans toute la carte, se répartissaient mal : de 1 à 9 mines,
   de 10 à 79 trésors pour 1000 cases et de 0 à 16 lieux par zone. Maintenant **chaque objet va dans la zone qui en a le

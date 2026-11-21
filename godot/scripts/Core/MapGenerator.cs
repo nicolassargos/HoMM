@@ -218,6 +218,8 @@ public sealed class MapGenerator
         if (_data != null)
             PlaceTowns(_data);
         PlaceStreams();
+        OpenPockets();
+        PlacePortals();
         PlaceObjects();
         if (_data != null)
             PlaceGuards(_data.Creatures);
@@ -227,8 +229,261 @@ public sealed class MapGenerator
         ConnectToRoads();
         RemoveDeadEndRoads(mainOnly: false);
         ChooseRoadKinds();
+        FillPockets();
         FinishMountains();
         return _map;
+    }
+
+    /// <summary>
+    /// Les poches de terre où l'on n'entre pas (2026-11-21, remarque de l'utilisateur : des régions vides ; mesure
+    /// Poches_inaccessibles : 2 à 6 % de la terre d'un continent, jusqu'à 135 cases, entre forêts, montagnes et lacs,
+    /// souvent contre le bord de la carte) : avant de poser les objets, une poche d'au moins <see cref="PocketToOpen"/>
+    /// cases s'ouvre par une trouée dans la forêt, la plus courte, vers la terre accessible de sa zone (jamais à travers les
+    /// murs entre les zones) : les objets s'y posent ensuite comme ailleurs. Celles qui restent fermées seront remplies
+    /// d'arbres (<see cref="FillPockets"/>).
+    /// </summary>
+    private void OpenPockets()
+    {
+        if (_zoneOf == null)
+            return;
+        var reachable = ReachableCells();
+        bool Lost(Cell c) => _map.InBounds(c) && _map.IsPassable(c) && !IsSea(c) && !reachable.Contains(c);
+        var done = new HashSet<Cell>();
+        foreach (var first in AllCells().Where(Lost).ToList())
+        {
+            if (!done.Add(first) || reachable.Contains(first))
+                continue;
+            // la poche, dans sa zone seulement : la trouée ne relie jamais deux zones
+            int zone = _zoneOf[first.X, first.Y];
+            var pocket = new List<Cell> { first };
+            for (int i = 0; i < pocket.Count; i++)
+                foreach (var n in Orthogonal(pocket[i]).Where(n => Lost(n) && _zoneOf[n.X, n.Y] == zone && done.Add(n)))
+                    pocket.Add(n);
+            if (pocket.Count < PocketToOpen)
+                continue;
+            // la trouée : des cases de forêt de la zone, hors de ses murs, jusqu'à une case accessible
+            var previous = pocket.ToDictionary(c => c, c => c);
+            var queue = new Queue<Cell>(pocket);
+            Cell? exit = null;
+            while (queue.Count > 0 && exit == null)
+            {
+                var c = queue.Dequeue();
+                foreach (var n in Orthogonal(c))
+                {
+                    if (!_map.InBounds(n) || previous.ContainsKey(n) || _zoneOf[n.X, n.Y] != zone || _border[n.X, n.Y] || IsSea(n)
+                        || _map.ObjectAt(n) != null)
+                        continue;
+                    if (reachable.Contains(n))
+                    {
+                        previous[n] = c;
+                        exit = n;
+                        break;
+                    }
+                    if (_map.GetTerrain(n) != TerrainType.Forest)
+                        continue;
+                    previous[n] = c;
+                    queue.Enqueue(n);
+                }
+            }
+            if (exit is not { } end)
+                continue;
+            for (var c = previous[end]; previous[c] != c; c = previous[c])
+                _map.SetTerrain(c, GroundOf(c));
+            reachable = ReachableCells();
+            PocketCellsOpened += pocket.Count;
+        }
+    }
+
+    /// <summary>Après <see cref="Generate"/>, pour les mesures : les cases des poches ouvertes, et celles remplies d'arbres.</summary>
+    public int PocketCellsOpened { get; private set; }
+    public int PocketCellsFilled { get; private set; }
+
+    /// <summary>La taille d'une poche fermée qui s'ouvre par une trouée (plus petite, elle se remplit d'arbres).</summary>
+    private const int PocketToOpen = 12;
+
+    /// <summary>
+    /// Les poches qu'aucune trouée n'a ouvertes (2026-11-21, idée de l'utilisateur) : une poche d'au moins
+    /// <see cref="PocketForPortal"/> cases reçoit un portail, relié à un autre portail posé sur la terre accessible de sa zone,
+    /// au plus près ; une forte armée garde ce dernier ; la poche cache une grande récompense
+    /// (des coffres, de gros tas d'or et de ressources rares). Les plus petites se remplissent d'arbres.
+    /// </summary>
+    private void PlacePortals()
+    {
+        if (_zoneOf == null)
+            return;
+        var rng = new Random(_seed * 4421 + 17); // son propre hasard : le reste de la carte ne change pas
+        var reachable = ReachableCells();
+        bool Lost(Cell c) => _map.InBounds(c) && _map.IsPassable(c) && !IsSea(c) && !reachable.Contains(c) && _map.ObjectAt(c) == null;
+        bool Free(Cell c) => _map.InBounds(c) && _map.IsPassable(c) && !IsSea(c) && _map.ObjectAt(c) == null && _map.OccupantAt(c) == null
+            && !_map.HasRoad(c) && _map.GetRiver(c) == RiverKind.None && !_reserved.Contains(c) && !_roadCorners.Contains(c)
+            && !_portalSurroundings.Contains(c);
+        var done = new HashSet<Cell>();
+        foreach (var first in AllCells().Where(Lost).ToList())
+        {
+            if (!done.Add(first))
+                continue;
+            int zone = _zoneOf[first.X, first.Y];
+            var pocket = new List<Cell> { first };
+            for (int i = 0; i < pocket.Count; i++)
+                foreach (var n in Neighbours(pocket[i]).Where(n => Lost(n) && _zoneOf[n.X, n.Y] == zone && done.Add(n)))
+                    pocket.Add(n);
+            if (pocket.Count < PocketForPortal)
+                continue;
+            // l'entrée : une case accessible de la zone, loin des départs et des villes, avec de la place autour (son gardien,
+            // le chemin pour y venir) ; la plus proche de la poche
+            // (atteinte à pied, les objets compris : une case que seule la forme du terrain relie, derrière une ville, ne va pas)
+            var walk = WalkableGrid();
+            bool Outside(Cell c) => Free(c) && walk[c.X, c.Y] && _zoneOf[c.X, c.Y] == zone && !_border[c.X, c.Y];
+            // (un lieu haut : la case du dessus aussi, et rien sur les côtés, sous son image qui déborde)
+            bool Room(Cell c) => Free(c.Offset(0, -1)) && TallSite.FootprintAt(c).SelectMany(f => new[] { f.Offset(-1, 0), f.Offset(1, 0) })
+                .All(n => !_map.InBounds(n) || _map.OccupantAt(n) == null);
+            // (son gardien se tient dessous, pas sous l'image : une case libre dans la rangée du dessous)
+            var entrance = reachable.Where(c => _map.InBounds(c) && Outside(c) && Room(c) && StepsToStart(c) >= 6 && DistanceToNearestTown(c) >= 4
+                    && new[] { c.Offset(-1, 1), c.Offset(0, 1), c.Offset(1, 1) }.Count(Outside) >= 2
+                    && Neighbours(c).Count(Outside) >= 3)
+                .OrderBy(c => pocket.Min(p => SquaredDistance(p, c))).ThenBy(c => c.Y).ThenBy(c => c.X)
+                .Cast<Cell?>().FirstOrDefault();
+            if (entrance is not { } way)
+                continue;
+            // la sortie : au cœur de la poche
+            var exit = pocket.Where(c => Free(c) && pocket.Contains(c.Offset(0, -1)) && Room(c)).OrderByDescending(c => Neighbours(c).Count(pocket.Contains)).ThenBy(c => c.Y).ThenBy(c => c.X)
+                .Cast<Cell?>().FirstOrDefault();
+            if (exit is not { } inside)
+                continue;
+            var pair = new[] { new Portal(way, inside), new Portal(inside, way) };
+            foreach (var portal in pair)
+                _map.AddObject(portal);
+            // son gardien, tout de suite (sinon un lieu haut posé ensuite à côté couvrait sa place) : une forte armée dessous,
+            // qu'on bat pour y entrer, sans fermer de chemin ; sans gardien, pas de portail
+            MonsterGuard? keeper = null;
+            if (AllObjectsReachable() && _data != null)
+                foreach (var spot in new[] { way.Offset(0, 1), way.Offset(-1, 1), way.Offset(1, 1) }.Where(Outside))
+                {
+                    keeper = AddGuard(_data.Creatures, spot, PortalGuardSize, Math.Min(1, Danger(spot) + PortalGuardDanger));
+                    if (keeper == null || AllObjectsReachable())
+                        break;
+                    _map.RemoveObject(keeper);
+                    keeper = null;
+                }
+            if (keeper == null && (_data != null || !AllObjectsReachable()))
+            {
+                foreach (var portal in pair)
+                    _map.RemoveObject(portal);
+                continue;
+            }
+            // sous l'image des deux portails (elle déborde d'une demi-case de chaque côté), rien
+            var sides = new[] { way, inside }.SelectMany(TallSite.FootprintAt).SelectMany(f => new[] { f.Offset(-1, 0), f.Offset(1, 0) })
+                .ToHashSet();
+            // la récompense, sur le reste de la poche, sans fermer le chemin depuis le portail
+            var spots = pocket.Where(c => _map.ObjectAt(c) == null && _map.OccupantAt(c) == null && !sides.Contains(c) && !_overhang.Contains(c)
+                    && !_map.HasRoad(c) && _map.GetRiver(c) == RiverKind.None)
+                .OrderBy(c => c.Y).ThenBy(c => c.X).ToList();
+            for (int i = spots.Count - 1; i > 0; i--)
+            {
+                int k = rng.Next(i + 1);
+                (spots[i], spots[k]) = (spots[k], spots[i]);
+            }
+            int rewards = Math.Clamp(pocket.Count / PortalCellsPerReward, 2, PortalMaxRewards);
+            var placedRewards = new List<MapObject>();
+            foreach (var spot in spots)
+            {
+                if (placedRewards.Count == rewards)
+                    break;
+                var reward = PortalReward(spot, placedRewards.Count, rng);
+                _map.AddObject(reward);
+                if (AllObjectsReachable())
+                    placedRewards.Add(reward);
+                else
+                    _map.RemoveObject(reward);
+            }
+            // une poche où il n'en tient pas deux : rien (elle se remplira d'arbres)
+            if (placedRewards.Count < 2)
+            {
+                foreach (var obj in placedRewards.Concat(pair).Append<MapObject?>(keeper).OfType<MapObject>())
+                    _map.RemoveObject(obj);
+                continue;
+            }
+            _overhang.UnionWith(sides);
+            // autour du portail du dehors : la place pour y venir
+            foreach (var n in Neighbours(way).Concat(Neighbours(way.Offset(0, -1))))
+                _portalSurroundings.Add(n);
+            PortalRewards += placedRewards.Count;
+            PortalCount++;
+        }
+    }
+
+    /// <summary>La plus petite poche qui reçoit un portail (choix de l'utilisateur : 10 cases au moins).</summary>
+    private const int PocketForPortal = 10;
+    /// <summary>Une récompense pour tant de cases de la poche, de 2 à <see cref="PortalMaxRewards"/>.</summary>
+    private const int PortalCellsPerReward = 6, PortalMaxRewards = 6;
+    /// <summary>
+    /// Le gardien d'un portail : bien plus fort que la plupart des armées (l'utilisateur, 2026-11-21) ; mesuré
+    /// (`Gardiens_des_portails`) : plus fort que tous les monstres de la carte, 2 à 3 fois le plus fort des alentours.
+    /// </summary>
+    private const double PortalGuardDanger = 0.5, PortalGuardSize = 2.5;
+
+    /// <summary>Une grande récompense, tour à tour : un riche coffre, un gros tas de ressource rare, un gros tas d'or.</summary>
+    private static MapObject PortalReward(Cell cell, int index, Random rng) => (index % 3) switch
+    {
+        0 => new TreasureChest(cell, rng.Next(5, 7) * 500),
+        1 => new ResourcePile(cell, ResourceInfo.Rare[rng.Next(ResourceInfo.Rare.Length)], rng.Next(6, 11)),
+        _ => new ResourcePile(cell, ResourceType.Gold, rng.Next(20, 31) * 100),
+    };
+
+    /// <summary>Les cases autour des portails (la place de leur gardien, le chemin pour y venir).</summary>
+    private readonly HashSet<Cell> _portalSurroundings = new();
+
+    /// <summary>Après <see cref="Generate"/>, pour les mesures : les paires de portails, et les récompenses derrière eux.</summary>
+    public int PortalCount { get; private set; }
+    public int PortalRewards { get; private set; }
+
+    /// <summary>
+    /// À la fin, la terre libre où aucun héros n'entre (une poche sans forêt à couper, un creux fermé par des objets) se
+    /// remplit d'arbres, comme dans Heroes 3 : la carte n'a plus de régions vides. On y entre à pied depuis un départ, en
+    /// battant les monstres, sans traverser les autres objets ; en bateau sur les îles et l'archipel.
+    /// </summary>
+    private void FillPockets()
+    {
+        var seen = new bool[_map.Width, _map.Height];
+        var queue = new Queue<Cell>();
+        var portalExits = new HashSet<Cell>();
+        foreach (var start in _map.Starts)
+        {
+            seen[start.X, start.Y] = true;
+            queue.Enqueue(start);
+        }
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            if (!_map.Starts.Contains(c) && !portalExits.Contains(c) && _map.ObjectAt(c) is { } obj && obj is not MonsterGuard and not Boat)
+            {
+                if (obj is Portal portal && !seen[portal.Exit.X, portal.Exit.Y])
+                {
+                    seen[portal.Exit.X, portal.Exit.Y] = true;
+                    portalExits.Add(portal.Exit);
+                    queue.Enqueue(portal.Exit);
+                }
+                continue;
+            }
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                var n = c.Offset(dx, dy);
+                if (!_map.InBounds(n) || seen[n.X, n.Y] || !Travelable(n)
+                    || dx != 0 && dy != 0 && !(Travelable(c.Offset(dx, 0)) && Travelable(c.Offset(0, dy))))
+                    continue;
+                seen[n.X, n.Y] = true;
+                queue.Enqueue(n);
+            }
+        }
+        // (une route qui y passe, que personne ne prendra, disparaît aussi)
+        foreach (var c in AllCells())
+            if (!seen[c.X, c.Y] && _map.IsPassable(c) && !_map.IsWater(c) && _map.ObjectAt(c) == null && _map.GetRiver(c) == RiverKind.None)
+            {
+                _map.SetRoad(c, false);
+                _map.SetTerrain(c, TerrainType.Forest);
+                PocketCellsFilled++;
+            }
     }
 
     /// <summary>La sorte des routes d'une zone qui a une ville de cette faction (les autres : <see cref="ChooseRoadKinds"/>).</summary>
@@ -2567,6 +2822,7 @@ public sealed class MapGenerator
             .Where(c => !_map.HasRoad(c) && _map.GetRiver(c) == RiverKind.None) // ni sur une route, ni sur un ruisseau
             .Where(c => _map.ObjectAt(c) == null && DistanceToNearestTown(c) > 1) // l'entrée de la ville reste libre
             .Where(c => !_reserved.Contains(c) && !_roadCorners.Contains(c)) // les passages et les coins des routes restent libres
+            .Where(c => !_portalSurroundings.Contains(c)) // autour des portails : la place de leur gardien, le chemin
             .OrderBy(c => c.Y).ThenBy(c => c.X) // ordre stable avant le mélange
             .ToList();
         SpreadByZone(free);
@@ -3578,14 +3834,24 @@ public sealed class MapGenerator
         for (int x = 0; x < width; x++)
             passable[x, y] = Travelable(new Cell(x, y));
         var seen = new bool[width, height];
+        var portalExits = new HashSet<Cell>();
         var queue = new Queue<Cell>();
         seen[_map.Start.X, _map.Start.Y] = true;
         queue.Enqueue(_map.Start);
         while (queue.Count > 0)
         {
             var c = queue.Dequeue();
-            if (c != _map.Start && _map.ObjectAt(c) != null)
+            if (c != _map.Start && !portalExits.Contains(c) && _map.ObjectAt(c) is { } obj)
+            {
+                // un portail : on ressort par l'autre, et on repart de là
+                if (obj is Portal portal && !seen[portal.Exit.X, portal.Exit.Y])
+                {
+                    seen[portal.Exit.X, portal.Exit.Y] = true;
+                    portalExits.Add(portal.Exit);
+                    queue.Enqueue(portal.Exit);
+                }
                 continue;
+            }
             for (int dy = -1; dy <= 1; dy++)
             for (int dx = -1; dx <= 1; dx++)
             {

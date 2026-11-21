@@ -22,12 +22,21 @@ public class TypesCartesTests(ITestOutputHelper output)
     {
         bool Open(Cell c) => map.IsPassable(c) || sail && map.IsWater(c);
         var seen = new HashSet<Cell> { from };
+        var exits = new HashSet<Cell>();
         var queue = new Queue<Cell>(seen);
         while (queue.Count > 0)
         {
             var c = queue.Dequeue();
-            if (c != from && map.ObjectAt(c) is { } obj && !(throughGuards && obj is MonsterGuard))
+            if (c != from && !exits.Contains(c) && map.ObjectAt(c) is { } obj && !(throughGuards && obj is MonsterGuard))
+            {
+                // un portail mène à l'autre
+                if (obj is Portal portal && seen.Add(portal.Exit))
+                {
+                    exits.Add(portal.Exit);
+                    queue.Enqueue(portal.Exit);
+                }
                 continue;
+            }
             for (int dy = -1; dy <= 1; dy++)
             for (int dx = -1; dx <= 1; dx++)
             {

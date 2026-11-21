@@ -38,7 +38,8 @@ public class TownTests
         // les villes neutres (le château de départ n'en est pas une)
         var map = new MapGenerator(seed, TestData.Data).Generate();
         var towns = map.Objects.OfType<Town>().Where(t => t.Position != map.Start)
-            .OrderBy(t => Pathfinder.FindPath(map, map.Start, t.Position)!.Count)
+            // à vol d'oiseau : le chemin du héros contourne les monstres errants, sa longueur dépend de leur place
+            .OrderBy(t => (t.Position.X - map.Start.X) * (t.Position.X - map.Start.X) + (t.Position.Y - map.Start.Y) * (t.Position.Y - map.Start.Y))
             .ToList();
 
         Assert.True(towns.Count >= 2);
@@ -133,9 +134,13 @@ public class TownTests
             Assert.Null(map.ObjectAt(town.Approach));
         }
 
-        // Les murs de la ville ne coupent l'accès à rien
+        // Les murs de la ville ne coupent l'accès à rien (derrière un portail, on y va par le portail)
+        var walking = TaillesCarteTests.Reachable(map, portals: false);
         foreach (var obj in map.Objects.Where(o => o is not MonsterGuard && o.Position != map.Start))
-            Assert.NotNull(Pathfinder.FindPath(map, map.Start, obj.Position));
+            if (walking.Contains(obj.Position))
+                Assert.NotNull(Pathfinder.FindPath(map, map.Start, obj.Position));
+            else
+                Assert.Contains(obj.Position, TaillesCarteTests.Reachable(map));
     }
 
     [Fact]

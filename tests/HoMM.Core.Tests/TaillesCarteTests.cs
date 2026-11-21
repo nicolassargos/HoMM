@@ -37,17 +37,28 @@ public class TaillesCarteTests(ITestOutputHelper output)
         }
     }
 
-    /// <summary>Les cases qu'un héros atteint depuis le départ, comme le <see cref="Pathfinder"/> : en diagonale sans couper un coin bloqué, en s'arrêtant sur un objet.</summary>
-    internal static System.Collections.Generic.HashSet<Cell> Reachable(AdventureMap map, Cell? from = null)
+    /// <summary>
+    /// Les cases qu'un héros atteint depuis le départ, comme le <see cref="Pathfinder"/> : en diagonale sans couper un coin
+    /// bloqué, en s'arrêtant sur un objet ; un portail mène à l'autre (sauf <paramref name="portals"/> faux).
+    /// </summary>
+    internal static System.Collections.Generic.HashSet<Cell> Reachable(AdventureMap map, Cell? from = null, bool portals = true)
     {
         var start = from ?? map.Start;
         var seen = new System.Collections.Generic.HashSet<Cell> { start };
+        var exits = new System.Collections.Generic.HashSet<Cell>();
         var queue = new System.Collections.Generic.Queue<Cell>(seen);
         while (queue.Count > 0)
         {
             var c = queue.Dequeue();
-            if (c != start && map.ObjectAt(c) != null)
+            if (c != start && !exits.Contains(c) && map.ObjectAt(c) is { } obj)
+            {
+                if (portals && obj is Portal portal && seen.Add(portal.Exit))
+                {
+                    exits.Add(portal.Exit);
+                    queue.Enqueue(portal.Exit);
+                }
                 continue;
+            }
             for (int dy = -1; dy <= 1; dy++)
             for (int dx = -1; dx <= 1; dx++)
             {

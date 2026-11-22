@@ -872,6 +872,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   « a close-up on… seen tilted in three-quarter view and filling the picture ».
   Choisis (lot 2, 2026-11-22, « much better ») : bottes cloutées 14, fiole de sève 1, hache du bourreau 5, Plastron des
   Rois 11 (nouveau dessin : sept couronnes gravées, une gemme violette fendue), anneau de cuivre 8, anneau au trèfle 1.
+  Choisis (lot 3) : ceinture du porteur d'eau 1, longue-vue 13, bourse rapiécée 7, cloche de troupeau 12, pavois de fer 9,
+  couronne de bois de cerf 14. **Encore trop attendus** selon l'utilisateur (la longue-vue de cuivre, la bourse, la
+  cloche de vache…) : avant chaque description, écarter la première image que le nom évoque et chercher un détour (une
+  matière étrange, une trace de l'ancien porteur ou du pouvoir, une forme ou un usage inattendu), puis relire le lot
+  entier avant de payer.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

@@ -1555,7 +1555,8 @@ unités, **deux par deux de chaque côté du héros** sur trois rangées (`HeroF
 pages de 2 × 4** (`<` `>`). **Sur la carte**, l'image entière était plus grande que le héros à cheval : une image
 réduite de moitié (`art/artifacts/map/<id>.png`, `reduire.py … 0.5`), ×2 comme le reste ; l'afficher ×1 cassait la
 règle du ×2 (essai montré, écarté). Lot 2 (bottes, fiole, hache et Plastron des Rois refaits, deux anneaux) avec
-`tools/art/artefact.py` (aperçus sur la tuile, installation avec l'image de la carte).
+`tools/art/artefact.py` (aperçus sur la tuile, installation avec l'image de la carte). Lot 3 : les quatre derniers
+mineurs, le pavois de fer et la couronne de bois de cerf.
 
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu

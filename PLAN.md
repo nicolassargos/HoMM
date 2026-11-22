@@ -133,7 +133,8 @@ la couleur du rang sur une lueur.
    réduite de moitié pour la carte ; ×2 partout (la règle) ; PixelLab « pro » par lots de 6 (`tools/art/METHODE.md`).
    ✅ Le lot 1 (2026-11-22) : épée rouillée, bouclier de chêne, bonnet du rebouteux, collier de dents, plastron de cuir,
    cape du colporteur. ✅ Le lot 2 : bottes cloutées, fiole de sève, hache du bourreau, Plastron des Rois (refaits),
-   anneau de cuivre, anneau au trèfle. Reste 34 (`tools/art/artefact.py`).
+   anneau de cuivre, anneau au trèfle. ✅ Le lot 3 : ceinture du porteur d'eau, longue-vue, bourse rapiécée, cloche
+   de troupeau, pavois de fer, couronne de bois de cerf. Reste 28 (`tools/art/artefact.py`).
 3. **Les déplacer à la main** sur l'écran du héros (porter, ranger au coffre, échanger entre deux héros).
 4. **Les pouvoirs uniques**, un par un (la lame qui boit, le bouclier du marais, le masque de l'épouvante, le collier
    aux cent clochettes, la cape d'ombre, les ailes, les bottes de la marée, l'anneau du semeur, le sablier).

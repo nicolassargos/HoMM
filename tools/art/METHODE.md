@@ -832,7 +832,7 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   La même recette pour la ville (2026-11-20) : « a thick bold arrow pointing straight down onto a knight's helmet » et
   « … up into a small castle tower » (le héros est sous la garnison), un lot de 64 chacune, choisies au premier tour
   (`donner-heros` 56, `laisser-garnison` 9).
-- **Artefacts** (2026-11-21, `art/artifacts/<id>.png`, **24 × 24**, ×2 partout : la case de l'écran du héros fait 48) :
+- **Artefacts** (2026-11-21, `art/artifacts/<id>.png`, d'abord **24 × 24**, refaits en 48 : voir plus bas) :
   PixelLab « pro » 24 × 24, **le coffre de la carte (`objects/chest.png`) comme image de style**, 64 candidats par
   artefact (0,08 $). Début de la description, le même pour tous : « single small fantasy item lying alone, drawn in the
   same soft muted painterly pixel art style as the reference treasure chest, thin soft dark outline, gentle shading,
@@ -845,6 +845,26 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   couleur du rang** (argent, bleu, violet) **et un halo plus pâle** (`ArtifactLook`, choix de l'utilisateur parmi quatre
   essais : une lueur derrière, un contour clair, ce contour coloré, un fond plus clair ; la lueur plaisait aussi). Sur la
   carte, l'image seule sur sa lueur.
+  **Refait en 48 (2026-11-22, remplace ce qui précède)** : l'utilisateur trouvait les objets stéréotypés, trop petits
+  et trop « pixellisés » à côté de Heroes 2 (64 × 64 là-bas, mesuré). Ce qui a marché :
+  - **Des objets singuliers**, chacun son idée et son angle (trois quarts, gros plan sur le détail qui compte, l'objet
+    entier déplié et non plié) : la lame mangée de rouille et le chiffon, la hache plantée dans le bouclier, le gros plan
+    sur les crocs, la cape ouverte aux poches pleines.
+  - **PixelLab « pro » à 56 × 56** (16 candidats, 0,08 $), le coffre comme style, et **le candidat choisi en 32 comme
+    modèle** (`chemin.png::the same item design, larger and more detailed, not the style`) : le même dessin, plus fin.
+    Début de la description : « one fantasy item filling the whole square edge to edge, touching the borders, big and
+    readable, drawn in the same soft muted painterly pixel art style as the reference treasure chest, thin soft dark
+    outline, gentle shading, transparent background, an unusual characterful design, not a generic item: ». PixelLab
+    laisse une marge : l'objet fait 45 à 55 ; **ne couper que les bords vides** (jamais réduire), écarter ceux de plus
+    de 54 (la tuile).
+  - **Hors de la carte, une tuile** de la couleur du rang (`ArtifactLook`, 58 × 58 : bord sombre, un pixel libre,
+    dégradé doux de 0,55 à 0,25 fois la couleur, l'ombre de l'objet) : plus claire, elle éclipsait l'objet ; en paliers,
+    elle n'avait que 4 couleurs. La page de choix montre chaque candidat sur sa tuile.
+  - **Sur la carte**, une image réduite de moitié (`reduire.py art/artifacts/<id>.png art/artifacts/map/<id>.png 0.5`),
+    ×2 : l'image entière y était plus grande que le héros ; ×1 casse la règle du ×2. Vérifier chacune à l'œil (les
+    crocs et la lame fine perdent un peu) ; en refaire une petite si elle devient de la bouillie.
+  Choisis (lot 1) : épée rouillée 12, bouclier de chêne 4, bonnet du rebouteux 4, collier de dents 8, plastron de cuir
+  12, cape du colporteur 5.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

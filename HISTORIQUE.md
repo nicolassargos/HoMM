@@ -1543,6 +1543,19 @@ L'IA va vers un artefact deux fois plus volontiers que vers un tas. Sur la carte
 couleur du rang (argent, bleu, violet) ; sous l'artefact, avec ou sans image, une lueur de cette couleur qui respire.
 `--center=artifact`, `major-artifact`, `relic`.
 
+#### Les images des artefacts (2026-11-21 et 22, branches `artefacts-images`, `artefacts-images-2`)
+D'abord 24 × 24 (bottes cloutées, fiole de sève, hache du bourreau) avec un contour de la couleur du rang. L'utilisateur
+les trouvait stéréotypées, trop petites et trop « pixellisées » à côté de celles de Heroes 2 : celles-ci font **64 × 64**
+(mesuré sur la planche), soit deux fois plus de pixels de côté pour une taille de pixel à l'écran semblable. Maquettes de
+l'écran du héros à 32, 48 et 64 : **48 choisi**. Les objets font maintenant 45 à 54 pixels (générés à 56 : PixelLab laisse
+une marge, on ne coupe que les bords vides). Hors de la carte, chacun est posé **sur une tuile de 58 de la couleur de son
+rang** (`ArtifactLook` : un bord sombre, un pixel libre, un dégradé doux de 0,55 à 0,25 fois la couleur, l'ombre de
+l'objet ; l'utilisateur a choisi la plus sombre de quatre), ×2 : 116 pixels. L'écran du héros : emplacements de 78
+unités, **deux par deux de chaque côté du héros** sur trois rangées (`HeroFigure.SlotPosition`), le **coffre en deux
+pages de 2 × 4** (`<` `>`). **Sur la carte**, l'image entière était plus grande que le héros à cheval : une image
+réduite de moitié (`art/artifacts/map/<id>.png`, `reduire.py … 0.5`), ×2 comme le reste ; l'afficher ×1 cassait la
+règle du ×2 (essai montré, écarté).
+
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu
   à 64 × 64, la mine d'or comme style. Choisis : autels attaque 10, défense 8, puissance 14, savoir 9 (réduits à 32),

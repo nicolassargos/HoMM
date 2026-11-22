@@ -129,9 +129,11 @@ mineurs seuls, les majeurs et les reliques gardés ; un coffre sur cinq cache un
 la couleur du rang sur une lueur.
 **Reste**, dans l'ordre proposé :
 1. Les trouver ailleurs : dans les cavernes et le Donjon (quand ils existeront) ; peut-être la Chance sur les coffres.
-2. **Les images** : une de **24 × 24** par artefact, ×2 partout (la règle) ; PixelLab « pro », le coffre de la carte
-   comme style (`tools/art/METHODE.md`). ✅ Les 3 premières (2026-11-21) : bottes cloutées, fiole de sève, hache du
-   bourreau. Reste les 43 autres, dont un nouveau Plastron des Rois (l'actuel est en 32 × 32, l'ancien style).
+2. **Les images** : une de **48 environ** par artefact, sur une tuile de la couleur du rang hors de la carte, et une
+   réduite de moitié pour la carte ; ×2 partout (la règle) ; PixelLab « pro » par lots de 6 (`tools/art/METHODE.md`).
+   ✅ Le lot 1 (2026-11-22) : épée rouillée, bouclier de chêne, bonnet du rebouteux, collier de dents, plastron de cuir,
+   cape du colporteur. Reste les 40 autres, dont à refaire en 48 : bottes cloutées, fiole de sève, hache du bourreau
+   (en 24, l'ancienne taille) et le Plastron des Rois (en 32, l'ancien style).
 3. **Les déplacer à la main** sur l'écran du héros (porter, ranger au coffre, échanger entre deux héros).
 4. **Les pouvoirs uniques**, un par un (la lame qui boit, le bouclier du marais, le masque de l'épouvante, le collier
    aux cent clochettes, la cape d'ombre, les ailes, les bottes de la marée, l'anneau du semeur, le sablier).
@@ -140,9 +142,10 @@ la couleur du rang sur une lueur.
 ✅ **L'écran du héros** est prêt pour eux (2026-11-09, images d'attente) : à gauche le portrait et les
 caractéristiques ; trois onglets Équipement, Compétences, Magie. Équipement : le héros en pied, **11 emplacements**
 reliés par un trait à l'endroit où ils se portent (tête, cou, cape, torse, arme, bouclier, deux anneaux, ceinture,
-pieds, divers), un **coffre de 16 places**. **Une image de 24 × 24 par artefact** sert partout, ×2 (la
-case de 48 de l'écran du héros, posé sur la carte avec une lueur dessous, la fenêtre « Un artefact ! ») ; le panneau du
-héros ne montre que leur nombre (« Art 3 », la liste au survol).
+pieds, divers), deux par deux de chaque côté du héros, un **coffre de 16 places** en deux pages. Une image d'environ
+48 par artefact, ×2, sur une tuile de la couleur de son rang (l'écran du héros, la fenêtre « Un artefact ! ») ; sur la
+carte, une image réduite de moitié avec une lueur dessous ; le panneau du héros ne montre que leur nombre (« Art 3 », la
+liste au survol).
 **Reste** : déplacer les artefacts à la main ; les images (41 héros en pied, une icône par compétence : session
 images) ; les onglets en marque-pages (à l'essai) ; la taille de l'écran, à régler avec la maquette
 `art-candidats/en-cours/maquettes/heros.html`.

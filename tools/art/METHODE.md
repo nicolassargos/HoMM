@@ -885,6 +885,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   « old medieval soft leather boots… slabs of rough natural cork bark strapped under the soles by crossed hemp cords like
   old sandals… nothing modern, no rubber sole ». Les objets ronds et larges (médaillon, amulette) sortent souvent trop
   grands pour la tuile : moins de candidats sur la page.
+  **Lot 5** (2026-11-22) : choisis anneau des braises 16 (lave noire fendue, une braise), ceinture de la meute 3 (peau de
+  loup, boucle en tête). Refaits sur les remarques de l'utilisateur : les bottes du coureur des bois en **sandales**
+  (semelle d'écorce, liens de lierre tressé : 3) ; la pierre de foudre « ne faisait pas pierre » (une fulgurite) :
+  « a rough heavy grey field stone… the stone is the main subject », fente bleue et fil de cuivre (13) ; l'anneau du
+  ressac : la vague seule « not crispy », puis le coquillage aux contours nets « on ne voit pas l'eau » : une **vague
+  d'eau bleue qui sort du coquillage** et fait l'anneau (2) ; la corne d'appel : sculptée, on ne voyait pas une corne ;
+  vue de côté toute simple, « trop banale » ; gardée : la **vieille corne de vétéran**, pavillon brûlé, lambeau de
+  bannière rouge (5). La corne en gueule de loup sortait comme un loup entier. Leçon : la chose qui porte le pouvoir
+  (l'eau, la pierre) doit se voir au premier coup d'œil ; un détour qui cache la forme de l'objet ne marche pas.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

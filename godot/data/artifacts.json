@@ -24,7 +24,7 @@
     { "id": "cape-corbeau", "name": "Cape en plumes de corbeau", "slot": "Shoulders", "rank": "Major", "vision": 3, "landMovement": 10 },
     { "id": "bottes-arpenteur", "name": "Bottes de l'arpenteur", "slot": "Feet", "rank": "Major", "landMovement": 25 },
     { "id": "bottes-liege", "name": "Bottes à semelles de liège", "slot": "Feet", "rank": "Major", "seaMovement": 50 },
-    { "id": "bottes-coureur", "name": "Bottes du coureur des bois", "slot": "Feet", "rank": "Major", "noTerrainPenalty": true },
+    { "id": "bottes-coureur", "name": "Sandales du coureur des bois", "slot": "Feet", "rank": "Major", "noTerrainPenalty": true },
     { "id": "anneau-braises", "name": "Anneau des braises", "slot": "Ring", "rank": "Major", "school": "feu", "schoolBonus": 50 },
     { "id": "anneau-ressac", "name": "Anneau du ressac", "slot": "Ring", "rank": "Major", "school": "eau", "schoolBonus": 50 },
     { "id": "ceinture-meute", "name": "Ceinture du chef de meute", "slot": "Belt", "rank": "Major", "charisma": 4, "morale": 1 },

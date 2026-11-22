@@ -865,6 +865,13 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
     crocs et la lame fine perdent un peu) ; en refaire une petite si elle devient de la bouillie.
   Choisis (lot 1) : épée rouillée 12, bouclier de chêne 4, bonnet du rebouteux 4, collier de dents 8, plastron de cuir
   12, cape du colporteur 5.
+  **L'outil** (depuis le lot 2) : `python -I tools/art/artefact.py apercus <dossier des candidats>` pose chaque candidat
+  sur la tuile de son rang (`<dossier>-tuile/`, pour la page de choix ; les trop grands sont laissés de côté), et
+  `… installer <id> <candidat.png>` coupe les bords vides et écrit l'image et sa version de la carte. Sans choix en 32,
+  l'image d'avant de l'artefact sert de modèle quand l'utilisateur l'avait aimée ; un objet tout petit (un anneau) :
+  « a close-up on… seen tilted in three-quarter view and filling the picture ».
+  Choisis (lot 2, 2026-11-22, « much better ») : bottes cloutées 14, fiole de sève 1, hache du bourreau 5, Plastron des
+  Rois 11 (nouveau dessin : sept couronnes gravées, une gemme violette fendue), anneau de cuivre 8, anneau au trèfle 1.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

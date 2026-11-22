@@ -877,6 +877,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   cloche de vache…) : avant chaque description, écarter la première image que le nom évoque et chercher un détour (une
   matière étrange, une trace de l'ancien porteur ou du pouvoir, une forme ou un usage inattendu), puis relire le lot
   entier avant de payer.
+  **Lot 4** (2026-11-22) : les six idées d'abord montrées à l'utilisateur en quelques mots (l'objet attendu écarté, un
+  détour lié à l'effet), puis générées. Choisis : médaillon de l'œil ouvert 12 (un œil d'agate dans des pages de livre
+  durcies), amulette de glaise 6 (argile crue, pousse, cordon de racine), cotte d'écailles de carpe 12, cape en plumes de
+  corbeau 6 (capuche en crâne de corbeau), bottes de l'arpenteur 15, bottes à semelles de liège 16. Les premières bottes
+  de liège faisaient **modernes** (une semelle épaisse et régulière, comme des chaussures de marche) : refaites en
+  « old medieval soft leather boots… slabs of rough natural cork bark strapped under the soles by crossed hemp cords like
+  old sandals… nothing modern, no rubber sole ». Les objets ronds et larges (médaillon, amulette) sortent souvent trop
+  grands pour la tuile : moins de candidats sur la page.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

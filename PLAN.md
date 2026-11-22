@@ -132,8 +132,8 @@ la couleur du rang sur une lueur.
 2. **Les images** : une de **48 environ** par artefact, sur une tuile de la couleur du rang hors de la carte, et une
    réduite de moitié pour la carte ; ×2 partout (la règle) ; PixelLab « pro » par lots de 6 (`tools/art/METHODE.md`).
    ✅ Le lot 1 (2026-11-22) : épée rouillée, bouclier de chêne, bonnet du rebouteux, collier de dents, plastron de cuir,
-   cape du colporteur. Reste les 40 autres, dont à refaire en 48 : bottes cloutées, fiole de sève, hache du bourreau
-   (en 24, l'ancienne taille) et le Plastron des Rois (en 32, l'ancien style).
+   cape du colporteur. ✅ Le lot 2 : bottes cloutées, fiole de sève, hache du bourreau, Plastron des Rois (refaits),
+   anneau de cuivre, anneau au trèfle. Reste 34 (`tools/art/artefact.py`).
 3. **Les déplacer à la main** sur l'écran du héros (porter, ranger au coffre, échanger entre deux héros).
 4. **Les pouvoirs uniques**, un par un (la lame qui boit, le bouclier du marais, le masque de l'épouvante, le collier
    aux cent clochettes, la cape d'ombre, les ailes, les bottes de la marée, l'anneau du semeur, le sablier).

@@ -11,7 +11,7 @@ namespace HoMM.Game;
 /// L'écran du héros (refait d'après la proposition B choisie par l'utilisateur, 2026-11-09), une grande fenêtre
 /// par-dessus la carte. À gauche, toujours visibles : le portrait, le niveau, l'expérience, le mouvement, les
 /// caractéristiques, le moral et la chance. À droite, trois onglets : <b>Équipement</b> (le héros en pied, ses 11
-/// emplacements reliés par un trait à l'endroit où ils se portent, et un coffre de 16 places), <b>Compétences</b> (un
+/// emplacements reliés par un trait à l'endroit où ils se portent, et un coffre de 16 places, 8 par page), <b>Compétences</b> (un
 /// sous-onglet par arbre ; une icône par compétence, un clic y dépense un point) et <b>Magie</b> (les points de sort
 /// et les sorts du livre). En bas, l'armée. S'ouvre d'un clic sur le portrait du panneau ou d'un double clic dans la
 /// liste des héros ; « --hero-tab=skills » ou « magic » ouvre cet onglet (captures).
@@ -44,6 +44,14 @@ public partial class HeroScreen : ScreenWindow
     private readonly List<Panel> _slots = new();
     private readonly List<Panel> _chest = new();
     private string? _equipmentKey;
+
+    // le coffre : deux colonnes de quatre places, deux pages
+    private const int ChestPerPage = 8;
+    private const int ChestPages = Equipment.ChestSize / ChestPerPage;
+    private int _chestPage;
+    private Button _chestPrevious = null!;
+    private Button _chestNext = null!;
+    private Label _chestPageText = null!;
 
     // Compétences
     private SkillTree _tree = SkillTree.Aventure;
@@ -196,19 +204,40 @@ public partial class HeroScreen : ScreenWindow
             _figure.AddChild(slot);
             _slots.Add(slot);
         }
-        // le coffre : 4 × 4 places de la même taille
-        const float chestX = 412, chestY = 34, step = HeroFigure.SlotSize + 6;
+        // le coffre : une page de 2 × 4 places de la même taille, à droite du héros
+        const float chestX = 484, chestY = 34, step = HeroFigure.SlotSize + HeroFigure.SlotGap;
         var header = At(MakeLabel(Texts.ChestHeader, 15, SoftTextColor), chestX, 8);
         header.TooltipText = Texts.ChestTooltip;
         header.MouseFilter = Control.MouseFilterEnum.Stop;
         page.AddChild(header);
-        for (int i = 0; i < Equipment.ChestSize; i++)
+        for (int i = 0; i < ChestPerPage; i++)
         {
-            var place = Slot(new Vector2(chestX + i % 4 * step, chestY + i / 4 * step), null);
+            var place = Slot(new Vector2(chestX + i % 2 * step, chestY + i / 2 * step), null);
             place.TooltipText = Texts.ChestTooltip;
             page.AddChild(place);
             _chest.Add(place);
         }
+        // sous les places : la page précédente, le numéro de la page, la suivante
+        const float arrowsY = chestY + 4 * step + 4, arrowWidth = 40, width = 2 * HeroFigure.SlotSize + HeroFigure.SlotGap;
+        _chestPrevious = FixedButton("<", 16, V(arrowWidth, 28));
+        _chestPrevious.Position = V(chestX, arrowsY);
+        _chestPrevious.Pressed += () => TurnChestPage(-1);
+        page.AddChild(_chestPrevious);
+        _chestNext = FixedButton(">", 16, V(arrowWidth, 28));
+        _chestNext.Position = V(chestX + width - arrowWidth, arrowsY);
+        _chestNext.Pressed += () => TurnChestPage(1);
+        page.AddChild(_chestNext);
+        _chestPageText = At(MakeLabel("", 15, SoftTextColor), chestX + arrowWidth, arrowsY + 4);
+        _chestPageText.HorizontalAlignment = HorizontalAlignment.Center;
+        _chestPageText.Size = V(width - 2 * arrowWidth, 20);
+        page.AddChild(_chestPageText);
+    }
+
+    private void TurnChestPage(int by)
+    {
+        _chestPage = Math.Clamp(_chestPage + by, 0, ChestPages - 1);
+        if (_hero != null)
+            RefreshEquipment(_hero);
     }
 
     /// <summary>Un emplacement vide (en unités) ; <paramref name="name"/> s'écrit dedans en attendant un artefact.</summary>
@@ -238,7 +267,7 @@ public partial class HeroScreen : ScreenWindow
             return;
         if (ArtifactLook.Image(artifact) is { } image)
         {
-            var size = image.GetSize() * 2; // l'artefact de 24 pixels et son contour, ×2 (la règle du pixel art)
+            var size = image.GetSize() * 2; // la tuile de l'artefact, ×2 (la règle du pixel art) : elle remplit l'emplacement
             slot.AddChild(Picture(image, ((slot.Size - size) / 2).Floor(), size));
         }
         else if (slot.GetNodeOrNull<Label>("Name") is { } label)
@@ -250,7 +279,7 @@ public partial class HeroScreen : ScreenWindow
 
     private void RefreshEquipment(Hero hero)
     {
-        string key = $"{hero.Id}:{string.Join(",", hero.Artifacts.Select(a => a.Id))}";
+        string key = $"{hero.Id}:{_chestPage}:{string.Join(",", hero.Artifacts.Select(a => a.Id))}";
         if (key == _equipmentKey)
             return;
         _equipmentKey = key;
@@ -262,9 +291,13 @@ public partial class HeroScreen : ScreenWindow
             Fill(_slots[i], worn[i]);
             _slots[i].TooltipText = Texts.SlotTooltip(Equipment.Slots[i], worn[i]);
         }
+        _chestPageText.Text = $"{_chestPage + 1} / {ChestPages}";
+        _chestPrevious.Disabled = _chestPage == 0;
+        _chestNext.Disabled = _chestPage == ChestPages - 1;
         for (int i = 0; i < _chest.Count; i++)
         {
-            var artifact = i < chest.Count ? chest[i] : null;
+            int index = _chestPage * ChestPerPage + i;
+            var artifact = index < chest.Count ? chest[index] : null;
             Fill(_chest[i], artifact);
             _chest[i].TooltipText = artifact != null ? Texts.ArtifactTooltip(artifact) : Texts.ChestTooltip;
         }

@@ -24,7 +24,7 @@ public class VillesIATests
             .First(t => t.Footprint.All(f => state.Map.InBounds(f) && state.Map.IsPassable(f) && state.Map.ObjectAt(f) == null && f != hero.Position)
                 && rival.Fog.IsExplored(t.Position) && Pathfinder.FindPath(state.Map, hero.Position, t.Approach) != null);
         town.AddBuilding(TestData.Data.Buildings.Get("salle-village"));
-        town.AddBuilding(TestData.Data.Buildings.Get("corps-de-garde"));
+        town.AddBuilding(TestData.Data.Buildings.Get("ferme"));
         state.Map.AddObject(town);
         ComputerPlayer.PlayTurn(state);
         Assert.Equal(rival, town.Owner);

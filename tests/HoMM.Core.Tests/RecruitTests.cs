@@ -16,7 +16,7 @@ public class RecruitTests
         var cell = heroInside ? hero.Position : hero.Position.Offset(2, 0);
         var town = new Town(cell, "Testville", "chateau", TestData.Data);
         town.AddBuilding(TestData.Data.Buildings.Get("salle-village"));
-        town.AddBuilding(TestData.Data.Buildings.Get("corps-de-garde"));
+        town.AddBuilding(TestData.Data.Buildings.Get("ferme"));
         town.SetOwner(state.Players[0]);
         state.Map.AddObject(town);
         return (state, town, state.Players[0]);

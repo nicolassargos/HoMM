@@ -37,7 +37,7 @@ public class VilleMortsVivantsTests
         Assert.Subset(ids, new[] { "salle-village", "hotel-ville", "taverne", "guilde-mages-1" }.ToHashSet());
         Assert.Equal(new[] { "ossuaire", "cimetiere", "etang-noyees", "antre-araignees", "crypte", "tour-liche", "charnier" },
             Enumerable.Range(1, 7).Select(t => castle.DwellingOfTier(t)!.Id));
-        Assert.DoesNotContain("corps-de-garde", ids); // pas les habitations du Château
+        Assert.DoesNotContain("ferme", ids); // pas les habitations du Château
     }
 
     [Fact]

@@ -2083,7 +2083,7 @@ public sealed class MapGenerator
 
     /// <summary>
     /// Le château de départ d'un joueur : l'entrée sur son départ, les murs juste au-dessus (sur l'herbe dégagée autour du
-    /// départ, sans route sous les murs), la salle du village et le corps de garde, sans garnison. La partie le donne au
+    /// départ, sans route sous les murs), la salle du village et la ferme, sans garnison. La partie le donne au
     /// joueur (voir <see cref="GameState"/>).
     /// </summary>
     private void PlaceStartingTown(GameData data, Cell start, string name, string faction)

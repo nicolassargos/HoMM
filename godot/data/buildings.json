@@ -32,8 +32,8 @@
     },
     { "id": "taverne",             "name": "Taverne",                "faction": "*"      , "cost": { "Gold": 500, "Wood": 5 },                  "requires": [],                                      "tavern": true, "view": [380, 130, 130, 100] },
 
-    { "id": "corps-de-garde",      "name": "Corps de garde",         "faction": "chateau", "cost": { "Gold": 500, "Ore": 10 },                  "requires": [],                                      "dwelling": "paysan", "view": [90, 210, 130, 100] },
-    { "id": "tour-archers",        "name": "Tour des archers",       "faction": "chateau", "cost": { "Gold": 1000, "Wood": 5, "Ore": 5 },       "requires": ["corps-de-garde"],                      "dwelling": "archer", "view": [250, 200, 90, 150] },
+    { "id": "ferme",               "name": "Ferme",                  "faction": "chateau", "cost": { "Gold": 500, "Ore": 10 },                  "requires": [],                                      "dwelling": "paysan", "view": [90, 210, 130, 100] },
+    { "id": "tour-archers",        "name": "Tour des archers",       "faction": "chateau", "cost": { "Gold": 1000, "Wood": 5, "Ore": 5 },       "requires": ["ferme"],                               "dwelling": "archer", "view": [250, 200, 90, 150] },
     { "id": "tour-griffons",       "name": "Tour des griffons",      "faction": "chateau", "cost": { "Gold": 1000, "Ore": 5 },                  "requires": ["tour-archers"],                        "dwelling": "griffon", "view": [770, 150, 110, 150] },
     { "id": "ecuries",             "name": "Écuries",                "faction": "chateau", "cost": { "Gold": 2000, "Ore": 5 },                  "requires": ["tour-archers"],                        "dwelling": "cavalier", "view": [910, 240, 170, 100] },
     { "id": "monastere",           "name": "Monastère",              "faction": "chateau", "cost": { "Gold": 3000, "Wood": 5, "Ore": 5, "Gems": 2 }, "requires": ["ecuries"],                         "dwelling": "moine", "view": [1110, 110, 130, 130] },

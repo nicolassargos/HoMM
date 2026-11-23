@@ -910,6 +910,13 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   image de modèle. Ajouter deux pointes à la main derrière la couronne n'allait pas (les flammes doivent être au bout
   des dents de la couronne même) ; l'utilisateur a choisi parmi toutes les couronnes et renommé l'artefact. Ne pas
   promettre un nombre précis dans une image.
+  **Lot 8** (2026-11-23, les quatre dernières reliques) : anneau du semeur c3 **avec des étincelles ajoutées à la main**
+  (demande de l'utilisateur : quatre essais de petites étoiles dorées en croix, blanc au centre, jaune puis or sur les
+  branches, posées dans les vides ; gratuit, le dessin gardé tel quel ; choisi : le 2, beaucoup d'étincelles),
+  ceinture du Sauveur c16 (velours rouge, ruban de bannière), bourse du roi avare b6 (une bourse au visage avide, des
+  pièces pour dents), sablier à l'envers b13 (bleu, lumineux). Le sable « qui monte » ne se voit pas à cette taille.
+  Une petite retouche (ajouter un détail sur un candidat aimé) se fait à la main ; une forme (les dents d'une couronne)
+  ne se rajoute pas.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

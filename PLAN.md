@@ -46,6 +46,13 @@ l'académie de chaque faction, le livre ouvert, la page qui tourne), une image e
   (`Simulation_force_ou_magie`).
 - **Plus tard** : versions « de masse », un 5e niveau (Armageddon, élémentaires, morts relevés), sorts de la carte
   (portail de ville, porte dimensionnelle, vision…). Écartés pour l'instant : berserk, hypnotisme, paralysie.
+- **Idées de l'utilisateur (2026-11-23)**, à concevoir avec la session règles :
+  - au combat : **mur de feu** (feu : des cases qui brûlent qui les traverse, sans arrêter les tirs), **douves** (eau :
+    une créature qui y entre perd la fin de son tour), **séisme** (terre : abîme tous les murs, aux sièges ; déjà
+    prévu avec les murs) ;
+  - sur la carte : **appeler un bateau** (eau : au rivage le plus proche, s'il est en vue du héros), **vent porteur** (air :
+    le mouvement du jour doublé), **porte dimensionnelle** (une case en vue où le héros peut aller), **retour à la
+    ville** (la ville du joueur la plus proche) ; les deux derniers rejoignent ceux prévus plus haut.
 
 ### Les factions
 **8 factions jouables + 1 neutre** (décidé le 2026-11-08). Chacune a deux ressources rares : la **principale** pour
@@ -137,6 +144,12 @@ la couleur du rang sur une lueur.
    aux cent clochettes, la cape d'ombre, les ailes, les bottes de la marée, l'anneau du semeur, le sablier).
 5. **Le marchand d'artefacts** (un bâtiment de ville : acheter et vendre).
 6. L'IA : ramasser, porter les meilleurs, payer le marchand.
+7. **De nouveaux artefacts** (idées de l'utilisateur, 2026-11-23) : la **longue-vue des tours** (montre les alentours
+   de toutes les tours d'observation de la carte) ; l'**œil du recenseur** (la composition exacte de toutes les armées
+   vues) ; l'**amplificateur de nécromancie** (+10 ou +20 %) ; un **cycle d'artefacts à double tranchant** (deux
+   caractéristiques beaucoup plus hautes, une autre plus basse) ; le **chariot** (charger des troupes d'une ville
+   choisie et les amener au héros : peut-être trop complexe pour un artefact, plutôt un bâtiment ou une caravane, à
+   creuser).
 ✅ **L'écran du héros** est prêt pour eux (2026-11-09, images d'attente) : à gauche le portrait et les
 caractéristiques ; trois onglets Équipement, Compétences, Magie. Équipement : le héros en pied, **11 emplacements**
 reliés par un trait à l'endroit où ils se portent (tête, cou, cape, torse, arme, bouclier, deux anneaux, ceinture,

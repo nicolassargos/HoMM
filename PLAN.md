@@ -129,18 +129,9 @@ mineurs seuls, les majeurs et les reliques gardés ; un coffre sur cinq cache un
 la couleur du rang sur une lueur.
 **Reste**, dans l'ordre proposé :
 1. Les trouver ailleurs : dans les cavernes et le Donjon (quand ils existeront) ; peut-être la Chance sur les coffres.
-2. **Les images** : une de **48 environ** par artefact, sur une tuile de la couleur du rang hors de la carte, et une
-   réduite de moitié pour la carte ; ×2 partout (la règle) ; PixelLab « pro » par lots de 6 (`tools/art/METHODE.md`).
-   ✅ Le lot 1 (2026-11-22) : épée rouillée, bouclier de chêne, bonnet du rebouteux, collier de dents, plastron de cuir,
-   cape du colporteur. ✅ Le lot 2 : bottes cloutées, fiole de sève, hache du bourreau, Plastron des Rois (refaits),
-   anneau de cuivre, anneau au trèfle. ✅ Le lot 3 : ceinture du porteur d'eau, longue-vue, bourse rapiécée, cloche
-   de troupeau, pavois de fer, couronne de bois de cerf. ✅ Le lot 4 : médaillon de l'œil ouvert, amulette de glaise,
-   cotte d'écailles de carpe, cape en plumes de corbeau, bottes de l'arpenteur, bottes à semelles de liège. ✅ Le lot 5 : sandales du coureur des bois (les bottes devenues sandales), anneau
-   des braises, anneau du ressac, ceinture de la meute, pierre de foudre, corne d'appel. ✅ Le lot 6 : dé en os de
-   géant, brouette sans fond, creuset de l'alchimiste, grimoire en peau d'anguille, la lame qui boit, bouclier du
-   marais pétrifié. ✅ Le lot 7 : masque de l'épouvante, couronne aux quatre pointes (la couronne aux sept pointes
-   renommée), collier aux cent clochettes, cape d'ombre, ailes de cuir cousues, bottes de la marée. Reste 4
-   (`tools/art/artefact.py`).
+2. ✅ **Les images** des 46 artefacts (2026-11-22 et 23, huit lots, branches `artefacts-lot1` à `artefacts-lot8`) :
+   environ 48 px sur une tuile de la couleur du rang, une image réduite de moitié sur la carte, ×2 (détail dans
+   `HISTORIQUE.md`, méthode dans `tools/art/METHODE.md`, outil `tools/art/artefact.py`).
 3. **Les déplacer à la main** sur l'écran du héros (porter, ranger au coffre, échanger entre deux héros).
 4. **Les pouvoirs uniques**, un par un (la lame qui boit, le bouclier du marais, le masque de l'épouvante, le collier
    aux cent clochettes, la cape d'ombre, les ailes, les bottes de la marée, l'anneau du semeur, le sablier).

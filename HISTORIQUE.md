@@ -1563,6 +1563,8 @@ Lot 6 : les quatre derniers majeurs et deux reliques ; un premier essai jugé «
 descriptions différentes par artefact** (angle, couleur, forme) : 48 candidats variés, « much better ».
 Lot 7 : six reliques. La **Couronne aux sept pointes** devient la **Couronne aux quatre pointes** (nom affiché seul,
 l'identifiant `couronne-sept` gardé) : PixelLab ne dessine jamais sept pointes ; quatre comme ses +4 et +4.
+Lot 8 (2026-11-23) : les quatre dernières reliques (anneau du semeur, ceinture du Sauveur, bourse du roi avare, sablier
+à l'envers) : **les 46 artefacts ont leur image**.
 
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu

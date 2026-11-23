@@ -1132,7 +1132,7 @@ public partial class Main : Node2D
             AbandonedShip ship => ship.Crew,
             HeroDefender defender => defender.Hero.Army,
             _ => new Army(),
-        });
+        }, started.Hero.Owner.SeesExactArmies);
         var terrain = _state.Map.GetTerrain(started.Hero.Position);
         void Tactical()
         {

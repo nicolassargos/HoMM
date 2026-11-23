@@ -288,7 +288,8 @@ public sealed partial class GameState
         try { skeleton = Creatures.Get(Talents.RaisedCreature); }
         catch (KeyNotFoundException) { return; }
         int dead = killed.Sum(s => s.Count);
-        int raised = (int)(dead * (Talents.NecromancyBase + Talents.NecromancyPerLevel * hero.Level));
+        int raised = (int)(dead * (Talents.NecromancyBase + Talents.NecromancyPerLevel * hero.Level
+            + hero.ArtifactSum(a => a.Necromancy) / 100.0));
         // pas plus que ce que le charisme commande pour une troupe de squelettes
         int already = hero.Army.Stacks.Where(s => s.Type == skeleton).Select(s => s.Count).DefaultIfEmpty(0).First();
         int room = hero.CommandLimit / Math.Max(1, skeleton.CommandCost) - already;
@@ -432,6 +433,9 @@ public sealed partial class GameState
             if (Map.ObjectAt(hero.Position) is Town { MageGuildLevel: > 0 } town && town.Position == hero.Position && town.Owner == hero.Owner)
                 hero.SpellPoints = Math.Max(hero.SpellPoints, hero.MaxSpellPoints);
         }
+
+        foreach (var player in Players)
+            RevealTowers(player);
 
         bool newWeek = Day % 7 == 0;
         foreach (var town in Towns)
@@ -579,12 +583,23 @@ public sealed partial class GameState
         return true;
     }
 
+    /// <summary>La Longue-vue des guetteurs : les alentours de toutes les tours d'observation, comme si on y montait.</summary>
+    private void RevealTowers(Player player)
+    {
+        if (!player.SeesFromTowers)
+            return;
+        foreach (var tower in Map.Objects.OfType<ObservationTower>())
+            player.Fog.Reveal(tower.Position, ObservationTower.Radius);
+    }
+
     /// <summary>Le héros visite l'objet de la case où il vient d'arriver (s'il y en a un).</summary>
     private void Visit(Hero hero, Cell cell)
     {
         if (Map.ObjectAt(cell) is { } obj and not MonsterGuard)
         {
             var visit = obj.Visit(hero);
+            if (visit is ArtifactFound)
+                RevealTowers(hero.Owner);
             if (visit is TownCaptured captured)
             {
                 hero.Owner.Statistics.TownsCaptured++;
@@ -1241,6 +1256,7 @@ public sealed partial class GameState
         }
         Map.Treasure = null;
         hero.Equip(artifact);
+        RevealTowers(hero.Owner);
         if (hero.Owner == Players[0])
             _treasureFound = true;
         Emit(new TreasureDug(hero, artifact));

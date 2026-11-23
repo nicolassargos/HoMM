@@ -623,14 +623,14 @@ public partial class Hud : CanvasLayer
         var obj = _state.Map.OccupantAt(cell);
         // un héros adverse sur la case : son nom, sa couleur et le danger de l'attaquer (son bonus compte)
         if (_state.EnemyHeroAt(cell, Viewer) is { } enemy)
-            return $"{line}\n{Join(Texts.HeroWithColor(enemy), Prediction(enemy.Army, enemy))}";
+            return $"{line}\n{Join(Join(Texts.HeroWithColor(enemy), Exact(enemy.Army)), Prediction(enemy.Army, enemy))}";
         string? second = obj switch
         {
             Mine mine => $"{Texts.MineName(mine)} ({(mine.Owner == Viewer ? Texts.Owned : mine.Owner != null ? Texts.EnemyOwned : Texts.Free)})",
-            MonsterGuard guard => Join(Texts.ObjectName(guard), Prediction(guard.Army)),
+            MonsterGuard guard => Join(Viewer.SeesExactArmies ? Texts.ExactArmy(guard.Army) : Texts.ObjectName(guard), Prediction(guard.Army)),
             Town town when town.Owner == Viewer => $"{town.Name} ({Texts.Owned})",
             Town town => Join($"{town.Name} ({(town.Owner != null ? Texts.EnemyOwned : Texts.Neutral)})",
-                town.Garrison.IsEmpty ? "" : Texts.GarrisonOf(Prediction(town.Garrison))),
+                town.Garrison.IsEmpty ? "" : Join(Texts.GarrisonOf(Prediction(town.Garrison)), Exact(town.Garrison))),
             null => null,
             _ => Texts.ObjectName(obj) + Texts.SiteState(obj, ShownHero, Viewer),
         };
@@ -638,6 +638,9 @@ public partial class Hud : CanvasLayer
             second = Join(second ?? "", Texts.Guarded);
         return second is { Length: > 0 } ? $"{line}\n{Texts.Capitalize(second)}" : line;
     }
+
+    /// <summary>Avec l'Œil du recenseur : l'armée troupe par troupe, nombres exacts ; sinon rien.</summary>
+    private string Exact(Army army) => Viewer.SeesExactArmies && !army.IsEmpty ? Texts.ExactArmy(army) : "";
 
     private static string Join(string a, string b) => a.Length == 0 ? b : b.Length == 0 ? a : $"{a} · {b}";
 

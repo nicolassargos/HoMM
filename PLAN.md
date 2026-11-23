@@ -144,12 +144,10 @@ la couleur du rang sur une lueur.
    aux cent clochettes, la cape d'ombre, les ailes, les bottes de la marée, l'anneau du semeur, le sablier).
 5. **Le marchand d'artefacts** (un bâtiment de ville : acheter et vendre).
 6. L'IA : ramasser, porter les meilleurs, payer le marchand.
-7. **De nouveaux artefacts** (idées de l'utilisateur, 2026-11-23) : la **longue-vue des tours** (montre les alentours
-   de toutes les tours d'observation de la carte) ; l'**œil du recenseur** (la composition exacte de toutes les armées
-   vues) ; l'**amplificateur de nécromancie** (+10 ou +20 %) ; un **cycle d'artefacts à double tranchant** (deux
-   caractéristiques beaucoup plus hautes, une autre plus basse) ; le **chariot** (charger des troupes d'une ville
-   choisie et les amener au héros : peut-être trop complexe pour un artefact, plutôt un bâtiment ou une caravane, à
-   creuser).
+7. ✅ **Sept nouveaux artefacts** (idées de l'utilisateur, 2026-11-23, branche `idees-artefacts-sorts`) : la longue-vue
+   des guetteurs, l'œil du recenseur, la lanterne des âmes et quatre talismans à double tranchant (détail dans
+   `HISTORIQUE.md`). **Reste** : leurs images ; le **chariot** (charger des troupes d'une ville choisie et les amener au
+   héros : plutôt un bâtiment ou une caravane qu'un artefact, à creuser).
 ✅ **L'écran du héros** est prêt pour eux (2026-11-09, images d'attente) : à gauche le portrait et les
 caractéristiques ; trois onglets Équipement, Compétences, Magie. Équipement : le héros en pied, **11 emplacements**
 reliés par un trait à l'endroit où ils se portent (tête, cou, cape, torse, arme, bouclier, deux anneaux, ceinture,

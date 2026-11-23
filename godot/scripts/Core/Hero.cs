@@ -223,10 +223,11 @@ public sealed class Hero
     internal void Equip(ArtifactType artifact)
     {
         Artifacts.Add(artifact);
-        Attack += artifact.Attack;
-        Defense += artifact.Defense;
-        Power += artifact.Power;
-        Knowledge += artifact.Knowledge;
+        // les talismans à double tranchant baissent une caractéristique, jamais sous 0
+        Attack = System.Math.Max(0, Attack + artifact.Attack);
+        Defense = System.Math.Max(0, Defense + artifact.Defense);
+        Power = System.Math.Max(0, Power + artifact.Power);
+        Knowledge = System.Math.Max(0, Knowledge + artifact.Knowledge);
         Charisma += artifact.Charisma;
     }
 

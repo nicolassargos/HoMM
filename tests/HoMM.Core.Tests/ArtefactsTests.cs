@@ -6,7 +6,7 @@ using Xunit;
 namespace HoMM.Core.Tests;
 
 /// <summary>
-/// Les artefacts (liste choisie avec l'utilisateur, 2026-11-21) : 46 en trois rangs, et leurs effets sur le héros
+/// Les artefacts (liste choisie avec l'utilisateur, 2026-11-21, et sept de ses idées le 2026-11-23) : 53 en trois rangs, et leurs effets sur le héros
 /// (caractéristiques, moral, chance, vue, mouvement, points de sort, écoles de magie, revenus).
 /// </summary>
 public class ArtefactsTests
@@ -23,12 +23,12 @@ public class ArtefactsTests
     }
 
     [Fact]
-    public void Quarante_six_artefacts_en_trois_rangs()
+    public void Cinquante_trois_artefacts_en_trois_rangs()
     {
         var all = TestData.Data.Artifacts.All;
-        Assert.Equal(46, all.Count);
+        Assert.Equal(53, all.Count);
         Assert.Equal(14, all.Count(a => a.Rank == ArtifactRank.Minor));
-        Assert.Equal(19, all.Count(a => a.Rank == ArtifactRank.Major));
+        Assert.Equal(26, all.Count(a => a.Rank == ArtifactRank.Major));
         Assert.Equal(13, all.Count(a => a.Rank == ArtifactRank.Relic));
         Assert.All(all, a => Assert.False(string.IsNullOrWhiteSpace(a.Name)));
     }
@@ -118,5 +118,83 @@ public class ArtefactsTests
         Assert.Equal(1, income.GetValueOrDefault(ResourceType.Wood));
         Assert.Equal(1, income.GetValueOrDefault(ResourceType.Ore));
         Assert.Equal(1, income.GetValueOrDefault(ResourceType.Crystal));
+    }
+
+    [Fact]
+    public void Les_talismans_a_double_tranchant_montent_deux_caracteristiques_et_en_baissent_une()
+    {
+        var hero = Hero();
+        hero.Attack = 2; hero.Defense = 2; hero.Power = 5; hero.Knowledge = 5;
+
+        hero.Equip(Get("talisman-brute"));
+
+        Assert.Equal((6, 6, 2, 5), (hero.Attack, hero.Defense, hero.Power, hero.Knowledge));
+    }
+
+    [Fact]
+    public void Un_talisman_ne_descend_jamais_une_caracteristique_sous_zero()
+    {
+        var hero = Hero();
+        hero.Attack = 1;
+
+        hero.Equip(Get("talisman-erudit"));
+
+        Assert.Equal(0, hero.Attack);
+    }
+
+    [Fact]
+    public void Les_talismans_forment_un_cycle_et_se_portent_tous_a_la_meme_place()
+    {
+        var talismans = new[] { "talisman-brute", "talisman-gardien", "talisman-erudit", "talisman-temeraire" }.Select(Get).ToList();
+        Assert.All(talismans, t => Assert.Equal(ArtifactSlot.Misc, t.Slot));
+        // chaque caractéristique monte deux fois et baisse une fois dans le cycle
+        Assert.Equal(5, talismans.Sum(t => t.Attack));
+        Assert.Equal(5, talismans.Sum(t => t.Defense));
+        Assert.Equal(5, talismans.Sum(t => t.Power));
+        Assert.Equal(5, talismans.Sum(t => t.Knowledge));
+    }
+
+    [Fact]
+    public void L_oeil_du_recenseur_montre_le_nombre_exact_des_troupes_adverses()
+    {
+        var hero = Hero();
+        Assert.False(hero.Owner.SeesExactArmies);
+
+        hero.Equip(Get("oeil-recenseur"));
+
+        Assert.True(hero.Owner.SeesExactArmies);
+    }
+
+    [Fact]
+    public void La_longue_vue_des_guetteurs_montre_chaque_jour_les_alentours_de_toutes_les_tours()
+    {
+        var (state, tower) = CarteObjetsTests.GameNextTo(c => new ObservationTower(c));
+        var hero = state.CurrentHero!;
+        var fog = hero.Owner.Fog;
+        var far = tower.Position.Offset(ObservationTower.Radius - 2, 0);
+        if (!state.Map.InBounds(far))
+            far = tower.Position.Offset(0, ObservationTower.Radius - 2);
+        hero.Equip(Get("longue-vue-guetteurs"));
+        Assert.False(fog.IsExplored(far));
+
+        int day = state.Day;
+        while (state.Day == day)
+            state.EndTurn();
+
+        Assert.True(fog.IsExplored(far));
+        Assert.Empty(tower.Visitors); // sans y monter
+    }
+
+    [Fact]
+    public void La_longue_vue_des_guetteurs_montre_les_tours_des_qu_on_la_ramasse()
+    {
+        var (state, pile) = CarteObjetsTests.GameNextTo(c => new ArtifactPile(c, Get("longue-vue-guetteurs")));
+        var fog = state.CurrentHero!.Owner.Fog;
+        var tower = state.Map.Objects.OfType<ObservationTower>().FirstOrDefault(t => !fog.IsExplored(t.Position));
+        Assert.NotNull(tower);
+
+        CarteObjetsTests.Visit(state, pile);
+
+        Assert.True(fog.IsExplored(tower!.Position));
     }
 }

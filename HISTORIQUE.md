@@ -1559,6 +1559,8 @@ règle du ×2 (essai montré, écarté). Lot 2 (bottes, fiole, hache et Plastron
 mineurs, le pavois de fer et la couronne de bois de cerf. Lot 4 : six majeurs, les idées montrées avant de générer.
 Lot 5 : six majeurs, dont quatre refaits ; les Bottes du coureur des bois deviennent des **Sandales** (nom affiché
 seul, l'identifiant `bottes-coureur` gardé).
+Lot 6 : les quatre derniers majeurs et deux reliques ; un premier essai jugé « pretty bad », refait avec **trois
+descriptions différentes par artefact** (angle, couleur, forme) : 48 candidats variés, « much better ».
 
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu

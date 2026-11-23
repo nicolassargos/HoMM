@@ -894,6 +894,15 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   vue de côté toute simple, « trop banale » ; gardée : la **vieille corne de vétéran**, pavillon brûlé, lambeau de
   bannière rouge (5). La corne en gueule de loup sortait comme un loup entier. Leçon : la chose qui porte le pouvoir
   (l'eau, la pierre) doit se voir au premier coup d'œil ; un détour qui cache la forme de l'objet ne marche pas.
+  **Lot 6** (2026-11-23) : une description par artefact donnait 16 candidats presque pareils (« pretty bad… try more
+  diverse images »). **Trois descriptions par artefact**, chacune un autre angle, une autre couleur ou une autre forme
+  (0,25 $ par artefact), rangées dans `<dossier>/a|b|c/<id>/` pour `artefact.py apercus`, puis toutes sur la même page :
+  « much better ». Les remarques suivies : le dé « doit ressembler à un os » (un cube taillé, irrégulier, fendu, des
+  points en cercle pointé, comme les dés anciens) ; le creuset **triangulaire** des alchimistes (bord pincé en trois
+  coins) ; le grimoire **ouvert**, une aura discrète ; la lame **longue, des crocs** (pas une bouche). Choisis : dé c12,
+  brouette c7 (renversée, bûches et minerai qui sortent du vide étoilé), creuset a16 (un cristal sort du métal fondu),
+  grimoire c7 (debout, peau argentée), lame b3 (crocs le long de la lame), bouclier c5 (pierre du marais, flamme
+  éteinte). Les descriptions trop « larges » (tranche d'arbre, creuset qu'on verse) sortent trop grandes pour la tuile.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

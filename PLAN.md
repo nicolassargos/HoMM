@@ -138,7 +138,8 @@ la couleur du rang sur une lueur.
    cotte d'écailles de carpe, cape en plumes de corbeau, bottes de l'arpenteur, bottes à semelles de liège. ✅ Le lot 5 : sandales du coureur des bois (les bottes devenues sandales), anneau
    des braises, anneau du ressac, ceinture de la meute, pierre de foudre, corne d'appel. ✅ Le lot 6 : dé en os de
    géant, brouette sans fond, creuset de l'alchimiste, grimoire en peau d'anguille, la lame qui boit, bouclier du
-   marais pétrifié. Reste 10
+   marais pétrifié. ✅ Le lot 7 : masque de l'épouvante, couronne aux quatre pointes (la couronne aux sept pointes
+   renommée), collier aux cent clochettes, cape d'ombre, ailes de cuir cousues, bottes de la marée. Reste 4
    (`tools/art/artefact.py`).
 3. **Les déplacer à la main** sur l'écran du héros (porter, ranger au coffre, échanger entre deux héros).
 4. **Les pouvoirs uniques**, un par un (la lame qui boit, le bouclier du marais, le masque de l'épouvante, le collier

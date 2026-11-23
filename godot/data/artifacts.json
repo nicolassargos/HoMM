@@ -43,7 +43,7 @@
       "powerText": "L'armée ne craint plus les sorts de feu." },
     { "id": "masque-epouvante", "name": "Masque de l'épouvante", "slot": "Head", "rank": "Relic",
       "powerText": "Moral −2 pour toutes les troupes ennemies." },
-    { "id": "couronne-sept", "name": "Couronne aux sept pointes", "slot": "Head", "rank": "Relic", "power": 4, "knowledge": 4 },
+    { "id": "couronne-sept", "name": "Couronne aux quatre pointes", "slot": "Head", "rank": "Relic", "power": 4, "knowledge": 4 },
     { "id": "collier-cloches", "name": "Collier aux cent clochettes", "slot": "Neck", "rank": "Relic",
       "powerText": "Les monstres errants de force égale ou moindre rejoignent le héros sans combat, contre paiement." },
     { "id": "cape-ombre", "name": "Cape d'ombre", "slot": "Shoulders", "rank": "Relic",

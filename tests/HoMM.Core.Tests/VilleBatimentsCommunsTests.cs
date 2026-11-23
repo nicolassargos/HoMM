@@ -29,7 +29,7 @@ public class VilleBatimentsCommunsTests
         var paysan = TestData.Creatures.Get("paysan");
         int Week(params string[] buildings)
         {
-            var town = TownOf(player, new[] { "corps-de-garde" }.Concat(buildings).ToArray());
+            var town = TownOf(player, new[] { "ferme" }.Concat(buildings).ToArray());
             town.Available.Clear();
             town.NewWeek();
             return town.Available[paysan];

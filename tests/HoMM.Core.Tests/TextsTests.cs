@@ -73,7 +73,7 @@ public class TextsTests
         var state = new GameState(7, TestData.Data);
         var town = new Town(new Cell(0, 0), "Testville", "chateau", TestData.Data);
         town.AddBuilding(TestData.Data.Buildings.Get("salle-village"));
-        town.AddBuilding(TestData.Data.Buildings.Get("corps-de-garde"));
+        town.AddBuilding(TestData.Data.Buildings.Get("ferme"));
         town.SetOwner(state.Players[0]);
         return (state, town);
     }
@@ -111,7 +111,7 @@ public class TextsTests
         var (_, town) = OwnedTown();
         var b = TestData.Data.Buildings;
 
-        Assert.Equal("30 Paysans disponibles (+30 par semaine)", Texts.BuildingEffect(town, b.Get("corps-de-garde")));
+        Assert.Equal("30 Paysans disponibles (+30 par semaine)", Texts.BuildingEffect(town, b.Get("ferme")));
         Assert.Equal("Produit des Archers (+18 par semaine)", Texts.BuildingEffect(town, b.Get("tour-archers")));
         Assert.Equal("+600 or par jour", Texts.BuildingEffect(town, b.Get("hotel-ville")));
         Assert.Equal("Permet de recruter des héros", Texts.BuildingEffect(town, b.Get("taverne")));

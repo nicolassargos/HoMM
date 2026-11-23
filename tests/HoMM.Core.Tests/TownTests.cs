@@ -16,7 +16,7 @@ public class TownTests
         var cell = state.CurrentHero!.Position.Offset(2, 0);
         var town = new Town(cell, "Testville", "chateau", TestData.Data);
         town.AddBuilding(B("salle-village"));
-        town.AddBuilding(B("corps-de-garde"));
+        town.AddBuilding(B("ferme"));
         if (garrisonPaysans > 0)
             town.Garrison.Add(TestData.Creatures.Get(garrisonId), garrisonPaysans);
         state.Map.AddObject(town);
@@ -230,7 +230,7 @@ public class TownTests
 
         Assert.Equal(BuildResult.NotOwner, state.Build(town, "taverne"));
         town.SetOwner(player);
-        Assert.Equal(BuildResult.AlreadyBuilt, state.Build(town, "corps-de-garde"));
+        Assert.Equal(BuildResult.AlreadyBuilt, state.Build(town, "ferme"));
         Assert.Equal(BuildResult.MissingRequirement, state.Build(town, "ecuries"));
         player.Resources[ResourceType.Gold] = 100;
         Assert.Equal(BuildResult.NotEnoughResources, state.Build(town, "taverne"));

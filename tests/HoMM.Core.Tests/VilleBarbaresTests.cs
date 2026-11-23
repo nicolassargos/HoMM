@@ -38,7 +38,7 @@ public class VilleBarbaresTests
         Assert.Subset(ids, new[] { "salle-village", "hotel-ville", "taverne", "guilde-mages-4", "marche" }.ToHashSet());
         Assert.Equal(new[] { "hutte-gobelins", "taniere-loups", "camp-orcs", "fort-ogres", "campement-nomade", "nid-tonnerre", "repaire-behemoth" },
             Enumerable.Range(1, 7).Select(t => castle.DwellingOfTier(t)!.Id));
-        Assert.DoesNotContain("corps-de-garde", ids);
+        Assert.DoesNotContain("ferme", ids);
         Assert.DoesNotContain("ossuaire", ids);
     }
 

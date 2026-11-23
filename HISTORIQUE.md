@@ -1561,6 +1561,8 @@ Lot 5 : six majeurs, dont quatre refaits ; les Bottes du coureur des bois devien
 seul, l'identifiant `bottes-coureur` gardé).
 Lot 6 : les quatre derniers majeurs et deux reliques ; un premier essai jugé « pretty bad », refait avec **trois
 descriptions différentes par artefact** (angle, couleur, forme) : 48 candidats variés, « much better ».
+Lot 7 : six reliques. La **Couronne aux sept pointes** devient la **Couronne aux quatre pointes** (nom affiché seul,
+l'identifiant `couronne-sept` gardé) : PixelLab ne dessine jamais sept pointes ; quatre comme ses +4 et +4.
 
 ### 10. Finitions : apparence et détails
 - ✅ Les lieux de la carte en images (2026-11-12, branche `lieux-carte`, PixelLab « pro », 0,80 $) : 16 candidats par lieu

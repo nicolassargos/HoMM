@@ -903,6 +903,13 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   brouette c7 (renversée, bûches et minerai qui sortent du vide étoilé), creuset a16 (un cristal sort du métal fondu),
   grimoire c7 (debout, peau argentée), lame b3 (crocs le long de la lame), bouclier c5 (pierre du marais, flamme
   éteinte). Les descriptions trop « larges » (tranche d'arbre, creuset qu'on verse) sortent trop grandes pour la tuile.
+  **Lot 7** (2026-11-23) : trois descriptions par artefact, et **l'effet de chaque artefact dans le titre de la page**
+  (demande de l'utilisateur). Choisis : masque de l'épouvante c4 (crâne cornu), collier aux cent clochettes a8, cape
+  d'ombre a4 (bords en fumée), ailes de cuir cousues b3, bottes de la marée b12 (bernacles, écume), couronne c15
+  (argent et pointes de quartz). **PixelLab ne compte pas** : « exactly seven spikes » donne 5, 6 ou 8, avec ou sans
+  image de modèle. Ajouter deux pointes à la main derrière la couronne n'allait pas (les flammes doivent être au bout
+  des dents de la couronne même) ; l'utilisateur a choisi parmi toutes les couronnes et renommé l'artefact. Ne pas
+  promettre un nombre précis dans une image.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

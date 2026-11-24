@@ -3173,6 +3173,25 @@ choix de l'utilisateur) :
   l'image des distances (moins 10 pixels) prend toujours le relais. Écartés : des rivières plus étroites (l'utilisateur
   parlait des ruisseaux), décaler au hasard le milieu des cases d'un ruisseau (mieux, mais le tracé à angles droits se
   voit toujours : voir `PLAN.md`, ruisseaux le long des pentes).
+- ✅ **Les ruisseaux le long des pentes** (2026-11-24, branche `ruisseaux-pente`) : « le trajet suit les cases »,
+  « pas assez serpentant » selon l'utilisateur. Avant : une marche au hasard de case en case, 4 directions, virages à
+  angle droit, trois cases droites au plus, sans toucher un autre ruisseau. Maintenant (`MapGenerator.PlaceStreams`,
+  `StreamCourseFrom`, `Meander`) : une **carte des hauteurs** (deux bruits doux, 2,6 et 1,1 cases, `FineNoise`, et le
+  sol qui monte au pied des montagnes, `HillLift` 1,2 sur `HillReach` 5 cases) ; le chemin le moins coûteux sur une
+  grille de 5 × 5 points par case, dans 8 directions (jamais en biais par le coin d'une case), où monter coûte
+  (`StreamRelief` 18), jusqu'à l'eau (lac, mer, rivière), un autre ruisseau (un **affluent** : un ruisseau sur deux en
+  reçoit un, de 6 à 14 cases), sinon le creux le plus bas des environs (une mare) ; puis des **méandres** : le chemin
+  ondule de côté (jusqu'à 0,7 case, une boucle toutes les 3 à 6 cases, plus ou moins fort le long du ruisseau), calme
+  près des bouts et des routes, moins fort là où il toucherait une case interdite. Une route se croise tout droit, au
+  milieu de la case. 24 à 80 cases ; d'abord les sources loin de l'eau, à deux cases au moins du bord de la carte.
+  **La naissance** (`StreamSource`) : au pied d'une montagne (60 %), au bord d'un marais (15 %), sinon une source
+  (25 %), selon ce qu'a la zone ; un filet d'eau qui s'élargit sur une case pour les deux premières, une mare entourée
+  de pierres sombres sur une terre mouillée (`springs`, `spring_wet` dans le shader) pour une source. Le **tracé**
+  (`StreamCourse`) est gardé dans la carte (sauvegarde version 11) et dessiné tel quel (`RiverField.Courses`) ; les
+  cases du ruisseau sont celles qu'il touche. Un tirage à part (le reste de la carte ne dépend plus des ruisseaux ; il
+  change une fois, à cette version). Mesuré (cartes normales, continent) : 4,7 ruisseaux par carte, 100 cases (37
+  avant), 1,8 affluents ; nés au pied d'une montagne 2,8, d'un marais 0,5, d'une source 1,3. Écarté en chemin : choisir
+  les sources loin de l'eau les serrait contre le bord de la carte.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

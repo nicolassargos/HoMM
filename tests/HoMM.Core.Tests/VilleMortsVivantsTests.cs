@@ -84,6 +84,28 @@ public class VilleMortsVivantsTests
     }
 
     [Fact]
+    public void La_lanterne_des_ames_releve_dix_pour_cent_de_plus()
+    {
+        var state = new GameState(5, TestData.Data, MapSize.Small, startingTowns: false, faction: Undead);
+        var hero = state.CurrentHero!;
+        hero.Equip(TestData.Data.Artifacts.Get("lanterne-ames"));
+        hero.Charisma = 100; // assez pour que la limite du charisme ne joue pas
+        var start = hero.Position;
+        state.Map.AddObject(new MonsterGuard(start.Offset(2, 0), TestData.Creatures.Get("gobelin"), 40));
+        int before = hero.Army.Stacks.Single(s => s.Type.Id == "squelette").Count;
+        state.SetDestination(start.Offset(1, 0));
+
+        state.StepAlongPath();
+
+        var fought = Assert.Single(state.TakeEvents().OfType<BattleFought>());
+        Assert.True(fought.Report.AttackerWon);
+        int killed = fought.Report.DefenderLosses.Sum(s => s.Count);
+        int expected = (int)(killed * (Talents.NecromancyBase + Talents.NecromancyPerLevel * hero.Level + 0.10));
+        int lost = fought.Report.AttackerLosses.Where(s => s.Type.Id == "squelette").Sum(s => s.Count);
+        Assert.Equal(before - lost + expected, hero.Army.Stacks.Single(s => s.Type.Id == "squelette").Count);
+    }
+
+    [Fact]
     public void Un_paladin_ne_releve_personne()
     {
         var state = new GameState(5, TestData.Data, MapSize.Small, startingTowns: false);

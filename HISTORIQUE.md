@@ -1530,6 +1530,20 @@ s'ajoutent une fois pour toutes (`Hero.Equip`) ; les autres effets sont comptés
 `MoraleParts.Artifacts`, `LuckParts.Artifacts`, la vue, le mouvement, les points de sort, `SpellBonus`,
 `RoughTerrainReduction`, `Player.DailyIncome`. L'infobulle de l'artefact (`Texts.Bonus`) dit tous ses effets.
 
+#### Sept nouveaux artefacts (2026-11-23, branche `idees-artefacts-sorts`)
+Idées de l'utilisateur, chiffres proposés et acceptés : 53 artefacts (26 majeurs). Trois effets nouveaux dans
+`ArtifactType` : `RevealsTowers` (la **Longue-vue des guetteurs**, divers : chaque jour et dès qu'on la prend, le
+brouillard s'ouvre autour de toutes les tours d'observation, au rayon d'une tour, sans y monter ;
+`GameState.RevealTowers`), `ExactArmies` (l'**Œil du recenseur**, cou : `Player.SeesExactArmies` ; au survol, « 17
+Loups » au lieu de « Une bande de Loups », et la composition des héros et des garnisons adverses, `Texts.ExactArmy` ;
+au début d'un combat aussi) et `Necromancy` (la **Lanterne des âmes**, divers : +10 points de nécromancie, presque le
+double au niveau 1, rien pour les autres classes). Les **talismans à double tranchant** (divers, donc un seul porté) :
+deux caractéristiques +4, une autre −3, en cycle (brute : attaque et défense, −puissance ; gardien : défense et
+puissance, −savoir ; érudit : puissance et savoir, −attaque ; téméraire : savoir et attaque, −défense) ; une
+caractéristique ne descend jamais sous 0 (`Hero.Equip`). Leurs images (2026-11-24, branche `artefacts-idees`) : trois
+descriptions par artefact, choisies par l'utilisateur ; les quatre talismans en pendentifs de cristal, le gardien refait
+d'après celui de la brute (détail dans `tools/art/METHODE.md`).
+
 #### Les artefacts sur la carte (2026-11-21, branche `artefacts-carte`)
 `ArtifactPile` (un artefact posé : le héros qui s'arrête dessus le prend, événement `ArtifactFound`, fenêtre « Un
 artefact ! » avec son image, son du coffre). `MapGenerator.ArtifactCount` = 8 pour une carte de 40 × 30 (`Scaled`),

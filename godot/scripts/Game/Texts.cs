@@ -90,6 +90,10 @@ public static class Texts
         _ => $"Une légion {Of(type.Plural)}",
     };
 
+    /// <summary>Une armée troupe par troupe, nombres exacts : « 12 Archers, 1 Griffon » (l'Œil du recenseur).</summary>
+    public static string ExactArmy(Army army) => string.Join(", ", army.Stacks.Where(s => s.Count > 0)
+        .Select(s => $"{s.Count} {(s.Count == 1 ? s.Type.Name : s.Type.Plural)}"));
+
     public static string ObjectName(MapObject obj) => obj switch
     {
         ResourcePile pile => $"Tas de {Resource(pile.Resource)}",
@@ -130,9 +134,13 @@ public static class Texts
         var other => LowerFirst(ObjectName(other)),
     };
 
-    /// <summary>L'adversaire d'un combat qui commence : « une bande de Loups », « la garnison de Bellerive ».</summary>
-    public static string Opponent(MapObject defender, Army army) => defender switch
+    /// <summary>
+    /// L'adversaire d'un combat qui commence : « une bande de Loups », « la garnison de Bellerive » ; avec l'Œil du
+    /// recenseur (<paramref name="exact"/>), « 17 Loups ».
+    /// </summary>
+    public static string Opponent(MapObject defender, Army army, bool exact = false) => defender switch
     {
+        MonsterGuard when exact => ExactArmy(army),
         MonsterGuard guard => LowerFirst(MonsterGroup(guard.Type, army.TotalCount)),
         Town town => $"la garnison de {town.Name}",
         AbandonedShip => "l'équipage d'un navire abandonné",
@@ -589,6 +597,12 @@ public static class Texts
         parts.AddRange(artifact.Income.Select(i => $"{Signed(i.Value)} {Resource(i.Key)} par jour"));
         if (artifact.FactionResource != 0)
             parts.Add($"{Signed(artifact.FactionResource)} par jour de la ressource de sa faction");
+        if (artifact.Necromancy != 0)
+            parts.Add($"{Signed(artifact.Necromancy)} % de nécromancie");
+        if (artifact.RevealsTowers)
+            parts.Add("chaque jour, montre les alentours de toutes les tours d'observation");
+        if (artifact.ExactArmies)
+            parts.Add("montre le nombre exact des troupes adverses");
         if (artifact.PowerText != null)
             parts.Add(artifact.PowerText.TrimEnd('.') + " (pas encore en jeu)");
         return string.Join(", ", parts);

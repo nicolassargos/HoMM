@@ -41,6 +41,12 @@ public sealed class Player
     /// <summary>Quelques chiffres de la partie (pour la fin de partie).</summary>
     public PlayerStatistics Statistics { get; } = new();
 
+    /// <summary>Un de ses héros porte l'Œil du recenseur : il voit le nombre exact des troupes adverses.</summary>
+    public bool SeesExactArmies => Heroes.Any(h => h.Artifacts.Any(a => a.ExactArmies));
+
+    /// <summary>Un de ses héros porte la Longue-vue des guetteurs : il voit les alentours de toutes les tours.</summary>
+    public bool SeesFromTowers => Heroes.Any(h => h.Artifacts.Any(a => a.RevealsTowers));
+
     /// <summary>Un joueur sans héros ni ville a perdu.</summary>
     public bool IsDefeated => Heroes.Count == 0 && Towns.Count == 0;
 

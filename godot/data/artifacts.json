@@ -34,6 +34,13 @@
     { "id": "brouette", "name": "Brouette sans fond", "slot": "Misc", "rank": "Major", "income": { "Wood": 1, "Ore": 1 } },
     { "id": "creuset-alchimiste", "name": "Creuset de l'alchimiste", "slot": "Misc", "rank": "Major", "factionResource": 1 },
     { "id": "grimoire-anguille", "name": "Grimoire en peau d'anguille", "slot": "Misc", "rank": "Major", "spellPoints": 15 },
+    { "id": "longue-vue-guetteurs", "name": "Longue-vue des guetteurs", "slot": "Misc", "rank": "Major", "revealsTowers": true },
+    { "id": "oeil-recenseur", "name": "Œil du recenseur", "slot": "Neck", "rank": "Major", "exactArmies": true },
+    { "id": "lanterne-ames", "name": "Lanterne des âmes", "slot": "Misc", "rank": "Major", "necromancy": 10 },
+    { "id": "talisman-brute", "name": "Talisman de la brute", "slot": "Misc", "rank": "Major", "attack": 4, "defense": 4, "power": -3 },
+    { "id": "talisman-gardien", "name": "Talisman du gardien", "slot": "Misc", "rank": "Major", "defense": 4, "power": 4, "knowledge": -3 },
+    { "id": "talisman-erudit", "name": "Talisman de l'érudit", "slot": "Misc", "rank": "Major", "power": 4, "knowledge": 4, "attack": -3 },
+    { "id": "talisman-temeraire", "name": "Talisman du téméraire", "slot": "Misc", "rank": "Major", "knowledge": 4, "attack": 4, "defense": -3 },
 
     { "id": "plastron-des-rois", "name": "Plastron des Rois", "slot": "Torso", "rank": "Relic",
       "attack": 5, "defense": 5, "power": 5, "knowledge": 5, "charisma": 5 },

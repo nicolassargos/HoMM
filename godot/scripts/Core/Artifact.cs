@@ -51,6 +51,15 @@ public sealed record ArtifactType
     /// <summary>Chaque jour, autant de la ressource principale de la faction du héros.</summary>
     public int FactionResource { get; init; }
 
+    /// <summary>Chaque jour, et dès qu'il le prend, le joueur voit les alentours de toutes les tours d'observation.</summary>
+    public bool RevealsTowers { get; init; }
+
+    /// <summary>Le joueur voit le nombre exact des troupes adverses (au lieu de « une bande de… ») et leur composition.</summary>
+    public bool ExactArmies { get; init; }
+
+    /// <summary>Nécromancie en plus, en points de pourcentage (sans effet pour un héros qui n'a pas ce talent).</summary>
+    public int Necromancy { get; init; }
+
     /// <summary>Un pouvoir unique (il change une règle), décrit ici ; pas encore en jeu.</summary>
     public string? PowerText { get; init; }
 }

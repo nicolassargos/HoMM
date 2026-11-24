@@ -8,7 +8,7 @@ page où l'on marque chaque son « bon » ou « à refaire », puis installés d
     python -I tools/audio/sons.py page                   écrit la page de revue art-candidats/en-cours/sons.html
     python -I tools/audio/sons.py serveur                sert la page (http://localhost:8766/sons.html) ; les réponses
                                                          s'écrivent aussitôt dans en-cours/sons-reponses.json
-    python -I tools/audio/sons.py installer              copie les sons « bons » dans godot/audio/combat/ et les ajoute à
+    python -I tools/audio/sons.py installer [id…]        copie les sons « bons » dans godot/audio/combat/ et les ajoute à
                                                          godot/data/sounds.json
 
 L'id d'un son est son nom dans le jeu (« liche-shoot », « hydre-death »…). Les fichiers attendent dans
@@ -39,7 +39,7 @@ CREDITS_PAR_SON = 30
 
 FACTIONS = {"chateau": "Château", "morts-vivants": "Morts-vivants", "barbares": "Barbares", "foret": "Forêt",
             "tour": "Tour de magie", "donjon": "Donjon", "enfer": "Enfer", "nains": "Nains", "neutre": "Neutres",
-            "sorts": "Sorts de la carte"}
+            "sorts": "Sorts"}
 
 
 def liste():
@@ -235,7 +235,7 @@ def main():
     elif commande == "serveur":
         serveur()
     elif commande == "installer":
-        installer(sons)
+        installer(choisis)
     else:
         sys.exit(__doc__)
 

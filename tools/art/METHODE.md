@@ -962,6 +962,9 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   fantôme cyan près d'une plage), Vent porteur b12 (un voyageur poussé par de grandes rafales), Porte dimensionnelle b31
   (un héros qui entre dans une faille violette), Retour en ville a12 (une lumière d'or sur une ville au bout d'une
   route).
+  **Le mur de feu** (2026-11-24, branche `mur-de-feu`) : même recette, trois descriptions, 0,24 $ les trois lots (vérifié
+  au solde). Choisi : c9, « a line of tall flames bursting up out of a glowing crack in dark scorched ground, sparks
+  flying, deep red and black background » ; écartés : un mur de flammes la nuit, un soldat de dos devant le feu.
 - **Le lutrin et son livre fermé** (2026-11-12, `art/ui/lutrin.png`, 160 × 168, ×2, posé en bas au milieu de
   `LecternView`) : PixelLab « pro », 4 candidats, l'image de la ville (`town.png`) comme style, vus de trois quarts d'en
   haut, un livre rouge foncé aux ferrures d'or ; 0,17 $ le lot (0,115 $ annoncé). Choisi : le 3, un socle rond et massif

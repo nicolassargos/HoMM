@@ -819,6 +819,20 @@
       "nom": "Retour en ville",
       "duree": 1.6,
       "texte": "town portal spell: a warm choir-like magical shimmer, a bright bell chime and a rising swell of light"
+    },
+    {
+      "id": "spell-mur-de-feu",
+      "faction": "sorts",
+      "nom": "Mur de feu",
+      "duree": 1.8,
+      "texte": "fire wall spell: a fire ignites with a sharp whoosh and quickly grows into a tall roaring wall of flames, crackling"
+    },
+    {
+      "id": "spell-mur-de-feu-brule",
+      "faction": "sorts",
+      "nom": "Mur de feu : une troupe brûle",
+      "duree": 0.8,
+      "texte": "short sizzle and flare of fire as something passes through flames, a quick burning hiss"
     }
   ]
 }

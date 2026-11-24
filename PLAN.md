@@ -38,7 +38,7 @@ chiffres en vigueur sont dans `godot/data/`.
 
 ### La magie
 ✅ Fait : les règles (proche de Heroes 2 et 3 : points de sort, puissance, guilde de 4 niveaux, un sort par round), les
-18 sorts de combat (`data/spells.json`), le livre de sorts en image (le lutrin dans l'étude du héros et dans
+19 sorts de combat (`data/spells.json`), le livre de sorts en image (le lutrin dans l'étude du héros et dans
 l'académie de chaque faction, le livre ouvert, la page qui tourne), une image et une animation par sort.
 ✅ **Quatre sorts de la carte** (idées de l'utilisateur, 2026-11-24, branche `sorts-carte`) : invocation de bateau,
 vent porteur, porte dimensionnelle (10 cases au plus : choix de l'utilisateur, pour pouvoir dézoomer), retour en ville ;
@@ -51,9 +51,9 @@ lance aussi (branche `ia-sorts-carte`).
 - **Plus tard** : versions « de masse », un 5e niveau (Armageddon, élémentaires, morts relevés), d'autres sorts de la
   carte (vision…). Écartés pour l'instant : berserk, hypnotisme, paralysie.
 - **Idées de l'utilisateur (2026-11-23)**, à concevoir avec la session règles :
-  - au combat : **mur de feu** (feu : des cases qui brûlent qui les traverse, sans arrêter les tirs), **douves** (eau :
-    une créature qui y entre perd la fin de son tour), **séisme** (terre : abîme tous les murs, aux sièges ; déjà
-    prévu avec les murs) ;
+  - au combat : ✅ **mur de feu** (2026-11-24, branche `mur-de-feu` : feu, niveau 3, 12 points, 5 cases, 3 rounds ;
+    détail dans `HISTORIQUE.md`) ; **douves** (eau : une créature qui y entre perd la fin de son tour), **séisme**
+    (terre : abîme tous les murs, aux sièges ; déjà prévu avec les murs) ;
   - sur la carte : ✅ faits (2026-11-24, plus haut).
 
 ### Les factions

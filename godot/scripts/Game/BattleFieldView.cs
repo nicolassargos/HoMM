@@ -2108,7 +2108,7 @@ public partial class BattleFieldView : Control
                         shown.Count = Math.Max(0, shown.Count - crossed.Killed);
                         shown.Flash = 1;
                         Hurt(crossed.Unit);
-                        Audio.Play("fire-wall-burn");
+                        Audio.Play("spell-mur-de-feu-brule");
                     }, 0.35);
                     break;
                 case UnitBurned burned:

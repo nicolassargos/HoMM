@@ -1178,12 +1178,15 @@ void fragment() {
 			// elle ralentit en arrivant (et certaines ne viennent pas)
 			float front = wave_reach * pow(1.0 - cycle, 1.6) + (noise((shore + 0.5) / 9.0 + vec2(17.0, 29.0)) * 2.0 - 1.0);
 			if (wave_missing(shore, t)) cycle = 1.0;
-			float band = 1.0 - smoothstep(wave_width * 0.3, wave_width, abs(d - front));
-			float fade = smoothstep(0.0, 0.2, cycle) * (1.0 - smoothstep(0.7, 1.0, cycle));
-			// brisée : des morceaux d'écume, autres à chaque vague
-			float broken = smoothstep(wave_gaps - 0.05, wave_gaps + 0.05, noise((shore + 0.5) / wave_piece + vec2(floor(t) * 13.7, 3.0)));
-			if (bayer(p) < band * fade * broken * open * wave_foam)
-				color = mix(color, foam_color, 0.6);
+			// brisée : des morceaux d'écume, autres à chaque vague, plus épais en leur milieu qu'à leurs bouts
+			float piece = noise((shore + 0.5) / wave_piece + vec2(floor(t) * 13.7, 3.0));
+			float body = smoothstep(wave_gaps, wave_gaps + 0.15, piece);
+			float width = wave_width * (0.5 + body);
+			float band = (1.0 - smoothstep(width * 0.5, width, abs(d - front))) * step(wave_gaps, piece);
+			// elle pâlit en naissant et en finissant, sans rapetisser (la trame garde sa forme, la couleur s'efface)
+			float fade = smoothstep(0.0, 0.2, cycle) * (1.0 - smoothstep(0.75, 1.0, cycle));
+			if (fade > 0.0 && bayer(p) < band * open)
+				color = mix(color, foam_color, 0.6 * fade * wave_foam);
 		}
 	}
 	// Rives : entre la terre et l'eau

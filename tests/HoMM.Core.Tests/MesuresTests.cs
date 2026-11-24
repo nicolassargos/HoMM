@@ -108,7 +108,7 @@ public class MesuresTests(ITestOutputHelper output)
         foreach (var type in Enum.GetValues<MapType>())
         {
             var shares = new List<int>();
-            int rivers = 0, bridges = 0, streams = 0, streamCells = 0, fords = 0, joins = 0, ponds = 0;
+            int rivers = 0, bridges = 0, streams = 0, streamCells = 0, fords = 0, joins = 0, ponds = 0, fromHills = 0, fromSwamps = 0, springs = 0;
             foreach (int seed in Seeds)
             {
                 var map = new GameState(seed, TestData.Data, MapSize.Normal, access: ZoneAccess.Normal, mapType: type).Map;
@@ -125,11 +125,15 @@ public class MesuresTests(ITestOutputHelper output)
                 streams += map.Streams.Count;
                 joins += map.Streams.Count(s => s.End == StreamEnd.Join);
                 ponds += map.Streams.Count(s => s.End == StreamEnd.Pond);
+                fromHills += map.Streams.Count(s => s.Source == StreamSource.Mountain);
+                fromSwamps += map.Streams.Count(s => s.Source == StreamSource.Swamp);
+                springs += map.Streams.Count(s => s.Source == StreamSource.Spring);
             }
             int n = Seeds.Length;
             output.WriteLine($"{type} : rivières et ruisseaux {Range(shares)} ‰ de la terre ; par carte : {rivers / (double)n:0} cases de rivière, "
                              + $"{bridges / (double)n:0.0} ponts, {streams / (double)n:0.0} ruisseaux ({streamCells / (double)n:0} cases ; "
-                             + $"{joins / (double)n:0.0} affluents, {ponds / (double)n:0.0} finis dans une mare), "
+                             + $"{joins / (double)n:0.0} affluents, {ponds / (double)n:0.0} finis dans une mare ; nés au pied d'une montagne {fromHills / (double)n:0.0}, "
+                             + $"d'un marais {fromSwamps / (double)n:0.0}, d'une source {springs / (double)n:0.0}), "
                              + $"{fords / (double)n:0.0} routes qui croisent un ruisseau");
         }
     }

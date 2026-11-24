@@ -49,7 +49,7 @@ public sealed partial class GameState
         List<StreamData>? Streams = null);
 
     /// <summary>Le tracé d'un ruisseau : ses points à plat (x, y, x, y…), en cases, au millième.</summary>
-    private sealed record StreamData(List<double> Points, StreamEnd End);
+    private sealed record StreamData(List<double> Points, StreamEnd End, StreamSource Source = StreamSource.Spring);
 
     /// <summary>Un objet de la carte. <paramref name="Kind"/> dit lequel ; seuls ses champs sont remplis.</summary>
     private sealed record ObjectData(
@@ -130,7 +130,7 @@ public sealed partial class GameState
             Map.Massifs.Count > 0 ? Map.Massifs.ToList() : null,
             Map.Streams.Count > 0
                 ? Map.Streams.Select(s => new StreamData(
-                    s.Points.SelectMany(p => new[] { Math.Round(p.X, 3), Math.Round(p.Y, 3) }).ToList(), s.End)).ToList()
+                    s.Points.SelectMany(p => new[] { Math.Round(p.X, 3), Math.Round(p.Y, 3) }).ToList(), s.End, s.Source)).ToList()
                 : null);
     }
 
@@ -417,11 +417,11 @@ public sealed partial class GameState
         map.Massifs.AddRange(m.Massifs ?? new List<MountainMassif>());
         foreach (var s in m.Streams ?? new List<StreamData>())
         {
-            if (s.Points.Count < 4 || s.Points.Count % 2 != 0 || !Enum.IsDefined(s.End))
+            if (s.Points.Count < 4 || s.Points.Count % 2 != 0 || !Enum.IsDefined(s.End) || !Enum.IsDefined(s.Source))
                 throw new FormatException("tracé de ruisseau invalide");
             map.Streams.Add(new StreamCourse(
                 Enumerable.Range(0, s.Points.Count / 2).Select(i => new CoursePoint(s.Points[2 * i], s.Points[2 * i + 1])).ToList(),
-                s.End));
+                s.End, s.Source));
         }
         return map;
     }

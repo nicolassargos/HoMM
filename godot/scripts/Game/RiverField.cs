@@ -38,6 +38,9 @@ public static class RiverField
     /// <summary>La mare d'une source : de combien elle dépasse la largeur du ruisseau (pixels d'art).</summary>
     private const float Pond = 3f;
 
+    /// <summary>Un ruisseau qui naît au pied d'une montagne ou d'un marais : de combien il est plus étroit à sa naissance (pixels d'art).</summary>
+    private const float Thin = 1.8f;
+
     /// <summary>Les bras du delta : de combien ils sont plus étroits que le ruisseau (pixels d'art).</summary>
     private const float Arm = 1.5f;
 
@@ -222,9 +225,16 @@ public static class RiverField
             }
             for (int pass = 0; pass < 3; pass++)
                 points = Chaikin(points);
+            // une source : sa mare ; le pied d'une montagne ou un marais : un filet d'eau qui s'élargit sur une case
+            float trickle = art * 1.2f, run = 0;
             for (int i = 0; i + 1 < points.Count; i++)
-                Stamp(data, sw, sh, art, points[i], points[i + 1], 0);
-            Stamp(data, sw, sh, art, points[0], points[0], Pond);
+            {
+                float thin = course.Source == StreamSource.Spring ? 0 : Thin * Math.Max(0, 1 - run / trickle);
+                Stamp(data, sw, sh, art, points[i], points[i + 1], -thin);
+                run += points[i].DistanceTo(points[i + 1]);
+            }
+            if (course.Source == StreamSource.Spring)
+                Stamp(data, sw, sh, art, points[0], points[0], Pond);
             if (course.End == StreamEnd.Pond)
                 Stamp(data, sw, sh, art, points[^1], points[^1], Pond);
         }

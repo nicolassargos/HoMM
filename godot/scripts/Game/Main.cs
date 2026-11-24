@@ -329,6 +329,10 @@ public partial class Main : Node2D
                 "bridge" => c => map.GetRiver(c) == RiverKind.Bridge,
                 "stream" => c => map.GetRiver(c) == RiverKind.Stream,
                 "ford" => c => map.GetRiver(c) == RiverKind.Stream && map.HasRoad(c),
+                // la naissance d'un ruisseau : une source, le pied d'une montagne, un marais
+                "spring" or "stream-hill" or "stream-swamp" => c => map.Streams.Any(s => s.Source == (kind == "spring" ? StreamSource.Spring
+                    : kind == "stream-hill" ? StreamSource.Mountain : StreamSource.Swamp)
+                    && (int)s.Points[0].X == c.X && (int)s.Points[0].Y == c.Y),
                 // une route qui change de sorte (d'une zone à l'autre)
                 "road-change" => c => map.HasRoad(c) && new[] { c.Offset(1, 0), c.Offset(0, 1) }
                     .Any(n => map.InBounds(n) && map.HasRoad(n) && map.GetRoadKind(n) != map.GetRoadKind(c)),
@@ -344,7 +348,10 @@ public partial class Main : Node2D
                         map.InBounds(c.Offset(dx, dy)) && map.GetTerrain(c.Offset(dx, dy)) == TerrainType.Mountain))));
             if (wanted != null && Enumerable.Range(0, map.Width * map.Height).Select(i => new Cell(i % map.Width, i / map.Width))
                     .Where(wanted).Skip(rank - 1).Take(1).ToList() is [var found])
+            {
                 _camera.CenterOn(found);
+                GD.Print($"Vue centrée sur {found}");
+            }
         }
         static string? SiteKind(MapObject o) => o switch
         {

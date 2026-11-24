@@ -2434,10 +2434,10 @@ public sealed class MapGenerator
     public double StreamsPerThousand { get; init; } = 0.6;
 
     /// <summary>La longueur d'un ruisseau, en cases (plus longs depuis 2026-11-24, demande de l'utilisateur).</summary>
-    private const int StreamMinLength = 16, StreamMaxLength = 45;
+    private const int StreamMinLength = 24, StreamMaxLength = 80;
 
     /// <summary>La longueur d'un affluent, en cases, et la part des ruisseaux qui en reçoivent un.</summary>
-    private const int TributaryMinLength = 5, TributaryMaxLength = 10;
+    private const int TributaryMinLength = 6, TributaryMaxLength = 14;
     private const double TributaryShare = 0.5;
 
     /// <summary>Le surcoût d'une case de ruisseau pour une petite route (elle le traverse, sans le longer).</summary>
@@ -2450,7 +2450,15 @@ public sealed class MapGenerator
     /// Combien une hauteur de la carte des ruisseaux coûte à traverser : plus c'est fort, plus le ruisseau suit les creux
     /// (et serpente) au lieu d'aller droit.
     /// </summary>
-    private const double StreamRelief = 6;
+    private const double StreamRelief = 18;
+
+    /// <summary>De combien le sol monte au pied des montagnes (la carte des hauteurs va de −1 à 1), et sur combien de cases.</summary>
+    private const double HillLift = 1.2, HillReach = 5;
+
+    /// <summary>D'où viennent les ruisseaux (choix de l'utilisateur, 2026-11-24) : surtout du pied des montagnes, parfois d'un
+    /// marais, sinon d'une source ; selon ce qu'a la carte.</summary>
+    private static readonly (StreamSource Kind, double Share)[] SourceShares =
+        { (StreamSource.Mountain, 0.6), (StreamSource.Swamp, 0.15), (StreamSource.Spring, 0.25) };
 
     /// <summary>
     /// Les ruisseaux (2026-11-15, choix de l'utilisateur) : à l'intérieur d'une zone, un simple décor qu'on traverse à
@@ -2476,26 +2484,49 @@ public sealed class MapGenerator
         // où un ruisseau se jette : une rivière, un lac, la mer
         bool Mouth(Cell c) => Orthogonal(c).Any(n => _map.InBounds(n) && (_map.IsWater(n) || _map.GetRiver(n) == RiverKind.River));
         bool NearStream(Cell c) => Orthogonal(c).Any(n => _map.InBounds(n) && _map.GetRiver(n) == RiverKind.Stream);
-        // la carte des hauteurs : de grands vallons, des plis plus petits
-        var broad = FineNoise(3.5, rng);
-        var folds = FineNoise(1.3, rng);
-        double Height(double x, double y) => (broad(x, y) + 0.45 * folds(x, y)) / 1.45;
-
-        var sources = AllCells().Where(c => Open(c) && !_map.HasRoad(c) && !Mouth(c) && !NearStream(c)).ToList();
-        Shuffle(sources, rng);
-        int made = 0;
-        foreach (var source in sources)
+        // la carte des hauteurs : de grands vallons, des plis plus petits, et le sol qui monte vers les montagnes
+        var broad = FineNoise(2.6, rng);
+        var folds = FineNoise(1.1, rng);
+        var hills = DistanceTo(c => _map.GetTerrain(c) == TerrainType.Mountain);
+        double Height(double x, double y)
         {
-            if (made >= wanted)
-                break;
+            int cx = Math.Clamp((int)x, 0, _map.Width - 1), cy = Math.Clamp((int)y, 0, _map.Height - 1);
+            return (broad(x, y) + 0.6 * folds(x, y)) / 1.6 + HillLift * Math.Max(0, 1 - hills[cx, cy] / HillReach);
+        }
+        // d'où vient un ruisseau : du pied d'une montagne, d'un marais, sinon d'une source
+        StreamSource SourceOf(Cell c) => hills[c.X, c.Y] <= 1 ? StreamSource.Mountain
+            : _map.GetTerrain(c) == TerrainType.Swamp ? StreamSource.Swamp : StreamSource.Spring;
+
+        // (pas contre le bord de la carte : loin de l'eau, les sources s'y serreraient)
+        var sources = AllCells().Where(c => c.X >= 2 && c.Y >= 2 && c.X < _map.Width - 2 && c.Y < _map.Height - 2
+            && Open(c) && !_map.HasRoad(c) && !Mouth(c) && !NearStream(c)).ToList();
+        Shuffle(sources, rng);
+        // d'abord les sources loin de l'eau : le ruisseau a de la place pour s'allonger
+        var dry = DistanceTo(Mouth);
+        var byKind = sources.OrderByDescending(c => dry[c.X, c.Y] / 4).GroupBy(SourceOf)
+            .ToDictionary(g => g.Key, g => new Queue<Cell>(g));
+        int made = 0;
+        while (made < wanted && byKind.Values.Any(q => q.Count > 0))
+        {
+            // la sorte de source, au hasard selon sa part, parmi celles qui restent
+            var kinds = SourceShares.Where(k => byKind.TryGetValue(k.Kind, out var q) && q.Count > 0).ToList();
+            double pick = rng.NextDouble() * kinds.Sum(k => k.Share);
+            var kind = kinds[^1].Kind;
+            foreach (var k in kinds)
+                if ((pick -= k.Share) < 0)
+                {
+                    kind = k.Kind;
+                    break;
+                }
+            var source = byKind[kind].Dequeue();
             if (!Open(source) || NearStream(source))
                 continue;
             if (StreamCourseFrom(source, _zoneOf[source.X, source.Y], Open, Mouth, NearStream, Height,
-                    StreamMinLength, StreamMaxLength) is not { } course)
+                    StreamMinLength, StreamMaxLength, rng) is not { } course)
                 continue;
             foreach (var c in CourseCells(course))
                 _map.SetRiver(c, RiverKind.Stream);
-            _map.Streams.Add(course);
+            _map.Streams.Add(course with { Source = kind });
             made++;
         }
 
@@ -2509,14 +2540,16 @@ public sealed class MapGenerator
             var near = AllCells().Where(c => _zoneOf[c.X, c.Y] == zone && Open(c) && !_map.HasRoad(c) && !Mouth(c) && !NearStream(c)
                 && banks.Min(b => Math.Abs(b.X - c.X) + Math.Abs(b.Y - c.Y)) is >= TributaryMinLength - 1 and <= TributaryMaxLength - 3).ToList();
             Shuffle(near, rng);
+            // d'abord au pied d'une montagne
+            near = near.OrderBy(c => SourceOf(c) == StreamSource.Mountain ? 0 : 1).ToList();
             foreach (var source in near.Take(12))
             {
-                if (StreamCourseFrom(source, zone, Open, Mouth, NearStream, Height, TributaryMinLength, TributaryMaxLength)
+                if (StreamCourseFrom(source, zone, Open, Mouth, NearStream, Height, TributaryMinLength, TributaryMaxLength, rng)
                     is not { End: StreamEnd.Join } course)
                     continue;
                 foreach (var c in CourseCells(course))
                     _map.SetRiver(c, RiverKind.Stream);
-                _map.Streams.Add(course);
+                _map.Streams.Add(course with { Source = SourceOf(source) });
                 break;
             }
         }
@@ -2528,7 +2561,7 @@ public sealed class MapGenerator
     /// d'où il se jette (assez loin de la source) ; sans elle, jusqu'au creux le plus bas des environs.
     /// </summary>
     private StreamCourse? StreamCourseFrom(Cell source, int zone, Func<Cell, bool> open, Func<Cell, bool> mouth,
-        Func<Cell, bool> nearStream, Func<double, double, double> height, int minLength, int maxLength)
+        Func<Cell, bool> nearStream, Func<double, double, double> height, int minLength, int maxLength, Random rng)
     {
         int gw = _map.Width * StreamGrid, gh = _map.Height * StreamGrid;
         Cell CellOf(int n) => new(n % gw / StreamGrid, n / gw / StreamGrid);
@@ -2648,6 +2681,7 @@ public sealed class MapGenerator
                 break;
         }
         points.Reverse();
+        points = Meander(points, c => Kind(c) == 1 && !_map.HasRoad(c), rng);
         var last = CellOf(goal);
         if (end == StreamEnd.Mouth)
         {
@@ -2667,6 +2701,103 @@ public sealed class MapGenerator
         var course = new StreamCourse(points, end);
         int length = CourseCells(course).Count;
         return length >= minLength && length <= maxLength ? course : null;
+    }
+
+    /// <summary>La distance (en cases, par les côtés, à travers tout) de chaque case à la plus proche qui répond à <paramref name="mouth"/>.</summary>
+    private int[,] DistanceTo(Func<Cell, bool> mouth)
+    {
+        var d = new int[_map.Width, _map.Height];
+        var queue = new Queue<Cell>();
+        foreach (var c in AllCells())
+        {
+            d[c.X, c.Y] = int.MaxValue;
+            if (mouth(c))
+            {
+                d[c.X, c.Y] = 0;
+                queue.Enqueue(c);
+            }
+        }
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            foreach (var n in Orthogonal(c))
+                if (_map.InBounds(n) && d[n.X, n.Y] == int.MaxValue)
+                {
+                    d[n.X, n.Y] = d[c.X, c.Y] + 1;
+                    queue.Enqueue(n);
+                }
+        }
+        return d;
+    }
+
+    /// <summary>Jusqu'où (en cases) un ruisseau s'écarte de son chemin en serpentant, et la longueur d'une boucle (en cases, de tant à deux fois plus).</summary>
+    private const double MeanderReach = 0.7, MeanderLength = 3;
+
+    /// <summary>
+    /// Le chemin d'un ruisseau qui serpente : chaque point écarté de côté par une vague lente (sa force change le long du
+    /// ruisseau), calme près des bouts et des routes. Un point ne va que dans sa propre case ou dans une case où le
+    /// ruisseau peut passer (<paramref name="open"/>) ; sinon les vagues sont moins fortes, jusqu'au chemin d'origine.
+    /// Là où le chemin passe d'une case à sa voisine en biais, un point de plus dans une case de côté garde ses cases
+    /// liées par leurs côtés.
+    /// </summary>
+    private static List<CoursePoint> Meander(List<CoursePoint> path, Func<Cell, bool> open, Random rng)
+    {
+        static Cell CellOf(CoursePoint p) => new((int)Math.Floor(p.X), (int)Math.Floor(p.Y));
+        if (path.Count < 8)
+            return path;
+        // la direction du chemin, lissée sur quelques points
+        var along = new double[path.Count];
+        for (int i = 1; i < path.Count; i++)
+            along[i] = along[i - 1] + Math.Sqrt(Math.Pow(path[i].X - path[i - 1].X, 2) + Math.Pow(path[i].Y - path[i - 1].Y, 2));
+        double total = along[^1];
+        double wave = MeanderLength * (1 + rng.NextDouble()), phase = rng.NextDouble() * Math.PI * 2;
+        double swell = MeanderLength * (2 + 2 * rng.NextDouble()), swellPhase = rng.NextDouble() * Math.PI * 2;
+        var calm = new bool[path.Count];
+        for (int i = 0; i < path.Count; i++)
+            calm[i] = Enumerable.Range(Math.Max(0, i - 4), Math.Min(path.Count, i + 5) - Math.Max(0, i - 4)).Any(j => !open(CellOf(path[j])));
+
+        foreach (double scale in new[] { 1.0, 0.7, 0.45, 0.25 })
+        {
+            var moved = new List<CoursePoint>();
+            bool fits = true;
+            for (int i = 0; i < path.Count && fits; i++)
+            {
+                var (a, b) = (path[Math.Max(0, i - 3)], path[Math.Min(path.Count - 1, i + 3)]);
+                double dx = b.X - a.X, dy = b.Y - a.Y, len = Math.Sqrt(dx * dx + dy * dy);
+                double taper = Math.Clamp(Math.Min(along[i], total - along[i]) / 1.5, 0, 1);
+                double reach = calm[i] || len == 0 ? 0
+                    : MeanderReach * scale * taper * (0.55 + 0.45 * Math.Sin(along[i] / swell * Math.PI * 2 + swellPhase));
+                double side = reach * Math.Sin(along[i] / wave * Math.PI * 2 + phase);
+                var p = len == 0 ? path[i] : new CoursePoint(path[i].X - dy / len * side, path[i].Y + dx / len * side);
+                var cell = CellOf(p);
+                if (cell != CellOf(path[i]) && !open(cell))
+                    fits = false;
+                moved.Add(p);
+            }
+            if (!fits)
+                continue;
+            // en biais d'une case à l'autre : un point de plus dans une case de côté
+            var result = new List<CoursePoint> { moved[0] };
+            for (int i = 1; i < moved.Count && fits; i++)
+            {
+                var (from, to) = (CellOf(moved[i - 1]), CellOf(moved[i]));
+                if (from.X != to.X && from.Y != to.Y)
+                {
+                    var corner = new CoursePoint(Math.Max(from.X, to.X), Math.Max(from.Y, to.Y));
+                    var bridge = new[] { new Cell(to.X, from.Y), new Cell(from.X, to.Y) }.FirstOrDefault(open, new Cell(-1, -1));
+                    if (bridge.X < 0)
+                        fits = false;
+                    else
+                        result.Add(new CoursePoint(corner.X + (bridge.X + 0.5 - corner.X) * 0.1, corner.Y + (bridge.Y + 0.5 - corner.Y) * 0.1));
+                }
+                if (Math.Abs(from.X - to.X) > 1 || Math.Abs(from.Y - to.Y) > 1)
+                    fits = false;
+                result.Add(moved[i]);
+            }
+            if (fits)
+                return result;
+        }
+        return path;
     }
 
     /// <summary>Les cases d'un ruisseau : celles de ses points (sans le dernier, dans l'eau ou un autre ruisseau, quand il s'y jette).</summary>

@@ -93,6 +93,9 @@ public partial class SmoothGround : ColorRect
         return tiles;
     }
 
+    /// <summary>Les sources entourées de pierres que le shader sait dessiner (la taille de son tableau <c>springs</c>).</summary>
+    private const int MaxSprings = 48;
+
     /// <summary>Les réglages du shader qui sont des longueurs (en pixels d'art), tels qu'ils ont été choisis pour des cases de 24.</summary>
     private static readonly (string Name, float Value)[] LengthsAt24 =
     {
@@ -134,6 +137,12 @@ public partial class SmoothGround : ColorRect
                     dry.SetPixel(x, y, Colors.White);
             }
             material.SetShaderParameter("dry_field", ImageTexture.CreateFromImage(dry));
+            // les ruisseaux nés d'une source : des pierres autour de leur mare (en pixels d'art)
+            float art = (float)material.GetShaderParameter("ART");
+            var springs = map.Streams.Where(s => s.Source == StreamSource.Spring).Take(MaxSprings)
+                .Select(s => new Vector2((float)s.Points[0].X * art, (float)s.Points[0].Y * art)).ToList();
+            material.SetShaderParameter("spring_count", springs.Count);
+            material.SetShaderParameter("springs", springs.Concat(Enumerable.Repeat(Vector2.Zero, MaxSprings - springs.Count)).ToArray());
         }
         return ground;
     }

@@ -1012,6 +1012,65 @@ public sealed class SpellEffects
         }
     }
 
+    // ------------------------------------------------------------------ les douves
+
+    private static readonly Color MoatDeep = new(0.06f, 0.16f, 0.25f), MoatWater = new(0.12f, 0.29f, 0.4f),
+        MoatLight = new(0.28f, 0.52f, 0.62f), MoatShine = new(0.72f, 0.88f, 0.94f),
+        MoatMud = new(0.3f, 0.21f, 0.12f), MoatMudDark = new(0.17f, 0.11f, 0.06f);
+
+    /// <summary>
+    /// Une case des douves : de l'eau sombre qui remplit l'hexagone (<paramref name="corners"/>, dans l'ordre de
+    /// <c>BattleFieldView.Corners</c>), plus profonde au milieu, où passent des reflets ; une berge de boue sur les côtés
+    /// sans douves voisines (<paramref name="bank"/>[i] : le côté entre les coins i et i + 1). <paramref name="level"/> (0 à 1) :
+    /// l'eau monte ou s'en va.
+    /// </summary>
+    internal static void DrawMoat(CanvasItem canvas, Vector2[] corners, bool[] bank, double time, int seed, float level)
+    {
+        if (level <= 0.01f)
+            return;
+        var center = (corners[0] + corners[3]) / 2;
+        var normals = new Vector2[6];
+        for (int i = 0; i < 6; i++)
+        {
+            var edge = corners[(i + 1) % 6] - corners[i];
+            normals[i] = new Vector2(-edge.Y, edge.X).Normalized();
+            if (normals[i].Dot(center - corners[i]) < 0)
+                normals[i] = -normals[i];
+        }
+        float w = corners[1].X - center.X, h = corners[3].Y - center.Y;
+        float band = 4 * Pixel, t = (float)time;
+        for (float y = -h; y <= h; y += Pixel)
+        for (float x = -w; x <= w; x += Pixel)
+        {
+            var p = center + new Vector2(x, y);
+            float edge = float.MaxValue, banked = float.MaxValue;
+            for (int i = 0; i < 6; i++)
+            {
+                float d = (p - corners[i]).Dot(normals[i]);
+                edge = Math.Min(edge, d);
+                if (bank[i])
+                    banked = Math.Min(banked, d);
+            }
+            if (edge < -0.5f)
+                continue;
+            int k = (int)(x / Pixel) * 31 + (int)(y / Pixel);
+            float wobble = (Noise(seed, k) - 0.5f) * 2 * Pixel;
+            Color color;
+            if (banked + wobble < band)
+                color = banked + wobble < band * 0.45f ? MoatMud : MoatMudDark;
+            else
+            {
+                // plus profonde au milieu ; des reflets qui glissent lentement
+                float depth = Math.Clamp((banked == float.MaxValue ? edge + 3 * band : banked) / (3 * band), 0, 1);
+                // (en coordonnées du champ : les reflets passent d'une case à l'autre)
+                float wave = MathF.Sin(p.X * 0.045f + p.Y * 0.16f - t * 1.2f) + 0.7f * MathF.Sin(p.X * 0.11f - p.Y * 0.06f + t * 0.8f)
+                             + (Noise(seed + (int)(t * 3), k) - 0.5f) * 0.5f;
+                color = wave > 1.5f ? MoatShine : wave > 1.05f ? MoatLight : depth > 0.6f ? MoatDeep : MoatWater;
+            }
+            Dot(canvas, p, A(color, level));
+        }
+    }
+
     // ------------------------------------------------------------------ la boule de feu explose
 
     private static void DrawExplosionGround(CanvasItem canvas, Effect e, float t)

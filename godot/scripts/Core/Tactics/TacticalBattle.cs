@@ -688,7 +688,10 @@ public sealed partial class TacticalBattle
         return paths;
     }
 
-    /// <summary>Les chemins les plus courts à pied, de <paramref name="speed"/> pas au plus ; sans entrer dans le feu si <paramref name="avoidFire"/>.</summary>
+    /// <summary>
+    /// Les chemins les plus courts à pied, de <paramref name="speed"/> pas au plus ; sans entrer dans le feu si
+    /// <paramref name="avoidFire"/>. On entre dans les douves mais on n'en repart pas (sauf de la case de départ).
+    /// </summary>
     private Dictionary<Hex, List<Hex>> Walks(BattleUnit unit, int speed, bool avoidFire)
     {
         var paths = new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
@@ -698,7 +701,7 @@ public sealed partial class TacticalBattle
         {
             var hex = queue.Dequeue();
             var path = paths[hex];
-            if (path.Count >= speed)
+            if (path.Count >= speed || path.Count > 0 && InMoat(unit, hex))
                 continue;
             foreach (var next in hex.Neighbours())
             {
@@ -731,7 +734,8 @@ public sealed partial class TacticalBattle
         if (!AreEnemies(unit, target) || unit == Active && IsRetreating)
             return Enumerable.Empty<Hex>();
         var reachable = Reachable(unit);
-        return reachable.Keys.Where(h => Touches(unit, h, target));
+        // pas d'attaque depuis les douves où l'on vient d'entrer : on y perd la fin de son tour
+        return reachable.Keys.Where(h => Touches(unit, h, target) && (h == unit.Position || !InMoat(unit, h)));
     }
 
     // ------------------------------------------------------------------ actions
@@ -744,6 +748,8 @@ public sealed partial class TacticalBattle
         MoveAlong(unit, path);
         if (!unit.IsAlive && CheckEnd())
             return true;
+        if (unit.IsAlive && InMoat(unit, destination))
+            _log.Add(new UnitStuckInMoat(unit));
         EndTurn(acted: true);
         return true;
     }
@@ -755,6 +761,8 @@ public sealed partial class TacticalBattle
     public bool Attack(BattleUnit target, Hex from)
     {
         if (Active is not { } unit || IsRetreating || !AreEnemies(unit, target) || !Touches(unit, from, target))
+            return false;
+        if (from != unit.Position && InMoat(unit, from))
             return false;
         if (!Reachable(unit).TryGetValue(from, out var path))
             return false;

@@ -53,8 +53,8 @@ public static class DataValidation
                 errors.Add($"{s.Id} : force nulle");
             if (s.Target is SpellTarget.Area or SpellTarget.Chain && s.Effect != SpellEffect.Damage)
                 errors.Add($"{s.Id} : seuls les sorts de dégâts visent une zone ou font une chaîne");
-            if (s.Effect == SpellEffect.FireWall != (s.Target == SpellTarget.Wall))
-                errors.Add($"{s.Id} : un mur de feu vise une ligne de cases, et seulement lui");
+            if (s.Effect is SpellEffect.FireWall or SpellEffect.Moat != (s.Target == SpellTarget.Wall))
+                errors.Add($"{s.Id} : un mur de feu ou des douves visent une ligne de cases, et seulement eux");
             if (s.Effect == SpellEffect.FireWall && s.Base + s.PerPower < 1)
                 errors.Add($"{s.Id} : force nulle");
             if (s.Effect == SpellEffect.Teleport && s.Target != SpellTarget.Ally)

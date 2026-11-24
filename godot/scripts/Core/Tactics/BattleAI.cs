@@ -110,26 +110,28 @@ public static class BattleAI
                 _ => 0,
             };
         }
-        if (spell.Effect == SpellEffect.FireWall)
+        if (spell.Effect is SpellEffect.FireWall or SpellEffect.Moat)
             value += WallBarrier(battle, spell, target, side);
         return value;
     }
 
     /// <summary>
-    /// Ce que vaut un mur de feu pour les brûlures à venir : la moitié d'une brûlure pour chaque ennemi qui marche (ni
-    /// vol, ni saut, ni sous terre, pas de l'Enfer) et qu'il sépare de nos tireurs (de l'autre côté de sa colonne, à
-    /// hauteur du mur), à sa portée de marche. Une estimation : l'ennemi peut aussi le contourner.
+    /// Ce que vaut un mur de feu ou des douves contre chaque ennemi qui marche (ni vol, ni saut, ni sous terre ; pas de
+    /// l'Enfer pour le feu) et qu'ils séparent de nos tireurs (de l'autre côté de leur colonne, à leur hauteur), à sa
+    /// portée de marche : la moitié d'une brûlure, ou un cinquième de la troupe pour un tour perdu dans les douves. Une
+    /// estimation : l'ennemi peut aussi les contourner.
     /// </summary>
     private static double WallBarrier(TacticalBattle battle, SpellType spell, Hex target, BattleSide side)
     {
         var cells = battle.WallCells(target);
-        if (cells.Count == 0 || cells.Any(battle.Fire.ContainsKey))
+        bool moat = spell.Effect == SpellEffect.Moat;
+        if (cells.Count == 0 || cells.Any(moat ? battle.Moat.Contains : battle.Fire.ContainsKey))
             return 0;
         int top = cells.Min(h => h.Row) - 1, bottom = cells.Max(h => h.Row) + 1, col = target.Col;
         var shooters = battle.Units.Where(u => u.IsAlive && u.Side == side && u.CanShoot).ToList();
         int strength = battle.SpellStrength(spell, side);
         double value = 0;
-        foreach (var enemy in battle.Units.Where(u => u.IsAlive && u.Side != side && !u.CanShoot && !u.IsInfernal
+        foreach (var enemy in battle.Units.Where(u => u.IsAlive && u.Side != side && !u.CanShoot && (moat || !u.IsInfernal)
                      && !u.Has(Ability.Flies) && !u.Has(Ability.Leaps) && !u.Has(Ability.Burrows)))
         {
             var at = enemy.Position;
@@ -138,7 +140,7 @@ public static class BattleAI
             if (!shooters.Any(s => Math.Sign(s.Position.Col - col) == -Math.Sign(at.Col - col)))
                 continue;
             double gold = enemy.Type.Cost.GetValueOrDefault(ResourceType.Gold);
-            value += 0.5 * Math.Min(strength, enemy.TotalHitPoints) * gold / enemy.Type.HitPoints;
+            value += moat ? 0.2 * enemy.Count * gold : 0.5 * Math.Min(strength, enemy.TotalHitPoints) * gold / enemy.Type.HitPoints;
         }
         return value;
     }

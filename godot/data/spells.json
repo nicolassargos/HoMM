@@ -9,6 +9,7 @@
     { "id": "hate",               "name": "Hâte", "school": "air",                    "level": 2, "cost": 6,  "effect": "Haste",        "target": "Ally",  "amount": 3 },
     { "id": "lenteur",            "name": "Lenteur", "school": "terre",                 "level": 2, "cost": 6,  "effect": "Slow",         "target": "Enemy" },
     { "id": "soins",              "name": "Soins", "school": "eau",                   "level": 2, "cost": 6,  "effect": "Cure",         "target": "Ally",  "base": 10, "perPower": 5 },
+    { "id": "douves",             "name": "Douves", "school": "eau",                  "level": 2, "cost": 8,  "effect": "Moat",         "target": "Wall" },
     { "id": "bouclier-tirs",      "name": "Bouclier contre les tirs", "school": "air", "level": 2, "cost": 7, "effect": "ArrowShield",  "target": "Ally",  "amount": 50 },
     { "id": "boule-de-feu",       "name": "Boule de feu", "school": "feu",            "level": 3, "cost": 15, "effect": "Damage",       "target": "Area",  "base": 10, "perPower": 10 },
     { "id": "faiblesse",          "name": "Faiblesse", "school": "eau",               "level": 3, "cost": 8,  "effect": "Weakness",     "target": "Enemy", "amount": 6 },

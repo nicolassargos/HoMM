@@ -951,6 +951,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   de météores 24, Chaîne d'éclairs 45. Peau de pierre refaite à la demande de l'utilisateur : « a warrior seen from
   behind, his back and shoulders slowly turning into grey cracked stone » (choisi le 31 ; le poing qui devient pierre
   écarté).
+  **Les 4 sorts de la carte** (2026-11-24, branche `sorts-carte`) : même recette, **trois descriptions par sort** (comme
+  les artefacts), 64 candidats chacune, 0,08 $ le lot (0,88 $ les douze, vérifié au solde) ; une page avec l'effet de
+  chaque sort dans son titre, les candidats sur la couleur du parchemin. Choisis : Invocation de bateau b61 (un bateau
+  fantôme cyan près d'une plage), Vent porteur b12 (un voyageur poussé par de grandes rafales), Porte dimensionnelle b31
+  (un héros qui entre dans une faille violette), Retour en ville a12 (une lumière d'or sur une ville au bout d'une
+  route).
 - **Le lutrin et son livre fermé** (2026-11-12, `art/ui/lutrin.png`, 160 × 168, ×2, posé en bas au milieu de
   `LecternView`) : PixelLab « pro », 4 candidats, l'image de la ville (`town.png`) comme style, vus de trois quarts d'en
   haut, un livre rouge foncé aux ferrures d'or ; 0,17 $ le lot (0,115 $ annoncé). Choisi : le 3, un socle rond et massif

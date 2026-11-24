@@ -2595,7 +2595,8 @@ sur la carte, un clic dans le livre les lance (`GameState.CanCastOnMap`, `CastOn
   le clic droit annule.
 - **Retour en ville** (terre, 4, 20) : la ville du joueur la plus proche (en cases) dont l'entrée est libre ; il faut
   300 de mouvement, tout ce qui reste est dépensé ; le héros y entre (la ville s'ouvre, il apprend les sorts de la guilde).
-Sauvegardés : les deux compteurs du jour. Les icônes attendent : le livre montre leurs initiales.
+Sauvegardés : les deux compteurs du jour. Leurs icônes : choisies par l'utilisateur parmi trois descriptions par sort
+(méthode dans `tools/art/METHODE.md`).
 
 #### Les factions (en cours de conception)
 Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouables + 1 faction neutre**. Chacune a sa

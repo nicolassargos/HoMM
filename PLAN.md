@@ -42,7 +42,7 @@ chiffres en vigueur sont dans `godot/data/`.
 l'académie de chaque faction, le livre ouvert, la page qui tourne), une image et une animation par sort.
 ✅ **Quatre sorts de la carte** (idées de l'utilisateur, 2026-11-24, branche `sorts-carte`) : invocation de bateau,
 vent porteur, porte dimensionnelle (10 cases au plus : choix de l'utilisateur, pour pouvoir dézoomer), retour en ville ;
-lancés d'un clic dans le livre, sur la carte (détail dans `HISTORIQUE.md`). **Reste** : leurs icônes ; l'IA qui les
+lancés d'un clic dans le livre, sur la carte, avec leurs icônes (détail dans `HISTORIQUE.md`). **Reste** : l'IA qui les
 lance ; un son et un petit effet sur la carte.
 **Reste** :
 - **L'équilibre force / magie**, reporté aux classes (choix de l'utilisateur) : d'abord apprendre à la simulation à

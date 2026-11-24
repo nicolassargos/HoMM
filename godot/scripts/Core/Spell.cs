@@ -34,13 +34,24 @@ public enum SpellEffect
     Teleport,
     /// <summary>Retire tous les sorts d'une troupe.</summary>
     Dispel,
+
+    // sorts de la carte (idées de l'utilisateur, 2026-11-24)
+    /// <summary>Un bateau apparaît sur l'eau, à côté du héros.</summary>
+    SummonBoat,
+    /// <summary>Le mouvement qui reste au héros pour la journée est doublé (une fois par jour).</summary>
+    DoubleMovement,
+    /// <summary>Le héros saute sur une case libre qu'il a déjà vue, à quelques cases.</summary>
+    DimensionDoor,
+    /// <summary>Le héros revient dans la ville du joueur la plus proche.</summary>
+    TownPortal,
 }
 
 /// <summary>
 /// Sur qui se lance un sort : une troupe ennemie, une troupe amie, n'importe quelle troupe, une case et ses voisines,
-/// ou une troupe ennemie puis, de proche en proche, les troupes les plus proches (une chaîne d'éclairs).
+/// une troupe ennemie puis, de proche en proche, les troupes les plus proches (une chaîne d'éclairs), ou la carte (un
+/// sort qui se lance hors des combats).
 /// </summary>
-public enum SpellTarget { Enemy, Ally, Area, Any, Chain }
+public enum SpellTarget { Enemy, Ally, Area, Any, Chain, Map }
 
 /// <summary>Un sort de combat. Les valeurs viennent de data/spells.json.</summary>
 public sealed record SpellType
@@ -67,8 +78,11 @@ public sealed record SpellType
     /// <summary>Le bonus ou malus d'un sort qui dure (défense, vitesse, attaque).</summary>
     public int Amount { get; init; }
 
+    /// <summary>Un sort qui se lance sur la carte, jamais au combat.</summary>
+    public bool OnMap => Target == SpellTarget.Map;
+
     /// <summary>Un sort qui dure quelques rounds (bénédiction, lenteur…), plutôt qu'un effet immédiat.</summary>
-    public bool Lasts => Effect is not (SpellEffect.Damage or SpellEffect.Cure or SpellEffect.Resurrection
+    public bool Lasts => !OnMap && Effect is not (SpellEffect.Damage or SpellEffect.Cure or SpellEffect.Resurrection
         or SpellEffect.Teleport or SpellEffect.Dispel);
 
     /// <summary>Un sort néfaste qui dure (retiré par les soins).</summary>
@@ -86,6 +100,18 @@ public sealed record SpellType
     /// elle s'arrête (choix de l'utilisateur : elle ne saute pas vers une troupe lointaine).
     /// </summary>
     public const int ChainReach = 3;
+
+    /// <summary>Jusqu'où saute la porte dimensionnelle, en cases (choix de l'utilisateur : en cases, pas « à l'écran »).</summary>
+    public const int DimensionDoorRange = 10;
+
+    /// <summary>Le mouvement que coûte un saut de la porte dimensionnelle.</summary>
+    public const int DimensionDoorMovement = 300;
+
+    /// <summary>Combien de fois par jour un héros passe la porte dimensionnelle.</summary>
+    public const int DimensionDoorsPerDay = 2;
+
+    /// <summary>Le mouvement qu'il faut au moins pour revenir en ville (tout ce qui reste est dépensé).</summary>
+    public const int TownPortalMovement = 300;
 }
 
 /// <summary>Tous les sorts du jeu.</summary>
@@ -144,3 +170,28 @@ public sealed record UnitTeleported(BattleUnit Unit, Hex From, Hex To) : BattleA
 
 /// <summary>Les sorts d'une troupe sont dissipés.</summary>
 public sealed record SpellsDispelled(BattleUnit Unit, SpellType Spell) : BattleAction;
+
+/// <summary>Pourquoi un sort de la carte peut (ou ne peut pas) se lancer.</summary>
+public enum MapSpellResult
+{
+    Ok,
+    /// <summary>Pas un sort de la carte, ou le héros ne le connaît pas, ou ce n'est pas son tour.</summary>
+    NotAvailable,
+    NotEnoughSpellPoints,
+    /// <summary>Le sort ne se lance pas en mer (le bateau, la porte, le retour en ville).</summary>
+    AtSea,
+    /// <summary>Pas d'eau libre à côté du héros (le bateau).</summary>
+    NoWater,
+    /// <summary>Déjà lancé aujourd'hui (le vent porteur), ou plus de saut aujourd'hui (la porte).</summary>
+    AlreadyToday,
+    /// <summary>Pas assez de mouvement (la porte, le retour en ville).</summary>
+    NotEnoughMovement,
+    /// <summary>La case visée : trop loin, pas encore vue, ou où l'on ne peut pas se poser (la porte).</summary>
+    BadTarget,
+    /// <summary>Aucune ville du joueur où arriver (le retour en ville).</summary>
+    NoTown,
+}
+
+/// <summary>Un héros lance un sort sur la carte : il était en <paramref name="From"/>, il est en <paramref name="To"/> (la
+/// même case s'il n'a pas bougé) ; <paramref name="Boat"/> : la case du bateau invoqué.</summary>
+public sealed record MapSpellCast(Hero Hero, SpellType Spell, Cell From, Cell To, Cell? Boat = null) : GameEvent;

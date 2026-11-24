@@ -864,6 +864,11 @@ public static class Texts
         BoatBoarded boarded => $"{boarded.Hero.Name} monte à bord.",
         BoatLeft left => $"{left.Hero.Name} débarque ; le bateau reste amarré.",
         BoatBuilt => "Un bateau neuf attend sur l'eau, à côté du chantier naval.",
+        MapSpellCast cast when cast.Hero.Owner != viewer => null,
+        MapSpellCast { Spell.Effect: SpellEffect.SummonBoat } cast => $"{cast.Hero.Name} invoque un bateau.",
+        MapSpellCast { Spell.Effect: SpellEffect.DoubleMovement } cast => $"Un vent porteur pousse {cast.Hero.Name} : son mouvement double.",
+        MapSpellCast { Spell.Effect: SpellEffect.DimensionDoor } cast => $"{cast.Hero.Name} passe la porte dimensionnelle.",
+        MapSpellCast cast => $"{cast.Hero.Name} revient en ville.",
         FlotsamFound { Flotsam: { Wood: 0, Gold: 0 } } f => $"{f.Hero.Name} repêche une épave : il n'y a rien à garder.",
         FlotsamFound { Flotsam.Gold: 0 } f => $"{f.Hero.Name} repêche une épave : {f.Flotsam.Wood} bois.",
         FlotsamFound f => $"{f.Hero.Name} repêche une épave : {f.Flotsam.Wood} bois et {f.Flotsam.Gold} or.",
@@ -1504,6 +1509,12 @@ public static class Texts
             SpellEffect.Weakness => $"−{spell.Amount} attaque à une troupe ennemie",
             SpellEffect.Cure => $"Soigne {strength} PV d'une troupe amie et retire les sorts néfastes",
             SpellEffect.Resurrection => $"Ramène {strength} PV de créatures tuées dans ce combat (troupe amie)",
+            SpellEffect.SummonBoat => "Sur la carte : un bateau apparaît sur l'eau, à côté du héros",
+            SpellEffect.DoubleMovement => "Sur la carte : double le mouvement qui reste au héros aujourd'hui (une fois par jour)",
+            SpellEffect.DimensionDoor =>
+                $"Sur la carte : le héros saute sur une case déjà vue, à {SpellType.DimensionDoorRange} cases au plus, même par-dessus l'eau ou les montagnes ({SpellType.DimensionDoorMovement} de mouvement, {SpellType.DimensionDoorsPerDay} fois par jour)",
+            SpellEffect.TownPortal =>
+                $"Sur la carte : le héros revient dans votre ville la plus proche (il lui faut {SpellType.TownPortalMovement} de mouvement ; il les dépense tous)",
             _ => "",
         };
     }
@@ -1569,7 +1580,29 @@ public static class Texts
     public static string OneSpellPerRound => "Un seul sort par round : le livre se lit seulement.";
     public static string NotYourTurnToCast => "Ce n'est pas votre tour : le livre se lit seulement.";
     public static string SpellBookShort => "Sorts";
-    public static string SpellBookOnMap => "Les sorts se lancent au combat.";
+    public static string SpellBookOnMap => "Les sorts de combat se lancent au combat ; ceux de la carte, d'un clic.";
+
+    /// <summary>Le livre de sorts ouvert hors du tour du joueur, ou depuis l'écran du héros : il se lit seulement.</summary>
+    public static string SpellBookReadOnly => "Les sorts de combat se lancent au combat ; ceux de la carte, depuis la carte.";
+
+    public static string DimensionDoorPrompt =>
+        $"Porte dimensionnelle : cliquez sur une case déjà vue, à {SpellType.DimensionDoorRange} cases au plus (clic droit : annuler).";
+
+    /// <summary>Pourquoi un sort de la carte ne se lance pas.</summary>
+    public static string? MapSpellRefused(MapSpellResult result, SpellType spell) => result switch
+    {
+        MapSpellResult.NotEnoughSpellPoints => $"Pas assez de points de sort pour {spell.Name}.",
+        MapSpellResult.AtSea => $"{spell.Name} ne se lance pas en mer.",
+        MapSpellResult.NoWater => "Il n'y a pas d'eau libre à côté du héros.",
+        MapSpellResult.AlreadyToday when spell.Effect == SpellEffect.DimensionDoor =>
+            $"Le héros a déjà passé la porte {SpellType.DimensionDoorsPerDay} fois aujourd'hui.",
+        MapSpellResult.AlreadyToday => $"{spell.Name} est déjà lancé aujourd'hui.",
+        MapSpellResult.NotEnoughMovement => $"Pas assez de mouvement pour {spell.Name}.",
+        MapSpellResult.BadTarget => "Impossible d'arriver là : trop loin, pas encore vu, ou déjà occupé.",
+        MapSpellResult.NoTown => "Aucune de vos villes n'est libre pour accueillir le héros.",
+        MapSpellResult.NotAvailable => $"{spell.Name} ne peut pas se lancer maintenant.",
+        _ => null,
+    };
     public static string SpellBookTooltip => "Livre de sorts du héros";
     public static string NotEnoughSpellPoints => "pas assez de points";
     public static string NoSpellsKnown => "Aucun sort : un héros en apprend dans une ville qui a une guilde des mages.";

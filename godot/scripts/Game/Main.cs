@@ -844,6 +844,17 @@ public partial class Main : Node2D
 
     private void ClickCell(Cell cell)
     {
+        if (_aimedSpell is { } aimed)
+        {
+            _aimedSpell = null;
+            if (CanAct && _state.CurrentHero is { } caster)
+            {
+                if (Texts.MapSpellRefused(_state.CastOnMap(caster, aimed, cell), aimed) is { } refused)
+                    _hud.AddMessage(refused);
+                HandleEvents();
+            }
+            return;
+        }
         if (!CanAct || !_state.CurrentPlayer.Fog.IsExplored(cell))
             return;
         // Clic sur sa ville : les murs ouvrent l'écran de ville ; l'entrée y fait entrer le héros
@@ -897,14 +908,41 @@ public partial class Main : Node2D
             _heroScreen.Open(hero);
     }
 
-    /// <summary>Le livre de sorts du héros choisi (bouton ou touche S) : sur la carte, il se lit seulement.</summary>
+    /// <summary>
+    /// Le livre de sorts du héros choisi (bouton ou touche S) : un clic sur un sort de la carte le lance (la porte
+    /// dimensionnelle attend ensuite sa case) ; les sorts de combat se lisent seulement.
+    /// </summary>
     private void OpenSpellBook()
     {
         if (!OnMap || _hud.ShownHero is not { } hero)
             return;
-        var book = new SpellBookWindow(hero, hero.SpellPoints, notice: Texts.SpellBookOnMap);
+        bool canAct = CanAct && hero == _state.CurrentHero;
+        // un sort de la carte qu'on peut payer se choisit ; s'il ne peut pas se lancer, le message dit pourquoi
+        var book = new SpellBookWindow(hero, hero.SpellPoints,
+            spell => canAct && spell.OnMap && _state.CanCastOnMap(hero, spell) is not (MapSpellResult.NotAvailable or MapSpellResult.NotEnoughSpellPoints),
+            canAct ? Texts.SpellBookOnMap : Texts.SpellBookReadOnly, spell => CastOnMap(hero, spell));
         AddChild(book);
         book.Open();
+    }
+
+    /// <summary>La porte dimensionnelle choisie dans le livre : le prochain clic sur la carte donne sa case.</summary>
+    private SpellType? _aimedSpell;
+
+    private void CastOnMap(Hero hero, SpellType spell)
+    {
+        var result = _state.CanCastOnMap(hero, spell);
+        if (result == MapSpellResult.Ok && spell.Effect == SpellEffect.DimensionDoor)
+        {
+            _aimedSpell = spell;
+            _state.ClearPath();
+            _hud.AddMessage(Texts.DimensionDoorPrompt);
+            return;
+        }
+        if (result == MapSpellResult.Ok)
+            result = _state.CastOnMap(hero, spell);
+        if (Texts.MapSpellRefused(result, spell) is { } refused)
+            _hud.AddMessage(refused);
+        HandleEvents();
     }
 
     /// <summary>Le royaume (bouton ou touche K).</summary>
@@ -980,6 +1018,7 @@ public partial class Main : Node2D
                     ClickCell(cell);
                 break;
             case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Right }:
+                _aimedSpell = null;
                 if (!_walking)
                     _state.ClearPath();
                 break;
@@ -1209,6 +1248,11 @@ public partial class Main : Node2D
             {
                 case HeroMoved moved when moved.Hero == _state.CurrentHero:
                     _camera.Follow(moved.To);
+                    UpdateMapMusic();
+                    break;
+                // un sort de la carte a déplacé le héros : la vue le suit
+                case MapSpellCast cast when cast.Hero == _state.CurrentHero && cast.To != cast.From:
+                    _camera.Follow(cast.To);
                     UpdateMapMusic();
                     break;
                 // passé par un portail : la vue suit le héros de l'autre côté

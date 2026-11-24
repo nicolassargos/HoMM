@@ -226,6 +226,123 @@ public sealed partial class GameState
         Emit(new BoatBuilt(CurrentPlayer, spot));
     }
 
+    // ------------------------------------------------------------ sorts de la carte
+
+    /// <summary>La distance en cases, en comptant les diagonales comme un pas (la portée de la porte dimensionnelle).</summary>
+    private static int Steps(Cell a, Cell b) => System.Math.Max(System.Math.Abs(a.X - b.X), System.Math.Abs(a.Y - b.Y));
+
+    /// <summary>La première case d'eau libre à côté du héros, où l'invocation pose un bateau (null : aucune).</summary>
+    public Cell? SummonedBoatSpot(Hero hero)
+    {
+        for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+                if ((dx, dy) != (0, 0) && hero.Position.Offset(dx, dy) is var c && Map.IsWater(c) && BoatSpotFree(c))
+                    return c;
+        return null;
+    }
+
+    /// <summary>La ville du joueur la plus proche du héros dont l'entrée est libre (le retour en ville), ou null.</summary>
+    public Town? NearestTown(Hero hero) =>
+        Towns.Where(t => t.Owner == hero.Owner && AllHeroes.All(h => h == hero || h.Position != t.Position))
+            .OrderBy(t => Steps(t.Position, hero.Position)).ThenBy(t => t.Position.Y).ThenBy(t => t.Position.X).FirstOrDefault();
+
+    /// <summary>Le héros peut-il passer la porte dimensionnelle vers cette case : déjà vue, à portée, où l'on peut se poser ?</summary>
+    public bool IsDimensionDoorTarget(Hero hero, Cell target) =>
+        target != hero.Position && Steps(target, hero.Position) <= SpellType.DimensionDoorRange
+        && hero.Owner.Fog.IsExplored(target) && Map.IsPassable(target) && !Map.IsWater(target)
+        && Map.ObjectAt(target) == null && AllHeroes.All(h => h.Position != target);
+
+    /// <summary>
+    /// Le héros (du joueur courant) peut-il lancer ce sort de la carte ? <paramref name="target"/> : la case visée par la
+    /// porte dimensionnelle (sans elle, seulement si le sort peut se lancer quelque part).
+    /// </summary>
+    public MapSpellResult CanCastOnMap(Hero hero, SpellType spell, Cell? target = null)
+    {
+        if (!spell.OnMap || !hero.Knows(spell) || hero.Owner != CurrentPlayer || Outcome != GameOutcome.Playing
+            || CurrentBattle != null || PendingEncounter != null || !hero.Owner.Heroes.Contains(hero))
+            return MapSpellResult.NotAvailable;
+        if (hero.SpellPoints < hero.SpellCost(spell))
+            return MapSpellResult.NotEnoughSpellPoints;
+        switch (spell.Effect)
+        {
+            case SpellEffect.SummonBoat:
+                if (hero.AtSea(Map))
+                    return MapSpellResult.AtSea;
+                return SummonedBoatSpot(hero) == null ? MapSpellResult.NoWater : MapSpellResult.Ok;
+            case SpellEffect.DoubleMovement:
+                return hero.DoubledMovementToday ? MapSpellResult.AlreadyToday : MapSpellResult.Ok;
+            case SpellEffect.DimensionDoor:
+                if (hero.AtSea(Map))
+                    return MapSpellResult.AtSea;
+                if (hero.DimensionDoorsToday >= SpellType.DimensionDoorsPerDay)
+                    return MapSpellResult.AlreadyToday;
+                if (hero.Movement < SpellType.DimensionDoorMovement)
+                    return MapSpellResult.NotEnoughMovement;
+                return target is { } cell && !IsDimensionDoorTarget(hero, cell) ? MapSpellResult.BadTarget : MapSpellResult.Ok;
+            case SpellEffect.TownPortal:
+                if (hero.AtSea(Map))
+                    return MapSpellResult.AtSea;
+                if (hero.Movement < SpellType.TownPortalMovement)
+                    return MapSpellResult.NotEnoughMovement;
+                return NearestTown(hero) == null ? MapSpellResult.NoTown : MapSpellResult.Ok;
+            default:
+                return MapSpellResult.NotAvailable;
+        }
+    }
+
+    /// <summary>
+    /// Le héros lance un sort de la carte (événement <see cref="MapSpellCast"/>) : la porte dimensionnelle demande sa case
+    /// (<paramref name="target"/>). Les gardiens autour de la case d'arrivée attaquent, comme après un pas ; arrivé en
+    /// ville, le héros y entre.
+    /// </summary>
+    public MapSpellResult CastOnMap(Hero hero, SpellType spell, Cell? target = null)
+    {
+        if (spell.Effect == SpellEffect.DimensionDoor && target == null)
+            return MapSpellResult.BadTarget;
+        var result = CanCastOnMap(hero, spell, target);
+        if (result != MapSpellResult.Ok)
+            return result;
+        hero.SpellPoints -= hero.SpellCost(spell);
+        var from = hero.Position;
+        switch (spell.Effect)
+        {
+            case SpellEffect.SummonBoat:
+                var spot = SummonedBoatSpot(hero)!.Value;
+                Map.AddObject(new Boat(spot));
+                Emit(new MapSpellCast(hero, spell, from, from, spot));
+                break;
+            case SpellEffect.DoubleMovement:
+                hero.Movement *= 2;
+                hero.DayMovement = System.Math.Max(hero.DayMovement, hero.Movement); // la barre de mouvement reste pleine
+                hero.DoubledMovementToday = true;
+                Emit(new MapSpellCast(hero, spell, from, from));
+                break;
+            case SpellEffect.DimensionDoor:
+                var cell = target!.Value;
+                hero.SpendMovement(SpellType.DimensionDoorMovement);
+                hero.DimensionDoorsToday++;
+                hero.Position = cell;
+                hero.Owner.Fog.Reveal(cell, hero.VisionRadius);
+                Path = null;
+                Emit(new MapSpellCast(hero, spell, from, cell));
+                var guards = Map.GuardsAround(cell).Select(g => ((MapObject)g, g.Army)).ToList();
+                if (guards.Count > 0)
+                    BeginFights(hero, cell, cell, guards, visit: false);
+                break;
+            case SpellEffect.TownPortal:
+                var town = NearestTown(hero)!;
+                hero.SpendMovement(hero.Movement);
+                hero.Position = town.Position;
+                hero.Owner.Fog.Reveal(town.Position, hero.VisionRadius);
+                Path = null;
+                Emit(new MapSpellCast(hero, spell, from, town.Position));
+                Visit(hero, town.Position);
+                break;
+        }
+        CheckVictory();
+        return MapSpellResult.Ok;
+    }
+
     public int Seed { get; }
     public GameData Data { get; }
     public CreatureCatalog Creatures => Data.Creatures;

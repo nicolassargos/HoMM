@@ -51,7 +51,7 @@ public sealed partial class TacticalBattle
 
     /// <summary>Le héros du camp actif peut-il lancer ce sort maintenant (il le connaît, a assez de points, pas encore de sort ce round) ?</summary>
     public bool CanCast(SpellType spell) =>
-        !IsOver && CasterSide is { } side && !HasCast(side) && HeroOf(side)!.Knows(spell) && SpellPointsOf(side) >= HeroOf(side)!.SpellCost(spell);
+        !IsOver && !spell.OnMap && CasterSide is { } side && !HasCast(side) && HeroOf(side)!.Knows(spell) && SpellPointsOf(side) >= HeroOf(side)!.SpellCost(spell);
 
     /// <summary>La force du sort lancé par le héros de ce camp : dégâts, points de vie soignés.</summary>
     /// <summary>La force du sort : base + par point de puissance, plus ce qu'ajoute l'école de magie du héros.</summary>

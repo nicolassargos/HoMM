@@ -17,6 +17,10 @@
     { "id": "dissipation",        "name": "Dissipation", "school": "eau",             "level": 3, "cost": 8,  "effect": "Dispel",       "target": "Any" },
     { "id": "resurrection",       "name": "Résurrection", "school": "terre",            "level": 4, "cost": 20, "effect": "Resurrection", "target": "Ally",  "base": 40, "perPower": 20 },
     { "id": "pluie-de-meteores",  "name": "Pluie de météores", "school": "terre",       "level": 4, "cost": 16, "effect": "Damage",       "target": "Area",  "base": 25, "perPower": 25 },
-    { "id": "chaine-eclairs",     "name": "Chaîne d'éclairs", "school": "air",        "level": 4, "cost": 20, "effect": "Damage",       "target": "Chain", "base": 25, "perPower": 40 }
+    { "id": "chaine-eclairs",     "name": "Chaîne d'éclairs", "school": "air",        "level": 4, "cost": 20, "effect": "Damage",       "target": "Chain", "base": 25, "perPower": 40 },
+    { "id": "invocation-bateau",  "name": "Invocation de bateau", "school": "eau",    "level": 2, "cost": 12, "effect": "SummonBoat",     "target": "Map" },
+    { "id": "vent-porteur",       "name": "Vent porteur", "school": "air",            "level": 3, "cost": 15, "effect": "DoubleMovement", "target": "Map" },
+    { "id": "porte-dimensionnelle", "name": "Porte dimensionnelle", "school": "air",  "level": 4, "cost": 20, "effect": "DimensionDoor",  "target": "Map" },
+    { "id": "retour-en-ville",    "name": "Retour en ville", "school": "terre",       "level": 4, "cost": 20, "effect": "TownPortal",     "target": "Map" }
   ]
 }

@@ -74,7 +74,8 @@ public sealed partial class GameState
         int Id, string Name, int Owner, Cell Position, int Movement, int MaxMovement, int VisionRadius,
         int Attack, int Defense, int Power, int Knowledge, int Charisma, int Level, int Experience,
         List<StackData> Army, List<Cell>? Path, List<string>? Artifacts = null, int? SpellPoints = null, List<string>? Spells = null,
-        string? Class = null, Dictionary<string, int>? Skills = null, int SkillPoints = 0, int SiteMorale = 0, int SiteLuck = 0);
+        string? Class = null, Dictionary<string, int>? Skills = null, int SkillPoints = 0, int SiteMorale = 0, int SiteLuck = 0,
+        bool DoubledMovementToday = false, int DimensionDoorsToday = 0);
 
     /// <summary>Un niveau gagné dont la caractéristique n'a pas encore été choisie.</summary>
     private sealed record ChoiceData(int Hero, int Level, List<HeroStat> Options);
@@ -102,7 +103,8 @@ public sealed partial class GameState
                 h.Attack, h.Defense, h.Power, h.Knowledge, h.Charisma, h.Level, h.Experience,
                 Stacks(h.Army), _paths.GetValueOrDefault(h)?.ToList(), h.Artifacts.Count > 0 ? h.Artifacts.Select(a => a.Id).ToList() : null,
                 h.SpellPoints, h.Spells.Count > 0 ? h.Spells.Select(s => s.Id).ToList() : null, h.Class?.Id,
-                h.Skills.Count > 0 ? h.Skills.ToDictionary(p => p.Key.Id, p => p.Value) : null, h.SkillPoints, h.SiteMorale, h.SiteLuck)).ToList(),
+                h.Skills.Count > 0 ? h.Skills.ToDictionary(p => p.Key.Id, p => p.Value) : null, h.SkillPoints, h.SiteMorale, h.SiteLuck,
+                h.DoubledMovementToday, h.DimensionDoorsToday)).ToList(),
             _pendingChoices.Select(c => new ChoiceData(c.Hero.Id, c.Level, c.Options.ToList())).ToList(),
             _pendingChests.Count > 0 ? _pendingChests.Select(c => new ChestData(c.Hero.Id, c.Chest.Position, c.Chest.Gold)).ToList() : null);
         return JsonSerializer.Serialize(save, SaveOptions);
@@ -296,6 +298,8 @@ public sealed partial class GameState
                 SkillPoints = h.SkillPoints,
                 SiteMorale = h.SiteMorale,
                 SiteLuck = h.SiteLuck,
+                DoubledMovementToday = h.DoubledMovementToday,
+                DimensionDoorsToday = h.DimensionDoorsToday,
                 Attack = h.Attack,
                 Defense = h.Defense,
                 Power = h.Power,

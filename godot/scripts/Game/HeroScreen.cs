@@ -421,7 +421,7 @@ public partial class HeroScreen : ScreenWindow
         {
             if (_hero is not { } hero)
                 return;
-            var window = new SpellBookWindow(hero, hero.SpellPoints, notice: Texts.SpellBookOnMap);
+            var window = new SpellBookWindow(hero, hero.SpellPoints, notice: Texts.SpellBookReadOnly);
             AddChild(window);
             window.Open();
         };

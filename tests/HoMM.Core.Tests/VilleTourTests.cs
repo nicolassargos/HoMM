@@ -55,11 +55,11 @@ public class VilleTourTests
         var other = new GameState(5, TestData.Data, MapSize.Small, 0).Players[0].Towns.Single();
         Assert.Equal(new[] { 3, 3, 2, 2 }, Enumerable.Range(1, 4).Select(other.GuildSpellsAt));
 
-        // tirés pour de bon : 4 sorts du niveau 1 (sur 5), 3 du niveau 4 (sur 3 : tous)
+        // tirés pour de bon : 4 sorts du niveau 1 (sur 5), 3 du niveau 4 (sur 5, avec les sorts de la carte)
         tower.DrawGuildSpells(1, TestData.Data.Spells, n => 0);
         tower.DrawGuildSpells(4, TestData.Data.Spells, n => 0);
         Assert.Equal(4, tower.GuildSpells.Count(s => s.Level == 1));
-        Assert.Equal(TestData.Data.Spells.OfLevel(4).Count(), tower.GuildSpells.Count(s => s.Level == 4));
+        Assert.Equal(3, tower.GuildSpells.Count(s => s.Level == 4));
     }
 
     [Fact]

@@ -55,6 +55,10 @@ public static class DataValidation
                 errors.Add($"{s.Id} : seuls les sorts de dégâts visent une zone ou font une chaîne");
             if (s.Effect == SpellEffect.Teleport && s.Target != SpellTarget.Ally)
                 errors.Add($"{s.Id} : on ne téléporte que ses troupes");
+            bool mapEffect = s.Effect is SpellEffect.SummonBoat or SpellEffect.DoubleMovement or SpellEffect.DimensionDoor
+                or SpellEffect.TownPortal;
+            if (mapEffect != s.OnMap)
+                errors.Add($"{s.Id} : un sort de la carte vise la carte, et seulement lui");
         }
     }
 

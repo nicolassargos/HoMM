@@ -3112,6 +3112,17 @@ choix de l'utilisateur) :
   (`objects/mine-wood-sand`…, `MapRenderer.MineImage` d'après le sol de l'entrée), leurs arbres verts remplacés par ceux
   du sol (un script : rien à payer ; les pieds repris de l'image de l'herbe). Les autres mines gardent leurs arbres :
   creusées, elles iront plutôt au flanc des montagnes (choix de l'utilisateur).
+- ✅ **Le marais de la carte** (2026-11-24, branche `marais-carte`) : « de la terre avec des points verts, trop plat et
+  répétitif » selon l'utilisateur ; tout au shader (`swamp_*` dans `terrain.gdshader`), rien de généré. Des plaques de
+  mousse, de boue plus sombre et, souvent, de boue sombre bleutée (`swamp_peat`, demandée deux fois plus présente) ; des
+  mares d'eau trouble vert sombre (un bruit doux aplati, `swamp_pool_level` 0,72) dont la teinte change un peu d'une mare
+  à l'autre, l'ombre de la rive sous le bord du haut, un liseré clair contre le bas, de courtes rides claires,
+  des nénuphars ; autour, de la boue mouillée et un trait sombre contre l'eau ; des roseaux à épis par groupes au bord
+  (plus, à la demande de l'utilisateur) ; quelques touffes de joncs. Pas de mares près du bord du marais, des routes,
+  des rives, des ruisseaux, ni sous les objets, les forêts et les montagnes (`dry_field`, une image d'une case par pixel
+  faite par `SmoothGround.Create`). Le champ de bataille garde ses flaques (`swamp_ground` à -1). Écartés en chemin :
+  deux fois plus de mares (un camouflage), une bande de ciel claire contre le haut de l'eau (le bord éclairé d'une dalle
+  de pierre), le trait sombre partout où une mare est effacée (des trous noirs).
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

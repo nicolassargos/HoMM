@@ -118,6 +118,38 @@ uniform float snow_crest = 0.04;
 uniform float snow_sparkle = 0.015;
 // sur la neige, la part snow_stones des cailloux semés reste (sombres, ils se voient trop sur le blanc)
 uniform float snow_stones = 0.3;
+// le marais de la carte (swamp_ground : son numéro, -1 : rien, comme au combat qui a ses flaques ; 2026-11-24, « de la
+// terre avec des points verts » selon l'utilisateur) : de grandes plaques de mousse (swamp_moss : leur force, environ
+// swamp_moss_scale pixels d'art) et de boue plus sombre (swamp_mire) ; des mares d'eau trouble (un bruit doux aplati
+// d'environ swamp_pool_scale pixels ; plus swamp_pool_level est bas, plus il y en a), ni près du bord du marais, ni des
+// routes, ni des rives : sous leur rive du haut le reflet sombre de la rive, puis une bande de ciel, des rides claires ;
+// une bande de boue mouillée autour (swamp_mud_width pixels) ; des nénuphars (la part swamp_lilies des carrés de
+// 10 pixels, dans les grandes mares), des roseaux au bord (la part swamp_reeds des carrés de 5 pixels du bord), des
+// touffes de joncs sur la terre (la part swamp_tufts des carrés de 7 pixels)
+uniform int swamp_ground = -1;
+// les cases sans mares (rouge, un pixel par case, adouci entre les cases) : sous les objets, les forêts et les montagnes
+uniform sampler2D dry_field : filter_linear, hint_default_black;
+uniform float swamp_moss = 0.6;
+uniform float swamp_moss_scale = 46.0;
+uniform vec3 swamp_moss_color = vec3(0.78, 1.0, 0.62);
+uniform float swamp_mire = 0.18;
+// par endroits, une boue plus sombre et bleutée (swamp_peat : sa force, de grandes plaques d'environ swamp_peat_scale
+// pixels d'art) ; l'eau des mares change un peu de teinte d'une mare à l'autre (swamp_water_vary : vers le brun ou le vert)
+uniform float swamp_peat = 0.7;
+uniform float swamp_peat_scale = 60.0;
+uniform vec3 swamp_peat_color = vec3(0.62, 0.66, 0.78);
+uniform float swamp_water_vary = 0.5;
+uniform float swamp_pool_scale = 26.0;
+uniform float swamp_pool_level = 0.72;
+uniform float swamp_mud_width = 2.0;
+uniform vec3 swamp_mud = vec3(0.2, 0.15, 0.08);
+uniform vec3 swamp_water = vec3(0.2, 0.29, 0.25);
+uniform vec3 swamp_water_deep = vec3(0.13, 0.2, 0.18);
+uniform vec3 swamp_sky = vec3(0.45, 0.58, 0.55);
+uniform vec3 swamp_lily = vec3(0.31, 0.47, 0.22);
+uniform float swamp_lilies = 0.3;
+uniform float swamp_reeds = 0.55;
+uniform float swamp_tufts = 0.12;
 uniform float burnt_ash = 0.5;
 uniform vec3 ash_color = vec3(0.46, 0.43, 0.41);
 uniform float burnt_embers = 0.04;
@@ -977,6 +1009,59 @@ bool flower_patch_at(vec2 p, vec3 under, out vec3 flower) {
 	return false;
 }
 
+// Les mares du marais au pixel d'art p, sans les routes ni le bord du marais : de combien de pixels d'art (à peu près) il
+// est dans l'eau (négatif : dehors). Un bruit doux aplati (vues en biais, les mares sont plus larges que hautes), au bord
+// déchiqueté par un bruit plus fin
+float swamp_pool_raw(vec2 p) {
+	float n = noise((p + 0.5) / vec2(swamp_pool_scale, swamp_pool_scale * 0.6) + vec2(19.0, 83.0)) * 0.85
+		+ noise((p + 0.5) / vec2(9.0, 6.0) + vec2(5.0, 37.0)) * 0.15;
+	return (n - swamp_pool_level) * swamp_pool_scale * 0.9;
+}
+
+// La place laissée aux mares autour du pixel d'art p, de 0 à 1 : aucune près du bord du marais, des routes, des rives et
+// des ruisseaux, ni sous les objets, les forêts et les montagnes (dry_field)
+float swamp_room(vec2 p) {
+	int kind;
+	float room = smoothstep(0.75, 1.0, part_of(swamp_ground, p));
+	room *= 1.0 - smoothstep(0.2, 0.45, texture(dry_field, (p + 0.5) / (vec2(map_cells) * ART)).r);
+	room *= 1.0 - smoothstep(-9.0, -4.0, road_inside(p, kind));
+	room *= 1.0 - smoothstep(-9.0, -4.0, stream_depth(p));
+	room *= smoothstep(4.0, 9.0, shore_side(p));
+	return room;
+}
+
+// La mare du marais au pixel d'art p (comme swamp_pool_raw), room : la place laissée aux mares (swamp_room)
+float swamp_pool(vec2 p, float room) {
+	return swamp_pool_raw(p) - (1.0 - room) * 8.0;
+}
+
+// Des roseaux au bord d'une mare du marais au pixel d'art p : 0 rien, 1 le pied, 2 la tige, 3 la pointe, 4 un épi (comme
+// reed_at) ; des touffes plus hautes qu'au bord des lacs, plus souvent avec un épi
+int swamp_reed_at(vec2 p, float room) {
+	float size = 5.0;
+	for (float row = 0.0; row < 3.0; row += 1.0) {
+		vec2 cell = floor(p / size) + vec2(0.0, row);
+		if (hash(cell + vec2(45.7, 11.3)) >= swamp_reeds) continue;
+		vec2 base = cell * size + vec2(floor(hash(cell + vec2(2.9, 6.1)) * size), size - 1.0);
+		// en groupes, par endroits du bord
+		if (noise((base + 0.5) / 20.0 + vec2(71.0, 15.0)) < 0.35) continue;
+		float rim = swamp_pool(base, room);
+		if (rim < -2.5 || rim > 1.0) continue;
+		vec2 q = p - base;
+		if (q.y > 0.0 || q.y < -8.0) continue;
+		for (int i = -1; i <= 2; i++) {
+			float h = 4.0 + floor(hash(cell + vec2(float(i) * 3.1, 4.6)) * 5.0);
+			float x = float(i) + (q.y < -h * 0.6 && i != 0 ? sign(float(i)) : 0.0);
+			if (q.x == x && -q.y < h) {
+				if (q.y == 0.0) return 1;
+				if (-q.y >= h - 2.0 && i == 0 && hash(cell + vec2(8.8, 1.1)) < 0.6) return 4;
+				return -q.y >= h - 1.0 ? 3 : 2;
+			}
+		}
+	}
+	return 0;
+}
+
 // Une petite touffe d'herbe sur la route près du pixel d'art p : 0 rien, 1 à 3 la touffe (tuft_pixel), 4 son ombre
 int road_tuft_at(vec2 p) {
 	float size = floor(max(road_tuft_cell, 6.0));
@@ -1248,8 +1333,86 @@ void fragment() {
 		else color *= 1.0 + floor(-lee * 2.0 + bayer(p)) / 2.0 * snow_crest;
 		if (hash(p + vec2(17.3, 91.7)) < snow_sparkle) color = vec3(1.0);
 	}
+	// Le marais : la mousse et la boue, les mares, leurs roseaux et leurs nénuphars, les joncs
+	bool swamp_wet = false;
+	if (t == swamp_ground && !in_water && stream_depth(p) <= 0.0 && shore_distance(p) > 2.0) {
+		// la mousse et la boue, par grandes plaques, en paliers tramés
+		float m = noise((p + 0.5) / swamp_moss_scale + vec2(7.0, 52.0)) * 0.7 + noise((p + 0.5) / 12.0 + vec2(44.0, 3.0)) * 0.3;
+		float moss = floor(smoothstep(0.5, 0.68, m) * 2.0 + bayer(p)) / 2.0;
+		float mire = floor((1.0 - smoothstep(0.26, 0.42, m)) * 2.0 + bayer(p + 1.0)) / 2.0;
+		color = mix(color, color * swamp_moss_color, moss * swamp_moss);
+		color *= 1.0 - mire * swamp_mire;
+		// la boue sombre et bleutée, par grandes plaques (plutôt hors de la mousse), en paliers tramés
+		float peat_n = noise((p + 0.5) / swamp_peat_scale + vec2(33.0, 18.0)) * 0.8 + noise((p + 0.5) / 10.0 + vec2(2.0, 66.0)) * 0.2;
+		float peat = floor(smoothstep(0.46, 0.64, peat_n) * (1.0 - moss * 0.5) * 3.0 + bayer(p + 2.0)) / 3.0;
+		color = mix(color, color * swamp_peat_color, peat * swamp_peat);
+		float room = swamp_room(p);
+		float pool = swamp_pool(p, room);
+		if (pool > 0.0) {
+			swamp_wet = true;
+			// l'eau : sous la rive du haut, son ombre (la rive reflétée) ; contre la rive du bas, un liseré plus clair ; plus
+			// sombre au milieu des grandes mares ; de courtes rides claires, à plat, loin du haut
+			// (2026-11-24 : une bande de ciel claire contre le haut faisait le bord éclairé d'une dalle de pierre)
+			float from_top = 9.0;
+			for (float k = 1.0; k <= 4.0; k += 1.0)
+				if (swamp_pool(p - vec2(0.0, k), room) <= 0.0) { from_top = k; break; }
+			bool bottom = swamp_pool(p + vec2(0.0, 1.0), room) <= 0.0;
+			float streak = noise((p + 0.5) / vec2(6.0, 1.2) + vec2(9.0, 29.0));
+			vec3 water_color = pool > 3.0 && noise((p + 0.5) / 11.0 + vec2(3.0, 70.0)) < 0.55 ? swamp_water_deep : swamp_water;
+			if (from_top <= 2.0) water_color = swamp_water_deep * (from_top <= 1.0 ? 0.62 : 0.8);
+			else if (bottom) water_color = mix(swamp_water, swamp_sky, 0.45);
+			else if (from_top > 3.0 && streak > 0.74) water_color = swamp_sky;
+			else if (from_top > 3.0 && streak > 0.66 && bayer(p) < 0.5) water_color = mix(water_color, swamp_sky, 0.5);
+			// la teinte de la mare : un bruit très doux, plus grand qu'une mare, pour que deux mares voisines diffèrent un peu
+			float hue = noise((p + 0.5) / 70.0 + vec2(12.0, 91.0)) * 2.0 - 1.0;
+			vec3 tint = hue > 0.0 ? vec3(1.12, 1.02, 0.78) : vec3(0.9, 1.06, 0.92);
+			color = mix(water_color, water_color * tint, abs(hue) * swamp_water_vary * 2.0);
+			// des nénuphars dans les grandes mares : une feuille ronde entaillée, parfois une fleur
+			vec2 cell = floor(p / 10.0);
+			if (swamp_lilies > 0.0 && hash(cell + vec2(14.2, 3.7)) < swamp_lilies) {
+				vec2 spot = cell * 10.0 + 3.0 + floor(vec2(hash(cell + vec2(2.1, 8.8)), hash(cell + vec2(7.3, 1.6))) * 4.0);
+				if (swamp_pool(spot, room) > 3.0) {
+					vec2 d = p - spot;
+					if ((d.x * d.x) / 5.8 + d.y * d.y / 2.0 <= 1.0 && !(d.x > 0.0 && d.y == 0.0)) {
+						vec3 leaf = swamp_lily * (0.9 + 0.2 * hash(cell + vec2(4.4, 4.4)));
+						color = d.y > 0.0 ? leaf * 0.72 : (d.y < 0.0 && d.x < 0.0 ? leaf * 1.22 : leaf);
+					}
+					if (hash(cell + vec2(5.5, 5.5)) < 0.3) {
+						if (d == vec2(-1.0, -1.0)) color = vec3(0.95, 0.9, 0.92);
+						else if (d == vec2(-1.0, 0.0)) color = vec3(0.92, 0.7, 0.78);
+					}
+				}
+			}
+		} else if (pool > -swamp_mud_width - 1.0) {
+			// la boue mouillée autour, tramée vers la terre, un trait sombre contre l'eau (seulement contre l'eau : une mare
+			// effacée près d'une route ou d'un objet ne laisse qu'une tache de boue, pas un trou noir)
+			bool edge = pool > -1.0 && (swamp_pool(p + vec2(1.0, 0.0), room) > 0.0 || swamp_pool(p - vec2(1.0, 0.0), room) > 0.0
+				|| swamp_pool(p + vec2(0.0, 1.0), room) > 0.0 || swamp_pool(p - vec2(0.0, 1.0), room) > 0.0);
+			if (edge) color = swamp_mud * 0.7;
+			else if (pool > -swamp_mud_width || bayer(p) < 0.5) color = mix(color, swamp_mud, 0.5);
+		} else if (swamp_tufts > 0.0) {
+			// des touffes de joncs sur la terre, éclairées d'en bas à droite, une ombre à leur gauche
+			vec2 cell = floor(p / 7.0);
+			if (hash(cell + vec2(66.1, 20.4)) < swamp_tufts) {
+				vec2 spot = cell * 7.0 + vec2(2.0 + floor(hash(cell + vec2(3.6, 1.8)) * 3.0), 3.0 + floor(hash(cell + vec2(8.2, 5.1)) * 4.0));
+				int blade = max(tuft_pixel(p - spot, cell), tuft_pixel(p - spot - vec2(2.0, 1.0), cell + 3.0));
+				vec3 rush = vec3(0.3, 0.4, 0.16);
+				if (blade == 1) color = rush * 0.7;
+				else if (blade == 2) color = rush;
+				else if (blade == 3) color = rush * vec3(1.45, 1.4, 1.2);
+				else if (tuft_pixel(p + vec2(1.0, 0.0) - spot, cell) > 0) color *= 0.8;
+			}
+		}
+		if (swamp_reeds > 0.0) {
+			int reed = swamp_reed_at(p, room);
+			if (reed == 1) color = vec3(0.2, 0.27, 0.11);
+			else if (reed == 2) color = vec3(0.32, 0.44, 0.17);
+			else if (reed == 3) color = vec3(0.5, 0.6, 0.26);
+			else if (reed == 4) color = vec3(0.42, 0.26, 0.13);
+		}
+	}
 	// Des cailloux semés sur le sol (l'herbe, le sable), loin des routes
-	if (ground_stones > 0.0 && !in_water && t != water && t != rock_ground && t != burnt_ground) {
+	if (ground_stones > 0.0 && !in_water && !swamp_wet && t != water && t != rock_ground && t != burnt_ground) {
 		vec3 stone;
 		if (ground_stone_at(p, color, t == snow_ground ? snow_stones : 1.0, stone)) color = stone;
 	}

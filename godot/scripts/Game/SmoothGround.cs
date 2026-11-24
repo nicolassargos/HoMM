@@ -119,10 +119,22 @@ public partial class SmoothGround : ColorRect
                 : DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
             return (under, map.GetRoadKind(cell), map.GetRiver(cell));
         });
-        // le pied des montagnes
         if (ground?.Material is ShaderMaterial material)
+        {
+            // le pied des montagnes
             material.SetShaderParameter("mountain_field", ImageTexture.CreateFromImage(
                 MountainField.Build(map.Width, map.Height, cell => map.GetTerrain(cell) == TerrainType.Mountain)));
+            // les cases sans mares du marais : sous les objets (posés au début de la partie), les forêts et les montagnes
+            var dry = Image.CreateEmpty(map.Width, map.Height, false, Image.Format.L8);
+            for (int y = 0; y < map.Height; y++)
+            for (int x = 0; x < map.Width; x++)
+            {
+                var cell = new Cell(x, y);
+                if (map.OccupantAt(cell) != null || DecorLayer.Covers(map.GetTerrain(cell)))
+                    dry.SetPixel(x, y, Colors.White);
+            }
+            material.SetShaderParameter("dry_field", ImageTexture.CreateFromImage(dry));
+        }
         return ground;
     }
 
@@ -162,6 +174,7 @@ public partial class SmoothGround : ColorRect
             material.SetShaderParameter("flower_density", 0.22f);
             material.SetShaderParameter("pebble_share", 0.35f);
             material.SetShaderParameter("ground_stones", 0f); // le champ a ses propres pierres (BattleFieldView)
+            material.SetShaderParameter("swamp_ground", -1); // et ses flaques (les mares de la carte iraient sous les troupes)
             if (ground == TerrainType.Rock)
             {
                 // vue de près, la roche de la carte faisait du cuir, ses dalles un pavage (remarques de l'utilisateur) : au
@@ -331,6 +344,7 @@ public partial class SmoothGround : ColorRect
         material.SetShaderParameter("rock_ground", (int)TerrainType.Rock);
         material.SetShaderParameter("burnt_ground", (int)TerrainType.Burnt);
         material.SetShaderParameter("snow_ground", (int)TerrainType.Snow);
+        material.SetShaderParameter("swamp_ground", (int)TerrainType.Swamp);
         material.SetShaderParameter("grass", (int)TerrainType.Grass);
         // la taille d'une case en pixels d'art (celle des images des terrains) ; les longueurs du shader, réglées pour des
         // cases de 24, gardent les mêmes proportions

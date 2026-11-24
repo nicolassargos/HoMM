@@ -38,7 +38,8 @@ PORT = 8766  # pas celui de tools/art/revue.py et pieds.py (8765), qui écrivent
 CREDITS_PAR_SON = 30
 
 FACTIONS = {"chateau": "Château", "morts-vivants": "Morts-vivants", "barbares": "Barbares", "foret": "Forêt",
-            "tour": "Tour de magie", "donjon": "Donjon", "enfer": "Enfer", "nains": "Nains", "neutre": "Neutres"}
+            "tour": "Tour de magie", "donjon": "Donjon", "enfer": "Enfer", "nains": "Nains", "neutre": "Neutres",
+            "sorts": "Sorts de la carte"}
 
 
 def liste():

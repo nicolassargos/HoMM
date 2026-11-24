@@ -39,7 +39,7 @@ uniform float wave_detail = 0.4;
 // La rive des lacs et de la mer : arrondie (0 : elle suit les cases, en biais à 45° ; 1 : toute en courbes), et son
 // ondulation en plus de edge_wave
 uniform float shore_round = 0.8;
-uniform float shore_wave = 1.0;
+uniform float shore_wave = 1.4;
 // Mélange entre deux terres : demi-largeur (pixels d'art), grain qui rend le mélange irrégulier,
 // et nombre de paliers (0 = mélange continu ; 4 = 0, 25, 50, 75, 100 %, plus « pixel art »)
 uniform float blend = 3.5;
@@ -47,9 +47,12 @@ uniform float blend_grain = 0.35;
 uniform float grain_scale = 3.0;
 uniform float blend_steps = 4.0;
 // Rives : contour et berge (assombrissement de la terre), écume (éclaircissement de l'eau)
-uniform float outline = 0.18;
+uniform float outline = 0.05;
 uniform float bank = 0.08;
-uniform float foam = 0.4;
+uniform float foam = 0.15;
+// les deux rangées de pixels de terre qui touchent l'eau, mêlées à l'eau claire : de tant la première, de moitié moins
+// la deuxième
+uniform float water_edge = 0.66;
 uniform vec3 foam_color = vec3(0.9, 0.95, 1.0);
 // Variantes : taille des zones de chaque variante (pixels d'art) et largeur de la frontière tramée entre elles
 uniform float variant_scale = 30.0;
@@ -244,8 +247,8 @@ uniform float road_vary_scale = 12.0;
 // sable mouillé (assombrissement) sur les derniers pixels avant l'eau
 uniform float beach_width = 11.0;
 uniform float beach_wave = 2.0;
-uniform float wet = 0.15;
-uniform float wet_width = 2.0;
+uniform float wet = 0.25;
+uniform float wet_width = 4.0;
 // Les rives changent par tronçons d'environ bank_stretch pixels d'art (un bruit doux de 0 à 1) : sous bank_grass,
 // l'herbe descend jusqu'à l'eau, bordée d'une ligne de terre mouillée (mud_width pixels) ; au-dessus, la plage, plus ou
 // moins large ; au-dessus de bank_pebbles, une plage de galets (la part pebbles des carrés de 4 pixels a un galet)
@@ -256,14 +259,19 @@ uniform float pebbles = 0.35;
 uniform float mud_width = 2.0;
 uniform vec3 mud_color = vec3(0.36, 0.29, 0.2);
 // La profondeur de l'eau : près des rives, sur shallow_width pixels d'art, une eau claire (mêlée de shallow à
-// shallow_color) ; au large, de deep_start à deep_end pixels de la terre, l'eau fonce (mêlée de deep à deep_color), en
-// paliers tramés
-uniform float shallow_width = 5.0;
-uniform float shallow = 0.25;
+// shallow_color), qui s'efface vers le large en shallow_steps paliers tramés au bord ondulé ; au large, de deep_start à
+// deep_end pixels de la terre, l'eau fonce (mêlée de deep à deep_color), en paliers tramés ; les rivières, étroites,
+// foncent plus tôt et plus fort (river_deep_start, river_deep_end, river_deep)
+uniform float shallow_width = 14.0;
+uniform float shallow = 0.75;
+uniform float shallow_steps = 3.0;
 uniform vec3 shallow_color = vec3(0.45, 0.78, 0.82);
 uniform float deep_start = 10.0;
 uniform float deep_end = 76.0;
 uniform float deep = 0.35;
+uniform float river_deep_start = 4.0;
+uniform float river_deep_end = 30.0;
+uniform float river_deep = 0.65;
 uniform vec3 deep_color = vec3(0.08, 0.2, 0.42);
 // des roseaux au bord de l'eau, en touffes, là où l'herbe descend à l'eau (la part reeds des carrés de 5 pixels d'art
 // au bord, dans les endroits choisis par un bruit doux de reed_scale pixels) ; des rochers dans l'eau peu profonde (la
@@ -621,8 +629,9 @@ float water_depth(vec2 p, float river) {
 	float d = max(river, 0.0);
 	if (water_part(p) > 0.0) {
 		float lake = -shore_distance(p);
-		if (lake > shallow_width + 3.0)
-			lake = max(lake, texture(water_field, (p + 0.5) / (vec2(map_cells) * ART)).b);
+		// la rive exacte ne mesure pas plus loin qu'environ une demi-case (et ses ondulations la font revenir au large) :
+		// l'image des distances, comptée depuis le bord des cases, prend le relais, moins de quoi passer la rive ondulée
+		lake = max(lake, texture(water_field, (p + 0.5) / (vec2(map_cells) * ART)).b - 10.0);
 		d = max(d, lake);
 	}
 	return d;
@@ -1101,14 +1110,22 @@ void fragment() {
 	// La profondeur de l'eau : claire près des rives, sombre au large
 	if (in_water && (shallow > 0.0 || deep > 0.0)) {
 		float d = water_depth(p, river);
-		if (d < shallow_width - 1.0 || (d < shallow_width + 1.0 && bayer(p) < (shallow_width + 1.0 - d) / 2.0))
-			color = mix(color, shallow_color, shallow);
+		float ripple = (noise((p + 0.5) / 14.0 + vec2(17.0, 29.0)) * 2.0 - 1.0) * 1.5;
+		// toute claire sur le premier tiers, puis de moins en moins
+		float clear = 1.0 - clamp((d + ripple - shallow_width * 0.3) / max(shallow_width * 0.7, 1.0), 0.0, 1.0);
+		clear = clamp(floor(clear * shallow_steps + bayer(p)) / shallow_steps, 0.0, 1.0);
+		color = mix(color, shallow_color, shallow * clear);
+		// la rivière cède la place au lac ou à la mer en douceur, là où l'eau des cases l'emporte
+		float open = river > 0.0 ? smoothstep(0.3, 0.9, water_part(p)) : 1.0;
+		float start = mix(river_deep_start, deep_start, open);
+		float end = mix(river_deep_end, deep_end, open);
 		float wobble = (noise((p + 0.5) / 17.0 + vec2(91.0, 3.0)) * 2.0 - 1.0) * 6.0;
-		float level = clamp((d + wobble - deep_start) / max(deep_end - deep_start, 1.0), 0.0, 1.0);
+		float level = clamp((d + wobble - start) / max(end - start, 1.0), 0.0, 1.0);
 		level = clamp(floor(level * 5.0 + bayer(p)) / 5.0, 0.0, 1.0);
-		color = mix(color, deep_color, deep * level);
+		color = mix(color, deep_color, mix(river_deep, deep, open) * level);
 	}
 	// Rives : entre la terre et l'eau
+	float lapped = 0.0; // la terre contre l'eau : 1 au premier pixel, 0,5 au deuxième (voir water_edge)
 	if (a == water || b == water || abs(river) < 3.0) {
 		bool right = water_at(p + vec2(1.0, 0.0));
 		bool left = water_at(p - vec2(1.0, 0.0));
@@ -1118,6 +1135,7 @@ void fragment() {
 		bool left2 = water_at(p - vec2(2.0, 0.0));
 		bool down2 = water_at(p + vec2(0.0, 2.0));
 		bool up2 = water_at(p - vec2(0.0, 2.0));
+		lapped = in_water ? 0.0 : (right || left || down || up) ? 1.0 : (right2 || left2 || down2 || up2) ? 0.5 : 0.0;
 		if (!in_water) {
 			// contour de la terre contre l'eau, puis berge un peu sombre
 			if (right || left || down || up)
@@ -1178,6 +1196,9 @@ void fragment() {
 				color = mix(color, mud_color, 0.7);
 		}
 	}
+	// la rangée de terre contre l'eau, à demi couverte d'eau claire : un passage doux plutôt qu'un bord net
+	if (lapped > 0.0 && water_edge > 0.0)
+		color = mix(color, mix(tile_color(water, p), shallow_color, shallow), water_edge * lapped);
 	// Le pied des montagnes : de 1 (contre la roche) à 0 (à foothill_reach cases), au bord ondulé
 	float foot = 0.0;
 	vec3 slope = color; // le sol avant le pied : celui du cœur des montagnes

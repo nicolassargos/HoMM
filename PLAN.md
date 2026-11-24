@@ -146,7 +146,7 @@ la couleur du rang sur une lueur.
 6. L'IA : ramasser, porter les meilleurs, payer le marchand.
 7. ✅ **Sept nouveaux artefacts** (idées de l'utilisateur, 2026-11-23, branche `idees-artefacts-sorts`) : la longue-vue
    des guetteurs, l'œil du recenseur, la lanterne des âmes et quatre talismans à double tranchant (détail dans
-   `HISTORIQUE.md`). **Reste** : leurs images ; le **chariot** (charger des troupes d'une ville choisie et les amener au
+   `HISTORIQUE.md`) ; leurs images (2026-11-24, branche `artefacts-idees`). **Reste** : le **chariot** (charger des troupes d'une ville choisie et les amener au
    héros : plutôt un bâtiment ou une caravane qu'un artefact, à creuser).
 ✅ **L'écran du héros** est prêt pour eux (2026-11-09, images d'attente) : à gauche le portrait et les
 caractéristiques ; trois onglets Équipement, Compétences, Magie. Équipement : le héros en pied, **11 emplacements**

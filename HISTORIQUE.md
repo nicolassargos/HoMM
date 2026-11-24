@@ -1540,7 +1540,9 @@ au début d'un combat aussi) et `Necromancy` (la **Lanterne des âmes**, divers 
 double au niveau 1, rien pour les autres classes). Les **talismans à double tranchant** (divers, donc un seul porté) :
 deux caractéristiques +4, une autre −3, en cycle (brute : attaque et défense, −puissance ; gardien : défense et
 puissance, −savoir ; érudit : puissance et savoir, −attaque ; téméraire : savoir et attaque, −défense) ; une
-caractéristique ne descend jamais sous 0 (`Hero.Equip`). Sans image pour l'instant : leur case reste vide.
+caractéristique ne descend jamais sous 0 (`Hero.Equip`). Leurs images (2026-11-24, branche `artefacts-idees`) : trois
+descriptions par artefact, choisies par l'utilisateur ; les quatre talismans en pendentifs de cristal, le gardien refait
+d'après celui de la brute (détail dans `tools/art/METHODE.md`).
 
 #### Les artefacts sur la carte (2026-11-21, branche `artefacts-carte`)
 `ArtifactPile` (un artefact posé : le héros qui s'arrête dessus le prend, événement `ArtifactFound`, fenêtre « Un

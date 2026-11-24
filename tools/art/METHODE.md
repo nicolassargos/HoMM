@@ -917,6 +917,14 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   pièces pour dents), sablier à l'envers b13 (bleu, lumineux). Le sable « qui monte » ne se voit pas à cette taille.
   Une petite retouche (ajouter un détail sur un candidat aimé) se fait à la main ; une forme (les dents d'une couronne)
   ne se rajoute pas.
+  **Les sept nouveaux artefacts** (2026-11-24, branche `artefacts-idees`, idées de l'utilisateur) : les idées montrées
+  en quelques mots d'abord, puis trois descriptions par artefact, **l'objet évident et la partie qui porte son pouvoir
+  bien visible** (la lentille de la longue-vue, l'œil du pendentif, la flamme de la lanterne). Choisis : longue-vue des
+  guetteurs b12, œil du recenseur a16, lanterne des âmes c16 (flamme verte), talismans brute c10, érudit c1, téméraire
+  c16 : des **pendentifs de cristal**, chacun sa couleur et son symbole. Le **gardien**, refusé au premier tour, refait
+  (0,16 $) avec le talisman de la brute choisi comme image de modèle et une petite tour de guet gravée : choisi da13 (un
+  cristal pâle et glacé). Pour une famille d'objets, **le premier choisi sert de modèle aux autres** ; sur la page, les
+  frères déjà choisis en tête, pour comparer.
 - **Icônes des sorts** (2026-11-11, `art/spells/<id>.png`, 32 × 32, ×2 dans le livre de sorts et le grimoire de la
   guilde) : **de petites peintures en couleur qui remplissent leur carré**, comme Heroes 2 et 3 (choix de l'utilisateur ;
   pas l'argent gravé des boutons). PixelLab « pro » 32 × 32 **avec l'option `--fond`** (le fond est gardé : sans elle,

@@ -295,11 +295,6 @@ public partial class BattleFieldView : Control
     /// <summary>Les cases des douves montrées, comme celles du feu.</summary>
     private readonly Dictionary<Hex, (float Age, float? Out)> _moatShown = new();
 
-    /// <summary>Les côtés d'une case par où elle touche une voisine (dans l'ordre de <see cref="Hex.Neighbours"/>), rangés
-    /// comme les côtés de <see cref="Corners"/> : en haut à droite, à droite, en bas à droite, en bas à gauche, à gauche,
-    /// en haut à gauche.</summary>
-    private static readonly int[] SideNeighbour = { 1, 0, 5, 4, 3, 2 };
-
     private float FireLevel(float age, float? fading) =>
         Math.Clamp(age / FireRise, 0, 1) * (fading is { } f ? Math.Clamp(1 - f / FireRise, 0, 1) : 1);
 
@@ -2948,12 +2943,21 @@ public partial class BattleFieldView : Control
         else
             DrawRect(new Rect2(Vector2.Zero, Size), MapRenderer.TerrainColor(_terrain));
 
-        // les douves, dans le sol (une berge sur les côtés sans douves voisines)
-        foreach (var (hex, (age, fading)) in _moatShown)
+        // les douves, dans le sol : un fossé par suite de cases l'une sous l'autre (un obstacle le coupe)
+        foreach (var column in _moatShown.Keys.GroupBy(h => h.Col))
         {
-            var neighbours = hex.Neighbours().ToArray();
-            var bank = SideNeighbour.Select(n => !_moatShown.ContainsKey(neighbours[n])).ToArray();
-            SpellEffects.DrawMoat(this, Corners(Center(hex)), bank, _time, hex.Col * 13 + hex.Row * 7, FireLevel(age, fading));
+            var rows = column.OrderBy(h => h.Row).ToList();
+            for (int i = 0; i < rows.Count;)
+            {
+                int j = i + 1;
+                while (j < rows.Count && rows[j].Row == rows[j - 1].Row + 1)
+                    j++;
+                var run = rows.GetRange(i, j - i);
+                float level = run.Min(h => FireLevel(_moatShown[h].Age, _moatShown[h].Out));
+                SpellEffects.DrawMoat(this, run.Select(Center).ToArray(), HexWidth * 0.4f, RowStep * 0.55f, _time,
+                    run[0].Col * 13 + run[0].Row * 7, level);
+                i = j;
+            }
         }
 
         // les cases

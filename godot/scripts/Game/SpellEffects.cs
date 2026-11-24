@@ -1014,60 +1014,78 @@ public sealed class SpellEffects
 
     // ------------------------------------------------------------------ les douves
 
-    private static readonly Color MoatDeep = new(0.06f, 0.16f, 0.25f), MoatWater = new(0.12f, 0.29f, 0.4f),
-        MoatLight = new(0.28f, 0.52f, 0.62f), MoatShine = new(0.72f, 0.88f, 0.94f),
-        MoatMud = new(0.3f, 0.21f, 0.12f), MoatMudDark = new(0.17f, 0.11f, 0.06f);
+    private static readonly Color MoatDeep = new(0.13f, 0.3f, 0.35f), MoatWater = new(0.2f, 0.42f, 0.45f),
+        MoatLight = new(0.34f, 0.58f, 0.57f), MoatShine = new(0.78f, 0.92f, 0.88f), MoatShore = new(0.5f, 0.66f, 0.55f),
+        MoatWet = new(0.31f, 0.25f, 0.15f), MoatSoil = new(0.47f, 0.38f, 0.23f), MoatDry = new(0.58f, 0.5f, 0.32f);
 
     /// <summary>
-    /// Une case des douves : de l'eau sombre qui remplit l'hexagone (<paramref name="corners"/>, dans l'ordre de
-    /// <c>BattleFieldView.Corners</c>), plus profonde au milieu, où passent des reflets ; une berge de boue sur les côtés
-    /// sans douves voisines (<paramref name="bank"/>[i] : le côté entre les coins i et i + 1). <paramref name="level"/> (0 à 1) :
-    /// l'eau monte ou s'en va.
+    /// Des douves : un fossé d'eau qui serpente par le centre des cases <paramref name="centers"/> (de haut en bas, à la
+    /// suite), aux bords qui ondulent, arrondi aux deux bouts ; l'eau plus profonde au milieu, des reflets allongés qui
+    /// glissent, une ligne claire au bord de l'eau, puis une berge de terre mouillée qui sèche et se fond dans l'herbe.
+    /// <paramref name="halfWidth"/> : la demi-largeur de l'eau ; <paramref name="level"/> (0 à 1) : le fossé s'ouvre ou se
+    /// referme.
     /// </summary>
-    internal static void DrawMoat(CanvasItem canvas, Vector2[] corners, bool[] bank, double time, int seed, float level)
+    internal static void DrawMoat(CanvasItem canvas, Vector2[] centers, float halfWidth, float cap, double time, int seed, float level)
     {
-        if (level <= 0.01f)
+        if (level <= 0.01f || centers.Length == 0)
             return;
-        var center = (corners[0] + corners[3]) / 2;
-        var normals = new Vector2[6];
-        for (int i = 0; i < 6; i++)
+        float t = (float)time, bank = 7 * Pixel;
+        float top = centers[0].Y - cap, bottom = centers[^1].Y + cap;
+        // le milieu du fossé à cette hauteur : une courbe de Catmull-Rom par les centres des cases, sans angle
+        float Middle(float y)
         {
-            var edge = corners[(i + 1) % 6] - corners[i];
-            normals[i] = new Vector2(-edge.Y, edge.X).Normalized();
-            if (normals[i].Dot(center - corners[i]) < 0)
-                normals[i] = -normals[i];
+            if (y <= centers[0].Y)
+                return centers[0].X;
+            for (int i = 0; i + 1 < centers.Length; i++)
+                if (y <= centers[i + 1].Y)
+                {
+                    float u = (y - centers[i].Y) / (centers[i + 1].Y - centers[i].Y);
+                    float p0 = centers[Math.Max(i - 1, 0)].X, p1 = centers[i].X, p2 = centers[i + 1].X,
+                        p3 = centers[Math.Min(i + 2, centers.Length - 1)].X;
+                    return 0.5f * (2 * p1 + (p2 - p0) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u * u + (3 * p1 - p0 - 3 * p2 + p3) * u * u * u);
+                }
+            return centers[^1].X;
         }
-        float w = corners[1].X - center.X, h = corners[3].Y - center.Y;
-        float band = 4 * Pixel, t = (float)time;
-        for (float y = -h; y <= h; y += Pixel)
-        for (float x = -w; x <= w; x += Pixel)
+        for (float y = MathF.Floor(top / Pixel) * Pixel; y <= bottom; y += Pixel)
         {
-            var p = center + new Vector2(x, y);
-            float edge = float.MaxValue, banked = float.MaxValue;
-            for (int i = 0; i < 6; i++)
+            // arrondi aux deux bouts
+            float over = y < centers[0].Y ? (centers[0].Y - y) / cap : y > centers[^1].Y ? (y - centers[^1].Y) / cap : 0;
+            float round = MathF.Sqrt(Math.Max(0, 1 - over * over));
+            float mid = Middle(y);
+            // des bords qui ondulent, chacun le sien
+            float left = halfWidth * round * level * (0.86f + 0.1f * MathF.Sin(y * 0.05f + seed) + 0.05f * MathF.Sin(y * 0.17f + seed * 3));
+            float right = halfWidth * round * level * (0.86f + 0.1f * MathF.Sin(y * 0.043f + seed * 2 + 1) + 0.05f * MathF.Sin(y * 0.19f + seed));
+            float reach = Math.Max(left, right) + bank;
+            for (float x = MathF.Floor((mid - reach) / Pixel) * Pixel; x <= mid + reach; x += Pixel)
             {
-                float d = (p - corners[i]).Dot(normals[i]);
-                edge = Math.Min(edge, d);
-                if (bank[i])
-                    banked = Math.Min(banked, d);
+                float dx = x - mid, edge = dx < 0 ? left : right;
+                float into = edge - MathF.Abs(dx); // > 0 : dans l'eau ; < 0 : sur la berge
+                int k = (int)(x / Pixel) * 131 + (int)(y / Pixel);
+                float grain = (Noise(seed, k) - 0.5f) * 1.5f * Pixel;
+                Color color;
+                float alpha = level;
+                if (into + grain > Pixel)
+                {
+                    float depth = Math.Clamp(into / (edge * 0.6f + 0.01f), 0, 1);
+                    // des reflets en traits fins, presque à plat, qui ondulent et glissent ; quelques-uns seulement à la fois
+                    float wave = MathF.Sin(y * 0.42f + 1.6f * MathF.Sin(x * 0.045f + t * 0.7f + seed) - t * 1.1f);
+                    float patch = MathF.Sin(x * 0.03f + y * 0.021f - t * 0.45f + seed) + 0.6f * MathF.Sin(y * 0.05f - x * 0.02f + t * 0.3f);
+                    bool streak = wave > 0.93f && patch > 0.5f && into > 2 * Pixel;
+                    color = streak ? (patch > 1.1f ? MoatShine : MoatLight) : depth > 0.45f ? MoatDeep : MoatWater;
+                }
+                else if (into + grain > 0)
+                    color = MoatShore;
+                else
+                {
+                    // la berge : mouillée contre l'eau, puis sèche, de plus en plus clairsemée vers l'herbe
+                    float away = -(into + grain) / bank;
+                    if (away >= 1 || Noise(seed + 7, k) < away * away)
+                        continue;
+                    color = away < 0.3f ? MoatWet : away < 0.65f ? MoatSoil : MoatDry;
+                    alpha *= 1 - away * 0.4f;
+                }
+                Dot(canvas, new Vector2(x, y), A(color, alpha));
             }
-            if (edge < -0.5f)
-                continue;
-            int k = (int)(x / Pixel) * 31 + (int)(y / Pixel);
-            float wobble = (Noise(seed, k) - 0.5f) * 2 * Pixel;
-            Color color;
-            if (banked + wobble < band)
-                color = banked + wobble < band * 0.45f ? MoatMud : MoatMudDark;
-            else
-            {
-                // plus profonde au milieu ; des reflets qui glissent lentement
-                float depth = Math.Clamp((banked == float.MaxValue ? edge + 3 * band : banked) / (3 * band), 0, 1);
-                // (en coordonnées du champ : les reflets passent d'une case à l'autre)
-                float wave = MathF.Sin(p.X * 0.045f + p.Y * 0.16f - t * 1.2f) + 0.7f * MathF.Sin(p.X * 0.11f - p.Y * 0.06f + t * 0.8f)
-                             + (Noise(seed + (int)(t * 3), k) - 0.5f) * 0.5f;
-                color = wave > 1.5f ? MoatShine : wave > 1.05f ? MoatLight : depth > 0.6f ? MoatDeep : MoatWater;
-            }
-            Dot(canvas, p, A(color, level));
         }
     }
 

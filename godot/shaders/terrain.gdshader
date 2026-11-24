@@ -512,7 +512,8 @@ float stream_distance(vec2 p) {
 // De combien de pixels d'art le pixel p est dans un ruisseau (négatif : sur la rive), avec ses mares
 float stream_depth(vec2 p) {
 	float pool = stream_pools * smoothstep(0.62, 0.8, noise((p + 0.5) / 34.0 + vec2(17.0, 29.0)));
-	return stream_width + pool + (noise((p + 0.5) / 7.0 + vec2(5.0, 91.0)) * 2.0 - 1.0) * stream_wave
+	// l'ondulation ne ferme jamais un ruisseau étroit
+	return stream_width + pool + (noise((p + 0.5) / 7.0 + vec2(5.0, 91.0)) * 2.0 - 1.0) * min(stream_wave, stream_width * 0.35)
 		- stream_distance(p);
 }
 
@@ -1481,6 +1482,8 @@ void fragment() {
 		// un banc de sable : il mange le bord de l'eau et couvre la rive, par endroits
 		float bar = stream_bars > 0.0
 			? smoothstep(1.0 - stream_bars, 1.0 - stream_bars + 0.12, noise((p + 0.5) / 9.0 + vec2(71.0, 3.0))) * 3.5 : 0.0;
+		// sans jamais couvrir le milieu : le ruisseau ne s'assèche pas
+		bar = min(bar, stream_width * 0.25 + 1.0);
 		if (islet || (bar > 1.0 && depth < bar - 1.0 && depth > -1.0)) {
 			color = tile_color(sand, p);
 			if (depth > bar - 2.5) color *= 1.0 - wet;
@@ -1491,6 +1494,10 @@ void fragment() {
 			if (stream_mud > 0.0 && (depth > -0.5 - mud_width || bayer(p) < 0.5))
 				color = mix(color, mud_color, stream_mud);
 			if (depth > -1.5) color *= 1.0 - outline;
+			// les deux rangées de terre contre l'eau, mêlées à l'eau claire comme aux rives des rivières, moitié moins
+			// (un ruisseau est si étroit qu'il paraîtrait deux fois plus large)
+			float lap = depth > -1.0 ? 0.5 : depth > -2.0 ? 0.25 : 0.0;
+			color = mix(color, mix(tile_color(water, p), shallow_color, stream_shallow), water_edge * lap);
 		} else {
 			color = tile_color(water, p);
 			if (depth < 1.5) color = mix(color, foam_color, foam);

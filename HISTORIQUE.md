@@ -3123,6 +3123,20 @@ choix de l'utilisateur) :
   faite par `SmoothGround.Create`). Le champ de bataille garde ses flaques (`swamp_ground` à -1). Écartés en chemin :
   deux fois plus de mares (un camouflage), une bande de ciel claire contre le haut de l'eau (le bord éclairé d'une dalle
   de pierre), le trait sombre partout où une mare est effacée (des trous noirs).
+- ✅ **Des rives moins nettes** (2026-11-24, branche `rives-douces`) : « le bord est trop net » selon l'utilisateur ; tout
+  au shader. L'eau claire des rives est plus large (`shallow_width` 14) et s'efface vers le large en trois paliers tramés
+  au bord ondulé (`shallow_steps`) au lieu d'une bande unie ; les rivières foncent tôt et fort au milieu
+  (`river_deep_start` 4, `river_deep_end` 30, `river_deep` 0,65), en douceur là où elles rejoignent un lac ou la mer ;
+  les **deux rangées de terre contre l'eau** mêlées à l'eau claire (`water_edge` 0,66 puis moitié moins, demandé par
+  l'utilisateur : « une rangée de pixels à demi transparente », puis deux) ; contour (0,05) et écume (0,15) plus
+  légers, sable mouillé plus large (4 pixels), rives plus ondulées (`shore_wave` 1,4 ; `river_wave` 6,75 à 24 px).
+  **Ruisseaux deux fois plus étroits** (`stream_width` 1,8 à 24 px) : l'ondulation (au plus un tiers de la largeur) et
+  les bancs de sable (le bord seulement) ne les coupent plus (« le ruisseau s'assèche ») ; leur bord fondu à moitié
+  (à pleine force, le ruisseau paraissait deux fois plus large). Corrigé en chemin : la profondeur des lacs prenait la
+  rive exacte, qui ne mesure qu'une demi-case et revient au large avec ses ondulations (des taches claires au milieu) ;
+  l'image des distances (moins 10 pixels) prend toujours le relais. Écartés : des rivières plus étroites (l'utilisateur
+  parlait des ruisseaux), décaler au hasard le milieu des cases d'un ruisseau (mieux, mais le tracé à angles droits se
+  voit toujours : voir `PLAN.md`, ruisseaux le long des pentes).
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

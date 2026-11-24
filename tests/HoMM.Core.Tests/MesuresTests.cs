@@ -108,7 +108,7 @@ public class MesuresTests(ITestOutputHelper output)
         foreach (var type in Enum.GetValues<MapType>())
         {
             var shares = new List<int>();
-            int rivers = 0, bridges = 0, streams = 0, streamCells = 0, fords = 0;
+            int rivers = 0, bridges = 0, streams = 0, streamCells = 0, fords = 0, joins = 0, ponds = 0;
             foreach (int seed in Seeds)
             {
                 var map = new GameState(seed, TestData.Data, MapSize.Normal, access: ZoneAccess.Normal, mapType: type).Map;
@@ -121,24 +121,15 @@ public class MesuresTests(ITestOutputHelper output)
                 var stream = cells.Where(c => map.GetRiver(c) == RiverKind.Stream).ToHashSet();
                 streamCells += stream.Count;
                 fords += stream.Count(map.HasRoad);
-                // un ruisseau : une suite de cases reliées par leurs côtés
-                var seen = new HashSet<Cell>();
-                foreach (var start in stream.Where(seen.Add))
-                {
-                    streams++;
-                    var queue = new Queue<Cell>(new[] { start });
-                    while (queue.Count > 0)
-                    {
-                        var c = queue.Dequeue();
-                        foreach (var next in new[] { c.Offset(1, 0), c.Offset(-1, 0), c.Offset(0, 1), c.Offset(0, -1) })
-                            if (stream.Contains(next) && seen.Add(next))
-                                queue.Enqueue(next);
-                    }
-                }
+                // un ruisseau : un tracé, de sa source à son bout
+                streams += map.Streams.Count;
+                joins += map.Streams.Count(s => s.End == StreamEnd.Join);
+                ponds += map.Streams.Count(s => s.End == StreamEnd.Pond);
             }
             int n = Seeds.Length;
             output.WriteLine($"{type} : rivières et ruisseaux {Range(shares)} ‰ de la terre ; par carte : {rivers / (double)n:0} cases de rivière, "
-                             + $"{bridges / (double)n:0.0} ponts, {streams / (double)n:0.0} ruisseaux ({streamCells / (double)n:0} cases), "
+                             + $"{bridges / (double)n:0.0} ponts, {streams / (double)n:0.0} ruisseaux ({streamCells / (double)n:0} cases ; "
+                             + $"{joins / (double)n:0.0} affluents, {ponds / (double)n:0.0} finis dans une mare), "
                              + $"{fords / (double)n:0.0} routes qui croisent un ruisseau");
         }
     }

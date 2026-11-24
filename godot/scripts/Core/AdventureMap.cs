@@ -52,6 +52,12 @@ public sealed class AdventureMap
     /// </summary>
     public List<MountainMassif> Massifs { get; } = new();
 
+    /// <summary>
+    /// Les tracés des ruisseaux posés par le générateur. Seulement pour le dessin (les règles ne lisent que les cases) ;
+    /// vide pour une carte sans tracés (le dessin suit alors les cases).
+    /// </summary>
+    public List<StreamCourse> Streams { get; } = new();
+
     public IReadOnlyCollection<MapObject> Objects => _objects.Values;
 
     public bool InBounds(Cell c) => c.X >= 0 && c.Y >= 0 && c.X < Width && c.Y < Height;

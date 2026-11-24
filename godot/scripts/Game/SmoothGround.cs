@@ -118,7 +118,7 @@ public partial class SmoothGround : ColorRect
                 : terrain == TerrainType.Forest ? forestGrounds.GetValueOrDefault(cell, TerrainType.Grass)
                 : DecorLayer.Covers(terrain) ? TerrainType.Grass : terrain;
             return (under, map.GetRoadKind(cell), map.GetRiver(cell));
-        });
+        }, courses: map.Streams);
         if (ground?.Material is ShaderMaterial material)
         {
             // le pied des montagnes
@@ -258,7 +258,7 @@ public partial class SmoothGround : ColorRect
     /// <paramref name="dirt"/> : l'image de la terre battue (DirtId), s'il y en a.
     /// </summary>
     private static SmoothGround? Create(int width, int height, Func<Cell, (TerrainType Terrain, RoadKind Road, RiverKind River)> cellAt, Image? dirt = null,
-        Action<Image>? retouch = null)
+        Action<Image>? retouch = null, IReadOnlyList<StreamCourse>? courses = null)
     {
         if (!Godot.FileAccess.FileExists(ShaderPath))
             return null;
@@ -328,7 +328,7 @@ public partial class SmoothGround : ColorRect
         {
             var (ground, _, river) = cellAt(cell);
             return (ground, river);
-        }, size.X);
+        }, size.X, courses);
         material.SetShaderParameter("water_field", ImageTexture.CreateFromImage(field));
         material.SetShaderParameter("tiles", tileArray);
         material.SetShaderParameter("road_tiles", RoadTiles(size));

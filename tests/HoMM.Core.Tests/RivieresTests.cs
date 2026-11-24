@@ -63,12 +63,47 @@ public class RivieresTests
         {
             Assert.True(map.IsPassable(cell), $"ruisseau infranchissable en {cell}");
             Assert.Null(map.OccupantAt(cell));
-            // un ruisseau : une ligne de cases, chacune reliée à deux au plus (pas de flaque)
-            Assert.True(Sides.Count(d => streams.Contains(cell.Offset(d.X, d.Y))) <= 2, $"ruisseau trop large en {cell}");
+            // un ruisseau : une ligne de cases, chacune reliée à deux au plus, trois là où un affluent le rejoint (pas de flaque)
+            Assert.True(Sides.Count(d => streams.Contains(cell.Offset(d.X, d.Y))) <= 3, $"ruisseau trop large en {cell}");
             // une route le croise tout droit
             if (map.HasRoad(cell))
                 Assert.True(Sides.Count(d => map.InBounds(cell.Offset(d.X, d.Y)) && map.HasRoad(cell.Offset(d.X, d.Y))) <= 2, $"route le long du ruisseau en {cell}");
         }
+    }
+
+    [Theory]
+    [InlineData(42)]
+    [InlineData(5)]
+    [InlineData(11)]
+    public void Le_trace_d_un_ruisseau_passe_par_ses_cases_et_finit_dans_l_eau_une_mare_ou_un_autre_ruisseau(int seed)
+    {
+        var map = new GameState(seed, TestData.Data, MapSize.Normal, access: ZoneAccess.Normal).Map;
+        var streams = Cells(map).Where(c => map.GetRiver(c) == RiverKind.Stream).ToHashSet();
+        static Cell CellOf(CoursePoint p) => new((int)System.Math.Floor(p.X), (int)System.Math.Floor(p.Y));
+
+        Assert.NotEmpty(map.Streams);
+        var touched = new HashSet<Cell>();
+        foreach (var course in map.Streams)
+        {
+            // de la source au bout, sans le dernier point quand il est dans l'eau ou dans un autre ruisseau
+            var land = course.End == StreamEnd.Pond ? course.Points : course.Points.Take(course.Points.Count - 1).ToList();
+            foreach (var point in land)
+                Assert.Contains(CellOf(point), streams);
+            touched.UnionWith(land.Select(CellOf));
+            // d'un point au suivant : la même case ou une voisine par un côté (le tracé ne saute pas de case)
+            for (int i = 0; i + 1 < land.Count; i++)
+            {
+                var (a, b) = (CellOf(land[i]), CellOf(land[i + 1]));
+                Assert.True(System.Math.Abs(a.X - b.X) + System.Math.Abs(a.Y - b.Y) <= 1, $"le tracé saute de {a} à {b}");
+            }
+            var last = CellOf(course.Points[^1]);
+            if (course.End == StreamEnd.Mouth)
+                Assert.True(map.IsWater(last) || map.GetRiver(last) == RiverKind.River, $"embouchure hors de l'eau en {last}");
+            else if (course.End == StreamEnd.Join)
+                Assert.Contains(last, streams);
+        }
+        // toutes les cases de ruisseau viennent d'un tracé
+        Assert.Equal(streams.OrderBy(c => c.Y).ThenBy(c => c.X), touched.OrderBy(c => c.Y).ThenBy(c => c.X));
     }
 
     [Fact]
@@ -79,5 +114,17 @@ public class RivieresTests
 
         foreach (var cell in Cells(state.Map))
             Assert.Equal(state.Map.GetRiver(cell), loaded.Map.GetRiver(cell));
+        // et les tracés des ruisseaux, au millième de case
+        Assert.Equal(state.Map.Streams.Count, loaded.Map.Streams.Count);
+        foreach (var (saved, back) in state.Map.Streams.Zip(loaded.Map.Streams))
+        {
+            Assert.Equal(saved.End, back.End);
+            Assert.Equal(saved.Points.Count, back.Points.Count);
+            foreach (var (p, q) in saved.Points.Zip(back.Points))
+            {
+                Assert.Equal(p.X, q.X, 3);
+                Assert.Equal(p.Y, q.Y, 3);
+            }
+        }
     }
 }

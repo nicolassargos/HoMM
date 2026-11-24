@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HoMM Artifact Codex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+  /* Layout: a reference codex — one band per rarity, item cards in a grid, slot filter on top */
+  :root {
+    --bg: #ecebe4;
+    --panel: #f8f7f2;
+    --ink: #24231f;
+    --muted: #6c6a60;
+    --line: #d4d1c5;
+    --frame: #2c2b27;
+    --minor: #7d7568;
+    --major: #3b67a8;
+    --relic: #b07a12;
+    --neg: #a3392c;
+    --display: "Alegreya SC", "Palatino Linotype", Georgia, serif;
+    --body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1b1a17; --panel: #24231f; --ink: #ece9df; --muted: #a29f93; --line: #3a3832; --frame: #121110;
+      --minor: #a89f90; --major: #7fa6e0; --relic: #e0aa3e; --neg: #e07a6c; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1b1a17; --panel: #24231f; --ink: #ece9df; --muted: #a29f93; --line: #3a3832; --frame: #121110;
+    --minor: #a89f90; --major: #7fa6e0; --relic: #e0aa3e; --neg: #e07a6c; color-scheme: dark;
+  }
+  body {
+    margin: 0;
+    background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 1rem; line-height: 1.45;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 2rem 3rem;
+  }
+  .wrap { max-width: 72rem; margin: 0 auto; display: grid; gap: 2.5rem; }
+  .intro { display: grid; gap: .6rem; }
+  .intro h1 { font-family: var(--display); font-weight: 700; font-size: clamp(2rem, 5vw, 2.8rem); margin: 0; line-height: 1.05; text-wrap: balance; }
+  .intro p { margin: 0; color: var(--muted); max-width: 60ch; }
+  .legend { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; font-size: .9rem; color: var(--muted); }
+  .legend span::before { content: ""; display: inline-block; width: .7rem; height: .7rem; border-radius: 2px; margin-right: .4rem; vertical-align: -1px; background: var(--c); }
+  .filters { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .chip {
+    font: 500 .9rem var(--body); color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 999px; padding: .3rem .8rem; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .chip:focus-visible { outline: 2px solid var(--major); outline-offset: 2px; }
+  .rank { display: grid; gap: 1rem; }
+  .rank header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .8rem; border-bottom: 2px solid var(--c); padding-bottom: .4rem; }
+  .rank h2 { font-family: var(--display); font-weight: 700; font-size: 1.7rem; margin: 0; color: var(--c); }
+  .rank .count { font-variant-numeric: tabular-nums; color: var(--muted); font-size: .95rem; }
+  .rank header p { margin: 0; color: var(--muted); font-size: .95rem; flex-basis: 100%; }
+  .rank-minor { --c: var(--minor); }
+  .rank-major { --c: var(--major); }
+  .rank-relic { --c: var(--relic); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: .8rem; }
+  .card {
+    display: grid; grid-template-columns: auto 1fr; gap: .9rem; align-items: start;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: .8rem;
+  }
+  .card[hidden] { display: none; }
+  .frame {
+    width: 116px; height: 116px; display: grid; place-items: center; background: var(--frame);
+    border-radius: 4px; box-shadow: inset 0 0 0 2px var(--c);
+  }
+  .frame img { image-rendering: pixelated; }
+  .text { min-width: 0; display: grid; gap: .25rem; }
+  .slot { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--c); font-weight: 700; }
+  .card h3 { font-family: var(--display); font-weight: 500; font-size: 1.1rem; margin: 0; line-height: 1.2; text-wrap: balance; }
+  .card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: .25rem .35rem; }
+  .card li { font-size: .85rem; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; padding: .05rem .4rem; font-variant-numeric: tabular-nums; }
+  .card li.neg { color: var(--neg); }
+  .power { margin: .15rem 0 0; font-size: .9rem; font-style: italic; }
+  .empty { color: var(--muted); font-style: italic; margin: 0; }
+  @media (max-width: 30rem) { .grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <div class="intro">
+    <h1>Artifact Codex</h1>
+    <p>Every artifact in the game, {{TOTAL}} in all, by rarity, with its picture and what it does. Names are as they appear in the game.</p>
+    <div class="legend">
+      <span style="--c: var(--minor)">Minor</span>
+      <span style="--c: var(--major)">Major</span>
+      <span style="--c: var(--relic)">Relic</span>
+    </div>
+  </div>
+  <nav class="filters" aria-label="Filter by slot">{{CHIPS}}</nav>
+  {{SECTIONS}}
+</div>
+
+<script>
+  const chips = [...document.querySelectorAll('.chip')];
+  function apply(slot) {
+    chips.forEach(c => c.setAttribute('aria-pressed', String(c.dataset.filter === slot)));
+    document.querySelectorAll('.rank').forEach(rank => {
+      let shown = 0;
+      rank.querySelectorAll('.card').forEach(card => {
+        card.hidden = slot !== '' && card.dataset.slot !== slot;
+        if (!card.hidden) shown++;
+      });
+      rank.hidden = shown === 0;
+      rank.querySelector('.count').textContent = shown;
+    });
+    try { localStorage.setItem('slot', slot); } catch (e) {}
+  }
+  chips.forEach(c => c.addEventListener('click', () => apply(c.dataset.filter)));
+  let saved = '';
+  try { saved = localStorage.getItem('slot') || ''; } catch (e) {}
+  if (chips.some(c => c.dataset.filter === saved)) apply(saved);
+</script>

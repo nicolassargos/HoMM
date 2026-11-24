@@ -86,6 +86,11 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   fissure qui se lit comme telle n'est pas un bord de plaques (trop lisse : des brindilles) : c'est un trait en zigzag,
   avec des branches, noir, large au milieu et fin aux bouts, le feu seulement au fond de sa partie large ; des tailles
   très inégales, regroupées par régions. Une animation lente et décalée d'une fissure à l'autre reste discrète.
+  Marais (2026-11-24) : l'image seule fait « de la terre avec des points verts » ; l'eau stagnante vient du shader, en
+  mares d'un vert sombre trouble (plus de la moitié du sol en eau fait un camouflage : un sixième environ suffit). Une
+  eau se lit comme telle par son ombre sous le bord du haut et un liseré clair contre le bas ; une bande claire contre le
+  haut fait une dalle de pierre. Garder les objets, les forêts et les routes au sec. Varier la boue (plaques sombres
+  bleutées) plaît.
   Neige (2026-11-19) : les cases du sable recolorées en blanc bleuté, de faible contraste. Les congères étirées en
   longues bandes font des nuages : des congères rondes, l'ombre bleutée d'un seul côté.
   Arbres des sols (2026-11-19, 24 × 32) : finir la description par « single tree, … isolated object, no ground ».

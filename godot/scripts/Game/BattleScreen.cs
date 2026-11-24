@@ -596,7 +596,7 @@ public partial class BattleScreen : CanvasLayer
             }
             else
             {
-                if (spell.Target != SpellTarget.Area)
+                if (spell.Target is not (SpellTarget.Area or SpellTarget.Wall))
                     _field.SpellTargets = battle.SpellTargets(spell).ToList();
                 if (_field.Hovered is { } aimed && battle.IsValidTarget(spell, aimed))
                 {
@@ -605,6 +605,7 @@ public partial class BattleScreen : CanvasLayer
                     _field.SpellArea = spell.Target switch
                     {
                         SpellTarget.Area => new[] { aimed }.Concat(aimed.Neighbours()).Where(Battlefield.InBounds).ToList(),
+                        SpellTarget.Wall => battle.WallCells(aimed).ToList(),
                         SpellTarget.Chain => battle.AffectedBy(spell, aimed).SelectMany(u => u.Hexes).ToList(),
                         _ => aimedUnit!.Hexes.ToList(),
                     };

@@ -28,12 +28,52 @@ public sealed partial class TacticalBattle
         _spellPoints[(int)BattleSide.Defender] = defender?.SpellPoints ?? 0;
     }
 
-    /// <summary>Au début d'un round : chaque héros peut de nouveau lancer un sort, et les sorts finis s'arrêtent.</summary>
+    /// <summary>Au début d'un round : chaque héros peut de nouveau lancer un sort, et les sorts finis s'arrêtent (les murs de feu aussi).</summary>
     private void StartRoundMagic()
     {
         Array.Clear(_castThisRound);
         foreach (var unit in _units)
             unit.ExpireSpells(Round);
+        var faded = _fire.Where(f => f.Value.LastRound < Round).Select(f => f.Key).ToList();
+        foreach (var hex in faded)
+            _fire.Remove(hex);
+        if (faded.Count > 0)
+            _log.Add(new FireWallFaded(faded));
+    }
+
+    /// <summary>Une case d'un mur de feu : la force des brûlures et le dernier round où elle brûle.</summary>
+    public sealed record FireCell(BattleSide Side, int Strength, int LastRound);
+
+    private readonly Dictionary<Hex, FireCell> _fire = new();
+
+    /// <summary>Les cases qui brûlent (murs de feu).</summary>
+    public IReadOnlyDictionary<Hex, FireCell> Fire => _fire;
+
+    /// <summary>
+    /// Les cases d'un mur de feu visé sur cette case : <see cref="SpellType.WallLength"/> cases de la même colonne, la
+    /// visée au milieu (une ligne qui zigzague d'une demi-case, comme les rangées), sans les obstacles ni le hors-champ.
+    /// </summary>
+    public IReadOnlyList<Hex> WallCells(Hex target) =>
+        Enumerable.Range(target.Row - SpellType.WallLength / 2, SpellType.WallLength)
+            .Select(r => new Hex(target.Col, r)).Where(Field.IsOpen).ToList();
+
+    /// <summary>
+    /// Une troupe vient de passer par ces cases (son chemin, puis les cases où elle se tient) : si l'une brûle, elle
+    /// perd une fois la force du mur le plus fort (moitié pour une créature façonnée ; rien pour une créature de
+    /// l'Enfer, insensible au feu).
+    /// </summary>
+    private void CrossFire(BattleUnit unit, IEnumerable<Hex> cells)
+    {
+        if (_fire.Count == 0 || unit.IsInfernal || !unit.IsAlive)
+            return;
+        int strength = cells.Concat(unit.Hexes).Select(h => _fire.TryGetValue(h, out var f) ? f.Strength : 0).Max();
+        if (strength <= 0)
+            return;
+        int damage = unit.IsMade ? Math.Max(1, strength / 2) : strength;
+        int killed = unit.TakeDamage(damage);
+        unit.Wake();
+        _log.Add(new UnitCrossedFire(unit, damage, killed));
+        BloodPrice(unit, killed);
     }
 
     /// <summary>Le héros de ce camp (aucun pour des monstres ou une garnison seule).</summary>
@@ -68,6 +108,8 @@ public sealed partial class TacticalBattle
             return false;
         if (spell.Target == SpellTarget.Area)
             return true;
+        if (spell.Target == SpellTarget.Wall)
+            return Field.IsOpen(target);
         if (UnitAt(target) is not { } unit)
             return false;
         if (unit.IsUndead && !spell.AffectsUndead)
@@ -111,6 +153,9 @@ public sealed partial class TacticalBattle
         if (spell.Target == SpellTarget.Area)
             return new[] { target }.Concat(target.Neighbours())
                 .Select(UnitAt).OfType<BattleUnit>().Distinct().Where(u => !Burns(spell, u)).Select(u => (u, strength)).ToList();
+        if (spell.Target == SpellTarget.Wall)
+            return WallCells(target).Select(UnitAt).OfType<BattleUnit>().Distinct().Where(u => !Burns(spell, u))
+                .Select(u => (u, strength)).ToList();
         if (UnitAt(target) is not { } first)
             return Array.Empty<(BattleUnit, int)>();
         if (Burns(spell, first))
@@ -134,9 +179,9 @@ public sealed partial class TacticalBattle
         return hits;
     }
 
-    /// <summary>Un sort de dégâts de l'école du feu sur une créature de l'Enfer : elle y est insensible.</summary>
+    /// <summary>Un sort de dégâts de l'école du feu (un mur de feu aussi) sur une créature de l'Enfer : elle y est insensible.</summary>
     private static bool Burns(SpellType spell, BattleUnit unit) =>
-        spell.Effect == SpellEffect.Damage && spell.School == FireSchool && unit.IsInfernal;
+        spell.Effect is SpellEffect.Damage or SpellEffect.FireWall && spell.School == FireSchool && unit.IsInfernal;
 
     /// <summary>
     /// Le miroir de cristal (<see cref="Ability.CrystalMirror"/>) : un sort néfaste lancé sur un Roi de cristal frappe la
@@ -181,6 +226,15 @@ public sealed partial class TacticalBattle
         _castThisRound[s] = true;
         var hits = SpellHits(spell, target, side);
         _log.Add(new SpellCast(HeroOf(side)!, side, spell, target));
+        if (spell.Effect == SpellEffect.FireWall)
+        {
+            var cells = WallCells(target);
+            int strength = SpellStrength(spell, side), last = Round + SpellType.WallRounds - 1;
+            foreach (var hex in cells)
+                if (!_fire.TryGetValue(hex, out var old) || old.Strength <= strength)
+                    _fire[hex] = new FireCell(side, strength, last);
+            _log.Add(new FireWallRaised(spell, side, cells, last));
+        }
         if (UnitAt(target) is { } aimed && Mirror(spell, aimed, side) is { } caster)
             _log.Add(new SpellReflected(aimed, caster, spell));
         foreach (var (unit, strength) in hits)
@@ -197,6 +251,7 @@ public sealed partial class TacticalBattle
         switch (spell.Effect)
         {
             case SpellEffect.Damage:
+            case SpellEffect.FireWall:
                 if (!unit.IsAlive)
                     break;
                 // une créature façonnée résiste à la magie : moitié moins de dégâts

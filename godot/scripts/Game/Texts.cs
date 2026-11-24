@@ -195,6 +195,10 @@ public static class Texts
         UnitSeduced s => $"{Capitalize(Stack(s.Unit.Stack))} {(s.Unit.Count == 1 ? "est séduit" : "sont séduits")} : {(s.Unit.Count == 1 ? "il passera son" : "ils passeront leur")} prochain tour.",
         UnitEntranced e => $"{Capitalize(Stack(e.Unit.Stack))}, sous le charme, {(e.Unit.Count == 1 ? "passe son" : "passent leur")} tour.",
         UnitHooked h => $"{Capitalize(Stack(h.Hooker.Stack))} {(h.Hooker.Count == 1 ? "tire" : "tirent")} {Stack(h.Target.Stack)} au bout de {(h.Hooker.Count == 1 ? "son" : "leurs")} crochet{(h.Hooker.Count == 1 ? "" : "s")} !",
+        FireWallRaised w => $"Un mur de feu se dresse ({w.Cells.Count} cases).",
+        FireWallFaded => "Le mur de feu s'éteint.",
+        UnitCrossedFire f => $"Le mur de feu brûle {Stack(new CreatureStack(f.Unit.Type, f.Unit.Count + f.Killed))} : {f.Damage} dégâts"
+                             + (f.Killed > 0 ? $", {f.Killed} {(f.Killed == 1 ? "tué" : "tués")}." : "."),
         UnitBurned b => $"La chaleur brûle {Stack(new CreatureStack(b.Unit.Type, b.Unit.Count + b.Killed))} : {b.Damage} dégâts"
                         + (b.Killed > 0 ? $", {b.Killed} {(b.Killed == 1 ? "tué" : "tués")}." : "."),
         UnitSummoned s => $"{Capitalize(Stack(s.Summoner.Stack))} {(s.Summoner.Count == 1 ? "ouvre" : "ouvrent")} un portail : {s.Count} {Creature(s.Summoned.Type, s.Count)} {(s.Count == 1 ? "apparaît" : "apparaissent")} !",
@@ -1493,6 +1497,8 @@ public static class Texts
         return spell.Effect switch
         {
             SpellEffect.Damage when spell.Target == SpellTarget.Area => $"{strength} dégâts sur une case et ses 6 voisines (amis compris)",
+            SpellEffect.FireWall =>
+                $"un mur de feu sur {SpellType.WallLength} cases, du haut vers le bas, pendant {SpellType.WallRounds} rounds : {strength} dégâts aux troupes qui s'y trouvent, puis à chaque troupe qui y entre ou le traverse (amis compris ; il n'arrête pas les tirs)",
             SpellEffect.Damage when spell.Target == SpellTarget.Chain =>
                 $"{strength} dégâts à une troupe ennemie, puis moitié moins à chaque saut vers la troupe la plus proche, à {SpellType.ChainReach} cases au plus ({SpellType.ChainTargets} troupes au plus, amis compris)",
             SpellEffect.Damage => $"{strength} dégâts à une troupe ennemie",
@@ -1642,6 +1648,7 @@ public static class Texts
     {
         SpellTarget.Any => $"{spell.Name} : choisissez une troupe (clic droit ou Échap : annuler).",
         SpellTarget.Area => $"{spell.Name} : choisissez une case (clic droit ou Échap : annuler).",
+        SpellTarget.Wall => $"{spell.Name} : choisissez le milieu du mur (clic droit ou Échap : annuler).",
         SpellTarget.Ally => $"{spell.Name} : choisissez une de vos troupes (clic droit ou Échap : annuler).",
         _ => $"{spell.Name} : choisissez une troupe ennemie (clic droit ou Échap : annuler).",
     };

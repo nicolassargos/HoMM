@@ -93,7 +93,7 @@ public static class BattleAI
             // un sort néfaste renvoyé sur une troupe amie (le miroir de cristal) est une perte
             value += (spell.Harmful ? sign : 1) * spell.Effect switch
             {
-                SpellEffect.Damage => sign * Math.Min(strength, unit.TotalHitPoints) * perHitPoint,
+                SpellEffect.Damage or SpellEffect.FireWall => sign * Math.Min(strength, unit.TotalHitPoints) * perHitPoint,
                 SpellEffect.Cure => Math.Min(strength, type.HitPoints - unit.TopHitPoints) * perHitPoint
                                     + (unit.Spells.Any(s => s.Spell.Harmful) ? 0.2 * troop : 0),
                 SpellEffect.Resurrection => strength * perHitPoint,
@@ -109,6 +109,36 @@ public static class BattleAI
                 SpellEffect.Slow => troop * 0.25,
                 _ => 0,
             };
+        }
+        if (spell.Effect == SpellEffect.FireWall)
+            value += WallBarrier(battle, spell, target, side);
+        return value;
+    }
+
+    /// <summary>
+    /// Ce que vaut un mur de feu pour les brûlures à venir : la moitié d'une brûlure pour chaque ennemi qui marche (ni
+    /// vol, ni saut, ni sous terre, pas de l'Enfer) et qu'il sépare de nos tireurs (de l'autre côté de sa colonne, à
+    /// hauteur du mur), à sa portée de marche. Une estimation : l'ennemi peut aussi le contourner.
+    /// </summary>
+    private static double WallBarrier(TacticalBattle battle, SpellType spell, Hex target, BattleSide side)
+    {
+        var cells = battle.WallCells(target);
+        if (cells.Count == 0 || cells.Any(battle.Fire.ContainsKey))
+            return 0;
+        int top = cells.Min(h => h.Row) - 1, bottom = cells.Max(h => h.Row) + 1, col = target.Col;
+        var shooters = battle.Units.Where(u => u.IsAlive && u.Side == side && u.CanShoot).ToList();
+        int strength = battle.SpellStrength(spell, side);
+        double value = 0;
+        foreach (var enemy in battle.Units.Where(u => u.IsAlive && u.Side != side && !u.CanShoot && !u.IsInfernal
+                     && !u.Has(Ability.Flies) && !u.Has(Ability.Leaps) && !u.Has(Ability.Burrows)))
+        {
+            var at = enemy.Position;
+            if (at.Row < top || at.Row > bottom || at.Col == col || at.DistanceTo(target) > battle.SpeedOf(enemy))
+                continue;
+            if (!shooters.Any(s => Math.Sign(s.Position.Col - col) == -Math.Sign(at.Col - col)))
+                continue;
+            double gold = enemy.Type.Cost.GetValueOrDefault(ResourceType.Gold);
+            value += 0.5 * Math.Min(strength, enemy.TotalHitPoints) * gold / enemy.Type.HitPoints;
         }
         return value;
     }

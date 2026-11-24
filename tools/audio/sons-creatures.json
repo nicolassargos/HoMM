@@ -791,6 +791,34 @@
       "nom": "Pirate : mort",
       "duree": 1.6,
       "texte": "pirate dying: a gruff cry and a body falling on wooden deck"
+    },
+    {
+      "id": "spell-invocation-bateau",
+      "faction": "sorts",
+      "nom": "Invocation de bateau",
+      "duree": 1.6,
+      "texte": "magic spell summoning a boat: a swirling magical water whirl rising, then a wooden hull creaking and a soft splash"
+    },
+    {
+      "id": "spell-vent-porteur",
+      "faction": "sorts",
+      "nom": "Vent porteur",
+      "duree": 1.5,
+      "texte": "magic tailwind spell: a strong whooshing gust of wind with a light magical chime and rustling leaves"
+    },
+    {
+      "id": "spell-porte-dimensionnelle",
+      "faction": "sorts",
+      "nom": "Porte dimensionnelle",
+      "duree": 1.4,
+      "texte": "dimension door spell: a deep magical rip tearing open, a quick zap as someone jumps through, then the rift snapping shut"
+    },
+    {
+      "id": "spell-retour-en-ville",
+      "faction": "sorts",
+      "nom": "Retour en ville",
+      "duree": 1.6,
+      "texte": "town portal spell: a warm choir-like magical shimmer, a bright bell chime and a rising swell of light"
     }
   ]
 }

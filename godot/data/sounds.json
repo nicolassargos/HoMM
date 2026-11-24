@@ -667,6 +667,18 @@
       "pas/slime-6.wav",
       "pas/slime-7.wav",
       "pas/slime-8.wav"
+    ],
+    "spell-invocation-bateau": [
+      "combat/spell-invocation-bateau.mp3"
+    ],
+    "spell-vent-porteur": [
+      "combat/spell-vent-porteur.mp3"
+    ],
+    "spell-porte-dimensionnelle": [
+      "combat/spell-porte-dimensionnelle.mp3"
+    ],
+    "spell-retour-en-ville": [
+      "combat/spell-retour-en-ville.mp3"
     ]
   },
   "lengths": {

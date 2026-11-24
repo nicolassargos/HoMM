@@ -2597,6 +2597,12 @@ sur la carte, un clic dans le livre les lance (`GameState.CanCastOnMap`, `CastOn
   300 de mouvement, tout ce qui reste est dépensé ; le héros y entre (la ville s'ouvre, il apprend les sorts de la guilde).
 Sauvegardés : les deux compteurs du jour. Leurs icônes : choisies par l'utilisateur parmi trois descriptions par sort
 (méthode dans `tools/art/METHODE.md`).
+Leurs effets, dessinés par le jeu (`Game/MapSpellEffects.cs`, au-dessus des héros, sous le brouillard ; aperçu
+`--map-spell-preview=porte`) : des ondes et des étincelles turquoise autour du bateau, des rafales et des feuilles qui
+poussent le héros, une faille violette au départ et à l'arrivée de la porte (un arc de lumière de l'une à l'autre), une
+colonne d'or devant la ville du retour (la ville s'ouvre après elle). Leurs sons (`spell-<id>`, ElevenLabs par
+`tools/audio/sons.py`, groupe « Sorts de la carte »), tous les quatre « bons » du premier coup ; joués aussi quand le
+joueur voit un adversaire lancer.
 
 #### Les factions (en cours de conception)
 Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouables + 1 faction neutre**. Chacune a sa

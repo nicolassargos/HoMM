@@ -667,10 +667,13 @@ public partial class Main : Node2D
         && !_state.CurrentPlayer.IsComputer; // pendant le tour d'un adversaire (il attend une défense), on ne joue pas
 
     /// <summary>
-    /// Les pas des héros adverses que le joueur peut voir (une case déjà explorée), rejoués à un rythme lisible après
-    /// le tour des adversaires (qui ont joué tout de suite, sans attendre l'affichage).
+    /// Les pas des héros adverses que le joueur peut voir (une case déjà explorée), et leurs sorts de la carte
+    /// (<see cref="MapSpellCast"/>), rejoués à un rythme lisible après le tour des adversaires (qui ont joué tout de suite,
+    /// sans attendre l'affichage).
     /// </summary>
-    private readonly Queue<HeroMoved> _rivalMoves = new();
+    private readonly Queue<GameEvent> _rivalMoves = new();
+
+    private static Hero RivalOf(GameEvent e) => e is HeroMoved moved ? moved.Hero : ((MapSpellCast)e).Hero;
     private double _rivalTimer;
 
     /// <summary>Développement (« --defense-tactical ») : la défense est dirigée d'office, sans fenêtre de choix.</summary>
@@ -702,11 +705,35 @@ public partial class Main : Node2D
         if (_rivalTimer > 0)
             return;
         _rivalTimer = MapRenderer.HeroStepTime;
-        var move = _rivalMoves.Dequeue();
-        _actors.ShownAt[move.Hero] = move.To;
-        _camera.Follow(move.To);
+        switch (_rivalMoves.Dequeue())
+        {
+            case HeroMoved move:
+                _actors.ShownAt[move.Hero] = move.To;
+                _camera.Follow(move.To);
+                break;
+            // un sort : son effet et son son, le temps de l'effet
+            case MapSpellCast cast:
+                _actors.ShownAt[cast.Hero] = cast.To;
+                _camera.Follow(cast.Boat ?? cast.To);
+                _mapSpells.Play(cast);
+                Audio.Play($"spell-{cast.Spell.Id}");
+                _rivalTimer = MapSpellEffects.DurationOf(cast.Spell.Effect);
+                break;
+        }
         if (_rivalMoves.Count == 0)
             _actors.ShownAt.Clear(); // tout est rejoué : chaque héros est montré là où il est
+    }
+
+    /// <summary>Un pas ou un sort d'un héros adverse, à rejouer (le héros est montré d'où il part, en attendant).</summary>
+    private void QueueRival(GameEvent e, Hero hero, Cell from)
+    {
+        if (!_actors.ShownAt.ContainsKey(hero))
+        {
+            _actors.ShownAt[hero] = from;
+            if (_rivalMoves.All(m => RivalOf(m).Owner != hero.Owner))
+                _hud.AddMessage(Texts.RivalMoving(hero.Owner));
+        }
+        _rivalMoves.Enqueue(e);
     }
 
     private void CenterOnHero()
@@ -1291,16 +1318,15 @@ public partial class Main : Node2D
                     _camera.Follow(moved.To);
                     UpdateMapMusic();
                     break;
-                // un sort de la carte : son effet, là où le joueur peut voir ; s'il a déplacé le héros, la vue le suit
-                case MapSpellCast cast:
-                    if (cast.Hero.Owner == viewer || viewer.Fog.IsExplored(cast.From) || viewer.Fog.IsExplored(cast.To))
-                        _mapSpells.Play(cast);
+                // un sort de la carte du joueur : son effet ; s'il a déplacé le héros, la vue le suit
+                case MapSpellCast cast when cast.Hero.Owner == viewer:
+                    _mapSpells.Play(cast);
                     if (cast.Hero == _state.CurrentHero && cast.To != cast.From)
                     {
                         _camera.Follow(cast.To);
                         UpdateMapMusic();
                     }
-                    if (cast.Spell.Effect == SpellEffect.TownPortal && cast.Hero.Owner == viewer)
+                    if (cast.Spell.Effect == SpellEffect.TownPortal)
                         _townOpenDelay = MapSpellEffects.DurationOf(SpellEffect.TownPortal) * 0.8;
                     break;
                 // passé par un portail : la vue suit le héros de l'autre côté
@@ -1311,13 +1337,11 @@ public partial class Main : Node2D
                 // un pas d'un héros adverse là où le joueur peut voir : il sera rejoué (et montré d'où il part)
                 case HeroMoved moved when moved.Hero.Owner != viewer
                                           && (viewer.Fog.IsExplored(moved.From) || viewer.Fog.IsExplored(moved.To)):
-                    if (!_actors.ShownAt.ContainsKey(moved.Hero))
-                    {
-                        _actors.ShownAt[moved.Hero] = moved.From;
-                        if (_rivalMoves.All(m => m.Hero.Owner != moved.Hero.Owner))
-                            _hud.AddMessage(Texts.RivalMoving(moved.Hero.Owner));
-                    }
-                    _rivalMoves.Enqueue(moved);
+                    QueueRival(moved, moved.Hero, moved.From);
+                    break;
+                // un sort de la carte d'un adversaire, là où le joueur peut voir : rejoué avec ses pas
+                case MapSpellCast cast when viewer.Fog.IsExplored(cast.From) || viewer.Fog.IsExplored(cast.To):
+                    QueueRival(cast, cast.Hero, cast.From);
                     break;
                 case BattleStarted started when started.Hero.Owner == viewer:
                     _walking = false;

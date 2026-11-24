@@ -2603,6 +2603,18 @@ poussent le héros, une faille violette au départ et à l'arrivée de la porte 
 colonne d'or devant la ville du retour (la ville s'ouvre après elle). Leurs sons (`spell-<id>`, ElevenLabs par
 `tools/audio/sons.py`, groupe « Sorts de la carte »), tous les quatre « bons » du premier coup ; joués aussi quand le
 joueur voit un adversaire lancer.
+**L'IA les lance** (branche `ia-sorts-carte`, `ComputerPlayer`) :
+- **Vent porteur** au début de la marche d'un héros, s'il a un but (`ChooseTarget`) et s'il lui reste au moins la
+  moitié de ses points de sort après (gardés pour les combats).
+- **Invocation de bateau** quand plus rien n'est à portée à pied : il marche jusqu'au rivage le plus proche (une case de
+  terre libre à côté d'une eau libre) et lance le sort ; avant d'acheter un bateau, puisqu'il ne coûte pas d'or.
+- **Porte dimensionnelle** dans le même cas : la case la plus proche (10 cases au plus) qu'il ne peut pas atteindre à
+  pied, près d'une terre inconnue (4 cases) ou de quelque chose à prendre (3 cases : tas, coffre, lieu, mine ou ville
+  qui n'est pas à lui), jamais à côté d'un gardien connu.
+- **Retour en ville** quand il n'a plus rien à faire et que sa ville la plus proche est à plus de 10 pas : il y rentre
+  et prend la garnison.
+Quand le joueur voit un adversaire lancer (le départ ou l'arrivée découverts), l'effet et le son sont rejoués à leur
+place, dans l'ordre des pas de l'adversaire (`Main.ReplayRivals`).
 
 #### Les factions (en cours de conception)
 Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouables + 1 faction neutre**. Chacune a sa

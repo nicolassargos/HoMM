@@ -13,6 +13,7 @@
     { "id": "boule-de-feu",       "name": "Boule de feu", "school": "feu",            "level": 3, "cost": 15, "effect": "Damage",       "target": "Area",  "base": 10, "perPower": 10 },
     { "id": "faiblesse",          "name": "Faiblesse", "school": "eau",               "level": 3, "cost": 8,  "effect": "Weakness",     "target": "Enemy", "amount": 6 },
     { "id": "aveuglement",        "name": "Aveuglement", "school": "feu",             "level": 3, "cost": 10, "effect": "Blind",        "target": "Enemy" },
+    { "id": "mur-de-feu",         "name": "Mur de feu", "school": "feu",              "level": 3, "cost": 12, "effect": "FireWall",     "target": "Wall",  "base": 10, "perPower": 5 },
     { "id": "teleportation",      "name": "Téléportation", "school": "eau",           "level": 3, "cost": 10, "effect": "Teleport",     "target": "Ally" },
     { "id": "dissipation",        "name": "Dissipation", "school": "eau",             "level": 3, "cost": 8,  "effect": "Dispel",       "target": "Any" },
     { "id": "resurrection",       "name": "Résurrection", "school": "terre",            "level": 4, "cost": 20, "effect": "Resurrection", "target": "Ally",  "base": 40, "perPower": 20 },

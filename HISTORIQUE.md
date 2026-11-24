@@ -2616,6 +2616,29 @@ joueur voit un adversaire lancer.
 Quand le joueur voit un adversaire lancer (le départ ou l'arrivée découverts), l'effet et le son sont rejoués à leur
 place, dans l'ordre des pas de l'adversaire (`Main.ReplayRivals`).
 
+#### Le mur de feu (2026-11-24, branche `mur-de-feu`)
+Idée de l'utilisateur (2026-11-23) ; ses choix : feu, **niveau 3, 12 points**, **5 cases**, **3 rounds**, il brûle
+aussi les troupes qui s'y trouvent quand il se dresse, les créatures insensibles au feu (l'Enfer) n'y craignent rien ;
+la force laissée à Claude : **10 + 5 × puissance** (moins que la boule de feu par brûlure : un même mur peut brûler
+plusieurs fois). `SpellEffect.FireWall`, `SpellTarget.Wall` :
+- Les cases (`TacticalBattle.WallCells`) : la même colonne, la visée au milieu, deux au-dessus et deux au-dessous (une
+  ligne qui zigzague d'une demi-case, comme les rangées) ; une case d'obstacle ou hors du champ ne brûle pas. On peut
+  viser toute case libre d'obstacle, avec ou sans troupe.
+- Les cases qui brûlent (`TacticalBattle.Fire`) s'éteignent au début du round qui suit le troisième (événements
+  `FireWallRaised`, `FireWallFaded`). Deux murs sur une case : le plus fort reste.
+- Une troupe qui entre dans le feu ou le traverse brûle **une fois par déplacement** (`UnitCrossedFire`), moitié pour
+  une créature façonnée ; un volant, un sauteur ou un fouisseur seulement s'il se pose dedans. Brûlée à mort en
+  marchant vers une attaque, elle n'attaque pas.
+- Il n'arrête ni la marche ni les tirs ; **les chemins le contournent** quand un détour tient dans le mouvement
+  (`Reachable` : d'abord les chemins sans feu).
+- L'IA le lance (`BattleAI.SpellValue`) : les dégâts sur les troupes prises dedans, plus la moitié d'une brûlure pour
+  chaque ennemi qui marche et que le mur sépare des tireurs de son camp.
+- Ses flammes, dessinées par le jeu (`SpellEffects.DrawFireWall`) : une lueur et la terre noircie, de hautes flammes au
+  fond de la case (derrière la troupe qui s'y tient) et des flammes basses au bord de devant, des braises qui montent ;
+  il se dresse et s'éteint en une demi-seconde ; aperçu `--effect-preview=mur-de-feu`. Ses sons (ElevenLabs,
+  `spell-mur-de-feu` et `spell-mur-de-feu-brule`), « bons » du premier coup ; son icône : c9, des flammes qui jaillissent
+  d'une fente du sol (méthode dans `tools/art/METHODE.md`).
+
 #### Les factions (en cours de conception)
 Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouables + 1 faction neutre**. Chacune a sa
 créature du niveau 7 et, plus tard, sa **version améliorée** (comme Heroes 3 : un bâtiment améliore une créature) ; ses

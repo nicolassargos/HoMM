@@ -969,6 +969,49 @@ public sealed class SpellEffects
         }
     }
 
+    // ------------------------------------------------------------------ le mur de feu
+
+    /// <summary>
+    /// Une case d'un mur de feu, qui brûle sans fin : une lueur et des braises au sol, de hautes flammes au fond de la case
+    /// (<paramref name="front"/> faux : dessinées derrière la troupe qui s'y tient) ou des flammes basses au bord de devant
+    /// (devant elle). <paramref name="rise"/> (0 à 1) : le mur se dresse ou s'éteint ; les flammes respirent.
+    /// </summary>
+    internal static void DrawFireWall(CanvasItem canvas, Vector2 ground, double time, int seed, float rise, bool front)
+    {
+        if (rise <= 0.01f)
+            return;
+        float breath = 0.88f + 0.12f * MathF.Sin((float)time * 2.6f + seed);
+        if (!front)
+        {
+            // la terre noircie, une lueur qui déborde de la case
+            Glow(canvas, ground, 24 * U, 10 * U, Scorch, 0.55f * rise);
+            Glow(canvas, ground + new Vector2(0, -6 * U), 36 * U, 18 * U, FireOrange, 0.3f * rise * breath);
+            Glow(canvas, ground, 20 * U, 8 * U, FireYellow, 0.4f * rise);
+            for (int n = 0; n < 3; n++)
+            {
+                float x = (n - 1) * 8 * U + (Noise(seed, n) - 0.5f) * 3 * U;
+                float h = (26 + 10 * Noise(seed, n + 10)) * U * rise * (n == 1 ? breath : 2 - breath);
+                FlameBush(canvas, ground + new Vector2(x, -3 * U), (7 + 2 * Noise(seed, n + 20)) * U, h, seed * 10 + n, time, rise, FireColors);
+            }
+        }
+        else
+        {
+            for (int n = 0; n < 2; n++)
+            {
+                float x = (n - 0.5f) * 14 * U;
+                float h = (12 + 5 * Noise(seed, n + 30)) * U * rise * (n == 0 ? breath : 2 - breath);
+                FlameBush(canvas, ground + new Vector2(x, 5 * U), 6 * U, h, seed * 10 + n + 5, time, rise, FireColors);
+            }
+            // des braises qui montent, chacune à son rythme
+            for (int n = 0; n < 5; n++)
+            {
+                float u = (float)((time * (0.6f + 0.3f * Noise(seed, n + 40)) + Noise(seed, n + 50)) % 1);
+                var at = ground + new Vector2((Noise(seed, n + 60) - 0.5f) * 26 * U + MathF.Sin(u * 6 + n) * 2 * U, -(6 + 60 * u) * U);
+                Dot(canvas, at, A(Heat(FireColors, 0.9f - u * 0.7f), rise * Bell(u)));
+            }
+        }
+    }
+
     // ------------------------------------------------------------------ la boule de feu explose
 
     private static void DrawExplosionGround(CanvasItem canvas, Effect e, float t)

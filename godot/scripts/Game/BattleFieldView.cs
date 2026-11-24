@@ -283,6 +283,18 @@ public partial class BattleFieldView : Control
 
     private const float BurstTime = 0.5f;
 
+    /// <summary>
+    /// Les cases d'un mur de feu montrées : depuis quand elles brûlent (secondes), et si elles s'éteignent (le temps de
+    /// s'éteindre court alors dans <c>Out</c>).
+    /// </summary>
+    private readonly Dictionary<Hex, (float Age, float? Out)> _fireShown = new();
+
+    /// <summary>Le temps qu'un mur de feu met à se dresser ou à s'éteindre (secondes).</summary>
+    private const float FireRise = 0.5f;
+
+    private float FireLevel(float age, float? fading) =>
+        Math.Clamp(age / FireRise, 0, 1) * (fading is { } f ? Math.Clamp(1 - f / FireRise, 0, 1) : 1);
+
     /// <summary>La couleur d'un sort : feu pour les dégâts, vert pour les soins, violet pour un sort néfaste, or sinon.</summary>
     private static Color SpellColor(SpellType spell) => spell switch
     {
@@ -1818,6 +1830,7 @@ public partial class BattleFieldView : Control
                 case SpellCast cast:
                     var hexes = cast.Spell.Target == SpellTarget.Area
                         ? new[] { cast.Target }.Concat(cast.Target.Neighbours()).Where(Battlefield.InBounds).ToList()
+                        : cast.Spell.Target == SpellTarget.Wall ? Battle.WallCells(cast.Target).ToList()
                         : Battle.UnitAt(cast.Target)?.Hexes.ToList() ?? new List<Hex> { cast.Target };
                     bool started = false, struckDown = false;
                     double casting = 0;
@@ -2066,6 +2079,37 @@ public partial class BattleFieldView : Control
                         shown.Count = Math.Max(0, shown.Count - sacrificed.Count);
                         shown.Flash = 1;
                     });
+                    break;
+                case FireWallRaised raised:
+                    // le mur se dresse, puis les troupes prises dedans brûlent
+                    double raising = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (raising == 0)
+                            foreach (var hex in raised.Cells)
+                                _fireShown[hex] = (0, null);
+                        raising += delta;
+                        return raising >= FireRise;
+                    });
+                    break;
+                case FireWallFaded faded:
+                    _animations.Enqueue(_ =>
+                    {
+                        foreach (var hex in faded.Cells)
+                            if (_fireShown.TryGetValue(hex, out var fire))
+                                _fireShown[hex] = (fire.Age, 0);
+                        return true;
+                    });
+                    break;
+                case UnitCrossedFire crossed:
+                    Announce(crossed.Unit, $"-{crossed.Damage}", MapRenderer.Rgb(255, 130, 50), () =>
+                    {
+                        var shown = _shown[crossed.Unit];
+                        shown.Count = Math.Max(0, shown.Count - crossed.Killed);
+                        shown.Flash = 1;
+                        Hurt(crossed.Unit);
+                        Audio.Play("spell-mur-de-feu-brule");
+                    }, 0.35);
                     break;
                 case UnitBurned burned:
                     Announce(burned.Unit, $"-{burned.Damage}", MapRenderer.Rgb(255, 130, 50), () =>
@@ -2409,6 +2453,17 @@ public partial class BattleFieldView : Control
         if (EffectPreviewArg is not { } arg || Battle == null)
             return;
         var parts = arg.Split(':');
+        if (parts[0] == "mur-de-feu")
+        {
+            // un mur de feu au milieu du champ, qui brûle sans fin ; « mur-de-feu:0.2 » : figé pendant qu'il se dresse
+            if (_fireShown.Count == 0)
+                foreach (var hex in Battle.WallCells(new Hex(Battlefield.Columns / 2, Battlefield.Rows / 2)))
+                    _fireShown[hex] = (0, null);
+            if (parts.Length > 1 && float.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var rising))
+                foreach (var hex in _fireShown.Keys.ToList())
+                    _fireShown[hex] = (rising, null);
+            return;
+        }
         if (parts[0] == "crochet")
         {
             PreviewHook();
@@ -2766,6 +2821,14 @@ public partial class BattleFieldView : Control
         PreviewSpell(delta);
         Record(delta);
         _time += delta;
+        foreach (var hex in _fireShown.Keys.ToList())
+        {
+            var (age, fading) = _fireShown[hex];
+            if (fading is { } f && f + delta > FireRise)
+                _fireShown.Remove(hex);
+            else
+                _fireShown[hex] = (age + (float)delta, fading is { } g ? g + (float)delta : null);
+        }
         for (int i = _bursts.Count - 1; i >= 0; i--)
         {
             var (hexes, color, age) = _bursts[i];
@@ -2903,6 +2966,16 @@ public partial class BattleFieldView : Control
         {
             var center = Center(obstacle);
             things.Add((center.Y, () => DrawObstacle(center, obstacle)));
+        }
+        // le mur de feu : ses hautes flammes derrière la troupe qui s'y tient, des flammes basses devant elle
+        foreach (var (hex, (age, fading)) in _fireShown)
+        {
+            var center = Center(hex);
+            var foot = center + new Vector2(0, HexHeight / 2 - Ui.Px(10));
+            float level = FireLevel(age, fading);
+            int seed = hex.Col * 13 + hex.Row * 7;
+            things.Add((center.Y - 0.02f, () => SpellEffects.DrawFireWall(this, foot, _time, seed, level, false)));
+            things.Add((center.Y + 0.02f, () => SpellEffects.DrawFireWall(this, foot, _time, seed, level, true)));
         }
         foreach (var (unit, shown) in _shown)
             if (!shown.Gone)

@@ -34,6 +34,11 @@ public enum SpellEffect
     Teleport,
     /// <summary>Retire tous les sorts d'une troupe.</summary>
     Dispel,
+    /// <summary>
+    /// Un mur de flammes sur quelques cases, quelques rounds : il brûle les troupes qui s'y trouvent quand il se dresse,
+    /// puis celles qui y entrent ou le traversent ; il n'arrête ni les tirs ni la marche.
+    /// </summary>
+    FireWall,
 
     // sorts de la carte (idées de l'utilisateur, 2026-11-24)
     /// <summary>Un bateau apparaît sur l'eau, à côté du héros.</summary>
@@ -49,9 +54,9 @@ public enum SpellEffect
 /// <summary>
 /// Sur qui se lance un sort : une troupe ennemie, une troupe amie, n'importe quelle troupe, une case et ses voisines,
 /// une troupe ennemie puis, de proche en proche, les troupes les plus proches (une chaîne d'éclairs), ou la carte (un
-/// sort qui se lance hors des combats).
+/// sort qui se lance hors des combats), ou une ligne de cases du haut vers le bas (un mur).
 /// </summary>
-public enum SpellTarget { Enemy, Ally, Area, Any, Chain, Map }
+public enum SpellTarget { Enemy, Ally, Area, Any, Chain, Map, Wall }
 
 /// <summary>Un sort de combat. Les valeurs viennent de data/spells.json.</summary>
 public sealed record SpellType
@@ -83,7 +88,7 @@ public sealed record SpellType
 
     /// <summary>Un sort qui dure quelques rounds (bénédiction, lenteur…), plutôt qu'un effet immédiat.</summary>
     public bool Lasts => !OnMap && Effect is not (SpellEffect.Damage or SpellEffect.Cure or SpellEffect.Resurrection
-        or SpellEffect.Teleport or SpellEffect.Dispel);
+        or SpellEffect.Teleport or SpellEffect.Dispel or SpellEffect.FireWall);
 
     /// <summary>Un sort néfaste qui dure (retiré par les soins).</summary>
     public bool Harmful => Effect is SpellEffect.Curse or SpellEffect.Slow or SpellEffect.Weakness or SpellEffect.Blind;
@@ -100,6 +105,12 @@ public sealed record SpellType
     /// elle s'arrête (choix de l'utilisateur : elle ne saute pas vers une troupe lointaine).
     /// </summary>
     public const int ChainReach = 3;
+
+    /// <summary>Les cases d'un mur de feu (choix de l'utilisateur : 5), en ligne du haut vers le bas, la visée au milieu.</summary>
+    public const int WallLength = 5;
+
+    /// <summary>Combien de rounds brûle un mur de feu, celui où il se dresse compris (choix de l'utilisateur : 3).</summary>
+    public const int WallRounds = 3;
 
     /// <summary>Jusqu'où saute la porte dimensionnelle, en cases (choix de l'utilisateur : en cases, pas « à l'écran »).</summary>
     public const int DimensionDoorRange = 10;
@@ -167,6 +178,15 @@ public sealed record UnitSkipped(BattleUnit Unit) : BattleAction;
 
 /// <summary>Une troupe est téléportée d'une case à une autre (sa tête, pour une grande créature).</summary>
 public sealed record UnitTeleported(BattleUnit Unit, Hex From, Hex To) : BattleAction;
+
+/// <summary>Un mur de feu se dresse sur ces cases, jusqu'à la fin du round <paramref name="LastRound"/>.</summary>
+public sealed record FireWallRaised(SpellType Spell, BattleSide Side, IReadOnlyList<Hex> Cells, int LastRound) : BattleAction;
+
+/// <summary>Un mur de feu s'éteint : ses cases ne brûlent plus.</summary>
+public sealed record FireWallFaded(IReadOnlyList<Hex> Cells) : BattleAction;
+
+/// <summary>Une troupe qui entre dans un mur de feu (ou le traverse) brûle.</summary>
+public sealed record UnitCrossedFire(BattleUnit Unit, int Damage, int Killed) : BattleAction;
 
 /// <summary>Les sorts d'une troupe sont dissipés.</summary>
 public sealed record SpellsDispelled(BattleUnit Unit, SpellType Spell) : BattleAction;

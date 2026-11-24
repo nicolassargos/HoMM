@@ -679,6 +679,12 @@
     ],
     "spell-retour-en-ville": [
       "combat/spell-retour-en-ville.mp3"
+    ],
+    "spell-mur-de-feu": [
+      "combat/spell-mur-de-feu.mp3"
+    ],
+    "spell-mur-de-feu-brule": [
+      "combat/spell-mur-de-feu-brule.mp3"
     ]
   },
   "lengths": {

@@ -680,6 +680,17 @@ public sealed partial class TacticalBattle
             }
             return flights;
         }
+        var paths = Walks(unit, speed, avoidFire: false);
+        // un chemin qui contourne le feu, quand il y en a un (une créature de l'Enfer passe au plus court)
+        if (_fire.Count > 0 && !unit.IsInfernal)
+            foreach (var (hex, safe) in Walks(unit, speed, avoidFire: true))
+                paths[hex] = safe;
+        return paths;
+    }
+
+    /// <summary>Les chemins les plus courts à pied, de <paramref name="speed"/> pas au plus ; sans entrer dans le feu si <paramref name="avoidFire"/>.</summary>
+    private Dictionary<Hex, List<Hex>> Walks(BattleUnit unit, int speed, bool avoidFire)
+    {
         var paths = new Dictionary<Hex, List<Hex>> { [unit.Position] = new List<Hex>() };
         var queue = new Queue<Hex>();
         queue.Enqueue(unit.Position);
@@ -691,7 +702,7 @@ public sealed partial class TacticalBattle
                 continue;
             foreach (var next in hex.Neighbours())
             {
-                if (paths.ContainsKey(next) || !Fits(unit, next))
+                if (paths.ContainsKey(next) || !Fits(unit, next) || avoidFire && unit.HexesAt(next).Any(_fire.ContainsKey))
                     continue;
                 paths[next] = new List<Hex>(path) { next };
                 queue.Enqueue(next);
@@ -731,6 +742,8 @@ public sealed partial class TacticalBattle
         if (Active is not { } unit || destination == unit.Position || !Reachable(unit).TryGetValue(destination, out var path))
             return false;
         MoveAlong(unit, path);
+        if (!unit.IsAlive && CheckEnd())
+            return true;
         EndTurn(acted: true);
         return true;
     }
@@ -747,6 +760,12 @@ public sealed partial class TacticalBattle
             return false;
         var start = unit.Position;
         MoveAlong(unit, path);
+        if (!unit.IsAlive) // brûlée dans un mur de feu
+        {
+            if (!CheckEnd())
+                EndTurn();
+            return true;
+        }
         // la charge compte les cases parcourues (à vol d'oiseau pour une troupe qui vole)
         int moved = unit.Has(Ability.Flies) || unit.Has(Ability.Leaps) || unit.Has(Ability.Burrows) ? start.DistanceTo(from) : path.Count;
         MeleeAndRetaliation(unit, target, moved);
@@ -935,6 +954,7 @@ public sealed partial class TacticalBattle
         unit.Position = path[^1];
         unit.HasMoved = true;
         _log.Add(new UnitMoved(unit, path));
+        CrossFire(unit, path);
     }
 
     /// <summary>

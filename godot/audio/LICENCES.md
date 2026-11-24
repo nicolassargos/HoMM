@@ -12,6 +12,7 @@ avant toute diffusion commerciale.
   `combat/sort-eclair.mp3`, `combat/sort-resurrection.mp3`
 - Les sons des créatures des autres factions : `combat/<créature>-<action>.mp3` (décrits dans
   `tools/audio/sons-creatures.json`, faits par `tools/audio/sons.py`).
+- Les sorts de la carte : `combat/spell-<sort>.mp3` (même liste, même outil).
 - Les pas au combat : `pas/<marche>-<sol>-<n>.wav` (décrits dans `tools/audio/sons-pas.json`, faits par
   `tools/audio/pas.py` : une courte marche coupée en pas seuls).
 

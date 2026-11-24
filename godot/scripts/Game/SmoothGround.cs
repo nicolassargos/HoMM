@@ -99,7 +99,7 @@ public partial class SmoothGround : ColorRect
         ("edge_bias", 2.0f), ("edge_wave", 5.5f), ("wave_scale", 13.0f), ("blend", 3.5f), ("grain_scale", 3.0f),
         ("variant_scale", 30.0f), ("road_width", 3.75f), ("road_wave", 1.0f), ("road_wave_scale", 7.0f),
         ("road_jag", 0.75f), ("road_scatter", 1.875f), ("road_shadow_length", 2.25f), ("road_vary", 0.375f), ("road_vary_scale", 9.0f), ("shade_scale", 70.0f), ("beach_width", 6.0f), ("beach_wave", 1.5f), ("flower_cell", 7.0f),
-        ("stream_width", 3.5f), ("stream_wave", 1.0f), ("river_bank", 7.0f), ("river_wave", 2.5f), ("bridge_width", 4.5f), ("stream_bend", 4.5f),
+        ("stream_width", 1.8f), ("stream_wave", 1.0f), ("river_bank", 7.0f), ("river_wave", 6.75f), ("bridge_width", 4.5f), ("stream_bend", 4.5f),
     };
 
     /// <summary>

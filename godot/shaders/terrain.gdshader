@@ -285,6 +285,11 @@ uniform float wave_at = -1.0;
 // la part des vagues qui manquent (sur un tronçon de côte, une vague sur tant ne vient pas), et la terre mouillée
 // qu'elles laissent sur wave_wash pixels de la rive
 uniform float wave_skip = 0.3;
+// la longueur des morceaux d'écume d'une vague (pixels d'art)
+uniform float wave_piece = 5.0;
+// la part vide de la ligne d'écume (entre ses morceaux), et son épaisseur (pixels d'art, de chaque côté)
+uniform float wave_gaps = 0.5;
+uniform float wave_width = 0.9;
 uniform float wave_wash = 3.0;
 uniform vec3 deep_color = vec3(0.08, 0.2, 0.42);
 // des roseaux au bord de l'eau, en touffes, là où l'herbe descend à l'eau (la part reeds des carrés de 5 pixels d'art
@@ -1163,15 +1168,20 @@ void fragment() {
 		// Les vagues (lacs et mer, pas les rivières) : une ligne d'écume brisée qui vient du large jusqu'à la rive et
 		// s'efface, toutes les wave_period secondes ; l'instant change le long de la côte (un bruit doux)
 		if (wave_foam > 0.0 && open > 0.0 && d < wave_reach + 2.0) {
-			float t = wave_time(p);
+			// le point de la rive en face (en descendant la pente de la profondeur) : la vague garde sa forme en avançant,
+			// ses morceaux, son instant et ses ondulations suivent ce point, pas le pixel d'eau
+			vec2 slope = vec2(water_depth(p + vec2(1.0, 0.0), river) - water_depth(p - vec2(1.0, 0.0), river),
+				water_depth(p + vec2(0.0, 1.0), river) - water_depth(p - vec2(0.0, 1.0), river));
+			vec2 shore = length(slope) > 0.01 ? p - normalize(slope) * d : p;
+			float t = wave_time(shore);
 			float cycle = fract(t);
 			// elle ralentit en arrivant (et certaines ne viennent pas)
-			float front = wave_reach * pow(1.0 - cycle, 1.6) + ripple * 0.6;
-			if (wave_missing(p, t)) cycle = 1.0;
-			float band = 1.0 - smoothstep(0.4, 1.4, abs(d - front));
+			float front = wave_reach * pow(1.0 - cycle, 1.6) + (noise((shore + 0.5) / 9.0 + vec2(17.0, 29.0)) * 2.0 - 1.0);
+			if (wave_missing(shore, t)) cycle = 1.0;
+			float band = 1.0 - smoothstep(wave_width * 0.3, wave_width, abs(d - front));
 			float fade = smoothstep(0.0, 0.2, cycle) * (1.0 - smoothstep(0.7, 1.0, cycle));
 			// brisée : des morceaux d'écume, autres à chaque vague
-			float broken = smoothstep(0.3, 0.5, noise((p + 0.5) / 5.0 + vec2(floor(t) * 13.7, 3.0)));
+			float broken = smoothstep(wave_gaps - 0.05, wave_gaps + 0.05, noise((shore + 0.5) / wave_piece + vec2(floor(t) * 13.7, 3.0)));
 			if (bayer(p) < band * fade * broken * open * wave_foam)
 				color = mix(color, foam_color, 0.6);
 		}

@@ -3158,7 +3158,7 @@ choix de l'utilisateur) :
   des rives, des ruisseaux, ni sous les objets, les forêts et les montagnes (`dry_field`, une image d'une case par pixel
   faite par `SmoothGround.Create`). Le champ de bataille garde ses flaques (`swamp_ground` à -1). Écartés en chemin :
   deux fois plus de mares (un camouflage), une bande de ciel claire contre le haut de l'eau (le bord éclairé d'une dalle
-  de pierre), le trait sombre partout où une mare est effacée (des trous noirs).
+  de pierre), le trait sombre partout où une mare est effacée (des trous noirs). Puis (branche `marais-moins-de-mares`, « un peu moins de mares ») : des étendues sèches, sans mares, là où un bruit doux de 70 pixels est sous `swamp_dry` 0,35 (environ un tiers de mares en moins, les autres gardent leur taille) ; monter `swamp_pool_level` les rapetissait toutes, en laissant de petites taches.
 - ✅ **Des rives moins nettes** (2026-11-24, branche `rives-douces`) : « le bord est trop net » selon l'utilisateur ; tout
   au shader. L'eau claire des rives est plus large (`shallow_width` 14) et s'efface vers le large en trois paliers tramés
   au bord ondulé (`shallow_steps`) au lieu d'une bande unie ; les rivières foncent tôt et fort au milieu

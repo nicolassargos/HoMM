@@ -144,6 +144,8 @@ uniform vec3 swamp_peat_color = vec3(0.62, 0.66, 0.78);
 uniform float swamp_water_vary = 0.5;
 uniform float swamp_pool_scale = 26.0;
 uniform float swamp_pool_level = 0.72;
+uniform float swamp_dry = 0.35;
+uniform float swamp_dry_scale = 70.0;
 uniform float swamp_mud_width = 2.0;
 uniform vec3 swamp_mud = vec3(0.2, 0.15, 0.08);
 uniform vec3 swamp_water = vec3(0.2, 0.29, 0.25);
@@ -1037,7 +1039,8 @@ float swamp_pool_raw(vec2 p) {
 }
 
 // La place laissée aux mares autour du pixel d'art p, de 0 à 1 : aucune près du bord du marais, des routes, des rives et
-// des ruisseaux, ni sous les objets, les forêts et les montagnes (dry_field)
+// des ruisseaux, ni sous les objets, les forêts et les montagnes (dry_field), ni dans les étendues sèches (là où un bruit
+// doux de swamp_dry_scale pixels est sous swamp_dry : environ cette part du marais)
 float swamp_room(vec2 p) {
 	int kind;
 	float room = smoothstep(0.75, 1.0, part_of(swamp_ground, p));
@@ -1045,6 +1048,8 @@ float swamp_room(vec2 p) {
 	room *= 1.0 - smoothstep(-9.0, -4.0, road_inside(p, kind));
 	room *= 1.0 - smoothstep(-9.0, -4.0, stream_depth(p));
 	room *= smoothstep(4.0, 9.0, shore_side(p));
+	// des étendues sèches, sans mares (moins de mares, demande de l'utilisateur)
+	room *= smoothstep(swamp_dry - 0.08, swamp_dry + 0.08, noise((p + 0.5) / swamp_dry_scale + vec2(61.0, 23.0)));
 	return room;
 }
 

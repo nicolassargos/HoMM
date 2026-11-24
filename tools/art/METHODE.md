@@ -94,7 +94,9 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   Rives (2026-11-24) : un passage doux entre la terre et l'eau plaît : deux rangées de pixels de terre mêlées à l'eau
   claire (2/3 puis 1/3), une eau claire qui s'efface en paliers tramés, une rivière sombre au milieu. Changer seulement
   les forces fait une différence « trop subtile ». Sur un ruisseau étroit, tout effet de bord compte double : à moitié
-  de force. Un ruisseau qui suit les cases à angles droits se voit, même arrondi.
+  de force. Un ruisseau qui suit les cases à angles droits se voit, même arrondi. Un ruisseau convainc quand il suit
+  les creux d'une carte des hauteurs, serpente (des boucles d'une demi-case), reçoit des affluents et naît de quelque
+  part (le pied d'une montagne, un marais, une source : une mare entourée de pierres sombres sur une terre mouillée).
   Neige (2026-11-19) : les cases du sable recolorées en blanc bleuté, de faible contraste. Les congères étirées en
   longues bandes font des nuages : des congères rondes, l'ombre bleutée d'un seul côté.
   Arbres des sols (2026-11-19, 24 × 32) : finir la description par « single tree, … isolated object, no ground ».

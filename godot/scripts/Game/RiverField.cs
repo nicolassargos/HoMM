@@ -38,13 +38,19 @@ public static class RiverField
     /// <summary>La mare d'une source : de combien elle dépasse la largeur du ruisseau (pixels d'art).</summary>
     private const float Pond = 3f;
 
+    /// <summary>Un ruisseau qui naît au pied d'une montagne ou d'un marais : de combien il est plus étroit à sa naissance (pixels d'art).</summary>
+    private const float Thin = 1.8f;
+
     /// <summary>Les bras du delta : de combien ils sont plus étroits que le ruisseau (pixels d'art).</summary>
     private const float Arm = 1.5f;
 
     private static readonly Cell[] Sides = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
     /// <summary>L'image du champ pour <paramref name="width"/> × <paramref name="height"/> cases de <paramref name="art"/> pixels d'art.</summary>
-    public static Image Build(int width, int height, Func<Cell, (TerrainType Terrain, RiverKind River)> cellAt, float art)
+    /// <paramref name="courses"/> : les tracés des ruisseaux gardés dans la carte, dessinés tels quels (sans eux, le tracé
+    /// suit les cases des ruisseaux).
+    public static Image Build(int width, int height, Func<Cell, (TerrainType Terrain, RiverKind River)> cellAt, float art,
+        IReadOnlyList<StreamCourse>? courses = null)
     {
         int sw = width * PerCell, sh = height * PerCell;
         var terrain = new TerrainType[width, height];
@@ -57,8 +63,11 @@ public static class RiverField
 
         var data = new float[sw * sh * Channels];
         Bank(data, sw, sh, width, height, terrain, Band);
-        Streams(data, sw, sh, art, c => In(c) && river[c.X, c.Y] == RiverKind.Stream,
-            c => In(c) && (terrain[c.X, c.Y] == TerrainType.Water || Band(c)));
+        Func<Cell, bool> sink = c => In(c) && (terrain[c.X, c.Y] == TerrainType.Water || Band(c));
+        if (courses is { Count: > 0 })
+            Courses(data, sw, sh, art, courses, sink);
+        else
+            Streams(data, sw, sh, art, c => In(c) && river[c.X, c.Y] == RiverKind.Stream, sink);
         Depth(data, sw, sh, art, (x, y) => terrain[x, y] == TerrainType.Water || Band(new Cell(x, y)));
 
         var halves = new Half[data.Length];
@@ -192,6 +201,47 @@ public static class RiverField
                 Stamp(data, sw, sh, art, pond, pond, Pond);
         }
     }
+
+    /// <summary>
+    /// La distance aux ruisseaux (vert), d'après leurs tracés : chacun arrondi (Chaikin), une mare à sa source, et au
+    /// bout une mare, un delta (là où il se jette dans l'eau) ou rien (un affluent, qui rejoint un autre ruisseau).
+    /// </summary>
+    private static void Courses(float[] data, int sw, int sh, float art, IReadOnlyList<StreamCourse> courses, Func<Cell, bool> sink)
+    {
+        for (int i = 1; i < data.Length; i += Channels)
+            data[i] = Far;
+        foreach (var course in courses)
+        {
+            var points = course.Points.Select(p => new Vector2((float)p.X * art, (float)p.Y * art)).ToList();
+            if (course.End == StreamEnd.Mouth && points.Count >= 3)
+            {
+                // le delta part de la dernière case de terre, vers la case d'eau du dernier point
+                var tip = course.Points[^1];
+                var mouth = new Cell((int)Math.Floor(tip.X), (int)Math.Floor(tip.Y));
+                var land = course.Points[^2];
+                var end = new Vector2(((int)Math.Floor(land.X) + 0.5f) * art, ((int)Math.Floor(land.Y) + 0.5f) * art);
+                var before = points[Math.Max(0, points.Count - 2 - RiverFieldGrid)];
+                Delta(data, sw, sh, art, before, end, mouth, sink);
+            }
+            for (int pass = 0; pass < 3; pass++)
+                points = Chaikin(points);
+            // une source : sa mare ; le pied d'une montagne ou un marais : un filet d'eau qui s'élargit sur une case
+            float trickle = art * 1.2f, run = 0;
+            for (int i = 0; i + 1 < points.Count; i++)
+            {
+                float thin = course.Source == StreamSource.Spring ? 0 : Thin * Math.Max(0, 1 - run / trickle);
+                Stamp(data, sw, sh, art, points[i], points[i + 1], -thin);
+                run += points[i].DistanceTo(points[i + 1]);
+            }
+            if (course.Source == StreamSource.Spring)
+                Stamp(data, sw, sh, art, points[0], points[0], Pond);
+            if (course.End == StreamEnd.Pond)
+                Stamp(data, sw, sh, art, points[^1], points[^1], Pond);
+        }
+    }
+
+    /// <summary>Les points d'un tracé par case (environ) : pour reculer d'une case depuis son bout.</summary>
+    private const int RiverFieldGrid = 5;
 
     /// <summary>
     /// Le delta d'un ruisseau : un ou deux bras plus étroits quittent le ruisseau avant la rive et s'ouvrent en éventail

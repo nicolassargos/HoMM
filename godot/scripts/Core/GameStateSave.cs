@@ -21,7 +21,7 @@ public sealed partial class GameState
     /// Version 2 : les routes sont une couche à part (<see cref="MapData.Roads"/>). Une sauvegarde de la version 1
     /// (où la route était un terrain, le numéro 1) est encore lue : ses routes deviennent de l'herbe avec une route.
     /// </summary>
-    public const int SaveVersion = 10; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts ; 6 : temples et cercles des fées ; 7 : les lieux hauts sur 2 cases ; 8 : les rivières ; 9 : les sortes de routes ; 10 : les massifs de montagnes
+    public const int SaveVersion = 11; // 3 : les mines sur 3 × 2 cases ; 4 : les villes sur 5 × 4 ; 5 : les lieux, les coffres ouverts ; 6 : temples et cercles des fées ; 7 : les lieux hauts sur 2 cases ; 8 : les rivières ; 9 : les sortes de routes ; 10 : les massifs de montagnes ; 11 : les tracés des ruisseaux
 
     private static readonly JsonSerializerOptions SaveOptions = new()
     {
@@ -45,7 +45,11 @@ public sealed partial class GameState
     /// par rangée, le numéro de la rivière de chaque case (<see cref="RiverKind"/> ; absentes avant la version 8).
     /// </summary>
     private sealed record MapData(int Width, int Height, Cell Start, List<string> Terrain, List<ObjectData> Objects,
-        List<string>? Roads = null, Cell? Treasure = null, List<string>? Rivers = null, List<MountainMassif>? Massifs = null);
+        List<string>? Roads = null, Cell? Treasure = null, List<string>? Rivers = null, List<MountainMassif>? Massifs = null,
+        List<StreamData>? Streams = null);
+
+    /// <summary>Le tracé d'un ruisseau : ses points à plat (x, y, x, y…), en cases, au millième.</summary>
+    private sealed record StreamData(List<double> Points, StreamEnd End, StreamSource Source = StreamSource.Spring);
 
     /// <summary>Un objet de la carte. <paramref name="Kind"/> dit lequel ; seuls ses champs sont remplis.</summary>
     private sealed record ObjectData(
@@ -123,7 +127,11 @@ public sealed partial class GameState
             rivers.Add(string.Concat(Enumerable.Range(0, Map.Width).Select(x => (char)('0' + (int)Map.GetRiver(new Cell(x, y))))));
         var objects = Map.Objects.OrderBy(o => o.Id).Select(SaveObject).ToList();
         return new MapData(Map.Width, Map.Height, Map.Start, terrain, objects, roads, Map.Treasure, rivers,
-            Map.Massifs.Count > 0 ? Map.Massifs.ToList() : null);
+            Map.Massifs.Count > 0 ? Map.Massifs.ToList() : null,
+            Map.Streams.Count > 0
+                ? Map.Streams.Select(s => new StreamData(
+                    s.Points.SelectMany(p => new[] { Math.Round(p.X, 3), Math.Round(p.Y, 3) }).ToList(), s.End, s.Source)).ToList()
+                : null);
     }
 
     private static ObjectData SaveObject(MapObject obj) => obj switch
@@ -176,7 +184,7 @@ public sealed partial class GameState
         try
         {
             if (JsonSerializer.Deserialize<SaveFile>(json, SaveOptions) is not { Map: not null, Players.Count: > 0 } save
-                || save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or SaveVersion))
+                || save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 or SaveVersion))
                 return null;
             var hero = save.Heroes.Where(h => h.Owner == save.Players[0].Id)
                 .OrderByDescending(h => h.Id == save.CurrentHero).ThenByDescending(h => h.Level).FirstOrDefault();
@@ -202,7 +210,7 @@ public sealed partial class GameState
         }
         if (save == null)
             throw new FormatException("sauvegarde vide");
-        if (save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or SaveVersion))
+        if (save.Version is not (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 or SaveVersion))
             throw new FormatException($"version de sauvegarde inconnue : {save.Version} (attendue : {SaveVersion})");
         try
         {
@@ -407,6 +415,14 @@ public sealed partial class GameState
         }
         // les massifs (absents avant la version 10 : les montagnes sont alors dessinées case par case)
         map.Massifs.AddRange(m.Massifs ?? new List<MountainMassif>());
+        foreach (var s in m.Streams ?? new List<StreamData>())
+        {
+            if (s.Points.Count < 4 || s.Points.Count % 2 != 0 || !Enum.IsDefined(s.End) || !Enum.IsDefined(s.Source))
+                throw new FormatException("tracé de ruisseau invalide");
+            map.Streams.Add(new StreamCourse(
+                Enumerable.Range(0, s.Points.Count / 2).Select(i => new CoursePoint(s.Points[2 * i], s.Points[2 * i + 1])).ToList(),
+                s.End, s.Source));
+        }
         return map;
     }
 

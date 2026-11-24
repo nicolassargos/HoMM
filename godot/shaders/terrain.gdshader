@@ -339,6 +339,14 @@ uniform float stream_reeds = 0.25;
 uniform float stream_mouth = 9.0;
 // à son embouchure, le ruisseau s'élargit (stream_delta pixels d'art de plus) et se partage autour d'îlots de sable
 // (stream_islets : leur part), et une eau claire en éventail dans l'eau où il se jette
+// les ruisseaux nés d'une source : un cercle de pierres autour de leur mare (springs : le milieu de chaque mare, en pixels
+// d'art ; spring_stones : la part des carrés de 4 pixels du cercle qui ont une pierre)
+uniform vec2 springs[48];
+uniform int spring_count = 0;
+uniform float spring_stones = 0.9;
+// et la terre mouillée autour (spring_wet : sa force ; spring_wet_reach : jusqu'où, en pixels d'art)
+uniform float spring_wet = 1.0;
+uniform float spring_wet_reach = 24.0;
 uniform float stream_delta = 2.0;
 uniform float stream_islets = 0.5;
 uniform vec3 bridge_color = vec3(0.56, 0.4, 0.24);
@@ -1515,6 +1523,25 @@ void fragment() {
 			vec3 stone;
 			if (stream_stones > 0.0 && stream_stone_at(p, color, stone)) color = stone;
 		}
+	}
+	// autour d'une source : la terre mouillée, plus sombre près de la mare (au bord ondulé, en paliers tramés), et des pierres
+	for (int k = 0; k < 48; k++) {
+		if (k >= spring_count) break;
+		float far = length(p - springs[k]);
+		if (far > spring_wet_reach + 3.0) continue;
+		if (spring_wet > 0.0 && !in_water && depth <= 0.0) {
+			float soak = 1.0 - smoothstep(5.0, spring_wet_reach, far + (noise((p + 0.5) / 5.0 + vec2(31.0, 17.0)) * 2.0 - 1.0) * 3.0);
+			soak = clamp(floor(soak * 3.0 + bayer(p)) / 3.0, 0.0, 1.0);
+			color = mix(color, color * vec3(0.6, 0.64, 0.58), soak * spring_wet);
+		}
+		if (spring_stones <= 0.0 || far > 13.0) continue;
+		vec2 cell = floor(p / 4.0);
+		vec2 spot = cell * 4.0 + vec2(1.0, 0.0) + vec2(0.0, floor(hash(cell + vec2(4.4, 1.1)) * 2.0)); // la pierre et son ombre (la colonne de gauche) restent dans leur carré
+		float ring = length(spot - springs[k]);
+		vec3 stone;
+		if (ring > 6.0 && ring < 11.5 && hash(cell + vec2(7.7, 3.3)) < spring_stones && stream_depth(spot) < -1.5
+			&& stone_shape(p - spot, vec2(hash(cell + vec2(6.6, 2.4)) < 0.6 ? 3.0 : 2.0, 2.0), cell, color, stone))
+			color = stone * 0.82; // plus sombres que les cailloux des prés : un cercle de pierres qui se voit
 	}
 	if (stream_reeds > 0.0 && !in_water && depth > -12.0) {
 		int reed = reed_at(p, true);

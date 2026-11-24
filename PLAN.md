@@ -235,10 +235,9 @@ arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en mass
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Retouches de la carte** (demandées par l'utilisateur, 2026-11-24, dans cet ordre) : ✅ le marais ; un peu la roche
   (remise à plus tard : l'utilisateur y réfléchit ; essais dans `art-candidats/archives/2026-11-24-roche`) ;
-  ✅ des rives moins nettes ; les **ruisseaux le long des pentes** (accord de l'utilisateur) : une carte des hauteurs
-  (bruit doux, plusieurs points par case, plus basse vers l'eau) que le ruisseau descend dans toutes les directions ;
-  ses cases sont celles que touche son tracé, gardé dans la carte (sauvegarde) et dessiné tel quel ; deux ruisseaux
-  peuvent se rejoindre (un affluent), jamais se croiser ; puis de petites animations, comme la terre brûlée (de douces vagues au bord de la
+  ✅ des rives moins nettes ; ✅ les ruisseaux le long des pentes (une carte des hauteurs, des méandres, des affluents,
+  nés au pied des montagnes, d'un marais ou d'une source ; voir `HISTORIQUE.md`) ; moins de mares dans le marais
+  (demandé par l'utilisateur) ; puis de petites animations, comme la terre brûlée (de douces vagues au bord de la
   mer, des feuilles dans le vent…) ; l'ordre du dessin (des objets dessinés devant ce qui devrait les cacher : des
   exemples à donner par l'utilisateur).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus

@@ -381,6 +381,8 @@ public partial class Audio : Node
         BuildingBuilt built when built.Town.Owner == viewer => "build",
         HeroLevelChoice choice when choice.Hero.Owner == viewer => "level-up",
         DayStarted { NewWeek: true } => "new-week",
+        MapSpellCast cast when cast.Hero.Owner == viewer || viewer.Fog.IsExplored(cast.From) || viewer.Fog.IsExplored(cast.To)
+            => $"spell-{cast.Spell.Id}",
         BattleFought battle when battle.Hero.Owner == viewer => battle.Report.AttackerWon ? "victory" : "defeat",
         BattleFought battle when battle.DefenderOwner == viewer => battle.Report.AttackerWon ? "defeat" : "victory",
         GameEnded end => end.Outcome == GameOutcome.Victory ? "victory" : "defeat",

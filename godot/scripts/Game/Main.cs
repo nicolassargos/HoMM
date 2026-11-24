@@ -30,6 +30,7 @@ public partial class Main : Node2D
 {
     private GameState _state = null!;
     private ActorLayer _actors = null!;
+    private MapSpellEffects _mapSpells = null!;
     private MapCamera _camera = null!;
     private Hud _hud = null!;
     private TownScreen _townScreen = null!;
@@ -53,6 +54,9 @@ public partial class Main : Node2D
 
     /// <summary>Ville à ouvrir dès que les fenêtres (compte rendu de combat…) sont fermées.</summary>
     private Town? _townToOpen;
+
+    /// <summary>Le temps qui reste avant d'ouvrir la ville : le retour en ville y montre d'abord sa colonne de lumière.</summary>
+    private double _townOpenDelay;
 
     private SavesWindow _saves = null!;
 
@@ -174,7 +178,10 @@ public partial class Main : Node2D
         AddChild(new ShadowLayer { State = _state, Actors = _actors }); // sous le décor et les objets
         AddChild(new DecorLayer { Map = _state.Map });
         AddChild(_actors);
+        _mapSpells = new MapSpellEffects();
+        AddChild(_mapSpells);
         AddChild(new FogLayer { State = _state });
+        PreviewMapSpell();
 
         _hud = new Hud();
         AddChild(_hud);
@@ -925,6 +932,39 @@ public partial class Main : Node2D
         book.Open();
     }
 
+    /// <summary>
+    /// Développement : « --map-spell-preview=porte » (ou « bateau », « vent », « retour ») : l'effet de ce sort joué sans fin
+    /// autour du héros (la porte vers une case 4 à droite et 2 plus haut, le bateau à sa droite) ; « porte:0.3 » : figé à cet
+    /// instant.
+    /// </summary>
+    private void PreviewMapSpell()
+    {
+        if (OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--map-spell-preview=")) is not { } arg
+            || _state.CurrentHero is not { } hero)
+            return;
+        var parts = arg["--map-spell-preview=".Length..].Split(':');
+        SpellEffect? kind = parts[0] switch
+        {
+            "bateau" => SpellEffect.SummonBoat,
+            "vent" => SpellEffect.DoubleMovement,
+            "porte" => SpellEffect.DimensionDoor,
+            "retour" => SpellEffect.TownPortal,
+            _ => null,
+        };
+        if (kind == null)
+            return;
+        float? frozen = parts.Length > 1 && float.TryParse(parts[1], System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture, out float at) ? at : null;
+        var p = hero.Position;
+        var to = kind switch
+        {
+            SpellEffect.DimensionDoor => new Cell(p.X + 4, p.Y - 2),
+            SpellEffect.SummonBoat => new Cell(p.X + 1, p.Y),
+            _ => p,
+        };
+        _mapSpells.Play(kind.Value, kind == SpellEffect.SummonBoat ? to : p, to, loop: true, frozen: frozen);
+    }
+
     /// <summary>La porte dimensionnelle choisie dans le livre : le prochain clic sur la carte donne sa case.</summary>
     private SpellType? _aimedSpell;
 
@@ -1136,7 +1176,8 @@ public partial class Main : Node2D
         HandleEvents();
         ReplayRivals(delta);
 
-        if (_townToOpen != null && !_hud.IsDialogOpen && _state.Outcome == GameOutcome.Playing)
+        _townOpenDelay -= delta;
+        if (_townToOpen != null && _townOpenDelay <= 0 && !_hud.IsDialogOpen && _state.Outcome == GameOutcome.Playing)
         {
             _townScreen.Open(_townToOpen);
             _townToOpen = null;
@@ -1250,10 +1291,17 @@ public partial class Main : Node2D
                     _camera.Follow(moved.To);
                     UpdateMapMusic();
                     break;
-                // un sort de la carte a déplacé le héros : la vue le suit
-                case MapSpellCast cast when cast.Hero == _state.CurrentHero && cast.To != cast.From:
-                    _camera.Follow(cast.To);
-                    UpdateMapMusic();
+                // un sort de la carte : son effet, là où le joueur peut voir ; s'il a déplacé le héros, la vue le suit
+                case MapSpellCast cast:
+                    if (cast.Hero.Owner == viewer || viewer.Fog.IsExplored(cast.From) || viewer.Fog.IsExplored(cast.To))
+                        _mapSpells.Play(cast);
+                    if (cast.Hero == _state.CurrentHero && cast.To != cast.From)
+                    {
+                        _camera.Follow(cast.To);
+                        UpdateMapMusic();
+                    }
+                    if (cast.Spell.Effect == SpellEffect.TownPortal && cast.Hero.Owner == viewer)
+                        _townOpenDelay = MapSpellEffects.DurationOf(SpellEffect.TownPortal) * 0.8;
                     break;
                 // passé par un portail : la vue suit le héros de l'autre côté
                 case PortalCrossed { Exit: { } exit } crossed when crossed.Hero == _state.CurrentHero:

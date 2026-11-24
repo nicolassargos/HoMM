@@ -278,7 +278,7 @@ uniform float river_deep = 0.65;
 // wave_period secondes (wave_foam : sa force ; wave_stretch : la longueur des tronçons de côte où elles arrivent ensemble ;
 // wave_at : l'instant, pour figer une capture)
 uniform float wave_foam = 1.0;
-uniform float wave_reach = 8.0;
+uniform float wave_reach = 12.0;
 uniform float wave_period = 4.0;
 uniform float wave_stretch = 40.0;
 uniform float wave_at = -1.0;

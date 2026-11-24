@@ -1250,7 +1250,8 @@ void fragment() {
 	}
 	// la rangée de terre contre l'eau, à demi couverte d'eau claire : un passage doux plutôt qu'un bord net
 	// la vague qui monte un peu sur la rive : de l'écume au bout, puis une terre mouillée qui sèche
-	if (!in_water && wave_foam > 0.0 && wave_wash > 0.0 && (a == water || b == water)) {
+	// (sur le sable seulement : contre l'herbe, l'écume ferait de la neige)
+	if (!in_water && t == sand && wave_foam > 0.0 && wave_wash > 0.0 && (a == water || b == water)) {
 		float sd = shore_distance(p);
 		if (sd < wave_wash + 1.0) {
 			float t = wave_time(p);

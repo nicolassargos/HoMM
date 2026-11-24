@@ -2580,6 +2580,24 @@ cet ordre :
    rage, s'efface dans la téléportation…), une aura tant qu'un sort dure ; la chaîne d'éclairs ne saute qu'à 3 cases au
    plus (choix de l'utilisateur). Détail dans `HISTORIQUE.md`. Puis le reste au fil des idées (sons…).
 
+#### Les sorts de la carte (2026-11-24, branche `sorts-carte`)
+Idées de l'utilisateur (2026-11-23), chiffres proposés et revus avec lui : 22 sorts (18 de combat, 4 de la carte).
+`SpellTarget.Map` (`SpellType.OnMap`) : jamais au combat (`TacticalBattle.CanCast`), grisés dans le livre du combat ;
+sur la carte, un clic dans le livre les lance (`GameState.CanCastOnMap`, `CastOnMap`, résultat `MapSpellResult`,
+événement `MapSpellCast`) ; les guildes les tirent avec les autres sorts de leur niveau.
+- **Invocation de bateau** (eau, niveau 2, 12 points ; l'utilisateur l'a monté du niveau 1 à 8 points) : un bateau
+  neuf sur la première case d'eau libre à côté du héros ; pas en mer.
+- **Vent porteur** (air, 3, 15) : le mouvement qui reste est doublé, une fois par jour (`Hero.DoubledMovementToday`).
+- **Porte dimensionnelle** (air, 4, 20) : une case déjà vue (pas dans le brouillard), à **10 cases au plus** (choix de
+  l'utilisateur : une limite en cases, pour pouvoir dézoomer la carte ; d'abord proposé 4), libre, sur terre, même
+  par-dessus l'eau et les montagnes ; 300 de mouvement, deux fois par jour (`Hero.DimensionDoorsToday`) ; les gardiens
+  autour de l'arrivée attaquent, comme après un pas. Après le choix dans le livre, un clic sur la carte donne la case,
+  le clic droit annule.
+- **Retour en ville** (terre, 4, 20) : la ville du joueur la plus proche (en cases) dont l'entrée est libre ; il faut
+  300 de mouvement, tout ce qui reste est dépensé ; le héros y entre (la ville s'ouvre, il apprend les sorts de la guilde).
+Sauvegardés : les deux compteurs du jour. Leurs icônes : choisies par l'utilisateur parmi trois descriptions par sort
+(méthode dans `tools/art/METHODE.md`).
+
 #### Les factions (en cours de conception)
 Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouables + 1 faction neutre**. Chacune a sa
 créature du niveau 7 et, plus tard, sa **version améliorée** (comme Heroes 3 : un bâtiment améliore une créature) ; ses

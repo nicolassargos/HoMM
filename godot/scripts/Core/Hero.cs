@@ -153,6 +153,12 @@ public sealed class Hero
     /// <summary>Les points de sort qui restent (le héros commence plein, en regagne 1 par jour).</summary>
     public int SpellPoints { get; internal set; } = SpellPointsPerKnowledge;
 
+    /// <summary>Le vent porteur a-t-il déjà doublé son mouvement aujourd'hui ?</summary>
+    public bool DoubledMovementToday { get; internal set; }
+
+    /// <summary>Combien de fois il a passé la porte dimensionnelle aujourd'hui.</summary>
+    public int DimensionDoorsToday { get; internal set; }
+
     private readonly List<SpellType> _spells = new();
 
     /// <summary>Les sorts du livre du héros, par niveau puis dans l'ordre où il les a appris.</summary>
@@ -252,6 +258,8 @@ public sealed class Hero
     public void NewDay(int? movement = null)
     {
         Movement = DayMovement = movement ?? MaxMovement;
+        DoubledMovementToday = false;
+        DimensionDoorsToday = 0;
         if (SpellPoints < MaxSpellPoints)
             SpellPoints = System.Math.Min(MaxSpellPoints, SpellPoints + 1 + SkillValue(HoMM.Core.Skills.Mysticism));
     }

@@ -42,7 +42,7 @@ public class MagieTests
     [Fact]
     public void Les_sorts_sont_lus_et_valides()
     {
-        Assert.Equal(18, TestData.Spells.All.Count);
+        Assert.Equal(22, TestData.Spells.All.Count); // 18 de combat, 4 de la carte
         Assert.Equal(4, TestData.Spells.All.Max(s => s.Level));
         var errors = new System.Collections.Generic.List<string>();
         DataValidation.CheckSpells(new[] { Spell("eclair") with { Level = 9 }, Spell("eclair") }, errors);

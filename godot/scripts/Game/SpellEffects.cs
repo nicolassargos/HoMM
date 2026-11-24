@@ -315,13 +315,13 @@ public sealed class SpellEffects
     private static readonly Color[] MeteorRock = { new(0.1f, 0.07f, 0.06f), new(0.22f, 0.15f, 0.12f), new(0.38f, 0.28f, 0.22f), new(0.56f, 0.45f, 0.36f) },
         GreyRock = { new(0.16f, 0.16f, 0.17f), new(0.38f, 0.37f, 0.36f), new(0.57f, 0.56f, 0.53f), new(0.8f, 0.79f, 0.75f) };
 
-    private static Color A(Color c, float alpha) => new(c, Math.Clamp(alpha, 0, 1));
+    internal static Color A(Color c, float alpha) => new(c, Math.Clamp(alpha, 0, 1));
 
     /// <summary>Monte puis redescend : 0 au début et à la fin, 1 au milieu (la vie d'une étincelle).</summary>
-    private static float Bell(float t) => t <= 0 || t >= 1 ? 0 : MathF.Sin(t * MathF.PI);
+    internal static float Bell(float t) => t <= 0 || t >= 1 ? 0 : MathF.Sin(t * MathF.PI);
 
     /// <summary>Monte vite, tient, puis s'éteint à la fin.</summary>
-    private static float Hold(float t) => Math.Clamp(t * 5, 0, 1) * Math.Clamp((1 - t) * 3, 0, 1);
+    internal static float Hold(float t) => Math.Clamp(t * 5, 0, 1) * Math.Clamp((1 - t) * 3, 0, 1);
 
     /// <summary>Deux battements de cœur (la soif de sang).</summary>
     private static float Beat(float t) => Math.Max(Bell(Math.Clamp((t - 0.05f) / 0.3f, 0, 1)), Bell(Math.Clamp((t - 0.4f) / 0.35f, 0, 1)));
@@ -348,7 +348,7 @@ public sealed class SpellEffects
     private static bool Shows(float z) => (z < 0) == _back;
 
     /// <summary>Une lueur douce : une ellipse dont l'opacité baisse du milieu vers le bord, par paliers.</summary>
-    private static void Glow(CanvasItem canvas, Vector2 at, float rx, float ry, Color color, float alpha)
+    internal static void Glow(CanvasItem canvas, Vector2 at, float rx, float ry, Color color, float alpha)
     {
         if (alpha <= 0.01f)
             return;
@@ -368,7 +368,7 @@ public sealed class SpellEffects
     /// Un anneau aplati de <paramref name="width"/> d'épaisseur, plus net au milieu. <paramref name="depth"/> : un anneau
     /// autour d'une troupe (sa moitié du haut passe derrière elle).
     /// </summary>
-    private static void Ring(CanvasItem canvas, Vector2 at, float rx, float ry, float width, Color color, float alpha, bool depth = false)
+    internal static void Ring(CanvasItem canvas, Vector2 at, float rx, float ry, float width, Color color, float alpha, bool depth = false)
     {
         if (alpha <= 0.01f || rx <= 0 || ry <= 0)
             return;
@@ -398,7 +398,7 @@ public sealed class SpellEffects
     }
 
     /// <summary>Une étincelle : un point blanc et quatre branches qui s'effacent vers leur bout.</summary>
-    private static void Star(CanvasItem canvas, Vector2 at, int arm, Color color, float alpha)
+    internal static void Star(CanvasItem canvas, Vector2 at, int arm, Color color, float alpha)
     {
         if (alpha <= 0.01f)
             return;
@@ -417,7 +417,7 @@ public sealed class SpellEffects
     }
 
     /// <summary>Une traînée : une tête claire en <paramref name="head"/>, une queue qui pâlit en arrière de <paramref name="dir"/>.</summary>
-    private static void Streak(CanvasItem canvas, Vector2 head, Vector2 dir, float length, Color front, Color back, float alpha)
+    internal static void Streak(CanvasItem canvas, Vector2 head, Vector2 dir, float length, Color front, Color back, float alpha)
     {
         int steps = Math.Max(1, (int)(length / Pixel));
         for (int k = steps; k >= 0; k--)

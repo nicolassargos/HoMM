@@ -1014,8 +1014,16 @@ public sealed class SpellEffects
 
     // ------------------------------------------------------------------ les douves
 
-    private static readonly Color MoatDeep = new(0.13f, 0.3f, 0.35f), MoatWater = new(0.2f, 0.42f, 0.45f),
-        MoatLight = new(0.34f, 0.58f, 0.57f), MoatShine = new(0.78f, 0.92f, 0.88f), MoatShore = new(0.5f, 0.66f, 0.55f),
+    /// <summary>L'eau des douves, du bord peu profond (où l'on devine la terre) au plus profond.</summary>
+    private static readonly Color[] MoatDepths =
+    {
+        new(0.36f, 0.54f, 0.45f), new(0.26f, 0.47f, 0.47f), new(0.19f, 0.39f, 0.43f), new(0.14f, 0.31f, 0.37f), new(0.1f, 0.24f, 0.31f),
+    };
+
+    /// <summary>La trame 4 × 4 qui mêle deux tons voisins, pixel par pixel (comme le pixel art de l'époque).</summary>
+    private static readonly float[] Bayer = { 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 };
+
+    private static readonly Color MoatLight = new(0.45f, 0.68f, 0.66f), MoatShine = new(0.82f, 0.94f, 0.9f), MoatShore = new(0.5f, 0.66f, 0.55f),
         MoatWet = new(0.31f, 0.25f, 0.15f), MoatSoil = new(0.47f, 0.38f, 0.23f), MoatDry = new(0.58f, 0.5f, 0.32f);
 
     /// <summary>
@@ -1066,12 +1074,33 @@ public sealed class SpellEffects
                 float alpha = level;
                 if (into + grain > Pixel)
                 {
-                    float depth = Math.Clamp(into / (edge * 0.6f + 0.01f), 0, 1);
-                    // des reflets en traits fins, presque à plat, qui ondulent et glissent ; quelques-uns seulement à la fois
-                    float wave = MathF.Sin(y * 0.42f + 1.6f * MathF.Sin(x * 0.045f + t * 0.7f + seed) - t * 1.1f);
-                    float patch = MathF.Sin(x * 0.03f + y * 0.021f - t * 0.45f + seed) + 0.6f * MathF.Sin(y * 0.05f - x * 0.02f + t * 0.3f);
-                    bool streak = wave > 0.93f && patch > 0.5f && into > 2 * Pixel;
-                    color = streak ? (patch > 1.1f ? MoatShine : MoatLight) : depth > 0.45f ? MoatDeep : MoatWater;
+                    // la profondeur : du bord au milieu, en tons tramés ; l'ombre de la berge de gauche (le jour vient d'en
+                    // haut à gauche) assombrit l'eau d'un ton contre elle
+                    int ax = (int)MathF.Floor(x / Pixel), ay = (int)MathF.Floor(y / Pixel);
+                    float depth = MathF.Pow(Math.Clamp(into / (edge * 0.85f + 0.01f), 0, 1), 0.8f) * (MoatDepths.Length - 1);
+                    if (dx < 0 && into < 4 * Pixel)
+                        depth += 0.8f * (1 - into / (4 * Pixel));
+                    float dither = (Bayer[(ay & 3) * 4 + (ax & 3)] + 0.5f) / 16;
+                    color = MoatDepths[Math.Clamp((int)(depth + dither - 0.5f), 0, MoatDepths.Length - 1)];
+                    // des rides : de petits traits qui apparaissent, brillent et s'effacent en descendant le fossé
+                    if (into > 2.5f * Pixel)
+                    {
+                        float drift = t * 3.5f; // pixels d'art par seconde, vers le bas
+                        int cy = (int)MathF.Floor((ay - drift) / 9), cx = (int)MathF.Floor(ax / 13f + (cy & 1) * 0.5f);
+                        int cell = cx * 977 + cy * 131;
+                        float life = (t * 0.35f + Noise(seed, cell)) % 1;
+                        float shine = Bell(life);
+                        if (Noise(seed + 3, cell) < 0.45f && shine > 0.2f)
+                        {
+                            // le trait : 5 à 9 pixels de long, un peu courbé, sa place dans la case tirée au sort
+                            float ry = (ay - drift) - (cy * 9 + 2 + 5 * Noise(seed + 5, cell));
+                            float rx = ax - ((cx - (cy & 1) * 0.5f) * 13 + 4 + 5 * Noise(seed + 9, cell));
+                            int half = 2 + (int)(Noise(seed + 11, cell) * 2.5f * shine);
+                            float bow = rx * rx * 0.12f;
+                            if (MathF.Abs(rx) <= half && ry >= -0.5f - bow && ry < 0.5f - bow)
+                                color = shine > 0.75f && MathF.Abs(rx) < half - 1 ? MoatShine : MoatLight;
+                        }
+                    }
                 }
                 else if (into + grain > 0)
                     color = MoatShore;

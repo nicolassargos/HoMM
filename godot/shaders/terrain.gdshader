@@ -274,6 +274,14 @@ uniform float deep = 0.35;
 uniform float river_deep_start = 4.0;
 uniform float river_deep_end = 30.0;
 uniform float river_deep = 0.65;
+// Les vagues des lacs et de la mer : une ligne d'écume qui vient de wave_reach pixels d'art du bord jusqu'à la rive en
+// wave_period secondes (wave_foam : sa force ; wave_stretch : la longueur des tronçons de côte où elles arrivent ensemble ;
+// wave_at : l'instant, pour figer une capture)
+uniform float wave_foam = 0.8;
+uniform float wave_reach = 10.0;
+uniform float wave_period = 4.0;
+uniform float wave_stretch = 40.0;
+uniform float wave_at = -1.0;
 uniform vec3 deep_color = vec3(0.08, 0.2, 0.42);
 // des roseaux au bord de l'eau, en touffes, là où l'herbe descend à l'eau (la part reeds des carrés de 5 pixels d'art
 // au bord, dans les endroits choisis par un bruit doux de reed_scale pixels) ; des rochers dans l'eau peu profonde (la
@@ -1137,6 +1145,19 @@ void fragment() {
 		float level = clamp((d + wobble - start) / max(end - start, 1.0), 0.0, 1.0);
 		level = clamp(floor(level * 5.0 + bayer(p)) / 5.0, 0.0, 1.0);
 		color = mix(color, deep_color, mix(river_deep, deep, open) * level);
+		// Les vagues (lacs et mer, pas les rivières) : une ligne d'écume brisée qui vient du large jusqu'à la rive et
+		// s'efface, toutes les wave_period secondes ; l'instant change le long de la côte (un bruit doux)
+		if (wave_foam > 0.0 && open > 0.0 && d < wave_reach + 2.0) {
+			float t = (wave_at >= 0.0 ? wave_at : TIME) / wave_period + noise((p + 0.5) / wave_stretch + vec2(7.0, 41.0)) * 1.5;
+			float cycle = fract(t);
+			float front = wave_reach * (1.0 - cycle) + ripple * 0.6;
+			float band = 1.0 - smoothstep(0.4, 1.4, abs(d - front));
+			float fade = smoothstep(0.0, 0.2, cycle) * (1.0 - smoothstep(0.7, 1.0, cycle));
+			// brisée : des morceaux d'écume, autres à chaque vague
+			float broken = smoothstep(0.3, 0.5, noise((p + 0.5) / 5.0 + vec2(floor(t) * 13.7, 3.0)));
+			if (bayer(p) < band * fade * broken * open * wave_foam)
+				color = mix(color, foam_color, 0.6);
+		}
 	}
 	// Rives : entre la terre et l'eau
 	float lapped = 0.0; // la terre contre l'eau : 1 au premier pixel, 0,5 au deuxième (voir water_edge)

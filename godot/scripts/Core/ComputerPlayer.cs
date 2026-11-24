@@ -348,13 +348,15 @@ public static class ComputerPlayer
     private static void MoveHero(GameState state, Hero hero)
     {
         state.SelectHero(hero);
+        UseTailwind(state, hero);
         for (int attempt = 0; attempt < MaxMovesPerHero && hero.Movement > 0; attempt++)
         {
             if (ChooseTarget(state, hero) is not { } target)
             {
-                // plus rien à faire là où il marche : un bateau, pour aller plus loin
-                if (GetBoat(state, hero) && state.CurrentBattle == null && hero.Owner.Heroes.Contains(hero))
+                // plus rien à faire là où il marche : un bateau, ou la porte dimensionnelle, pour aller plus loin
+                if ((GetBoat(state, hero) || JumpAcross(state, hero)) && state.CurrentBattle == null && hero.Owner.Heroes.Contains(hero))
                     continue;
+                GoHome(state, hero);
                 return;
             }
             state.SetDestination(target);
@@ -500,7 +502,8 @@ public static class ComputerPlayer
 
     /// <summary>
     /// Plus rien à faire là où il marche (sur une carte d'îles) : un bateau pour aller plus loin, s'il n'en a pas déjà un
-    /// à portée et qu'il lui reste de quoi recruter. D'abord une de ses villes qui a un chantier naval (le bateau apparaît
+    /// à portée. D'abord l'invocation de bateau, s'il la connaît (au rivage le plus proche) ; sinon, s'il lui reste de quoi
+    /// recruter, une de ses villes qui a un chantier naval (le bateau apparaît
     /// sur l'eau à côté) ; sinon le chantier naval de la côte le plus proche, où il va, puis l'achète. Vrai s'il a un
     /// bateau à prendre.
     /// </summary>
@@ -508,14 +511,33 @@ public static class ComputerPlayer
     {
         var map = state.Map;
         var player = hero.Owner;
-        var cost = state.BoatCost(player);
-        if (hero.AtSea(map) || player.Resources[ResourceType.Gold] < cost[ResourceType.Gold] + RecruitReserve
-            || !player.CanAfford(cost))
+        if (hero.AtSea(map))
             return false;
         var costs = SafeCosts(state, hero);
         bool AtHand(Cell water) => Neighbours(water).Any(c => costs.ContainsKey(c) && !map.IsWater(c));
         if (map.Objects.OfType<Boat>().Any(b => AtHand(b.Position)))
             return false; // il en a déjà un : la mer ne lui offre rien non plus
+        // l'invocation de bateau ne coûte pas d'or : il va au rivage le plus proche, puis la lance
+        if (MapSpell(hero, SpellEffect.SummonBoat) is { } summon && hero.SpellPoints >= hero.SpellCost(summon))
+        {
+            if (state.CanCastOnMap(hero, summon) == MapSpellResult.NoWater
+                && costs.Where(c => c.Key != hero.Position && !map.IsWater(c.Key) && map.ObjectAt(c.Key) == null
+                                    && Neighbours(c.Key).Any(n => map.InBounds(n) && map.IsWater(n) && map.ObjectAt(n) == null))
+                    .OrderBy(c => c.Value).ThenBy(c => c.Key.Y).ThenBy(c => c.Key.X).Select(c => (Cell?)c.Key).FirstOrDefault() is { } shore)
+            {
+                state.SetDestination(shore);
+                while (state.Path is { Count: > 0 } && state.StepAlongPath())
+                {
+                }
+                if (hero.Position != shore)
+                    return false; // il y arrivera un autre jour
+            }
+            if (state.CanCastOnMap(hero, summon) == MapSpellResult.Ok)
+                return state.CastOnMap(hero, summon) == MapSpellResult.Ok;
+        }
+        var cost = state.BoatCost(player);
+        if (player.Resources[ResourceType.Gold] < cost[ResourceType.Gold] + RecruitReserve || !player.CanAfford(cost))
+            return false;
         foreach (var town in player.Towns.OrderBy(t => t.Id))
             if (town.BoatSpot is { } spot && state.CanBuildBoat(town) == BoatResult.Ok && AtHand(spot))
                 return state.BuildBoat(town);
@@ -535,6 +557,72 @@ public static class ComputerPlayer
         }
         return state.BuyBoat(yard);
     }
+
+    /// <summary>Le sort de la carte de cet effet, si le héros le connaît.</summary>
+    private static SpellType? MapSpell(Hero hero, SpellEffect effect) => hero.Spells.FirstOrDefault(s => s.Effect == effect);
+
+    /// <summary>
+    /// Le vent porteur, au début de sa marche, s'il a un but et qu'il lui reste ensuite la moitié de ses points de sort
+    /// pour les combats.
+    /// </summary>
+    private static void UseTailwind(GameState state, Hero hero)
+    {
+        if (MapSpell(hero, SpellEffect.DoubleMovement) is not { } wind || state.CanCastOnMap(hero, wind) != MapSpellResult.Ok
+            || hero.SpellPoints - hero.SpellCost(wind) < hero.MaxSpellPoints / 2 || ChooseTarget(state, hero) == null)
+            return;
+        state.CastOnMap(hero, wind);
+    }
+
+    /// <summary>
+    /// Plus rien à faire là où il marche : la porte dimensionnelle, par-dessus l'eau ou les montagnes, vers la case la plus
+    /// proche qu'il ne peut pas atteindre à pied, hors de toute zone de monstre connue, près de l'inconnu ou de quelque chose
+    /// à prendre (une ville ou une mine d'un autre, un tas, un coffre, un lieu…). Vrai s'il a sauté.
+    /// </summary>
+    private static bool JumpAcross(GameState state, Hero hero)
+    {
+        if (MapSpell(hero, SpellEffect.DimensionDoor) is not { } door || state.CanCastOnMap(hero, door) != MapSpellResult.Ok)
+            return false;
+        var map = state.Map;
+        var player = hero.Owner;
+        var costs = SafeCosts(state, hero);
+        bool Near(Cell c, int radius, Func<Cell, bool> test) =>
+            Enumerable.Range(-radius, 2 * radius + 1).Any(dy => Enumerable.Range(-radius, 2 * radius + 1)
+                .Any(dx => c.Offset(dx, dy) is var n && map.InBounds(n) && test(n)));
+        bool Worth(Cell c) =>
+            Near(c, 4, n => !player.Fog.IsExplored(n))
+            || Near(c, 3, n => map.ObjectAt(n) switch
+            {
+                null or MonsterGuard or Boat => false,
+                Town town => town.Owner != player,
+                Mine mine => mine.Owner != player,
+                _ => true,
+            });
+        int range = SpellType.DimensionDoorRange;
+        var target = Enumerable.Range(-range, 2 * range + 1)
+            .SelectMany(dy => Enumerable.Range(-range, 2 * range + 1).Select(dx => hero.Position.Offset(dx, dy)))
+            .Where(c => map.InBounds(c) && !costs.ContainsKey(c) && state.IsDimensionDoorTarget(hero, c)
+                        && !map.IsGuarded(c) && !KnownGuards(state, hero, c).Any() && Worth(c))
+            .OrderBy(c => Math.Max(Math.Abs(c.X - hero.Position.X), Math.Abs(c.Y - hero.Position.Y))).ThenBy(c => c.Y).ThenBy(c => c.X)
+            .Cast<Cell?>().FirstOrDefault();
+        return target != null && state.CastOnMap(hero, door, target) == MapSpellResult.Ok;
+    }
+
+    /// <summary>
+    /// Plus rien à faire, loin de chez lui : le retour en ville, vers sa ville la plus proche (il y prend la garnison et
+    /// garde la ville en attendant).
+    /// </summary>
+    private static void GoHome(GameState state, Hero hero)
+    {
+        if (MapSpell(hero, SpellEffect.TownPortal) is not { } portal || state.CanCastOnMap(hero, portal) != MapSpellResult.Ok
+            || state.NearestTown(hero) is not { } town
+            || Math.Max(Math.Abs(town.Position.X - hero.Position.X), Math.Abs(town.Position.Y - hero.Position.Y)) <= HomeDistance)
+            return;
+        if (state.CastOnMap(hero, portal) == MapSpellResult.Ok && state.CurrentBattle == null && hero.Position == town.Position)
+            TakeGarrison(state, town, hero);
+    }
+
+    /// <summary>Au-delà de ces cases de sa ville la plus proche, un héros désœuvré y revient par le retour en ville.</summary>
+    private const int HomeDistance = 10;
 
     /// <summary>
     /// Le coût du chemin le plus court jusqu'à chaque case qu'on peut atteindre sans combat, par les cases que le joueur

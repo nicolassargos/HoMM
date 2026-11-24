@@ -278,7 +278,7 @@ uniform float river_deep = 0.65;
 // wave_period secondes (wave_foam : sa force ; wave_stretch : la longueur des tronçons de côte où elles arrivent ensemble ;
 // wave_at : l'instant, pour figer une capture)
 uniform float wave_foam = 1.0;
-uniform float wave_reach = 10.0;
+uniform float wave_reach = 8.0;
 uniform float wave_period = 4.0;
 uniform float wave_stretch = 40.0;
 uniform float wave_at = -1.0;
@@ -290,6 +290,9 @@ uniform float wave_piece = 5.0;
 // la part vide de la ligne d'écume (entre ses morceaux), et son épaisseur (pixels d'art, de chaque côté)
 uniform float wave_gaps = 0.5;
 uniform float wave_width = 0.9;
+// la pente de la profondeur sous laquelle les vagues s'effacent (là où deux rives se font face, elle s'affaiblit)
+uniform float wave_steady = 0.55;
+uniform float wave_debug = 0.0;
 uniform float wave_wash = 3.0;
 uniform vec3 deep_color = vec3(0.08, 0.2, 0.42);
 // des roseaux au bord de l'eau, en touffes, là où l'herbe descend à l'eau (la part reeds des carrés de 5 pixels d'art
@@ -1170,9 +1173,16 @@ void fragment() {
 		if (wave_foam > 0.0 && open > 0.0 && d < wave_reach + 2.0) {
 			// le point de la rive en face (en descendant la pente de la profondeur) : la vague garde sa forme en avançant,
 			// ses morceaux, son instant et ses ondulations suivent ce point, pas le pixel d'eau
-			vec2 slope = vec2(water_depth(p + vec2(1.0, 0.0), river) - water_depth(p - vec2(1.0, 0.0), river),
-				water_depth(p + vec2(0.0, 1.0), river) - water_depth(p - vec2(0.0, 1.0), river));
+			// (mesurées sur 3 pixels de chaque côté : les petites ondulations de la rive ne comptent pas)
+			// (par la distance signée à la rive, qui continue sur la terre : pas de faux coude au bord de l'eau)
+			float east = -shore_side(p + vec2(3.0, 0.0)), west = -shore_side(p - vec2(3.0, 0.0));
+			float south = -shore_side(p + vec2(0.0, 3.0)), north = -shore_side(p - vec2(0.0, 3.0));
+			vec2 slope = vec2(east - west, south - north) / 6.0;
 			vec2 shore = length(slope) > 0.01 ? p - normalize(slope) * d : p;
+			// une côte compliquée (une baie où deux rives se font face, un coude) : la pente de la distance s'y affaiblit ; les
+			// vagues s'y effacent
+			float steady = smoothstep(wave_steady, wave_steady + 0.3, length(slope));
+			if (wave_debug > 0.0) color = mix(color, vec3(1.0, 0.0, 0.0), (1.0 - steady) * 0.8); // pour régler : en rouge, où les vagues s'effacent
 			float t = wave_time(shore);
 			float cycle = fract(t);
 			// elle ralentit en arrivant (et certaines ne viennent pas)
@@ -1186,7 +1196,7 @@ void fragment() {
 			// elle pâlit en naissant et en finissant, sans rapetisser (la trame garde sa forme, la couleur s'efface)
 			float fade = smoothstep(0.0, 0.2, cycle) * (1.0 - smoothstep(0.75, 1.0, cycle));
 			if (fade > 0.0 && bayer(p) < band * open)
-				color = mix(color, foam_color, 0.6 * fade * wave_foam);
+				color = mix(color, foam_color, 0.6 * fade * steady * wave_foam);
 		}
 	}
 	// Rives : entre la terre et l'eau

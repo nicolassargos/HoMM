@@ -5,8 +5,8 @@ __pycache__/
 # Godot
 .godot/
 .import/
-export_presets.cfg
 *.translation
+godot/build/
 
 # .NET / C#
 .mono/

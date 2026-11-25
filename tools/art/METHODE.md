@@ -661,6 +661,66 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **`affiner.py`** ensuite : PixelLab dessine parfois des traits de 2 px (noir et brun sombre : bord du rocher, haut du
   muret), ramenés à 1 px. Juger à ×2 exactement : une page qui réduit l'image à la largeur de la fenêtre double des traits.
 
+### La méthode retenue : une maquette 3D, peinte pièce par pièce (Château, 2026-11-22 à 25)
+Les concepts générés d'un seul coup ne gardaient ni la perspective ni la place de chaque bâtiment. Ce qui marche :
+l'utilisateur monte la ville en **maquette 3D** (Maya, formes simples), on la rend dans Blender depuis **sa** caméra,
+et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais : `art-candidats/en-cours/ville-chateau-3d/`
+(note de passage `A-INTEGRER.md`).
+- **La maquette** (FBX exporté par l'utilisateur) : un groupe nommé par bâtiment ; les étapes d'un bâtiment emboîtées
+  (`castle` > `third` > `second` > `first` : château fort, citadelle, fort) ; le sol (`Grid`, la route `Chemin`) ; le
+  reste fait le décor (arbres, maisons). Pas de déformeurs Maya (cluster, softMod : perdus à l'import), pas de texture
+  manquante (rendue en gris uni), pas d'objet égaré (une maison en morceaux posée sur un autre bâtiment).
+- **La caméra** : grand angle (24 mm) pour tout faire tenir dans la bande de 960 × 270 ; un objectif long (40 mm) donne
+  des bâtiments plus droits mais la ville déborde en haut et en bas. **Les bâtiments de devant sont coupés par le bas du
+  cadre** (comme Heroes 2) : chaque rendu se fait sur une toile de **960 × 540** (le cadre du jeu en est les rangées 135
+  à 404), pour peindre chaque bâtiment **entier**, son pied compris (sinon PixelLab invente le sol : une porte qui flotte).
+- **Les rendus** (Blender 4.3 en ligne de commande, EEVEE, soleil à (50°, 0, −40°), fond transparent) :
+  `rendre_batiments.py` (chaque bâtiment seul, ce qu'on en voit, ce que la colline seule en cache, où chaque étape du
+  château se voit dans la suivante), `planche_batiments.py` (places et images recadrées), `profondeurs.py` (la distance de
+  chaque bâtiment à la caméra : l'ordre du dessin ; à corriger à la main quand l'utilisateur veut un autre ordre).
+- **La peinture** : PixelLab `retoucher` sur le rendu entier d'un bâtiment, graine 3 : « turn this grey 3D blockout into
+  <le bâtiment>, in a charming detailed pixel art cozy fantasy town style, clean dark outlines, warm sunlight from the
+  left; keep exactly the same shape, angle and size » (0,08 $, 0,12 $ au-delà de 256 de large ; **512 de large au
+  plus** ; 32 au moins : compléter le rendu, puis recouper). La forme, l'angle et la taille restent ceux de la maquette,
+  à la lettre : un cylindre coiffé d'un cône reste un cylindre coiffé d'un cône. **Les détails se mettent dans la
+  maquette** (portes, auvents, cheminées) ou se nomment dans la description (« square towers with flat crenellated tops
+  and no roofs at all », sinon PixelLab coiffe les tours de cônes ; « crenellated tops where it has none »).
+- **Les étapes gardent la même image** (`peindre_etapes.py`) : le fort peint, puis la citadelle d'après son rendu où le
+  fort peint est déjà posé (« keep the parts that are already painted exactly as they are »), et les pixels du fort remis
+  tels quels par-dessus ; de même le château fort sur la citadelle. Un défaut : par une porte ouverte on voit l'étape
+  d'avant, toujours reposée (une porte fermée doit être dans la maquette).
+- **La finesse du détail dépend de la taille** : PixelLab met autant de détails dans une petite image que dans une
+  grande ; un petit bâtiment sort chargé, bruité, comme une grande image réduite. Peindre plusieurs petits bâtiments
+  ensemble sur une planche (`peindre_planche.py`) donne des pixels plus gros et plus calmes : préféré par l'utilisateur
+  pour la tour des archers et le marché, pas pour les autres (moins riches). Au cas par cas.
+- **Le décor** (`peindre_decor.py`) : coupé en morceaux à des colonnes vides, peint, remis en place. Parfois PixelLab
+  ignore les formes et rend une grille de petits villages : une autre graine. **Le sol** (`peindre_sol.py`) : en deux
+  moitiés de 512 qui se recouvrent, fondues ; **avec `--fond`** (sinon la grande herbe unie est prise pour le fond et
+  effacée), puis recoupé à la forme de la colline ; la bande entre la colline et le pied des montagnes, d'abord remplie
+  d'un vert uni, devient des prés lointains. Plus de couleurs : les nommer (coquelicots, lavande, trèfle, buissons).
+  Retouches sans dépense : `copier_bande.py`, `sans_rochers.py` (recopier un bloc d'herbe : le décalage le plus vert
+  trouvé par le script ; recopier colonne par colonne laisse des traînées).
+- **L'assemblage, comme le jeu dessinera** (`composer_scene.py`) : le fond (montagnes, sol, ombres, décor), puis chaque
+  bâtiment bâti **entier**, de l'arrière vers l'avant, coupé seulement là où la colline le cache ; enfin le décor qui
+  passe devant un bâtiment en 3D, redessiné par-dessus. Couper chaque peinture par la silhouette 3D des autres laisse
+  des bords gris et des coupes fausses (la peinture ne suit pas exactement la maquette). **Deux bâtiments ne doivent
+  pas se pénétrer** dans la maquette : dessinés entiers l'un sur l'autre, l'un semble collé sur l'autre.
+- **Les ombres de contact** (`rendre_ombres.py`, Cycles, le sol attrape les ombres) : avec le soleil de la scène, elles
+  tombent derrière les objets et ne se voient pas ; un soleil haut, un peu derrière, vers la droite (−20°, 0, 30°) les
+  pose devant le pied, du côté opposé à la lumière. Deux tons plats, froids (34, 46, 70), une ombre par bâtiment
+  (montrée seulement s'il est bâti).
+- **Les montagnes du fond** : PixelLab Pro 256 × 160, graine 42, style `style-e6-large.png` (une découpe des montagnes de
+  la carte), un massif recoloré comme modèle de composition (« composition and mountain shapes to follow exactly…, not
+  the colors ») ; cinq calques côte à côte (`calques-a3/`, `places.json`), un voile du lointain (0,2 en haut, 0,5 au
+  pied). Les recouvrements : **pas de fondu** (deux montagnes mêlées font un pic fantôme, à moitié transparent) mais une
+  **couture qui serpente** là où les deux peintures se ressemblent le plus (`composer_bleues.py`). Un pic coupé net par
+  le haut de son calque : `pointe.py` refait la pointe ; des lignes peintes : `effacer_lignes.py` (chaque colonne reprend
+  le pixel propre du dessus ou du dessous ; recopier un bloc voisin se voit, rectangle répété). Les montagnes bleues de
+  C2 sont gardées pour la Tour de magie.
+- **L'utilisateur retouche à la main** : les calques des montagnes, chaque bâtiment (`peints/<id>.png`, même taille),
+  le sol, le décor ; `refaire-a3.bat` puis `refaire-scenes.bat` refont tout. Coût de la scène entière, essais compris :
+  environ 6 $.
+
 ## Ponts de la carte (Retro Diffusion, 2026-11-15)
 - Les juger **en jeu, sur la rivière**, à ×2 : à leur taille, on ne voit rien. Les captures : `--center=bridge`,
   `bridge:9` (avec une route ; seed 42), `ford` et `ford:2` (une route sur un ruisseau, dans les deux sens).

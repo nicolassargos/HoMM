@@ -239,8 +239,7 @@ arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en mass
   ✅ des rives moins nettes ; ✅ les ruisseaux le long des pentes (une carte des hauteurs, des méandres, des affluents,
   nés au pied des montagnes, d'un marais ou d'une source ; voir `HISTORIQUE.md`) ; ✅ moins de mares dans le marais
   (un tiers de moins) ; de petites animations, comme la terre brûlée : ✅ les vagues des lacs et de la mer ; ✅ les arbres
-  et les feuilles dans le vent ; un bug à corriger : quitter par les options ouvre une deuxième boîte de confirmation
-  par-dessus la première (erreur « exclusive child » dans `Hud.Confirm`) ; l'ordre du dessin (des objets dessinés devant ce qui devrait les cacher : des
+  et les feuilles dans le vent ; ✅ le bug de Quitter dans les options (une deuxième boîte par-dessus la première); l'ordre du dessin (des objets dessinés devant ce qui devrait les cacher : des
   exemples à donner par l'utilisateur).
 - **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).

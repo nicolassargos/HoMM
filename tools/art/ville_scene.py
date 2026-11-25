@@ -3,7 +3,8 @@
 #
 # Le dossier source (voir son A-INTEGRER.md) : places.json (coin haut-gauche, taille et profondeur de chaque bâtiment
 # dans un rendu de 960 × 540, dont la scène du jeu est la bande des rangées 135 à 404), peints/<id>.png, seul/<id>.png et
-# sur-sol/<id>.png (pour couper ce que cache la colline), ombres-contact/<id>.png, decor-devant/<id>.png (le décor que seul
+# sur-sol/<id>.png (pour couper ce que cache la colline), ombres-contact/<id>.png, ajouts/<id>.png (peint en plus sur le sol
+# visible, s'il y en a), decor-devant/<id>.png (le décor que seul
 # ce bâtiment et le sol cachent : rendre_devant.py ; sinon visible/decor.png), peints/decor.png, et
 # composer_scene.py qui fait le fond (montagnes, sol, ombres du décor, décor).
 #
@@ -143,6 +144,11 @@ def main():
         toile = Image.new("RGBA", decor.size); toile.alpha_composite(sans_miettes(sous_le_sol(src, k, p, b)), (p["x"], p["y"]))
         if k in TOUFFES:
             touffes(src, k, toile, fond_haut)
+        # ce qui a été peint en plus dans la scène, sur le sol visible (ajouts/<id>.png, 960 × 540) : la barrière et le
+        # petit champ devant la ferme, cachés par la colline dans la maquette ; pas coupé, montré avec le bâtiment
+        ajout = os.path.join(src, "ajouts", k + ".png")
+        if os.path.exists(ajout):
+            toile.alpha_composite(Image.open(ajout).convert("RGBA"))
         im, x, y = rogner(bande(toile), marge=1)
         im.save(os.path.join(dest, k + ".png"))
         entree = {"id": k, "x": x, "y": y, "depth": p["profondeur"]}

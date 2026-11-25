@@ -407,7 +407,13 @@ public partial class Audio : Node
         string path = Root + file;
         AudioStream? stream = null;
         if (!Godot.FileAccess.FileExists(path))
-            GD.PrintErr($"Son absent : {path}");
+        {
+            // le jeu exporté n'a que les sons importés par Godot, pas les fichiers eux-mêmes
+            if (ResourceLoader.Exists(path))
+                stream = GD.Load<AudioStream>(path);
+            else
+                GD.PrintErr($"Son absent : {path}");
+        }
         else if (file.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
             stream = AudioStreamOggVorbis.LoadFromFile(path);
         else if (file.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))

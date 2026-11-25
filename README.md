@@ -2,6 +2,12 @@
 
 Jeu PC fortement inspiré de Heroes of Might and Magic et King's Bounty.
 
+## Jouer sous Windows
+
+Téléchargez le dernier fichier `HoMM-windows-x64-*.zip` dans les
+[versions publiées](https://github.com/nicolassargos/HoMM/releases), décompressez-le
+puis lancez `HoMM.exe`. Godot et le SDK .NET ne sont nécessaires que pour développer.
+
 ## Contenu du dépôt
 
 - `godot/` : **le jeu**, en Godot 4.7 + C#. Tout est construit par le code, cartes générées automatiquement.

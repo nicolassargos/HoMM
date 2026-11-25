@@ -1,0 +1,88 @@
+name: Publier HoMM pour Windows
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publication-windows-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: windows-latest
+    env:
+      GODOT_VERSION: 4.7.2
+      GODOT_TAG: 4.7.2-stable
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Tester le jeu
+        run: dotnet test
+
+      - name: Installer Godot
+        shell: pwsh
+        run: |
+          $base = "https://github.com/godotengine/godot-builds/releases/download/${env:GODOT_TAG}"
+          Invoke-WebRequest "$base/Godot_v${env:GODOT_VERSION}-stable_mono_win64.zip" -OutFile godot.zip
+          Expand-Archive godot.zip -DestinationPath godot-editor
+          $editor = Get-ChildItem godot-editor -Filter Godot_v${env:GODOT_VERSION}-stable_mono_win64.exe -Recurse | Select-Object -First 1
+          if (-not $editor) { throw "L'éditeur Godot n'a pas été trouvé dans l'archive." }
+          "GODOT_EDITOR=$($editor.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Installer les modèles d’export
+        shell: pwsh
+        run: |
+          $base = "https://github.com/godotengine/godot-builds/releases/download/${env:GODOT_TAG}"
+          Invoke-WebRequest "$base/Godot_v${env:GODOT_VERSION}-stable_mono_export_templates.tpz" -OutFile templates.zip
+          $temporary = Join-Path $env:RUNNER_TEMP "godot-templates"
+          Expand-Archive templates.zip -DestinationPath $temporary
+          $destination = Join-Path $env:APPDATA "Godot\export_templates\${env:GODOT_VERSION}.stable.mono"
+          New-Item -ItemType Directory -Force -Path $destination | Out-Null
+          Copy-Item (Join-Path $temporary "templates\*") $destination -Recurse -Force
+
+      - name: Exporter Windows x64
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path godot/build/windows | Out-Null
+          & $env:GODOT_EDITOR --headless --path godot --export-release "Windows Desktop" build/windows/HoMM.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $required = @("godot/build/windows/HoMM.exe", "godot/build/windows/HoMM.pck")
+          foreach ($file in $required) {
+            if (-not (Test-Path $file)) { throw "Le fichier d'export est absent : $file" }
+          }
+
+      - name: Créer l’archive
+        shell: pwsh
+        run: |
+          $name = "HoMM-windows-x64-${{ github.run_number }}"
+          "RELEASE_NAME=$name" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Compress-Archive -Path godot/build/windows/* -DestinationPath "$name.zip"
+
+      - name: Publier la version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          tag="build-${{ github.run_number }}"
+          title="HoMM Windows — build ${{ github.run_number }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$RELEASE_NAME.zip" --clobber
+          else
+            gh release create "$tag" "$RELEASE_NAME.zip" \
+              --target "${{ github.sha }}" \
+              --title "$title" \
+              --generate-notes
+          fi

@@ -5,7 +5,14 @@ L'éditeur Godot n'est pas nécessaire pour développer, seulement pour lancer l
 
 ![Aperçu](apercu.png)
 
-## Installer (Windows, une seule fois)
+## Jouer sans installer le code source
+
+Sous Windows, téléchargez le dernier `HoMM-windows-x64-*.zip` dans les
+[versions publiées](https://github.com/nicolassargos/HoMM/releases), décompressez-le
+puis lancez `HoMM.exe`. Une nouvelle version est publiée automatiquement à partir
+de la branche `main`.
+
+## Installer les outils de développement (Windows, une seule fois)
 
 1. **.NET SDK 8** (ou plus récent) : https://dotnet.microsoft.com/download
 2. **Godot 4.7.2, édition .NET** : https://godotengine.org/download/windows/

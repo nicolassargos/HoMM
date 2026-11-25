@@ -41,8 +41,9 @@ jobs:
           $base = "https://github.com/godotengine/godot-builds/releases/download/${env:GODOT_TAG}"
           Invoke-WebRequest "$base/Godot_v${env:GODOT_VERSION}-stable_mono_win64.zip" -OutFile godot.zip
           Expand-Archive godot.zip -DestinationPath godot-editor
-          $editor = Get-ChildItem godot-editor -Filter Godot_v${env:GODOT_VERSION}-stable_mono_win64.exe -Recurse | Select-Object -First 1
-          if (-not $editor) { throw "L'éditeur Godot n'a pas été trouvé dans l'archive." }
+          # La version console attend la fin de Godot, montre son journal et rend son code de sortie.
+          $editor = Get-ChildItem godot-editor -Filter Godot_v${env:GODOT_VERSION}-stable_mono_win64_console.exe -Recurse | Select-Object -First 1
+          if (-not $editor) { throw "L'éditeur Godot (console) n'a pas été trouvé dans l'archive." }
           "GODOT_EDITOR=$($editor.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Installer les modèles d’export
@@ -55,6 +56,14 @@ jobs:
           $destination = Join-Path $env:APPDATA "Godot\export_templates\${env:GODOT_VERSION}.stable.mono"
           New-Item -ItemType Directory -Force -Path $destination | Out-Null
           Copy-Item (Join-Path $temporary "templates\*") $destination -Recurse -Force
+          Get-ChildItem $destination | Select-Object Name, Length | Format-Table -AutoSize
+
+      - name: Importer les ressources
+        shell: pwsh
+        run: |
+          # Sur une machine neuve, le dossier .godot n'existe pas : importer les images et les sons avant l'export.
+          & $env:GODOT_EDITOR --headless --path godot --import
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Exporter Windows x64
         shell: pwsh
@@ -62,29 +71,48 @@ jobs:
           New-Item -ItemType Directory -Force -Path godot/build/windows | Out-Null
           & $env:GODOT_EDITOR --headless --path godot --export-release "Windows Desktop" build/windows/HoMM.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem godot/build/windows -Recurse | Select-Object FullName, Length | Format-Table -AutoSize
           $required = @("godot/build/windows/HoMM.exe", "godot/build/windows/HoMM.pck")
           foreach ($file in $required) {
             if (-not (Test-Path $file)) { throw "Le fichier d'export est absent : $file" }
           }
+          # Un .pck de quelques Mo veut dire que les images et les sons manquent.
+          $pck = (Get-Item godot/build/windows/HoMM.pck).Length
+          if ($pck -lt 10MB) { throw "HoMM.pck est trop petit ($pck octets) : l'export est incomplet." }
 
       - name: Créer l’archive
         shell: pwsh
         run: |
           $name = "HoMM-windows-x64-${{ github.run_number }}"
+          $zip = Join-Path $env:GITHUB_WORKSPACE "$name.zip"
+          Compress-Archive -Path godot/build/windows/* -DestinationPath $zip
+          if (-not (Test-Path $zip)) { throw "L'archive n'a pas été créée : $zip" }
+          Get-Item $zip | Select-Object FullName, Length | Format-Table -AutoSize
           "RELEASE_NAME=$name" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Compress-Archive -Path godot/build/windows/* -DestinationPath "$name.zip"
+
+      # Hors de main (lancement à la main sur une branche), garder l'archive pour la vérifier, sans publier.
+      - name: Garder l’archive
+        if: github.ref != 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.RELEASE_NAME }}
+          path: ${{ env.RELEASE_NAME }}.zip
+          retention-days: 3
 
       - name: Publier la version
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           tag="build-${{ github.run_number }}"
           title="HoMM Windows — build ${{ github.run_number }}"
+          zip="$GITHUB_WORKSPACE/$RELEASE_NAME.zip"
+          ls -l "$zip"
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" "$RELEASE_NAME.zip" --clobber
+            gh release upload "$tag" "$zip" --clobber
           else
-            gh release create "$tag" "$RELEASE_NAME.zip" \
+            gh release create "$tag" "$zip" \
               --target "${{ github.sha }}" \
               --title "$title" \
               --generate-notes

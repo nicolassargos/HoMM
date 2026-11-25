@@ -1394,6 +1394,11 @@ public sealed partial class GameState
         var result = town.CanBuild(building, CurrentPlayer);
         if (result != BuildResult.Ok || Outcome != GameOutcome.Playing)
             return result;
+        // sans limites (« --free-build ») : les prérequis manquants d'abord (le premier possible de chaque choix)
+        if (CurrentPlayer.FreeBuilding)
+            foreach (var choices in building.RequirementChoices.Where(choices => !choices.Any(town.Has)))
+                if (choices.FirstOrDefault(id => town.Buildings.Any(b => b.Id == id)) is { } required)
+                    Build(town, required);
         town.Build(building, CurrentPlayer);
         Emit(new BuildingBuilt(town, building));
         if (building.MageGuild > 0)

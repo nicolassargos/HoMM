@@ -125,6 +125,10 @@ public partial class Main : Node2D
         GD.Print(loaded != null ? "Partie chargée" : $"Carte générée avec la graine {_state.Seed}");
         // Développement : « --rich » : le joueur a de quoi tout bâtir et tout recruter, remis au plein chaque jour (Enrich)
         Enrich();
+        // Développement : « --free-build » : le joueur humain bâtit tout, sans payer ni attendre (Player.FreeBuilding)
+        if (OS.GetCmdlineUserArgs().Contains("--free-build"))
+            foreach (var player in _state.Players.Where(p => !p.IsComputer))
+                player.FreeBuilding = true;
         // « --demo » : les villes du joueur toutes construites
         if (loaded == null && Demo)
             foreach (var town in _state.Players.Where(p => !p.IsComputer).SelectMany(p => p.Towns))

@@ -68,6 +68,9 @@ jobs:
       - name: Exporter Windows x64
         shell: pwsh
         run: |
+          # Godot cherche godot/HoMM.sln pour compiler le C# ; la solution du dépôt est à la racine.
+          dotnet new sln --name HoMM --output godot
+          dotnet sln godot/HoMM.sln add godot/HoMM.csproj
           New-Item -ItemType Directory -Force -Path godot/build/windows | Out-Null
           & $env:GODOT_EDITOR --headless --path godot --export-release "Windows Desktop" build/windows/HoMM.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -79,6 +82,8 @@ jobs:
           # Un .pck de quelques Mo veut dire que les images et les sons manquent.
           $pck = (Get-Item godot/build/windows/HoMM.pck).Length
           if ($pck -lt 10MB) { throw "HoMM.pck est trop petit ($pck octets) : l'export est incomplet." }
+          # Godot finit sans erreur même quand le C# n'a pas été exporté : sans HoMM.dll, le jeu ne démarre pas.
+          if (-not (Get-ChildItem godot/build/windows -Recurse -Filter HoMM.dll)) { throw "HoMM.dll est absent : le code C# n'a pas été exporté." }
 
       - name: Créer l’archive
         shell: pwsh

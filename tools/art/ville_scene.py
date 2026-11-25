@@ -3,12 +3,13 @@
 #
 # Le dossier source (voir son A-INTEGRER.md) : places.json (coin haut-gauche, taille et profondeur de chaque bâtiment
 # dans un rendu de 960 × 540, dont la scène du jeu est la bande des rangées 135 à 404), peints/<id>.png, seul/<id>.png et
-# sur-sol/<id>.png (pour couper ce que cache la colline), ombres-contact/<id>.png, visible/decor.png, peints/decor.png, et
+# sur-sol/<id>.png (pour couper ce que cache la colline), ombres-contact/<id>.png, decor-devant/<id>.png (le décor que seul
+# ce bâtiment et le sol cachent : rendre_devant.py ; sinon visible/decor.png), peints/decor.png, et
 # composer_scene.py qui fait le fond (montagnes, sol, ombres du décor, décor).
 #
 # Dans le jeu, de l'arrière vers l'avant : fond.png, l'ombre de chaque bâtiment bâti (déjà coupée sous le décor, et réglée
 # là où elle couvre l'ombre du décor : le même résultat que l'union des ombres de composer_scene.py), les bâtiments du plus
-# loin au plus proche, puis le décor qui passe devant chaque bâtiment bâti (<id>-devant.png).
+# loin au plus proche, chacun suivi du décor qui passe devant lui (<id>-devant.png ; les bâtiments plus proches le couvrent).
 #
 # Usage : python -I tools/art/ville_scene.py <dossier source> [faction]   (faction : chateau sans l'option)
 import os, sys, json, subprocess
@@ -98,7 +99,11 @@ def main():
     sans_decor = decor.getchannel("A").point(lambda v: 255 - v)
     ombre_decor = tons(os.path.join(src, "ombres-contact", "decor.png"))
 
-    visible_decor = ImageChops.multiply(masque(os.path.join(src, "visible", "decor.png")), decor.getchannel("A"))
+    def decor_vu(k):
+        """Le décor que rien ne cache devant le bâtiment k, les autres bâtiments retirés (rendre_devant.py) : sans eux,
+        visible/decor.png manquait ce qu'un autre bâtiment cache dans la scène entière (devant la Tour des griffons)."""
+        f = os.path.join(src, "decor-devant", k + ".png")
+        return ImageChops.multiply(masque(f if os.path.exists(f) else os.path.join(src, "visible", "decor.png")), decor.getchannel("A"))
 
     batiments = []
     for k in sorted(ids, key=lambda k: -places[k]["profondeur"]):
@@ -125,9 +130,9 @@ def main():
                 im, sx, sy = rogner(ombre)
                 im.save(os.path.join(dest, k + "-ombre.png"))
                 entree.update({"shadowX": sx, "shadowY": sy})
-        # le décor qui passe devant ce bâtiment (en 3D), redessiné par-dessus tous les bâtiments quand il est bâti
+        # le décor qui passe devant ce bâtiment (en 3D), redessiné juste après lui quand il est bâti
         devant = Image.new("RGBA", decor.size)
-        devant.paste(decor, (0, 0), ImageChops.multiply(masque(os.path.join(src, "seul", k + ".png")), visible_decor))
+        devant.paste(decor, (0, 0), ImageChops.multiply(masque(os.path.join(src, "seul", k + ".png")), decor_vu(k)))
         devant = bande(devant)
         if devant.getbbox():
             im, fx, fy = rogner(devant)

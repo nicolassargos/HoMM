@@ -483,7 +483,7 @@ public partial class TownScreen : CanvasLayer
 
     /// <summary>
     /// La ville en images, ×2, posée en bas au milieu de la vue : le fond, les ombres des bâtiments construits, les
-    /// bâtiments du plus loin au plus proche, puis le décor qui passe devant eux.
+    /// bâtiments du plus loin au plus proche, chacun suivi du décor qui passe devant lui.
     /// </summary>
     private void ShowScene(Town town, TownScene scene)
     {
@@ -515,9 +515,10 @@ public partial class TownScreen : CanvasLayer
             sprite.GuiInput += e => ClickBuilding(e, town, building);
             _sceneLayer.AddChild(sprite);
             _buildingBoxes[building.Id] = sprite;
+            // le décor qui passe devant lui, tout de suite : les bâtiments plus proches le couvrent encore
+            if (place.FrontX != null)
+                Layer(place.Id + "-devant", place.FrontX.Value, place.FrontY!.Value);
         }
-        foreach (var (_, place) in shown.Where(s => s.Place.FrontX != null))
-            Layer(place.Id + "-devant", place.FrontX!.Value, place.FrontY!.Value);
     }
 
     private Control BuildingBox(Town town, BuildingType building)

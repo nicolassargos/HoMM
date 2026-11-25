@@ -5,7 +5,7 @@
     {"id": "citadelle", "x": 322, "y": 0, "depth": 101.83, "shadowX": 393, "shadowY": 138, "frontX": 345, "frontY": 112},
     {"id": "chateau-fort", "x": 227, "y": 0, "depth": 97.93, "shadowX": 293, "shadowY": 138, "frontX": 229, "frontY": 112},
     {"id": "portail-gloire", "x": 24, "y": 2, "depth": 76.34, "frontX": 210, "frontY": 151},
-    {"id": "herauts", "x": 256, "y": 112, "depth": 74.57, "frontX": 266, "frontY": 158},
+    {"id": "herauts", "x": 263, "y": 112, "depth": 74.57, "frontX": 266, "frontY": 158},
     {"id": "guilde-mages-1", "x": 687, "y": 8, "depth": 72.58, "shadowX": 712, "shadowY": 190, "frontX": 716, "frontY": 175},
     {"id": "tour-archers", "x": 523, "y": 89, "depth": 68.75, "shadowX": 533, "shadowY": 173, "frontX": 530, "frontY": 170},
     {"id": "tour-griffons", "x": 744, "y": 38, "depth": 63.91, "shadowX": 792, "shadowY": 215, "frontX": 763, "frontY": 182},

@@ -42,6 +42,31 @@ def bande(im):
     return im.crop((0, HAUT, im.width, HAUT + HAUTEUR))
 
 
+def sans_miettes(im, part=0.2):
+    """Retire les morceaux détachés du bâtiment (8-connexes) plus petits que `part` du plus grand : ce que la coupe sous la
+    colline laisse isolé (la porte de la Tour des archers, sous la colline) et les pixels perdus."""
+    a = im.getchannel("A"); w, h = im.size; p = a.load(); vu = set(); morceaux = []
+    for y in range(h):
+        for x in range(w):
+            if p[x, y] and (x, y) not in vu:
+                pile, morceau = [(x, y)], []; vu.add((x, y))
+                while pile:
+                    i, j = pile.pop(); morceau.append((i, j))
+                    for u in (i - 1, i, i + 1):
+                        for v in (j - 1, j, j + 1):
+                            if 0 <= u < w and 0 <= v < h and p[u, v] and (u, v) not in vu:
+                                vu.add((u, v)); pile.append((u, v))
+                morceaux.append(morceau)
+    if not morceaux:
+        return im
+    plus_grand = max(len(m) for m in morceaux)
+    for m in morceaux:
+        if len(m) < part * plus_grand:
+            for xy in m: p[xy] = 0
+    im = im.copy(); im.putalpha(a)
+    return im
+
+
 def rogner(im, marge=0):
     """L'image coupée à son dessin (une marge transparente autour, pour le contour du survol) et son coin dans la bande."""
     x0, y0, x1, y1 = im.getbbox()
@@ -79,7 +104,7 @@ def main():
     for k in sorted(ids, key=lambda k: -places[k]["profondeur"]):
         p = places[k]
         b = Image.open(os.path.join(src, "peints", k + ".png")).convert("RGBA").crop((0, 0, p["largeur"], p["hauteur"]))
-        toile = Image.new("RGBA", decor.size); toile.alpha_composite(sous_le_sol(src, k, p, b), (p["x"], p["y"]))
+        toile = Image.new("RGBA", decor.size); toile.alpha_composite(sans_miettes(sous_le_sol(src, k, p, b)), (p["x"], p["y"]))
         im, x, y = rogner(bande(toile), marge=1)
         im.save(os.path.join(dest, k + ".png"))
         entree = {"id": k, "x": x, "y": y, "depth": p["profondeur"]}

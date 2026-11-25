@@ -355,6 +355,13 @@ par faction, placements dans `placements.json`) :
 - Comme **Heroes 2** (les villes préférées de l'utilisateur), un bâtiment peut être **coupé par le bord** de l'image
   ou posé tout au bord, pourvu qu'on en voie la plus grande partie.
 
+✅ **La scène du Château peinte** (2026-11-22 à 25) : une maquette 3D de l'utilisateur (Maya), rendue dans Blender depuis
+sa caméra, chaque bâtiment peint par PixelLab sans changer sa forme (méthode dans `tools/art/METHODE.md`) ; 14 bâtiments,
+le fort, la citadelle et le château fort (la même image d'une étape à l'autre), le décor, le sol, les ombres de contact,
+les montagnes. **Reste** : la mettre dans le jeu (`art-candidats/en-cours/ville-chateau-3d/A-INTEGRER.md`, une session
+code) ; plus tard, le silo et peut-être le marché à revoir, la guilde 2 à 4, l'hôtel de ville et la suite, la demeure du
+héros (avant le fort).
+
 ### L'IA et l'équilibre
 Entraîner les profils de difficulté par des parties entre IA, jouées sans affichage ; petits détails et équilibrage
 fin.

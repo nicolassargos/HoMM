@@ -1012,6 +1012,112 @@ public sealed class SpellEffects
         }
     }
 
+    // ------------------------------------------------------------------ les douves
+
+    /// <summary>L'eau des douves, du bord peu profond (où l'on devine la terre) au plus profond.</summary>
+    private static readonly Color[] MoatDepths =
+    {
+        new(0.36f, 0.54f, 0.45f), new(0.26f, 0.47f, 0.47f), new(0.19f, 0.39f, 0.43f), new(0.14f, 0.31f, 0.37f), new(0.1f, 0.24f, 0.31f),
+    };
+
+    /// <summary>La trame 4 × 4 qui mêle deux tons voisins, pixel par pixel (comme le pixel art de l'époque).</summary>
+    private static readonly float[] Bayer = { 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 };
+
+    private static readonly Color MoatLight = new(0.45f, 0.68f, 0.66f), MoatShine = new(0.82f, 0.94f, 0.9f), MoatShore = new(0.5f, 0.66f, 0.55f),
+        MoatWet = new(0.31f, 0.25f, 0.15f), MoatSoil = new(0.47f, 0.38f, 0.23f), MoatDry = new(0.58f, 0.5f, 0.32f);
+
+    /// <summary>
+    /// Des douves : un fossé d'eau qui serpente par le centre des cases <paramref name="centers"/> (de haut en bas, à la
+    /// suite), aux bords qui ondulent, arrondi aux deux bouts ; l'eau plus profonde au milieu, des reflets allongés qui
+    /// glissent, une ligne claire au bord de l'eau, puis une berge de terre mouillée qui sèche et se fond dans l'herbe.
+    /// <paramref name="halfWidth"/> : la demi-largeur de l'eau ; <paramref name="level"/> (0 à 1) : le fossé s'ouvre ou se
+    /// referme.
+    /// </summary>
+    internal static void DrawMoat(CanvasItem canvas, Vector2[] centers, float halfWidth, float cap, double time, int seed, float level)
+    {
+        if (level <= 0.01f || centers.Length == 0)
+            return;
+        float t = (float)time, bank = 7 * Pixel;
+        float top = centers[0].Y - cap, bottom = centers[^1].Y + cap;
+        // le milieu du fossé à cette hauteur : une courbe de Catmull-Rom par les centres des cases, sans angle
+        float Middle(float y)
+        {
+            if (y <= centers[0].Y)
+                return centers[0].X;
+            for (int i = 0; i + 1 < centers.Length; i++)
+                if (y <= centers[i + 1].Y)
+                {
+                    float u = (y - centers[i].Y) / (centers[i + 1].Y - centers[i].Y);
+                    float p0 = centers[Math.Max(i - 1, 0)].X, p1 = centers[i].X, p2 = centers[i + 1].X,
+                        p3 = centers[Math.Min(i + 2, centers.Length - 1)].X;
+                    return 0.5f * (2 * p1 + (p2 - p0) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u * u + (3 * p1 - p0 - 3 * p2 + p3) * u * u * u);
+                }
+            return centers[^1].X;
+        }
+        for (float y = MathF.Floor(top / Pixel) * Pixel; y <= bottom; y += Pixel)
+        {
+            // arrondi aux deux bouts
+            float over = y < centers[0].Y ? (centers[0].Y - y) / cap : y > centers[^1].Y ? (y - centers[^1].Y) / cap : 0;
+            float round = MathF.Sqrt(Math.Max(0, 1 - over * over));
+            float mid = Middle(y);
+            // des bords qui ondulent, chacun le sien
+            float left = halfWidth * round * level * (0.86f + 0.1f * MathF.Sin(y * 0.05f + seed) + 0.05f * MathF.Sin(y * 0.17f + seed * 3));
+            float right = halfWidth * round * level * (0.86f + 0.1f * MathF.Sin(y * 0.043f + seed * 2 + 1) + 0.05f * MathF.Sin(y * 0.19f + seed));
+            float reach = Math.Max(left, right) + bank;
+            for (float x = MathF.Floor((mid - reach) / Pixel) * Pixel; x <= mid + reach; x += Pixel)
+            {
+                float dx = x - mid, edge = dx < 0 ? left : right;
+                float into = edge - MathF.Abs(dx); // > 0 : dans l'eau ; < 0 : sur la berge
+                int k = (int)(x / Pixel) * 131 + (int)(y / Pixel);
+                float grain = (Noise(seed, k) - 0.5f) * 1.5f * Pixel;
+                Color color;
+                float alpha = level;
+                if (into + grain > Pixel)
+                {
+                    // la profondeur : du bord au milieu, en tons tramés ; l'ombre de la berge de gauche (le jour vient d'en
+                    // haut à gauche) assombrit l'eau d'un ton contre elle
+                    int ax = (int)MathF.Floor(x / Pixel), ay = (int)MathF.Floor(y / Pixel);
+                    float depth = MathF.Pow(Math.Clamp(into / (edge * 0.85f + 0.01f), 0, 1), 0.8f) * (MoatDepths.Length - 1);
+                    if (dx < 0 && into < 4 * Pixel)
+                        depth += 0.8f * (1 - into / (4 * Pixel));
+                    float dither = (Bayer[(ay & 3) * 4 + (ax & 3)] + 0.5f) / 16;
+                    color = MoatDepths[Math.Clamp((int)(depth + dither - 0.5f), 0, MoatDepths.Length - 1)];
+                    // des rides : de petits traits qui apparaissent, brillent et s'effacent en descendant le fossé
+                    if (into > 2.5f * Pixel)
+                    {
+                        float drift = t * 3.5f; // pixels d'art par seconde, vers le bas
+                        int cy = (int)MathF.Floor((ay - drift) / 9), cx = (int)MathF.Floor(ax / 13f + (cy & 1) * 0.5f);
+                        int cell = cx * 977 + cy * 131;
+                        float life = (t * 0.35f + Noise(seed, cell)) % 1;
+                        float shine = Bell(life);
+                        if (Noise(seed + 3, cell) < 0.45f && shine > 0.2f)
+                        {
+                            // le trait : 5 à 9 pixels de long, un peu courbé, sa place dans la case tirée au sort
+                            float ry = (ay - drift) - (cy * 9 + 2 + 5 * Noise(seed + 5, cell));
+                            float rx = ax - ((cx - (cy & 1) * 0.5f) * 13 + 4 + 5 * Noise(seed + 9, cell));
+                            int half = 2 + (int)(Noise(seed + 11, cell) * 2.5f * shine);
+                            float bow = rx * rx * 0.12f;
+                            if (MathF.Abs(rx) <= half && ry >= -0.5f - bow && ry < 0.5f - bow)
+                                color = shine > 0.75f && MathF.Abs(rx) < half - 1 ? MoatShine : MoatLight;
+                        }
+                    }
+                }
+                else if (into + grain > 0)
+                    color = MoatShore;
+                else
+                {
+                    // la berge : mouillée contre l'eau, puis sèche, de plus en plus clairsemée vers l'herbe
+                    float away = -(into + grain) / bank;
+                    if (away >= 1 || Noise(seed + 7, k) < away * away)
+                        continue;
+                    color = away < 0.3f ? MoatWet : away < 0.65f ? MoatSoil : MoatDry;
+                    alpha *= 1 - away * 0.4f;
+                }
+                Dot(canvas, new Vector2(x, y), A(color, alpha));
+            }
+        }
+    }
+
     // ------------------------------------------------------------------ la boule de feu explose
 
     private static void DrawExplosionGround(CanvasItem canvas, Effect e, float t)

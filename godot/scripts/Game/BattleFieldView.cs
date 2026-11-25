@@ -292,6 +292,9 @@ public partial class BattleFieldView : Control
     /// <summary>Le temps qu'un mur de feu met à se dresser ou à s'éteindre (secondes).</summary>
     private const float FireRise = 0.5f;
 
+    /// <summary>Les cases des douves montrées, comme celles du feu.</summary>
+    private readonly Dictionary<Hex, (float Age, float? Out)> _moatShown = new();
+
     private float FireLevel(float age, float? fading) =>
         Math.Clamp(age / FireRise, 0, 1) * (fading is { } f ? Math.Clamp(1 - f / FireRise, 0, 1) : 1);
 
@@ -2092,6 +2095,29 @@ public partial class BattleFieldView : Control
                         return raising >= FireRise;
                     });
                     break;
+                case MoatDug dug:
+                    double digging = 0;
+                    _animations.Enqueue(delta =>
+                    {
+                        if (digging == 0)
+                            foreach (var hex in dug.Cells)
+                                _moatShown[hex] = (0, null);
+                        digging += delta;
+                        return digging >= FireRise;
+                    });
+                    break;
+                case MoatFaded dried:
+                    _animations.Enqueue(_ =>
+                    {
+                        foreach (var hex in dried.Cells)
+                            if (_moatShown.TryGetValue(hex, out var moat))
+                                _moatShown[hex] = (moat.Age, 0);
+                        return true;
+                    });
+                    break;
+                case UnitStuckInMoat stuck:
+                    Announce(stuck.Unit, Texts.StuckInMoat, MapRenderer.Rgb(120, 190, 230), () => Audio.Play("spell-douves-plouf"), 0.35);
+                    break;
                 case FireWallFaded faded:
                     _animations.Enqueue(_ =>
                     {
@@ -2453,6 +2479,17 @@ public partial class BattleFieldView : Control
         if (EffectPreviewArg is not { } arg || Battle == null)
             return;
         var parts = arg.Split(':');
+        if (parts[0] == "douves")
+        {
+            // des douves au milieu du champ, sans fin ; « douves:0.2 » : figées pendant qu'elles se remplissent
+            if (_moatShown.Count == 0)
+                foreach (var hex in Battle.WallCells(new Hex(Battlefield.Columns / 2, Battlefield.Rows / 2)))
+                    _moatShown[hex] = (0, null);
+            if (parts.Length > 1 && float.TryParse(parts[1], System.Globalization.CultureInfo.InvariantCulture, out var filling))
+                foreach (var hex in _moatShown.Keys.ToList())
+                    _moatShown[hex] = (filling, null);
+            return;
+        }
         if (parts[0] == "mur-de-feu")
         {
             // un mur de feu au milieu du champ, qui brûle sans fin ; « mur-de-feu:0.2 » : figé pendant qu'il se dresse
@@ -2821,14 +2858,15 @@ public partial class BattleFieldView : Control
         PreviewSpell(delta);
         Record(delta);
         _time += delta;
-        foreach (var hex in _fireShown.Keys.ToList())
-        {
-            var (age, fading) = _fireShown[hex];
-            if (fading is { } f && f + delta > FireRise)
-                _fireShown.Remove(hex);
-            else
-                _fireShown[hex] = (age + (float)delta, fading is { } g ? g + (float)delta : null);
-        }
+        foreach (var shown in new[] { _fireShown, _moatShown })
+            foreach (var hex in shown.Keys.ToList())
+            {
+                var (age, fading) = shown[hex];
+                if (fading is { } f && f + delta > FireRise)
+                    shown.Remove(hex);
+                else
+                    shown[hex] = (age + (float)delta, fading is { } g ? g + (float)delta : null);
+            }
         for (int i = _bursts.Count - 1; i >= 0; i--)
         {
             var (hexes, color, age) = _bursts[i];
@@ -2904,6 +2942,23 @@ public partial class BattleFieldView : Control
         }
         else
             DrawRect(new Rect2(Vector2.Zero, Size), MapRenderer.TerrainColor(_terrain));
+
+        // les douves, dans le sol : un fossé par suite de cases l'une sous l'autre (un obstacle le coupe)
+        foreach (var column in _moatShown.Keys.GroupBy(h => h.Col))
+        {
+            var rows = column.OrderBy(h => h.Row).ToList();
+            for (int i = 0; i < rows.Count;)
+            {
+                int j = i + 1;
+                while (j < rows.Count && rows[j].Row == rows[j - 1].Row + 1)
+                    j++;
+                var run = rows.GetRange(i, j - i);
+                float level = run.Min(h => FireLevel(_moatShown[h].Age, _moatShown[h].Out));
+                SpellEffects.DrawMoat(this, run.Select(Center).ToArray(), HexWidth * 0.4f, RowStep * 0.55f, _time,
+                    run[0].Col * 13 + run[0].Row * 7, level);
+                i = j;
+            }
+        }
 
         // les cases
         for (int r = 0; r < Battlefield.Rows; r++)

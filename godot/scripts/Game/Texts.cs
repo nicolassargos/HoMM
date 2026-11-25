@@ -197,6 +197,9 @@ public static class Texts
         UnitHooked h => $"{Capitalize(Stack(h.Hooker.Stack))} {(h.Hooker.Count == 1 ? "tire" : "tirent")} {Stack(h.Target.Stack)} au bout de {(h.Hooker.Count == 1 ? "son" : "leurs")} crochet{(h.Hooker.Count == 1 ? "" : "s")} !",
         FireWallRaised w => $"Un mur de feu se dresse ({w.Cells.Count} cases).",
         FireWallFaded => "Le mur de feu s'éteint.",
+        MoatDug m => $"Des douves se creusent ({m.Cells.Count} cases).",
+        MoatFaded => "Les douves disparaissent.",
+        UnitStuckInMoat s => $"{Capitalize(Stack(s.Unit.Stack))} {(s.Unit.Count == 1 ? "tombe" : "tombent")} dans les douves et {(s.Unit.Count == 1 ? "perd" : "perdent")} la fin de {(s.Unit.Count == 1 ? "son" : "leur")} tour.",
         UnitCrossedFire f => $"Le mur de feu brûle {Stack(new CreatureStack(f.Unit.Type, f.Unit.Count + f.Killed))} : {f.Damage} dégâts"
                              + (f.Killed > 0 ? $", {f.Killed} {(f.Killed == 1 ? "tué" : "tués")}." : "."),
         UnitBurned b => $"La chaleur brûle {Stack(new CreatureStack(b.Unit.Type, b.Unit.Count + b.Killed))} : {b.Damage} dégâts"
@@ -1497,6 +1500,8 @@ public static class Texts
         return spell.Effect switch
         {
             SpellEffect.Damage when spell.Target == SpellTarget.Area => $"{strength} dégâts sur une case et ses 6 voisines (amis compris)",
+            SpellEffect.Moat =>
+                $"des douves sur {SpellType.WallLength} cases, du haut vers le bas, pendant {SpellType.WallRounds} rounds : une troupe qui y entre s'y arrête et perd la fin de son tour (amis compris ; les volants passent par-dessus)",
             SpellEffect.FireWall =>
                 $"un mur de feu sur {SpellType.WallLength} cases, du haut vers le bas, pendant {SpellType.WallRounds} rounds : {strength} dégâts aux troupes qui s'y trouvent, puis à chaque troupe qui y entre ou le traverse (amis compris ; il n'arrête pas les tirs)",
             SpellEffect.Damage when spell.Target == SpellTarget.Chain =>
@@ -1644,11 +1649,14 @@ public static class Texts
         $"{spell.Name} · niveau {spell.Level}{(spell.School is { } school ? $" · école {SchoolName(school)}" : "")}\n"
         + $"{SpellCost(spell, hero)}{(hero.SpellCost(spell) > points ? $" · {NotEnoughSpellPoints}" : "")}\n"
         + SpellEffectText(spell, hero);
+    /// <summary>Au-dessus d'une troupe tombée dans les douves.</summary>
+    public const string StuckInMoat = "Dans les douves";
+
     public static string SpellTargetPrompt(SpellType spell) => spell.Target switch
     {
         SpellTarget.Any => $"{spell.Name} : choisissez une troupe (clic droit ou Échap : annuler).",
         SpellTarget.Area => $"{spell.Name} : choisissez une case (clic droit ou Échap : annuler).",
-        SpellTarget.Wall => $"{spell.Name} : choisissez le milieu du mur (clic droit ou Échap : annuler).",
+        SpellTarget.Wall => $"{spell.Name} : choisissez la case du milieu (clic droit ou Échap : annuler).",
         SpellTarget.Ally => $"{spell.Name} : choisissez une de vos troupes (clic droit ou Échap : annuler).",
         _ => $"{spell.Name} : choisissez une troupe ennemie (clic droit ou Échap : annuler).",
     };

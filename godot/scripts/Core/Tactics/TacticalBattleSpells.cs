@@ -39,7 +39,21 @@ public sealed partial class TacticalBattle
             _fire.Remove(hex);
         if (faded.Count > 0)
             _log.Add(new FireWallFaded(faded));
+        var dried = _moat.Where(m => m.Value < Round).Select(m => m.Key).ToList();
+        foreach (var hex in dried)
+            _moat.Remove(hex);
+        if (dried.Count > 0)
+            _log.Add(new MoatFaded(dried));
     }
+
+    /// <summary>Les cases des douves, avec le dernier round où elles sont là.</summary>
+    private readonly Dictionary<Hex, int> _moat = new();
+
+    /// <summary>Les cases des douves.</summary>
+    public IReadOnlyCollection<Hex> Moat => _moat.Keys;
+
+    /// <summary>Avec sa tête sur cette case, la troupe serait-elle dans les douves (une de ses cases) ?</summary>
+    public bool InMoat(BattleUnit unit, Hex head) => _moat.Count > 0 && unit.HexesAt(head).Any(_moat.ContainsKey);
 
     /// <summary>Une case d'un mur de feu : la force des brûlures et le dernier round où elle brûle.</summary>
     public sealed record FireCell(BattleSide Side, int Strength, int LastRound);
@@ -153,6 +167,8 @@ public sealed partial class TacticalBattle
         if (spell.Target == SpellTarget.Area)
             return new[] { target }.Concat(target.Neighbours())
                 .Select(UnitAt).OfType<BattleUnit>().Distinct().Where(u => !Burns(spell, u)).Select(u => (u, strength)).ToList();
+        if (spell.Effect == SpellEffect.Moat)
+            return Array.Empty<(BattleUnit, int)>(); // les troupes déjà là ne sont pas touchées
         if (spell.Target == SpellTarget.Wall)
             return WallCells(target).Select(UnitAt).OfType<BattleUnit>().Distinct().Where(u => !Burns(spell, u))
                 .Select(u => (u, strength)).ToList();
@@ -234,6 +250,14 @@ public sealed partial class TacticalBattle
                 if (!_fire.TryGetValue(hex, out var old) || old.Strength <= strength)
                     _fire[hex] = new FireCell(side, strength, last);
             _log.Add(new FireWallRaised(spell, side, cells, last));
+        }
+        if (spell.Effect == SpellEffect.Moat)
+        {
+            var cells = WallCells(target);
+            int last = Round + SpellType.WallRounds - 1;
+            foreach (var hex in cells)
+                _moat[hex] = Math.Max(last, _moat.GetValueOrDefault(hex));
+            _log.Add(new MoatDug(spell, side, cells, last));
         }
         if (UnitAt(target) is { } aimed && Mirror(spell, aimed, side) is { } caster)
             _log.Add(new SpellReflected(aimed, caster, spell));

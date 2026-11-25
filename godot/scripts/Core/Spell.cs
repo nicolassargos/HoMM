@@ -39,6 +39,11 @@ public enum SpellEffect
     /// puis celles qui y entrent ou le traversent ; il n'arrête ni les tirs ni la marche.
     /// </summary>
     FireWall,
+    /// <summary>
+    /// Des douves sur quelques cases, quelques rounds : une troupe qui y entre s'arrête sur la première et perd la fin de
+    /// son tour (elle n'attaque pas) ; elle en sort à son tour suivant. Pas de dégâts.
+    /// </summary>
+    Moat,
 
     // sorts de la carte (idées de l'utilisateur, 2026-11-24)
     /// <summary>Un bateau apparaît sur l'eau, à côté du héros.</summary>
@@ -88,7 +93,7 @@ public sealed record SpellType
 
     /// <summary>Un sort qui dure quelques rounds (bénédiction, lenteur…), plutôt qu'un effet immédiat.</summary>
     public bool Lasts => !OnMap && Effect is not (SpellEffect.Damage or SpellEffect.Cure or SpellEffect.Resurrection
-        or SpellEffect.Teleport or SpellEffect.Dispel or SpellEffect.FireWall);
+        or SpellEffect.Teleport or SpellEffect.Dispel or SpellEffect.FireWall or SpellEffect.Moat);
 
     /// <summary>Un sort néfaste qui dure (retiré par les soins).</summary>
     public bool Harmful => Effect is SpellEffect.Curse or SpellEffect.Slow or SpellEffect.Weakness or SpellEffect.Blind;
@@ -106,10 +111,10 @@ public sealed record SpellType
     /// </summary>
     public const int ChainReach = 3;
 
-    /// <summary>Les cases d'un mur de feu (choix de l'utilisateur : 5), en ligne du haut vers le bas, la visée au milieu.</summary>
+    /// <summary>Les cases d'un mur de feu ou des douves (choix de l'utilisateur : 5), en ligne du haut vers le bas, la visée au milieu.</summary>
     public const int WallLength = 5;
 
-    /// <summary>Combien de rounds brûle un mur de feu, celui où il se dresse compris (choix de l'utilisateur : 3).</summary>
+    /// <summary>Combien de rounds durent un mur de feu ou des douves, celui où ils apparaissent compris (choix de l'utilisateur : 3).</summary>
     public const int WallRounds = 3;
 
     /// <summary>Jusqu'où saute la porte dimensionnelle, en cases (choix de l'utilisateur : en cases, pas « à l'écran »).</summary>
@@ -184,6 +189,15 @@ public sealed record FireWallRaised(SpellType Spell, BattleSide Side, IReadOnlyL
 
 /// <summary>Un mur de feu s'éteint : ses cases ne brûlent plus.</summary>
 public sealed record FireWallFaded(IReadOnlyList<Hex> Cells) : BattleAction;
+
+/// <summary>Des douves se creusent sur ces cases, jusqu'à la fin du round <paramref name="LastRound"/>.</summary>
+public sealed record MoatDug(SpellType Spell, BattleSide Side, IReadOnlyList<Hex> Cells, int LastRound) : BattleAction;
+
+/// <summary>Des douves disparaissent : leurs cases redeviennent du sol.</summary>
+public sealed record MoatFaded(IReadOnlyList<Hex> Cells) : BattleAction;
+
+/// <summary>Une troupe entre dans les douves : elle s'y arrête et perd la fin de son tour.</summary>
+public sealed record UnitStuckInMoat(BattleUnit Unit) : BattleAction;
 
 /// <summary>Une troupe qui entre dans un mur de feu (ou le traverse) brûle.</summary>
 public sealed record UnitCrossedFire(BattleUnit Unit, int Damage, int Killed) : BattleAction;

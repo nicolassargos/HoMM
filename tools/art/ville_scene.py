@@ -43,6 +43,32 @@ def bande(im):
     return im.crop((0, HAUT, im.width, HAUT + HAUTEUR))
 
 
+# les bâtiments dont le pied coupé par la colline finit en touffes (sur d'autres, elles mangeaient des détails peints :
+# les bouteilles sous l'étal du marché)
+TOUFFES = {"tour-griffons"}
+
+
+def touffes(src, k, toile, fond):
+    """Le pied d'un bâtiment coupé par la colline, en touffes d'herbe plutôt qu'en ligne droite : la colline de la
+    maquette est lisse, l'herbe n'est que peinte. Au-dessus de la coupe, l'herbe du fond se montre sur 0 à 5 pixels, en
+    brins inégaux, là où le sol sous la coupe est vert (pas sur la route). `toile` et `fond` : le rendu de 960 × 540."""
+    import random
+    cache = ImageChops.subtract(masque(os.path.join(src, "seul", k + ".png")),
+                                masque(os.path.join(src, "sur-sol", k + ".png"))).filter(ImageFilter.MaxFilter(5))
+    a = toile.getchannel("A"); ap, cp, fp = a.load(), cache.load(), fond.load()
+    hasard = random.Random(k)
+    for x in range(toile.width):
+        brin = hasard.choice([0, 1, 1, 2, 2, 3, 3, 4, 5])
+        for y in range(toile.height - 1):
+            if not ap[x, y] or not cp[x, y + 1]:
+                continue
+            r, g, b, _ = fp[x, y + 1]
+            if g > r and g > b:
+                for h in range(brin):
+                    ap[x, y - h] = 0
+    toile.putalpha(a)
+
+
 def sans_miettes(im, part=0.2):
     """Retire les morceaux détachés du bâtiment (8-connexes) plus petits que `part` du plus grand : ce que la coupe sous la
     colline laisse isolé (la porte de la Tour des archers, sous la colline) et les pixels perdus."""
@@ -90,7 +116,9 @@ def main():
     subprocess.run([sys.executable, "-I", os.path.join(src, "composer_scene.py"), "-jeu-vide"] + ids, stderr=subprocess.DEVNULL)
     if not os.path.exists(vide):
         sys.exit("composer_scene.py n'a pas fait le fond")
-    Image.open(vide).resize((960, HAUTEUR), Image.NEAREST).save(os.path.join(dest, "fond.png"))
+    fond = Image.open(vide).convert("RGBA").resize((960, HAUTEUR), Image.NEAREST)
+    fond.save(os.path.join(dest, "fond.png"))
+    fond_haut = Image.new("RGBA", (960, 540)); fond_haut.paste(fond, (0, HAUT))
     os.remove(vide)
     for f in ("scene-peinte-haute-jeu-vide.png", "planche-peints-jeu-vide.png"):
         if os.path.exists(os.path.join(src, f)): os.remove(os.path.join(src, f))
@@ -103,13 +131,18 @@ def main():
         """Le décor que rien ne cache devant le bâtiment k, les autres bâtiments retirés (rendre_devant.py) : sans eux,
         visible/decor.png manquait ce qu'un autre bâtiment cache dans la scène entière (devant la Tour des griffons)."""
         f = os.path.join(src, "decor-devant", k + ".png")
-        return ImageChops.multiply(masque(f if os.path.exists(f) else os.path.join(src, "visible", "decor.png")), decor.getchannel("A"))
+        vu = masque(f if os.path.exists(f) else os.path.join(src, "visible", "decor.png"))
+        # bouché : la maquette d'un bâtiment perce parfois une maison du décor (la Tour des griffons dans son toit)
+        vu = vu.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.MinFilter(5))
+        return ImageChops.multiply(vu, decor.getchannel("A"))
 
     batiments = []
     for k in sorted(ids, key=lambda k: -places[k]["profondeur"]):
         p = places[k]
         b = Image.open(os.path.join(src, "peints", k + ".png")).convert("RGBA").crop((0, 0, p["largeur"], p["hauteur"]))
         toile = Image.new("RGBA", decor.size); toile.alpha_composite(sans_miettes(sous_le_sol(src, k, p, b)), (p["x"], p["y"]))
+        if k in TOUFFES:
+            touffes(src, k, toile, fond_haut)
         im, x, y = rogner(bande(toile), marge=1)
         im.save(os.path.join(dest, k + ".png"))
         entree = {"id": k, "x": x, "y": y, "depth": p["profondeur"]}
@@ -132,7 +165,13 @@ def main():
                 entree.update({"shadowX": sx, "shadowY": sy})
         # le décor qui passe devant ce bâtiment (en 3D), redessiné juste après lui quand il est bâti
         devant = Image.new("RGBA", decor.size)
-        devant.paste(decor, (0, 0), ImageChops.multiply(masque(os.path.join(src, "seul", k + ".png")), decor_vu(k)))
+        # plus, à 3 pixels au plus, là où le bâtiment peint déborde de sa maquette (le bord de la Tour des griffons sur le
+        # toit de la maison) : seulement sur ce débord, pour ne pas montrer le décor caché derrière un autre bâtiment
+        seul = masque(os.path.join(src, "seul", k + ".png"))
+        vu = ImageChops.multiply(seul, decor_vu(k))
+        deborde = ImageChops.subtract(toile.getchannel("A").point(lambda v: 255 if v else 0), seul)
+        vu = ImageChops.lighter(vu, ImageChops.multiply(vu.filter(ImageFilter.MaxFilter(7)), deborde))
+        devant.paste(decor, (0, 0), ImageChops.multiply(vu, decor.getchannel("A")))
         devant = bande(devant)
         if devant.getbbox():
             im, fx, fy = rogner(devant)

@@ -3594,6 +3594,18 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   (référence de disposition et de style), puis le fond, puis chaque bâtiment séparément avec le fond comme référence ;
   une page HTML pour placer les bâtiments à la souris et écrire `scene.json`. La ville sur la carte change déjà selon
   la faction (fait dans une autre session).
+  ✅ **La scène du Château dans le jeu** (2026-11-25, branche `ville-chateau-scene`) : les images peintes (maquette 3D,
+  rendus, PixelLab, assemblées par `composer_scene.py` dans `art-candidats/…/ville-chateau-3d/batiments-v5/`) sont
+  exportées par `tools/art/ville_scene.py` dans `godot/art/towns/chateau/` : `fond.png` (montagnes, sol, décor et son
+  ombre), et par bâtiment `<id>.png` (coupé sous la colline, une marge d'un pixel pour le contour), `<id>-ombre.png`
+  (rien sous le décor ; sur l'ombre du décor, juste de quoi passer au ton fort, comme l'union des ombres du composeur)
+  et `<id>-devant.png` (le décor qui passe devant lui en 3D : un par bâtiment, sinon le décor devant le château fort
+  couvrait le fort) ; `scene.json` : coin, profondeur, coin de l'ombre et du décor de devant. Remonté ainsi, chaque
+  étape du château redonne la scène acceptée (une centaine de pixels de différence, là où deux ombres se croisent).
+  Dans le jeu : `Core/TownScene` (ce qui est montré, du plus loin au plus proche ; un bâtiment pas encore dessiné prend
+  l'image de celui qu'il remplace), `Game/TownSceneSprite` (la souris sur les pixels, un contour clair au survol par un
+  shader) ; `TownScreen` garde les boîtes de `view` pour les factions sans scène. Test : `SceneVilleTests` (les
+  bâtiments du Château pas encore dessinés y sont listés).
 - **Une image de combat par héros** (demandé par l'utilisateur, 2026-11-07) : le héros dessiné sur le côté du champ
   (aujourd'hui son image de la carte ×4), qui ressemble à son portrait (PixelLab, le portrait comme référence) ; à
   cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).

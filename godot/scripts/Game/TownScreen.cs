@@ -9,8 +9,9 @@ namespace HoMM.Game;
 
 /// <summary>
 /// L'écran de ville (étape 7), en plein écran par-dessus la carte. En haut, la barre des ressources (à la même place
-/// que sur la carte) et le nom de la ville. Au centre, la ville vue de face : chaque bâtiment construit à sa place
-/// (<see cref="BuildingType.View"/>, des boîtes en attendant les images), un nouveau bâtiment qui apparaît peu à peu ;
+/// que sur la carte) et le nom de la ville. Au centre, la ville vue de face : chaque bâtiment construit à sa place, dans la
+/// scène de sa faction (<see cref="TownScene"/>, art/towns/&lt;faction&gt;/), ou dans une boîte (<see cref="BuildingType.View"/>)
+/// pour les factions qui n'ont pas encore la leur ; un nouveau bâtiment qui apparaît peu à peu ;
 /// un clic sur un bâtiment l'utilise (habitation : recruter, taverne, hôtel de ville : construire). En bas, toujours
 /// visibles, la garnison et le héros présent : on glisse les troupes (Maj ou clic droit pour partager), un clic les
 /// fait passer de l'autre côté. Construire, recruter et la taverne s'ouvrent en fenêtres par-dessus la ville.
@@ -41,6 +42,11 @@ public partial class TownScreen : CanvasLayer
     private Label _status = null!, _statusDate = null!;
     private Control _view = null!;
     private readonly Dictionary<string, Control> _buildingBoxes = new();
+    // la scène de chaque faction (null : pas encore d'images), et ce qui en est montré : le fond, les ombres, les
+    // bâtiments, le décor devant eux
+    private readonly Dictionary<string, TownScene?> _scenes = new();
+    private Control? _sceneLayer;
+    private readonly Dictionary<string, Control> _buildingShadows = new();
     private string? _viewKey;
     private readonly List<Button> _actions = new();
     // les actions par-dessus la vue, à droite : Quitter toujours visible, les autres sortent du bord au survol
@@ -447,6 +453,14 @@ public partial class TownScreen : CanvasLayer
         foreach (var box in _buildingBoxes.Values)
             box.QueueFree();
         _buildingBoxes.Clear();
+        _buildingShadows.Clear();
+        _sceneLayer?.QueueFree();
+        _sceneLayer = null;
+        if (!_trialBackground && SceneOf(town.Faction) is { } scene)
+        {
+            ShowScene(town, scene);
+            return;
+        }
         // de l'arrière (haut) vers l'avant (bas) : ceux du bas passent devant
         foreach (var building in shown.OrderBy(b => b.View[1] + b.View[3]))
         {
@@ -454,6 +468,56 @@ public partial class TownScreen : CanvasLayer
             _view.AddChild(box);
             _buildingBoxes[building.Id] = box;
         }
+    }
+
+    /// <summary>La scène d'une faction (art/towns/&lt;faction&gt;/scene.json), ou null si elle n'a pas encore d'images.</summary>
+    private TownScene? SceneOf(string faction)
+    {
+        if (!_scenes.TryGetValue(faction, out var scene))
+        {
+            string path = $"{Art.Root}towns/{faction}/scene.json";
+            _scenes[faction] = scene = Godot.FileAccess.FileExists(path) ? TownScene.FromJson(Godot.FileAccess.GetFileAsString(path)) : null;
+        }
+        return scene;
+    }
+
+    /// <summary>
+    /// La ville en images, ×2, posée en bas au milieu de la vue : le fond, les ombres des bâtiments construits, les
+    /// bâtiments du plus loin au plus proche, puis le décor qui passe devant eux.
+    /// </summary>
+    private void ShowScene(Town town, TownScene scene)
+    {
+        var size = new Vector2(scene.Width, scene.Height) * ArtScale;
+        _sceneLayer = new Control
+        {
+            AnchorLeft = 0.5f, AnchorRight = 0.5f, AnchorTop = 1, AnchorBottom = 1,
+            OffsetLeft = -size.X / 2, OffsetRight = size.X / 2, OffsetTop = -size.Y, MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        _view.AddChild(_sceneLayer);
+        string folder = $"towns/{town.Faction}/";
+        TextureRect Layer(string name, float x, float y)
+        {
+            var texture = Art.Get(folder + name)!;
+            var picture = Picture(texture, new Vector2(x, y) * ArtScale, texture.GetSize() * ArtScale);
+            _sceneLayer.AddChild(picture);
+            return picture;
+        }
+        Layer("fond", 0, 0);
+        var shown = scene.Shown(town.BuiltBuildings).ToList();
+        foreach (var (building, place) in shown.Where(s => s.Place.ShadowX != null))
+            _buildingShadows[building.Id] = Layer(place.Id + "-ombre", place.ShadowX!.Value, place.ShadowY!.Value);
+        foreach (var (building, place) in shown)
+        {
+            var sprite = new TownSceneSprite(Art.GetImage(folder + place.Id)!)
+            {
+                Position = new Vector2(place.X, place.Y) * ArtScale, TooltipText = Texts.BuildingTooltip(town, building),
+            };
+            sprite.GuiInput += e => ClickBuilding(e, town, building);
+            _sceneLayer.AddChild(sprite);
+            _buildingBoxes[building.Id] = sprite;
+        }
+        foreach (var (_, place) in shown.Where(s => s.Place.FrontX != null))
+            Layer(place.Id + "-devant", place.FrontX!.Value, place.FrontY!.Value);
     }
 
     private Control BuildingBox(Town town, BuildingType building)
@@ -475,24 +539,27 @@ public partial class TownScreen : CanvasLayer
         name.Position = new Vector2(Px(4), h / 2f - Px(16));
         name.MouseFilter = Control.MouseFilterEnum.Ignore;
         box.AddChild(name);
-        box.GuiInput += e =>
-        {
-            if (e is not InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
-                return;
-            if (town.DwellingCreature(building) is { } creature)
-                OpenRecruitWindow(creature);
-            else if (building.Tavern)
-                OpenTavern();
-            else if (building.MageGuild > 0)
-                OpenGuild();
-            else if (building.Market)
-                OpenMarket();
-            else if (building.Shipyard)
-                OpenShipyard();
-            else if (building.DailyGold > 0)
-                OpenBuild();
-        };
+        box.GuiInput += e => ClickBuilding(e, town, building);
         return box;
+    }
+
+    /// <summary>Un clic sur un bâtiment l'utilise : recruter, la taverne, la guilde, le marché, le chantier, construire.</summary>
+    private void ClickBuilding(InputEvent e, Town town, BuildingType building)
+    {
+        if (e is not InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
+            return;
+        if (town.DwellingCreature(building) is { } creature)
+            OpenRecruitWindow(creature);
+        else if (building.Tavern)
+            OpenTavern();
+        else if (building.MageGuild > 0)
+            OpenGuild();
+        else if (building.Market)
+            OpenMarket();
+        else if (building.Shipyard)
+            OpenShipyard();
+        else if (building.DailyGold > 0)
+            OpenBuild();
     }
 
     /// <summary>
@@ -511,13 +578,18 @@ public partial class TownScreen : CanvasLayer
         var tween = box.CreateTween().SetParallel();
         tween.TweenProperty(box, "scale", Vector2.One, 1.4).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
         tween.TweenProperty(box, "modulate", Colors.White, 1.0);
+        if (_buildingShadows.TryGetValue(built.Building.Id, out var shadow))
+        {
+            shadow.Modulate = new Color(1, 1, 1, 0);
+            tween.TweenProperty(shadow, "modulate", Colors.White, 1.4);
+        }
         // la poussière : de petits carrés qui s'écartent du pied du bâtiment en s'effaçant
         var rng = new Random(built.Building.Id.GetHashCode());
         for (int i = 0; i < 14; i++)
         {
             var foot = box.Position + new Vector2((float)rng.NextDouble() * box.Size.X, box.Size.Y - Px(4));
             var dust = new ColorRect { Position = foot, Size = V(6, 6), Color = MapRenderer.Rgb(190, 175, 140), MouseFilter = Control.MouseFilterEnum.Ignore };
-            _view.AddChild(dust);
+            box.GetParent().AddChild(dust); // la vue, ou la scène de la ville
             var drift = new Vector2((float)(rng.NextDouble() - 0.5) * Px(80), -(float)rng.NextDouble() * Px(30));
             var puff = dust.CreateTween().SetParallel();
             puff.TweenProperty(dust, "position", foot + drift, 1.2).SetEase(Tween.EaseType.Out);

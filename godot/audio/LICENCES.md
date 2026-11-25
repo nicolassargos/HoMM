@@ -14,6 +14,7 @@ avant toute diffusion commerciale.
   `tools/audio/sons-creatures.json`, faits par `tools/audio/sons.py`).
 - Les sorts de la carte : `combat/spell-<sort>.mp3` (même liste, même outil).
 - Le mur de feu : `combat/spell-mur-de-feu.mp3` et `combat/spell-mur-de-feu-brule.mp3` (même liste, même outil).
+- Les douves : `combat/spell-douves.mp3` et `combat/spell-douves-plouf.mp3` (même liste, même outil).
 - Les pas au combat : `pas/<marche>-<sol>-<n>.wav` (décrits dans `tools/audio/sons-pas.json`, faits par
   `tools/audio/pas.py` : une courte marche coupée en pas seuls).
 

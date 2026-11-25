@@ -2639,6 +2639,28 @@ plusieurs fois). `SpellEffect.FireWall`, `SpellTarget.Wall` :
   `spell-mur-de-feu` et `spell-mur-de-feu-brule`), « bons » du premier coup ; son icône : c9, des flammes qui jaillissent
   d'une fente du sol (méthode dans `tools/art/METHODE.md`).
 
+#### Les douves (2026-11-24, branche `douves`)
+Idée de l'utilisateur (2026-11-23) ; ses choix : eau, **niveau 2, 8 points** ; comme le mur de feu, **5 cases** de la
+même colonne et **3 rounds** (`SpellEffect.Moat`, `SpellTarget.Wall`, `TacticalBattle.Moat`, événements `MoatDug`,
+`MoatFaded`, `UnitStuckInMoat`) :
+- Une troupe qui **entre** dans les douves s'y arrête et **perd la fin de son tour** : pas d'attaque après ce pas (les
+  cases des douves ne servent pas de place d'attaque, sauf pour une troupe qui s'y tient déjà au début de son tour) ;
+  elle en sort à son tour suivant. Les amis aussi. Les volants passent par-dessus ; pas de dégâts ; les troupes déjà là
+  quand on les creuse ne sont pas touchées.
+- Les chemins ne traversent jamais des douves (`Walks` ne repart pas d'une case des douves, sauf celle du départ) et les
+  contournent quand ils peuvent.
+- L'IA les lance comme le mur de feu (`BattleAI.WallBarrier`, partagé) : 0,2 × la valeur de chaque troupe ennemie qui
+  marche et que les douves séparent des tireurs de son camp ; les créatures de l'Enfer comptent ici.
+- Leur image (`SpellEffects.DrawMoat`), **refaite à la demande de l'utilisateur** : la première, de l'eau sombre qui
+  remplissait les hexagones avec une berge de boue, était « trop sombre, plate, en cases ». Choix : **un fossé
+  naturel**, dessiné sous la grille, par suite de cases l'une sous l'autre : une courbe de Catmull-Rom par leurs
+  centres, des bords qui ondulent, arrondi aux deux bouts ; la profondeur en 5 tons tramés (Bayer 4 × 4), l'ombre de la
+  berge de gauche ; de petites rides courbes qui brillent et s'effacent en glissant vers le bas ; une ligne claire au
+  bord de l'eau, une berge de terre mouillée puis sèche qui se fond dans l'herbe. Aperçu `--effect-preview=douves`
+  (`douves:0.2` : figées pendant qu'elles se remplissent). Son icône : b32, un soldat qui s'enfonce dans l'eau (méthode
+  dans `tools/art/METHODE.md`). Ses sons (ElevenLabs, `spell-douves` : le sol qui se fend et l'eau qui
+  s'engouffre ; `spell-douves-plouf` : une troupe qui tombe dedans), « bons » du premier coup.
+
 #### Les factions (en cours de conception)
 Décidé avec l'utilisateur (2026-11-06, puis 2026-11-08) : **8 factions jouables + 1 faction neutre**. Chacune a sa
 créature du niveau 7 et, plus tard, sa **version améliorée** (comme Heroes 3 : un bâtiment améliore une créature) ; ses

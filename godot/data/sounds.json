@@ -685,6 +685,12 @@
     ],
     "spell-mur-de-feu-brule": [
       "combat/spell-mur-de-feu-brule.mp3"
+    ],
+    "spell-douves": [
+      "combat/spell-douves.mp3"
+    ],
+    "spell-douves-plouf": [
+      "combat/spell-douves-plouf.mp3"
     ]
   },
   "lengths": {

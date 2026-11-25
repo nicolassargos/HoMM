@@ -833,6 +833,20 @@
       "nom": "Mur de feu : une troupe brûle",
       "duree": 0.8,
       "texte": "short sizzle and flare of fire as something passes through flames, a quick burning hiss"
+    },
+    {
+      "id": "spell-douves",
+      "faction": "sorts",
+      "nom": "Douves",
+      "duree": 1.8,
+      "texte": "moat spell: the ground splits open with a deep rumble, then water rushes in and fills a trench, gurgling"
+    },
+    {
+      "id": "spell-douves-plouf",
+      "faction": "sorts",
+      "nom": "Douves : une troupe tombe dedans",
+      "duree": 0.9,
+      "texte": "heavy splash as someone falls into water, short"
     }
   ]
 }

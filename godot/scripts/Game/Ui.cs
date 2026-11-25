@@ -125,18 +125,24 @@ public static class Ui
     /// entre les lettres (le texte est un huitième moins large, comme Heroes 2), un de plus au-dessus et au-dessous de
     /// chaque ligne. Les écarts restent des pixels d'art entiers.
     /// </remarks>
-    private static Font? LoadFont(string path) => Godot.FileAccess.FileExists(path)
+    private static Font? LoadFont(string path) => FontData(path) is { } data
         ? new FontVariation
         {
             BaseFont = new FontFile
             {
-                Data = Godot.FileAccess.GetFileAsBytes(path),
+                Data = data,
                 Antialiasing = TextServer.FontAntialiasing.None,
                 Hinting = TextServer.Hinting.Normal, // calé sur la grille de pixels
                 SubpixelPositioning = TextServer.SubpixelPositioning.Disabled,
             },
             SpacingGlyph = -Grid, SpacingSpace = -Grid, SpacingTop = Grid, SpacingBottom = Grid,
         }
+        : null;
+
+    /// <summary>Le contenu du fichier d'une police, ou celui de la police importée par Godot (le jeu exporté n'a qu'elle).</summary>
+    private static byte[]? FontData(string path) =>
+        Godot.FileAccess.FileExists(path) ? Godot.FileAccess.GetFileAsBytes(path)
+        : ResourceLoader.Exists(path) ? GD.Load<FontFile>(path)?.Data
         : null;
 
     /// <summary>Donne à un contrôle la taille réelle de son texte (et la police des titres pour un titre).</summary>

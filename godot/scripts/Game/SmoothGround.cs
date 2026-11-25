@@ -269,7 +269,7 @@ public partial class SmoothGround : ColorRect
     private static SmoothGround? Create(int width, int height, Func<Cell, (TerrainType Terrain, RoadKind Road, RiverKind River)> cellAt, Image? dirt = null,
         Action<Image>? retouch = null, IReadOnlyList<StreamCourse>? courses = null)
     {
-        if (!Godot.FileAccess.FileExists(ShaderPath))
+        if (!ResourceLoader.Exists(ShaderPath))
             return null;
         var terrains = Enum.GetValues<TerrainType>();
         // Il faut au moins l'image de l'herbe ; un terrain sans image prend sa couleur unie
@@ -330,7 +330,7 @@ public partial class SmoothGround : ColorRect
             cells.SetPixel(x, y, new Color((int)ground / 255f, (int)road * 64 / 255f, (int)river * 64 / 255f));
         }
 
-        var material = new ShaderMaterial { Shader = new Shader { Code = Godot.FileAccess.GetFileAsString(ShaderPath) } };
+        var material = new ShaderMaterial { Shader = GD.Load<Shader>(ShaderPath) };
         material.SetShaderParameter("terrain_map", ImageTexture.CreateFromImage(cells));
         // les formes douces des rivières et des ruisseaux
         var field = RiverField.Build(width, height, cell =>

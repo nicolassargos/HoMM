@@ -57,9 +57,13 @@ public static class Art
 
     private static Image? LoadImageFile(string path)
     {
-        if (!Godot.FileAccess.FileExists(path))
+        Image? image;
+        if (Godot.FileAccess.FileExists(path))
+            image = Image.LoadFromFile(path);
+        else if (ResourceLoader.Exists(path)) // le jeu exporté n'a que les images importées par Godot, pas les fichiers
+            image = GD.Load<Texture2D>(path)?.GetImage();
+        else
             return null;
-        var image = Image.LoadFromFile(path);
         if (image == null || image.IsEmpty())
         {
             GD.PrintErr($"Image illisible : {path}");

@@ -53,8 +53,8 @@ lance aussi (branche `ia-sorts-carte`).
 - **Idées de l'utilisateur (2026-11-23)**, à concevoir avec la session règles :
   - au combat : ✅ **mur de feu** (2026-11-24, branche `mur-de-feu` : feu, niveau 3, 12 points, 5 cases, 3 rounds ;
     détail dans `HISTORIQUE.md`) ; ✅ **douves** (2026-11-24, branche `douves` : eau, niveau 2, 8 points, 5 cases,
-    3 rounds ; une troupe qui y entre perd la fin de son tour) ; **séisme**
-    (terre : abîme tous les murs, aux sièges ; déjà prévu avec les murs) ;
+    3 rounds ; une troupe qui y entre perd la fin de son tour) ; **séisme** (terre : abîme tous les murs) **reporté**
+    aux sièges, avec les murs (choix de l'utilisateur, 2026-11-25) ;
   - sur la carte : ✅ faits (2026-11-24, plus haut).
 
 ### Les factions
@@ -149,8 +149,9 @@ la couleur du rang sur une lueur.
 6. L'IA : ramasser, porter les meilleurs, payer le marchand.
 7. ✅ **Sept nouveaux artefacts** (idées de l'utilisateur, 2026-11-23, branche `idees-artefacts-sorts`) : la longue-vue
    des guetteurs, l'œil du recenseur, la lanterne des âmes et quatre talismans à double tranchant (détail dans
-   `HISTORIQUE.md`) ; leurs images (2026-11-24, branche `artefacts-idees`). **Reste** : le **chariot** (charger des troupes d'une ville choisie et les amener au
-   héros : plutôt un bâtiment ou une caravane qu'un artefact, à creuser).
+   `HISTORIQUE.md`) ; leurs images (2026-11-24, branche `artefacts-idees`). Le **chariot** (charger des troupes d'une ville choisie et les amener au
+   héros) est **reporté** (choix de l'utilisateur, 2026-11-25) : ce sera une **caravane** plutôt qu'un artefact, à
+   concevoir plus tard.
 ✅ **L'écran du héros** est prêt pour eux (2026-11-09, images d'attente) : à gauche le portrait et les
 caractéristiques ; trois onglets Équipement, Compétences, Magie. Équipement : le héros en pied, **11 emplacements**
 reliés par un trait à l'endroit où ils se portent (tête, cou, cape, torse, arme, bouclier, deux anneaux, ceinture,

@@ -15,12 +15,12 @@ public class SceneVilleTests
         TownScene.FromJson(File.ReadAllText(Path.Combine(Folder(faction), "scene.json")));
 
     /// <summary>
-    /// Les bâtiments du Château pas encore dessinés : ils prennent l'image de celui qu'ils remplacent (l'hôtel de ville,
-    /// celle de la salle du village), sauf le chantier naval, pas encore montré. À retirer de la liste une fois dessinés.
+    /// Les bâtiments du Château pas encore dessinés : ils prennent l'image de celui qu'ils remplacent (les guildes 2 à 4,
+    /// celle de la guilde 1), sauf le chantier naval, pas encore montré. À retirer de la liste une fois dessinés.
     /// </summary>
     private static readonly string[] CastleNotDrawn =
     {
-        "hotel-ville", "grand-hotel-ville", "capitole", "guilde-mages-2", "guilde-mages-3", "guilde-mages-4", "chantier-naval",
+        "guilde-mages-2", "guilde-mages-3", "guilde-mages-4", "chantier-naval",
     };
 
     [Fact]

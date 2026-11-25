@@ -44,6 +44,10 @@ def bande(im):
     return im.crop((0, HAUT, im.width, HAUT + HAUTEUR))
 
 
+# les étapes d'un bâtiment peintes à la même place, sans maquette à elles (peints/<id>.png, à la taille de la première) :
+# la place, les masques, l'ombre et le décor de devant sont ceux de la première
+MEME_PLACE = {"hotel-ville": "salle-village", "grand-hotel-ville": "salle-village", "capitole": "salle-village"}
+
 # les bâtiments dont le pied coupé par la colline finit en touffes (sur d'autres, elles mangeaient des détails peints :
 # les bouteilles sous l'étal du marché)
 TOUFFES = {"tour-griffons"}
@@ -109,6 +113,9 @@ def main():
     dest = os.path.join(racine, "godot", "art", "towns", faction)
     os.makedirs(dest, exist_ok=True)
     places = {k: v for k, v in json.load(open(os.path.join(src, "places.json"))).items() if k not in ("sol", "decor")}
+    for k, premier in MEME_PLACE.items():
+        if premier in places:
+            places[k] = places[premier]
     ids = [k for k in places if os.path.exists(os.path.join(src, "peints", k + ".png"))]
 
     # le fond : composer_scene.py sans aucun bâtiment (montagnes, sol, ombres du décor, décor), ramené à sa vraie taille
@@ -139,9 +146,9 @@ def main():
 
     batiments = []
     for k in sorted(ids, key=lambda k: -places[k]["profondeur"]):
-        p = places[k]
+        p, m = places[k], MEME_PLACE.get(k, k)  # m : le nom de ses masques
         b = Image.open(os.path.join(src, "peints", k + ".png")).convert("RGBA").crop((0, 0, p["largeur"], p["hauteur"]))
-        toile = Image.new("RGBA", decor.size); toile.alpha_composite(sans_miettes(sous_le_sol(src, k, p, b)), (p["x"], p["y"]))
+        toile = Image.new("RGBA", decor.size); toile.alpha_composite(sans_miettes(sous_le_sol(src, m, p, b)), (p["x"], p["y"]))
         if k in TOUFFES:
             touffes(src, k, toile, fond_haut)
         # ce qui a été peint en plus dans la scène, sur le sol visible (ajouts/<id>.png, 960 × 540) : la barrière et le
@@ -153,7 +160,7 @@ def main():
         im.save(os.path.join(dest, k + ".png"))
         entree = {"id": k, "x": x, "y": y, "depth": p["profondeur"]}
         # l'ombre : rien sous le décor (il la couvre) ; sur l'ombre du décor, seulement de quoi passer au ton fort
-        f = os.path.join(src, "ombres-contact", k + ".png")
+        f = os.path.join(src, "ombres-contact", m + ".png")
         if os.path.exists(f):
             t, td = tons(f).load(), ombre_decor.load()
             a = Image.new("L", decor.size, 0); ap = a.load()
@@ -173,8 +180,8 @@ def main():
         devant = Image.new("RGBA", decor.size)
         # plus, à 3 pixels au plus, là où le bâtiment peint déborde de sa maquette (le bord de la Tour des griffons sur le
         # toit de la maison) : seulement sur ce débord, pour ne pas montrer le décor caché derrière un autre bâtiment
-        seul = masque(os.path.join(src, "seul", k + ".png"))
-        vu = ImageChops.multiply(seul, decor_vu(k))
+        seul = masque(os.path.join(src, "seul", m + ".png"))
+        vu = ImageChops.multiply(seul, decor_vu(m))
         deborde = ImageChops.subtract(toile.getchannel("A").point(lambda v: 255 if v else 0), seul)
         vu = ImageChops.lighter(vu, ImageChops.multiply(vu.filter(ImageFilter.MaxFilter(7)), deborde))
         devant.paste(decor, (0, 0), ImageChops.multiply(vu, decor.getchannel("A")))

@@ -653,6 +653,18 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
 - **Une image de PixelLab donnée en modèle impose son cadrage**, même avec l'usage « design reference only, not the
   framing » ; réduite au milieu d'un cadre plus grand, elle est agrandie (encore plus coupée), pas complétée.
 - Ce qui manque à un concept (un bâtiment entier, du ciel) se règle dans la vraie scène, faite pièce par pièce.
+- **Une vue de trois quarts** (morts-vivants, 2026-11-25, archives `2026-11-25-ville-morts-vivants`) : une esquisse
+  dessinée à la main ne sait que tourner un bâtiment, pas la caméra (« tu as tourné le château, pas le point de vue »).
+  Ce qui marche : une **maquette en volumes simples** (boîtes, cylindres, cônes ; `maquette_mv.py` dans l'archive, PIL)
+  rendue d'une caméra : chaque groupe (le château, un bâtiment) tourne de 35° sur lui-même et la ville reste étalée sur
+  toute la largeur, comme les villes de Heroes 3 ; caméra basse (hauteur 30 pour une ville de 280 de large).
+  Le **cadrage** se fait sur les grands bâtiments seuls (remplir la hauteur) ; maisons, mur, forêt, tombes peuvent
+  déborder. **Une ville pleine** : des bâtiments espacés laissent de grands vides ; les remplir de petites maisons, d'un
+  mur bas, d'une forêt au fond, de tombes, de clôtures, d'un premier plan coupé par le bas. **La lumière vient de la
+  lune** si elle est dans le ciel. Les couleurs de l'esquisse peuvent être éclaircies pour que les deux murs se lisent :
+  PixelLab n'en garde que les formes. Puis PixelLab « Pro » comme plus haut (`town-morts-vivants.png` en style,
+  l'esquisse en modèle avec « three-quarter orientation of every building ») : il suit fidèlement la maquette ; il
+  laisse une bande vide sur les bords gauche et droit.
 - Retro Diffusion `rd_plus__environment` : 480 × 146 (0,06 $ l'image), une vue de rue sans image de départ ; trop petit.
 - **Le fond** : le paysage seul (montagnes, collines, places vides, sans château ni maisons), d'après notre esquisse à
   plat, à 792 × 241 ; puis **`agrandir.py`** le porte à 960 × 270 : l'ancien `/inpaint` de PixelLab, par morceaux de

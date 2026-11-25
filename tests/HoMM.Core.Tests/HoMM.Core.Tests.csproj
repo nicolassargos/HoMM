@@ -13,6 +13,8 @@
     <Compile Include="../../godot/scripts/Game/SaveFileName.cs" Link="Game/SaveFileName.cs" />
     <!-- Les fichiers de données du jeu (créatures…), copiés à côté des tests -->
     <None Include="../../godot/data/**/*.json" Link="data/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Les scènes des villes (scene.json et leurs images), pour vérifier qu'elles couvrent leurs bâtiments -->
+    <None Include="../../godot/art/towns/**/*.json;../../godot/art/towns/**/*.png" Link="towns/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />

@@ -315,8 +315,13 @@ pierre. ✅ Les pieds des mines de mercure, de minerai (ses six sols) et de souf
 contact, revus par l'utilisateur (2026-11-20, avec ceux du Seigneur des abîmes) ; environ 110 images ont encore des
 pieds non revus (champ de la roche, massifs, arbres des sols, ponts).
 
-### La ville vue de face par faction (rien n'est encore fait)
+### La ville vue de face par faction (en cours)
 La liste de ses bâtiments : « Les bâtiments des villes », plus haut.
+✅ **La scène du Château dans le jeu** (2026-11-25, branche `ville-chateau-scene` ; détail dans `HISTORIQUE.md`) : le
+fond, 17 bâtiments à leur place, leurs ombres, le décor qui passe devant, clic et contour au survol sur les pixels.
+**Reste** pour le Château : la demeure du héros (avant le fort) ; l'hôtel de ville et ses suites, les guildes 2 à 4
+(l'image de ce qu'ils remplacent en attendant), le chantier naval, le Graal, les habitations améliorées ; l'onglet du
+nom qui cache le bas du milieu de la scène. Puis les sept autres factions (les morts-vivants d'abord).
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,
 affiché ×2** sur toute la largeur de l'écran comme tout le pixel art (choix de l'utilisateur, 2026-11-21, avec la
 disposition de l'écran ; d'abord 640 × 195 à ×3, puis 960 × 292), et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque

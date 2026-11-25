@@ -359,6 +359,11 @@ par faction, placements dans `placements.json`) :
   partout** : les bâtiments et les scènes des autres villes le suivent.
 - Comme **Heroes 2** (les villes préférées de l'utilisateur), un bâtiment peut être **coupé par le bord** de l'image
   ou posé tout au bord, pourvu qu'on en voie la plus grande partie.
+- ✅ **Le concept des morts-vivants** (2026-11-25, branche `ville-morts-vivants-concept`) : une vue de **trois quarts**
+  (la caméra tournée, la lune en haut à droite d'où vient la lumière), le château noir **posé au sol** comme son image
+  de la carte (pas de rocher), une allée de lanternes vertes jusqu'à sa porte au crâne cornu, la tour de la liche sur
+  une aiguille à gauche, le charnier et l'arche d'os à droite, une ville pleine (maisons de travers, mur bas, forêt
+  morte). Choisi : `art-candidats/archives/2026-11-25-ville-morts-vivants/ville-morts-vivants/v1-41/1.png`.
 
 ✅ **La scène du Château peinte** (2026-11-22 à 25) : une maquette 3D de l'utilisateur (Maya), rendue dans Blender depuis
 sa caméra, chaque bâtiment peint par PixelLab sans changer sa forme (méthode dans `tools/art/METHODE.md`) ; 14 bâtiments,

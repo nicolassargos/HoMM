@@ -3229,6 +3229,17 @@ choix de l'utilisateur) :
   en rouge. Réglages choisis par l'utilisateur en jeu (`--ground=…`). Écartés en chemin : des morceaux découpés par un
   motif fixe sur la carte (ils changeaient de forme en avançant), un fondu par la trame (la vague rapetissait), mesurer
   la courbure de la côte (la distance, faite par cases, paraît courbée partout), de l'écume sur l'herbe.
+- ✅ **Les feuilles dans le vent** (2026-11-25, branche `carte-feuilles`). Des rafales traversent la carte en bandes
+  larges, vers la droite et un peu vers le bas (`Game/Wind.cs` : une rafale tous les 7 cases, 1,5 case par seconde ;
+  la même formule dans le shader du décor). Sous une rafale, le haut de chaque arbre (de tous les sols, brûlés compris)
+  penche jusqu'à 1,5 pixel d'art, rangée de pixels par rangée de pixels, le pied fixe, et s'agite un peu à son rythme
+  (`mountain_slopes.gdshader`, qui est devenu le shader du décor : les arbres y sont marqués par le rouge à 0,998 ; leur
+  image est élargie de 3 pixels de chaque côté pour que le feuillage penché ne soit pas coupé). Les chênes, les arbres
+  d'automne et ceux du marais perdent des feuilles (`LeafLayer`, au-dessus des objets, sous le brouillard) : 0,03 par
+  arbre et par seconde au plus fort d'une rafale, d'un pixel de leur feuillage et de sa couleur ; portées par le vent,
+  elles tombent en se retournant (une face claire, une sombre), se posent près de l'arbre puis s'effacent. Réglages en
+  jeu : `--wind=tree_sway:1.5,leaf_rate:0.03,leaf_speed:0.6,gust_length:7,gust_speed:1.5` (`wind_at` fige l'instant).
+  Gardés tels quels par l'utilisateur. Les feuilles d'un seul pixel d'art ne se voyaient pas : elles en font deux.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

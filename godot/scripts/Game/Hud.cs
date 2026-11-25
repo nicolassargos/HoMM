@@ -803,9 +803,14 @@ public partial class Hud : CanvasLayer
             if (closed)
                 return;
             closed = true;
+            // cachée d'abord : tant qu'elle reste à l'écran (QueueFree attend la fin de l'image), elle garde la place de
+            // fenêtre exclusive, et la confirmation de Quitter ou du menu principal s'ouvrait par-dessus (erreur
+            // « exclusive child ») ; la suite attend l'image suivante
+            dialog.Hide();
             dialog.QueueFree();
             done();
-            then?.Invoke();
+            if (then != null)
+                Callable.From(then).CallDeferred();
         }
         var content = new VBoxContainer();
         content.AddThemeConstantOverride("separation", (int)Px(8));

@@ -3298,6 +3298,10 @@ choix de l'utilisateur) :
   en rouge. Réglages choisis par l'utilisateur en jeu (`--ground=…`). Écartés en chemin : des morceaux découpés par un
   motif fixe sur la carte (ils changeaient de forme en avançant), un fondu par la trame (la vague rapetissait), mesurer
   la courbure de la côte (la distance, faite par cases, paraît courbée partout), de l'écume sur l'herbe.
+- ✅ **Quitter depuis les options** (2026-11-25, branche `quitter-confirmation`) : la confirmation de Quitter (ou du menu
+  principal) s'ouvrait alors que la fenêtre des options était encore à l'écran (`QueueFree` attend la fin de l'image) ;
+  elle gardait la place de fenêtre exclusive, d'où une boîte par-dessus l'autre et l'erreur « exclusive child ». Les
+  options se cachent d'abord, et l'action choisie attend l'image suivante (`Hud.ShowOptions`).
 - ✅ **Les feuilles dans le vent** (2026-11-25, branche `carte-feuilles`). Des rafales traversent la carte en bandes
   larges, vers la droite et un peu vers le bas (`Game/Wind.cs` : une rafale tous les 7 cases, 1,5 case par seconde ;
   la même formule dans le shader du décor). Sous une rafale, le haut de chaque arbre (de tous les sols, brûlés compris)

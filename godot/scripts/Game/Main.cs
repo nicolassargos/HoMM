@@ -178,6 +178,7 @@ public partial class Main : Node2D
         AddChild(new ShadowLayer { State = _state, Actors = _actors }); // sous le décor et les objets
         AddChild(new DecorLayer { Map = _state.Map });
         AddChild(_actors);
+        AddChild(new LeafLayer { Map = _state.Map });
         _mapSpells = new MapSpellEffects();
         AddChild(_mapSpells);
         AddChild(new FogLayer { State = _state });

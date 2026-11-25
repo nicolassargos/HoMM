@@ -65,20 +65,46 @@ public partial class DecorLayer : Node2D
     /// <summary>La couleur qui marque une image de montagne pour le shader des pentes (le bleu à 0,998, invisible).</summary>
     private static readonly Color SlopeMark = new(1, 1, 0.998f);
 
-    // Pixel art : les images agrandies restent nettes ; les pentes des montagnes prennent le sol de dessous
+    /// <summary>La couleur qui marque un arbre pour le shader : il penche dans le vent (le rouge à 0,998, invisible).</summary>
+    private static readonly Color TreeMark = new(0.998f, 1, 1);
+
+    private static HashSet<Texture2D>? _treeImages;
+    private static HashSet<Texture2D>? _leafyImages;
+
+    /// <summary>True pour l'image d'un arbre (tous les sols, brûlés compris) : il penche dans le vent.</summary>
+    public static bool IsTree(Texture2D image) =>
+        (_treeImages ??= new[] { "decor/pine", "decor/oak", "decor/autumn" }
+            .Concat(Enum.GetValues<TerrainType>().Select(g => $"decor/tree-{Art.Name(g)}"))
+            .SelectMany(Art.VariantsOf).ToHashSet()).Contains(image);
+
+    /// <summary>
+    /// True pour un arbre qui perd des feuilles dans le vent (<see cref="LeafLayer"/>) : les chênes, les arbres d'automne,
+    /// ceux du marais ; pas les sapins, les palmiers ni les arbres brûlés.
+    /// </summary>
+    public static bool SheddingLeaves(Texture2D image) =>
+        (_leafyImages ??= new[] { "decor/oak", "decor/autumn", "decor/tree-swamp" }.SelectMany(Art.VariantsOf).ToHashSet()).Contains(image);
+
+    private ShaderMaterial? _material;
+
+    // Pixel art : les images agrandies restent nettes ; les pentes des montagnes prennent le sol de dessous ; les arbres
+    // penchent dans le vent
     public override void _Ready()
     {
         TextureFilter = TextureFilterEnum.Nearest;
         if (ResourceLoader.Exists("res://shaders/mountain_slopes.gdshader"))
-            Material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/mountain_slopes.gdshader") };
+            Material = _material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/mountain_slopes.gdshader") };
+        Wind.Apply(_material);
     }
+
+    public override void _Process(double delta) => _material?.SetShaderParameter("wind_time", Wind.Now);
 
     public override void _Draw()
     {
         foreach (var (foot, image) in Sprites(Map))
         {
             var size = image.GetSize() * MapRenderer.ArtScale;
-            DrawTextureRect(image, new Rect2(foot - new Vector2(size.X / 2, size.Y), size), false, IsMountain(image) ? SlopeMark : Colors.White);
+            var mark = IsMountain(image) ? SlopeMark : IsTree(image) ? TreeMark : Colors.White;
+            DrawTextureRect(image, new Rect2(foot - new Vector2(size.X / 2, size.Y), size), false, mark);
         }
     }
 

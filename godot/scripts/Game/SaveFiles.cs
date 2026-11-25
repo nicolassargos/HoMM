@@ -29,12 +29,8 @@ public static class SaveFiles
             DirAccess.RenameAbsolute(OldSavePath, PathOf(QuickName));
     }
 
-    /// <summary>Un nom de fichier sûr pour ce nom de sauvegarde (sans les caractères interdits par Windows).</summary>
-    public static string FileName(string name)
-    {
-        var cleaned = new string(name.Trim().Select(c => "\\/:*?\"<>|".Contains(c) || char.IsControl(c) ? '-' : c).ToArray());
-        return cleaned.TrimEnd('.', ' ');
-    }
+    /// <summary>Un nom de fichier sûr pour ce nom de sauvegarde (caractères interdits et noms réservés Windows).</summary>
+    public static string FileName(string name) => SaveFileName.FromSaveName(name);
 
     /// <summary>Les sauvegardes, la plus récente d'abord.</summary>
     public static List<SaveEntry> List()

@@ -3616,6 +3616,12 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   l'image de celui qu'il remplace), `Game/TownSceneSprite` (la souris sur les pixels, un contour clair au survol par un
   shader) ; `TownScreen` garde les boîtes de `view` pour les factions sans scène. Test : `SceneVilleTests` (les
   bâtiments du Château pas encore dessinés y sont listés).
+  **Retouches** (2026-11-25, branche `ville-chateau-retouches`, vues par l'utilisateur avec `--free-build`) : les
+  morceaux détachés d'un bâtiment par la coupe sous la colline sont retirés (la porte de la Tour des archers) ; le décor
+  devant chaque bâtiment vient d'un rendu où les autres bâtiments sont retirés (`rendre_devant.py` : sans la
+  Commanderie, la Tour des griffons passait devant les maisons et les arbres), dessiné juste après son bâtiment, bouché,
+  et couvrant le bord peint qui déborde de la maquette ; le pied de la Tour des griffons finit en touffes d'herbe
+  (`TOUFFES`) ; le silo repeint, vu à peine d'en haut (PixelLab, 0,48 $, essai 12 choisi).
 - **Une image de combat par héros** (demandé par l'utilisateur, 2026-11-07) : le héros dessiné sur le côté du champ
   (aujourd'hui son image de la carte ×4), qui ressemble à son portrait (PixelLab, le portrait comme référence) ; à
   cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).

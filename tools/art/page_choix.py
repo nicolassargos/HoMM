@@ -6,7 +6,9 @@
 "echelle": 2, "images": ["chemin/1.png", …], "anim": {"colonnes": 4, "lignes": 2, "fps": 8}}, …]} ; chemins depuis la
 racine du dépôt. Chaque image est montrée à <echelle> (2 : la taille du jeu) ; avec « anim », chaque image est une
 feuille d'animation jouée en boucle (une courte pause à la fin) ; avec « "plusieurs": true », on garde autant de
-candidats qu'on veut (« choix » est alors une liste). Sur la page : un clic choisit un candidat (et vaut « Garder »), « À refaire »,
+candidats qu'on veut (« choix » est alors une liste) ; avec « "commentaires": true », un choix entre des propositions :
+une case de commentaire sous chacune (« commentaires » : {"<chemin>": "…"}), un seul « À refaire » pour le lot, et
+« legendes » (une par image) les décrit. Sur la page : un clic choisit un candidat (et vaut « Garder »), « À refaire »,
 un commentaire. Les réponses restent dans le navigateur et partent sur le disque si `revue.py serveur` tourne :
 art-candidats/en-cours/revue-<sujet>.json ({"items": {"<id>": {"choix": "<chemin>", "avis": …, "commentaire": …}}}).
 Écrit art-candidats/en-cours/<sujet>.html. Seule la bibliothèque standard de Python est utilisée.
@@ -34,7 +36,8 @@ def page(sujet, desc):
         k = g.get("echelle", 2)
         boutons = []
         anim = g.get("anim")
-        for chemin in g["images"]:
+        legendes = g.get("legendes", [])
+        for i, chemin in enumerate(g["images"]):
             w, h = taille(os.path.join(RACINE, chemin))
             rel = os.path.relpath(os.path.join(RACINE, chemin), EN_COURS).replace("\\", "/")
             nom = os.path.splitext(os.path.relpath(chemin, os.path.dirname(os.path.dirname(chemin))))[0].replace("\\", "/")
@@ -44,12 +47,18 @@ def page(sujet, desc):
                           f'data-cols="{anim["colonnes"]}" data-n="{anim["colonnes"] * anim["lignes"]}" data-fps="{anim.get("fps", 8)}"></canvas>')
             else:
                 dessin = f'<img src="{html.escape(rel)}" style="width:{w * k}px" alt="">'
-            boutons.append(f'<button class="cand" data-c="{html.escape(chemin)}" style="background:{fond}">'
-                           f'{dessin}<span>{html.escape(nom)}</span></button>')
+            bouton = (f'<button class="cand" data-c="{html.escape(chemin)}" style="background:{fond}">'
+                      f'{dessin}<span>{html.escape(nom)}</span></button>')
+            if g.get("commentaires"):
+                # une proposition : sa légende, l'image, sa propre case de commentaire
+                legende = f'<p class="legende">{html.escape(legendes[i])}</p>' if i < len(legendes) else ""
+                bouton = (f'<div class="prop">{legende}{bouton}<textarea class="com" data-c="{html.escape(chemin)}" '
+                          f'placeholder="Commentaire sur cette proposition (facultatif)"></textarea></div>')
+            boutons.append(bouton)
         multi = ' data-multi="1"' if g.get("plusieurs") else ""
         sections.append(f"""<section data-o="{html.escape(g['id'])}"{multi}><div class="tete"><h2>{html.escape(g['titre'])}</h2>
 <span class="etat"></span><button class="avis" data-a="refaire">À refaire</button></div>
-<div class="rang">{''.join(boutons)}</div><textarea placeholder="Commentaire (facultatif)"></textarea></section>""")
+<div class="rang">{''.join(boutons)}</div>{'' if g.get("commentaires") else '<textarea placeholder="Commentaire (facultatif)"></textarea>'}</section>""")
     return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>{html.escape(desc['titre'])}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
@@ -60,7 +69,8 @@ section{{margin:22px 0;padding:12px;border:1px solid #333;border-radius:6px}}
 section.garder{{border-color:var(--vert)}} section.refaire{{border-color:var(--rouge)}}
 .tete{{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}}
 .etat{{font-size:13px;opacity:.85;margin-right:auto}}
-.rang{{display:flex;flex-wrap:wrap;gap:8px}}
+.rang{{display:flex;flex-wrap:wrap;gap:8px}} .prop{{display:flex;flex-direction:column;max-width:100%}}
+.legende{{margin:4px 0 6px;font-size:14px;max-width:800px}}
 .cand{{border:3px solid transparent;padding:8px 8px 2px;display:flex;flex-direction:column;align-items:center;
  justify-content:flex-end;min-width:72px;min-height:72px;cursor:pointer;color:#fff;font-size:11px}}
 .cand:hover{{border-color:#888}} .cand.choisi{{border-color:var(--choix);box-shadow:0 0 8px var(--choix)}}
@@ -78,7 +88,7 @@ Clique sur un candidat pour le choisir, ou « À refaire » ; un commentaire si 
 <script>
 const CLE={json.dumps('choix-' + sujet + '-' + os.path.basename(RACINE))}, PAGE={json.dumps('revue-' + sujet)}, DOSSIER={json.dumps(EN_COURS)};
 let etat={{}};try{{etat=JSON.parse(localStorage.getItem(CLE))||{{}}}}catch(e){{}}
-function it(o){{return etat[o]||(etat[o]={{choix:null,avis:'',commentaire:''}})}}
+function it(o){{const v=etat[o]||(etat[o]={{choix:null,avis:'',commentaire:''}});v.commentaires=v.commentaires||{{}};return v}}
 function rendre(){{let n=0;document.querySelectorAll('section').forEach(s=>{{const o=s.dataset.o,v=it(o);
  s.querySelectorAll('.cand').forEach(b=>b.classList.toggle('choisi',v.avis==='garder'&&(Array.isArray(v.choix)?v.choix.includes(b.dataset.c):b.dataset.c===v.choix)));
  s.querySelector('.avis').classList.toggle('actif',v.avis==='refaire');
@@ -94,8 +104,10 @@ document.querySelectorAll('.cand').forEach(b=>b.onclick=()=>{{const s=b.closest(
   v.choix=l;v.avis=l.length?'garder':''}}
  else if(v.choix===b.dataset.c&&v.avis==='garder'){{v.avis='';v.choix=null}}else{{v.choix=b.dataset.c;v.avis='garder'}}sauver()}});
 document.querySelectorAll('.avis').forEach(b=>b.onclick=()=>{{const v=it(b.closest('section').dataset.o);v.avis=v.avis==='refaire'?'':'refaire';sauver()}});
-document.querySelectorAll('section textarea').forEach(t=>{{t.value=it(t.closest('section').dataset.o).commentaire;
+document.querySelectorAll('section > textarea').forEach(t=>{{t.value=it(t.closest('section').dataset.o).commentaire;
  t.oninput=()=>{{it(t.closest('section').dataset.o).commentaire=t.value;sauver()}}}});
+document.querySelectorAll('textarea.com').forEach(t=>{{const o=t.closest('section').dataset.o;t.value=it(o).commentaires[t.dataset.c]||'';
+ t.oninput=()=>{{it(o).commentaires[t.dataset.c]=t.value;sauver()}}}});
 // les feuilles d'animation, jouées en boucle avec une pause d'une demi-seconde à la fin
 document.querySelectorAll('canvas[data-src]').forEach(c=>{{const im=new Image();im.src=c.dataset.src;const x=c.getContext('2d');
  x.imageSmoothingEnabled=false;const d=c.dataset,n=+d.n,fps=+d.fps,fw=+d.fw,fh=+d.fh,cols=+d.cols;

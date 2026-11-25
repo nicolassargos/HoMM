@@ -662,6 +662,7 @@ public class MesuresTests(ITestOutputHelper output)
     public void Gardiens_par_creature()
     {
         var growth = new[] { ("paysan", 30), ("archer", 18), ("griffon", 14), ("chevalier", 8), ("moine", 6), ("cavalier", 4), ("ange", 2) };
+        output.WriteLine("Forces de référence : " + string.Join(", ", Enumerable.Range(1, 7).Select(t => $"{t} : {MapGenerator.ReferenceStrength(TestData.Creatures, t):0.###}")));
         foreach (var group in TestData.Creatures.All.Where(c => MapGenerator.MonsterFactions.Contains(c.Faction)).GroupBy(c => c.Tier).OrderBy(g => g.Key))
         {
             int tier = group.Key;
@@ -793,6 +794,62 @@ public class MesuresTests(ITestOutputHelper output)
                                  + $" contre {winsB}/20 (reste {(winsB == 0 ? 0 : 100 * leftB / winsB):0} %)");
             }
         }
+    }
+
+    /// <summary>
+    /// Les armées entières à prix égal (2026-11-25, la mesure qui compte pour l'utilisateur) : pour chaque faction, une
+    /// semaine de croissance de ses sept niveaux, ramenée à <c>gold</c> or (sans héros), contre celle de chaque autre
+    /// faction, sur 20 combats joués par l'IA, chacune à son tour attaquante. Écrit chaque rencontre, puis les victoires de
+    /// chaque faction (une armée trop forte ou trop faible se voit ici, même si ses créatures sont justes une à une).
+    /// <c>HOMM_FACTION=nains</c> : seulement les rencontres de cette faction (plus rapide, pour essayer un changement).
+    /// </summary>
+    [Mesure]
+    public void Armees_a_prix_egal()
+    {
+        const int gold = 30000;
+        var factions = new[] { "chateau", "morts-vivants", "barbares", "foret", "tour", "donjon", "enfer", "nains" };
+        var only = Environment.GetEnvironmentVariable("HOMM_FACTION");
+        Army Week(string faction)
+        {
+            var types = TestData.Creatures.All.Where(c => c.Faction == faction).OrderBy(c => c.Tier).ToList();
+            double weekGold = types.Sum(c => c.Growth * c.Cost[ResourceType.Gold]);
+            var army = new Army();
+            foreach (var c in types)
+                army.Add(c, Math.Max(1, (int)Math.Round(c.Growth * gold / weekGold)));
+            return army;
+        }
+        double Strength(Army army) => army.Stacks.Sum(s => s.Count * s.Type.Cost[ResourceType.Gold]);
+        var wins = factions.ToDictionary(f => f, _ => 0);
+        for (int i = 0; i < factions.Length; i++)
+        for (int j = i + 1; j < factions.Length; j++)
+        {
+            var (a, b) = (factions[i], factions[j]);
+            if (only != null && a != only && b != only)
+                continue;
+            int winsA = 0;
+            double leftA = 0, leftB = 0;
+            for (int seed = 0; seed < 20; seed++)
+            {
+                var (armyA, armyB) = (Week(a), Week(b));
+                double startA = Strength(armyA), startB = Strength(armyB);
+                var battle = seed % 2 == 0 ? new TacticalBattle(armyA, armyB, new GameRandom(seed)) : new TacticalBattle(armyB, armyA, new GameRandom(seed));
+                BattleAI.PlayOut(battle);
+                if (armyA.TotalCount > 0 && armyB.TotalCount == 0)
+                {
+                    winsA++;
+                    leftA += Strength(armyA) / startA;
+                }
+                else if (armyB.TotalCount > 0)
+                    leftB += Strength(armyB) / startB;
+            }
+            int winsB = 20 - winsA;
+            wins[a] += winsA;
+            wins[b] += winsB;
+            output.WriteLine($"{a} contre {b} : {winsA}/20 (reste {(winsA == 0 ? 0 : 100 * leftA / winsA):0} % de l'or)"
+                             + $" contre {winsB}/20 (reste {(winsB == 0 ? 0 : 100 * leftB / winsB):0} %)");
+        }
+        output.WriteLine("Victoires : " + string.Join(", ", wins.OrderByDescending(w => w.Value)
+            .Select(w => $"{w.Key} {100.0 * w.Value / (20 * (factions.Length - 1)):0} %")));
     }
 
     private static IEnumerable<string> Curve(string faction)

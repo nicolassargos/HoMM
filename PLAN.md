@@ -105,10 +105,11 @@ pirates).
 - **Les créatures améliorées** (plus tard, comme Heroes 3) : la Banshee (le Fantôme amélioré) ; le Colosse funèbre
   (plus de vie, son balayage effraie) ; le Troll ancien (régénère plus, repousse l'ennemi) ; l'amplificateur de
   nécromancie.
-- **Équilibrage** : le **Colosse d'os plus faible que l'Ange** ; la Forêt souvent la plus forte (régénération) ; le
-  Mage un peu faible en duel ; la horde barbare devrait dominer les premières semaines (son moral la freine) ; les
-  gardiens du Donjon ralentissent certaines petites cartes ; vus par `Duels_a_prix_egal`, à revoir avec l'utilisateur :
-  l'Archer perd contre tous les niveaux 2, le Griffon bat largement les niveaux 3, le Vampire écrase le Moine ; le Squelette peut-être trop fort face aux paysans.
+- ✅ **Équilibrage des créatures** (2026-11-25, détail dans `HISTORIQUE.md`) : la mesure qui compte est l'armée entière
+  contre celle d'une autre faction (`Armees_a_prix_egal`, choix de l'utilisateur) ; quelques unités un peu meilleures
+  pour leur prix sont permises si ce n'est pas flagrant. Les extrêmes des duels corrigés, le Dragon rouge en vrai
+  niveau 7. **Reste** : la horde barbare devrait dominer les premières semaines (son moral la freine) ; les gardiens du
+  Donjon ralentissent certaines petites cartes ; les Paysans très forts pour leur prix (79 % en duel).
 - ✅ **Animations du Ver des profondeurs** (2026-11-20, branche `animations-dragon-hydre-ver`) : il glisse vers sa
   cible, le sol se fend devant lui, il avale en plongeant d'en haut.
 - L'IA apprend chaque nouvelle faction.

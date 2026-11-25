@@ -143,13 +143,14 @@ public class MortsVivantsTests
     public void Le_vampire_se_soigne_puis_ramene_des_vampires_sans_depasser_le_debut()
     {
         var (battle, vampires, peasants) = Duel("vampire", 10, "paysan", 500);
-        vampires.TakeDamage(100); // 2 vampires tués, le suivant à moitié
+        int lost = 2 * vampires.Type.HitPoints + vampires.Type.HitPoints / 2;
+        vampires.TakeDamage(lost); // 2 vampires tués, le suivant à moitié
         peasants.RetaliationsLeft = 0; // pas de riposte : on regarde le drain seul
 
         battle.Attack(peasants, new Hex(4, 4));
 
         var drained = Assert.Single(battle.TakeLog().OfType<UnitDrained>());
-        Assert.Equal(100, drained.HitPoints); // tout ce qui manquait, pas plus
+        Assert.Equal(lost, drained.HitPoints); // tout ce qui manquait, pas plus
         Assert.Equal(2, drained.Revived);
         Assert.Equal(10, vampires.Count); // jamais plus qu'au début
         Assert.Equal(vampires.Type.HitPoints, vampires.TopHitPoints);
@@ -207,10 +208,11 @@ public class MortsVivantsTests
     [Fact]
     public void Sur_la_carte_un_gardien_mort_vivant_a_la_force_d_un_gardien_neutre()
     {
-        // un colosse vaut bien plus qu'un dragon : un gardien de colosses en compte moins
+        // un colosse vaut bien plus qu'une liche : un gardien de colosses en compte moins (le Dragon rouge, qui servait
+        // ici, est devenu un vrai niveau 7 le 2026-11-25)
         var colossus = Creature("colosse-os");
-        var dragon = Creature("dragon");
-        Assert.True(CreatureStrength.PeasantsToBeat(colossus, TestData.Creatures) > 2 * CreatureStrength.PeasantsToBeat(dragon, TestData.Creatures));
+        var lich = Creature("liche");
+        Assert.True(CreatureStrength.PeasantsToBeat(colossus, TestData.Creatures) > 2 * CreatureStrength.PeasantsToBeat(lich, TestData.Creatures));
         var guards = Enumerable.Range(1, 6).SelectMany(seed => new MapGenerator(seed, TestData.Data).Generate().Objects.OfType<MonsterGuard>()).ToList();
         Assert.Contains(guards, g => g.Type.Faction == "morts-vivants");
     }

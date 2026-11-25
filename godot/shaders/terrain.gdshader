@@ -274,6 +274,26 @@ uniform float deep = 0.35;
 uniform float river_deep_start = 4.0;
 uniform float river_deep_end = 30.0;
 uniform float river_deep = 0.65;
+// Les vagues des lacs et de la mer : une ligne d'écume qui vient de wave_reach pixels d'art du bord jusqu'à la rive en
+// wave_period secondes (wave_foam : sa force ; wave_stretch : la longueur des tronçons de côte où elles arrivent ensemble ;
+// wave_at : l'instant, pour figer une capture)
+uniform float wave_foam = 1.0;
+uniform float wave_reach = 12.0;
+uniform float wave_period = 4.0;
+uniform float wave_stretch = 40.0;
+uniform float wave_at = -1.0;
+// la part des vagues qui manquent (sur un tronçon de côte, une vague sur tant ne vient pas), et la terre mouillée
+// qu'elles laissent sur wave_wash pixels de la rive
+uniform float wave_skip = 0.3;
+// la longueur des morceaux d'écume d'une vague (pixels d'art)
+uniform float wave_piece = 5.0;
+// la part vide de la ligne d'écume (entre ses morceaux), et son épaisseur (pixels d'art, de chaque côté)
+uniform float wave_gaps = 0.5;
+uniform float wave_width = 0.9;
+// la pente de la profondeur sous laquelle les vagues s'effacent (là où deux rives se font face, elle s'affaiblit)
+uniform float wave_steady = 0.55;
+uniform float wave_debug = 0.0;
+uniform float wave_wash = 3.0;
 uniform vec3 deep_color = vec3(0.08, 0.2, 0.42);
 // des roseaux au bord de l'eau, en touffes, là où l'herbe descend à l'eau (la part reeds des carrés de 5 pixels d'art
 // au bord, dans les endroits choisis par un bruit doux de reed_scale pixels) ; des rochers dans l'eau peu profonde (la
@@ -1038,6 +1058,17 @@ float swamp_pool_raw(vec2 p) {
 	return (n - swamp_pool_level) * swamp_pool_scale * 0.9;
 }
 
+// L'instant de la vague au pixel d'art p (en vagues : la partie entière compte les vagues, la partie décimale avance de
+// 0, au large, à 1, sur la rive), décalé le long de la côte
+float wave_time(vec2 p) {
+	return (wave_at >= 0.0 ? wave_at : TIME) / wave_period + noise((p + 0.5) / wave_stretch + vec2(7.0, 41.0)) * 1.5;
+}
+
+// Si la vague t ne vient pas sur ce tronçon de côte (environ wave_skip des vagues)
+bool wave_missing(vec2 p, float t) {
+	return hash(floor((p + 0.5) / wave_stretch * 0.8) + vec2(floor(t) * 3.1, 7.7)) < wave_skip;
+}
+
 // La place laissée aux mares autour du pixel d'art p, de 0 à 1 : aucune près du bord du marais, des routes, des rives et
 // des ruisseaux, ni sous les objets, les forêts et les montagnes (dry_field), ni dans les étendues sèches (là où un bruit
 // doux de swamp_dry_scale pixels est sous swamp_dry : environ cette part du marais)
@@ -1137,6 +1168,36 @@ void fragment() {
 		float level = clamp((d + wobble - start) / max(end - start, 1.0), 0.0, 1.0);
 		level = clamp(floor(level * 5.0 + bayer(p)) / 5.0, 0.0, 1.0);
 		color = mix(color, deep_color, mix(river_deep, deep, open) * level);
+		// Les vagues (lacs et mer, pas les rivières) : une ligne d'écume brisée qui vient du large jusqu'à la rive et
+		// s'efface, toutes les wave_period secondes ; l'instant change le long de la côte (un bruit doux)
+		if (wave_foam > 0.0 && open > 0.0 && d < wave_reach + 2.0) {
+			// le point de la rive en face (en descendant la pente de la profondeur) : la vague garde sa forme en avançant,
+			// ses morceaux, son instant et ses ondulations suivent ce point, pas le pixel d'eau
+			// (mesurées sur 3 pixels de chaque côté : les petites ondulations de la rive ne comptent pas)
+			// (par la distance signée à la rive, qui continue sur la terre : pas de faux coude au bord de l'eau)
+			float east = -shore_side(p + vec2(3.0, 0.0)), west = -shore_side(p - vec2(3.0, 0.0));
+			float south = -shore_side(p + vec2(0.0, 3.0)), north = -shore_side(p - vec2(0.0, 3.0));
+			vec2 slope = vec2(east - west, south - north) / 6.0;
+			vec2 shore = length(slope) > 0.01 ? p - normalize(slope) * d : p;
+			// une côte compliquée (une baie où deux rives se font face, un coude) : la pente de la distance s'y affaiblit ; les
+			// vagues s'y effacent
+			float steady = smoothstep(wave_steady, wave_steady + 0.3, length(slope));
+			if (wave_debug > 0.0) color = mix(color, vec3(1.0, 0.0, 0.0), (1.0 - steady) * 0.8); // pour régler : en rouge, où les vagues s'effacent
+			float t = wave_time(shore);
+			float cycle = fract(t);
+			// elle ralentit en arrivant (et certaines ne viennent pas)
+			float front = wave_reach * pow(1.0 - cycle, 1.6) + (noise((shore + 0.5) / 9.0 + vec2(17.0, 29.0)) * 2.0 - 1.0);
+			if (wave_missing(shore, t)) cycle = 1.0;
+			// brisée : des morceaux d'écume, autres à chaque vague, plus épais en leur milieu qu'à leurs bouts
+			float piece = noise((shore + 0.5) / wave_piece + vec2(floor(t) * 13.7, 3.0));
+			float body = smoothstep(wave_gaps, wave_gaps + 0.15, piece);
+			float width = wave_width * (0.5 + body);
+			float band = (1.0 - smoothstep(width * 0.5, width, abs(d - front))) * step(wave_gaps, piece);
+			// elle pâlit en naissant et en finissant, sans rapetisser (la trame garde sa forme, la couleur s'efface)
+			float fade = smoothstep(0.0, 0.2, cycle) * (1.0 - smoothstep(0.75, 1.0, cycle));
+			if (fade > 0.0 && bayer(p) < band * open)
+				color = mix(color, foam_color, 0.6 * fade * steady * wave_foam);
+		}
 	}
 	// Rives : entre la terre et l'eau
 	float lapped = 0.0; // la terre contre l'eau : 1 au premier pixel, 0,5 au deuxième (voir water_edge)
@@ -1211,6 +1272,23 @@ void fragment() {
 		}
 	}
 	// la rangée de terre contre l'eau, à demi couverte d'eau claire : un passage doux plutôt qu'un bord net
+	// la vague qui monte un peu sur la rive : de l'écume au bout, puis une terre mouillée qui sèche
+	// (sur le sable seulement : contre l'herbe, l'écume ferait de la neige)
+	if (!in_water && t == sand && wave_foam > 0.0 && wave_wash > 0.0 && (a == water || b == water)) {
+		float sd = shore_distance(p);
+		if (sd < wave_wash + 1.0) {
+			float t = wave_time(p);
+			float cycle = fract(t);
+			if (!wave_missing(p, t)) {
+				// monte vite à la fin de la vague, puis sèche pendant la suivante
+				float up = smoothstep(0.82, 0.97, cycle) * wave_wash;
+				float dry = fract(t + 0.1);
+				float soaked = (1.0 - smoothstep(0.0, 0.8, dry)) * (1.0 - smoothstep(0.0, wave_wash, sd));
+				if (bayer(p) < soaked * 0.8) color *= 1.0 - wet * 1.5;
+				if (cycle > 0.82 && abs(sd - up) < 0.8 && bayer(p) < 0.7 * wave_foam) color = mix(color, foam_color, 0.6);
+			}
+		}
+	}
 	if (lapped > 0.0 && water_edge > 0.0)
 		color = mix(color, mix(tile_color(water, p), shallow_color, shallow), water_edge * lapped);
 	// Le pied des montagnes : de 1 (contre la roche) à 0 (à foothill_reach cases), au bord ondulé

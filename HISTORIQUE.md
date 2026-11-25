@@ -3215,6 +3215,20 @@ choix de l'utilisateur) :
   change une fois, à cette version). Mesuré (cartes normales, continent) : 4,7 ruisseaux par carte, 100 cases (37
   avant), 1,8 affluents ; nés au pied d'une montagne 2,8, d'un marais 0,5, d'une source 1,3. Écarté en chemin : choisir
   les sources loin de l'eau les serrait contre le bord de la carte.
+- ✅ **Les vagues des lacs et de la mer** (2026-11-24, branche `carte-vagues`), la première animation de la carte après
+  la terre brûlée ; tout au shader (`wave_*`), avec `TIME` (`wave_at` fige l'instant pour une capture). Une ligne
+  d'écume brisée part de 12 pixels du bord (`wave_reach`) et vient jusqu'à la rive en ralentissant, toutes les
+  4 secondes (`wave_period`) ; elle pâlit en naissant et en finissant sans rapetisser ; ses morceaux (`wave_piece` 5,
+  `wave_gaps` 0,5) sont plus épais en leur milieu (`wave_width` 0,9). Pour qu'une vague garde sa forme en avançant,
+  ses morceaux, son instant et ses ondulations suivent **le point de la rive en face** (en descendant la pente de la
+  distance), pas le pixel d'eau. L'instant change le long de la côte (`wave_stretch` 40) ; environ 30 % des vagues
+  manquent (`wave_skip`). Sur le sable seulement, la vague monte de 3 pixels (`wave_wash`), avec de l'écume au bout, et
+  laisse une terre mouillée qui sèche. Pas sur les rivières ni les ruisseaux. Sur les côtes compliquées (une baie où
+  deux rives se font face, un coude), là où la pente de la distance signée à la rive (mesurée sur 3 pixels) faiblit
+  (`wave_steady` 0,55), les vagues s'effacent : leur ligne y faisait des plis et des coupures ; `wave_debug` les montre
+  en rouge. Réglages choisis par l'utilisateur en jeu (`--ground=…`). Écartés en chemin : des morceaux découpés par un
+  motif fixe sur la carte (ils changeaient de forme en avançant), un fondu par la trame (la vague rapetissait), mesurer
+  la courbure de la côte (la distance, faite par cases, paraît courbée partout), de l'écume sur l'herbe.
 
 #### Les habitations sur la carte
 Des lieux semés au hasard où un héros achète des troupes (comme dans Heroes). À concevoir : créatures, réserve et

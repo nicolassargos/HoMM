@@ -97,6 +97,9 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   de force. Un ruisseau qui suit les cases à angles droits se voit, même arrondi. Un ruisseau convainc quand il suit
   les creux d'une carte des hauteurs, serpente (des boucles d'une demi-case), reçoit des affluents et naît de quelque
   part (le pied d'une montagne, un marais, une source : une mare entourée de pierres sombres sur une terre mouillée).
+  Vagues (2026-11-24) : une vague se lit comme telle si elle garde sa forme en avançant (rattachée à la rive en face),
+  ralentit en arrivant, pâlit sans rapetisser, est brisée en morceaux plus épais au milieu, et si certaines manquent ;
+  la régler en jeu (le mouvement ne se juge pas sur une capture). Sur une baie ou un coude, l'effacer plutôt que la tordre.
   Neige (2026-11-19) : les cases du sable recolorées en blanc bleuté, de faible contraste. Les congères étirées en
   longues bandes font des nuages : des congères rondes, l'ombre bleutée d'un seul côté.
   Arbres des sols (2026-11-19, 24 × 32) : finir la description par « single tree, … isolated object, no ground ».

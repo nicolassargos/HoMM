@@ -1,6 +1,7 @@
 # HoMM
 
-Jeu PC fortement inspiré de Heroes of Might and Magic et King's Bounty.
+Jeu PC fortement inspiré de Heroes of Might and Magic et King's Bounty. Une version web et le multijoueur sont à
+l'étude ; l'architecture retenue et ses prérequis sont décrits dans `PLAN.md` et `HISTORIQUE.md`.
 
 ## Jouer sous Windows
 

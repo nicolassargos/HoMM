@@ -397,14 +397,28 @@ Commencé avec l'utilisateur (2026-11-15), à revoir ensemble :
   **Reste** : les autres sorts, la carte, l'interface, de courts airs, puis la musique chez Stable Audio.
 
 ## Étape 11 : multijoueur (à concevoir)
-Idée de l'utilisateur (2026-11-17). Les règles s'y prêtent déjà : plusieurs joueurs dans `GameState`, un brouillard
-par joueur, un humain peut diriger sa défense, et une partie se rejoue pareil avec la même graine.
-- **À tour de rôle sur un même PC** (après le contenu de l'étape 9) : humain ou ordinateur pour chaque joueur dans la
-  nouvelle partie ; un écran « Au tour de… » qui cache la carte entre deux joueurs ; l'affichage suit le joueur humain
-  du tour (son brouillard, ses villes, ses héros) ; un combat entre deux humains, chacun dirige son camp.
-- **En réseau** (plus tard, après l'étape 10) : n'envoyer que les ordres des joueurs, chaque PC calcule la même
-  partie (tests qui le vérifient) ; rejoindre une partie, reprendre après une coupure ; un combat où l'un attend
-  l'autre.
+Idée de l'utilisateur (2026-11-17, étudiée le 2026-11-25 pour #261). Les règles s'y prêtent déjà : plusieurs joueurs
+dans `GameState`, un brouillard par joueur, les tours, des identifiants stables et une sauvegarde exacte de l'état du
+hasard.
+
+Le **web est intéressant comme moyen de distribuer le jeu**, mais n'est pas nécessaire au multijoueur. Le client web
+viendra d'abord comme un essai technique : vérifier dans la version Godot .NET choisie que l'export Web conserve bien
+C#, les fichiers audio, les sauvegardes et les gros atouts du jeu. Le serveur ne dépendra pas de Godot.
+
+Ordre proposé :
+1. **À tour de rôle sur un même PC** (après le contenu de l'étape 9) : humain ou ordinateur pour chaque joueur ; écran
+   « Au tour de… » qui masque la carte ; affichage, brouillard et commandes pris d'après le joueur du tour ; combat
+   tactique entre humains.
+2. **En réseau, au tour par tour** : des parties privées avec sièges, invitations, reconnexion et reprise. Chaque client
+   envoie un ordre ; un **serveur autoritaire** exécute `Core/`, vérifie que l'ordre appartient au bon joueur, conserve les
+   sauvegardes puis renvoie seulement l'état et les événements visibles de ce joueur. Pas de temps réel ni de simultanéité.
+3. **Client web, si l'essai est concluant** : le même protocole servira aussi au client Windows. La base de données garde
+   les comptes, les parties, les sièges et les instantanés ; l'état du jeu reste une sauvegarde versionnée, pas des tables
+   recopiées pour chaque règle.
+
+Le calcul identique sur tous les clients (« lockstep ») est écarté comme base du réseau : le serveur doit cacher le
+brouillard, empêcher la triche et résoudre les reconnexions. Le hasard déterministe et la sauvegarde exacte restent très
+utiles pour rejouer et tester les ordres. Détail, prérequis et alternatives dans `HISTORIQUE.md`.
 
 ## Repères (choix encore valables)
 - **Héros** : les caractéristiques de départ viennent de la classe (Paladin : 2/2/1/2, charisme 14) ; niveau n à

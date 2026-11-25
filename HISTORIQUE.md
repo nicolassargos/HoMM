@@ -37,6 +37,53 @@ valables ; le détail d'une étape finie vient ici. La méthode des images est d
 - Écarté pour l'instant : faire résoudre tout un chemin d'un coup par les règles
   (l'affichage devrait alors garder sa propre copie de l'état). À revoir avec l'IA (étape 7).
 
+### Étude du web et du multijoueur (2026-11-25, issue #261)
+Deux questions sont séparées : distribuer le jeu dans un navigateur, et jouer une partie à plusieurs. La seconde ne
+dépend pas de la première : le mode local doit venir avant un serveur.
+
+Ce qui est déjà réutilisable :
+- `GameState` contient plusieurs joueurs, passe leurs tours et garde un brouillard par joueur.
+- Les joueurs, héros et objets ont des identifiants stables. La sauvegarde JSON garde la carte, le joueur courant, les
+  chemins, les joueurs et l'état `GameRandom` ; une partie rechargée reprend le même hasard.
+- Les règles sont dans `Core/`, sans Godot, et les changements visibles sont décrits par des événements. Elles peuvent
+  donc être exécutées par un service .NET séparé du client.
+
+Une autre partie n'est pas encore prête pour plusieurs humains :
+- `GameState.AddPlayers` marque aujourd'hui tous les joueurs après le premier comme contrôlés par l'ordinateur.
+- Plusieurs écrans lisent encore `Players[0]` comme spectateur ; ils doivent recevoir le joueur qui regarde la partie.
+  Le joueur du tour est également distinct de ce spectateur pendant une défense ou une attente réseau.
+- Une sauvegarde est interdite pendant un combat tactique ou une rencontre en attente. Pour reprendre une partie réseau
+  à tout moment, il faudra aussi enregistrer cet état intermédiaire, ou définir un point de reprise avant le combat.
+  Les choix de niveau et de coffre, eux, sont déjà conservés dans la sauvegarde.
+- Aucun protocole ne décrit les ordres du joueur, leur numéro de séquence, leur validation, les salles ni la reconnexion.
+
+Architecture retenue pour le réseau :
+1. Le serveur .NET reprend `Core/` comme source de vérité. Il connaît l'état complet, applique les ordres dans l'ordre,
+   refuse ceux d'un mauvais siège ou d'un mauvais tour, puis enregistre une sauvegarde versionnée.
+2. Le protocole porte des ordres nommés (`déplacer`, `bâtir`, `recruter`, `choisir une troupe`, etc.), pas l'écran cliqué ni
+   une modification libre de l'état. Chaque ordre a un numéro pour éviter de le rejouer après une reconnexion.
+3. Le serveur filtre chaque réponse selon le joueur : brouillard, ressources, héros, villes, combats et événements. Il ne
+   faut jamais envoyer l'état complet en espérant que le client le cache.
+4. La base de données contient les comptes, invitations, sièges, partie en cours et instantanés. Un journal court des
+   ordres aide au diagnostic ; il ne remplace ni l'autorité du serveur ni les sauvegardes.
+5. Au combat entre deux humains, le serveur garde le combat vivant : l'autre joueur attend son action ou reçoit un
+   message si le jeu est joué en asynchrone. Les tours de carte restent au tour par tour, sans mouvement simultané.
+
+Le mode « chaque machine calcule la même partie en n'échangeant que les ordres » (lockstep) serait plus léger à héberger,
+mais impose le même moteur sur chaque client, rend les divergences difficiles à reprendre et donne trop de confiance à
+des clients qui possèdent l'état caché. Le hasard déterministe reste utile pour les simulations, les reprises exactes et
+un test automatique qui rejoue un ordre sur le serveur et le compare à la sauvegarde attendue ; ce n'est pas, à lui seul,
+un protocole multijoueur.
+
+Pour le web, la première étape sera un prototype sans nouvelle fonction de jeu. Il devra confirmer que la version Godot
+.NET visée exporte réellement vers Web et charge les textures, le son, les polices, les données `res://` et les
+sauvegardes persistantes. Le projet n'a aujourd'hui qu'un export Windows. Il faut aussi mesurer le poids du chargement
+et l'usage mobile : l'écran est conçu pour une fenêtre 1920 × 1080 et pour la souris.
+
+Si l'export Godot .NET ne convient pas, l'alternative n'est pas de dupliquer les règles dans une application web :
+on garde `Core/` sur le serveur et on peut créer un client navigateur séparé. C'est toutefois un projet d'interface
+entier, à entreprendre seulement après que le mode local à plusieurs humains et le protocole réseau soient jouables.
+
 ### 2. Villes ✅ (PR #6)
 Choix faits : la ville est **neutre** au départ, à mi-distance, défendue par une petite
 garnison (changé à l'étape 8 : chaque joueur commence maintenant avec son château) ; les villes ont une **garnison** (comme dans Heroes) ; bâtiments minimaux ;

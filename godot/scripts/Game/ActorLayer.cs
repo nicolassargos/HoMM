@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using HoMM.Core;
 
 namespace HoMM.Game;
 
-/// <summary>Ce qui bouge : objets, chemin prévu, héros. Redessiné à chaque image.</summary>
+/// <summary>
+/// Ce qui bouge : les objets et les héros, triés de haut en bas avec le décor (le chemin prévu : <see cref="PathLayer"/>).
+/// Redessiné à chaque image.
+/// </summary>
 public partial class ActorLayer : Node2D
 {
     public GameState State { get; set; } = null!;
@@ -14,8 +18,12 @@ public partial class ActorLayer : Node2D
     public Cell? Hovered { get; set; }
     private double _time;
 
-    // Pixel art : les images agrandies restent nettes
-    public override void _Ready() => TextureFilter = TextureFilterEnum.Nearest;
+    // Pixel art : les images agrandies restent nettes ; les objets et les héros sont triés avec le décor
+    public override void _Ready()
+    {
+        TextureFilter = TextureFilterEnum.Nearest;
+        YSortEnabled = true;
+    }
 
     /// <summary>
     /// Développement (« --hero-walk ») : le héros choisi fait sans cesse le tour d'un octogone, un pas dans chacune des
@@ -35,7 +43,7 @@ public partial class ActorLayer : Node2D
                 at = new Cell(at.X + Octagon[i].X, at.Y + Octagon[i].Y);
             ShownAt[walker] = at;
         }
-        QueueRedraw();
+        Arrange();
     }
 
     /// <summary>
@@ -107,32 +115,61 @@ public partial class ActorLayer : Node2D
         return (pixels, motion.Facing, frame);
     }
 
-    public override void _Draw()
+    /// <summary>Les pièces triées de la carte : une par objet, une par héros (voir <see cref="MapPiece"/>).</summary>
+    private readonly Dictionary<MapObject, MapPiece> _objects = new();
+    private readonly Dictionary<Hero, MapPiece> _heroes = new();
+
+    /// <summary>
+    /// Les objets et les héros, chacun une pièce posée à son pied, triées avec le décor (2026-11-25) : un héros derrière
+    /// une ville ou une mine passe derrière elle, un objet derrière une forêt est caché par les arbres de devant.
+    /// </summary>
+    private void Arrange()
     {
         const int t = MapRenderer.TileSize;
         var half = new Vector2(t / 2f, t / 2f);
-
-        foreach (var obj in State.Map.Objects)
-            MapRenderer.DrawObject(this, obj, ToPixels(obj.Position), _time);
-
-        // le chemin prévu et l'anneau du héros choisi : seulement ceux du joueur (pas pendant le tour d'un adversaire)
-        bool mine = !State.CurrentPlayer.IsComputer;
-        if (mine && State.Path is { } path)
+        Sync(_objects, State.Map.Objects, obj => piece =>
         {
-            var reachable = State.PathReachability();
-            for (int i = 0; i < path.Count; i++)
-                MapRenderer.DrawPathMarker(this, ToPixels(path[i]) + half, reachable[i], i == path.Count - 1);
-        }
-
-        // Le héros sélectionné a un anneau doré à ses pieds
-        if (mine && State.CurrentHero is { } selected)
-            MapRenderer.DrawSelection(this, HeroPose(selected).At + half + new Vector2(0, 14 * t / 48f), _time);
-        foreach (var hero in State.AllHeroes)
+            var o = ToPixels(obj.Position);
+            // le pied : le bas de la surface de l'objet (une ville, une mine : leur rangée du bas)
+            piece.Position = new Vector2(o.X + t / 2f, MapRenderer.ObjectBottom(obj, o));
+            piece.Paint = ci => MapRenderer.DrawObject(ci, obj, o, _time);
+        });
+        // le héros choisi du joueur a un anneau doré à ses pieds (pas pendant le tour d'un adversaire) ; un héros sur la
+        // case d'un objet (l'entrée d'une mine) passe devant lui
+        bool mine = !State.CurrentPlayer.IsComputer;
+        Sync(_heroes, State.AllHeroes, hero => piece =>
         {
             var (at, facing, frame) = HeroPose(hero);
-            MapRenderer.DrawHero(this, at + half + new Vector2(0, 4), _time, hero, facing, frame, hero.AtSea(State.Map));
+            piece.Position = new Vector2(at.X + t / 2f, at.Y + t + 0.5f);
+            piece.Paint = ci =>
+            {
+                if (mine && hero == State.CurrentHero)
+                    MapRenderer.DrawSelection(ci, at + half + new Vector2(0, 14 * t / 48f), _time);
+                MapRenderer.DrawHero(ci, at + half + new Vector2(0, 4), _time, hero, facing, frame, hero.AtSea(State.Map));
+            };
+        });
+    }
+
+    /// <summary>Une pièce par élément : ajoutée pour un nouveau, retirée pour un disparu, replacée et redessinée.</summary>
+    private void Sync<T>(Dictionary<T, MapPiece> pieces, IEnumerable<T> items, Func<T, Action<MapPiece>> place) where T : notnull
+    {
+        var seen = new HashSet<T>();
+        foreach (var item in items)
+        {
+            seen.Add(item);
+            if (!pieces.TryGetValue(item, out var piece))
+            {
+                pieces[item] = piece = new MapPiece();
+                AddChild(piece);
+            }
+            place(item)(piece);
+            piece.QueueRedraw();
         }
-        // (la case survolée n'est plus encadrée : le panneau la décrit, cela suffit)
+        foreach (var gone in pieces.Keys.Where(k => !seen.Contains(k)).ToList())
+        {
+            pieces[gone].QueueFree();
+            pieces.Remove(gone);
+        }
     }
 
     public static Vector2 ToPixels(Cell c) => new Vector2(c.X, c.Y) * MapRenderer.TileSize;

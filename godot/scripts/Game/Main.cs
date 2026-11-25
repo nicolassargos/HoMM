@@ -176,8 +176,12 @@ public partial class Main : Node2D
         AddChild(new BridgeLayer { Map = _state.Map });
         _actors = new ActorLayer { State = _state, WalkPreview = OS.GetCmdlineUserArgs().Contains("--hero-walk") };
         AddChild(new ShadowLayer { State = _state, Actors = _actors }); // sous le décor et les objets
-        AddChild(new DecorLayer { Map = _state.Map });
-        AddChild(_actors);
+        // le décor, les objets et les héros, triés ensemble de haut en bas : ce qui est plus bas recouvre ce qui est plus haut
+        var sorted = new Node2D { YSortEnabled = true };
+        AddChild(sorted);
+        sorted.AddChild(new DecorLayer { Map = _state.Map });
+        sorted.AddChild(_actors);
+        AddChild(new PathLayer { State = _state });
         AddChild(new LeafLayer { Map = _state.Map });
         _mapSpells = new MapSpellEffects();
         AddChild(_mapSpells);

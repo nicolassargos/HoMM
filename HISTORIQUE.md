@@ -3302,6 +3302,16 @@ choix de l'utilisateur) :
   principal) s'ouvrait alors que la fenêtre des options était encore à l'écran (`QueueFree` attend la fin de l'image) ;
   elle gardait la place de fenêtre exclusive, d'où une boîte par-dessus l'autre et l'erreur « exclusive child ». Les
   options se cachent d'abord, et l'action choisie attend l'image suivante (`Hud.ShowOptions`).
+- ✅ **L'ordre du dessin de la carte** (2026-11-25, branche `carte-ordre-dessin`). Avant, la carte était faite de
+  calques posés l'un sur l'autre : le décor (arbres, montagnes, triés entre eux), puis tous les objets (dans l'ordre où
+  ils avaient été posés), puis tous les héros. Un objet derrière une forêt passait devant ses arbres, un héros derrière
+  une ville passait devant ses remparts. Le décor, les objets et les héros sont maintenant triés ensemble par leur pied
+  (un `Node2D` trié en Y dans `Main`) : ce qui est plus bas à l'écran recouvre ce qui est plus haut. Le décor reste
+  dessiné une fois, en bandes d'un pixel d'art de haut (des éléments du `RenderingServer`, sous `DecorLayer`, qui gardent
+  son shader) ; chaque objet et chaque héros est une `MapPiece` posée à son pied (le bas de sa surface : la rangée du bas
+  d'une ville ou d'une mine ; un héros sur la case d'un objet passe devant lui), dessinée à chaque image. Un héros
+  derrière une ville est caché tout entier (choix de l'utilisateur, comme Heroes 3) ; l'anneau du héros choisi est
+  dessiné avec lui, le chemin prévu par-dessus tout (`PathLayer`). Vérifié en jeu par l'utilisateur.
 - ✅ **Les feuilles dans le vent** (2026-11-25, branche `carte-feuilles`). Des rafales traversent la carte en bandes
   larges, vers la droite et un peu vers le bas (`Game/Wind.cs` : une rafale tous les 7 cases, 1,5 case par seconde ;
   la même formule dans le shader du décor). Sous une rafale, le haut de chaque arbre (de tous les sols, brûlés compris)

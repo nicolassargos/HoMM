@@ -455,6 +455,9 @@ public static class MapRenderer
         };
     }
 
+    /// <summary>Le bas de la surface d'un objet (son pied, pour le trier avec le décor), l'entrée étant en <paramref name="o"/>.</summary>
+    public static float ObjectBottom(MapObject obj, Vector2 o) => ObjectArea(obj, o).End.Y;
+
     /// <summary>L'image d'un objet et l'endroit où elle est dessinée (pour son ombre) ; null s'il est dessiné par formes.</summary>
     public static (Texture2D Image, Rect2 Rect)? ObjectArt(MapObject obj, Vector2 o) =>
         ObjectImage(obj) is { } image ? (image, ArtRect(image, ObjectArea(obj, o))) : null;

@@ -86,27 +86,49 @@ public partial class DecorLayer : Node2D
 
     private ShaderMaterial? _material;
 
+    /// <summary>Les bandes du décor (voir <see cref="_Ready"/>), dessinées une fois, libérées avec le calque.</summary>
+    private readonly List<Rid> _bands = new();
+
+    /// <summary>La hauteur d'une bande du décor, en pixels de la carte (un pixel d'art).</summary>
+    private const int BandHeight = MapRenderer.ArtScale;
+
     // Pixel art : les images agrandies restent nettes ; les pentes des montagnes prennent le sol de dessous ; les arbres
-    // penchent dans le vent
+    // penchent dans le vent.
+    // Le décor est trié avec les objets et les héros (2026-11-25, <see cref="ActorLayer"/>) : les images dont le pied est
+    // sur la même rangée de pixels d'art forment une bande, posée à ce pied et dessinée une seule fois
     public override void _Ready()
     {
         TextureFilter = TextureFilterEnum.Nearest;
+        YSortEnabled = true;
         if (ResourceLoader.Exists("res://shaders/mountain_slopes.gdshader"))
             Material = _material = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/mountain_slopes.gdshader") };
         Wind.Apply(_material);
+        foreach (var band in Sprites(Map).GroupBy(s => (int)MathF.Floor(s.Foot.Y / BandHeight)))
+        {
+            var rid = RenderingServer.CanvasItemCreate();
+            RenderingServer.CanvasItemSetParent(rid, GetCanvasItem());
+            RenderingServer.CanvasItemSetUseParentMaterial(rid, true);
+            RenderingServer.CanvasItemSetDefaultTextureFilter(rid, RenderingServer.CanvasItemTextureFilter.Nearest);
+            float y = band.Key * BandHeight;
+            RenderingServer.CanvasItemSetTransform(rid, new Transform2D(0, new Vector2(0, y)));
+            foreach (var (foot, image) in band)
+            {
+                var size = image.GetSize() * MapRenderer.ArtScale;
+                var mark = IsMountain(image) ? SlopeMark : IsTree(image) ? TreeMark : Colors.White;
+                RenderingServer.CanvasItemAddTextureRect(rid, new Rect2(foot - new Vector2(size.X / 2, size.Y + y), size), image.GetRid(), false, mark);
+            }
+            _bands.Add(rid);
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        foreach (var rid in _bands)
+            RenderingServer.FreeRid(rid);
+        _bands.Clear();
     }
 
     public override void _Process(double delta) => _material?.SetShaderParameter("wind_time", Wind.Now);
-
-    public override void _Draw()
-    {
-        foreach (var (foot, image) in Sprites(Map))
-        {
-            var size = image.GetSize() * MapRenderer.ArtScale;
-            var mark = IsMountain(image) ? SlopeMark : IsTree(image) ? TreeMark : Colors.White;
-            DrawTextureRect(image, new Rect2(foot - new Vector2(size.X / 2, size.Y), size), false, mark);
-        }
-    }
 
     /// <summary>
     /// Les arbres et les sommets de la carte, repérés par leur pied (le milieu du bas de l'image), triés de haut en bas

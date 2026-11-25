@@ -126,6 +126,8 @@ public sealed class Town : MapObject
             return BuildResult.NotCoastal;
         if (building.Capitol && player.Towns.Any(t => t != this && t.HasCapitol))
             return BuildResult.CapitolElsewhere;
+        if (player.FreeBuilding)
+            return BuildResult.Ok;
         if (building.RequirementChoices.Any(choices => !choices.Any(Has)))
             return BuildResult.MissingRequirement;
         if (!player.CanAfford(building.Cost))
@@ -138,8 +140,11 @@ public sealed class Town : MapObject
     /// <summary>Construit le bâtiment et le paie (à vérifier avant avec <see cref="CanBuild"/>).</summary>
     public void Build(BuildingType building, Player player)
     {
-        player.Pay(building.Cost);
-        BuiltToday = true;
+        if (!player.FreeBuilding)
+        {
+            player.Pay(building.Cost);
+            BuiltToday = true;
+        }
         AddBuilding(building);
     }
 

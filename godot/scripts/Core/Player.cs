@@ -29,6 +29,12 @@ public sealed class Player
     /// <summary>Un adversaire joué par l'ordinateur (voir <see cref="ComputerPlayer"/>).</summary>
     public bool IsComputer { get; init; }
 
+    /// <summary>
+    /// Développement (« --free-build ») : ses villes bâtissent sans payer, sans prérequis (ils sont bâtis avec) et plus
+    /// d'un bâtiment par jour. Pas sauvegardé.
+    /// </summary>
+    public bool FreeBuilding { get; set; }
+
     public FogOfWar Fog { get; }
     public Dictionary<ResourceType, int> Resources { get; }
     public List<Mine> Mines { get; } = new();

@@ -162,7 +162,10 @@ public class MoralChanceTests
     /// <summary>Des archers (2 dégâts chacun, toujours) tirent encore et encore sur beaucoup de paysans.</summary>
     private static List<UnitStruck> Volleys(int luck)
     {
-        var battle = new TacticalBattle(Army(("archer", 10)), Army(("paysan", 5000)), new GameRandom(3));
+        // des archers aux dégâts fixes (2) : chaque tir fait les mêmes dégâts, sauf la chance
+        var shooters = new Army();
+        shooters.Add(Creature("archer") with { MinDamage = 2, MaxDamage = 2 }, 10);
+        var battle = new TacticalBattle(shooters, Army(("paysan", 5000)), new GameRandom(3));
         var archers = battle.Units.Single(u => u.Side == BattleSide.Attacker);
         var target = battle.Units.Single(u => u.Side == BattleSide.Defender);
         archers.Luck = luck;

@@ -65,7 +65,7 @@ Décision de l'utilisateur, valable pour toutes les sessions :
 
 ## Commandes
 - Tests : `dotnet test` (à la racine)
-- Mesures de l'équilibre (simulation seule, adversaires à chaque niveau, courbe du Château ; toujours les mêmes graines, pour comparer avant et après un changement) : `HOMM_MESURES=1 dotnet test --filter Category=Mesures --logger "console;verbosity=detailed"` (`tests/HoMM.Core.Tests/MesuresTests.cs` ; ignorées par un `dotnet test` ordinaire). Y ajouter une mesure plutôt qu'écrire un test jetable.
+- Mesures de l'équilibre (simulation seule, adversaires à chaque niveau, courbe du Château ; toujours les mêmes graines, pour comparer avant et après un changement) : `HOMM_MESURES=1 dotnet test --filter Category=Mesures --logger "console;verbosity=detailed"` (`tests/HoMM.Core.Tests/MesuresTests.cs` ; ignorées par un `dotnet test` ordinaire). Y ajouter une mesure plutôt qu'écrire un test jetable. L'équilibre des factions : `Armees_a_prix_egal` (la mesure qui compte : une armée entière contre une autre ; `HOMM_FACTION=nains` pour une seule faction), celui des créatures d'un niveau : `Duels_a_prix_egal`.
 - Disposition d'un écran, à la souris : `python -I tools/ui/disposition.py town` (écrit `godot/data/layouts/town.json` ; `town-xxx` : une autre disposition à comparer, lue en jeu avec `-- --layout=town-xxx`)
 - Captures de tous les écrans (avant une PR d'interface, puis les regarder) : `python -I tools/captures.py` (ou `… ville` pour une partie), dans `art-candidats/en-cours/revue/`
 - Lire des cartes de Heroes 2 et 3 (dans `maps references/`, non suivi) pour en tirer des règles : `tools/cartes/` (voir son `LISEZMOI.md`)

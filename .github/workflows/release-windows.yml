@@ -69,8 +69,11 @@ jobs:
         shell: pwsh
         run: |
           # Godot cherche godot/HoMM.sln pour compiler le C# ; la solution du dépôt est à la racine.
-          dotnet new sln --name HoMM --output godot
+          # --format sln : le .NET récent écrirait un .slnx, que Godot ne lit pas.
+          dotnet new sln --name HoMM --output godot --format sln
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet sln godot/HoMM.sln add godot/HoMM.csproj
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           New-Item -ItemType Directory -Force -Path godot/build/windows | Out-Null
           & $env:GODOT_EDITOR --headless --path godot --export-release "Windows Desktop" build/windows/HoMM.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

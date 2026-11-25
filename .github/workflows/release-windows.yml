@@ -32,6 +32,9 @@ jobs:
       - name: Tester le jeu
         run: dotnet test
 
+      - name: Compiler le jeu en Release
+        run: dotnet build godot/HoMM.csproj -c Release
+
       - name: Installer Godot
         shell: pwsh
         run: |

@@ -2638,6 +2638,11 @@ cet ordre :
    image à part posée dessus (`art/ui/lutrin.png` : il luit, on clique dessus). Sans image, le jeu dessine une scène
    d'attente. ✅ Le lutrin (le 3, un socle rond sculpté) le livre ouvert et l'étude (2026-11-12 ; le lutrin fait partie de l'image de chaque scène, pour le même point de vue et la même lumière : choix de l'utilisateur). ✅ L'académie du Château
    (2026-11-13 : une petite pièce sous le toit d'une tour, choix de l'utilisateur). ✅ Les 7 autres académies (2026-11-14, de petites pièces ; le lutrin et sa lueur prennent la lumière de chaque pièce, choix de l'utilisateur).
+   ✅ **Le livre plus grand** (2026-11-26, branche `livre-sorts`, demandé par l'utilisateur : « still doesn't feel right ») :
+   un pixel d'art du livre vaut 3 pixels de l'écran (`SpellBookView.BookScale`, au lieu de 2 pour le reste de
+   l'interface ; le seul pas plus grand qui reste net), le texte agrandi d'autant. **L'ouverture réparée** : la page de
+   gauche apparaissait d'un coup, se repliait vers le dos puis revenait ; elle se déplie maintenant du dos vers le bord.
+   La couverture qui tourne prend le cuir rouge et les coins dorés de l'image du livre, plus sombre en se dressant.
 3. ✅ **Une image par sort** (le livre, la guilde) : **de petites peintures en couleur**, comme Heroes 2 et 3 (choix de
    l'utilisateur), 32 × 32 ×2 ; les 18 faites (2026-11-14).
 4. ✅ **Une animation par sort** sur le champ et un **effet visible sur les troupes** (2026-11-14, branche

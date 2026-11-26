@@ -15,7 +15,7 @@ namespace HoMM.Game;
 /// <para>
 /// Magique : il s'ouvre (la couverture tourne, puis une gerbe de lumière et d'étincelles), des étincelles suivent la page
 /// qui tourne, le sort survolé luit de la couleur de son école. Tout est dessiné par le jeu, sur la grille des pixels
-/// d'art (<see cref="Ui.ArtPx"/>).
+/// d'art, plus grande que celle du reste de l'interface (<see cref="BookScale"/>).
 /// </para>
 /// <para>
 /// Maquette : le cuir, le parchemin, les onglets et les icônes sont dessinés par le code, pour régler les tailles avant
@@ -43,7 +43,7 @@ public partial class SpellBookView : Control
     private const int TabWidth = 40, TabHeight = 30, TabGap = 4, TabOut = 34;
 
     /// <summary>La place totale : le livre et ses onglets.</summary>
-    public static Vector2 TotalSize => new(ArtPx(BookWidth + TabOut), ArtPx(BookHeight));
+    public static Vector2 TotalSize => new(A(BookWidth + TabOut), A(BookHeight));
 
     // ---- les couleurs du cuir, du parchemin et de l'encre
     private static readonly Color Leather = MapRenderer.Rgb(86, 40, 28), LeatherDark = MapRenderer.Rgb(52, 22, 16),
@@ -57,6 +57,10 @@ public partial class SpellBookView : Control
         (null, MapRenderer.Rgb(170, 132, 60)), ("eau", MapRenderer.Rgb(60, 110, 170)), ("feu", MapRenderer.Rgb(176, 64, 40)),
         ("terre", MapRenderer.Rgb(104, 120, 56)), ("air", MapRenderer.Rgb(150, 160, 176)),
     };
+
+    /// <summary>La couverture qui s'ouvre : les couleurs du cuir et des coins de l'image du livre (<c>ui/livre-ouvert</c>).</summary>
+    private static readonly Color CoverLeather = MapRenderer.Rgb(94, 22, 41), CoverDark = MapRenderer.Rgb(48, 10, 27),
+        CoverLight = MapRenderer.Rgb(130, 48, 48), CoverGold = MapRenderer.Rgb(225, 183, 84), CoverGoldDark = MapRenderer.Rgb(171, 123, 47);
 
     private static Color SchoolColor(string? school) => Schools.FirstOrDefault(s => s.School == school).Color;
 
@@ -160,9 +164,24 @@ public partial class SpellBookView : Control
     private static bool TryFraction(string text, out float value) =>
         float.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out value);
 
-    private static float A(float artPixels) => ArtPx(artPixels);
+    /// <summary>
+    /// Les pixels de l'écran d'un pixel d'art du livre : 3, plus que le reste de l'interface (<see cref="Ui.ArtScale"/>),
+    /// pour un livre plus grand (demandé par l'utilisateur, 2026-11-26) ; toujours un nombre entier, pixels nets.
+    /// </summary>
+    public const int BookScale = 3;
 
-    private static Vector2 A(float x, float y) => new(ArtPx(x), ArtPx(y));
+    private const float BookGrid = BookScale;
+
+    private static float A(float artPixels) => artPixels * BookScale;
+
+    private static Vector2 A(float x, float y) => new(A(x), A(y));
+
+    private static float BookSnap(float pixels) => MathF.Round(pixels / BookGrid) * BookGrid;
+
+    private static float BookSnapDown(float pixels) => MathF.Floor(pixels / BookGrid) * BookGrid;
+
+    /// <summary>Une taille de police de l'interface, agrandie comme le livre.</summary>
+    private static int FontSize(int size) => size * BookScale / ArtScale;
 
     /// <summary>La place d'une page dans le livre (0 : à gauche, 1 : à droite).</summary>
     private static Rect2 PageRect(int side) =>
@@ -288,7 +307,7 @@ public partial class SpellBookView : Control
     /// <summary>Un texte à l'encre sur le parchemin (le texte après la taille : la largeur reste celle voulue).</summary>
     private static Label InkLabel(string text, int size, Color color, Vector2 at, float widthArt, bool center = false, bool wrap = false)
     {
-        var label = MakeLabel("", size, color);
+        var label = MakeLabel("", FontSize(size), color);
         label.HorizontalAlignment = center ? HorizontalAlignment.Center : HorizontalAlignment.Left;
         if (wrap)
             label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
@@ -317,7 +336,7 @@ public partial class SpellBookView : Control
                 ? new[] { new Vector2(s.X, 0), new Vector2(s.X, s.Y), new Vector2(0, s.Y) }
                 : new[] { new Vector2(0, 0), new Vector2(s.X, s.Y), new Vector2(0, s.Y) };
             corner.DrawColoredPolygon(points, corner.IsHovered() ? ParchmentEdge.Darkened(0.2f) : ParchmentEdge);
-            corner.DrawPolyline(points.Append(points[0]).ToArray(), SoftInk, Grid);
+            corner.DrawPolyline(points.Append(points[0]).ToArray(), SoftInk, BookGrid);
         };
         corner.MouseEntered += corner.QueueRedraw;
         corner.MouseExited += corner.QueueRedraw;
@@ -354,10 +373,10 @@ public partial class SpellBookView : Control
             {
                 var c = chosen ? color.Lightened(0.15f) : color.Darkened(0.2f);
                 tab.DrawRect(new Rect2(Vector2.Zero, tab.Size), c);
-                tab.DrawRect(new Rect2(Vector2.Zero, tab.Size), c.Darkened(0.45f), false, Grid);
-                tab.DrawRect(new Rect2(new Vector2(Grid, Grid), new Vector2(tab.Size.X - 2 * Grid, Grid)), c.Lightened(0.3f));
+                tab.DrawRect(new Rect2(Vector2.Zero, tab.Size), c.Darkened(0.45f), false, BookGrid);
+                tab.DrawRect(new Rect2(new Vector2(BookGrid, BookGrid), new Vector2(tab.Size.X - 2 * BookGrid, BookGrid)), c.Lightened(0.3f));
             };
-            var label = MakeLabel(Texts.SchoolTab(school), 11, chosen ? Colors.White : TextColor);
+            var label = MakeLabel(Texts.SchoolTab(school), FontSize(11), chosen ? Colors.White : TextColor);
             label.HorizontalAlignment = HorizontalAlignment.Center;
             label.VerticalAlignment = VerticalAlignment.Center;
             label.Position = A(4, 0);
@@ -388,7 +407,7 @@ public partial class SpellBookView : Control
     private void LayoutOpening()
     {
         float t = Math.Clamp(_open / OpenTime, 0, 1);
-        float left = t < 0.5f ? SpineX : Snap(SpineX * MathF.Abs(MathF.Cos(MathF.PI * t)));
+        float left = t < 0.5f ? SpineX : BookSnap(SpineX * (1 - MathF.Abs(MathF.Cos(MathF.PI * t))));
         if (t >= 1)
             left = 0;
         _clip.Position = new Vector2(left, 0);
@@ -465,19 +484,33 @@ public partial class SpellBookView : Control
     private void DrawEffects()
     {
         float t = Math.Clamp(_open / OpenTime, 0, 1);
-        // la couverture : sur la page de droite, elle se rétrécit vers le dos
+        // la couverture : sur la page de droite, elle se rétrécit vers le dos ; du cuir rouge aux coins dorés, comme
+        // l'image du livre ouvert, plus sombre à mesure qu'elle se dresse
         if (t < 0.5f)
         {
-            float width = Snap(A(PageWidth + Cover + Spine / 2f) * MathF.Cos(MathF.PI * t));
+            float width = BookSnap(A(PageWidth + Cover + Spine / 2f) * MathF.Cos(MathF.PI * t));
             var cover = new Rect2(SpineX, 0, width, A(BookHeight));
-            _effects.DrawRect(cover, Leather);
-            _effects.DrawRect(cover, LeatherDark, false, A(2));
+            float shade = 0.5f * (1 - MathF.Cos(MathF.PI * t));
+            _effects.DrawRect(cover, CoverLeather.Darkened(shade));
+            if (width > A(12))
+            {
+                _effects.DrawRect(cover.Grow(-A(3)), CoverLight.Darkened(shade), false, BookGrid);
+                // les coins dorés du bord extérieur
+                float corner = Math.Min(A(8), BookSnapDown(width / 2));
+                foreach (float y in new[] { 0, A(BookHeight) - corner })
+                {
+                    var plate = new Rect2(cover.End.X - corner, y, corner, corner);
+                    _effects.DrawRect(plate, CoverGold.Darkened(shade));
+                    _effects.DrawRect(plate, CoverGoldDark.Darkened(shade), false, BookGrid);
+                }
+            }
+            _effects.DrawRect(cover, CoverDark, false, A(2));
             // le fer doré au milieu de la couverture
             if (width > A(40))
             {
-                var mark = new Rect2(SnapDown(cover.Position.X + cover.Size.X / 2 - A(12)), A(BookHeight / 2f - 16), A(24), A(32));
-                _effects.DrawRect(mark, Gold, false, A(2));
-                _effects.DrawRect(mark.Grow(-A(6)), Gold.Darkened(0.2f));
+                var mark = new Rect2(BookSnapDown(cover.Position.X + cover.Size.X / 2 - A(12)), A(BookHeight / 2f - 16), A(24), A(32));
+                _effects.DrawRect(mark, CoverGold.Darkened(shade), false, A(2));
+                _effects.DrawRect(mark.Grow(-A(6)), CoverGoldDark.Darkened(shade));
             }
         }
         // la lueur de l'ouverture : des rectangles de lumière autour du dos, qui s'effacent avec les étincelles
@@ -488,7 +521,7 @@ public partial class SpellBookView : Control
             for (int ring = 5; ring >= 0; ring--)
             {
                 float w = A(24 + ring * 48), h = A(BookHeight - 60 + ring * 12);
-                _effects.DrawRect(new Rect2(SnapDown(SpineX - w / 2), SnapDown(A(BookHeight / 2f) - h / 2), w, h),
+                _effects.DrawRect(new Rect2(BookSnapDown(SpineX - w / 2), BookSnapDown(A(BookHeight / 2f) - h / 2), w, h),
                     new Color(Spark, glow * 0.14f));
             }
         }
@@ -496,21 +529,21 @@ public partial class SpellBookView : Control
         if (_turn < TurnTime && _turnDirection != 0)
         {
             float u = _turn / TurnTime;
-            float width = Snap(A(PageWidth) * MathF.Abs(MathF.Cos(MathF.PI * u)));
+            float width = BookSnap(A(PageWidth) * MathF.Abs(MathF.Cos(MathF.PI * u)));
             bool onRight = (_turnDirection > 0) == (u < 0.5f);
             var sheet = new Rect2(onRight ? SpineX : SpineX - width, A(Cover), width, A(PageHeight));
             _effects.DrawRect(sheet, u < 0.5f ? Parchment : Parchment.Darkened(0.12f));
-            _effects.DrawRect(sheet, ParchmentEdge.Darkened(0.3f), false, Grid);
+            _effects.DrawRect(sheet, ParchmentEdge.Darkened(0.3f), false, BookGrid);
         }
         // les étincelles : des carrés d'un ou deux pixels d'art, sur la grille, qui pâlissent
         foreach (var s in _sparks)
         {
             float alpha = 1 - s.Age / s.Life;
-            var at = new Vector2(SnapDown(s.At.X), SnapDown(s.At.Y));
-            var size = new Vector2(Grid * s.Size, Grid * s.Size);
+            var at = new Vector2(BookSnapDown(s.At.X), BookSnapDown(s.At.Y));
+            var size = new Vector2(BookGrid * s.Size, BookGrid * s.Size);
             // un liseré d'or sombre autour des plus grosses : elles se voient sur le parchemin clair
             if (s.Size > 1)
-                _effects.DrawRect(new Rect2(at - new Vector2(Grid, Grid), size + new Vector2(2 * Grid, 2 * Grid)), new Color(Gold, alpha * 0.6f));
+                _effects.DrawRect(new Rect2(at - new Vector2(BookGrid, BookGrid), size + new Vector2(2 * BookGrid, 2 * BookGrid)), new Color(Gold, alpha * 0.6f));
             _effects.DrawRect(new Rect2(at, size), new Color(s.Color, alpha));
         }
     }
@@ -532,7 +565,7 @@ public partial class SpellBookView : Control
         var book = new Rect2(Vector2.Zero, A(BookWidth, BookHeight));
         _bookLayer.DrawRect(book, Leather);
         _bookLayer.DrawRect(book, LeatherDark, false, A(2));
-        _bookLayer.DrawRect(new Rect2(A(3, 3), A(BookWidth - 6, BookHeight - 6)), LeatherLight, false, Grid);
+        _bookLayer.DrawRect(new Rect2(A(3, 3), A(BookWidth - 6, BookHeight - 6)), LeatherLight, false, BookGrid);
         _bookLayer.DrawRect(new Rect2(A(Cover + PageWidth, 0), A(Spine, BookHeight)), LeatherDark);
         // les deux pages, plus sombres vers le dos (la courbure du papier) et sur leur bord
         for (int side = 0; side < 2; side++)
@@ -550,6 +583,6 @@ public partial class SpellBookView : Control
             float x = side == 0 ? page.End.X - (i + 1) * w : page.Position.X + i * w;
             canvas.DrawRect(new Rect2(x, page.Position.Y, w, page.Size.Y), new Color(ParchmentEdge, 0.9f - i * 0.15f));
         }
-        canvas.DrawRect(page, ParchmentEdge.Darkened(0.25f), false, Grid);
+        canvas.DrawRect(page, ParchmentEdge.Darkened(0.25f), false, BookGrid);
     }
 }

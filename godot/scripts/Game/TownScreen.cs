@@ -514,8 +514,8 @@ public partial class TownScreen : CanvasLayer
             {
                 if (!GodotObject.IsInstanceValid(rune))
                     return;
-                float time = 3.2f + Next() * 1.6f, angle = Next() * MathF.Tau, reach = ArtPx(3 + Next() * 4);
-                var start = home + new Vector2(Next() - 0.5f, Next() - 0.5f) * ArtPx(4);
+                float time = 4.2f + Next() * 2f, angle = Next() * MathF.Tau, reach = ArtPx(6 + Next() * 6);
+                var start = home + new Vector2(Next() - 0.5f, Next() - 0.5f) * ArtPx(8);
                 rune.Position = start;
                 var tween = rune.CreateTween();
                 tween.TweenProperty(rune, "position", start + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * reach, time)

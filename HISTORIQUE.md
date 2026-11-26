@@ -3687,7 +3687,10 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   pâle dans un halo bleu clair. Animées par des tweens (un shader qui décalait des colonnes d'un pixel sautait) : chaque
   rune dérive dans une direction tirée au sort en s'allumant puis s'effaçant, filtrée en douceur pour glisser entre
   les pixels. Environ 4,50 $ de PixelLab pour toute la suite. Puis (2026-11-26, abonnement PixelLab) des écuries un
-  peu plus détaillées (paille, seaux, lanterne, selle ; essai 91).
+  peu plus détaillées (paille, seaux, lanterne, selle ; essai 91). La **demeure du héros**, montrée tant que la ville
+  n'a pas de fort (`TownScene.Home`, aucun bâtiment construit avec des murs) : peinte par PixelLab « repeindre » (permis
+  par l'abonnement) dans la scène vide, au bout du chemin sur la colline, gardée seule (`demeure.png`), à la profondeur
+  du fort ; au survol « Demeure du héros », un clic ouvre Construire. Le bâtiment du Graal est mis de côté.
 - **Une image de combat par héros** (demandé par l'utilisateur, 2026-11-07) : le héros dessiné sur le côté du champ
   (aujourd'hui son image de la carte ×4), qui ressemble à son portrait (PixelLab, le portrait comme référence) ; à
   cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).

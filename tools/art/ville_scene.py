@@ -6,8 +6,8 @@
 # sur-sol/<id>.png (pour couper ce que cache la colline), ombres-contact/<id>.png, ajouts/<id>.png (peint en plus sur le sol
 # visible, s'il y en a), lueurs/<id>.json et lueurs/runes/ (des runes
 # animées par le jeu, autour de la guilde des mages : runes_guilde.py), decor-devant/<id>.png (le décor que seul
-# ce bâtiment et le sol cachent : rendre_devant.py ; sinon visible/decor.png), peints/decor.png, et
-# composer_scene.py qui fait le fond (montagnes, sol, ombres du décor, décor).
+# ce bâtiment et le sol cachent : rendre_devant.py ; sinon visible/decor.png), peints/decor.png, demeure.png (la
+# demeure du héros, avant le fort, peinte dans la scène vide), et composer_scene.py qui fait le fond (montagnes, sol, ombres du décor, décor).
 #
 # Dans le jeu, de l'arrière vers l'avant : fond.png, l'ombre de chaque bâtiment bâti (déjà coupée sous le décor, et réglée
 # là où elle couvre l'ombre du décor : le même résultat que l'union des ombres de composer_scene.py), les bâtiments du plus
@@ -200,9 +200,17 @@ def main():
             entree["runes"] = [[x, y - HAUT, n] for x, y, n in json.load(open(lueur))]
         batiments.append(entree)
 
-    scene = {"width": 960, "height": HAUTEUR, "buildings": batiments}
+    # la demeure du héros, avant le fort (demeure.png, 960 × 540 : peinte dans la scène vide), à la profondeur du fort
+    demeure = None
+    if os.path.exists(os.path.join(src, "demeure.png")):
+        im, x, y = rogner(bande(Image.open(os.path.join(src, "demeure.png")).convert("RGBA")), marge=1)
+        im.save(os.path.join(dest, "demeure.png"))
+        demeure = {"id": "demeure", "x": x, "y": y, "depth": places["fort"]["profondeur"]}
     with open(os.path.join(dest, "scene.json"), "w", encoding="utf-8") as f:
-        f.write("{\n  \"width\": 960, \"height\": %d,\n  \"buildings\": [\n" % HAUTEUR)
+        f.write("{\n  \"width\": 960, \"height\": %d,\n" % HAUTEUR)
+        if demeure:
+            f.write("  \"home\": %s,\n" % json.dumps(demeure))
+        f.write("  \"buildings\": [\n")
         f.write(",\n".join("    " + json.dumps(b, ensure_ascii=False) for b in batiments))
         f.write("\n  ]\n}\n")
     print(f"{len(batiments)} bâtiments dans {dest}")

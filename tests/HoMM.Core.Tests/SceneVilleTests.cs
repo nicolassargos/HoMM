@@ -75,6 +75,19 @@ public class SceneVilleTests
     }
 
     [Fact]
+    public void La_demeure_du_heros_est_montree_jusqu_au_fort()
+    {
+        var scene = Scene("chateau");
+        var buildings = TestData.Data.Buildings.OfFaction("chateau").ToList();
+        BuildingType Get(string id) => buildings.Single(b => b.Id == id);
+        Assert.NotNull(scene.Home);
+        Assert.True(File.Exists(Path.Combine(Folder("chateau"), "demeure.png")));
+        Assert.True(scene.HomeShown(new[] { Get("salle-village"), Get("taverne") }));
+        Assert.False(scene.HomeShown(new[] { Get("salle-village"), Get("fort") }));
+        Assert.False(scene.HomeShown(Chain(buildings, Get("chateau-fort"))));
+    }
+
+    [Fact]
     public void Les_batiments_sont_montres_du_plus_loin_au_plus_proche()
     {
         var scene = Scene("chateau");

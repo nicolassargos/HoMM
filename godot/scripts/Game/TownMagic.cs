@@ -59,7 +59,7 @@ public partial class TownMagic : Control
         if (_magic.Orbit is { } o && _magic.Orbiters is { Count: > 0 } orbiters)
             for (int k = 0; k < orbiters.Count; k++)
             {
-                float a = _time * MathF.Tau / 16f + k * MathF.Tau / orbiters.Count;
+                float a = _time * MathF.Tau / 24f + k * MathF.Tau / orbiters.Count;
                 bool front = MathF.Sin(a) > 0;
                 if (front != _front)
                     continue;

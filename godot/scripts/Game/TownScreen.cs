@@ -483,7 +483,7 @@ public partial class TownScreen : CanvasLayer
 
     /// <summary>
     /// La ville en images, ×2, posée en bas au milieu de la vue : le fond, les ombres des bâtiments construits, les
-    /// bâtiments du plus loin au plus proche, chacun suivi du décor qui passe devant lui.
+    /// bâtiments du plus loin au plus proche, chacun suivi du décor qui passe devant lui et de ses runes qui flottent.
     /// </summary>
     private void ShowScene(Town town, TownScene scene)
     {
@@ -503,11 +503,46 @@ public partial class TownScreen : CanvasLayer
             return picture;
         }
         Layer("fond", 0, 0);
+        // une rune dérive doucement dans une direction tirée au sort en s'allumant puis en s'effaçant, et recommence
+        // ailleurs près de sa place, dans une autre direction, chacune à son rythme
+        void Float(Control rune, int n)
+        {
+            var home = rune.Position;
+            var rng = new Random(n * 7919 + 17);
+            float Next() => (float)rng.NextDouble();
+            void Cycle()
+            {
+                if (!GodotObject.IsInstanceValid(rune))
+                    return;
+                float time = 4.2f + Next() * 2f, angle = Next() * MathF.Tau, reach = ArtPx(6 + Next() * 6);
+                var start = home + new Vector2(Next() - 0.5f, Next() - 0.5f) * ArtPx(8);
+                rune.Position = start;
+                var tween = rune.CreateTween();
+                tween.TweenProperty(rune, "position", start + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * reach, time)
+                    .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+                tween.Parallel().TweenProperty(rune, "modulate:a", 1f, time * 0.35).From(0f);
+                tween.Parallel().TweenProperty(rune, "modulate:a", 0f, time * 0.4).SetDelay(time * 0.6);
+                tween.TweenInterval(Next() * 0.8);
+                tween.TweenCallback(Callable.From(Cycle));
+            }
+            // filtrée en douceur : une rune si petite et si claire sautait d'un pixel à l'autre ; elle glisse entre eux
+            rune.TextureFilter = CanvasItem.TextureFilterEnum.Linear;
+            rune.Modulate = new Color(1, 1, 1, 0);
+            rune.CreateTween().TweenCallback(Callable.From(Cycle)).SetDelay(0.45 * n % 2.2);
+        }
         var shown = scene.Shown(town.BuiltBuildings).ToList();
         foreach (var (building, place) in shown.Where(s => s.Place.ShadowX != null))
             _buildingShadows[building.Id] = Layer(place.Id + "-ombre", place.ShadowX!.Value, place.ShadowY!.Value);
+        // avant le fort, la demeure du héros à sa place, à sa profondeur parmi les bâtiments ; un clic : recruter (toutes
+        // les habitations, comme le fort et ses suites)
+        var home = scene.HomeShown(town.BuiltBuildings) ? scene.Home : null;
         foreach (var (building, place) in shown)
         {
+            if (home != null && home.Depth >= place.Depth)
+            {
+                ShowHome(home);
+                home = null;
+            }
             var sprite = new TownSceneSprite(Art.GetImage(folder + place.Id)!)
             {
                 Position = new Vector2(place.X, place.Y) * ArtScale, TooltipText = Texts.BuildingTooltip(town, building),
@@ -518,6 +553,24 @@ public partial class TownScreen : CanvasLayer
             // le décor qui passe devant lui, tout de suite : les bâtiments plus proches le couvrent encore
             if (place.FrontX != null)
                 Layer(place.Id + "-devant", place.FrontX.Value, place.FrontY!.Value);
+            foreach (var (rune, n) in (place.Runes ?? new()).Select((r, n) => (r, n)))
+                Float(Layer($"rune-{rune[2]}", rune[0], rune[1]), n);
+        }
+        if (home != null)
+            ShowHome(home);
+
+        void ShowHome(TownScenePlace place)
+        {
+            var sprite = new TownSceneSprite(Art.GetImage(folder + place.Id)!)
+            {
+                Position = new Vector2(place.X, place.Y) * ArtScale, TooltipText = Texts.HeroHome,
+            };
+            sprite.GuiInput += e =>
+            {
+                if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
+                    OpenRecruitWindow(null);
+            };
+            _sceneLayer.AddChild(sprite);
         }
     }
 
@@ -544,7 +597,10 @@ public partial class TownScreen : CanvasLayer
         return box;
     }
 
-    /// <summary>Un clic sur un bâtiment l'utilise : recruter, la taverne, la guilde, le marché, le chantier, construire.</summary>
+    /// <summary>
+    /// Un clic sur un bâtiment l'utilise : recruter (une habitation, ou toutes depuis le fort et ses suites, comme le
+    /// château de Heroes 3), la taverne, la guilde, le marché, le chantier, construire (l'hôtel de ville).
+    /// </summary>
     private void ClickBuilding(InputEvent e, Town town, BuildingType building)
     {
         if (e is not InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
@@ -559,6 +615,8 @@ public partial class TownScreen : CanvasLayer
             OpenMarket();
         else if (building.Shipyard)
             OpenShipyard();
+        else if (building.Walls > 0)
+            OpenRecruitWindow(null);
         else if (building.DailyGold > 0)
             OpenBuild();
     }

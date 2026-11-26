@@ -1385,9 +1385,13 @@ public static class Texts
     {
         string effect = BuildingEffect(town, building);
         string click = building.Dwelling != null ? "Clic : recruter" : building.Tavern ? "Clic : la taverne"
-            : building.MageGuild > 0 ? "Clic : la guilde des mages" : building.DailyGold > 0 ? "Clic : construire" : "";
+            : building.MageGuild > 0 ? "Clic : la guilde des mages" : building.Walls > 0 ? "Clic : recruter les créatures"
+            : building.DailyGold > 0 ? "Clic : construire" : "";
         return string.Join("\n", new[] { building.Name, effect, click }.Where(s => s.Length > 0));
     }
+
+    /// <summary>Au survol de la demeure du héros, dans la ville qui n'a pas encore de fort.</summary>
+    public static string HeroHome => "Demeure du héros\nLe fort la remplacera\nClic : recruter les créatures";
 
     public static string BuildTitle(Town town) => $"Construire à {town.Name}";
     public static string ToBuild => "Un bâtiment par jour";

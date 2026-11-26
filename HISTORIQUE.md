@@ -3484,6 +3484,12 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   la partie de la case ennemie sous la souris donne le côté d'où la troupe frappe (un côté impossible passe au plus
   proche) ; l'épée du curseur pointe vers la cible depuis ce côté (six images, l'épée C15 choisie par l'utilisateur,
   retournée, redessinée à plat pour la droite et la gauche) ; la case d'arrivée est mise en valeur. On vise une créature aussi par son corps, qui dépasse de sa case (sa tête : le haut, ses pieds : le bas). Un tir montre une flèche (la 15, choisie par l'utilisateur ; PixelLab), brisée quand il est trop lointain et ne fait que moitié des dégâts (`TacticalBattle.IsLongShot`), comme Heroes 3.
+- ✅ **Les curseurs du combat selon le déplacement** (demandé par l'utilisateur, 2026-11-26, branche `combat-curseurs`) :
+  une troupe qui marche montre des bottes (`walk.png`, F5 du quatrième tour), une troupe qui vole une aile (`fly.png`, A7),
+  aussi au placement de la Tactique ; viser avec un sort ou choisir la case d'une téléportation montre une baguette
+  (`spell.png`, B30, le clic au pixel du haut à gauche). `CursorKind.Walk`, `Fly`, `Spell` ; images PixelLab choisies
+  par l'utilisateur (les bottes en quatre tours : trop pareilles, une botte plus petite, une retouche à la main rejetée,
+  « pas assez de détails »).
 - **Les barres de défilement** : la poignée comme taillée dans la pierre (demandé par l'utilisateur, 2026-11-08).
 - **Harmoniser l'interface**, comme Heroes 1 et 2 dessinés sur une seule grille (demandé par l'utilisateur, 2026-11-11,
   après le passage à ×2 ; branche `interface-harmonie`). ✅ 1. Les tailles communes (`Ui.cs`) : toutes les longueurs
@@ -3684,6 +3690,27 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Commanderie, la Tour des griffons passait devant les maisons et les arbres), dessiné juste après son bâtiment, bouché,
   et couvrant le bord peint qui déborde de la maquette ; le pied de la Tour des griffons finit en touffes d'herbe
   (`TOUFFES`) ; le silo repeint, vu à peine d'en haut (PixelLab, 0,48 $, essai 12 choisi).
+  **Suite** (2026-11-25 et 26, branche `ville-ferme-champ`) : la cour de la ferme descend derrière la colline dans la
+  maquette ; une barrière et un petit champ peints sur l'herbe visible (PixelLab « retoucher » sur la scène, l'inpainting
+  demandant un abonnement), gardés seuls dans `ajouts/<id>.png`, ajoutés à l'image sans coupe. La salle du village
+  repeinte plus douce, puis l'hôtel de ville, le grand hôtel de ville et le capitole d'après elle (le capitole d'après
+  le grand hôtel : peints chacun d'après la salle, ils ne se suivaient pas), à la même place, 40 px plus haute
+  (`MEME_PLACE` : la place et les masques de la première étape). Les bâtiments « croustillants » repeints plus doux
+  (Tour des griffons, marché, écuries avec des chevaux). La guilde grandit en coupant des tronçons de pierre de sa tour
+  (gratuit ; le pied et le toit gardés). Ses runes (`runes_guilde.py`) : d'abord des morceaux d'un essai PixelLab
+  (illisibles), puis huit runes du vieux futhark dessinées (5 × 7) ; un contour sombre les rendait trop nettes : un cœur
+  pâle dans un halo bleu clair. Animées par des tweens (un shader qui décalait des colonnes d'un pixel sautait) : chaque
+  rune dérive dans une direction tirée au sort en s'allumant puis s'effaçant, filtrée en douceur pour glisser entre
+  les pixels. Environ 4,50 $ de PixelLab pour toute la suite. Puis (2026-11-26, abonnement PixelLab) des écuries un
+  peu plus détaillées (paille, seaux, lanterne, selle ; essai 91). La **demeure du héros**, montrée tant que la ville
+  n'a pas de fort (`TownScene.Home`, aucun bâtiment construit avec des murs) : peinte par PixelLab « repeindre » (permis
+  par l'abonnement) dans la scène vide, au bout du chemin sur la colline, gardée seule (`demeure.png`), à la profondeur
+  du fort ; au survol « Demeure du héros », un clic ouvre Construire. Le bâtiment du Graal est mis de côté.
+  Le **chantier naval** : un port au premier plan, en bas à gauche, était charmant mais faux (le bas du cadre n'est pas le
+  sol : la taverne et le marché descendent plus bas que cette eau, le quai y était à l'étage) ; un petit lac au loin sur
+  la plaine, à droite de la Tour des griffons, avec un ponton, un voilier et une remise (PixelLab « repeindre », essai
+  134), gardé derrière le décor de devant ; `SANS_MAQUETTE` dans `ville_scene.py` (une image peinte, sans coupe ni
+  ombre, derrière tous les bâtiments). La Commanderie le cache une fois bâtie (accepté par l'utilisateur).
 - **Une image de combat par héros** (demandé par l'utilisateur, 2026-11-07) : le héros dessiné sur le côté du champ
   (aujourd'hui son image de la carte ×4), qui ressemble à son portrait (PixelLab, le portrait comme référence) ; à
   cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).

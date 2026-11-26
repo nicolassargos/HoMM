@@ -14,24 +14,14 @@ public class SceneVilleTests
     private static TownScene Scene(string faction) =>
         TownScene.FromJson(File.ReadAllText(Path.Combine(Folder(faction), "scene.json")));
 
-    /// <summary>
-    /// Les bâtiments du Château pas encore dessinés : ils prennent l'image de celui qu'ils remplacent (l'hôtel de ville,
-    /// celle de la salle du village), sauf le chantier naval, pas encore montré. À retirer de la liste une fois dessinés.
-    /// </summary>
-    private static readonly string[] CastleNotDrawn =
-    {
-        "hotel-ville", "grand-hotel-ville", "capitole", "guilde-mages-2", "guilde-mages-3", "guilde-mages-4", "chantier-naval",
-    };
-
     [Fact]
     public void La_scene_du_Chateau_couvre_ses_batiments()
     {
         var scene = Scene("chateau");
         var buildings = TestData.Data.Buildings.OfFaction("chateau").ToList();
-        var missing = buildings.Where(b => scene.Find(b.Id) == null).Select(b => b.Id).OrderBy(id => id);
-        Assert.Equal(CastleNotDrawn.OrderBy(id => id), missing);
-        // chacun est montré une fois bâti, par son image ou celle de ce qu'il remplace, sauf le chantier naval
-        foreach (var building in buildings.Where(b => b.Id != "chantier-naval"))
+        Assert.Empty(buildings.Where(b => scene.Find(b.Id) == null).Select(b => b.Id));
+        // chacun est montré une fois bâti, à sa place
+        foreach (var building in buildings)
         {
             var built = Chain(buildings, building);
             Assert.Contains(scene.Shown(built), s => s.Building == building);
@@ -50,6 +40,8 @@ public class SceneVilleTests
                 Assert.True(File.Exists(Path.Combine(Folder("chateau"), place.Id + "-ombre.png")), place.Id);
             if (place.FrontX != null)
                 Assert.True(File.Exists(Path.Combine(Folder("chateau"), place.Id + "-devant.png")), place.Id);
+            foreach (var rune in place.Runes ?? new())
+                Assert.True(File.Exists(Path.Combine(Folder("chateau"), $"rune-{rune[2]}.png")), place.Id);
         }
     }
 
@@ -65,12 +57,27 @@ public class SceneVilleTests
     [Fact]
     public void Un_batiment_pas_encore_dessine_prend_l_image_de_celui_qu_il_remplace()
     {
-        var scene = Scene("chateau");
+        // la scène du Château sans les guildes 2 et 3 : la guilde 3 prend l'image de la guilde 1
+        var full = Scene("chateau");
+        var scene = new TownScene(full.Width, full.Height, full.Places.Where(p => p.Id is not ("guilde-mages-2" or "guilde-mages-3")));
         var buildings = TestData.Data.Buildings.OfFaction("chateau").ToList();
         var shown = scene.Shown(Chain(buildings, buildings.Single(b => b.Id == "guilde-mages-3"))).ToList();
         var (building, place) = Assert.Single(shown);
         Assert.Equal("guilde-mages-3", building.Id);
         Assert.Equal("guilde-mages-1", place.Id);
+    }
+
+    [Fact]
+    public void La_demeure_du_heros_est_montree_jusqu_au_fort()
+    {
+        var scene = Scene("chateau");
+        var buildings = TestData.Data.Buildings.OfFaction("chateau").ToList();
+        BuildingType Get(string id) => buildings.Single(b => b.Id == id);
+        Assert.NotNull(scene.Home);
+        Assert.True(File.Exists(Path.Combine(Folder("chateau"), "demeure.png")));
+        Assert.True(scene.HomeShown(new[] { Get("salle-village"), Get("taverne") }));
+        Assert.False(scene.HomeShown(new[] { Get("salle-village"), Get("fort") }));
+        Assert.False(scene.HomeShown(Chain(buildings, Get("chateau-fort"))));
     }
 
     [Fact]

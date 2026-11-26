@@ -6,11 +6,12 @@ namespace HoMM.Core;
 
 /// <summary>
 /// La place d'un bâtiment dans la scène d'une ville : le coin haut-gauche de son image, sa profondeur (distance à la
-/// caméra : les plus loin dessinés d'abord), et s'il y en a, le coin de son ombre et du décor qui passe devant lui.
+/// caméra : les plus loin dessinés d'abord), et s'il y en a, le coin de son ombre et du décor qui passe devant lui, et
+/// des runes qui flottent autour (la guilde des mages : [x, y, n], le coin de chacune et son image rune-&lt;n&gt;.png).
 /// En pixels d'art de la scène.
 /// </summary>
 public sealed record TownScenePlace(string Id, int X, int Y, double Depth, int? ShadowX = null, int? ShadowY = null,
-    int? FrontX = null, int? FrontY = null);
+    int? FrontX = null, int? FrontY = null, List<int[]>? Runes = null);
 
 /// <summary>
 /// La scène d'une ville vue de face (art/towns/&lt;faction&gt;/scene.json, écrit par tools/art/ville_scene.py) : un fond,
@@ -18,15 +19,18 @@ public sealed record TownScenePlace(string Id, int X, int Y, double Depth, int? 
 /// </summary>
 public sealed class TownScene
 {
-    private sealed record SceneFile(int Width, int Height, List<TownScenePlace> Buildings);
+    private sealed record SceneFile(int Width, int Height, List<TownScenePlace> Buildings, TownScenePlace? Home = null);
 
     public int Width { get; }
     public int Height { get; }
     public IReadOnlyList<TownScenePlace> Places { get; }
 
-    public TownScene(int width, int height, IEnumerable<TownScenePlace> places)
+    /// <summary>La demeure du héros (son image : demeure.png), montrée tant que la ville n'a pas de fort, ou null.</summary>
+    public TownScenePlace? Home { get; }
+
+    public TownScene(int width, int height, IEnumerable<TownScenePlace> places, TownScenePlace? home = null)
     {
-        (Width, Height, Places) = (width, height, places.ToList());
+        (Width, Height, Places, Home) = (width, height, places.ToList(), home);
         foreach (var twice in Places.GroupBy(p => p.Id).Where(g => g.Count() > 1))
             throw new FormatException($"Scène de ville : le bâtiment {twice.Key} a deux places.");
     }
@@ -34,8 +38,11 @@ public sealed class TownScene
     public static TownScene FromJson(string json)
     {
         var file = GameData.Parse<SceneFile>(json, "scène de ville");
-        return new TownScene(file.Width, file.Height, file.Buildings);
+        return new TownScene(file.Width, file.Height, file.Buildings, file.Home);
     }
+
+    /// <summary>La demeure du héros est montrée tant qu'aucun bâtiment construit n'a de murs (le fort et ses suites).</summary>
+    public bool HomeShown(IEnumerable<BuildingType> built) => Home != null && !built.Any(b => b.Walls > 0);
 
     public TownScenePlace? Find(string id) => Places.FirstOrDefault(p => p.Id == id);
 

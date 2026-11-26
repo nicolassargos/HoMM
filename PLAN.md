@@ -178,7 +178,7 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
   des mages 1 à 4 ; taverne ; marché ; **silo** (+1 par jour de la ressource principale de la faction) ; **forge**
   (machines de guerre : baliste, tente de soins, chariot de munitions ; **à décider** : maintenant, ou seulement sa
   place dans la scène) ; chantier naval ; **bâtiment du Graal** (bâti avec le trésor enfoui des obélisques, un grand
-  bonus propre à la faction).
+  bonus propre à la faction ; **mis de côté pour l'instant**, choix de l'utilisateur, 2026-11-26).
 - **Par faction (9 places)** : les 7 habitations, chacune avec son **amélioration** (d'où viennent les créatures
   améliorées) ; un **bâtiment de croissance** d'un petit niveau (les « hordes » de Heroes 3) ; un **bâtiment spécial**.
 - **Les bâtiments spéciaux** (choix de l'utilisateur, 2026-11-20, après trois tours d'idées : des effets qui changent la
@@ -212,7 +212,7 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
   - **Ensuite** : l'IA apprend à attaquer et à défendre les murs ; refaire les `Mesures` (une ville sans fort devient
     plus facile à prendre) ; peut-être des bâtiments spéciaux qui touchent les murs.
 - **Règles à faire (session règles)** : les sièges et les murs, les machines de guerre, les créatures améliorées, le
-  bonus du Graal de chaque faction, les bâtiments spéciaux et de croissance ; leurs noms (français) ; puis les `Mesures`.
+  bonus du Graal de chaque faction (mis de côté), les bâtiments spéciaux et de croissance ; leurs noms (français) ; puis les `Mesures`.
   Les images des villes peuvent commencer dès que la liste est fixée.
 
 ### L'économie ✅
@@ -291,8 +291,9 @@ se cabrent en arrière ; préférés par l'utilisateur à ceux de `animations-dr
 ✅ La mort et le coup reçu de l'Archer, du Griffon et du Cavalier (2026-11-19, branche `morts-chateau`) ; ceux du
 **Loup**, du **Moine** et du **Troll** refaits d'après leurs nouvelles images (2026-11-19).
 ✅ **Viser une attaque par la case** (2026-11-26, branche `combat-visee-case`) : la souris sur une case libre à côté d'un
-ennemi, la troupe y va et frappe. **Reste** (idées de l'utilisateur) : un plus beau curseur de déplacement, selon la
-façon d'aller (une botte qui marche, une aile pour les volants) ; un curseur pour les créatures qui lanceront des sorts.
+ennemi, la troupe y va et frappe.
+✅ Les **curseurs** de déplacement selon la troupe (bottes, aile) et une baguette pour les sorts (2026-11-26, branche
+`combat-curseurs`).
 
 ### Les héros en images
 ✅ Le héros de chaque faction sur la carte (8 directions, une marche), leurs pieds revus.
@@ -325,9 +326,13 @@ pieds non revus (champ de la roche, massifs, arbres des sols, ponts).
 La liste de ses bâtiments : « Les bâtiments des villes », plus haut.
 ✅ **La scène du Château dans le jeu** (2026-11-25, branche `ville-chateau-scene` ; détail dans `HISTORIQUE.md`) : le
 fond, 17 bâtiments à leur place, leurs ombres, le décor qui passe devant, clic et contour au survol sur les pixels.
-**Reste** pour le Château : la demeure du héros (avant le fort) ; l'hôtel de ville et ses suites, les guildes 2 à 4
-(l'image de ce qu'ils remplacent en attendant), le chantier naval, le Graal, les habitations améliorées ; l'onglet du
-nom qui cache le bas du milieu de la scène. Puis les sept autres factions (les morts-vivants d'abord).
+✅ Retouches (2026-11-25 et 26) : la ferme et son champ, les quatre étapes de l'hôtel de ville, les quatre niveaux de
+la guilde (des runes de lumière qui dérivent autour), des bâtiments repeints plus doux.
+✅ La demeure du héros avant le fort (2026-11-26) : peinte dans la scène vide au bout du chemin (PixelLab, repeindre).
+✅ Le chantier naval (2026-11-26) : un petit lac au loin sur la plaine, avec un ponton et un voilier (l'eau ne peut pas
+être au premier plan : le sol y est plus haut que le bas du cadre) ; caché quand la Commanderie est bâtie.
+**Reste** pour le Château : les habitations améliorées (plus tard, avec les créatures améliorées) ; l'onglet du nom qui cache le bas du milieu de la
+scène. Puis les sept autres factions (les morts-vivants d'abord).
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,
 affiché ×2** sur toute la largeur de l'écran comme tout le pixel art (choix de l'utilisateur, 2026-11-21, avec la
 disposition de l'écran ; d'abord 640 × 195 à ×3, puis 960 × 292), et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque

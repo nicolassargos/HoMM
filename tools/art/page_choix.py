@@ -24,8 +24,11 @@ FONDS = {"eau": "#2d6488", "herbe": "#5a7a3e"}
 
 
 def taille(chemin):
+    """La largeur et la hauteur d'un PNG ou d'un GIF (lues dans l'en-tête)."""
     with open(chemin, "rb") as f:
         tete = f.read(24)
+    if tete[:3] == b"GIF":
+        return int.from_bytes(tete[6:8], "little"), int.from_bytes(tete[8:10], "little")
     return int.from_bytes(tete[16:20], "big"), int.from_bytes(tete[20:24], "big")
 
 

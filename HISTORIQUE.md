@@ -2552,7 +2552,7 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
     branche `ville-fonds-troupes` du 2026-11-22) : `art/ui/fonds-troupes/<faction>.png` (103 × 120, ×2, posé en bas de
     l'emplacement, coupé par le cadre), les pieds des créatures sur une même ligne, chaque emplacement dans le cadre
     mince. La première colonne (l'image de la ville, le portrait) passe à 164 de large pour que le portrait tienne dans
-    le cadre ; les places des troupes à 204 × 244.
+    le cadre ; les places des troupes à 204 × 244 (puis 204 × 236, le 2026-11-26 : la rangée du héros et les deux boutons à icône mordaient sur la barre d'état ; ils finissent maintenant 10 pixels au-dessus).
   - Le Château : l'utilisateur a d'abord choisi `chateau-5/1` (des montagnes bleues, plates), puis l'a fait repeindre
     dans le style de sa scène (plus de couleurs, d'autres montagnes) ; choisi `chateau-6-11/3` (méthode dans
     `tools/art/METHODE.md`).

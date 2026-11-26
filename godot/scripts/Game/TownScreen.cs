@@ -24,7 +24,7 @@ public partial class TownScreen : CanvasLayer
     // une place de l'armée, en pixels (choix de l'utilisateur, 2026-11-21 : de grandes places, la créature toujours ×2, le
     // nombre par-dessus) : la taille de la garnison dans la disposition, divisée en 7 ; l'image de la ville et le
     // portrait, plus étroits, devant chaque rangée
-    private Vector2 _cell = new(204, 244), _firstCell = new(164, 244);
+    private Vector2 _cell = new(204, 236), _firstCell = new(164, 236);
 
     private GameState _state = null!;
     private Town? _town;

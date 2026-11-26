@@ -3475,6 +3475,12 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   la partie de la case ennemie sous la souris donne le côté d'où la troupe frappe (un côté impossible passe au plus
   proche) ; l'épée du curseur pointe vers la cible depuis ce côté (six images, l'épée C15 choisie par l'utilisateur,
   retournée, redessinée à plat pour la droite et la gauche) ; la case d'arrivée est mise en valeur. On vise une créature aussi par son corps, qui dépasse de sa case (sa tête : le haut, ses pieds : le bas). Un tir montre une flèche (la 15, choisie par l'utilisateur ; PixelLab), brisée quand il est trop lointain et ne fait que moitié des dégâts (`TacticalBattle.IsLongShot`), comme Heroes 3.
+- ✅ **Les curseurs du combat selon le déplacement** (demandé par l'utilisateur, 2026-11-26, branche `combat-curseurs`) :
+  une troupe qui marche montre des bottes (`walk.png`, F5 du quatrième tour), une troupe qui vole une aile (`fly.png`, A7),
+  aussi au placement de la Tactique ; viser avec un sort ou choisir la case d'une téléportation montre une baguette
+  (`spell.png`, B30, le clic au pixel du haut à gauche). `CursorKind.Walk`, `Fly`, `Spell` ; images PixelLab choisies
+  par l'utilisateur (les bottes en quatre tours : trop pareilles, une botte plus petite, une retouche à la main rejetée,
+  « pas assez de détails »).
 - **Les barres de défilement** : la poignée comme taillée dans la pierre (demandé par l'utilisateur, 2026-11-08).
 - **Harmoniser l'interface**, comme Heroes 1 et 2 dessinés sur une seule grille (demandé par l'utilisateur, 2026-11-11,
   après le passage à ×2 ; branche `interface-harmonie`). ✅ 1. Les tailles communes (`Ui.cs`) : toutes les longueurs

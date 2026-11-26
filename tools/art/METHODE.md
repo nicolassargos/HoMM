@@ -29,6 +29,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   le pixel le plus présent de chaque bloc), puis **la lame redessinée à la main** : tournée, son contour du haut était en
   pointillés et sa pointe sortait de l'image (une épée en diagonale est plus longue qu'à plat sur 32 pixels). À plat, elle paraissait courte : allongée de 25 % (lame +6, poignée +2) dans une image de 40 × 32 (un curseur n'a pas à être carré). Le pommeau rond, perdu en tournant, redessiné à la main (44 × 32).
 - **Flèche de tir** (2026-11-10) : PixelLab « pro » 32 × 32, l'épée C15 comme style (64 candidats, 0,08 $), la 15 choisie ; la flèche brisée (tir trop lointain) en est faite sans dépense : la moitié avec la pointe décalée de 3 pixels à droite et 1 en haut, deux rangées de hampe retirées.
+- **Curseurs de déplacement et de sort au combat** (2026-11-26) : PixelLab « pro » 32 × 32. Bottes (marche), aile (vol),
+  baguette (sort). Ce qui a compté : demander le **mouvement** (« walking », « flapping ») sinon les 64 se ressemblent ;
+  les bottes avaient besoin de **détails** nommés (semelle sombre, revers, lacets, boucle, coutures, trois tons) et de
+  l'aile choisie (`cursors/fly.png`) comme style. `retoucher` (agrandir une botte) a coûté 460 générations pour rien, et la
+  retouche à la main a été rejetée : régénérer coûte moins (80 générations le lot). Deux descriptions ont été refusées
+  par PixelLab (« against policy », sans raison donnée) : reformuler suffit.
 - `tools/art/reduire.py` réduit une image sans la flouter (palette d'origine) et peut la retourner (`--miroir`) ;
   `tools/art/palette.py entree sortie 16` ramène à 16 couleurs ; `tools/art/adoucir.py` adoucit un contour noir ;
   `tools/art/detourer.py` rend transparent un fond uni ; `tools/art/cadre.py` rend transparent le centre uni d'un cadre.

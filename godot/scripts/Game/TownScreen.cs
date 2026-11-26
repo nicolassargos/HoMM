@@ -555,6 +555,9 @@ public partial class TownScreen : CanvasLayer
                 Layer(place.Id + "-devant", place.FrontX.Value, place.FrontY!.Value);
             foreach (var (rune, n) in (place.Runes ?? new()).Select((r, n) => (r, n)))
                 Float(Layer($"rune-{rune[2]}", rune[0], rune[1]), n);
+            // la fumée de ses cheminées, dessinée par le jeu
+            foreach (var chimney in place.Smoke ?? new())
+                _sceneLayer.AddChild(new TownSmoke(chimney[0] * 31 + chimney[1]) { Position = new Vector2(chimney[0], chimney[1]) * ArtScale });
         }
         if (home != null)
             ShowHome(home);

@@ -503,16 +503,30 @@ public partial class TownScreen : CanvasLayer
             return picture;
         }
         Layer("fond", 0, 0);
-        // une rune monte doucement en s'allumant puis en s'effaçant, et recommence, chacune à son rythme
+        // une rune dérive doucement dans une direction tirée au sort en s'allumant puis en s'effaçant, et recommence
+        // ailleurs près de sa place, dans une autre direction, chacune à son rythme
         void Float(Control rune, int n)
         {
-            float bottom = rune.Position.Y, rise = ArtPx(8), cycle = 3.6f + n % 3 * 0.5f;
+            var home = rune.Position;
+            var rng = new Random(n * 7919 + 17);
+            float Next() => (float)rng.NextDouble();
+            void Cycle()
+            {
+                if (!GodotObject.IsInstanceValid(rune))
+                    return;
+                float time = 3.2f + Next() * 1.6f, angle = Next() * MathF.Tau, reach = ArtPx(3 + Next() * 4);
+                var start = home + new Vector2(Next() - 0.5f, Next() - 0.5f) * ArtPx(4);
+                rune.Position = start;
+                var tween = rune.CreateTween();
+                tween.TweenProperty(rune, "position", start + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * reach, time)
+                    .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+                tween.Parallel().TweenProperty(rune, "modulate:a", 1f, time * 0.35).From(0f);
+                tween.Parallel().TweenProperty(rune, "modulate:a", 0f, time * 0.4).SetDelay(time * 0.6);
+                tween.TweenInterval(Next() * 0.8);
+                tween.TweenCallback(Callable.From(Cycle));
+            }
             rune.Modulate = new Color(1, 1, 1, 0);
-            var tween = rune.CreateTween().SetLoops();
-            tween.TweenInterval(0.45 * n % 2.2);
-            tween.TweenProperty(rune, "position:y", bottom - rise, cycle).From(bottom).SetTrans(Tween.TransitionType.Sine);
-            tween.Parallel().TweenProperty(rune, "modulate:a", 1f, cycle * 0.35).From(0f);
-            tween.Parallel().TweenProperty(rune, "modulate:a", 0f, cycle * 0.4).SetDelay(cycle * 0.6);
+            rune.CreateTween().TweenCallback(Callable.From(Cycle)).SetDelay(0.45 * n % 2.2);
         }
         var shown = scene.Shown(town.BuiltBuildings).ToList();
         foreach (var (building, place) in shown.Where(s => s.Place.ShadowX != null))

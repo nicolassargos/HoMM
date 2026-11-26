@@ -3686,7 +3686,8 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   (illisibles), puis huit runes du vieux futhark dessinées (5 × 7) ; un contour sombre les rendait trop nettes : un cœur
   pâle dans un halo bleu clair. Animées par des tweens (un shader qui décalait des colonnes d'un pixel sautait) : chaque
   rune dérive dans une direction tirée au sort en s'allumant puis s'effaçant, filtrée en douceur pour glisser entre
-  les pixels. Environ 4,50 $ de PixelLab pour toute la suite.
+  les pixels. Environ 4,50 $ de PixelLab pour toute la suite. Puis (2026-11-26, abonnement PixelLab) des écuries un
+  peu plus détaillées (paille, seaux, lanterne, selle ; essai 91).
 - **Une image de combat par héros** (demandé par l'utilisateur, 2026-11-07) : le héros dessiné sur le côté du champ
   (aujourd'hui son image de la carte ×4), qui ressemble à son portrait (PixelLab, le portrait comme référence) ; à
   cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).

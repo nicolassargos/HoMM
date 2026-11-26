@@ -325,7 +325,7 @@ fond, 17 bâtiments à leur place, leurs ombres, le décor qui passe devant, cli
 ✅ Retouches (2026-11-25 et 26) : la ferme et son champ, les quatre étapes de l'hôtel de ville, les quatre niveaux de
 la guilde (des runes de lumière qui dérivent autour), des bâtiments repeints plus doux.
 **Reste** pour le Château : la demeure du héros (avant le fort), le chantier naval, le Graal, les habitations
-améliorées ; des écuries un peu plus détaillées (crédit PixelLab) ; l'onglet du nom qui cache le bas du milieu de la
+améliorées ; l'onglet du nom qui cache le bas du milieu de la
 scène. Puis les sept autres factions (les morts-vivants d'abord).
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,
 affiché ×2** sur toute la largeur de l'écran comme tout le pixel art (choix de l'utilisateur, 2026-11-21, avec la

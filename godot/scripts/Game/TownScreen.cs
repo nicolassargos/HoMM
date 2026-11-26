@@ -525,6 +525,8 @@ public partial class TownScreen : CanvasLayer
                 tween.TweenInterval(Next() * 0.8);
                 tween.TweenCallback(Callable.From(Cycle));
             }
+            // filtrée en douceur : une rune si petite et si claire sautait d'un pixel à l'autre ; elle glisse entre eux
+            rune.TextureFilter = CanvasItem.TextureFilterEnum.Linear;
             rune.Modulate = new Color(1, 1, 1, 0);
             rune.CreateTween().TweenCallback(Callable.From(Cycle)).SetDelay(0.45 * n % 2.2);
         }

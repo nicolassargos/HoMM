@@ -325,7 +325,9 @@ fond, 17 bâtiments à leur place, leurs ombres, le décor qui passe devant, cli
 ✅ Retouches (2026-11-25 et 26) : la ferme et son champ, les quatre étapes de l'hôtel de ville, les quatre niveaux de
 la guilde (des runes de lumière qui dérivent autour), des bâtiments repeints plus doux.
 ✅ La demeure du héros avant le fort (2026-11-26) : peinte dans la scène vide au bout du chemin (PixelLab, repeindre).
-**Reste** pour le Château : le chantier naval, les habitations améliorées ; l'onglet du nom qui cache le bas du milieu de la
+✅ Le chantier naval (2026-11-26) : un petit lac au loin sur la plaine, avec un ponton et un voilier (l'eau ne peut pas
+être au premier plan : le sol y est plus haut que le bas du cadre) ; caché quand la Commanderie est bâtie.
+**Reste** pour le Château : les habitations améliorées (plus tard, avec les créatures améliorées) ; l'onglet du nom qui cache le bas du milieu de la
 scène. Puis les sept autres factions (les morts-vivants d'abord).
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,
 affiché ×2** sur toute la largeur de l'écran comme tout le pixel art (choix de l'utilisateur, 2026-11-21, avec la

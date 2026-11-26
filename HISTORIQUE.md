@@ -3691,6 +3691,11 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   n'a pas de fort (`TownScene.Home`, aucun bâtiment construit avec des murs) : peinte par PixelLab « repeindre » (permis
   par l'abonnement) dans la scène vide, au bout du chemin sur la colline, gardée seule (`demeure.png`), à la profondeur
   du fort ; au survol « Demeure du héros », un clic ouvre Construire. Le bâtiment du Graal est mis de côté.
+  Le **chantier naval** : un port au premier plan, en bas à gauche, était charmant mais faux (le bas du cadre n'est pas le
+  sol : la taverne et le marché descendent plus bas que cette eau, le quai y était à l'étage) ; un petit lac au loin sur
+  la plaine, à droite de la Tour des griffons, avec un ponton, un voilier et une remise (PixelLab « repeindre », essai
+  134), gardé derrière le décor de devant ; `SANS_MAQUETTE` dans `ville_scene.py` (une image peinte, sans coupe ni
+  ombre, derrière tous les bâtiments). La Commanderie le cache une fois bâtie (accepté par l'utilisateur).
 - **Une image de combat par héros** (demandé par l'utilisateur, 2026-11-07) : le héros dessiné sur le côté du champ
   (aujourd'hui son image de la carte ×4), qui ressemble à son portrait (PixelLab, le portrait comme référence) ; à
   cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).

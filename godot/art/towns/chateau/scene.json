@@ -2,6 +2,7 @@
   "width": 960, "height": 270,
   "home": {"id": "demeure", "x": 435, "y": 93, "depth": 104.3},
   "buildings": [
+    {"id": "chantier-naval", "x": 850, "y": 172, "depth": 200.0},
     {"id": "fort", "x": 372, "y": 0, "depth": 104.3, "shadowX": 429, "shadowY": 140, "frontX": 374, "frontY": 114},
     {"id": "citadelle", "x": 322, "y": 0, "depth": 101.83, "shadowX": 393, "shadowY": 138, "frontX": 345, "frontY": 110},
     {"id": "chateau-fort", "x": 227, "y": 0, "depth": 97.93, "shadowX": 293, "shadowY": 138, "frontX": 228, "frontY": 112},

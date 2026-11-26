@@ -50,6 +50,11 @@ def bande(im):
 MEME_PLACE = {"hotel-ville": "salle-village", "grand-hotel-ville": "salle-village", "capitole": "salle-village",
               "guilde-mages-2": "guilde-mages-1", "guilde-mages-3": "guilde-mages-1", "guilde-mages-4": "guilde-mages-1"}
 
+# les bâtiments sans maquette, peints dans la scène (ajouts/<id>.png, 960 × 540), et leur profondeur : le chantier naval,
+# un lac au loin sur la plaine, derrière tous les bâtiments (l'eau ne peut pas être au premier plan : le sol y est plus
+# haut que le bas du cadre)
+SANS_MAQUETTE = {"chantier-naval": 200.0}
+
 # les bâtiments dont le pied coupé par la colline finit en touffes (sur d'autres, elles mangeaient des détails peints :
 # les bouteilles sous l'étal du marché)
 TOUFFES = {"tour-griffons"}
@@ -199,6 +204,13 @@ def main():
         if os.path.exists(lueur):
             entree["runes"] = [[x, y - HAUT, n] for x, y, n in json.load(open(lueur))]
         batiments.append(entree)
+
+    for k, profondeur in SANS_MAQUETTE.items():
+        f = os.path.join(src, "ajouts", k + ".png")
+        if os.path.exists(f):
+            im, x, y = rogner(bande(Image.open(f).convert("RGBA")), marge=1)
+            im.save(os.path.join(dest, k + ".png"))
+            batiments.insert(0, {"id": k, "x": x, "y": y, "depth": profondeur})
 
     # la demeure du héros, avant le fort (demeure.png, 960 × 540 : peinte dans la scène vide), à la profondeur du fort
     demeure = None

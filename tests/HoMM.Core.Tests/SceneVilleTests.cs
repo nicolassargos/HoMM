@@ -14,21 +14,14 @@ public class SceneVilleTests
     private static TownScene Scene(string faction) =>
         TownScene.FromJson(File.ReadAllText(Path.Combine(Folder(faction), "scene.json")));
 
-    /// <summary>
-    /// Les bâtiments du Château pas encore dessinés : le chantier naval, pas encore montré. À retirer de la liste une fois
-    /// dessinés.
-    /// </summary>
-    private static readonly string[] CastleNotDrawn = { "chantier-naval" };
-
     [Fact]
     public void La_scene_du_Chateau_couvre_ses_batiments()
     {
         var scene = Scene("chateau");
         var buildings = TestData.Data.Buildings.OfFaction("chateau").ToList();
-        var missing = buildings.Where(b => scene.Find(b.Id) == null).Select(b => b.Id).OrderBy(id => id);
-        Assert.Equal(CastleNotDrawn.OrderBy(id => id), missing);
-        // chacun est montré une fois bâti, par son image ou celle de ce qu'il remplace, sauf le chantier naval
-        foreach (var building in buildings.Where(b => b.Id != "chantier-naval"))
+        Assert.Empty(buildings.Where(b => scene.Find(b.Id) == null).Select(b => b.Id));
+        // chacun est montré une fois bâti, à sa place
+        foreach (var building in buildings)
         {
             var built = Chain(buildings, building);
             Assert.Contains(scene.Shown(built), s => s.Building == building);

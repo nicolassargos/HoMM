@@ -3622,6 +3622,18 @@ créature rare), le nombre par carte et la difficulté selon la zone ; les créa
   Commanderie, la Tour des griffons passait devant les maisons et les arbres), dessiné juste après son bâtiment, bouché,
   et couvrant le bord peint qui déborde de la maquette ; le pied de la Tour des griffons finit en touffes d'herbe
   (`TOUFFES`) ; le silo repeint, vu à peine d'en haut (PixelLab, 0,48 $, essai 12 choisi).
+  **Suite** (2026-11-25 et 26, branche `ville-ferme-champ`) : la cour de la ferme descend derrière la colline dans la
+  maquette ; une barrière et un petit champ peints sur l'herbe visible (PixelLab « retoucher » sur la scène, l'inpainting
+  demandant un abonnement), gardés seuls dans `ajouts/<id>.png`, ajoutés à l'image sans coupe. La salle du village
+  repeinte plus douce, puis l'hôtel de ville, le grand hôtel de ville et le capitole d'après elle (le capitole d'après
+  le grand hôtel : peints chacun d'après la salle, ils ne se suivaient pas), à la même place, 40 px plus haute
+  (`MEME_PLACE` : la place et les masques de la première étape). Les bâtiments « croustillants » repeints plus doux
+  (Tour des griffons, marché, écuries avec des chevaux). La guilde grandit en coupant des tronçons de pierre de sa tour
+  (gratuit ; le pied et le toit gardés). Ses runes (`runes_guilde.py`) : d'abord des morceaux d'un essai PixelLab
+  (illisibles), puis huit runes du vieux futhark dessinées (5 × 7) ; un contour sombre les rendait trop nettes : un cœur
+  pâle dans un halo bleu clair. Animées par des tweens (un shader qui décalait des colonnes d'un pixel sautait) : chaque
+  rune dérive dans une direction tirée au sort en s'allumant puis s'effaçant, filtrée en douceur pour glisser entre
+  les pixels. Environ 4,50 $ de PixelLab pour toute la suite.
 - **Une image de combat par héros** (demandé par l'utilisateur, 2026-11-07) : le héros dessiné sur le côté du champ
   (aujourd'hui son image de la carte ×4), qui ressemble à son portrait (PixelLab, le portrait comme référence) ; à
   cheval ou non selon le héros ; plus tard ses animations (lancer un sort, être touché).

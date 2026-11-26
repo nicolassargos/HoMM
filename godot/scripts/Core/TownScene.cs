@@ -21,10 +21,13 @@ public sealed record TownScenePlace(string Id, int X, int Y, double Depth, int? 
 /// <item>Swirls : des rubans qui montent en spirale, [cx, haut, bas, rayon en haut, rayon en bas].</item>
 /// <item>Floats : des images qui flottent sur place (les cristaux), [x, y] et leur image.</item>
 /// <item>Orbit, Orbiters : des images qui tournent autour, [cx, cy, rx, ry], et leurs images (livres, crânes).</item>
+/// <item>GlowAxis, GlowRings : la magie peinte dans l'image elle-même, animée sur place : une vague de lumière parcourt
+/// ses pixels verts, monte en tournant autour de l'axe de la tour (x) et tourne dans les anneaux peints,
+/// [cx, cy, rx, ry].</item>
 /// </list>
 /// </summary>
 public sealed record TownSceneMagic(List<int[]>? Rings = null, List<int[]>? Swirls = null, List<TownSceneFloat>? Floats = null,
-    int[]? Orbit = null, List<string>? Orbiters = null);
+    int[]? Orbit = null, List<string>? Orbiters = null, int? GlowAxis = null, List<int[]>? GlowRings = null);
 
 /// <summary>Une image qui flotte sur place : son coin et son nom (sans « .png »).</summary>
 public sealed record TownSceneFloat(int X, int Y, string Image);

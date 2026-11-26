@@ -554,6 +554,8 @@ public partial class TownScreen : CanvasLayer
                 Position = new Vector2(place.X, place.Y) * ArtScale, TooltipText = Texts.BuildingTooltip(town, building),
             };
             sprite.GuiInput += e => ClickBuilding(e, town, building);
+            if (place.Magic?.GlowAxis is { } axis)
+                sprite.Glow(new Vector2(place.X, place.Y), axis, place.Magic.GlowRings ?? new());
             _sceneLayer.AddChild(sprite);
             _buildingBoxes[building.Id] = sprite;
             // le décor qui passe devant lui, tout de suite : les bâtiments plus proches le couvrent encore

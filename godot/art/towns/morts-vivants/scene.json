@@ -114,36 +114,26 @@
    "shadowX": 343,
    "shadowY": 9,
    "magic": {
-    "rings": [
+    "orbit": [
+     385,
+     47,
+     42,
+     17
+    ],
+    "glowAxis": 382,
+    "glowRings": [
      [
       382,
       114,
       24,
-      8,
-      5
+      8
      ],
      [
       383,
       158,
       34,
-      13,
-      6
+      13
      ]
-    ],
-    "swirls": [
-     [
-      382,
-      38,
-      100,
-      15,
-      20
-     ]
-    ],
-    "orbit": [
-     385,
-     47,
-     44,
-     18
     ],
     "floats": [
      {
@@ -166,8 +156,8 @@
      "magie-5-livre-1",
      "magie-5-crane-1",
      "magie-5-livre-2",
-     "magie-5-crane-2",
-     "magie-5-livre-3"
+     "magie-5-livre-3",
+     "magie-5-crane-2"
     ]
    }
   },

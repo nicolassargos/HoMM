@@ -3326,6 +3326,15 @@ choix de l'utilisateur) :
   principal) s'ouvrait alors que la fenêtre des options était encore à l'écran (`QueueFree` attend la fin de l'image) ;
   elle gardait la place de fenêtre exclusive, d'où une boîte par-dessus l'autre et l'erreur « exclusive child ». Les
   options se cachent d'abord, et l'action choisie attend l'image suivante (`Hud.ShowOptions`).
+- ✅ **Viser une attaque par la case** (2026-11-26, branche `combat-visee-case`, choix de l'utilisateur). Avant, on
+  pouvait viser un ennemi par son corps, qui dépasse de sa case vers le haut : la souris sur ce corps, au-dessus d'une
+  case libre, le contour blanc (la case sous la souris) et le jaune (la case d'où la troupe frappera, choisie par
+  l'angle de la souris) n'étaient pas les mêmes, et la troupe n'allait pas où l'on pensait. Maintenant
+  (`BattleScreen.CellAttack`), la souris sur une case libre où la troupe peut se mettre, à côté d'un ennemi : elle y va
+  et le frappe ; à côté de plusieurs, celui vers qui penche la souris depuis le centre de la case. Pas pour un ennemi
+  que la troupe peut viser de loin (tir, crochet) : la case reste un déplacement. Viser l'ennemi lui-même marche comme
+  avant. Pendant qu'une attaque est visée, plus de contour blanc (`BattleFieldView.ShowHovered`) : la case d'arrivée en
+  jaune et la cible en rouge. Essayé en jeu par l'utilisateur : « much better ».
 - ✅ **L'ordre du dessin de la carte** (2026-11-25, branche `carte-ordre-dessin`). Avant, la carte était faite de
   calques posés l'un sur l'autre : le décor (arbres, montagnes, triés entre eux), puis tous les objets (dans l'ordre où
   ils avaient été posés), puis tous les héros. Un objet derrière une forêt passait devant ses arbres, un héros derrière

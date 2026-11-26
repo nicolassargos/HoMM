@@ -274,6 +274,12 @@ public partial class BattleFieldView : Control
     /// <summary>Les cases d'où la troupe active frappera la cible visée (le côté choisi à la souris).</summary>
     public IReadOnlyCollection<Hex> AttackFrom { get; set; } = Array.Empty<Hex>();
 
+    /// <summary>
+    /// False pendant qu'une attaque est visée : seules la case d'arrivée (jaune) et la cible (rouge) se voient, pas le
+    /// contour blanc de la case sous la souris (qui pouvait être une autre case).
+    /// </summary>
+    public bool ShowHovered { get; set; } = true;
+
     /// <summary>Pendant le choix de la cible d'un sort : les cases visables, et celles que toucherait le sort sous la souris.</summary>
     public IReadOnlyCollection<Hex> SpellTargets { get; set; } = Array.Empty<Hex>();
     public IReadOnlyCollection<Hex> SpellArea { get; set; } = Array.Empty<Hex>();
@@ -2980,7 +2986,7 @@ public partial class BattleFieldView : Control
         if (ActiveUnit is { IsAlive: true } active && _shown.TryGetValue(active, out var activeShown) && !IsAnimating)
             foreach (var hex in active.Hexes)
                 DrawHexOutline(Center(hex), MapRenderer.Rgb(240, 200, 80), Ui.Px(3));
-        if (Hovered is { } hovered)
+        if (Hovered is { } hovered && ShowHovered)
             DrawHexOutline(Center(hovered), new Color(1, 1, 1, 0.7f), Ui.Px(2));
         if (Target is { } target)
             foreach (var hex in Battle.UnitAt(target)?.Hexes ?? new[] { target })

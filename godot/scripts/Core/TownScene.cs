@@ -6,11 +6,12 @@ namespace HoMM.Core;
 
 /// <summary>
 /// La place d'un bâtiment dans la scène d'une ville : le coin haut-gauche de son image, sa profondeur (distance à la
-/// caméra : les plus loin dessinés d'abord), et s'il y en a, le coin de son ombre et du décor qui passe devant lui.
+/// caméra : les plus loin dessinés d'abord), et s'il y en a, le coin de son ombre et du décor qui passe devant lui, et
+/// des runes qui flottent autour (la guilde des mages : [x, y, n], le coin de chacune et son image rune-&lt;n&gt;.png).
 /// En pixels d'art de la scène.
 /// </summary>
 public sealed record TownScenePlace(string Id, int X, int Y, double Depth, int? ShadowX = null, int? ShadowY = null,
-    int? FrontX = null, int? FrontY = null);
+    int? FrontX = null, int? FrontY = null, List<int[]>? Runes = null);
 
 /// <summary>
 /// La scène d'une ville vue de face (art/towns/&lt;faction&gt;/scene.json, écrit par tools/art/ville_scene.py) : un fond,

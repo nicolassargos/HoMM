@@ -3,7 +3,9 @@
 #
 # Le dossier source (voir son A-INTEGRER.md) : places.json (coin haut-gauche, taille et profondeur de chaque bâtiment
 # dans un rendu de 960 × 540, dont la scène du jeu est la bande des rangées 135 à 404), peints/<id>.png, seul/<id>.png et
-# sur-sol/<id>.png (pour couper ce que cache la colline), ombres-contact/<id>.png, decor-devant/<id>.png (le décor que seul
+# sur-sol/<id>.png (pour couper ce que cache la colline), ombres-contact/<id>.png, ajouts/<id>.png (peint en plus sur le sol
+# visible, s'il y en a), lueurs/<id>.json et lueurs/runes/ (des runes
+# animées par le jeu, autour de la guilde des mages : runes_guilde.py), decor-devant/<id>.png (le décor que seul
 # ce bâtiment et le sol cachent : rendre_devant.py ; sinon visible/decor.png), peints/decor.png, et
 # composer_scene.py qui fait le fond (montagnes, sol, ombres du décor, décor).
 #
@@ -12,7 +14,7 @@
 # loin au plus proche, chacun suivi du décor qui passe devant lui (<id>-devant.png ; les bâtiments plus proches le couvrent).
 #
 # Usage : python -I tools/art/ville_scene.py <dossier source> [faction]   (faction : chateau sans l'option)
-import os, sys, json, subprocess
+import os, sys, json, subprocess, glob, shutil
 from PIL import Image, ImageChops, ImageFilter
 
 HAUT, HAUTEUR = 135, 270          # la bande du jeu dans le rendu de 960 × 540
@@ -42,6 +44,11 @@ def sous_le_sol(src, k, p, b):
 def bande(im):
     return im.crop((0, HAUT, im.width, HAUT + HAUTEUR))
 
+
+# les étapes d'un bâtiment peintes à la même place, sans maquette à elles (peints/<id>.png, à la taille de la première) :
+# la place, les masques, l'ombre et le décor de devant sont ceux de la première
+MEME_PLACE = {"hotel-ville": "salle-village", "grand-hotel-ville": "salle-village", "capitole": "salle-village",
+              "guilde-mages-2": "guilde-mages-1", "guilde-mages-3": "guilde-mages-1", "guilde-mages-4": "guilde-mages-1"}
 
 # les bâtiments dont le pied coupé par la colline finit en touffes (sur d'autres, elles mangeaient des détails peints :
 # les bouteilles sous l'étal du marché)
@@ -108,6 +115,9 @@ def main():
     dest = os.path.join(racine, "godot", "art", "towns", faction)
     os.makedirs(dest, exist_ok=True)
     places = {k: v for k, v in json.load(open(os.path.join(src, "places.json"))).items() if k not in ("sol", "decor")}
+    for k, premier in MEME_PLACE.items():
+        if premier in places:
+            places[k] = places[premier]
     ids = [k for k in places if os.path.exists(os.path.join(src, "peints", k + ".png"))]
 
     # le fond : composer_scene.py sans aucun bâtiment (montagnes, sol, ombres du décor, décor), ramené à sa vraie taille
@@ -136,18 +146,25 @@ def main():
         vu = vu.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.MinFilter(5))
         return ImageChops.multiply(vu, decor.getchannel("A"))
 
+    for f in glob.glob(os.path.join(src, "lueurs", "runes", "*.png")):
+        shutil.copy(f, os.path.join(dest, os.path.basename(f)))
     batiments = []
     for k in sorted(ids, key=lambda k: -places[k]["profondeur"]):
-        p = places[k]
+        p, m = places[k], MEME_PLACE.get(k, k)  # m : le nom de ses masques
         b = Image.open(os.path.join(src, "peints", k + ".png")).convert("RGBA").crop((0, 0, p["largeur"], p["hauteur"]))
-        toile = Image.new("RGBA", decor.size); toile.alpha_composite(sans_miettes(sous_le_sol(src, k, p, b)), (p["x"], p["y"]))
+        toile = Image.new("RGBA", decor.size); toile.alpha_composite(sans_miettes(sous_le_sol(src, m, p, b)), (p["x"], p["y"]))
         if k in TOUFFES:
             touffes(src, k, toile, fond_haut)
+        # ce qui a été peint en plus dans la scène, sur le sol visible (ajouts/<id>.png, 960 × 540) : la barrière et le
+        # petit champ devant la ferme, cachés par la colline dans la maquette ; pas coupé, montré avec le bâtiment
+        ajout = os.path.join(src, "ajouts", k + ".png")
+        if os.path.exists(ajout):
+            toile.alpha_composite(Image.open(ajout).convert("RGBA"))
         im, x, y = rogner(bande(toile), marge=1)
         im.save(os.path.join(dest, k + ".png"))
         entree = {"id": k, "x": x, "y": y, "depth": p["profondeur"]}
         # l'ombre : rien sous le décor (il la couvre) ; sur l'ombre du décor, seulement de quoi passer au ton fort
-        f = os.path.join(src, "ombres-contact", k + ".png")
+        f = os.path.join(src, "ombres-contact", m + ".png")
         if os.path.exists(f):
             t, td = tons(f).load(), ombre_decor.load()
             a = Image.new("L", decor.size, 0); ap = a.load()
@@ -167,8 +184,8 @@ def main():
         devant = Image.new("RGBA", decor.size)
         # plus, à 3 pixels au plus, là où le bâtiment peint déborde de sa maquette (le bord de la Tour des griffons sur le
         # toit de la maison) : seulement sur ce débord, pour ne pas montrer le décor caché derrière un autre bâtiment
-        seul = masque(os.path.join(src, "seul", k + ".png"))
-        vu = ImageChops.multiply(seul, decor_vu(k))
+        seul = masque(os.path.join(src, "seul", m + ".png"))
+        vu = ImageChops.multiply(seul, decor_vu(m))
         deborde = ImageChops.subtract(toile.getchannel("A").point(lambda v: 255 if v else 0), seul)
         vu = ImageChops.lighter(vu, ImageChops.multiply(vu.filter(ImageFilter.MaxFilter(7)), deborde))
         devant.paste(decor, (0, 0), ImageChops.multiply(vu, decor.getchannel("A")))
@@ -177,6 +194,10 @@ def main():
             im, fx, fy = rogner(devant)
             im.save(os.path.join(dest, k + "-devant.png"))
             entree.update({"frontX": fx, "frontY": fy})
+        # des runes animées par le jeu (lueurs/<id>.json : [x, y, n] dans le rendu de 960 × 540, l'image rune-<n>.png)
+        lueur = os.path.join(src, "lueurs", k + ".json")
+        if os.path.exists(lueur):
+            entree["runes"] = [[x, y - HAUT, n] for x, y, n in json.load(open(lueur))]
         batiments.append(entree)
 
     scene = {"width": 960, "height": HAUTEUR, "buildings": batiments}

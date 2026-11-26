@@ -1391,7 +1391,7 @@ public static class Texts
     }
 
     /// <summary>Au survol de la demeure du héros, dans la ville qui n'a pas encore de fort.</summary>
-    public static string HeroHome => "Demeure du héros\nLe fort la remplacera\nClic : construire";
+    public static string HeroHome => "Demeure du héros\nLe fort la remplacera\nClic : recruter les créatures";
 
     public static string BuildTitle(Town town) => $"Construire à {town.Name}";
     public static string ToBuild => "Un bâtiment par jour";

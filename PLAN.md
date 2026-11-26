@@ -321,8 +321,8 @@ bois rouge à rivets ; dans la ville, chaque troupe dans un cadre mince devant *
 Heroes 2 (le Château seulement ; repeint dans le style de la scène de la ville). ✅ **La fenêtre Recruter façon
 Heroes 2** (2026-11-26, branche `ville-recrutement-h2`) : une créature à la fois, grande devant son paysage, ses
 caractéristiques en tableau, − / curseur / + / Max, le prix avec les icônes des ressources, des flèches d'une habitation
-à l'autre. **Reste** : un paysage pour les sept autres factions ; le nom de la ville sur une plaque sculptée
-(`suite/plaque` de l'archive `2026-11-16-interface-bois`).
+à l'autre. ✅ Le nom de la ville sur une plaque sculptée (2026-11-26, branche `ville-plaque-nom`). **Reste** : un
+paysage pour les sept autres factions.
 **Reste** : des icônes sur les autres écrans, au fil des besoins ; des icônes pour les récompenses (coffre, niveau) ;
 la poignée des barres de défilement comme taillée dans la
 pierre. ✅ Les pieds des mines de mercure, de minerai (ses six sols) et de soufre, et la force de leur ombre de

@@ -2792,6 +2792,11 @@ régénération de la nature** (la créature de tête de chaque troupe retrouve 
 **Rôdeur** (talent Chasseur). Créatures : Farfadet, Sanglier, Archer elfe, Cerf, Druide, Tréant, Troll (→ Troll ancien).
 ✅ Créatures et capacités, ✅ ville, classe et héros, ✅ images, ✅ ville et héros sur la carte.
 **Reste** : souvent la faction la plus forte des adversaires mesurés (sa régénération), à revoir à l'équilibrage.
+**Le Troll endurant** (2026-11-26, choix de l'utilisateur, branche `trolls-endurants`) : le plus de PV des niveaux 7,
+mais moins de force. Avant : A 22, dégâts 65-80, 1 150 PV ; après : **A 16, dégâts 38-48 (les plus bas du niveau 7),
+1 650 PV** (le Géant suit à 1 600). Sa régénération rend un quart des PV de sa créature de tête : chaque PV compte plus,
+et les réglages sont sensibles (dégâts 40-50 : Forêt +18 en armées ; 35-45 : −18). Mesuré : 64 % de victoires en duel
+dans son niveau ; la Forêt à +3 de marge en armées (`Armees_a_prix_egal`, −2 avant).
 
 ##### Les Barbares (jouables)
 La horde : la force, le nombre et la vitesse, le mépris de la magie. Aux niveaux 1 à 4, des créatures moins chères, plus

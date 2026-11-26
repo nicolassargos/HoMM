@@ -355,6 +355,12 @@ public partial class Main : Node2D
                 _camera.CenterOn(Enumerable.Range(0, map.Width * map.Height).Select(i => new Cell(i % map.Width, i / map.Width))
                     .MaxBy(c => Enumerable.Range(-6, 13).Sum(dx => Enumerable.Range(-4, 9).Count(dy =>
                         map.InBounds(c.Offset(dx, dy)) && map.GetTerrain(c.Offset(dx, dy)) == TerrainType.Mountain))));
+            // « --center=mine-backed » : une mine creusée adossée à la montagne (deux des trois cases derrière elle)
+            if (kind == "mine-backed" && map.Objects.OfType<Mine>().Where(m => m.Resource != ResourceType.Wood
+                    && new[] { -1, 0, 1 }.Count(dx => map.InBounds(m.Position.Offset(dx, -2))
+                        && map.GetTerrain(m.Position.Offset(dx, -2)) == TerrainType.Mountain) >= 2)
+                    .Skip(rank - 1).FirstOrDefault() is { } backed)
+                _camera.CenterOn(backed.Position);
             if (wanted != null && Enumerable.Range(0, map.Width * map.Height).Select(i => new Cell(i % map.Width, i / map.Width))
                     .Where(wanted).Skip(rank - 1).Take(1).ToList() is [var found])
             {
@@ -384,6 +390,7 @@ public partial class Main : Node2D
             ArtifactPile { Artifact.Rank: ArtifactRank.Relic } => "relic",
             ArtifactPile { Artifact.Rank: ArtifactRank.Major } => "major-artifact",
             ArtifactPile => "artifact",
+            Mine mine => $"mine-{Art.Name(mine.Resource)}",
             _ => null,
         };
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)

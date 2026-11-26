@@ -63,7 +63,7 @@ public partial class DecorLayer : Node2D
     };
 
     /// <summary>La couleur qui marque une image de montagne pour le shader des pentes (le bleu à 0,998, invisible).</summary>
-    private static readonly Color SlopeMark = new(1, 1, 0.998f);
+    public static readonly Color SlopeMark = new(1, 1, 0.998f);
 
     /// <summary>La couleur qui marque un arbre pour le shader : il penche dans le vent (le rouge à 0,998, invisible).</summary>
     private static readonly Color TreeMark = new(0.998f, 1, 1);

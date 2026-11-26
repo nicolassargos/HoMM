@@ -804,6 +804,21 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
   `revue.py serveur`) plaît à l'utilisateur : en faire une pour chaque lot.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
+- **Les mines creusées dans la montagne (2026-11-26)** : or, gemmes, cristal, mercure, soufre (pas la scierie ni le
+  minerai, choix de l'utilisateur). PixelLab « pro » à **96 × 96** (4 par appel, 3 graines = 12 candidats), la recette
+  des massifs : « … dug into the foot of a small rocky mountain, seen from the front and slightly from above (…) a low
+  craggy outcrop of ochre and grey rock with jagged peaks and soft painted shading, the same rock as the mountains. Cut
+  into the base of the rock, in the middle at the bottom, a dark mine entrance framed by heavy wooden beams (…) The lower
+  slopes are smooth bright green grass that fade into green grass with an irregular soft edge, no hard base line, no
+  ground patch, no trees. No outline at all, no dark contour. One light from the upper right. » ; pour l'or, style
+  `massif-cime-1`, modèles l'ancienne mine et `massif-petit-1` ; pour les autres, **la mine d'or choisie comme style**
+  (`art-candidats/…/mine-or/choisie-brute.png`) et l'ancienne image de la ressource comme modèle. Puis : les rangées
+  vides du haut et du bas ôtées (la largeur de 96 gardée : l'entrée reste au milieu), `fondre.py --bord=fondu
+  --pentes-seules` (sans `--pentes-seules`, tout le bas de l'image se défait : les rails et les tas d'or disparaissaient,
+  remarqué par l'utilisateur). Installée en `objects/mine-<ressource>-mountain.png` : le jeu la dessine avec le shader des
+  pentes (elles prennent le sol de dessous, plus d'image par sol) et sans ombre portée, comme un massif. Montrer les
+  candidats **en jeu**, chacun installé tour à tour (`--center=mine-gold`, `mine-backed` : une mine adossée), sur une page
+  de choix. Une tache de terre brune devant l'entrée ne se fond pas (pas verte) : à éviter.
 
 ## Héros de la carte (48 × 48, 2026-11-14)
 - **Générer à la taille du jeu** (« pro » à 48, 25 candidats pour 0,08 $) avec une image choisie comme style : plus

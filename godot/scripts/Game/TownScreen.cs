@@ -533,8 +533,16 @@ public partial class TownScreen : CanvasLayer
         var shown = scene.Shown(town.BuiltBuildings).ToList();
         foreach (var (building, place) in shown.Where(s => s.Place.ShadowX != null))
             _buildingShadows[building.Id] = Layer(place.Id + "-ombre", place.ShadowX!.Value, place.ShadowY!.Value);
+        // avant le fort, la demeure du héros à sa place, à sa profondeur parmi les bâtiments ; un clic : recruter (toutes
+        // les habitations, comme le fort et ses suites)
+        var home = scene.HomeShown(town.BuiltBuildings) ? scene.Home : null;
         foreach (var (building, place) in shown)
         {
+            if (home != null && home.Depth >= place.Depth)
+            {
+                ShowHome(home);
+                home = null;
+            }
             var sprite = new TownSceneSprite(Art.GetImage(folder + place.Id)!)
             {
                 Position = new Vector2(place.X, place.Y) * ArtScale, TooltipText = Texts.BuildingTooltip(town, building),
@@ -547,6 +555,22 @@ public partial class TownScreen : CanvasLayer
                 Layer(place.Id + "-devant", place.FrontX.Value, place.FrontY!.Value);
             foreach (var (rune, n) in (place.Runes ?? new()).Select((r, n) => (r, n)))
                 Float(Layer($"rune-{rune[2]}", rune[0], rune[1]), n);
+        }
+        if (home != null)
+            ShowHome(home);
+
+        void ShowHome(TownScenePlace place)
+        {
+            var sprite = new TownSceneSprite(Art.GetImage(folder + place.Id)!)
+            {
+                Position = new Vector2(place.X, place.Y) * ArtScale, TooltipText = Texts.HeroHome,
+            };
+            sprite.GuiInput += e =>
+            {
+                if (e is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
+                    OpenRecruitWindow(null);
+            };
+            _sceneLayer.AddChild(sprite);
         }
     }
 
@@ -573,7 +597,10 @@ public partial class TownScreen : CanvasLayer
         return box;
     }
 
-    /// <summary>Un clic sur un bâtiment l'utilise : recruter, la taverne, la guilde, le marché, le chantier, construire.</summary>
+    /// <summary>
+    /// Un clic sur un bâtiment l'utilise : recruter (une habitation, ou toutes depuis le fort et ses suites, comme le
+    /// château de Heroes 3), la taverne, la guilde, le marché, le chantier, construire (l'hôtel de ville).
+    /// </summary>
     private void ClickBuilding(InputEvent e, Town town, BuildingType building)
     {
         if (e is not InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
@@ -588,6 +615,8 @@ public partial class TownScreen : CanvasLayer
             OpenMarket();
         else if (building.Shipyard)
             OpenShipyard();
+        else if (building.Walls > 0)
+            OpenRecruitWindow(null);
         else if (building.DailyGold > 0)
             OpenBuild();
     }

@@ -178,7 +178,7 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
   des mages 1 à 4 ; taverne ; marché ; **silo** (+1 par jour de la ressource principale de la faction) ; **forge**
   (machines de guerre : baliste, tente de soins, chariot de munitions ; **à décider** : maintenant, ou seulement sa
   place dans la scène) ; chantier naval ; **bâtiment du Graal** (bâti avec le trésor enfoui des obélisques, un grand
-  bonus propre à la faction).
+  bonus propre à la faction ; **mis de côté pour l'instant**, choix de l'utilisateur, 2026-11-26).
 - **Par faction (9 places)** : les 7 habitations, chacune avec son **amélioration** (d'où viennent les créatures
   améliorées) ; un **bâtiment de croissance** d'un petit niveau (les « hordes » de Heroes 3) ; un **bâtiment spécial**.
 - **Les bâtiments spéciaux** (choix de l'utilisateur, 2026-11-20, après trois tours d'idées : des effets qui changent la
@@ -212,7 +212,7 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
   - **Ensuite** : l'IA apprend à attaquer et à défendre les murs ; refaire les `Mesures` (une ville sans fort devient
     plus facile à prendre) ; peut-être des bâtiments spéciaux qui touchent les murs.
 - **Règles à faire (session règles)** : les sièges et les murs, les machines de guerre, les créatures améliorées, le
-  bonus du Graal de chaque faction, les bâtiments spéciaux et de croissance ; leurs noms (français) ; puis les `Mesures`.
+  bonus du Graal de chaque faction (mis de côté), les bâtiments spéciaux et de croissance ; leurs noms (français) ; puis les `Mesures`.
   Les images des villes peuvent commencer dès que la liste est fixée.
 
 ### L'économie ✅
@@ -324,8 +324,8 @@ La liste de ses bâtiments : « Les bâtiments des villes », plus haut.
 fond, 17 bâtiments à leur place, leurs ombres, le décor qui passe devant, clic et contour au survol sur les pixels.
 ✅ Retouches (2026-11-25 et 26) : la ferme et son champ, les quatre étapes de l'hôtel de ville, les quatre niveaux de
 la guilde (des runes de lumière qui dérivent autour), des bâtiments repeints plus doux.
-**Reste** pour le Château : la demeure du héros (avant le fort), le chantier naval, le Graal, les habitations
-améliorées ; l'onglet du nom qui cache le bas du milieu de la
+✅ La demeure du héros avant le fort (2026-11-26) : peinte dans la scène vide au bout du chemin (PixelLab, repeindre).
+**Reste** pour le Château : le chantier naval, les habitations améliorées ; l'onglet du nom qui cache le bas du milieu de la
 scène. Puis les sept autres factions (les morts-vivants d'abord).
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,
 affiché ×2** sur toute la largeur de l'écran comme tout le pixel art (choix de l'utilisateur, 2026-11-21, avec la

@@ -290,6 +290,9 @@ second modèle de PixelLab) ; ceux du **Dragon** et de l'**Hydre** finis (2026-1
 se cabrent en arrière ; préférés par l'utilisateur à ceux de `animations-dragon-hydre-ver`, faits le même jour).
 ✅ La mort et le coup reçu de l'Archer, du Griffon et du Cavalier (2026-11-19, branche `morts-chateau`) ; ceux du
 **Loup**, du **Moine** et du **Troll** refaits d'après leurs nouvelles images (2026-11-19).
+✅ **Viser une attaque par la case** (2026-11-26, branche `combat-visee-case`) : la souris sur une case libre à côté d'un
+ennemi, la troupe y va et frappe. **Reste** (idées de l'utilisateur) : un plus beau curseur de déplacement, selon la
+façon d'aller (une botte qui marche, une aile pour les volants) ; un curseur pour les créatures qui lanceront des sorts.
 
 ### Les héros en images
 ✅ Le héros de chaque faction sur la carte (8 directions, une marche), leurs pieds revus.

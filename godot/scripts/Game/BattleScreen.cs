@@ -428,6 +428,11 @@ public partial class BattleScreen : CanvasLayer
             }
             return;
         }
+        if (CellAttack(battle, unit, point, hex) is { } fromCell)
+        {
+            Player(b => b.Attack(fromCell.Enemy, fromCell.Head));
+            return;
+        }
         if (EnemyAim(battle, unit, point, hex) is { } aim)
         {
             if (battle.CanHook(unit, aim.Enemy))
@@ -615,9 +620,18 @@ public partial class BattleScreen : CanvasLayer
         var mouse = DevPoint ?? _field.MousePoint; // développement : « --battle-aim », comme si la souris était là
         if (DevPoint is { } pretend)
             _field.Hovered = BattleFieldView.HexAt(pretend);
+        _field.ShowHovered = true;
         if (_spell == null && mine && mouse is { } point)
         {
-            if (EnemyAim(battle, unit!, point, _field.Hovered) is { } aim)
+            if (CellAttack(battle, unit!, point, _field.Hovered) is { } fromCell)
+            {
+                // la case sous la souris, à côté d'un ennemi : la troupe y va et frappe (l'épée pointe vers lui)
+                cursor = MapCursor.AttackToward(fromCell.Direction);
+                _field.Target = fromCell.Enemy.Position;
+                _field.AttackFrom = unit!.HexesAt(fromCell.Head).ToList();
+                _field.ShowHovered = false;
+            }
+            else if (EnemyAim(battle, unit!, point, _field.Hovered) is { } aim)
             {
                 if (battle.CanHook(unit!, aim.Enemy))
                 {
@@ -637,6 +651,7 @@ public partial class BattleScreen : CanvasLayer
                     cursor = MapCursor.AttackToward(choice.Direction);
                     _field.Target = aim.Hex;
                     _field.AttackFrom = unit!.HexesAt(choice.Head).ToList();
+                    _field.ShowHovered = false;
                 }
                 else
                     cursor = CursorKind.Blocked;
@@ -688,6 +703,39 @@ public partial class BattleScreen : CanvasLayer
     }
 
     private CursorKind? _devShown;
+
+    /// <summary>
+    /// L'attaque par la case (2026-11-26, choix de l'utilisateur) : la souris sur une case libre où la troupe peut se
+    /// mettre, à côté d'un ennemi, la troupe y va et le frappe ; à côté de plusieurs, celui vers qui penche la souris (depuis
+    /// le centre de la case). La case montrée en jaune est donc toujours celle de la souris. Pas pour un ennemi que la
+    /// troupe peut viser de loin (tir, crochet) : la case reste alors un déplacement.
+    /// </summary>
+    private static (BattleUnit Enemy, Hex Head, int Direction)? CellAttack(TacticalBattle battle, BattleUnit unit, Vector2 point, Hex? hex)
+    {
+        if (hex is not { } cell || battle.UnitAt(cell) != null)
+            return null;
+        var toMouse = point - BattleFieldView.Center(cell);
+        (BattleUnit Enemy, Hex Head, int Direction, float Gap)? best = null;
+        foreach (var enemy in battle.Units.Where(e => e.IsAlive && TacticalBattle.AreEnemies(unit, e)))
+        {
+            if (!enemy.Hexes.Any(h => h.Neighbours().Contains(cell)) || battle.CanShoot(unit, enemy) || battle.CanHook(unit, enemy))
+                continue;
+            // la tête de la troupe qui met une de ses cases sur celle de la souris (une grande créature en a deux)
+            if (battle.AttackPositions(unit, enemy).Where(h => unit.HexesAt(h).Contains(cell)).Cast<Hex?>().FirstOrDefault() is not { } head)
+                continue;
+            foreach (var touched in enemy.Hexes.Where(h => h.Neighbours().Contains(cell)))
+            {
+                float gap = toMouse.LengthSquared() < 1 ? 0
+                    : Mathf.Abs((BattleFieldView.Center(touched) - BattleFieldView.Center(cell)).AngleTo(toMouse));
+                if (best is { } b && gap >= b.Gap)
+                    continue;
+                // la troupe est sur le côté « side » de la cible ; l'épée pointe à l'opposé, vers la cible
+                int side = touched.Neighbours().ToList().IndexOf(cell);
+                best = (enemy, head, (side + 3) % 6, gap);
+            }
+        }
+        return best is { } choice ? (choice.Enemy, choice.Head, choice.Direction) : null;
+    }
 
     /// <summary>
     /// D'où frapper une cible au corps à corps, comme dans Heroes 3 : la partie de la case visée sous la souris donne le

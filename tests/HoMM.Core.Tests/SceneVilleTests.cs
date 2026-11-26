@@ -15,13 +15,10 @@ public class SceneVilleTests
         TownScene.FromJson(File.ReadAllText(Path.Combine(Folder(faction), "scene.json")));
 
     /// <summary>
-    /// Les bâtiments du Château pas encore dessinés : ils prennent l'image de celui qu'ils remplacent (les guildes 2 à 4,
-    /// celle de la guilde 1), sauf le chantier naval, pas encore montré. À retirer de la liste une fois dessinés.
+    /// Les bâtiments du Château pas encore dessinés : le chantier naval, pas encore montré. À retirer de la liste une fois
+    /// dessinés.
     /// </summary>
-    private static readonly string[] CastleNotDrawn =
-    {
-        "guilde-mages-2", "guilde-mages-3", "guilde-mages-4", "chantier-naval",
-    };
+    private static readonly string[] CastleNotDrawn = { "chantier-naval" };
 
     [Fact]
     public void La_scene_du_Chateau_couvre_ses_batiments()
@@ -65,7 +62,9 @@ public class SceneVilleTests
     [Fact]
     public void Un_batiment_pas_encore_dessine_prend_l_image_de_celui_qu_il_remplace()
     {
-        var scene = Scene("chateau");
+        // la scène du Château sans les guildes 2 et 3 : la guilde 3 prend l'image de la guilde 1
+        var full = Scene("chateau");
+        var scene = new TownScene(full.Width, full.Height, full.Places.Where(p => p.Id is not ("guilde-mages-2" or "guilde-mages-3")));
         var buildings = TestData.Data.Buildings.OfFaction("chateau").ToList();
         var shown = scene.Shown(Chain(buildings, buildings.Single(b => b.Id == "guilde-mages-3"))).ToList();
         var (building, place) = Assert.Single(shown);

@@ -46,7 +46,8 @@ def bande(im):
 
 # les étapes d'un bâtiment peintes à la même place, sans maquette à elles (peints/<id>.png, à la taille de la première) :
 # la place, les masques, l'ombre et le décor de devant sont ceux de la première
-MEME_PLACE = {"hotel-ville": "salle-village", "grand-hotel-ville": "salle-village", "capitole": "salle-village"}
+MEME_PLACE = {"hotel-ville": "salle-village", "grand-hotel-ville": "salle-village", "capitole": "salle-village",
+              "guilde-mages-2": "guilde-mages-1", "guilde-mages-3": "guilde-mages-1", "guilde-mages-4": "guilde-mages-1"}
 
 # les bâtiments dont le pied coupé par la colline finit en touffes (sur d'autres, elles mangeaient des détails peints :
 # les bouteilles sous l'étal du marché)

@@ -3342,6 +3342,24 @@ choix de l'utilisateur) :
   écrit les forces de référence. **La courbe du Château** (chaque palier deux fois plus fort) se mesure contre une vraie
   armée (`CreatureStrength.GoldToBeat` : Archer 29, Griffon 90, Cavalier 152, Moine 175, Chevalier 490 or) avec plus de
   marge (×1,1 à ×3,5) : en paysans, elle surestimait les tireurs et s'opposait aux duels ; un repère, pas une règle d'or.
+- ✅ **L'équilibrage, deuxième partie : les premières semaines** (2026-11-26, branche `equilibrage-semaines`). Les deux
+  notes du plan étaient dépassées. **La horde barbare** domine déjà : un adversaire de chaque faction pendant six
+  semaines (`Adversaires_par_faction`, or d'armée) donnait Barbares 82 600, Donjon 71 000, Nains 65 700, Enfer 65 100,
+  Château 62 400, Tour 61 200, Forêt 58 100, morts-vivants 52 700 (la mesure de 17 400 contre 22 500 datait d'avant les
+  mines à 1 000 or et les nouveaux gardiens). **Les petites cartes** se gagnent en 6 à 10 jours (deux villes depuis la
+  victoire « toutes les villes ») : plus de gardien du Donjon qui ralentit. Nouvelle mesure `Premieres_semaines` :
+  l'armée de départ et 1 à 3 semaines de croissance des niveaux 1 à 4, menées par un héros de la classe (moral et
+  commandement compris), contre chaque autre faction ; la Forêt (+42) et le Donjon (+35) y dominent, leur semaine
+  valant 10 à 25 % d'or de plus, mais l'or limite les premières semaines (300 par jour avec la salle du village).
+  **Les morts-vivants** : sur deux cartes sur six, leur armée s'effondrait (12 000 et 17 000). Leur troupe de Fantômes
+  grossissait à chaque créature tuée et le gardait d'un combat à l'autre (52 Fantômes au jour 12 : 156 points de
+  commandement pour une limite de 80) ; à chaque fois qu'elle grossissait, elle pouvait se révolter (près d'une chance
+  sur deux à deux fois la limite), changer de camp et dévorer sa propre armée : le héros principal y perdait tout
+  (72 Squelettes, 42 Zombies, 52 Fantômes et 7 Araignées vaincus par 15 Gargouilles). Essayés sans effet : le charisme
+  du Nécromancien à 10, plus de Squelettes et de Zombies chaque semaine. **Choix de l'utilisateur** : garder le
+  risque, mais **le Fantôme ne grossit plus qu'une fois sur trois** quand il tue (`TacticalBattle.GhostGrowthChance`).
+  Après : morts-vivants 74 200 (de 60 000 à 83 000, plus d'effondrement) ; les autres factions de 55 000 (Château :
+  une carte où l'IA perd une petite armée contre 9 Fantômes, de justesse) à 82 600 (Barbares).
 - ✅ **Les feuilles dans le vent** (2026-11-25, branche `carte-feuilles`). Des rafales traversent la carte en bandes
   larges, vers la droite et un peu vers le bas (`Game/Wind.cs` : une rafale tous les 7 cases, 1,5 case par seconde ;
   la même formule dans le shader du décor). Sous une rafale, le haut de chaque arbre (de tous les sols, brûlés compris)

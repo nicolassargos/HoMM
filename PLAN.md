@@ -108,8 +108,10 @@ pirates).
 - ✅ **Équilibrage des créatures** (2026-11-25, détail dans `HISTORIQUE.md`) : la mesure qui compte est l'armée entière
   contre celle d'une autre faction (`Armees_a_prix_egal`, choix de l'utilisateur) ; quelques unités un peu meilleures
   pour leur prix sont permises si ce n'est pas flagrant. Les extrêmes des duels corrigés, le Dragon rouge en vrai
-  niveau 7. **Reste** : la horde barbare devrait dominer les premières semaines (son moral la freine) ; les gardiens du
-  Donjon ralentissent certaines petites cartes ; les Paysans très forts pour leur prix (79 % en duel).
+  niveau 7. ✅ Les premières semaines (2026-11-26) : la horde barbare domine déjà les parties de six semaines ; les
+  petites cartes ne sont plus ralenties ; les morts-vivants perdaient leur armée (leurs Fantômes grossissaient sans fin
+  et se révoltaient) : ils ne grossissent plus qu'une fois sur trois. **Reste** : les Paysans très forts pour leur prix
+  (79 % en duel).
 - ✅ **Animations du Ver des profondeurs** (2026-11-20, branche `animations-dragon-hydre-ver`) : il glisse vers sa
   cible, le sol se fend devant lui, il avale en plongeant d'en haut.
 - L'IA apprend chaque nouvelle faction.

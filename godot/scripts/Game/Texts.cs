@@ -1083,7 +1083,7 @@ public static class Texts
         Ability.Regenerates => "se régénère",
         Ability.TwoHex => "grande créature",
         Ability.Undead => "mort-vivant (insensible aux sorts de l'esprit et au poison)",
-        Ability.GhostGrowth => "grossit en tuant",
+        Ability.GhostGrowth => "grossit parfois en tuant",
         Ability.Poison => "morsure empoisonnée",
         Ability.LifeDrain => "draine la vie",
         Ability.DeathCloud => "nuage de mort",

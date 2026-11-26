@@ -622,11 +622,13 @@ public class MesuresTests(ITestOutputHelper output)
 
     /// <summary>
     /// Un adversaire de chaque faction (Normal), six semaines, sur les mêmes cartes : les factions doivent se valoir.
+    /// <c>HOMM_FACTION=morts-vivants</c> : cette faction seulement.
     /// </summary>
     [Mesure]
     public void Adversaires_par_faction()
     {
-        foreach (var faction in TestData.Data.Classes.PlayableFactions)
+        var only = Environment.GetEnvironmentVariable("HOMM_FACTION");
+        foreach (var faction in TestData.Data.Classes.PlayableFactions.Where(f => only == null || f == only))
         {
             var values = new List<int>();
             int towns = 0, battles = 0, defeated = 0;
@@ -643,7 +645,7 @@ public class MesuresTests(ITestOutputHelper output)
                 defeated += rival.IsDefeated ? 1 : 0;
             }
             int n = Seeds.Length;
-            output.WriteLine($"{faction} : armée {Range(values)} ; par partie : {towns / (double)n:0.0} villes, "
+            output.WriteLine($"{faction} : armée {Range(values)} ({string.Join(" ", values)}) ; par partie : {towns / (double)n:0.0} villes, "
                              + $"{battles / (double)n:0.0} combats gagnés ; éliminé {defeated} fois");
         }
     }
@@ -850,6 +852,84 @@ public class MesuresTests(ITestOutputHelper output)
         }
         output.WriteLine("Victoires : " + string.Join(", ", wins.OrderByDescending(w => w.Value)
             .Select(w => $"{w.Key} {100.0 * w.Value / (20 * (factions.Length - 1)):0} %")));
+    }
+
+    /// <summary>
+    /// Les premières semaines (2026-11-25) : pour chaque faction, l'armée de départ de sa classe et la croissance de ses
+    /// niveaux 1 à 4 pendant 1, 2 puis 3 semaines (sans regarder l'or), menées par un héros de niveau 1 de sa classe
+    /// (attaque, défense, moral et limite de commandement), contre celle de chaque autre faction, sur 20 combats joués par
+    /// l'IA, chacune à son tour attaquante. Écrit les victoires et la marge moyenne de chaque faction, puis les troupes qui
+    /// dépassent la limite de commandement (leur moral baisse). La horde barbare devrait y dominer.
+    /// <c>HOMM_FACTION=barbares</c> : seulement les rencontres de cette faction.
+    /// </summary>
+    [Mesure]
+    public void Premieres_semaines()
+    {
+        var factions = new[] { "chateau", "morts-vivants", "barbares", "foret", "tour", "donjon", "enfer", "nains" };
+        var only = Environment.GetEnvironmentVariable("HOMM_FACTION");
+        var map = new AdventureMap(4, 4);
+        Hero Leader(string faction)
+        {
+            var hero = new Hero(faction, new Player(faction, map), new Cell(0, 0));
+            hero.TakeClass(TestData.Data.Classes.ForFaction(faction)!, TestData.Data.Spells, TestData.Data.Skills);
+            return hero;
+        }
+        Army Week(string faction, int weeks)
+        {
+            var army = new Army();
+            foreach (var stack in TestData.Data.Classes.ForFaction(faction)!.Army)
+                army.Add(TestData.Creatures.Get(stack.Creature), stack.Count);
+            foreach (var c in TestData.Creatures.All.Where(c => c.Faction == faction && c.Tier <= 4).OrderBy(c => c.Tier))
+                army.Add(c, c.Growth * weeks);
+            return army;
+        }
+        double Gold(Army army) => army.Stacks.Sum(s => s.Count * s.Type.Cost[ResourceType.Gold]);
+        for (int weeks = 1; weeks <= 3; weeks++)
+        {
+            var margin = factions.ToDictionary(f => f, _ => 0.0);
+            var wins = factions.ToDictionary(f => f, _ => 0);
+            for (int i = 0; i < factions.Length; i++)
+            for (int j = i + 1; j < factions.Length; j++)
+            {
+                var (a, b) = (factions[i], factions[j]);
+                if (only != null && a != only && b != only)
+                    continue;
+                int winsA = 0;
+                double sum = 0;
+                for (int seed = 0; seed < 20; seed++)
+                {
+                    var (armyA, armyB) = (Week(a, weeks), Week(b, weeks));
+                    var (heroA, heroB) = (Leader(a), Leader(b));
+                    double startA = Gold(armyA), startB = Gold(armyB);
+                    var battle = seed % 2 == 0
+                        ? new TacticalBattle(armyA, armyB, new GameRandom(seed), heroA, defenderHero: heroB)
+                        : new TacticalBattle(armyB, armyA, new GameRandom(seed), heroB, defenderHero: heroA);
+                    BattleAI.PlayOut(battle);
+                    if (armyA.TotalCount > 0 && armyB.TotalCount == 0)
+                    {
+                        winsA++;
+                        sum += Gold(armyA) / startA;
+                    }
+                    else if (armyB.TotalCount > 0)
+                        sum -= Gold(armyB) / startB;
+                }
+                wins[a] += winsA;
+                wins[b] += 20 - winsA;
+                margin[a] += 100 * sum / 20;
+                margin[b] -= 100 * sum / 20;
+            }
+            int pairs = only != null ? 1 : factions.Length - 1;
+            output.WriteLine($"{weeks} semaine(s) : " + string.Join(", ", factions.Where(f => only == null || f == only)
+                .OrderByDescending(f => margin[f])
+                .Select(f => $"{f} {100.0 * wins[f] / (20 * (only == null ? pairs : factions.Length - 1)):0} % ({margin[f] / (only == null ? pairs : factions.Length - 1):+0;-0})")));
+        }
+        foreach (var faction in factions)
+        {
+            var hero = Leader(faction);
+            var over = Week(faction, 3).Stacks.Where(s => Morale.Overload(s.Type, s.Count, hero.CommandLimit) < 0)
+                .Select(s => $"{s.Count} {s.Type.Plural} ({Morale.Overload(s.Type, s.Count, hero.CommandLimit)})");
+            output.WriteLine($"{faction}, limite {hero.CommandLimit}, après 3 semaines : {string.Join(", ", over)}");
+        }
     }
 
     private static IEnumerable<string> Curve(string faction)

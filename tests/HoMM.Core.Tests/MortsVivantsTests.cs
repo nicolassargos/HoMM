@@ -78,7 +78,8 @@ public class MortsVivantsTests
             battle.Attack(peasants, new Hex(4, 4)); // ils tuent, grossissent et dépassent la limite
 
             var log = battle.TakeLog();
-            Assert.True(log.OfType<UnitGrew>().Any());
+            if (!log.OfType<UnitGrew>().Any()) // ils ne grossissent qu'une fois sur trois
+                continue;
             if (log.OfType<UnitRevolted>().SingleOrDefault() is not { } revolted)
                 continue;
             revolts++;
@@ -94,24 +95,33 @@ public class MortsVivantsTests
     }
 
     [Fact]
-    public void Le_fantome_grossit_de_chaque_creature_qu_il_tue_et_le_garde_apres_le_combat()
+    public void Le_fantome_grossit_parfois_des_creatures_qu_il_tue_et_le_garde_apres_le_combat()
     {
-        var army = ArmyOf("fantome", 10);
-        var battle = new TacticalBattle(army, ArmyOf("paysan", 100), new GameRandom(5));
-        battle.Field.Obstacles.Clear();
-        var ghosts = battle.Units.Single(u => u.Side == BattleSide.Attacker);
-        var peasants = battle.Units.Single(u => u.Side == BattleSide.Defender);
-        peasants.Position = new Hex(5, 4);
-        battle.ForceTurn(ghosts, new Hex(4, 4));
+        int grew = 0;
+        const int tries = 60;
+        for (int seed = 0; seed < tries; seed++)
+        {
+            var army = ArmyOf("fantome", 10);
+            var battle = new TacticalBattle(army, ArmyOf("paysan", 100), new GameRandom(seed));
+            battle.Field.Obstacles.Clear();
+            var ghosts = battle.Units.Single(u => u.Side == BattleSide.Attacker);
+            var peasants = battle.Units.Single(u => u.Side == BattleSide.Defender);
+            peasants.Position = new Hex(5, 4);
+            battle.ForceTurn(ghosts, new Hex(4, 4));
 
-        battle.Attack(peasants, new Hex(4, 4));
+            battle.Attack(peasants, new Hex(4, 4));
 
-        int killed = 100 - peasants.Count;
-        Assert.True(killed > 0);
-        int lostToRetaliation = battle.TakeLog().OfType<UnitStruck>().Where(s => s.Retaliation).Sum(s => s.Killed);
-        Assert.Equal(10 + killed - lostToRetaliation, ghosts.Count);
-        battle.Report();
-        Assert.Equal(ghosts.Count, army.TotalCount); // ils restent dans l'armée
+            int killed = 100 - peasants.Count;
+            Assert.True(killed > 0);
+            var log = battle.TakeLog();
+            int lostToRetaliation = log.OfType<UnitStruck>().Where(s => s.Retaliation).Sum(s => s.Killed);
+            bool grown = log.OfType<UnitGrew>().Any();
+            grew += grown ? 1 : 0;
+            Assert.Equal(10 + (grown ? killed : 0) - lostToRetaliation, ghosts.Count);
+            battle.Report();
+            Assert.Equal(ghosts.Count, army.TotalCount); // ils restent dans l'armée
+        }
+        Assert.InRange(grew, tries / 6, tries / 2); // une fois sur trois : 20 en moyenne
     }
 
     [Fact]
@@ -143,13 +153,14 @@ public class MortsVivantsTests
     public void Le_vampire_se_soigne_puis_ramene_des_vampires_sans_depasser_le_debut()
     {
         var (battle, vampires, peasants) = Duel("vampire", 10, "paysan", 500);
-        vampires.TakeDamage(100); // 2 vampires tués, le suivant à moitié
+        int lost = 2 * vampires.Type.HitPoints + vampires.Type.HitPoints / 2;
+        vampires.TakeDamage(lost); // 2 vampires tués, le suivant à moitié
         peasants.RetaliationsLeft = 0; // pas de riposte : on regarde le drain seul
 
         battle.Attack(peasants, new Hex(4, 4));
 
         var drained = Assert.Single(battle.TakeLog().OfType<UnitDrained>());
-        Assert.Equal(100, drained.HitPoints); // tout ce qui manquait, pas plus
+        Assert.Equal(lost, drained.HitPoints); // tout ce qui manquait, pas plus
         Assert.Equal(2, drained.Revived);
         Assert.Equal(10, vampires.Count); // jamais plus qu'au début
         Assert.Equal(vampires.Type.HitPoints, vampires.TopHitPoints);
@@ -207,10 +218,11 @@ public class MortsVivantsTests
     [Fact]
     public void Sur_la_carte_un_gardien_mort_vivant_a_la_force_d_un_gardien_neutre()
     {
-        // un colosse vaut bien plus qu'un dragon : un gardien de colosses en compte moins
+        // un colosse vaut bien plus qu'une liche : un gardien de colosses en compte moins (le Dragon rouge, qui servait
+        // ici, est devenu un vrai niveau 7 le 2026-11-25)
         var colossus = Creature("colosse-os");
-        var dragon = Creature("dragon");
-        Assert.True(CreatureStrength.PeasantsToBeat(colossus, TestData.Creatures) > 2 * CreatureStrength.PeasantsToBeat(dragon, TestData.Creatures));
+        var lich = Creature("liche");
+        Assert.True(CreatureStrength.PeasantsToBeat(colossus, TestData.Creatures) > 2 * CreatureStrength.PeasantsToBeat(lich, TestData.Creatures));
         var guards = Enumerable.Range(1, 6).SelectMany(seed => new MapGenerator(seed, TestData.Data).Generate().Objects.OfType<MonsterGuard>()).ToList();
         Assert.Contains(guards, g => g.Type.Faction == "morts-vivants");
     }

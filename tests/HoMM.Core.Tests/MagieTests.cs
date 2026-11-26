@@ -128,7 +128,7 @@ public class MagieTests
         Assert.Equal(80, peasants[0].Count); // 10 + 10 × 1 = 20 dégâts
         Assert.Equal(80, peasants[1].Count);
         Assert.Equal(100, peasants[2].Count);
-        Assert.Equal(8, archers.Count); // 20 dégâts : 2 archers
+        Assert.Equal(10 - 20 / archers.Type.HitPoints, archers.Count); // 20 dégâts : 1 ou 2 archers selon leurs PV
     }
 
     [Fact]
@@ -227,9 +227,9 @@ public class MagieTests
     {
         var (battle, ours, _) = Fight(Mage(power: 3, knowledge: 2, spells: "resurrection"), "archer", 20, "paysan", 10);
         Assert.False(battle.IsValidTarget(Spell("resurrection"), ours.Position)); // personne à ramener
-        ours.TakeDamage(150); // 15 archers tués
+        ours.TakeDamage(15 * ours.Type.HitPoints); // 15 archers tués
 
-        Assert.True(battle.Cast(Spell("resurrection"), ours.Position)); // 40 + 20 × 3 = 100 PV : 10 archers
+        Assert.True(battle.Cast(Spell("resurrection"), ours.Position)); // 40 + 20 × 3 = 100 PV : 10 archers ou presque
         Assert.Equal(15, ours.Count);
 
         var report = battle.Report();
@@ -432,8 +432,8 @@ public class MagieTests
 
         Assert.True(battle.Cast(Spell("chaine-eclairs"), peasants[0].Position));
         Assert.Equal(435, peasants[0].Count);
-        Assert.Equal(100, archers.Count); // 8 dégâts : un archer (10 PV) blessé, aucun tué
-        Assert.Equal(2, archers.TopHitPoints);
+        Assert.Equal(100, archers.Count); // 8 dégâts : un archer blessé, aucun tué
+        Assert.Equal(archers.Type.HitPoints - 8, archers.TopHitPoints);
     }
 
     [Fact]

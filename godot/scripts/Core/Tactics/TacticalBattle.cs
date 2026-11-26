@@ -124,6 +124,13 @@ public sealed partial class TacticalBattle
     /// <summary>La rage (Barbares) : attaque gagnée à chaque coup reçu, et au plus dans un combat.</summary>
     public const int RagePerHit = 2, RageMax = 6;
 
+    /// <summary>
+    /// La chance qu'un coup qui tue fasse grossir le Fantôme (2026-11-26, choix de l'utilisateur ; toujours avant) : sa
+    /// troupe grossissait sans fin d'un combat à l'autre, dépassait de loin le commandement de son héros et se révoltait
+    /// en plein combat (les adversaires morts-vivants y perdaient leur armée).
+    /// </summary>
+    public const double GhostGrowthChance = 1.0 / 3;
+
     /// <summary>La foudre de l'Oiseau-tonnerre : une chance sur cinq à chaque attaque, tant de dégâts par oiseau.</summary>
     public const double LightningChance = 0.2;
 
@@ -1026,7 +1033,8 @@ public sealed partial class TacticalBattle
             _log.Add(new LightningStruck(from, to, bolt, fried));
             BloodPrice(to, fried);
         }
-        if (from.Has(Ability.GhostGrowth) && killed > 0)
+        // le Fantôme grossit parfois des créatures qu'il tue (une fois sur trois)
+        if (from.Has(Ability.GhostGrowth) && killed > 0 && _rng.NextDouble() < GhostGrowthChance)
         {
             from.Grow(killed);
             _log.Add(new UnitGrew(from, killed));

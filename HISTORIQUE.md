@@ -2792,6 +2792,11 @@ régénération de la nature** (la créature de tête de chaque troupe retrouve 
 **Rôdeur** (talent Chasseur). Créatures : Farfadet, Sanglier, Archer elfe, Cerf, Druide, Tréant, Troll (→ Troll ancien).
 ✅ Créatures et capacités, ✅ ville, classe et héros, ✅ images, ✅ ville et héros sur la carte.
 **Reste** : souvent la faction la plus forte des adversaires mesurés (sa régénération), à revoir à l'équilibrage.
+**Le Troll endurant** (2026-11-26, choix de l'utilisateur, branche `trolls-endurants`) : le plus de PV des niveaux 7,
+mais moins de force. Avant : A 22, dégâts 65-80, 1 150 PV ; après : **A 16, dégâts 38-48 (les plus bas du niveau 7),
+1 650 PV** (le Géant suit à 1 600). Sa régénération rend un quart des PV de sa créature de tête : chaque PV compte plus,
+et les réglages sont sensibles (dégâts 40-50 : Forêt +18 en armées ; 35-45 : −18). Mesuré : 64 % de victoires en duel
+dans son niveau ; la Forêt à +3 de marge en armées (`Armees_a_prix_egal`, −2 avant).
 
 ##### Les Barbares (jouables)
 La horde : la force, le nombre et la vitesse, le mépris de la magie. Aux niveaux 1 à 4, des créatures moins chères, plus
@@ -3312,6 +3317,54 @@ choix de l'utilisateur) :
   d'une ville ou d'une mine ; un héros sur la case d'un objet passe devant lui), dessinée à chaque image. Un héros
   derrière une ville est caché tout entier (choix de l'utilisateur, comme Heroes 3) ; l'anneau du héros choisi est
   dessiné avec lui, le chemin prévu par-dessus tout (`PathLayer`). Vérifié en jeu par l'utilisateur.
+- ✅ **L'équilibrage des créatures** (2026-11-25, branche `equilibrage-duels`). **La mesure qui compte** (choix de
+  l'utilisateur) : l'armée entière contre celle d'une autre faction, pas les créatures une à une ; quelques unités un peu
+  meilleures pour leur prix sont permises, pourvu que ce ne soit pas flagrant (un avantage à découvrir). Nouvelle mesure
+  `Armees_a_prix_egal` : une semaine de croissance de chaque faction ramenée à 30 000 or, contre chaque autre faction,
+  20 combats ; on lit les victoires et la **marge moyenne** (ce qui reste au vainqueur, en or, moins ce qui reste à
+  l'adversaire quand il gagne ; les combats d'armées sont presque toujours 20/0, la marge est plus fine). Avant : de −16
+  (Donjon) à +14 (Barbares) ; après : de −7 (Château, Barbares) à +10 (morts-vivants).
+  Essai écarté : régler d'abord chaque niveau par `Duels_a_prix_egal` (chaque créature entre 35 et 65 % de victoires
+  dans son niveau) rendait les armées bien plus inégales (morts-vivants 100 % de victoires, Château 14 %) : le Colosse
+  d'os (balayage), la Liche (nuage de mort) et le Porte-étendard (bannière) sont faibles seuls mais forts dans une armée.
+  Les extrêmes des duels ont été corrigés doucement, en regardant les armées. Changements (A, D, PV, dégâts) :
+  Archer A 6→7, D 3→4, PV 10→11, dégâts 2-2→2-3 (1 % de victoires en duel, il perdait contre tous les niveaux 2) ;
+  Griffon D 8→7 ; Moine D 7→8, PV 38→41, dégâts 11-12→12-14 ; Ange PV 1200→1150, dégâts 80→78 ; Squelette D 2→3,
+  PV 4→5 ; Fantôme A 7→8, D 5→6, PV 12→15 ; Vampire PV 40→31, dégâts 9-12→8-11 (100 % en duel) ; Liche PV 70→65 ;
+  Colosse d'os dégâts 60-80→55-75 ; Nomades PV 45→42, dégâts 10-14→10-13 ; Béhémoth PV 1400→1200 (100 % en duel) ;
+  Tréant PV 150→140 ; Troll PV 1200→1150 ; Gnome PV 6→7 ; Gargouille D 9→8, PV 22→21 ; Homme-lézard PV 6→7 ;
+  Aberration PV 55→56 ; Ver des profondeurs PV 60→64 ; Tyran œil PV 80→88 ; Hydre PV 1400→1450 ; Porte-bouclier
+  PV 8→9 ; Sapeur PV 70→67 ; Gyrocoptère PV 95→88 ; Roi de cristal PV 1400→1300. Le **Dragon rouge** (neutre) devient
+  un vrai niveau 7 (choix de l'utilisateur ; 180 PV pour 2 400 or, un reste d'avant les factions) : A 26, D 24, dégâts
+  80-100, 1 550 PV, 4 900 or. Les prix ne changent pas (choix de l'utilisateur : les stats).
+  Restent hors de 25-75 % en duel : les Paysans (79 % ; leurs stats sont déjà au plus bas), le Béhémoth et l'Ange
+  (78-79 %), la Liche et le Colosse d'os (0 % : leur force est dans les combats d'armées).
+  **Les gardiens de la carte** gardent leur force : leurs tailles étaient converties par des créatures qui ont changé
+  (le Loup, l'Orc, l'Ogre, le Vampire et le Dragon rouge) ; elles le sont maintenant par le Zombie, le Golem de pierre,
+  la Naga et le Tourmenteur, avec les forces d'avant recalculées par leurs mesures d'alors
+  (`MapGenerator.GuardReferenceStrength`). Le Dragon rouge est dimensionné comme les autres ; trop fort pour la place,
+  il laisse la place à une créature de niveau 6 des gardiens (choisie par la taille prévue). `Gardiens_par_creature`
+  écrit les forces de référence. **La courbe du Château** (chaque palier deux fois plus fort) se mesure contre une vraie
+  armée (`CreatureStrength.GoldToBeat` : Archer 29, Griffon 90, Cavalier 152, Moine 175, Chevalier 490 or) avec plus de
+  marge (×1,1 à ×3,5) : en paysans, elle surestimait les tireurs et s'opposait aux duels ; un repère, pas une règle d'or.
+- ✅ **L'équilibrage, deuxième partie : les premières semaines** (2026-11-26, branche `equilibrage-semaines`). Les deux
+  notes du plan étaient dépassées. **La horde barbare** domine déjà : un adversaire de chaque faction pendant six
+  semaines (`Adversaires_par_faction`, or d'armée) donnait Barbares 82 600, Donjon 71 000, Nains 65 700, Enfer 65 100,
+  Château 62 400, Tour 61 200, Forêt 58 100, morts-vivants 52 700 (la mesure de 17 400 contre 22 500 datait d'avant les
+  mines à 1 000 or et les nouveaux gardiens). **Les petites cartes** se gagnent en 6 à 10 jours (deux villes depuis la
+  victoire « toutes les villes ») : plus de gardien du Donjon qui ralentit. Nouvelle mesure `Premieres_semaines` :
+  l'armée de départ et 1 à 3 semaines de croissance des niveaux 1 à 4, menées par un héros de la classe (moral et
+  commandement compris), contre chaque autre faction ; la Forêt (+42) et le Donjon (+35) y dominent, leur semaine
+  valant 10 à 25 % d'or de plus, mais l'or limite les premières semaines (300 par jour avec la salle du village).
+  **Les morts-vivants** : sur deux cartes sur six, leur armée s'effondrait (12 000 et 17 000). Leur troupe de Fantômes
+  grossissait à chaque créature tuée et le gardait d'un combat à l'autre (52 Fantômes au jour 12 : 156 points de
+  commandement pour une limite de 80) ; à chaque fois qu'elle grossissait, elle pouvait se révolter (près d'une chance
+  sur deux à deux fois la limite), changer de camp et dévorer sa propre armée : le héros principal y perdait tout
+  (72 Squelettes, 42 Zombies, 52 Fantômes et 7 Araignées vaincus par 15 Gargouilles). Essayés sans effet : le charisme
+  du Nécromancien à 10, plus de Squelettes et de Zombies chaque semaine. **Choix de l'utilisateur** : garder le
+  risque, mais **le Fantôme ne grossit plus qu'une fois sur trois** quand il tue (`TacticalBattle.GhostGrowthChance`).
+  Après : morts-vivants 74 200 (de 60 000 à 83 000, plus d'effondrement) ; les autres factions de 55 000 (Château :
+  une carte où l'IA perd une petite armée contre 9 Fantômes, de justesse) à 82 600 (Barbares).
 - ✅ **Les feuilles dans le vent** (2026-11-25, branche `carte-feuilles`). Des rafales traversent la carte en bandes
   larges, vers la droite et un peu vers le bas (`Game/Wind.cs` : une rafale tous les 7 cases, 1,5 case par seconde ;
   la même formule dans le shader du décor). Sous une rafale, le haut de chaque arbre (de tous les sols, brûlés compris)

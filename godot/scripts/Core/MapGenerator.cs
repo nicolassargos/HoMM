@@ -91,15 +91,20 @@ public sealed class MapGenerator
     /// <summary>
     /// La force (paysans pour en vaincre une, <see cref="CreatureStrength"/>) du gardien pour lequel
     /// <see cref="GuardBaseCount"/> est réglé, par niveau : celle des neutres d'avant les factions (Gobelin 3, Loup 9,
-    /// Orc 13, Ogre 31, Troll 50, le Troll encore au niveau 6, Dragon rouge 242).
+    /// Orc 13, Ogre 31, Troll 50, le Troll encore au niveau 6, Dragon rouge 242), comptée en paysans de la créature de
+    /// référence de son niveau (<see cref="GuardReferenceCreature"/>).
     /// </summary>
-    private static readonly int[] GuardReferenceStrength = { 0, 3, 9, 13, 31, 50, 50, 242 };
+    private static readonly double[] GuardReferenceStrength = { 0, 3, 10.903, 8.44, 42.806, 63.348, 63.348, 313.77 };
 
     /// <summary>
     /// Pour passer de ces forces en paysans à la mesure contre une vraie armée (<see cref="CreatureStrength.GoldToBeat"/>) :
-    /// la créature de chaque niveau dont la force en paysans n'a pas changé depuis (le Vampire pour le Troll d'alors).
+    /// une créature de chaque niveau dont les stats ne changent pas. Depuis l'équilibrage du 2026-11-25 (le Loup, l'Orc,
+    /// l'Ogre, le Vampire et le Dragon rouge, qui servaient avant, ont changé), le Zombie, le Golem de pierre, la Naga et
+    /// le Tourmenteur ; les forces d'avant (19,5, 52,3, 44,4, 183, 331 et 1641 or contre l'armée de mesure) y sont
+    /// converties par leurs mesures d'alors (Zombie 12 paysans pour 57,6 or, Golem 22 pour 115,9, Naga 49 pour 209,6,
+    /// Tourmenteur 63 pour 329,5). Si l'une d'elles change, refaire ce calcul.
     /// </summary>
-    private static readonly string[] GuardReferenceCreature = { "", "gobelin", "loup", "orc", "ogre", "vampire", "vampire", "dragon" };
+    private static readonly string[] GuardReferenceCreature = { "", "gobelin", "zombie", "golem-pierre", "naga", "tourmenteur", "tourmenteur", "tourmenteur" };
 
     /// <summary>
     /// Un gardien qui n'aurait pas une seule créature de son niveau (moins de 0,75 : une seule serait bien trop forte, comme
@@ -4232,7 +4237,7 @@ public sealed class MapGenerator
     /// Les tailles des gardiens sont réglées pour les créatures neutres d'avant les factions. Pour une autre créature, on
     /// la compare à la force de référence de son niveau (<see cref="GuardReferenceStrength"/>) par sa force mesurée
     /// (combien de paysans il faut pour en vaincre une, capacités comprises) : la troupe a autant de force que le
-    /// gardien de référence. Le Troll et le Dragon rouge, encore neutres, gardent leurs tailles.
+    /// gardien de référence.
     /// </summary>
     /// <summary>
     /// La créature et la taille d'un gardien de ce niveau, à partir de sa taille comptée en gardiens neutres : une créature
@@ -4243,8 +4248,12 @@ public sealed class MapGenerator
     internal static (CreatureType Type, int Count) SizeGuard(CreatureCatalog creatures, CreatureType type, int tier, int count)
     {
         double sized = count * StrengthFactor(creatures, type, tier);
-        if (sized < SmallestGuard && type.Faction != "neutre"
-            && creatures.All.FirstOrDefault(c => c.Faction == type.Faction && c.Tier == type.Tier - 1) is { } lower)
+        // un neutre n'a pas de niveau en dessous dans sa faction (le Dragon rouge, devenu un vrai niveau 7 le 2026-11-25) :
+        // il prend une créature du niveau en dessous parmi celles des gardiens, choisie par la taille prévue
+        var below = type.Faction == "neutre"
+            ? creatures.All.Where(c => MonsterFactions.Contains(c.Faction) && !c.Sea && c.Tier == type.Tier - 1).OrderBy(c => c.Id).ToList()
+            : creatures.All.Where(c => c.Faction == type.Faction && c.Tier == type.Tier - 1).Take(1).ToList();
+        if (sized < SmallestGuard && below.Count > 0 && below[count % below.Count] is var lower)
         {
             sized = count * ReferenceStrength(creatures, tier) / CreatureStrength.GoldToBeat(lower, creatures);
             type = lower;
@@ -4254,9 +4263,6 @@ public sealed class MapGenerator
 
     internal static double StrengthFactor(CreatureCatalog creatures, CreatureType type, int tier)
     {
-        // les neutres d'avant les factions gardent leurs tailles (pas le Pirate, venu après)
-        if (type.Faction == "neutre" && !type.Sea)
-            return 1;
         return ReferenceStrength(creatures, tier) / CreatureStrength.GoldToBeat(type, creatures);
     }
 

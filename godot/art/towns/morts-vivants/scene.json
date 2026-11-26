@@ -1,0 +1,192 @@
+{
+ "width": 960,
+ "height": 270,
+ "buildings": [
+  {
+   "id": "chateau-fort",
+   "x": 416,
+   "y": 5,
+   "depth": 200.0,
+   "shadowX": 416,
+   "shadowY": 140
+  },
+  {
+   "id": "citadelle",
+   "x": 416,
+   "y": 27,
+   "depth": 200.0,
+   "shadowX": 417,
+   "shadowY": 140
+  },
+  {
+   "id": "fort",
+   "x": 423,
+   "y": 34,
+   "depth": 200.0,
+   "shadowX": 418,
+   "shadowY": 140
+  },
+  {
+   "id": "charnier",
+   "x": 723,
+   "y": 103,
+   "depth": 98.0
+  },
+  {
+   "id": "forge",
+   "x": 664,
+   "y": 134,
+   "depth": 88.0
+  },
+  {
+   "id": "guilde-mages-1",
+   "x": 352,
+   "y": 52,
+   "depth": 88.0,
+   "shadowX": 387,
+   "shadowY": 150
+  },
+  {
+   "id": "guilde-mages-2",
+   "x": 352,
+   "y": 13,
+   "depth": 88.0,
+   "shadowX": 353,
+   "shadowY": 21
+  },
+  {
+   "id": "guilde-mages-3",
+   "x": 352,
+   "y": 2,
+   "depth": 88.0,
+   "shadowX": 353,
+   "shadowY": 10
+  },
+  {
+   "id": "guilde-mages-4",
+   "x": 352,
+   "y": 2,
+   "depth": 88.0,
+   "shadowX": 351,
+   "shadowY": 10
+  },
+  {
+   "id": "guilde-mages-5",
+   "x": 344,
+   "y": 2,
+   "depth": 88.0,
+   "shadowX": 344,
+   "shadowY": 10
+  },
+  {
+   "id": "tour-liche",
+   "x": 165,
+   "y": 12,
+   "depth": 80.0
+  },
+  {
+   "id": "crypte",
+   "x": 265,
+   "y": 129,
+   "depth": 73.0
+  },
+  {
+   "id": "capitole",
+   "x": 520,
+   "y": 42,
+   "depth": 58.0
+  },
+  {
+   "id": "cortege-funebre",
+   "x": 690,
+   "y": 129,
+   "depth": 58.0,
+   "shadowX": 733,
+   "shadowY": 168
+  },
+  {
+   "id": "grand-hotel-ville",
+   "x": 520,
+   "y": 76,
+   "depth": 58.0
+  },
+  {
+   "id": "hotel-ville",
+   "x": 523,
+   "y": 90,
+   "depth": 58.0
+  },
+  {
+   "id": "salle-village",
+   "x": 540,
+   "y": 120,
+   "depth": 58.0,
+   "shadowX": 510,
+   "shadowY": 167
+  },
+  {
+   "id": "ossuaire",
+   "x": 299,
+   "y": 138,
+   "depth": 44.0,
+   "shadowX": 273,
+   "shadowY": 196
+  },
+  {
+   "id": "etang-noyees",
+   "x": 776,
+   "y": 161,
+   "depth": 38.0,
+   "shadowX": 775,
+   "shadowY": 197
+  },
+  {
+   "id": "taverne",
+   "x": 385,
+   "y": 160,
+   "depth": 28.0,
+   "shadowX": 385,
+   "shadowY": 200,
+   "frontX": 380,
+   "frontY": 247
+  },
+  {
+   "id": "antre-araignees",
+   "x": 78,
+   "y": 138,
+   "depth": 25.0,
+   "shadowX": 46,
+   "shadowY": 195
+  },
+  {
+   "id": "marche",
+   "x": 506,
+   "y": 207,
+   "depth": 22.0
+  },
+  {
+   "id": "cimetiere",
+   "x": 188,
+   "y": 196,
+   "depth": 18.0,
+   "shadowX": 166,
+   "shadowY": 238
+  },
+  {
+   "id": "silo",
+   "x": 716,
+   "y": 196,
+   "depth": 0.0,
+   "shadowX": 698,
+   "shadowY": 235
+  }
+ ],
+ "home": {
+  "id": "demeure",
+  "x": 485,
+  "y": 34,
+  "depth": 200.0,
+  "shadowX": 467,
+  "shadowY": 140
+ }
+}

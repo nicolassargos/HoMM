@@ -779,6 +779,11 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
 - **Retouches sans dépense** : une flèche coupée à plat par le haut du concept, refaite en pointe (ses rangées du haut
   resserrées) ; des trous du château bouchés depuis les pixels sombres du mur (pas une fenêtre verte voisine). La
   **fumée** de la forge est retirée : le jeu la dessinera, animée.
+- **Dans le jeu** (`batiments/jeu.py <graine> godot/art/towns/morts-vivants`) : le fond repeint, et par bâtiment son
+  image (ses seuls pixels, cliquables), son ombre (le sol qu'il porte, rebasé) et le décor devant lui ; nos noms
+  changés en ceux de `buildings.json` ; la profondeur suit le bas de chaque boîte. Le fort et la citadelle gardaient
+  des arbres bleus du concept derrière leurs murs, et leur cour était un trou : découpés eux aussi par PixelLab (sans
+  `--fond`), la cour prend ses couleurs. Toujours vérifier **chaque étape** sur le nouveau fond, pas seulement la dernière.
 - Coût du tout : environ 1 € de concept et de fond, le reste en générations de l'abonnement (quelques centaines).
 
 ## Ponts de la carte (Retro Diffusion, 2026-11-15)

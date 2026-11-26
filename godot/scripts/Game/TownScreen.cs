@@ -101,12 +101,15 @@ public partial class TownScreen : CanvasLayer
 
         // le nom de la ville sur un onglet, posé sur le bas de la vue (comme Heroes 2), avec le revenu à la suite ;
         // centré au-dessus des armées (voir Refresh), sauf si l'utilisateur l'a placé lui-même
-        _nameTab = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        _nameTab.AddThemeStyleboxOverride("panel", ThinFrame(PanelColor));
+        // sur la plaque sculptée, à la hauteur de son image (comme le nom des villes de Heroes 2)
+        _nameTab = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore, CustomMinimumSize = new Vector2(0, TitlePlateHeight) };
+        _nameTab.AddThemeStyleboxOverride("panel", TitlePlate(DarkPanelColor));
         var tabLine = new HBoxContainer();
         tabLine.AddThemeConstantOverride("separation", (int)Px(12));
         _nameTab.AddChild(tabLine);
         _title = MakeLabel("", 22, TextColor);
+        _title.VerticalAlignment = VerticalAlignment.Center;
+        _title.SizeFlagsVertical = Control.SizeFlags.Fill;
         _header = MakeLabel("", 14, SoftTextColor);
         _header.VerticalAlignment = VerticalAlignment.Center;
         _header.SizeFlagsVertical = Control.SizeFlags.Fill;
@@ -235,6 +238,8 @@ public partial class TownScreen : CanvasLayer
         _root.AddChild(Layout.Add("leave-all", _leaveAll));
 
         Layout.Apply();
+        // la plaque du nom par-dessus les places des troupes (voir CenterNameTab), sous les fenêtres ouvertes ensuite
+        _nameTab.MoveToFront();
     }
 
     private ArmySlots MakeArmy(Vector2 position)
@@ -375,12 +380,15 @@ public partial class TownScreen : CanvasLayer
         return button;
     }
 
-    /// <summary>L'onglet du nom au milieu de la vue, posé sur son bas.</summary>
+    /// <summary>
+    /// La plaque du nom au milieu de la vue, à cheval sur son bas : moitié sur la vue, moitié sur les places des troupes
+    /// (idée de l'utilisateur).
+    /// </summary>
     private void CenterNameTab()
     {
         _nameTab.Size = _nameTab.GetCombinedMinimumSize();
         _nameTab.Position = new Vector2(Snap(_view.Position.X + (_view.Size.X - _nameTab.Size.X) / 2),
-            Snap(_view.Position.Y + _view.Size.Y - _nameTab.Size.Y));
+            Snap(_view.Position.Y + _view.Size.Y - _nameTab.Size.Y / 2));
     }
 
     /// <summary>Met l'écran à jour d'après l'état de la ville (après chaque action).</summary>

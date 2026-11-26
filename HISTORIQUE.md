@@ -2592,6 +2592,14 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   - Capture : `--town-window=recruit:<id>` ouvre la fenêtre sur cette créature (`count` : la dernière habitation bâtie).
   - Textes retirés : `RecruitWindowTitle`, `RecruitMore`, `RecruitAllButton`, `Affordable`, `RecruitInfo`,
     `RecruitTotal`, `CreatureStats`, `PriceLine`.
+- ✅ Le nom de la ville sur une plaque sculptée (2026-11-26, branche `ville-plaque-nom`, demandé par l'utilisateur) :
+  la plaque n° 1 des essais du 2026-11-16 (`suite/plaque/1.png` de l'archive `2026-11-16-interface-bois`, chêne et
+  volutes d'or, faite avec le cadre E1) dans `art/ui/plaque.png` : son centre rendu transparent (`cadre.py`), le
+  milieu de sa bordure rendu uni (une colonne sans l'encoche du haut, recopiée), pour s'étirer sans raccord.
+  `Ui.TitlePlate` : les bouts de 26 pixels d'art gardent leur dessin, le milieu s'étire à la largeur du texte, la
+  hauteur est celle de l'image (×2) ; le centre prend le sombre des panneaux. Le nom, le revenu et la construction
+  du jour et les flèches d'une ville à l'autre y tiennent sur une ligne. À cheval sur le bas de la vue, moitié sur
+  l'image, moitié sur les places des troupes (idée de l'utilisateur), par-dessus elles mais sous les fenêtres.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

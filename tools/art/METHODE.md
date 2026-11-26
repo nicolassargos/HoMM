@@ -925,7 +925,8 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
     place du bord.
   - **Boutons** : le gris de pierre jure avec le bois ; des boutons de bois rouge et or (`suite/boutons3/6`, rivets)
     lient le tout (`buttonCorner` 7, `buttonTextureStrength` 0). Le bouton 24 de la première série laisse des raccords.
-  - **Plaques de titre** (`suite/plaque`, 128 × 32) : pas encore branchées.
+  - **Plaques de titre** (`suite/plaque`, 128 × 32) : la n° 1 porte le nom de la ville (2026-11-26,
+    `art/ui/plaque.png`, son milieu rendu uni pour s'étirer).
   - **Fonds texturés** (`fonds/`, Retro Diffusion `rd_tile__single_tile` 64 × 64 `tile`, 0,24 $ les 4 ; entrées
     `ui/fond-*` de `assets.json`) : bois, cuir, tissu, pierre, sans raccord. Le jeu sait s'en servir :
     `"panelTexture": "image:ui/fond-bois-1"` dans `ui.json` (l'image dans `art/ui/`) ; chaque pixel éclaircit ou

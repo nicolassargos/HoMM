@@ -306,6 +306,42 @@ public static class Ui
         return box;
     }
 
+    /// <summary>Les bouts sculptés de la plaque du nom (<c>art/ui/plaque.png</c>), en pixels d'art : le reste s'étire.</summary>
+    private const int PlateEnd = 26;
+
+    private static readonly Dictionary<Color, StyleBox> TitlePlates = new();
+
+    /// <summary>
+    /// La plaque sculptée du nom d'une ville (bois et volutes d'or, comme le cadre des fenêtres), remplie de
+    /// <paramref name="fill"/> : ses deux bouts gardent leur dessin, le milieu (rendu uni dans l'image) s'étire à
+    /// la largeur du texte. Sa hauteur est celle de l'image (×2, <see cref="TitlePlateHeight"/>). Sans image, le cadre mince.
+    /// </summary>
+    public static StyleBox TitlePlate(Color fill)
+    {
+        if (TitlePlates.TryGetValue(fill, out var cached))
+            return cached;
+        if (Art.GetImage("ui/plaque") is not { } source)
+            return ThinFrame(fill);
+        var image = Enlarged(FillInside(Trimmed(source), fill, 0), FrameScale);
+        int h = image.GetHeight();
+        var box = new StyleBoxTexture
+        {
+            Texture = ImageTexture.CreateFromImage(image),
+            AxisStretchHorizontal = StyleBoxTexture.AxisStretchMode.Stretch,
+            AxisStretchVertical = StyleBoxTexture.AxisStretchMode.Stretch,
+            TextureMarginLeft = PlateEnd * FrameScale, TextureMarginRight = PlateEnd * FrameScale,
+            // une seule rangée du milieu s'étirerait si le contenu était plus haut que la plaque
+            TextureMarginTop = h / 2 - 1, TextureMarginBottom = h - h / 2 - 1,
+        };
+        box.ContentMarginLeft = box.ContentMarginRight = ArtPx(PlateEnd + 4);
+        box.ContentMarginTop = box.ContentMarginBottom = ArtPx(5);
+        TitlePlates[fill] = box;
+        return box;
+    }
+
+    /// <summary>La hauteur de la plaque du nom à l'écran (en pixels).</summary>
+    public static float TitlePlateHeight => Art.GetImage("ui/plaque") is { } plate ? Trimmed(plate).GetHeight() * FrameScale : 0;
+
     /// <summary>L'épaisseur du cadre mince à l'écran (en pixels), pour poser le contenu dedans.</summary>
     public static float ThinFrameBorder()
     {

@@ -81,8 +81,8 @@ public static class Ui
     /// <summary>Largeur du bouton « Fermer » des grandes fenêtres, toujours en haut à droite.</summary>
     public static readonly float CloseButtonWidth = ArtPx(64);
 
-    /// <summary>Marge entre le bord d'une fenêtre et son contenu, et écart entre deux boutons voisins.</summary>
-    public static readonly float WindowMargin = ArtPx(12), ButtonGap = ArtPx(4);
+    /// <summary>Marge entre le bord d'une fenêtre et son contenu (le bord du cadre fait 17 pixels d'art), et écart entre deux boutons voisins.</summary>
+    public static readonly float WindowMargin = ArtPx(18), ButtonGap = ArtPx(4);
 
     /// <summary>
     /// Les tailles du texte, les seules où la police reste nette : un pixel de la police y fait un pixel d'art (2 pixels
@@ -198,6 +198,9 @@ public static class Ui
     /// </summary>
     private static int FrameCorner = 12, FrameContentX = 14, FrameContentY = 6, ButtonCorner = 6;
 
+    /// <summary>Le cadre mince des barres (« art/ui/panel-mince.png », fait par tools/art/cadre_mince.py) : coin et marges.</summary>
+    private static int ThinCorner = 7, ThinContentX = 12, ThinContentY = 7;
+
     /// <summary>Agrandissement du cadre à l'écran (« panelScale » dans ui.json ; par défaut celui des images).</summary>
     private static int FrameScale = ArtScale;
 
@@ -219,6 +222,9 @@ public static class Ui
         FrameContentX = Get("panelContentX", FrameContentX);
         FrameContentY = Get("panelContentY", FrameContentY);
         ButtonCorner = Get("buttonCorner", ButtonCorner);
+        ThinCorner = Get("thinCorner", ThinCorner);
+        ThinContentX = Get("thinContentX", ThinContentX);
+        ThinContentY = Get("thinContentY", ThinContentY);
         FrameScale = Get("panelScale", FrameScale);
         ButtonScale = Get("buttonScale", ButtonScale);
         ButtonPlainBand = Get("buttonPlainBand", ButtonPlainBand ? 1 : 0) != 0;
@@ -231,7 +237,8 @@ public static class Ui
     }
 
     private static readonly Dictionary<Color, StyleBox> Frames = new();
-    private static Image? _frameImage, _buttonImage;
+    private static readonly Dictionary<Color, StyleBox> ThinFrames = new();
+    private static Image? _frameImage, _thinImage, _buttonImage;
     private static bool _imagesLoaded;
 
     private static void LoadImages()
@@ -242,6 +249,8 @@ public static class Ui
         LoadSlices();
         _frameImage = Art.GetImage("ui/panel") is { } frame
             ? Enlarged(WithLargeMiddle(WithoutRepeatedDetails(frame, FrameCorner), FrameCorner), FrameScale) : null;
+        _thinImage = Art.GetImage("ui/panel-mince") is { } thin
+            ? Enlarged(WithLargeMiddle(Trimmed(thin), ThinCorner), FrameScale) : null;
         // un bouton garde tout son milieu (« buttonPlainBand » : seulement la bande sans détail, pour des bords à clous) :
         // une pierre texturée répétée par petites bandes laissait des raccords visibles
         _buttonImage = Art.GetImage("ui/button") is { } button
@@ -278,6 +287,29 @@ public static class Ui
             : Sliced(FillInside(_frameImage, fill, FrameCorner), FrameCorner * FrameScale, (int)Px(FrameContentX), (int)Px(FrameContentY));
         Frames[fill] = box;
         return box;
+    }
+
+    /// <summary>
+    /// Le cadre mince des barres (ressources, état, onglet du nom) rempli de <paramref name="fill"/> : le cadre des
+    /// fenêtres y mordrait sur le texte. Sans image, le cadre des fenêtres.
+    /// </summary>
+    public static StyleBox ThinFrame(Color fill)
+    {
+        if (ThinFrames.TryGetValue(fill, out var cached))
+            return cached;
+        LoadImages();
+        if (_thinImage == null)
+            return Frame(fill);
+        var box = Sliced(FillInside(_thinImage, fill, ThinCorner), ThinCorner * FrameScale, (int)Px(ThinContentX), (int)Px(ThinContentY));
+        ThinFrames[fill] = box;
+        return box;
+    }
+
+    /// <summary>L'épaisseur du cadre mince à l'écran (en pixels), pour poser le contenu dedans.</summary>
+    public static float ThinFrameBorder()
+    {
+        LoadImages();
+        return _thinImage == null ? 2 : ThinCorner * FrameScale;
     }
 
     /// <summary>Le fond d'un bouton, teinté par <paramref name="tint"/> (survol, appui, désactivé).</summary>
@@ -507,6 +539,32 @@ public static class Ui
         return Sliced(Enlarged(image, FrameScale), 0, 0, 0);
     }
 
+    private static Image? _background;
+    private static Color _backgroundMean;
+    private static bool _backgroundLoaded;
+
+    /// <summary>L'image du fond quand « panelTexture » vaut « image:ui/… » (64 × 64, sans raccord), sinon rien.</summary>
+    private static Image? BackgroundImage()
+    {
+        if (_backgroundLoaded)
+            return _background;
+        _backgroundLoaded = true;
+        if (!PanelTexture.StartsWith("image:") || Art.GetImage(PanelTexture["image:".Length..]) is not { } image)
+            return null;
+        image = (Image)image.Duplicate();
+        image.Convert(Image.Format.Rgba8);
+        float r = 0, g = 0, b = 0;
+        int count = image.GetWidth() * image.GetHeight();
+        for (int y = 0; y < image.GetHeight(); y++)
+        for (int x = 0; x < image.GetWidth(); x++)
+        {
+            var c = image.GetPixel(x, y);
+            r += c.R; g += c.G; b += c.B;
+        }
+        _backgroundMean = new Color(r / count, g / count, b / count);
+        return _background = image;
+    }
+
     private static Color Grain(Color fill, int x, int y) => Grain(fill, x, y, PanelTextureStrength);
 
     private static Color Grain(Color fill, int x, int y, float strength)
@@ -531,6 +589,16 @@ public static class Ui
             float Corner(int cx, int cy) => Hash(cx % cells + seed, cy % cells - seed);
             return Mathf.Lerp(Mathf.Lerp(Corner(x0, y0), Corner(x0 + 1, y0), tx),
                               Mathf.Lerp(Corner(x0, y0 + 1), Corner(x0 + 1, y0 + 1), tx), ty);
+        }
+        if (BackgroundImage() is { } picture)
+        {
+            // une image de fond répétée (« image:ui/fond-bois ») : chaque pixel éclaircit ou assombrit la couleur
+            // demandée selon son écart à la couleur moyenne de l'image, canal par canal (la teinte du bois reste)
+            var texel = picture.GetPixel(x % picture.GetWidth(), y % picture.GetHeight());
+            float Channel(float value, float texelValue, float mean) =>
+                value * (1 + (texelValue / Mathf.Max(mean, 0.01f) - 1) * strength);
+            return new Color(Channel(fill.R, texel.R, _backgroundMean.R), Channel(fill.G, texel.G, _backgroundMean.G),
+                             Channel(fill.B, texel.B, _backgroundMean.B), fill.A);
         }
         float speck = Hash(x + 1000, y + 1000);
         float factor = PanelTexture switch
@@ -815,9 +883,11 @@ public static class Ui
     /// L'image de combat d'une créature dans une place (x, y, largeur, hauteur en pixels de l'écran) : la partie dessinée
     /// de l'image (sans ses bords vides), ×<see cref="CreatureArtScale"/>, centrée si elle tient ; sinon coupée par la
     /// place, en gardant le haut (la tête) et la droite (l'avant : les créatures regardent à droite). Sans image de combat,
-    /// la petite image, la plus grande qui tient. Null s'il n'y a aucune image.
+    /// la petite image, la plus grande qui tient. Null s'il n'y a aucune image. Avec <paramref name="feet"/> (pixels depuis
+    /// le haut de la place), le bas du dessin s'y pose, pour aligner les pieds de plusieurs créatures (sauf une créature
+    /// trop haute : sa tête reste visible).
     /// </summary>
-    public static Control? CreaturePicture(CreatureType type, Rect2 place)
+    public static Control? CreaturePicture(CreatureType type, Rect2 place, float? feet = null)
     {
         var holder = new Control
         {
@@ -828,7 +898,7 @@ public static class Ui
             var used = UsedRect(battle);
             var size = used.Size * CreatureArtScale;
             float x = size.X <= place.Size.X ? (place.Size.X - size.X) / 2 : place.Size.X - size.X;
-            float y = size.Y <= place.Size.Y ? (place.Size.Y - size.Y) / 2 : 0;
+            float y = feet is { } f ? Math.Max(f - size.Y, 0) : size.Y <= place.Size.Y ? (place.Size.Y - size.Y) / 2 : 0;
             holder.AddChild(Picture(new AtlasTexture { Atlas = battle, Region = used },
                 new Vector2(MathF.Floor(x), MathF.Floor(y)), size));
             return holder;

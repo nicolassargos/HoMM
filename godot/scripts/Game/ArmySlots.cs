@@ -31,6 +31,15 @@ public partial class ArmySlots : HBoxContainer
     /// <summary>Écrire aussi, sous le nombre, les points de commandement de la troupe (« 30 / 100 pts »).</summary>
     public bool ShowCommandPoints { get; set; }
 
+    /// <summary>Derrière chaque créature, le paysage de sa faction (<c>art/ui/fonds-troupes/&lt;faction&gt;.png</c>, s'il existe).</summary>
+    public bool Backdrops { get; set; }
+
+    /// <summary>Les pieds de toutes les créatures sur une même ligne, un peu au-dessus du bas des emplacements.</summary>
+    public bool AlignFeet { get; set; }
+
+    /// <summary>Chaque emplacement dans le cadre mince de bois et d'or (comme Heroes 2), le paysage et la créature dedans.</summary>
+    public bool Framed { get; set; }
+
     /// <summary>
     /// Les armées d'un même groupe s'échangent des troupes en les glissant (la garnison et le héros d'une ville) ;
     /// null : on ne glisse pas.
@@ -88,7 +97,10 @@ public partial class ArmySlots : HBoxContainer
             Slots = this, Index = index, Picture = picture, PictureSize = pictureSize, CustomMinimumSize = SlotSize,
             MouseFilter = MouseFilterEnum.Stop,
         };
-        slot.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor, risky ? MapRenderer.Rgb(220, 80, 60) : null));
+        slot.AddThemeStyleboxOverride("panel", Framed && !risky ? ThinFrame(DarkPanelColor)
+            : Inset(DarkPanelColor, risky ? MapRenderer.Rgb(220, 80, 60) : null));
+        // l'épaisseur du bord, que le paysage et la créature ne couvrent pas
+        float rim = Framed ? ThinFrameBorder() : 2;
         slot.GuiInput += e =>
         {
             // le clic compte au relâchement, s'il n'a pas servi à glisser la troupe
@@ -99,6 +111,18 @@ public partial class ArmySlots : HBoxContainer
         };
         if (stack == null)
             return slot;
+        // derrière la créature, le paysage de sa faction, ×2, posé en bas de l'emplacement (comme Heroes 2)
+        if (Backdrops && Art.Get($"ui/fonds-troupes/{stack.Type.Faction}") is { } backdrop)
+        {
+            var inside = new Control
+            {
+                Position = new Vector2(rim, rim), Size = SlotSize - new Vector2(2 * rim, 2 * rim), ClipContents = true,
+                MouseFilter = MouseFilterEnum.Ignore,
+            };
+            var size = backdrop.GetSize() * 2;
+            inside.AddChild(Picture(backdrop, new Vector2(MathF.Floor((inside.Size.X - size.X) / 2), inside.Size.Y - size.Y), size));
+            slot.AddChild(inside);
+        }
         if (CanDrag)
             slot.MouseDefaultCursorShape = CursorShape.Drag;
         slot.TooltipText = _leader != null
@@ -107,8 +131,9 @@ public partial class ArmySlots : HBoxContainer
         // la hauteur des lignes : celle du texte (une taille commune, voir Ui.TextSize)
         float countHeight = TextSize(CountFontSize), pointsHeight = TextSize(11);
         float textHeight = CountOverlay ? 0 : countHeight + (ShowCommandPoints ? pointsHeight : 0);
-        var place = new Rect2(Px(2), Px(2), SlotSize.X - Px(4), SlotSize.Y - textHeight - Px(4));
-        if (!Compact && CreaturePicture(stack.Type, place) is { } image)
+        float edge = Framed ? rim : Px(2);
+        var place = new Rect2(edge, edge, SlotSize.X - 2 * edge, SlotSize.Y - textHeight - 2 * edge);
+        if (!Compact && CreaturePicture(stack.Type, place, AlignFeet ? place.Size.Y - Px(10) : null) is { } image)
             slot.AddChild(image);
         else if (Compact)
         {
@@ -119,7 +144,7 @@ public partial class ArmySlots : HBoxContainer
                 slot.AddChild(Picture(art.Texture, full.Position + ((full.Size - art.Size) / 2).Floor(), art.Size));
         }
         // le nombre (et les points de commandement) en bas de l'emplacement
-        float bottom = SlotSize.Y - Px(2);
+        float bottom = SlotSize.Y - (Framed ? rim : Px(2));
         if (ShowCommandPoints && commandLimit is { } limit)
         {
             var points = MakeLabel(Texts.CommandPoints(stack, limit), 11, risky ? MapRenderer.Rgb(255, 150, 130) : SoftTextColor);
@@ -133,7 +158,7 @@ public partial class ArmySlots : HBoxContainer
         var count = MakeLabel(stack.Count.ToString(), CountFontSize, risky ? MapRenderer.Rgb(255, 150, 130) : TextColor);
         count.HorizontalAlignment = CountOverlay ? HorizontalAlignment.Right : HorizontalAlignment.Center;
         count.Position = new Vector2(0, bottom - countHeight);
-        count.Size = new Vector2(SlotSize.X - (CountOverlay ? Px(6) : 0), countHeight);
+        count.Size = new Vector2(SlotSize.X - (CountOverlay ? Px(6) + (Framed ? rim : 0) : 0), countHeight);
         if (CountOverlay)
         {
             // un contour noir : le nombre se lit sur l'image

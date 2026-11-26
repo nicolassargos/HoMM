@@ -312,8 +312,13 @@ panneau de la carte, les écrans revus pour la nouvelle police.
 ✅ **L'écran de ville façon Heroes 2** (2026-11-21, branche `disposition-ville`) : la vue sur toute la largeur, les
 ressources en grille, Quitter seul visible (Construire et Recruter glissent au survol), le nom dans un onglet, une barre
 d'état ; la disposition se règle à la souris (`tools/ui/disposition.py`) ; un clic sur les ressources ouvre le marché,
-des flèches autour du nom passent d'une ville à l'autre (branche `ville-marche-fleches`). **Reste** : peut-être un fond
-derrière chaque créature, comme Heroes 2.
+des flèches autour du nom passent d'une ville à l'autre (branche `ville-marche-fleches`).
+✅ **La peau bois et or « E1 » sur tout le jeu** (2026-11-26, branche `interface-e1`, choix de l'utilisateur) : le
+cadre de chêne aux volutes d'or pour les fenêtres, un cadre mince (ses deux filets d'or) pour les barres, les boutons de
+bois rouge à rivets ; dans la ville, chaque troupe dans un cadre mince devant **un paysage de sa faction**, comme
+Heroes 2 (le Château seulement ; repeint dans le style de la scène de la ville). **Reste** : un paysage pour les sept
+autres factions ; la fenêtre de recrutement façon Heroes 2 (une créature à la fois, − / + / Max) ; le nom de la ville
+sur une plaque sculptée (`suite/plaque` de l'archive `2026-11-16-interface-bois`).
 **Reste** : des icônes sur les autres écrans, au fil des besoins ; des icônes pour les récompenses (coffre, niveau) ;
 l'écran de recrutement, à revoir pour gagner de la place ; la poignée des barres de défilement comme taillée dans la
 pierre. ✅ Les pieds des mines de mercure, de minerai (ses six sols) et de soufre, et la force de leur ombre de

@@ -19,7 +19,7 @@ public partial class ResourceBar : Panel
     {
         Position = Vector2.Zero;
         Size = new Vector2(width, height);
-        AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        AddThemeStyleboxOverride("panel", ThinFrame(PanelColor));
 
         var resources = new HBoxContainer { Position = new Vector2(Px(16), 0), Size = new Vector2(width - Px(260), height) };
         resources.AddThemeConstantOverride("separation", (int)Px(6));
@@ -63,7 +63,7 @@ public partial class ResourceBar : Panel
         };
         Position = Vector2.Zero;
         Size = new Vector2(width, top * 2 + cell * rows.Length);
-        AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        AddThemeStyleboxOverride("panel", ThinFrame(PanelColor));
 
         float y = top;
         foreach (var row in rows)

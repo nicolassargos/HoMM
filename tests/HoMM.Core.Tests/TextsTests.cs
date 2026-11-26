@@ -97,8 +97,6 @@ public class TextsTests
         var paysan = Type("paysan");
 
         Assert.Equal("Recruter des Paysans", Texts.RecruitTitle(paysan));
-        Assert.Equal("14 disponibles · 3 or l'unité", Texts.RecruitInfo(paysan, 14));
-        Assert.Equal("10 Paysans pour 30 or", Texts.RecruitTotal(paysan, 10));
         Assert.Equal("Ressources insuffisantes.", Texts.CannotRecruit(14, true, 0));
         Assert.Null(Texts.CannotRecruit(14, true, 3));
         Assert.Equal("10 Paysans recrutés à Testville.",

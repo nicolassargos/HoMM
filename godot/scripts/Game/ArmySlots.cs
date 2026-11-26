@@ -112,17 +112,8 @@ public partial class ArmySlots : HBoxContainer
         if (stack == null)
             return slot;
         // derrière la créature, le paysage de sa faction, ×2, posé en bas de l'emplacement (comme Heroes 2)
-        if (Backdrops && Art.Get($"ui/fonds-troupes/{stack.Type.Faction}") is { } backdrop)
-        {
-            var inside = new Control
-            {
-                Position = new Vector2(rim, rim), Size = SlotSize - new Vector2(2 * rim, 2 * rim), ClipContents = true,
-                MouseFilter = MouseFilterEnum.Ignore,
-            };
-            var size = backdrop.GetSize() * 2;
-            inside.AddChild(Picture(backdrop, new Vector2(MathF.Floor((inside.Size.X - size.X) / 2), inside.Size.Y - size.Y), size));
-            slot.AddChild(inside);
-        }
+        if (Backdrops && CreatureBackdrop(stack.Type, new Rect2(rim, rim, SlotSize - new Vector2(2 * rim, 2 * rim))) is { } backdrop)
+            slot.AddChild(backdrop);
         if (CanDrag)
             slot.MouseDefaultCursorShape = CursorShape.Drag;
         slot.TooltipText = _leader != null

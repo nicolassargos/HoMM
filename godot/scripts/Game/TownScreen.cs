@@ -24,7 +24,7 @@ public partial class TownScreen : CanvasLayer
     // une place de l'armée, en pixels (choix de l'utilisateur, 2026-11-21 : de grandes places, la créature toujours ×2, le
     // nombre par-dessus) : la taille de la garnison dans la disposition, divisée en 7 ; l'image de la ville et le
     // portrait, plus étroits, devant chaque rangée
-    private Vector2 _cell = new(210, 244), _firstCell = new(140, 244);
+    private Vector2 _cell = new(204, 244), _firstCell = new(164, 244);
 
     private GameState _state = null!;
     private Town? _town;
@@ -115,7 +115,7 @@ public partial class TownScreen : CanvasLayer
         // le nom de la ville sur un onglet, posé sur le bas de la vue (comme Heroes 2), avec le revenu à la suite ;
         // centré au-dessus des armées (voir Refresh), sauf si l'utilisateur l'a placé lui-même
         _nameTab = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        _nameTab.AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        _nameTab.AddThemeStyleboxOverride("panel", ThinFrame(PanelColor));
         var tabLine = new HBoxContainer();
         tabLine.AddThemeConstantOverride("separation", (int)Px(12));
         _nameTab.AddChild(tabLine);
@@ -140,7 +140,7 @@ public partial class TownScreen : CanvasLayer
         };
 
         var statusBar = new Panel { Position = new Vector2(0, screenSize.Y - Px(22)), Size = new Vector2(screenSize.X, Px(22)) };
-        statusBar.AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        statusBar.AddThemeStyleboxOverride("panel", ThinFrame(PanelColor));
         _status = MakeLabel("", 14, TextColor);
         _status.HorizontalAlignment = HorizontalAlignment.Center;
         _status.VerticalAlignment = VerticalAlignment.Center;
@@ -208,7 +208,7 @@ public partial class TownScreen : CanvasLayer
         float y = ViewTop + ViewHeight + 8;
         _root.AddChild(Layout.Add("garrison-label", At(MakeLabel(Texts.GarrisonHeader, 15, TextColor), 16, y)));
         var townPicture = new Panel { Position = V(12, y + 22), Size = _firstCell };
-        townPicture.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
+        townPicture.AddThemeStyleboxOverride("panel", ThinFrame(DarkPanelColor));
         // l'image de 96 pixels, ×1, au milieu : celle de la faction de la ville ouverte (voir Open)
         _townPicture = Picture(null!, ((_firstCell - new Vector2(96, 96)) / 2).Floor(), new Vector2(96, 96));
         townPicture.AddChild(_townPicture);
@@ -224,7 +224,7 @@ public partial class TownScreen : CanvasLayer
         _root.AddChild(Layout.Add("hero-label", _visitorLabel));
         // le nom du héros en info-bulle (voir Refresh)
         var portraitFrame = _portraitFrame = new Panel { Position = V(12, y + 22), Size = _firstCell };
-        portraitFrame.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
+        portraitFrame.AddThemeStyleboxOverride("panel", ThinFrame(DarkPanelColor));
         _root.AddChild(Layout.Add("portrait", portraitFrame));
         // le portrait ×2 au milieu, dans un fin cadre d'argent
         var portraitBorder = new Panel
@@ -253,7 +253,7 @@ public partial class TownScreen : CanvasLayer
 
     private ArmySlots MakeArmy(Vector2 position)
     {
-        var slots = new ArmySlots { Position = position, SlotSize = _cell, CountFontSize = 16, CountOverlay = true, DragGroup = this };
+        var slots = new ArmySlots { Position = position, SlotSize = _cell, CountFontSize = 16, CountOverlay = true, Backdrops = true, AlignFeet = true, Framed = true, DragGroup = this };
         slots.SlotClicked += index => Act(() => _state.TransferStack(_town!, fromGarrison: slots == _garrison, index));
         slots.SlotRightClicked += index => Split(slots, index, slots, null);
         slots.TroopDropped += (source, from, to, split) =>

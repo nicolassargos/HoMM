@@ -133,7 +133,7 @@ public partial class Hud : CanvasLayer
 
         // ---- Colonne de droite
         var panel = new Panel { Position = new Vector2(panelX, 0), Size = new Vector2(PanelWidth, screenSize.Y) };
-        panel.AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        panel.AddThemeStyleboxOverride("panel", ThinFrame(PanelColor));
         AddChild(panel);
         float margin = Px(8);
         float inner = PanelWidth - 2 * margin;
@@ -344,7 +344,7 @@ public partial class Hud : CanvasLayer
     private void BuildBottomBar(Vector2 screenSize, float width)
     {
         var bar = new Panel { Position = new Vector2(0, screenSize.Y - BottomBarHeight), Size = new Vector2(width, BottomBarHeight) };
-        bar.AddThemeStyleboxOverride("panel", Frame(PanelColor));
+        bar.AddThemeStyleboxOverride("panel", ThinFrame(PanelColor));
         AddChild(bar);
         float half = (width - Px(32 + 90)) / 2;
         _hover = MakeLabel("", 13, SoftTextColor);

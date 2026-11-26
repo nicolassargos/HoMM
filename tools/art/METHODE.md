@@ -925,7 +925,17 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
     `"panelTexture": "image:ui/fond-bois-1"` dans `ui.json` (l'image dans `art/ui/`) ; chaque pixel éclaircit ou
     assombrit la couleur du fond selon son écart à la moyenne de l'image (`panelTextureStrength` : de combien), donc
     toutes les couleurs de l'interface restent. Préféré de Claude : planches n° 1 à la force 2 avec le cadre aux équerres
-    d'or (F2). Rien n'est encore choisi par l'utilisateur.
+    d'or (F2).
+  - **Choisi (2026-11-26) : E1** (cadre `epais96-a/1`, bouton `boutons3/6`), sur tout le jeu, avec un **cadre mince**
+    pour les barres tiré du même cadre par `tools/art/cadre_mince.py` (ses filets d'or, sans le bois : rien à générer).
+    Les fonds texturés ne sont pas branchés.
+- **Les paysages derrière les troupes de la ville** (2026-11-26) : 103 × 120, ×2 dans le jeu (`art/ui/fonds-troupes/`).
+  Ce qui marche pour les accorder à la scène de la ville : PixelLab `pro` à 103 × 120 (4 images par appel) avec
+  `--fond`, **le paysage choisi comme modèle** (la composition : ciel, montagnes, collines, prairie) et **un morceau
+  de 103 × 120 du fond de la ville comme image de style** (le trait et l'ombrage ; un morceau avec des sommets et de
+  l'herbe), et les couleurs de la ville écrites dans la description (« jagged snow-capped mountain peaks… grey-blue rock
+  with warm tan and brown slopes… lush rolling green hills… round trees… wildflowers… rich saturated colours »). Deux
+  graines, 8 images, toutes dans le bon style ; montrées en vraies captures de l'écran de ville (page de choix).
 - **Le solde PixelLab est partagé entre les sessions** (2026-11-09) : pour connaître le prix d'un lot, lire le `solde`
   juste avant et juste après (une autre session peut générer en même temps). `pixellab.py pro` à 32 × 32 (64 icônes) :
   0,08 $ le lot, vérifié.

@@ -2537,6 +2537,25 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
     passent à la ville précédente ou suivante du joueur, en boucle (idée de l'utilisateur ; cachées avec une seule ville).
   - Le fond B du Château (960 × 292 de PixelLab) a été élargi en 960 × 270 par la session des images (`/inpaint`
     par morceaux de 200 × 200), puis ses contours doublés amincis : `art-candidats/en-cours/ville-chateau-fond/`.
+- ✅ La peau bois et or « E1 » et les paysages derrière les troupes (2026-11-26, branche `interface-e1`, avec
+  l'utilisateur : l'écran de ville « fait un peu ordinaire », il préfère l'interface de Heroes 2 à celle de Heroes 3) :
+  - **E1** (parmi les essais du 2026-11-16 : cadre `epais96-a/1`, bouton `boutons3/6`) sur tout le jeu plutôt que la
+    ville seule (plus simple, tout s'accorde) : `art/ui/panel.png` (centre rendu transparent par `cadre.py`, bord de 17
+    pixels d'art), `art/ui/button.png`, réglages dans `art/ui/ui.json` (`panelCorner` 26, `panelContentX` 22,
+    `panelContentY` 18, `buttonCorner` 7, `buttonTextureStrength` 0).
+  - **Un cadre mince pour les barres** (`Ui.ThinFrame`, `art/ui/panel-mince.png` fait par `tools/art/cadre_mince.py` :
+    les 4 rangées du dehors et les 3 du dedans du bord d'E1, coins en onglet, 7 pixels d'art) : la barre des ressources,
+    la barre du bas et la colonne de droite de la carte, la grille des ressources, l'onglet du nom et la barre d'état de
+    la ville. Le cadre épais y mordait sur le texte. La barre d'état de la ville passe de 34 à 46 pixels de haut.
+  - `WindowMargin` passe de 12 à 18 pixels d'art : les titres des fenêtres ne touchent plus le cadre.
+  - **Les paysages derrière les troupes de la ville** (`ArmySlots.Backdrops`, `AlignFeet`, `Framed` : code de la
+    branche `ville-fonds-troupes` du 2026-11-22) : `art/ui/fonds-troupes/<faction>.png` (103 × 120, ×2, posé en bas de
+    l'emplacement, coupé par le cadre), les pieds des créatures sur une même ligne, chaque emplacement dans le cadre
+    mince. La première colonne (l'image de la ville, le portrait) passe à 164 de large pour que le portrait tienne dans
+    le cadre ; les places des troupes à 204 × 244.
+  - Le Château : l'utilisateur a d'abord choisi `chateau-5/1` (des montagnes bleues, plates), puis l'a fait repeindre
+    dans le style de sa scène (plus de couleurs, d'autres montagnes) ; choisi `chateau-6-11/3` (méthode dans
+    `tools/art/METHODE.md`).
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

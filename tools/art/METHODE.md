@@ -739,6 +739,48 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
   le sol, le décor ; `refaire-a3.bat` puis `refaire-scenes.bat` refont tout. Coût de la scène entière, essais compris :
   environ 6 $.
 
+### Morts-vivants : peinte dans le concept, pièce par pièce (2026-11-25 et 26)
+Pas de maquette 3D cette fois : le concept choisi (`v1-41`, 792 × 241) est la scène, défaite puis refaite. Scripts et
+essais : `art-candidats/en-cours/ville-morts-vivants-scene/` (`batiments/` pour la suite). Abonnement PixelLab « Pixel
+Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une dizaine, rien en dollars.
+- **Le fond vide** : PixelLab retire chaque bâtiment dans un recadrage, de l'avant vers l'arrière (`retirer.py`) ; la
+  découpe est ce qui a changé. Un bâtiment peut dépasser sa boîte de 12 px ; ses morceaux doivent être surtout dedans.
+  Sa tache de sol (ombre, pied) lui est rendue (`completer.py`) : tous les bâtiments sur le fond vide redonnent le
+  concept au pixel près. Des traces (pieds sombres, poteaux) : `retoucher` sur deux bandes de 512 × 130 du sol, gardé
+  seulement dans les cercles de l'utilisateur ; `/inpaint-v3` et le recopiage de blocs laissaient des taches.
+- **Élargir à 960 × 270** : l'ancien `/inpaint` peint en blanc sur ce compte ; `/inpaint-v3` marche (4 fenêtres de
+  256 × 270) mais laisse de fines bandes vides en haut et en bas (remplies en miroir des rangées voisines). Repeindre
+  les montagnes plates à l'`/inpaint-v3` échoue (coutures, le bord du masque devient la crête) : une **nouvelle bande de
+  ciel et de montagnes** (`pro` 792 × 140 `--fond`, le haut du fond en style), élargie, posée derrière le décor sur les
+  seuls pixels de ciel atteints depuis le haut.
+- **Les étapes du château** (demeure, fort, citadelle, château fort) : `retoucher --fond` sur un recadrage de 300 × 200,
+  d'abord le château retiré (une clairière), puis chaque étape construite sur l'image de la précédente. Quand un tour
+  rate, l'utilisateur préfère voir toutes les propositions.
+- **Plus de couleurs** : le concept n'a que 52 couleurs (le fond du Château 12 410). Chaque bâtiment seul, recadré au
+  plus près, `retoucher` deux fois (un ombrage plus doux, puis des détails), graine 9 : environ 100 couleurs ;
+  PixelLab semble plafonner vers 100 à 115 couleurs par image. Le sol de même, en deux fenêtres de 512 qui se
+  recouvrent (`fond_couleurs.py`). **La seconde retouche lisse les toits** et peut **déplacer** une maison de 2 px :
+  pour mêler deux retouches, mesurer d'abord le décalage (corrélation), sinon chaque trait est doublé.
+- **Joindre deux fenêtres** : par la couture qui serpente là où elles diffèrent le moins (`couture()`), jamais par un
+  fondu (un poteau de clôture fantôme).
+- **Les bâtiments sur le sol repeint** (`sol_batiments.py`) : le sol que porte un bâtiment devient le nouveau sol
+  assombri d'autant (nouveau × ancien porté / ancien fond) ; un sol sans ombre devient transparent. Ce qu'un bâtiment
+  a pris à ses voisins (poteaux, clôture, une maison du fond peinte par-dessus) se voit en double une fois le fond
+  repeint : le retirer (rectangles, polygone, seuls ses pixels violets), ou reprendre la clôture du nouveau sol et la
+  poser devant lui.
+- **Les étages** (guilde 1 à 5, salle du village → capitole) : `retoucher --fond` sur le niveau choisi d'avant, 2 graines
+  par texte. **Les découper** : la différence avec le fond vide laisse des éclats bleus et des trous ; mieux,
+  **`retoucher` sans `--fond`** : PixelLab rend le bâtiment seul, détouré, mais **collé en haut à gauche** de l'image
+  (sa place retrouvée par corrélation). Puis une retouche « adoucir » de chaque étage (`lisser_etages.py`).
+- **La forêt du fond** : la recolorer gardait ses blocs droits ; PixelLab la **redessine** (« natural bare tree
+  silhouettes… », « every trunk standing on the ground; keep the snowy mountains clearly visible ») et toute sa
+  retouche est prise entre les cimes et le sol. « dead forest » est refusé (contre leur règlement) : « leafless ».
+  Sans « keep the mountains », une fenêtre a changé les montagnes en brume plate.
+- **Retouches sans dépense** : une flèche coupée à plat par le haut du concept, refaite en pointe (ses rangées du haut
+  resserrées) ; des trous du château bouchés depuis les pixels sombres du mur (pas une fenêtre verte voisine). La
+  **fumée** de la forge est retirée : le jeu la dessinera, animée.
+- Coût du tout : environ 1 € de concept et de fond, le reste en générations de l'abonnement (quelques centaines).
+
 ## Ponts de la carte (Retro Diffusion, 2026-11-15)
 - Les juger **en jeu, sur la rivière**, à ×2 : à leur taille, on ne voit rien. Les captures : `--center=bridge`,
   `bridge:9` (avec une route ; seed 42), `ford` et `ford:2` (une route sur un ruisseau, dans les deux sens).

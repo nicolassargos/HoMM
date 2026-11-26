@@ -2556,6 +2556,42 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   - Le Château : l'utilisateur a d'abord choisi `chateau-5/1` (des montagnes bleues, plates), puis l'a fait repeindre
     dans le style de sa scène (plus de couleurs, d'autres montagnes) ; choisi `chateau-6-11/3` (méthode dans
     `tools/art/METHODE.md`).
+- ✅ La fenêtre Recruter façon Heroes 2 (2026-11-26, branche `ville-recrutement-h2`, demandée par l'utilisateur) : elle
+  remplace la rangée des sept cartes (façon Heroes 3, avec « Recruter… » et « Tout (N) ») et la petite fenêtre du nombre.
+  - **Une créature à la fois** : à gauche, son image de combat devant le paysage de sa faction, dans le cadre mince
+    (`Ui.CreatureBackdrop`, partagé avec les places des troupes) ; à droite, son nom, son niveau et ses capacités, un
+    tableau (attaque, défense, dégâts, points de vie, vitesse, commandement), ce qu'il en reste et ce qui vient chaque
+    semaine, le prix de l'unité avec les icônes des ressources ; dessous, − / curseur / + avec le nombre choisi et Max
+    (le maximum choisi d'avance), le total en icônes (ou pourquoi on ne peut pas, ou l'avertissement du commandement),
+    où vont les recrues, et « Recruter ».
+  - **Des flèches** sous l'image passent d'une habitation de la ville à l'autre, en boucle, de la plus petite à la
+    plus grande, celles à construire comprises (l'image grisée, « Monastère à construire » et « Construire… »). La
+    fenêtre garde la même taille d'une créature à l'autre (la colonne a une hauteur fixe) : les flèches ne bougent pas.
+  - Ouverte par « Recruter » (la première créature), le fort ou la demeure du héros, ou un clic sur une habitation
+    (sa créature ; elle se ferme alors après le recrutement, sinon elle reste ouverte, à jour).
+  - **Les petits boutons discrets** (`Ui.QuietButton`) : −, +, Max et les flèches (sous l'image, et autour du nom de
+    la ville) n'ont plus le bois rouge à rivets, trop voyant : un fond sombre et plat, un seul trait de bronze terne, le
+    texte d'or pâle, plus clair au survol. Choisi par l'utilisateur parmi cinq essais (double filet d'or, sans cadre,
+    un trait de bronze, creusé, une plaque sans bord). Recruter, Fermer et Construire… gardent le bois rouge : les
+    actions principales se voient d'abord.
+  - **Les boutons de bois rouge sans raccord** (remarque de l'utilisateur : sur un long bouton comme Recruter, le motif
+    se voyait répété) : les petites marques près des rivets, répétées avec le milieu, faisaient des traits. Le milieu
+    du bouton est maintenant fait de sa seule colonne (et rangée) du milieu (`Ui.WithUniformMiddle`), puis étiré
+    plutôt que répété (`AxisStretchMode.Stretch`, sinon un dernier trait pâle restait à la jointure).
+  - Remarques de l'utilisateur, appliquées : le nom de la créature n'est plus que dans le titre (« Recruter des
+    Griffons ») ; la fenêtre commence plus bas (de l'air en haut) et peut couvrir la rangée de la garnison ; plus de
+    « Fermer » en haut : une **icône Annuler** carrée en bas à droite, à côté de Recruter (`icons/annuler.png`, un X
+    d'argent, n° 44 parmi 64 de PixelLab, même recette que les icônes du combat ; Échap aussi). `OpenWindow` prend
+    `closeAtTop: false` pour une fenêtre qui a son propre bouton.
+  - Plus d'air dans les fenêtres (remarque de l'utilisateur : les boutons trop près du bord) : `WindowMargin` passe à 24
+    pixels d'art (le bord du cadre en fait 17). Les fenêtres de la ville placées à la main pour l'ancienne marge
+    (Construire, Taverne, Marché, Chantier naval) sont posées dans une place décalée de l'air en plus, la fenêtre
+    grandissant d'autant (`OpenWindow`, `padded`) ; celles qui se placent d'après `WindowMargin` (Recruter, Guilde)
+    ne le sont pas. Une fenêtre plus haute que la vue descend sur la garnison au lieu de dépasser du haut de l'écran.
+    Recruter et Construire… sont des **boutons à icône** (`recruter`, `construire`), à côté de l'icône Annuler.
+  - Capture : `--town-window=recruit:<id>` ouvre la fenêtre sur cette créature (`count` : la dernière habitation bâtie).
+  - Textes retirés : `RecruitWindowTitle`, `RecruitMore`, `RecruitAllButton`, `Affordable`, `RecruitInfo`,
+    `RecruitTotal`, `CreatureStats`, `PriceLine`.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

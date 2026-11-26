@@ -955,7 +955,8 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
   autour de l'argent, l'ombre en haut à gauche, la lumière en bas à droite, contrastes doux).
   La même recette pour la ville (2026-11-20) : « a thick bold arrow pointing straight down onto a knight's helmet » et
   « … up into a small castle tower » (le héros est sous la garnison), un lot de 64 chacune, choisies au premier tour
-  (`donner-heros` 56, `laisser-garnison` 9).
+  (`donner-heros` 56, `laisser-garnison` 9). De même l'icône Annuler (2026-11-26, « a thick bold X cross mark made of
+  two crossed heavy bars, meaning cancel or close… », graine 21) : n° 44, `icons/annuler.png`.
 - **Artefacts** (2026-11-21, `art/artifacts/<id>.png`, d'abord **24 × 24**, refaits en 48 : voir plus bas) :
   PixelLab « pro » 24 × 24, **le coffre de la carte (`objects/chest.png`) comme image de style**, 64 candidats par
   artefact (0,08 $). Début de la description, le même pour tous : « single small fantasy item lying alone, drawn in the

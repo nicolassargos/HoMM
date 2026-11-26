@@ -1385,7 +1385,8 @@ public static class Texts
     {
         string effect = BuildingEffect(town, building);
         string click = building.Dwelling != null ? "Clic : recruter" : building.Tavern ? "Clic : la taverne"
-            : building.MageGuild > 0 ? "Clic : la guilde des mages" : building.DailyGold > 0 ? "Clic : construire" : "";
+            : building.MageGuild > 0 ? "Clic : la guilde des mages" : building.Walls > 0 ? "Clic : recruter les créatures"
+            : building.DailyGold > 0 ? "Clic : construire" : "";
         return string.Join("\n", new[] { building.Name, effect, click }.Where(s => s.Length > 0));
     }
 

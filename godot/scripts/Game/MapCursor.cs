@@ -13,6 +13,8 @@ public enum CursorKind
     AttackRight, AttackUpRight, AttackUpLeft, AttackLeft, AttackDownLeft, AttackDownRight,
     // au combat, une flèche : la troupe active tire sur la cible ; brisée : le tir est trop lointain (moitié des dégâts)
     Shoot, ShootWeak,
+    // au combat (2026-11-26) : deux bottes qui marchent, une aile pour une troupe qui vole ; une baguette pour un sort
+    Walk, Fly, Spell,
 }
 
 /// <summary>
@@ -85,16 +87,29 @@ public static class MapCursor
 
     private static (Texture2D, Vector2)? Make(CursorKind kind, int days)
     {
-        // une épée d'attaque ou la flèche sans son image prend les épées croisées
-        if ((Art.GetImage($"cursors/{FileName(kind)}") ?? (kind >= CursorKind.AttackRight ? Art.GetImage("cursors/attack") : null)) is not { } source)
+        // une épée d'attaque ou la flèche sans son image prend les épées croisées ; l'aile, la botte ; la baguette, la main
+        var fallback = kind switch
+        {
+            CursorKind.Walk or CursorKind.Fly => "cursors/move",
+            CursorKind.Spell => "cursors/visit",
+            >= CursorKind.AttackRight => "cursors/attack",
+            _ => null,
+        };
+        if ((Art.GetImage($"cursors/{FileName(kind)}") ?? (fallback != null ? Art.GetImage(fallback) : null)) is not { } source)
             return null;
         var image = (Image)source.Duplicate();
         image.Convert(Image.Format.Rgba8);
         image.Resize(image.GetWidth() * CursorScale, image.GetHeight() * CursorScale, Image.Interpolation.Nearest);
         if (days > 0)
             DrawNumber(image, days);
-        // La flèche montre avec le bout de ses doigts (le pixel le plus haut) ; les autres, avec leur centre
-        var hotspot = kind == CursorKind.Pointer ? TopPixel(image) : new Vector2(image.GetWidth(), image.GetHeight()) / 2;
+        // La flèche montre avec le bout de ses doigts (le pixel le plus haut), la baguette avec sa pointe (en haut à
+        // gauche) ; les autres, avec leur centre
+        var hotspot = kind switch
+        {
+            CursorKind.Pointer => TopPixel(image),
+            CursorKind.Spell => TopLeftPixel(image),
+            _ => new Vector2(image.GetWidth(), image.GetHeight()) / 2,
+        };
         return (ImageTexture.CreateFromImage(image), hotspot);
     }
 
@@ -104,6 +119,18 @@ public static class MapCursor
 
     /// <summary>L'épée qui pointe dans cette direction (0 : à droite, puis dans l'ordre de Hex.Neighbours).</summary>
     public static CursorKind AttackToward(int direction) => CursorKind.AttackRight + direction;
+
+    /// <summary>Le pixel le plus en haut à gauche (la pointe d'une image tournée vers le haut à gauche).</summary>
+    private static Vector2 TopLeftPixel(Image image)
+    {
+        var best = Vector2.Zero;
+        int bestSum = int.MaxValue;
+        for (int y = 0; y < image.GetHeight(); y++)
+        for (int x = 0; x < image.GetWidth(); x++)
+            if (image.GetPixel(x, y).A > 0.5f && x + y < bestSum)
+                (best, bestSum) = (new Vector2(x, y), x + y);
+        return best;
+    }
 
     private static Vector2 TopPixel(Image image)
     {

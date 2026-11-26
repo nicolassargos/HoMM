@@ -590,7 +590,7 @@ public partial class BattleScreen : CanvasLayer
                 _field.SpellTargets = battle.TeleportDestinations(moving).SelectMany(h => moving.HexesAt(h)).Distinct().ToList();
                 if (_field.Hovered is { } over && TeleportHead(battle, moving, over) is { } head)
                 {
-                    cursor = CursorKind.Move;
+                    cursor = CursorKind.Spell;
                     _field.SpellArea = moving.HexesAt(head).ToList();
                 }
             }
@@ -601,7 +601,7 @@ public partial class BattleScreen : CanvasLayer
                 if (_field.Hovered is { } aimed && battle.IsValidTarget(spell, aimed))
                 {
                     var aimedUnit = battle.UnitAt(aimed);
-                    cursor = aimedUnit != null && aimedUnit.Side == _playerSide ? CursorKind.Visit : CursorKind.Attack;
+                    cursor = CursorKind.Spell;
                     _field.SpellArea = spell.Target switch
                     {
                         SpellTarget.Area => new[] { aimed }.Concat(aimed.Neighbours()).Where(Battlefield.InBounds).ToList(),
@@ -642,7 +642,7 @@ public partial class BattleScreen : CanvasLayer
                     cursor = CursorKind.Blocked;
             }
             else if (_field.Hovered is { } hovered)
-                cursor = Destination(battle, unit!, hovered) != null ? CursorKind.Move : CursorKind.Blocked;
+                cursor = Destination(battle, unit!, hovered) != null ? MoveCursor(unit!) : CursorKind.Blocked;
         }
         MapCursor.Show(cursor);
         if (DevPoint != null && cursor != _devShown)
@@ -688,6 +688,9 @@ public partial class BattleScreen : CanvasLayer
     }
 
     private CursorKind? _devShown;
+
+    /// <summary>Le curseur d'un déplacement (2026-11-26) : une aile pour une troupe qui vole, sinon deux bottes qui marchent.</summary>
+    private static CursorKind MoveCursor(BattleUnit unit) => unit.Has(Ability.Flies) ? CursorKind.Fly : CursorKind.Walk;
 
     /// <summary>
     /// D'où frapper une cible au corps à corps, comme dans Heroes 3 : la partie de la case visée sous la souris donne le
@@ -742,7 +745,7 @@ public partial class BattleScreen : CanvasLayer
         var cursor = CursorKind.Pointer;
         if (_field.Hovered is { } hovered)
             cursor = battle.UnitAt(hovered) is { } own && own.Side == _playerSide && !own.IsRebel ? CursorKind.Visit
-                : _placing is { } chosen && PlacementHead(battle, chosen, hovered) != null ? CursorKind.Move
+                : _placing is { } chosen && PlacementHead(battle, chosen, hovered) != null ? MoveCursor(chosen)
                 : CursorKind.Blocked;
         MapCursor.Show(cursor);
         RefreshOrder(battle);

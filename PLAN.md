@@ -290,6 +290,8 @@ second modèle de PixelLab) ; ceux du **Dragon** et de l'**Hydre** finis (2026-1
 se cabrent en arrière ; préférés par l'utilisateur à ceux de `animations-dragon-hydre-ver`, faits le même jour).
 ✅ La mort et le coup reçu de l'Archer, du Griffon et du Cavalier (2026-11-19, branche `morts-chateau`) ; ceux du
 **Loup**, du **Moine** et du **Troll** refaits d'après leurs nouvelles images (2026-11-19).
+✅ Les **curseurs** de déplacement selon la troupe (bottes, aile) et une baguette pour les sorts (2026-11-26, branche
+`combat-curseurs`).
 
 ### Les héros en images
 ✅ Le héros de chaque faction sur la carte (8 directions, une marche), leurs pieds revus.

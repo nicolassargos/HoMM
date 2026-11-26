@@ -784,6 +784,16 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   changés en ceux de `buildings.json` ; la profondeur suit le bas de chaque boîte. Le fort et la citadelle gardaient
   des arbres bleus du concept derrière leurs murs, et leur cour était un trou : découpés eux aussi par PixelLab (sans
   `--fond`), la cour prend ses couleurs. Toujours vérifier **chaque étape** sur le nouveau fond, pas seulement la dernière.
+- **Animer la magie de la guilde** (`TownMagic`) : PixelLab repeint la tour **sans** sa magie (« remove the floating
+  crystals, swirls, rune rings… and paint the tower stones behind them »), puis la découpe (sans `--fond`) ; la tour
+  repeinte est poussée de 2 px : la recaler. La poser sur le **fond vide**, pas sur l'ancienne image (sa magie revient
+  par les trous). Le jeu dessine le reste en pixels d'art : anneaux de runes (une bande elliptique, la moitié du haut
+  derrière la tour), rubans en spirale, cristaux découpés qui flottent (sans leur lueur sombre peinte sur le ciel),
+  livres et crânes en orbite **dessinés à la main** (8 px : ceux de la peinture étaient illisibles seuls). Voir
+  l'animation dans le jeu : `--write-movie <dossier>/f.png --fixed-fps 10 --quit-after 100` (avec `--town`, une
+  `--capture` lointaine : `--capture-delay=60`), puis un GIF.
+- La forge des morts-vivants est **un décor** peint dans le fond (le jeu n'a pas de forge) ; sa fumée, une cheminée de
+  la scène (`smoke`), dessinée par `TownSmoke`.
 - Coût du tout : environ 1 € de concept et de fond, le reste en générations de l'abonnement (quelques centaines).
 
 ## Ponts de la carte (Retro Diffusion, 2026-11-15)

@@ -58,11 +58,53 @@
   },
   {
    "id": "guilde-mages-4",
-   "x": 351,
+   "x": 355,
    "y": 1,
    "depth": 88.0,
    "shadowX": 350,
-   "shadowY": 9
+   "shadowY": 9,
+   "magic": {
+    "rings": [
+     [
+      382,
+      114,
+      24,
+      8,
+      5
+     ]
+    ],
+    "swirls": [
+     [
+      382,
+      38,
+      104,
+      15,
+      20
+     ]
+    ],
+    "floats": [
+     {
+      "x": 356,
+      "y": 39,
+      "image": "magie-4-cristal-1"
+     },
+     {
+      "x": 396,
+      "y": 15,
+      "image": "magie-4-cristal-2"
+     },
+     {
+      "x": 399,
+      "y": 39,
+      "image": "magie-4-cristal-3"
+     },
+     {
+      "x": 367,
+      "y": 87,
+      "image": "magie-4-cristal-4"
+     }
+    ]
+   }
   },
   {
    "id": "guilde-mages-5",
@@ -70,7 +112,64 @@
    "y": 1,
    "depth": 88.0,
    "shadowX": 343,
-   "shadowY": 9
+   "shadowY": 9,
+   "magic": {
+    "rings": [
+     [
+      382,
+      114,
+      24,
+      8,
+      5
+     ],
+     [
+      383,
+      158,
+      34,
+      13,
+      6
+     ]
+    ],
+    "swirls": [
+     [
+      382,
+      38,
+      100,
+      15,
+      20
+     ]
+    ],
+    "orbit": [
+     385,
+     47,
+     37,
+     17
+    ],
+    "floats": [
+     {
+      "x": 356,
+      "y": 39,
+      "image": "magie-5-cristal-1"
+     },
+     {
+      "x": 396,
+      "y": 15,
+      "image": "magie-5-cristal-2"
+     },
+     {
+      "x": 399,
+      "y": 39,
+      "image": "magie-5-cristal-3"
+     }
+    ],
+    "orbiters": [
+     "magie-5-livre-1",
+     "magie-5-crane-1",
+     "magie-5-livre-2",
+     "magie-5-crane-2",
+     "magie-5-livre-3"
+    ]
+   }
   },
   {
    "id": "tour-liche",

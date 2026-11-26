@@ -546,6 +546,9 @@ public partial class TownScreen : CanvasLayer
                 ShowHome(home);
                 home = null;
             }
+            // sa magie animée : ce qui passe derrière lui d'abord, le reste après lui
+            if (place.Magic != null)
+                _sceneLayer.AddChild(new TownMagic(place.Magic, false, n => Art.Get(folder + n)!));
             var sprite = new TownSceneSprite(Art.GetImage(folder + place.Id)!)
             {
                 Position = new Vector2(place.X, place.Y) * ArtScale, TooltipText = Texts.BuildingTooltip(town, building),
@@ -558,6 +561,8 @@ public partial class TownScreen : CanvasLayer
                 Layer(place.Id + "-devant", place.FrontX.Value, place.FrontY!.Value);
             foreach (var (rune, n) in (place.Runes ?? new()).Select((r, n) => (r, n)))
                 Float(Layer($"rune-{rune[2]}", rune[0], rune[1]), n);
+            if (place.Magic != null)
+                _sceneLayer.AddChild(new TownMagic(place.Magic, true, n => Art.Get(folder + n)!));
         }
         if (home != null)
             ShowHome(home);

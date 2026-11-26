@@ -7,11 +7,27 @@ namespace HoMM.Core;
 /// <summary>
 /// La place d'un bâtiment dans la scène d'une ville : le coin haut-gauche de son image, sa profondeur (distance à la
 /// caméra : les plus loin dessinés d'abord), et s'il y en a, le coin de son ombre et du décor qui passe devant lui, et
-/// des runes qui flottent autour (la guilde des mages : [x, y, n], le coin de chacune et son image rune-&lt;n&gt;.png).
-/// En pixels d'art de la scène.
+/// des runes qui flottent autour (la guilde des mages : [x, y, n], le coin de chacune et son image rune-&lt;n&gt;.png), et la
+/// magie que le jeu anime autour de lui (<see cref="TownSceneMagic"/>). En pixels d'art de la scène.
 /// </summary>
 public sealed record TownScenePlace(string Id, int X, int Y, double Depth, int? ShadowX = null, int? ShadowY = null,
-    int? FrontX = null, int? FrontY = null, List<int[]>? Runes = null);
+    int? FrontX = null, int? FrontY = null, List<int[]>? Runes = null, TownSceneMagic? Magic = null);
+
+/// <summary>
+/// La magie animée autour d'une tour (la guilde des morts-vivants), en pixels d'art de la scène ; ce qui passe derrière
+/// la tour est dessiné avant elle, le reste après.
+/// <list type="bullet">
+/// <item>Rings : des anneaux de runes qui tournent, [cx, cy, rx, ry, h] (le centre, les deux rayons, la hauteur de la bande).</item>
+/// <item>Swirls : des rubans qui montent en spirale, [cx, haut, bas, rayon en haut, rayon en bas].</item>
+/// <item>Floats : des images qui flottent sur place (les cristaux), [x, y] et leur image.</item>
+/// <item>Orbit, Orbiters : des images qui tournent autour, [cx, cy, rx, ry], et leurs images (livres, crânes).</item>
+/// </list>
+/// </summary>
+public sealed record TownSceneMagic(List<int[]>? Rings = null, List<int[]>? Swirls = null, List<TownSceneFloat>? Floats = null,
+    int[]? Orbit = null, List<string>? Orbiters = null);
+
+/// <summary>Une image qui flotte sur place : son coin et son nom (sans « .png »).</summary>
+public sealed record TownSceneFloat(int X, int Y, string Image);
 
 /// <summary>
 /// La scène d'une ville vue de face (art/towns/&lt;faction&gt;/scene.json, écrit par tools/art/ville_scene.py) : un fond,

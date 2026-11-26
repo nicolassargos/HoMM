@@ -47,6 +47,8 @@ public class SceneVilleTests
                 Assert.True(File.Exists(Path.Combine(Folder("chateau"), place.Id + "-ombre.png")), place.Id);
             if (place.FrontX != null)
                 Assert.True(File.Exists(Path.Combine(Folder("chateau"), place.Id + "-devant.png")), place.Id);
+            if (place.GlowX != null)
+                Assert.True(File.Exists(Path.Combine(Folder("chateau"), place.Id + "-lueur.png")), place.Id);
         }
     }
 

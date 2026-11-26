@@ -470,6 +470,28 @@ public partial class TownScreen : CanvasLayer
         }
     }
 
+    /// <summary>
+    /// Une lueur de la scène (les runes de la guilde des mages) : chaque groupe de quelques colonnes flotte d'un pixel
+    /// vers le haut ou le bas et scintille, chacun à son rythme.
+    /// </summary>
+    private static readonly ShaderMaterial GlowMaterial = new()
+    {
+        Shader = new Shader
+        {
+            Code = @"
+shader_type canvas_item;
+void fragment() {
+    vec2 px = TEXTURE_PIXEL_SIZE;
+    float group = floor(UV.x / px.x / 7.0);
+    float phase = fract(sin(group * 12.9898) * 43758.5453) * 6.2831;
+    float bob = round(sin(TIME * 1.3 + phase));
+    vec4 color = texture(TEXTURE, UV + vec2(0.0, bob * px.y));
+    color.a *= 0.65 + 0.35 * sin(TIME * 2.1 + phase * 1.7);
+    COLOR = color;
+}",
+        },
+    };
+
     /// <summary>La scène d'une faction (art/towns/&lt;faction&gt;/scene.json), ou null si elle n'a pas encore d'images.</summary>
     private TownScene? SceneOf(string faction)
     {
@@ -483,7 +505,7 @@ public partial class TownScreen : CanvasLayer
 
     /// <summary>
     /// La ville en images, ×2, posée en bas au milieu de la vue : le fond, les ombres des bâtiments construits, les
-    /// bâtiments du plus loin au plus proche, chacun suivi du décor qui passe devant lui.
+    /// bâtiments du plus loin au plus proche, chacun suivi du décor qui passe devant lui et de sa lueur animée.
     /// </summary>
     private void ShowScene(Town town, TownScene scene)
     {
@@ -518,6 +540,8 @@ public partial class TownScreen : CanvasLayer
             // le décor qui passe devant lui, tout de suite : les bâtiments plus proches le couvrent encore
             if (place.FrontX != null)
                 Layer(place.Id + "-devant", place.FrontX.Value, place.FrontY!.Value);
+            if (place.GlowX != null)
+                Layer(place.Id + "-lueur", place.GlowX.Value, place.GlowY!.Value).Material = GlowMaterial;
         }
     }
 

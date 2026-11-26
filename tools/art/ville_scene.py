@@ -4,7 +4,7 @@
 # Le dossier source (voir son A-INTEGRER.md) : places.json (coin haut-gauche, taille et profondeur de chaque bâtiment
 # dans un rendu de 960 × 540, dont la scène du jeu est la bande des rangées 135 à 404), peints/<id>.png, seul/<id>.png et
 # sur-sol/<id>.png (pour couper ce que cache la colline), ombres-contact/<id>.png, ajouts/<id>.png (peint en plus sur le sol
-# visible, s'il y en a), decor-devant/<id>.png (le décor que seul
+# visible, s'il y en a), lueurs/<id>.png (une lueur animée à part : les runes de la guilde), decor-devant/<id>.png (le décor que seul
 # ce bâtiment et le sol cachent : rendre_devant.py ; sinon visible/decor.png), peints/decor.png, et
 # composer_scene.py qui fait le fond (montagnes, sol, ombres du décor, décor).
 #
@@ -191,6 +191,12 @@ def main():
             im, fx, fy = rogner(devant)
             im.save(os.path.join(dest, k + "-devant.png"))
             entree.update({"frontX": fx, "frontY": fy})
+        # une lueur animée par le jeu, à part (lueurs/<id>.png, 960 × 540) : les runes de la guilde des mages
+        lueur = os.path.join(src, "lueurs", k + ".png")
+        if os.path.exists(lueur) and bande(Image.open(lueur)).getbbox():
+            im, gx, gy = rogner(bande(Image.open(lueur).convert("RGBA")), marge=1)
+            im.save(os.path.join(dest, k + "-lueur.png"))
+            entree.update({"glowX": gx, "glowY": gy})
         batiments.append(entree)
 
     scene = {"width": 960, "height": HAUTEUR, "buildings": batiments}

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HoMM.Core;
 
@@ -89,7 +90,16 @@ public sealed class WeeklyProducer : MapObject
     /// <summary>Sur 2 cases (la porte et la case au-dessus), sinon une seule (sauvegardes d'avant).</summary>
     public bool Large { get; init; } = true;
 
-    public override IEnumerable<Cell> Footprint => Large ? TallSite.FootprintAt(Position) : base.Footprint;
+    /// <summary>
+    /// Le côté de la roue d'une roue à eau (2026-11-27, choix de l'utilisateur) : -1 à gauche, 1 à droite. Elle tourne dans
+    /// le ruisseau, sur les deux cases de ce côté de la maison, qui bloquent aussi (un lieu de 2 × 2 cases) ; 0 : une roue
+    /// posée loin de l'eau (sauvegardes d'avant), ou un moulin.
+    /// </summary>
+    public int WheelSide { get; init; }
+
+    public override IEnumerable<Cell> Footprint => !Large ? base.Footprint
+        : WheelSide == 0 ? TallSite.FootprintAt(Position)
+        : TallSite.FootprintAt(Position).Concat(TallSite.FootprintAt(Position.Offset(WheelSide, 0)));
 
     /// <summary>Une roue à eau (de l'or), sinon un moulin.</summary>
     public bool IsWaterWheel => Resource == ResourceType.Gold;

@@ -64,7 +64,8 @@ public sealed partial class GameState
         Cell? Spot = null, // la case d'eau d'un chantier naval de la côte, la sortie d'un tourbillon
         int? Wood = null, bool? Sea = null, // une épave flottante ; une bouée ou des sirènes
         int? Gold = null, // un navire abandonné (son équipage dans Garrison)
-        string? Artifact = null); // un artefact posé, ou dans un coffre
+        string? Artifact = null, // un artefact posé, ou dans un coffre
+        int? Side = null); // le côté de la roue d'une roue à eau, dans son ruisseau
 
     private sealed record StackData(string Creature, int Count);
 
@@ -144,7 +145,8 @@ public sealed partial class GameState
         Shipyard shipyard => new ObjectData("shipyard", obj.Id, obj.Position, Spot: shipyard.BoatSpot),
         Shrine shrine => new ObjectData("shrine", obj.Id, obj.Position, Stat: shrine.Stat, Visitors: shrine.Visitors.Order().ToList()),
         SageHut hut => new ObjectData("sage", obj.Id, obj.Position, Spell: hut.Spell.Id, Small: hut.Large ? null : true),
-        WeeklyProducer producer => new ObjectData("producer", obj.Id, obj.Position, Resource: producer.Resource, Stocked: producer.Stocked, Small: producer.Large ? null : true),
+        WeeklyProducer producer => new ObjectData("producer", obj.Id, obj.Position, Resource: producer.Resource, Stocked: producer.Stocked, Small: producer.Large ? null : true,
+            Side: producer.WheelSide != 0 ? producer.WheelSide : null),
         ObservationTower tower => new ObjectData("tower", obj.Id, obj.Position, Visitors: tower.Visitors.Order().ToList(), Small: tower.Large ? null : true),
         BlessingSite site => new ObjectData("blessing", obj.Id, obj.Position, Blessing: site.Blessing, Small: site.Large ? null : true,
             Sea: site.Sea ? true : null),
@@ -266,7 +268,7 @@ public sealed partial class GameState
                 "shipyard" => new Shipyard(o.Position, o.Spot!.Value),
                 "shrine" => WithVisitors(new Shrine(o.Position, o.Stat!.Value), s => s.Visitors, o.Visitors),
                 "sage" => new SageHut(o.Position, data.Spells.Get(o.Spell!)) { Large = Tall(o) },
-                "producer" => new WeeklyProducer(o.Position, o.Resource!.Value) { Stocked = o.Stocked != false, Large = Tall(o) },
+                "producer" => new WeeklyProducer(o.Position, o.Resource!.Value) { Stocked = o.Stocked != false, Large = Tall(o), WheelSide = o.Side ?? 0 },
                 "tower" => WithVisitors(new ObservationTower(o.Position) { Large = Tall(o) }, t => t.Visitors, o.Visitors),
                 "blessing" => new BlessingSite(o.Position, o.Blessing!.Value) { Large = Tall(o), Sea = o.Sea == true },
                 "flotsam" => new Flotsam(o.Position, o.Wood!.Value, o.Amount!.Value),

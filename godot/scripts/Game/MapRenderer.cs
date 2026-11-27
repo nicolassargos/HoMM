@@ -234,6 +234,8 @@ public static class MapRenderer
         Obelisk => Art.Get("objects/obelisk"),
         Shrine shrine => Art.Get($"objects/shrine-{shrine.Stat.ToString().ToLowerInvariant()}"),
         SageHut => Art.Get("objects/sage"),
+        // la roue dessinée à droite de la maison ; dans un ruisseau à gauche, l'image retournée
+        WeeklyProducer { IsWaterWheel: true, WheelSide: -1 } => Art.Get("objects/water-wheel-left") ?? Art.Get("objects/water-wheel"),
         WeeklyProducer { IsWaterWheel: true } => Art.Get("objects/water-wheel"),
         WeeklyProducer => Art.Get("objects/windmill"),
         ObservationTower => Art.Get("objects/tower"),
@@ -464,6 +466,8 @@ public static class MapRenderer
             Town { Large: true } => new Rect2(o + V(-2 * T, -3 * T), 5 * T, 4 * T),
             Town => new Rect2(o + V(-T, -2 * T), 3 * T, 3 * T),
             Mine { Large: true } => new Rect2(o + V(-T, -T), 3 * T, 2 * T),
+            // une roue à eau : la maison (la porte en o et la case au-dessus) et sa roue dans le ruisseau, à côté
+            WeeklyProducer { Large: true, WheelSide: not 0 and var side } => new Rect2(o + V(Math.Min(0, side) * T, -T), 2 * T, 2 * T),
             _ => new Rect2(o, T, T),
         };
     }

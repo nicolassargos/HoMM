@@ -3855,6 +3855,56 @@ public sealed class MapGenerator
     public int SageCount { get; init; } = 2;
     /// <summary>Moulins et roues à eau, tour à tour.</summary>
     public int ProducerCount { get; init; } = 2;
+
+    /// <summary>De combien le tracé d'un ruisseau peut s'écarter du milieu des cases de la roue d'une roue à eau (en cases).</summary>
+    private const double WheelStreamSlack = 0.25;
+
+    /// <summary>
+    /// Où la roue trempe dans l'eau, dans sa colonne (en cases, depuis la gauche) quand elle est à droite de la maison :
+    /// mesuré sur son image (<c>objects/water-wheel</c>, retournée quand elle est à gauche).
+    /// </summary>
+    private const double WheelWaterX = 0.53;
+
+    /// <summary>
+    /// Le ruisseau passe sous la roue (2026-11-27, demandé par l'utilisateur) : sur les deux rangées de la roue, son tracé
+    /// va droit au point où elle trempe, puis rejoint peu à peu son cours dans la case au-dessus et dans celle en dessous
+    /// (sans sortir des cases du ruisseau). Seul le dessin bouge : les cases du ruisseau restent les mêmes.
+    /// </summary>
+    private void StreamUnderWheel(WeeklyProducer wheel)
+    {
+        int column = wheel.Position.X + wheel.WheelSide, bottom = wheel.Position.Y + 1; // le bas de la rangée de la porte
+        double target = column + (wheel.WheelSide > 0 ? WheelWaterX : 1 - WheelWaterX);
+        static Cell CellOf(CoursePoint p) => new((int)Math.Floor(p.X), (int)Math.Floor(p.Y));
+        // 1 sur les deux rangées de la roue, de 1 à 0 sur la rangée au-dessus et sur celle en dessous
+        double Weight(CoursePoint p) =>
+            p.Y < bottom - 3 || p.Y > bottom + 1 || Math.Abs(p.X - target) > 1.5 ? 0
+            : p.Y < bottom - 2 ? p.Y - (bottom - 3)
+            : p.Y <= bottom ? 1
+            : bottom + 1 - p.Y;
+        for (int i = 0; i < _map.Streams.Count; i++)
+        {
+            var course = _map.Streams[i];
+            if (!course.Points.Any(p => CellOf(p).X == column && Weight(p) == 1))
+                continue;
+            // le plus franc des déplacements qui garde le tracé sur les mêmes cases, d'une case à sa voisine par un côté
+            var cells = course.Points.Select(CellOf).ToHashSet();
+            foreach (var share in new[] { 1, 0.75, 0.5, 0.25 })
+            {
+                var points = course.Points.Select(p => new CoursePoint(p.X + (target - p.X) * Weight(p) * share, p.Y)).ToList();
+                bool kept = cells.SetEquals(points.Select(CellOf))
+                    && Enumerable.Range(1, points.Count - 1).All(k => Weight(course.Points[k]) == 0 && Weight(course.Points[k - 1]) == 0
+                        || Math.Abs(CellOf(points[k]).X - CellOf(points[k - 1]).X) + Math.Abs(CellOf(points[k]).Y - CellOf(points[k - 1]).Y) <= 1);
+                if (kept)
+                {
+                    _map.Streams[i] = course with { Points = points };
+                    break;
+                }
+            }
+        }
+    }
+
+    /// <summary>Deux roues à eau sont au moins à tant de cases l'une de l'autre (pas deux sur le même bout de ruisseau).</summary>
+    private const int WheelSpacing = 8;
     public int TowerCount { get; init; } = 1;
 
     /// <summary>Temples (+1 moral) et cercles des fées (+1 chance), tour à tour.</summary>
@@ -3883,8 +3933,11 @@ public sealed class MapGenerator
             var cells = obj.Footprint.ToList();
             if (cells.Any(_overhang.Contains))
                 return false;
-            // la case au-dessus de la porte : un terrain où l'on marche, sans route ni objet
-            if (!cells.Where(c => c != obj.Position).All(c => _map.IsPassable(c) && !_map.HasRoad(c) && _map.GetRiver(c) == RiverKind.None
+            // la case au-dessus de la porte : un terrain où l'on marche, sans route ni objet (la roue d'une roue à eau : dans
+            // son ruisseau)
+            bool InStream(Cell c) => obj is WeeklyProducer { WheelSide: not 0 } wheel && c.X == wheel.Position.X + wheel.WheelSide
+                && _map.GetRiver(c) == RiverKind.Stream;
+            if (!cells.Where(c => c != obj.Position).All(c => _map.IsPassable(c) && !_map.HasRoad(c) && (_map.GetRiver(c) == RiverKind.None || InStream(c))
                     && _map.OccupantAt(c) == null && !_mineCells.Contains(c) && c != _map.Treasure && !_keptFree.Contains(c)
                     && !_landings.Contains(c)))
                 return false;
@@ -3937,9 +3990,40 @@ public sealed class MapGenerator
                 if (!Place(c => new SageHut(c, spell)))
                     break;
             }
+        // la roue à eau au bord d'un ruisseau, sa roue dedans (choix de l'utilisateur, 2026-11-27) : la maison sur la terre,
+        // les deux cases à côté d'elle (à droite de préférence) dans le ruisseau, de préférence là où son tracé passe près
+        // de leur milieu (la roue est dessinée là) ; sans place, pas de roue
+        var nearMiddle = new HashSet<Cell>();
+        foreach (var course in _map.Streams)
+            for (int i = 1; i < course.Points.Count; i++)
+            {
+                // là où le tracé passe à mi-hauteur d'une case
+                var (a, b) = (course.Points[i - 1], course.Points[i]);
+                for (double y = Math.Floor(Math.Min(a.Y, b.Y) - 0.5) + 0.5; y <= Math.Max(a.Y, b.Y); y++)
+                {
+                    if (y < Math.Min(a.Y, b.Y) || a.Y == b.Y)
+                        continue;
+                    double x = a.X + (b.X - a.X) * (y - a.Y) / (b.Y - a.Y);
+                    if (Math.Abs(x - Math.Floor(x) - 0.5) <= WheelStreamSlack)
+                        nearMiddle.Add(new Cell((int)Math.Floor(x), (int)Math.Floor(y)));
+                }
+            }
+        int WheelSide(Cell c, bool centered) =>
+            _map.GetRiver(c) != RiverKind.None
+            || _map.Objects.OfType<WeeklyProducer>().Any(w => w.IsWaterWheel && SquaredDistance(w.Position, c) < WheelSpacing * WheelSpacing) || !_map.InBounds(c.Offset(0, -1)) || _map.GetRiver(c.Offset(0, -1)) != RiverKind.None ? 0
+            : new[] { 1, -1 }.FirstOrDefault(s => TallSite.FootprintAt(c.Offset(s, 0))
+                .All(w => _map.InBounds(w) && _map.GetRiver(w) == RiverKind.Stream && !_map.HasRoad(w) && (!centered || nearMiddle.Contains(w))));
         for (int i = 0; i < Scaled(ProducerCount); i++)
         {
             var resource = i % 2 == 0 ? ResourceType.Gold : ResourceInfo.Rare[_rng.Next(ResourceInfo.Rare.Length)];
+            if (resource == ResourceType.Gold)
+            {
+                WeeklyProducer? wheel = null;
+                if (Place(c => wheel = new WeeklyProducer(c, resource) { WheelSide = WheelSide(c, true) }, c => WheelSide(c, true) != 0)
+                    || Place(c => wheel = new WeeklyProducer(c, resource) { WheelSide = WheelSide(c, false) }, c => WheelSide(c, false) != 0))
+                    StreamUnderWheel(wheel!);
+                continue;
+            }
             if (!Place(c => new WeeklyProducer(c, resource)))
                 break;
         }

@@ -892,6 +892,16 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   candidats **en jeu**, chacun installé tour à tour (`--center=mine-gold`, `mine-backed` : une mine adossée), sur une page
   de choix. Une tache de terre brune devant l'entrée ne se fond pas (pas verte) : à éviter. Choisies (2026-11-27) : or s11-1,
   cristal s33-2, gemmes s11-1, mercure s22-4, soufre s22-3 (archive `2026-11-27-mines-creusees`).
+- **La roue à eau (2 × 2 cases, 2026-11-27)** : PixelLab « pro » à 96 × 96, 3 graines, style la mine d'or creusée, modèle
+  l'ancienne roue : « … a small country watermill, seen from the front and slightly from above. On the left, a cosy
+  two-storey mill house of pale stone and timber with a steep red tiled roof (…) On the right side of the house, a large
+  wooden water wheel (…) standing in a narrow blue stream (…) Transparent background, no ground patch, no grass, no base,
+  no outline at all, no dark contour. » Malgré « no outline », un contour net, de vue isométrique. Chaque image peint son
+  ruisseau en travers (il ne suivrait pas celui de la carte) : `tools/art/sans_eau.py` l'efface (l'eau reliée au bas, son
+  bord d'un pixel, les miettes). Choisie : s11-2, contour adouci `adoucir.py … 0.7 60 2` (« moyen », entre l'actuel et
+  `0.85 90 2 0.4` ; l'utilisateur le trouvait un peu fort). La roue est à droite ; `objects/water-wheel-left.png` est
+  l'image retournée. Où la roue trempe (0,53 de sa case) est noté dans `MapGenerator.WheelWaterX` : le tracé du
+  ruisseau y passe.
 
 ## Héros de la carte (48 × 48, 2026-11-14)
 - **Générer à la taille du jeu** (« pro » à 48, 25 candidats pour 0,08 $) avec une image choisie comme style : plus

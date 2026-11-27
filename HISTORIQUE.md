@@ -3162,6 +3162,16 @@ choix de l'utilisateur) :
   la bande de pente et 20 pixels de plus, une case au plus, sur les cases de la mine, qui le recouvre ; branche
   `mines-ecart`). **Reste** : une tache de terre devant certaines entrées ne prend pas la couleur du sable ou de la
   neige ; les pieds (ombre de contact) des nouvelles images. Une même graine donne une autre carte qu'avant.
+- ✅ **La roue à eau sur un ruisseau** (2026-11-27, branche `moulin-eau`, choix de l'utilisateur) : la maison sur la
+  terre (sa porte et la case au-dessus) et sa roue sur les deux cases du ruisseau à côté, qui bloquent aussi : un lieu de
+  2 × 2 cases (`WeeklyProducer.WheelSide`, -1 à gauche, 1 à droite, sauvegardé ; 0 dans les sauvegardes d'avant). Le
+  générateur prend de préférence une place où le tracé du ruisseau passe près du milieu des cases de la roue, sinon tout
+  bord de ruisseau ; deux roues sont à 8 cases au moins (deux se suivaient sur le même ruisseau). Puis le tracé est
+  courbé (`StreamUnderWheel`) : droit au point où la roue trempe sur ses deux rangées, rejoint son cours sur la case
+  au-dessus et celle en dessous ; un déplacement moins franc (3/4, 1/2, 1/4) s'il sautait une case ou quittait les siennes.
+  Mesuré sur six cartes de 72 × 72 : 24 roues pour 24 moulins, toutes sur un ruisseau (`CarteObjetsTests`). Une image
+  plus grande (80 × 70, PixelLab ; recette dans `tools/art/METHODE.md`), retournée quand le ruisseau est à gauche. Une
+  même graine donne une autre carte qu'avant.
 - ✅ **Les montagnes au bord de deux sols** (2026-11-17, branche `montagnes-deux-sols`) : choisir le jeu d'images d'après
   le sol devant le pied de chaque massif ne suffisait pas (une image n'a qu'un sol : fausse d'un côté de la frontière). À
   la place, un shader (`shaders/mountain_slopes.gdshader`, sur `DecorLayer`) : chaque pixel de pente (vert franc dans

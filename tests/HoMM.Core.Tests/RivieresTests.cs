@@ -61,8 +61,12 @@ public class RivieresTests
         Assert.NotEmpty(streams);
         foreach (var cell in streams)
         {
-            Assert.True(map.IsPassable(cell), $"ruisseau infranchissable en {cell}");
-            Assert.Null(map.OccupantAt(cell));
+            // rien n'y est posé, sauf la roue d'une roue à eau, qui tourne dedans
+            if (map.OccupantAt(cell) is not WeeklyProducer { IsWaterWheel: true })
+            {
+                Assert.True(map.IsPassable(cell), $"ruisseau infranchissable en {cell}");
+                Assert.Null(map.OccupantAt(cell));
+            }
             // un ruisseau : une ligne de cases, chacune reliée à deux au plus, trois là où un affluent le rejoint (pas de flaque)
             Assert.True(Sides.Count(d => streams.Contains(cell.Offset(d.X, d.Y))) <= 3, $"ruisseau trop large en {cell}");
             // une route le croise tout droit

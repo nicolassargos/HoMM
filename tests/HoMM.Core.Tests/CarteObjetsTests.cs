@@ -191,6 +191,34 @@ public class CarteObjetsTests
         }
     }
 
+    [Fact]
+    public void La_roue_a_eau_tourne_dans_un_ruisseau()
+    {
+        // autant de roues à eau que de moulins sont voulues : toutes trouvent un ruisseau
+        int wheels = 0, mills = 0;
+        foreach (var seed in new[] { 1, 5, 12, 42, 7, 3 })
+        {
+            var state = new GameState(seed, TestData.Data, 72, 72, opponents: 1);
+            var map = state.Map;
+            foreach (var wheel in map.Objects.OfType<WeeklyProducer>().Where(p => p.IsWaterWheel))
+            {
+                // la maison sur la terre, la roue sur deux cases du ruisseau à côté d'elle, qui bloquent
+                Assert.NotEqual(0, wheel.WheelSide);
+                Assert.Equal(4, wheel.Footprint.Count());
+                Assert.All(TallSite.FootprintAt(wheel.Position), c => Assert.Equal(RiverKind.None, map.GetRiver(c)));
+                Assert.All(TallSite.FootprintAt(wheel.Position.Offset(wheel.WheelSide, 0)),
+                    c => Assert.Equal(RiverKind.Stream, map.GetRiver(c)));
+                Assert.All(wheel.Footprint, c => Assert.Same(wheel, map.OccupantAt(c)));
+                wheels++;
+            }
+            mills += map.Objects.OfType<WeeklyProducer>().Count(p => !p.IsWaterWheel);
+            var loaded = GameState.Load(state.Save(), TestData.Data).Map.Objects.OfType<WeeklyProducer>().Where(p => p.IsWaterWheel);
+            Assert.Equal(map.Objects.OfType<WeeklyProducer>().Where(p => p.IsWaterWheel).Select(p => (p.Position, p.WheelSide)),
+                loaded.Select(p => (p.Position, p.WheelSide)));
+        }
+        Assert.True(wheels >= mills, $"{wheels} roues à eau pour {mills} moulins");
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(42)]

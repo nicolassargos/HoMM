@@ -63,7 +63,7 @@ public partial class DecorLayer : Node2D
     };
 
     /// <summary>La couleur qui marque une image de montagne pour le shader des pentes (le bleu à 0,998, invisible).</summary>
-    private static readonly Color SlopeMark = new(1, 1, 0.998f);
+    public static readonly Color SlopeMark = new(1, 1, 0.998f);
 
     /// <summary>La couleur qui marque un arbre pour le shader : il penche dans le vent (le rouge à 0,998, invisible).</summary>
     private static readonly Color TreeMark = new(0.998f, 1, 1);
@@ -190,15 +190,69 @@ public partial class DecorLayer : Node2D
 
         // les massifs posés par le générateur : l'image par le milieu de son bas sur le milieu du bas de son rectangle
         var rocks = new List<(Vector2 Foot, Texture2D Image)>();
+        var mineBacks = MineBacks(map);
         foreach (var massif in map.Massifs)
             if (Shapes.Find(massif.Id) is { } shape && Art.Get(shape.Image) is { } image)
-                rocks.Add((new Vector2(massif.At.X + shape.Width / 2f, massif.At.Y + shape.Height) * t, image));
+            {
+                var foot = new Vector2(massif.At.X + shape.Width / 2f, massif.At.Y + shape.Height) * t;
+                rocks.Add((foot + new Vector2(0, BehindMineDrop(shape, massif.At, image, mineBacks)), image));
+            }
         FillGaps(map, rocks, peaks);
         sprites.AddRange(rocks);
         AddScree(map, sprites);
 
         sprites.Sort((a, b) => a.Foot.Y != b.Foot.Y ? a.Foot.Y.CompareTo(b.Foot.Y) : a.Foot.X.CompareTo(b.Foot.X));
         return sprites;
+    }
+
+    /// <summary>Les trois cases juste derrière chaque mine creusée dans la roche (son image : la mine et sa montagne).</summary>
+    private static HashSet<Cell> MineBacks(AdventureMap map) =>
+        map.Objects.OfType<Mine>().Where(m => Art.Get($"objects/mine-{Art.Name(m.Resource)}-mountain") != null)
+            .SelectMany(m => new[] { -1, 0, 1 }.Select(dx => m.Position.Offset(dx, -2))).ToHashSet();
+
+    /// <summary>
+    /// Un massif adossé à une mine creusée (2026-11-27) : sous sa roche, ses pentes prennent la couleur du sol, et la roche
+    /// de la mine ne monte qu'à son sommet ; une bande de sol les séparait. Si toute sa rangée du bas est juste derrière la
+    /// mine, il descend (d'une case au plus, sur les cases de la mine, qui le recouvre) jusqu'à ce que sa roche passe
+    /// derrière les épaules de la mine. Seulement le dessin, en pixels d'écran.
+    /// </summary>
+    private static float BehindMineDrop(MassifShape shape, Cell at, Texture2D image, HashSet<Cell> mineBacks)
+    {
+        var bottom = shape.Cells.Where(c => c.Dy == shape.Height - 1).Select(c => at.Offset(c.Dx, c.Dy)).ToList();
+        if (mineBacks.Count == 0 || !bottom.All(mineBacks.Contains))
+            return 0;
+        var (w, h, lowest) = RockBottomOf(image);
+        const int tile = MapRenderer.ArtTile;
+        // la bande de pente sous la roche, au-dessus des cases de la mine (au milieu de chacune)
+        int left = w / 2 - shape.Width * tile / 2, band = 0;
+        foreach (var (dx, _) in shape.Cells.Where(c => c.Dy == shape.Height - 1))
+            for (int x = left + dx * tile + tile / 4; x < left + (dx + 1) * tile - tile / 4; x++)
+                if (x >= 0 && x < w && lowest[x] >= 0)
+                    band = Math.Max(band, h - 1 - lowest[x]);
+        const int intoMine = 20; // la roche descend encore de tant derrière la mine
+        return Math.Min(band + intoMine, tile) * MapRenderer.ArtScale;
+    }
+
+    /// <summary>Pour chaque colonne d'une image, le pixel de roche le plus bas (pas une pente verte, que le shader repeint) ; -1 sans roche.</summary>
+    private static readonly Dictionary<Texture2D, (int W, int H, int[] Lowest)> _rockBottom = new();
+
+    private static (int W, int H, int[] Lowest) RockBottomOf(Texture2D texture)
+    {
+        if (_rockBottom.TryGetValue(texture, out var known))
+            return known;
+        var image = texture.GetImage();
+        if (image.IsCompressed())
+            image.Decompress();
+        int w = image.GetWidth(), h = image.GetHeight();
+        var lowest = new int[w];
+        for (int x = 0; x < w; x++)
+        {
+            lowest[x] = -1;
+            for (int y = h - 1; y >= 0 && lowest[x] < 0; y--)
+                if (image.GetPixel(x, y) is var c && c.A > 0.5f && !(c.G > c.R + 0.06f && c.G > c.B + 0.06f))
+                    lowest[x] = y;
+        }
+        return _rockBottom[texture] = (w, h, lowest);
     }
 
     /// <summary>Les pixels opaques de chaque image (lus une fois), pour savoir ce qu'un massif recouvre.</summary>

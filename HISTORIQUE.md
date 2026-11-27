@@ -1285,7 +1285,7 @@ creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objec
    **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui frappe le sol avec sa colonne
    pourrait toucher une zone (les cases autour de sa cible) : une règle à concevoir avec la session règles.
 
-#### La Tour de magie
+#### Les Arcanes (d'abord « Tour de magie »)
 Décidée avec l'utilisateur (2026-11-09).
 - **Philosophie : le savoir.** Une cité de savants qui lient les esprits et animent la pierre et le métal : des mages,
   des créatures **façonnées** (gargouilles, golems) et des géants gardiens de la Tour.
@@ -2862,7 +2862,7 @@ des profondeurs (glisser vers sa cible, les fissures, peut-être avaler) ; **à 
 ralentissent certaines petites cartes. **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui
 frappe le sol pourrait toucher une zone : une règle à concevoir avec la session règles.
 
-##### La Tour de magie (jouable)
+##### Les Arcanes (jouables)
 Le savoir : des mages, des créatures **façonnées** (résistent à la magie : moitié des dégâts des sorts, aucun sort
 néfaste) et des géants. Marque : **la bibliothèque des arcanes** (un sort de plus par niveau de guilde). Classe
 **Magicien** (talent Érudit). Créatures : Gnome, Gargouille, Golem de pierre (→ Golem d'airain), Naga, Djinn, Mage
@@ -3168,6 +3168,32 @@ choix de l'utilisateur) :
   ville neutre, ailleurs) ; une montagne seulement à côté ne suffit pas (essayé : la mine paraissait posée à côté).
   Mesuré sur les cartes 5, 12 et 42 : 23 mines creusées sur 45 adossées (test `MontagnesTests`), une sur dix avant.
   Une même graine donne une carte un peu différente d'avant.
+- ✅ **Les mines creusées dans la roche** (2026-11-27, branche `mines-v2`, choix de l'utilisateur) : l'or, les gemmes,
+  le cristal, le mercure et le soufre sont **toujours** adossés à une montagne (pas la scierie ni le minerai). Sans place
+  adossée, `MapGenerator.TryPlaceDugMine` élève derrière la mine un petit massif de `mountains.json` (niveau 1 ou plus,
+  sur des cases libres, sans route, rivière, ville ni case gardée, pas trop près d'un départ) ; ces petits massifs ne
+  deviennent pas de la forêt (`_mineBacks`, dans `ForestSmallMountains`). Une mine gardée garde aussi sa case devant
+  libre, pour son gardien : 87 % des mines précieuses gardées sur 12 cartes, contre 83 % avant. Mesuré sur les cartes
+  5, 12 et 42 : 72 mines creusées sur 72 adossées (`MontagnesTests`). Chaque mine a une nouvelle image, la mine et sa
+  roche d'un seul tenant (PixelLab, 96 × 96 ; recette dans `tools/art/METHODE.md`), `objects/mine-<ressource>-mountain.png` :
+  dessinée avec le shader des pentes (le sol de dessous) et sans ombre portée, comme un massif ; choisies par
+  l'utilisateur dans le jeu (or s11-1, cristal s33-2, gemmes s11-1, mercure s22-4, soufre s22-3). Les rails de la mine
+  d'or disparaissaient au fondu : `fondre.py --pentes-seules`. Une bande de sol séparait la mine du massif derrière elle
+  (sous sa roche, 8 à 30 pixels de pente qui prennent la couleur du sol ; la roche de la mine ne monte qu'à son sommet) :
+  un massif dont toute la rangée du bas est juste derrière une mine creusée est dessiné plus bas (`DecorLayer.BehindMineDrop`,
+  la bande de pente et 20 pixels de plus, une case au plus, sur les cases de la mine, qui le recouvre ; branche
+  `mines-ecart`). **Reste** : une tache de terre devant certaines entrées ne prend pas la couleur du sable ou de la
+  neige ; les pieds (ombre de contact) des nouvelles images. Une même graine donne une autre carte qu'avant.
+- ✅ **La roue à eau sur un ruisseau** (2026-11-27, branche `moulin-eau`, choix de l'utilisateur) : la maison sur la
+  terre (sa porte et la case au-dessus) et sa roue sur les deux cases du ruisseau à côté, qui bloquent aussi : un lieu de
+  2 × 2 cases (`WeeklyProducer.WheelSide`, -1 à gauche, 1 à droite, sauvegardé ; 0 dans les sauvegardes d'avant). Le
+  générateur prend de préférence une place où le tracé du ruisseau passe près du milieu des cases de la roue, sinon tout
+  bord de ruisseau ; deux roues sont à 8 cases au moins (deux se suivaient sur le même ruisseau). Puis le tracé est
+  courbé (`StreamUnderWheel`) : droit au point où la roue trempe sur ses deux rangées, rejoint son cours sur la case
+  au-dessus et celle en dessous ; un déplacement moins franc (3/4, 1/2, 1/4) s'il sautait une case ou quittait les siennes.
+  Mesuré sur six cartes de 72 × 72 : 24 roues pour 24 moulins, toutes sur un ruisseau (`CarteObjetsTests`). Une image
+  plus grande (80 × 70, PixelLab ; recette dans `tools/art/METHODE.md`), retournée quand le ruisseau est à gauche. Une
+  même graine donne une autre carte qu'avant.
 - ✅ **Les montagnes au bord de deux sols** (2026-11-17, branche `montagnes-deux-sols`) : choisir le jeu d'images d'après
   le sol devant le pied de chaque massif ne suffisait pas (une image n'a qu'un sol : fausse d'un côté de la frontière). À
   la place, un shader (`shaders/mountain_slopes.gdshader`, sur `DecorLayer`) : chaque pixel de pente (vert franc dans

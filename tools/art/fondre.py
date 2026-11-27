@@ -10,13 +10,16 @@ massif-sable-cime-1.png, peak-sable-2.png). Les montagnes de chaque sol viennent
 roche est commune. --bord : la façon dont le bord se défait, sur 4 pixels (2026-11-17, comparées avec l'utilisateur) :
 « trame » (une trame régulière de Bayer, sur 3 pixels : elle se voyait comme une ligne de points), « fondu » (de plus en
 plus transparent), « dechire » (des pixels ôtés par petites grappes irrégulières), « mixte » (déchiré, et les derniers
-pixels à demi transparents). Seule la bibliothèque standard de Python est utilisée.
+pixels à demi transparents). --pentes-seules (une mine creusée, 2026-11-26) : seul le bord des pentes vertes se défait,
+pas le bas de l'image (les rails, le chariot et les tas d'or devant l'entrée restent nets).
+Seule la bibliothèque standard de Python est utilisée.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from reduire import lire, ecrire
 bord = next((a.split('=', 1)[1] for a in sys.argv if a.startswith('--bord=')), 'trame')
-sys.argv = [a for a in sys.argv if not a.startswith('--bord=')]
+pentes_seules = '--pentes-seules' in sys.argv
+sys.argv = [a for a in sys.argv if not a.startswith('--bord=') and a != '--pentes-seules']
 lum = lambda c: 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]
 w, h, cap = lire(sys.argv[1]); x0, y0, x1, y1 = map(int, sys.argv[2:6]); mode = sys.argv[6]
 keep = (lambda c: c[1] > c[0] + 15 and c[1] > c[2] + 15) if mode == 'vert' else (lambda c: c[0] >= c[2])  # pas l'eau
@@ -63,7 +66,7 @@ for path in sys.argv[9:]:
         q[y][x] = pal[min(N - 1, i * N // max(1, len(gr)))] + (255,)
     # le bord des pentes, et tout le bas de l'image (une base de roche aussi)
     for (x, y), d in dist.items():
-        if not (green(p[y][x]) or y > ih * 0.6):
+        if not (green(p[y][x]) or y > ih * 0.6 and not pentes_seules):
             continue
         if bord == 'trame':
             if BAYER[y % 4][x % 4] / 16 < CUT[d]:

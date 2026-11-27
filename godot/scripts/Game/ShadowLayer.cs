@@ -116,7 +116,7 @@ public partial class ShadowLayer : Node2D
     private void ForEachActor(CanvasItem ci, Action<CanvasItem, Texture2D, Rect2> draw)
     {
         foreach (var obj in State.Map.Objects)
-            if (MapRenderer.ObjectArt(obj, ActorLayer.ToPixels(obj.Position)) is { } art)
+            if (MapRenderer.ObjectArt(obj, ActorLayer.ToPixels(obj.Position)) is { } art && !MapRenderer.IsMountainMine(art.Image))
                 draw(ci, art.Image, art.Rect);
         foreach (var hero in State.AllHeroes)
         {

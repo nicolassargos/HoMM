@@ -69,7 +69,7 @@ dans `HISTORIQUE.md` (« Les factions : conception et chiffres »).
 | **Morts-vivants** | la nécromancie | Nécromancien (Nécromancie) | Colosse d'os → Colosse funèbre | mercure | gemmes |
 | **Barbares** | la horde, la Rage | Barbare (Chef de guerre) | Béhémoth → Béhémoth ancien | soufre | cristal |
 | **Forêt** | tireurs, régénération | Rôdeur (Chasseur) | Troll → Troll ancien | gemmes | cristal |
-| **Tour de magie** | façonnés, bibliothèque des arcanes | Magicien (Érudit) | Géant → Titan | gemmes | mercure |
+| **Arcanes** | façonnés, bibliothèque des arcanes | Magicien (Érudit) | Géant → Titan | gemmes | mercure |
 | **Enfer** | le feu, le prix du sang | Démoniste (Pacte) | Démon → Archidémon | mercure | soufre |
 | **Donjon** | la Terreur | Seigneur des abîmes (Effroi) | Hydre → (à choisir) | soufre | mercure |
 | **Nains** | l'obstination, les runes et le cristal | Thane (Obstination) | Roi de cristal → Roi des ancêtres | cristal | soufre |
@@ -77,7 +77,8 @@ dans `HISTORIQUE.md` (« Les factions : conception et chiffres »).
 ✅ Toutes jouables : créatures et capacités, ville, classe et héros, ville et héros sur la carte ; images des créatures
 (les Nains : 2026-11-16, branche `creatures-nains-images`, des nains caricaturés, chacun le sien, loin des clichés : choix
 de l'utilisateur ; détail dans `HISTORIQUE.md`). La faction neutre garde les monstres de la carte (le Dragon rouge, les
-pirates).
+pirates). La **Tour de magie** devient les **Arcanes** (2026-11-27, choix de l'utilisateur : « tour de magie »
+se lit « tour de passe-passe ») ; son identifiant reste `tour`.
 **Reste** :
 - **Nains, deux créatures remplacées** (choix de l'utilisateur, 2026-11-16) : le **Sapeur** (niveau 5, à la place du
   Lance-flammes : un mineur qui creuse sous le champ, ressort à côté d'un ennemi et frappe le premier, capacité
@@ -189,7 +190,7 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
 |---|---|---|
 | Morts-vivants | **Cortège funèbre** | après chaque combat gagné par un héros du joueur, où qu'il soit, les morts des deux camps reviennent à la ville : des Squelettes à recruter la semaine suivante |
 | Barbares | **La Marmite** | on y jette de petites créatures, il en sort de plus fortes (4 Gobelins → 1 Orc, 3 Loups → 1 Ogre…) |
-| Tour de magie | **La Tour qui pousse** | un étage de plus par semaine, **5 au plus** (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
+| Arcanes | **La Tour qui pousse** | un étage de plus par semaine, **5 au plus** (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
 | Château | **Les Hérauts** | plus un héros a gagné de combats, plus les monstres neutres proposent de le rejoindre ; héros de taverne moins chers |
 | Nains | **Le Grand Comptoir** ✅ | compte pour 2 marchés de plus (meilleurs taux d'échange) |
 | Donjon | **Tourbillon de mana** ✅ | une fois par semaine, les points de sort d'un héros qui le visite sont doublés |
@@ -228,7 +229,7 @@ une option, une ville au plus par zone, une scierie et une mine de minerai gard�
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; en courbes douces, 2026-11-20, dessinées en courbes
-arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19) ; des zones 2,5 fois plus grandes, comme les régions de Heroes 3 (2026-11-20) ; plus aucune terre sans chemin : ouverte à travers la forêt, remplie d'arbres, ou atteinte par un **portail** gardé qui cache une grande récompense (2026-11-21) ; le marais refait, avec ses mares, ses roseaux et ses boues (2026-11-24).
+arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17), toujours, dans la roche de leur nouvelle image (2026-11-27) ; la roue à eau sur un ruisseau, sa roue dedans (2026-11-27) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19) ; des zones 2,5 fois plus grandes, comme les régions de Heroes 3 (2026-11-20) ; plus aucune terre sans chemin : ouverte à travers la forêt, remplie d'arbres, ou atteinte par un **portail** gardé qui cache une grande récompense (2026-11-21) ; le marais refait, avec ses mares, ses roseaux et ses boues (2026-11-24).
 **Reste** :
 - **Les sols** : **six sols suffisent** (herbe, sable, marais, roche, neige, terre brûlée ; choix de l'utilisateur,
   2026-11-20) : pas un par faction, des factions les partagent ; plus tard, des **variantes** d'un même sol pour les
@@ -236,7 +237,7 @@ arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en mass
   aussi avoir **plus d'un sol** : les Nains la roche ou la neige, la Tour la neige ou le sable, l'Enfer la terre brûlée
   ou le sable, les morts-vivants le marais ou la roche (✅ 2026-11-20). Peut-être plus tard un sol souterrain pour le Donjon,
   s'il y a un souterrain. Des thèmes de cartes (la répartition se réglera alors) ; le sol
-  des factions encore sur l'herbe, à décider ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
+  des factions encore sur l'herbe, à décider ;
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Retouches de la carte** (demandées par l'utilisateur, 2026-11-24, dans cet ordre) : ✅ le marais ; un peu la roche
   (remise à plus tard : l'utilisateur y réfléchit ; essais dans `art-candidats/archives/2026-11-24-roche`) ;
@@ -321,8 +322,8 @@ bois rouge à rivets ; dans la ville, chaque troupe dans un cadre mince devant *
 Heroes 2 (le Château seulement ; repeint dans le style de la scène de la ville). ✅ **La fenêtre Recruter façon
 Heroes 2** (2026-11-26, branche `ville-recrutement-h2`) : une créature à la fois, grande devant son paysage, ses
 caractéristiques en tableau, − / curseur / + / Max, le prix avec les icônes des ressources, des flèches d'une habitation
-à l'autre. ✅ Le nom de la ville sur une plaque sculptée (2026-11-26, branche `ville-plaque-nom`). **Reste** : un
-paysage pour les sept autres factions.
+à l'autre. ✅ Le nom de la ville sur une plaque sculptée (2026-11-26, branche `ville-plaque-nom`). ✅ Celui des
+morts-vivants (2026-11-27 : la nuit, la lune, la forêt morte). **Reste** : un paysage pour les six autres factions.
 **La revue du 2026-11-27** (35 captures, `tools/captures.py`, remarques de l'utilisateur ; détail dans
 `HISTORIQUE.md`). Bons tels quels : l'onglet Magie du héros, la ville, celle des morts-vivants, Recruter, la taverne,
 la guilde, la vitrine du combat.
@@ -361,10 +362,12 @@ les sept autres factions (les morts-vivants d'abord).
 ✅ **La scène des morts-vivants peinte** (2026-11-25 et 26, branche `ville-morts-vivants-scene`) : le concept défait puis
 refait pièce par pièce (méthode dans `tools/art/METHODE.md`) ; 14 bâtiments repeints, les quatre étapes du château
 (demeure, fort, citadelle, château fort), la guilde de 1 à 5 niveaux, la salle du village jusqu'au capitole, le sol, la
-forêt et les montagnes repeints. ✅ Dans le jeu (PR #285), avec des chauves-souris et de la brume (PR #289). **Reste** :
-la fumée de la forge dessinée et animée par le
-jeu, puis d'autres petites animations ; le chantier naval au bord droit (un quai, un peu d'eau) ; les habitations
-améliorées ; peut-être la brume verte d'un essai de la guilde 3.
+forêt et les montagnes repeints. ✅ **Dans le jeu** (2026-11-26 et 27, PR #285 et #289) : la forge en décor, sa
+fumée, la magie de la guilde animée (niveau 4 redessiné par le jeu, niveau 5 peint et animé sur place, ses livres et ses
+crânes en orbite), des chauves-souris et de la brume ; tout tourne sur un même tour de 24 secondes (sauf la magie de la
+guilde 4). ✅ Le chantier naval (2026-11-27) : un quai de planches, un peu d'eau noire et un navire coupé par le bord
+droit, parmi les tombes. **Reste** : les habitations améliorées ; d'autres
+petites animations si l'envie vient (les lanternes, l'orbe de la tour de la liche, des feux follets).
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,
 affiché ×2** sur toute la largeur de l'écran comme tout le pixel art (choix de l'utilisateur, 2026-11-21, avec la
 disposition de l'écran ; d'abord 640 × 195 à ×3, puis 960 × 292), et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque

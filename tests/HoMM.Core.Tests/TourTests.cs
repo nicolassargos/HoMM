@@ -5,7 +5,7 @@ using Xunit;
 namespace HoMM.Core.Tests;
 
 /// <summary>
-/// La Tour de magie (décidée avec l'utilisateur, 2026-11-09) : ses sept créatures et leurs capacités (façonnées qui
+/// Les Arcanes, d'abord appelés Tour de magie (décidés avec l'utilisateur, 2026-11-09) : leurs sept créatures et leurs capacités (façonnées qui
 /// résistent à la magie, le Gnome qui les répare, le Djinn qui bénit, le Mage sans pénalité au corps à corps).
 /// </summary>
 public class TourTests

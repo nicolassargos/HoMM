@@ -734,14 +734,14 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
   **couture qui serpente** là où les deux peintures se ressemblent le plus (`composer_bleues.py`). Un pic coupé net par
   le haut de son calque : `pointe.py` refait la pointe ; des lignes peintes : `effacer_lignes.py` (chaque colonne reprend
   le pixel propre du dessus ou du dessous ; recopier un bloc voisin se voit, rectangle répété). Les montagnes bleues de
-  C2 sont gardées pour la Tour de magie.
+  C2 sont gardées pour les Arcanes.
 - **L'utilisateur retouche à la main** : les calques des montagnes, chaque bâtiment (`peints/<id>.png`, même taille),
   le sol, le décor ; `refaire-a3.bat` puis `refaire-scenes.bat` refont tout. Coût de la scène entière, essais compris :
   environ 6 $.
 
 ### Morts-vivants : peinte dans le concept, pièce par pièce (2026-11-25 et 26)
 Pas de maquette 3D cette fois : le concept choisi (`v1-41`, 792 × 241) est la scène, défaite puis refaite. Scripts et
-essais : `art-candidats/en-cours/ville-morts-vivants-scene/` (`batiments/` pour la suite). Abonnement PixelLab « Pixel
+essais : `art-candidats/archives/2026-11-27-ville-morts-vivants-scene/ville-morts-vivants-scene/` (`batiments/` pour la suite). Abonnement PixelLab « Pixel
 Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une dizaine, rien en dollars.
 - **Le fond vide** : PixelLab retire chaque bâtiment dans un recadrage, de l'avant vers l'arrière (`retirer.py`) ; la
   découpe est ce qui a changé. Un bâtiment peut dépasser sa boîte de 12 px ; ses morceaux doivent être surtout dedans.
@@ -803,6 +803,10 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   dessinées par le jeu, pas peintes. Les chauves-souris en pixels d'art (trois poses d'ailes, le haut éclairé par la
   lune) : sombres sur un ciel presque noir, elles se lisent surtout devant les montagnes et la lune. La brume, un
   shader en quelques paliers de transparence ; une épaisseur fixe sur toute la largeur cache la répétition des voiles.
+- **Le chantier naval des morts-vivants** : peint à sa place par PixelLab (« repeindre » un rectangle de la scène) ;
+  les bords du rectangle restent nets, et repeindre une bande par-dessus en laisse d'autres. Ce qui a marché : faire
+  découper par PixelLab le quai, l'eau et le navire seuls (`retoucher` sans `--fond`), recaler la découpe par
+  corrélation et la poser en bâtiment sur le fond intact : son contour est celui des objets, pas du rectangle.
 - La forge des morts-vivants est **un décor** peint dans le fond (le jeu n'a pas de forge) ; sa fumée, une cheminée de
   la scène (`smoke`), dessinée par `TownSmoke`.
 - Coût du tout : environ 1 € de concept et de fond, le reste en générations de l'abonnement (quelques centaines).
@@ -872,6 +876,32 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   `revue.py serveur`) plaît à l'utilisateur : en faire une pour chaque lot.
 - Choisis (2026-11-07) : scierie « A4 », mine de minerai « A » (assemblée, rails de la porte au chariot) ; installées
   avec les règles des grandes mines (3 × 2 cases, entrée en bas au milieu : l'autre session).
+- **Les mines creusées dans la montagne (2026-11-26)** : or, gemmes, cristal, mercure, soufre (pas la scierie ni le
+  minerai, choix de l'utilisateur). PixelLab « pro » à **96 × 96** (4 par appel, 3 graines = 12 candidats), la recette
+  des massifs : « … dug into the foot of a small rocky mountain, seen from the front and slightly from above (…) a low
+  craggy outcrop of ochre and grey rock with jagged peaks and soft painted shading, the same rock as the mountains. Cut
+  into the base of the rock, in the middle at the bottom, a dark mine entrance framed by heavy wooden beams (…) The lower
+  slopes are smooth bright green grass that fade into green grass with an irregular soft edge, no hard base line, no
+  ground patch, no trees. No outline at all, no dark contour. One light from the upper right. » ; pour l'or, style
+  `massif-cime-1`, modèles l'ancienne mine et `massif-petit-1` ; pour les autres, **la mine d'or choisie comme style**
+  (`art-candidats/…/mine-or/choisie-brute.png`) et l'ancienne image de la ressource comme modèle. Puis : les rangées
+  vides du haut et du bas ôtées (la largeur de 96 gardée : l'entrée reste au milieu), `fondre.py --bord=fondu
+  --pentes-seules` (sans `--pentes-seules`, tout le bas de l'image se défait : les rails et les tas d'or disparaissaient,
+  remarqué par l'utilisateur). Installée en `objects/mine-<ressource>-mountain.png` : le jeu la dessine avec le shader des
+  pentes (elles prennent le sol de dessous, plus d'image par sol) et sans ombre portée, comme un massif. Montrer les
+  candidats **en jeu**, chacun installé tour à tour (`--center=mine-gold`, `mine-backed` : une mine adossée), sur une page
+  de choix. Une tache de terre brune devant l'entrée ne se fond pas (pas verte) : à éviter. Choisies (2026-11-27) : or s11-1,
+  cristal s33-2, gemmes s11-1, mercure s22-4, soufre s22-3 (archive `2026-11-27-mines-creusees`).
+- **La roue à eau (2 × 2 cases, 2026-11-27)** : PixelLab « pro » à 96 × 96, 3 graines, style la mine d'or creusée, modèle
+  l'ancienne roue : « … a small country watermill, seen from the front and slightly from above. On the left, a cosy
+  two-storey mill house of pale stone and timber with a steep red tiled roof (…) On the right side of the house, a large
+  wooden water wheel (…) standing in a narrow blue stream (…) Transparent background, no ground patch, no grass, no base,
+  no outline at all, no dark contour. » Malgré « no outline », un contour net, de vue isométrique. Chaque image peint son
+  ruisseau en travers (il ne suivrait pas celui de la carte) : `tools/art/sans_eau.py` l'efface (l'eau reliée au bas, son
+  bord d'un pixel, les miettes). Choisie : s11-2, contour adouci `adoucir.py … 0.7 60 2` (« moyen », entre l'actuel et
+  `0.85 90 2 0.4` ; l'utilisateur le trouvait un peu fort). La roue est à droite ; `objects/water-wheel-left.png` est
+  l'image retournée. Où la roue trempe (0,53 de sa case) est noté dans `MapGenerator.WheelWaterX` : le tracé du
+  ruisseau y passe.
 
 ## Héros de la carte (48 × 48, 2026-11-14)
 - **Générer à la taille du jeu** (« pro » à 48, 25 candidats pour 0,08 $) avec une image choisie comme style : plus
@@ -1011,6 +1041,9 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   l'herbe), et les couleurs de la ville écrites dans la description (« jagged snow-capped mountain peaks… grey-blue rock
   with warm tan and brown slopes… lush rolling green hills… round trees… wildflowers… rich saturated colours »). Deux
   graines, 8 images, toutes dans le bon style ; montrées en vraies captures de l'écran de ville (page de choix).
+  Pour les morts-vivants (2026-11-27), la même recette marche la nuit : le paysage du Château comme modèle (la
+  composition), un morceau du fond de leur ville comme style (`fond.crop((180, 30, 283, 150))`), et la nuit dans la
+  description (lune, montagnes enneigées, forêt morte, brume, tombes) ; graines 3 et 7, choisie la 3-2.
 - **Le solde PixelLab est partagé entre les sessions** (2026-11-09) : pour connaître le prix d'un lot, lire le `solde`
   juste avant et juste après (une autre session peut générer en même temps). `pixellab.py pro` à 32 × 32 (64 icônes) :
   0,08 $ le lot, vérifié.

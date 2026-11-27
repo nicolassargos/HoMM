@@ -104,7 +104,7 @@ public static class Ability
     public const string Roots = "roots";
 
     /// <summary>
-    /// Une créature façonnée (Tour de magie : gargouilles, golems) : elle résiste à la magie (les sorts de dégâts font
+    /// Une créature façonnée (Arcanes : gargouilles, golems) : elle résiste à la magie (les sorts de dégâts font
     /// moitié moins, les sorts néfastes ne la touchent pas).
     /// </summary>
     public const string Made = "made";

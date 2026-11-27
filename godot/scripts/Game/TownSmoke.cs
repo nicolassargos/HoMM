@@ -15,6 +15,7 @@ public partial class TownSmoke : Control
     private const float Life = 5f;       // le temps qu'elle met à monter et s'effacer
     private const float Rise = 38f;      // sa hauteur au bout de sa vie, en pixels d'art
     private const float Drift = 12f;     // le vent la pousse vers la droite
+    private const int Puffs = 48;        // les bouffées se répètent toutes les 24 secondes, comme le reste de la scène
     private static readonly Color Light = new(0.66f, 0.64f, 0.71f), Mid = new(0.5f, 0.48f, 0.56f), Dark = new(0.34f, 0.32f, 0.4f);
 
     private readonly int _seed;
@@ -44,11 +45,12 @@ public partial class TownSmoke : Control
             if (age < 0 || age >= Life)
                 continue;
             float p = age / Life;
+            int puff = ((i % Puffs) + Puffs) % Puffs;
             float rise = Rise * (1 - MathF.Pow(1 - p, 1.6f));
-            float sway = Drift * p * p + 1.5f * MathF.Sin(age * 1.4f + Noise(_seed, i) * 6);
-            float radius = 1.5f + 6f * MathF.Sqrt(p) + Noise(_seed + 7, i) * 0.8f;
+            float sway = Drift * p * p + 1.5f * MathF.Sin(age * 1.4f + Noise(_seed, puff) * 6);
+            float radius = 1.5f + 6f * MathF.Sqrt(p) + Noise(_seed + 7, puff) * 0.8f;
             float alpha = MathF.Min(1, age / 0.5f) * MathF.Pow(1 - p, 1.1f) * 0.9f;
-            Puff(new Vector2(MathF.Round(sway), MathF.Round(-rise)), radius, alpha, _seed * 131 + i);
+            Puff(new Vector2(MathF.Round(sway), MathF.Round(-rise)), radius, alpha, _seed * 131 + puff);
         }
     }
 

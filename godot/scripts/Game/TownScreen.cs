@@ -527,6 +527,9 @@ public partial class TownScreen : CanvasLayer
         // la fumée des cheminées du fond, dessinée par le jeu, derrière les bâtiments
         foreach (var chimney in scene.Smoke)
             _sceneLayer.AddChild(new TownSmoke(chimney[0] * 31 + chimney[1]) { Position = new Vector2(chimney[0], chimney[1]) * ArtScale });
+        // la brume du fond, au pied de la forêt : derrière les bâtiments
+        foreach (var (mist, n) in scene.Mist.Select((m, n) => (m, n)).Where(m => m.m[4] == 0))
+            _sceneLayer.AddChild(new TownMist(mist, n));
         // avant le fort, la demeure du héros à sa place, à sa profondeur parmi les bâtiments ; un clic : recruter (toutes
         // les habitations, comme le fort et ses suites)
         var home = scene.HomeShown(town.BuiltBuildings) ? scene.Home : null;
@@ -559,6 +562,11 @@ public partial class TownScreen : CanvasLayer
         }
         if (home != null)
             ShowHome(home);
+        // la brume au ras du sol du premier plan, puis les chauves-souris : devant tout
+        foreach (var (mist, n) in scene.Mist.Select((m, n) => (m, n)).Where(m => m.m[4] != 0))
+            _sceneLayer.AddChild(new TownMist(mist, n));
+        foreach (var bats in scene.Bats)
+            _sceneLayer.AddChild(new TownBats(bats));
 
         void ShowHome(TownScenePlace place)
         {

@@ -1031,6 +1031,9 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   l'herbe), et les couleurs de la ville écrites dans la description (« jagged snow-capped mountain peaks… grey-blue rock
   with warm tan and brown slopes… lush rolling green hills… round trees… wildflowers… rich saturated colours »). Deux
   graines, 8 images, toutes dans le bon style ; montrées en vraies captures de l'écran de ville (page de choix).
+  Pour les morts-vivants (2026-11-27), la même recette marche la nuit : le paysage du Château comme modèle (la
+  composition), un morceau du fond de leur ville comme style (`fond.crop((180, 30, 283, 150))`), et la nuit dans la
+  description (lune, montagnes enneigées, forêt morte, brume, tombes) ; graines 3 et 7, choisie la 3-2.
 - **Le solde PixelLab est partagé entre les sessions** (2026-11-09) : pour connaître le prix d'un lot, lire le `solde`
   juste avant et juste après (une autre session peut générer en même temps). `pixellab.py pro` à 32 × 32 (64 icônes) :
   0,08 $ le lot, vérifié.

@@ -68,6 +68,34 @@ public static class IconButtons
         return button;
     }
 
+    /// <summary>
+    /// Un bouton large de pierre : l'icône en haut, au milieu, et son texte dessous, sur deux lignes au plus (les petites fenêtres de choix :
+    /// l'icône et le texte ensemble, choix de l'utilisateur, 2026-11-27).
+    /// </summary>
+    public static Button MakeWide(string icon, string text, float width, Action pressed)
+    {
+        float top = Px(12), gap = Px(8), textHeight = Px(44), bottom = Px(12);
+        var image = Icon(icon);
+        var size = image == null ? Vector2.Zero : image.GetSize() * 2;
+        var button = Sized(MakeButton("", 14), width, Snap(top + size.Y + gap + textHeight + bottom));
+        button.Pressed += pressed;
+        if (image != null)
+            button.AddChild(Picture(image, new Vector2(SnapDown((width - size.X) / 2), top), size));
+        var label = MakeLabel(text, 16, TextColor);
+        // ancré au bouton (une taille donnée avant l'arbre ne tient pas, le texte ne passait pas à la ligne)
+        label.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        label.OffsetTop = top + size.Y + gap;
+        label.OffsetLeft = Px(10);
+        label.OffsetRight = -Px(10);
+        label.OffsetBottom = -bottom;
+        label.HorizontalAlignment = HorizontalAlignment.Center;
+        label.VerticalAlignment = VerticalAlignment.Center;
+        label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        label.MouseFilter = Control.MouseFilterEnum.Ignore;
+        button.AddChild(label);
+        return button;
+    }
+
     /// <summary>Change l'icône et l'info-bulle d'un bouton (« Se défendre » devient « Rester »).</summary>
     public static void SetIcon(Button button, string icon, string text, string key)
     {

@@ -26,8 +26,8 @@ chiffres en vigueur sont dans `godot/data/`.
 5. ✅ Graphismes de la carte et de l'interface (terrains par shader, décor, curseurs, zoom, routes, portraits).
 6. ✅ Combat tactique (11 × 9 cases aplaties comme Heroes 3, grandes créatures sur 2 cases, capacités, combat rapide
    joué par l'IA) ; créatures refaites une à une avec PixelLab.
-7. ✅ Refonte de l'interface (1920 × 1080). **Reste** : une nouvelle revue de toutes les captures avec l'utilisateur,
-   quand les écrans qui manquent seront là (ville en images, artefacts du héros).
+7. ✅ Refonte de l'interface (1920 × 1080). ✅ La revue de toutes les captures avec l'utilisateur (2026-11-27) : ce
+   qui en sort est dans « L'interface », étape 10.
 8. ✅ Adversaires IA (1 à 3, mêmes règles, pas de triche), héros contre héros, se défendre soi-même, 3 niveaux de
    difficulté.
 9. **Contenu (en cours)** : magie, factions, héros, compétences, artefacts, carte, mer (ci-dessous).
@@ -323,7 +323,24 @@ Heroes 2** (2026-11-26, branche `ville-recrutement-h2`) : une créature à la fo
 caractéristiques en tableau, − / curseur / + / Max, le prix avec les icônes des ressources, des flèches d'une habitation
 à l'autre. ✅ Le nom de la ville sur une plaque sculptée (2026-11-26, branche `ville-plaque-nom`). **Reste** : un
 paysage pour les sept autres factions.
-**Reste** : des icônes sur les autres écrans, au fil des besoins ; des icônes pour les récompenses (coffre, niveau) ;
+**La revue du 2026-11-27** (35 captures, `tools/captures.py`, remarques de l'utilisateur ; détail dans
+`HISTORIQUE.md`). Bons tels quels : l'onglet Magie du héros, la ville, celle des morts-vivants, Recruter, la taverne,
+la guilde, la vitrine du combat.
+- **Toutes les fenêtres** (une passe commune) : plus d'air au bord ; fermer et annuler **en bas** ; les petites
+  fenêtres de choix centrées, sans titre inutile (Diplomatie, fin de partie), des icônes sur leurs boutons quand ça va
+  (Diplomatie, coffre, attaque d'un adversaire) ; le style discret pour les boutons secondaires et les lignes de liste
+  (sauvegardes, marché, options) ; le portrait du héros choisi en grand dans la nouvelle partie.
+- **Une session chacun**, plus tard : **la carte** (le panneau, les lieux, le tour d'un adversaire ; le pont qui ne
+  suit pas les chemins) ; **l'écran du héros** (un portrait en pied par héros au lieu de la silhouette, les places des
+  artefacts, les onglets, les caractéristiques ; une icône par compétence et un petit arbre plutôt que des onglets
+  sous des onglets) ; **le royaume** (icônes, villes centrées, « on peut construire » marqué) ; **la fenêtre
+  Construire**, à refaire ; **le marché**, à refaire ; **la carte au trésor**, à refaire ; **la barre du combat**
+  (des boutons sur le bord, aucun accès au menu principal ni pour quitter ; le héros ennemi trop petit) ; **la fin de
+  partie** (sa musique, une petite animation ou image) ; des **icônes** pour l'attaque, la défense, la puissance, le
+  savoir et le charisme ; **Recruter sur une habitation à bâtir** montre la créature, pas le bâtiment (son but n'est
+  pas clair). Le livre de sorts : une autre session y travaille.
+**Reste** : des icônes sur les autres écrans, au fil des besoins ; une icône « Payer » (une main qui donne des pièces :
+l'icône d'or n'y va pas, remarque de l'utilisateur) ; des icônes pour le niveau ;
 la poignée des barres de défilement comme taillée dans la
 pierre. ✅ Les pieds des mines de mercure, de minerai (ses six sols) et de soufre, et la force de leur ombre de
 contact, revus par l'utilisateur (2026-11-20, avec ceux du Seigneur des abîmes) ; environ 110 images ont encore des
@@ -338,12 +355,14 @@ la guilde (des runes de lumière qui dérivent autour), des bâtiments repeints 
 ✅ La demeure du héros avant le fort (2026-11-26) : peinte dans la scène vide au bout du chemin (PixelLab, repeindre).
 ✅ Le chantier naval (2026-11-26) : un petit lac au loin sur la plaine, avec un ponton et un voilier (l'eau ne peut pas
 être au premier plan : le sol y est plus haut que le bas du cadre) ; caché quand la Commanderie est bâtie.
-**Reste** pour le Château : les habitations améliorées (plus tard, avec les créatures améliorées) ; l'onglet du nom qui cache le bas du milieu de la
-scène. Puis les sept autres factions (les morts-vivants d'abord).
+**Reste** pour le Château : les habitations améliorées (plus tard, avec les créatures améliorées). ✅ L'onglet du nom
+qui cachait le bas du milieu de la scène : une plaque sculptée, à cheval sur la vue et les troupes (2026-11-26). Puis
+les sept autres factions (les morts-vivants d'abord).
 ✅ **La scène des morts-vivants peinte** (2026-11-25 et 26, branche `ville-morts-vivants-scene`) : le concept défait puis
 refait pièce par pièce (méthode dans `tools/art/METHODE.md`) ; 14 bâtiments repeints, les quatre étapes du château
 (demeure, fort, citadelle, château fort), la guilde de 1 à 5 niveaux, la salle du village jusqu'au capitole, le sol, la
-forêt et les montagnes repeints. **Reste** : la mettre dans le jeu ; la fumée de la forge dessinée et animée par le
+forêt et les montagnes repeints. ✅ Dans le jeu (PR #285), avec des chauves-souris et de la brume (PR #289). **Reste** :
+la fumée de la forge dessinée et animée par le
 jeu, puis d'autres petites animations ; le chantier naval au bord droit (un quai, un peu d'eau) ; les habitations
 améliorées ; peut-être la brume verte d'un essai de la guilde 3.
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,

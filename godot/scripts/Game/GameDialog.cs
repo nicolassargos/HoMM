@@ -14,6 +14,7 @@ public partial class GameDialog : AcceptDialog
     public GameDialog()
     {
         Borderless = true; // ni barre de titre ni croix : le cadre est le fond de la fenêtre (thème « AcceptDialog »)
+        Title = ""; // pas le « Alert! » de Godot : une fenêtre sans titre n'en montre aucun
         Exclusive = true;
         Unresizable = true;
     }

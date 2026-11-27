@@ -327,8 +327,6 @@ public static class Texts
 
     // ------------------------------------------------------------- Diplomatie et fuite des gardiens
 
-    public static string EncounterTitle(GuardEncounter e) => e.Offer != null ? "Diplomatie" : "Ils s'enfuient !";
-
     /// <summary>Ce que propose le gardien (ou qu'il s'enfuit), et ce qui empêche d'accepter.</summary>
     public static string EncounterText(GuardEncounter e)
     {
@@ -518,7 +516,6 @@ public static class Texts
     };
 
 
-    public static string GameOverTitle => "Fin de la partie";
 
     public static string GameOverHeadline(GameOutcome outcome) => outcome == GameOutcome.Victory ? "Victoire !" : "Défaite…";
 

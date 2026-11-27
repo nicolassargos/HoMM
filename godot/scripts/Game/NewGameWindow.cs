@@ -48,14 +48,18 @@ public partial class NewGameWindow : ScreenWindow
     {
         _data = Main.LoadData();
         var size = V(1000, 620);
-        BuildFrame(screenSize, new Rect2((screenSize - size) / 2, size), veilAll: true);
+        BuildFrame(screenSize, new Rect2((screenSize - size) / 2, size), veilAll: true, padded: true);
         Layer = 7;
         SetTitle(Texts.NewGameTitle);
         BuildGame();
         BuildHero();
 
+        // en bas à droite : Commencer, puis l'icône qui ferme
+        var close = CloseIcon();
+        close.Position = new Vector2(size.X - Px(20) - IconButtonSide, size.Y - Px(16) - IconButtonSide);
+        Window.AddChild(close);
         _start = MakeButton(Texts.StartButton, 18);
-        _start.Position = new Vector2(size.X - Px(20 + 220), size.Y - Px(58));
+        _start.Position = new Vector2(close.Position.X - ButtonGap - Px(220), close.Position.Y + SnapDown((IconButtonSide - LargeButtonHeight) / 2));
         Sized(_start, Px(220), LargeButtonHeight);
         _start.Pressed += Start;
         Window.AddChild(_start);

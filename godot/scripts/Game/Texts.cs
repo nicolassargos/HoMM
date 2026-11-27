@@ -492,18 +492,10 @@ public static class Texts
 
     public static string RecruitTitle(CreatureType type) => $"Recruter des {type.Plural}";
 
-    /// <summary>Combien on peut en recruter (place et ressources comprises).</summary>
-    public static string Affordable(int max) => $"Vous pouvez en recruter : {max}";
 
     public static string RecruitDestination => "Les recrues vont dans la garnison ; si elle est pleine, chez le héros présent.";
 
-    /// <summary>« 14 disponibles · 60 or l'unité ».</summary>
-    public static string RecruitInfo(CreatureType type, int available) =>
-        $"{available} disponible{(available > 1 ? "s" : "")} · {Cost(type.Cost)} l'unité";
 
-    /// <summary>« 10 Paysans pour 600 or ».</summary>
-    public static string RecruitTotal(CreatureType type, int count) =>
-        $"{count} {Creature(type, count)} pour {Cost(type.Cost.ToDictionary(c => c.Key, c => c.Value * count))}";
 
     /// <summary>Pourquoi on ne peut recruter aucune créature, ou null si on peut.</summary>
     public static string? CannotRecruit(int available, bool hasRoom, int affordable) =>
@@ -1396,9 +1388,6 @@ public static class Texts
     public static string BuildTitle(Town town) => $"Construire à {town.Name}";
     public static string ToBuild => "Un bâtiment par jour";
     public static string BuiltMark => "✓ Construit";
-    public static string RecruitWindowTitle(Town town) => $"Recruter à {town.Name}";
-    public static string RecruitMore => "Recruter…";
-    public static string RecruitAllButton(int count) => $"Tout ({count})";
     public static string ToBuildFirst(BuildingType dwelling) => $"{dwelling.Name}\nà construire";
     public static string GoBuild => "Construire…";
 
@@ -1406,15 +1395,28 @@ public static class Texts
     public static string CreatureLevel(CreatureType type) =>
         string.Join(" · ", new[] { $"niveau {type.Tier}" }.Concat(type.Abilities.Select(AbilityName)));
 
-    /// <summary>Les caractéristiques d'une créature, sur deux lignes.</summary>
-    public static string CreatureStats(CreatureType type) =>
-        $"Att {type.Attack} · Déf {type.Defense} · dégâts {type.MinDamage}–{type.MaxDamage}\nPV {type.HitPoints} · vitesse {type.Speed}";
 
     /// <summary>« 28 disponibles (+28 par semaine) ».</summary>
     public static string AvailableLine(int available, int growth) =>
         $"{available} disponible{(available > 1 ? "s" : "")} (+{growth} par semaine)";
 
-    public static string PriceLine(CreatureType type) => $"Prix : {Cost(type.Cost)}";
+
+    // la fenêtre Recruter, une créature à la fois (comme Heroes 2)
+    public const string PreviousCreature = "Créature précédente";
+    public const string NextCreature = "Créature suivante";
+    public const string UnitPrice = "Prix de l'unité :";
+    public const string TotalPrice = "Total :";
+
+    /// <summary>« 3 / 7 » : la troisième des sept habitations de la ville.</summary>
+    public static string RecruitLevel(int index, int count) => $"{index} / {count}";
+
+    /// <summary>Les caractéristiques d'une créature, nom et valeur, pour un tableau.</summary>
+    public static IEnumerable<(string Name, string Value)> RecruitStats(CreatureType type) => new[]
+    {
+        ("Attaque", type.Attack.ToString()), ("Défense", type.Defense.ToString()),
+        ("Dégâts", $"{type.MinDamage}–{type.MaxDamage}"), ("Points de vie", type.HitPoints.ToString()),
+        ("Vitesse", type.Speed.ToString()), ("Commandement", type.CommandCost.ToString()),
+    };
 
     // ----------------------------------------------------------- magie (étape 9)
 

@@ -739,6 +739,70 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
   le sol, le décor ; `refaire-a3.bat` puis `refaire-scenes.bat` refont tout. Coût de la scène entière, essais compris :
   environ 6 $.
 
+### Morts-vivants : peinte dans le concept, pièce par pièce (2026-11-25 et 26)
+Pas de maquette 3D cette fois : le concept choisi (`v1-41`, 792 × 241) est la scène, défaite puis refaite. Scripts et
+essais : `art-candidats/en-cours/ville-morts-vivants-scene/` (`batiments/` pour la suite). Abonnement PixelLab « Pixel
+Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une dizaine, rien en dollars.
+- **Le fond vide** : PixelLab retire chaque bâtiment dans un recadrage, de l'avant vers l'arrière (`retirer.py`) ; la
+  découpe est ce qui a changé. Un bâtiment peut dépasser sa boîte de 12 px ; ses morceaux doivent être surtout dedans.
+  Sa tache de sol (ombre, pied) lui est rendue (`completer.py`) : tous les bâtiments sur le fond vide redonnent le
+  concept au pixel près. Des traces (pieds sombres, poteaux) : `retoucher` sur deux bandes de 512 × 130 du sol, gardé
+  seulement dans les cercles de l'utilisateur ; `/inpaint-v3` et le recopiage de blocs laissaient des taches.
+- **Élargir à 960 × 270** : l'ancien `/inpaint` peint en blanc sur ce compte ; `/inpaint-v3` marche (4 fenêtres de
+  256 × 270) mais laisse de fines bandes vides en haut et en bas (remplies en miroir des rangées voisines). Repeindre
+  les montagnes plates à l'`/inpaint-v3` échoue (coutures, le bord du masque devient la crête) : une **nouvelle bande de
+  ciel et de montagnes** (`pro` 792 × 140 `--fond`, le haut du fond en style), élargie, posée derrière le décor sur les
+  seuls pixels de ciel atteints depuis le haut.
+- **Les étapes du château** (demeure, fort, citadelle, château fort) : `retoucher --fond` sur un recadrage de 300 × 200,
+  d'abord le château retiré (une clairière), puis chaque étape construite sur l'image de la précédente. Quand un tour
+  rate, l'utilisateur préfère voir toutes les propositions.
+- **Plus de couleurs** : le concept n'a que 52 couleurs (le fond du Château 12 410). Chaque bâtiment seul, recadré au
+  plus près, `retoucher` deux fois (un ombrage plus doux, puis des détails), graine 9 : environ 100 couleurs ;
+  PixelLab semble plafonner vers 100 à 115 couleurs par image. Le sol de même, en deux fenêtres de 512 qui se
+  recouvrent (`fond_couleurs.py`). **La seconde retouche lisse les toits** et peut **déplacer** une maison de 2 px :
+  pour mêler deux retouches, mesurer d'abord le décalage (corrélation), sinon chaque trait est doublé.
+- **Joindre deux fenêtres** : par la couture qui serpente là où elles diffèrent le moins (`couture()`), jamais par un
+  fondu (un poteau de clôture fantôme).
+- **Les bâtiments sur le sol repeint** (`sol_batiments.py`) : le sol que porte un bâtiment devient le nouveau sol
+  assombri d'autant (nouveau × ancien porté / ancien fond) ; un sol sans ombre devient transparent. Ce qu'un bâtiment
+  a pris à ses voisins (poteaux, clôture, une maison du fond peinte par-dessus) se voit en double une fois le fond
+  repeint : le retirer (rectangles, polygone, seuls ses pixels violets), ou reprendre la clôture du nouveau sol et la
+  poser devant lui.
+- **Les étages** (guilde 1 à 5, salle du village → capitole) : `retoucher --fond` sur le niveau choisi d'avant, 2 graines
+  par texte. **Les découper** : la différence avec le fond vide laisse des éclats bleus et des trous ; mieux,
+  **`retoucher` sans `--fond`** : PixelLab rend le bâtiment seul, détouré, mais **collé en haut à gauche** de l'image
+  (sa place retrouvée par corrélation). Puis une retouche « adoucir » de chaque étage (`lisser_etages.py`).
+- **La forêt du fond** : la recolorer gardait ses blocs droits ; PixelLab la **redessine** (« natural bare tree
+  silhouettes… », « every trunk standing on the ground; keep the snowy mountains clearly visible ») et toute sa
+  retouche est prise entre les cimes et le sol. « dead forest » est refusé (contre leur règlement) : « leafless ».
+  Sans « keep the mountains », une fenêtre a changé les montagnes en brume plate.
+- **Retouches sans dépense** : une flèche coupée à plat par le haut du concept, refaite en pointe (ses rangées du haut
+  resserrées) ; des trous du château bouchés depuis les pixels sombres du mur (pas une fenêtre verte voisine). La
+  **fumée** de la forge est retirée : le jeu la dessinera, animée.
+- **Dans le jeu** (`batiments/jeu.py <graine> godot/art/towns/morts-vivants`) : le fond repeint, et par bâtiment son
+  image (ses seuls pixels, cliquables), son ombre (le sol qu'il porte, rebasé) et le décor devant lui ; nos noms
+  changés en ceux de `buildings.json` ; la profondeur suit le bas de chaque boîte. Le fort et la citadelle gardaient
+  des arbres bleus du concept derrière leurs murs, et leur cour était un trou : découpés eux aussi par PixelLab (sans
+  `--fond`), la cour prend ses couleurs. Toujours vérifier **chaque étape** sur le nouveau fond, pas seulement la dernière.
+- **Animer la magie de la guilde** (`TownMagic`) : PixelLab repeint la tour **sans** sa magie (« remove the floating
+  crystals, swirls, rune rings… and paint the tower stones behind them »), puis la découpe (sans `--fond`) ; la tour
+  repeinte est poussée de 2 px : la recaler. La poser sur le **fond vide**, pas sur l'ancienne image (sa magie revient
+  par les trous). Le jeu dessine le reste en pixels d'art : anneaux de runes (une bande elliptique, la moitié du haut
+  derrière la tour), rubans en spirale, cristaux découpés qui flottent (sans leur lueur sombre peinte sur le ciel),
+  livres et crânes en orbite **dessinés à la main** (8 px : ceux de la peinture étaient illisibles seuls). Voir
+  l'animation dans le jeu : `--write-movie <dossier>/f.png --fixed-fps 10 --quit-after 100` (avec `--town`, une
+  `--capture` lointaine : `--capture-delay=60`), puis un GIF.
+- **Une animation qui boucle** : chaque mouvement d'une même scène tourne en un temps qui divise celui du plus lent
+  (la guilde 5 : l'orbite en 24 s, les cristaux en 3 et 4 s, la lueur peinte en 2 et 3 s). Le GIF d'un tour entier
+  revient alors pile à son début ; le vérifier en comparant la première image et celle d'un tour plus loin.
+- Une étape découpée **par différence** avec le fond perd ses pierres proches du fond (la guilde 3 : traînées bleues,
+  trous) : la découper par PixelLab (« keep only the … tower ; everything else becomes background », sans `--fond`),
+  recaler la découpe par corrélation, garder les couleurs de la peinture, celles de PixelLab seulement là où elles
+  s'en écartent beaucoup (les racines qu'il ajoute au pied).
+- La forge des morts-vivants est **un décor** peint dans le fond (le jeu n'a pas de forge) ; sa fumée, une cheminée de
+  la scène (`smoke`), dessinée par `TownSmoke`.
+- Coût du tout : environ 1 € de concept et de fond, le reste en générations de l'abonnement (quelques centaines).
+
 ## Ponts de la carte (Retro Diffusion, 2026-11-15)
 - Les juger **en jeu, sur la rivière**, à ×2 : à leur taille, on ne voit rien. Les captures : `--center=bridge`,
   `bridge:9` (avec une route ; seed 42), `ford` et `ford:2` (une route sur un ruisseau, dans les deux sens).
@@ -941,7 +1005,8 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
     place du bord.
   - **Boutons** : le gris de pierre jure avec le bois ; des boutons de bois rouge et or (`suite/boutons3/6`, rivets)
     lient le tout (`buttonCorner` 7, `buttonTextureStrength` 0). Le bouton 24 de la première série laisse des raccords.
-  - **Plaques de titre** (`suite/plaque`, 128 × 32) : pas encore branchées.
+  - **Plaques de titre** (`suite/plaque`, 128 × 32) : la n° 1 porte le nom de la ville (2026-11-26,
+    `art/ui/plaque.png`, son milieu rendu uni pour s'étirer).
   - **Fonds texturés** (`fonds/`, Retro Diffusion `rd_tile__single_tile` 64 × 64 `tile`, 0,24 $ les 4 ; entrées
     `ui/fond-*` de `assets.json`) : bois, cuir, tissu, pierre, sans raccord. Le jeu sait s'en servir :
     `"panelTexture": "image:ui/fond-bois-1"` dans `ui.json` (l'image dans `art/ui/`) ; chaque pixel éclaircit ou
@@ -971,7 +1036,8 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
   autour de l'argent, l'ombre en haut à gauche, la lumière en bas à droite, contrastes doux).
   La même recette pour la ville (2026-11-20) : « a thick bold arrow pointing straight down onto a knight's helmet » et
   « … up into a small castle tower » (le héros est sous la garnison), un lot de 64 chacune, choisies au premier tour
-  (`donner-heros` 56, `laisser-garnison` 9).
+  (`donner-heros` 56, `laisser-garnison` 9). De même l'icône Annuler (2026-11-26, « a thick bold X cross mark made of
+  two crossed heavy bars, meaning cancel or close… », graine 21) : n° 44, `icons/annuler.png`.
 - **Artefacts** (2026-11-21, `art/artifacts/<id>.png`, d'abord **24 × 24**, refaits en 48 : voir plus bas) :
   PixelLab « pro » 24 × 24, **le coffre de la carte (`objects/chest.png`) comme image de style**, 64 candidats par
   artefact (0,08 $). Début de la description, le même pour tous : « single small fantasy item lying alone, drawn in the

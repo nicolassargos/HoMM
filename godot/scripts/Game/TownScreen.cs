@@ -24,7 +24,7 @@ public partial class TownScreen : CanvasLayer
     // une place de l'armée, en pixels (choix de l'utilisateur, 2026-11-21 : de grandes places, la créature toujours ×2, le
     // nombre par-dessus) : la taille de la garnison dans la disposition, divisée en 7 ; l'image de la ville et le
     // portrait, plus étroits, devant chaque rangée
-    private Vector2 _cell = new(204, 244), _firstCell = new(164, 244);
+    private Vector2 _cell = new(204, 236), _firstCell = new(164, 236);
 
     private GameState _state = null!;
     private Town? _town;
@@ -65,24 +65,11 @@ public partial class TownScreen : CanvasLayer
     private Panel _portraitFrame = null!;
     private Button _giveAll = null!, _leaveAll = null!;
 
-    // les fenêtres par-dessus la ville : une à la fois ; le curseur de recrutement par-dessus tout
+    // les fenêtres par-dessus la ville : une à la fois
     private Control? _window;
     private bool _singleRecruit; // la fenêtre Recruter ne montre qu'une habitation (ouverte d'un clic sur elle)
     private Action? _reopen; // pour remettre à jour la fenêtre ouverte (après un recrutement…)
 
-    // fenêtre du nombre à recruter
-    private Control _recruitOverlay = null!;
-    private Control _recruitPicture = null!;
-    // la place de l'image dans la fenêtre du nombre à recruter (en pixels)
-    private Vector2 _recruitPlace, _recruitPlacePosition;
-    private Label _recruitTitle = null!;
-    private Label _recruitInfo = null!;
-    private Label _recruitStats = null!;
-    private HSlider _recruitSlider = null!;
-    private Label _recruitTotal = null!;
-    private Button _recruitButton = null!;
-    private Button _recruitMax = null!;
-    private CreatureType? _recruitType;
 
     public bool IsOpen => _town != null;
     /// <summary>La place des éléments, réglée à la souris (<c>tools/ui/disposition.py</c>).</summary>
@@ -114,12 +101,15 @@ public partial class TownScreen : CanvasLayer
 
         // le nom de la ville sur un onglet, posé sur le bas de la vue (comme Heroes 2), avec le revenu à la suite ;
         // centré au-dessus des armées (voir Refresh), sauf si l'utilisateur l'a placé lui-même
-        _nameTab = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        _nameTab.AddThemeStyleboxOverride("panel", ThinFrame(PanelColor));
+        // sur la plaque sculptée, à la hauteur de son image (comme le nom des villes de Heroes 2)
+        _nameTab = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore, CustomMinimumSize = new Vector2(0, TitlePlateHeight) };
+        _nameTab.AddThemeStyleboxOverride("panel", TitlePlate(DarkPanelColor));
         var tabLine = new HBoxContainer();
         tabLine.AddThemeConstantOverride("separation", (int)Px(12));
         _nameTab.AddChild(tabLine);
         _title = MakeLabel("", 22, TextColor);
+        _title.VerticalAlignment = VerticalAlignment.Center;
+        _title.SizeFlagsVertical = Control.SizeFlags.Fill;
         _header = MakeLabel("", 14, SoftTextColor);
         _header.VerticalAlignment = VerticalAlignment.Center;
         _header.SizeFlagsVertical = Control.SizeFlags.Fill;
@@ -248,7 +238,8 @@ public partial class TownScreen : CanvasLayer
         _root.AddChild(Layout.Add("leave-all", _leaveAll));
 
         Layout.Apply();
-        BuildRecruitWindow();
+        // la plaque du nom par-dessus les places des troupes (voir CenterNameTab), sous les fenêtres ouvertes ensuite
+        _nameTab.MoveToFront();
     }
 
     private ArmySlots MakeArmy(Vector2 position)
@@ -317,7 +308,6 @@ public partial class TownScreen : CanvasLayer
         _viewKey = null;
         Visible = true;
         CloseWindow();
-        _recruitOverlay.Visible = false;
         Refresh();
         Audio.PlayMusic($"town-{town.Faction}", "town");
         Audio.PlayAmbience(null); // la ville n'a que sa musique
@@ -338,10 +328,8 @@ public partial class TownScreen : CanvasLayer
     {
         if (!IsOpen || e is not InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape })
             return;
-        // Échap ferme d'abord le curseur de recrutement, puis la fenêtre, puis l'écran de ville
-        if (_recruitOverlay.Visible)
-            _recruitOverlay.Visible = false;
-        else if (_window != null)
+        // Échap ferme d'abord la fenêtre, puis l'écran de ville
+        if (_window != null)
             CloseWindow();
         else
             Close();
@@ -376,10 +364,10 @@ public partial class TownScreen : CanvasLayer
     /// <summary>Une flèche de l'onglet du nom : passe à la ville d'à côté du joueur, en boucle.</summary>
     private Button TownArrow(char direction, int step)
     {
-        var button = FixedButton("", 12, new Vector2(Px(22), Px(26)));
+        var button = QuietButton(FixedButton("", 12, new Vector2(Px(22), Px(26))));
         button.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
         button.TooltipText = step < 0 ? Texts.PreviousTown : Texts.NextTown;
-        var arrow = Picture(Arrow(direction, SilverColor), Vector2.Zero, Vector2.Zero);
+        var arrow = Picture(Arrow(direction, QuietTextColor), Vector2.Zero, Vector2.Zero);
         arrow.Size = arrow.Texture.GetSize();
         arrow.Position = ((button.Size - arrow.Size) / 2).Floor();
         button.AddChild(arrow);
@@ -392,12 +380,15 @@ public partial class TownScreen : CanvasLayer
         return button;
     }
 
-    /// <summary>L'onglet du nom au milieu de la vue, posé sur son bas.</summary>
+    /// <summary>
+    /// La plaque du nom au milieu de la vue, à cheval sur son bas : moitié sur la vue, moitié sur les places des troupes
+    /// (idée de l'utilisateur).
+    /// </summary>
     private void CenterNameTab()
     {
         _nameTab.Size = _nameTab.GetCombinedMinimumSize();
         _nameTab.Position = new Vector2(Snap(_view.Position.X + (_view.Size.X - _nameTab.Size.X) / 2),
-            Snap(_view.Position.Y + _view.Size.Y - _nameTab.Size.Y));
+            Snap(_view.Position.Y + _view.Size.Y - _nameTab.Size.Y / 2));
     }
 
     /// <summary>Met l'écran à jour d'après l'état de la ville (après chaque action).</summary>
@@ -533,6 +524,9 @@ public partial class TownScreen : CanvasLayer
         var shown = scene.Shown(town.BuiltBuildings).ToList();
         foreach (var (building, place) in shown.Where(s => s.Place.ShadowX != null))
             _buildingShadows[building.Id] = Layer(place.Id + "-ombre", place.ShadowX!.Value, place.ShadowY!.Value);
+        // la fumée des cheminées du fond, dessinée par le jeu, derrière les bâtiments
+        foreach (var chimney in scene.Smoke)
+            _sceneLayer.AddChild(new TownSmoke(chimney[0] * 31 + chimney[1]) { Position = new Vector2(chimney[0], chimney[1]) * ArtScale });
         // avant le fort, la demeure du héros à sa place, à sa profondeur parmi les bâtiments ; un clic : recruter (toutes
         // les habitations, comme le fort et ses suites)
         var home = scene.HomeShown(town.BuiltBuildings) ? scene.Home : null;
@@ -543,11 +537,16 @@ public partial class TownScreen : CanvasLayer
                 ShowHome(home);
                 home = null;
             }
+            // sa magie animée : ce qui passe derrière lui d'abord, le reste après lui
+            if (place.Magic != null)
+                _sceneLayer.AddChild(new TownMagic(place.Magic, false, n => Art.Get(folder + n)!));
             var sprite = new TownSceneSprite(Art.GetImage(folder + place.Id)!)
             {
                 Position = new Vector2(place.X, place.Y) * ArtScale, TooltipText = Texts.BuildingTooltip(town, building),
             };
             sprite.GuiInput += e => ClickBuilding(e, town, building);
+            if (place.Magic?.GlowAxis is { } axis)
+                sprite.Glow(new Vector2(place.X, place.Y), axis, place.Magic.GlowRings ?? new());
             _sceneLayer.AddChild(sprite);
             _buildingBoxes[building.Id] = sprite;
             // le décor qui passe devant lui, tout de suite : les bâtiments plus proches le couvrent encore
@@ -555,6 +554,8 @@ public partial class TownScreen : CanvasLayer
                 Layer(place.Id + "-devant", place.FrontX.Value, place.FrontY!.Value);
             foreach (var (rune, n) in (place.Runes ?? new()).Select((r, n) => (r, n)))
                 Float(Layer($"rune-{rune[2]}", rune[0], rune[1]), n);
+            if (place.Magic != null)
+                _sceneLayer.AddChild(new TownMagic(place.Magic, true, n => Art.Get(folder + n)!));
         }
         if (home != null)
             ShowHome(home);
@@ -606,7 +607,7 @@ public partial class TownScreen : CanvasLayer
         if (e is not InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
             return;
         if (town.DwellingCreature(building) is { } creature)
-            OpenRecruitWindow(creature);
+            OpenRecruitWindow(creature, single: true);
         else if (building.Tavern)
             OpenTavern();
         else if (building.MageGuild > 0)
@@ -659,13 +660,15 @@ public partial class TownScreen : CanvasLayer
 
     // ----------------------------------------------------------- les fenêtres
 
-    /// <summary>Développement : ouvre une fenêtre de la ville (« build », « recruit », « tavern », « count ») pour une capture.</summary>
+    /// <summary>Développement : ouvre une fenêtre de la ville (« build », « recruit » ou « recruit:moine » : sur cette créature, « tavern », « count ») pour une capture.</summary>
     public void ShowWindow(string which)
     {
         if (which == "build")
             OpenBuild();
         else if (which == "recruit")
             OpenRecruitWindow(null);
+        else if (which.StartsWith("recruit:") && _town is { } shown)
+            OpenRecruitWindow(shown.Buildings.Select(shown.DwellingCreature).FirstOrDefault(c => c?.Id == which["recruit:".Length..]));
         else if (which == "tavern")
             OpenTavern();
         else if (which == "guild")
@@ -673,15 +676,21 @@ public partial class TownScreen : CanvasLayer
         else if (which == "market")
             OpenMarket();
         else if (which == "count" && _town is { } town
-                 && town.BuiltBuildings.Select(town.DwellingCreature).FirstOrDefault(c => c != null) is { } creature)
-            OpenRecruit(town, creature);
+                 && town.BuiltBuildings.Select(town.DwellingCreature).LastOrDefault(c => c != null) is { } creature)
+            OpenRecruitWindow(creature);
     }
+
+    /// <summary>La marge des fenêtres d'avant le cadre de bois (12 pixels d'art), sur laquelle leur contenu est placé.</summary>
+    private static readonly float OldWindowMargin = ArtPx(12);
 
     /// <summary>
     /// Ouvre une fenêtre par-dessus la ville. <paramref name="overView"/> : seulement sur la vue de la ville (la garnison
-    /// et le héros restent utilisables), sinon sur tout l'écran.
+    /// et le héros restent utilisables), sinon sur tout l'écran. <paramref name="padded"/> : le contenu, placé à la main
+    /// pour l'ancienne marge, est posé dans une place de <paramref name="size"/> décalée de l'air en plus tout autour (la
+    /// fenêtre grandit d'autant) ; sans lui, le contenu se place lui-même d'après <see cref="WindowMargin"/>. Une
+    /// fenêtre plus haute que la vue ne dépasse pas du haut de l'écran : elle descend sur la garnison.
     /// </summary>
-    private Panel OpenWindow(Vector2 size, string title, bool overView)
+    private Control OpenWindow(Vector2 size, string title, bool overView, bool closeAtTop = true, bool padded = true)
     {
         CloseWindow();
         var veil = new ColorRect
@@ -691,20 +700,33 @@ public partial class TownScreen : CanvasLayer
             Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Stop,
         };
         _root.AddChild(veil);
-        var window = new Panel { Position = (veil.Size - size) / 2, Size = size };
+        float pad = padded ? WindowMargin - OldWindowMargin : 0;
+        var outer = size + new Vector2(2 * pad, 2 * pad);
+        var window = new Panel
+        {
+            Position = new Vector2(MathF.Floor((veil.Size.X - outer.X) / 2), MathF.Max(ArtPx(8), MathF.Floor((veil.Size.Y - outer.Y) / 2))),
+            Size = outer,
+        };
         window.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         veil.AddChild(window);
         // le titre et « Fermer » comme dans les grandes fenêtres (ScreenWindow)
         var heading = MakeLabel(title, 20, TextColor);
         heading.Position = new Vector2(WindowMargin, WindowMargin + (ButtonHeight - TitleText) / 2);
         window.AddChild(heading);
-        var close = Sized(MakeButton(Texts.CloseButton, 14), CloseButtonWidth, ButtonHeight);
-        close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
-        close.Position = new Vector2(size.X - WindowMargin - CloseButtonWidth, WindowMargin);
-        close.Pressed += CloseWindow;
-        window.AddChild(close);
         _window = veil;
-        return window;
+        if (closeAtTop)
+        {
+            var close = Sized(MakeButton(Texts.CloseButton, 14), CloseButtonWidth, ButtonHeight);
+            close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
+            close.Position = new Vector2(outer.X - WindowMargin - CloseButtonWidth, WindowMargin);
+            close.Pressed += CloseWindow;
+            window.AddChild(close);
+        }
+        if (!padded)
+            return window;
+        var content = new Control { Position = new Vector2(pad, pad), Size = size, MouseFilter = Control.MouseFilterEnum.Ignore };
+        window.AddChild(content);
+        return content;
     }
 
     private void CloseWindow()
@@ -826,96 +848,220 @@ public partial class TownScreen : CanvasLayer
     }
 
     /// <summary>
-    /// La fenêtre Recruter : les créatures de la ville, toujours dans le même ordre (ou seulement celle d'une
-    /// habitation, d'un clic sur elle). La garnison et le héros restent visibles dessous.
+    /// La fenêtre Recruter, comme Heroes 2 : une créature à la fois, grande, devant le paysage de sa faction, avec ses
+    /// caractéristiques, ce qu'il en reste et son prix ; dessous, le nombre à recruter et le prix total. Les flèches
+    /// passent d'une habitation de la ville à l'autre, de la plus petite à la plus grande (les habitations à construire
+    /// comprises). <paramref name="start"/> : la créature montrée d'abord (null : la première) ; <paramref name="single"/> :
+    /// ouverte d'un clic sur son habitation, elle se ferme après le recrutement.
     /// </summary>
-    private void OpenRecruitWindow(CreatureType? only)
+    private void OpenRecruitWindow(CreatureType? start, bool single = false)
     {
         if (_town is not { } town)
             return;
-        float width = only == null ? 1256 : 420;
-        var window = OpenWindow(V(width, 386), Texts.RecruitWindowTitle(town), overView: true);
-        window.AddChild(SunkenArea(V(6, 52), V(width - 12, 324)));
-        var row = new HBoxContainer { Position = V(10, 55) };
-        row.AddThemeConstantOverride("separation", (int)Px(8));
-        window.AddChild(row);
         var dwellings = town.Buildings.Where(b => b.Dwelling != null)
-            .Select(b => (Building: b, Creature: town.DwellingCreature(b)))
-            .Where(d => d.Creature != null && (only == null || d.Creature == only))
-            .OrderBy(d => d.Creature!.Tier).ToList();
-        foreach (var (building, creature) in dwellings)
-            row.AddChild(RecruitCard(town, building, creature!, wide: only != null));
-        _singleRecruit = only != null;
-        _reopen = () => Callable.From(() =>
-        {
-            if (_window != null && _town == town)
-                OpenRecruitWindow(only);
-        }).CallDeferred();
-    }
+            .Select(b => (Building: b, Creature: town.DwellingCreature(b)!))
+            .Where(d => d.Creature != null)
+            .OrderBy(d => d.Creature.Tier).ToList();
+        if (dwellings.Count == 0)
+            return;
+        int index = Math.Max(0, dwellings.FindIndex(d => d.Creature == start));
+        var (dwelling, creature) = dwellings[index];
+        _singleRecruit = single;
 
-    private Control RecruitCard(Town town, BuildingType dwelling, CreatureType creature, bool wide)
-    {
-        var card = new Panel { CustomMinimumSize = V(wide ? 400 : 168, 318) };
-        card.AddThemeStyleboxOverride("panel", Plate(PanelColor));
-        float w = card.CustomMinimumSize.X;
+        // l'image : le paysage ×2 dans le cadre mince, comme les places des troupes
+        float rim = ThinFrameBorder();
+        var backdropSize = Art.Get($"ui/fonds-troupes/{creature.Faction}") is { } backdrop ? backdrop.GetSize() * 2 : new Vector2(206, 240);
+        var pictureSize = backdropSize + new Vector2(2 * rim, 2 * rim);
+        float top = WindowMargin + ButtonHeight + ArtPx(6);
+        float columnX = WindowMargin + pictureSize.X + ArtPx(12);
+        float columnWidth = Px(470);
+        // la hauteur se règle à la fin, d'après le contenu (voir Bottom)
+        var window = OpenWindow(new Vector2(columnX + columnWidth + WindowMargin, top + pictureSize.Y), Texts.RecruitTitle(creature),
+            overView: true, closeAtTop: false, padded: false);
+
         bool built = town.Has(dwelling.Id);
+        var picture = new Panel { Position = new Vector2(WindowMargin, top), Size = pictureSize, MouseFilter = Control.MouseFilterEnum.Ignore };
+        picture.AddThemeStyleboxOverride("panel", ThinFrame(DarkPanelColor));
+        window.AddChild(picture);
+        var inside = new Rect2(rim, rim, backdropSize.X, backdropSize.Y);
+        if (CreatureBackdrop(creature, inside) is { } landscape)
+            picture.AddChild(landscape);
+        if (CreaturePicture(creature, inside, inside.Size.Y - Px(10)) is { } image)
+            picture.AddChild(image);
         if (!built)
-            card.Modulate = new Color(1, 1, 1, 0.55f);
-        const int pictureBottom = 88;
-        if (CreaturePicture(creature, new Rect2(Px(4), Px(4), w - Px(8), Px(pictureBottom - 4))) is { } image)
-            card.AddChild(image);
-        // les textes les uns sous les autres (une ligne de plus pousse la suite, sans chevauchement), sous l'image (le nom
-        // ne mord plus sur les pieds de la créature), les boutons en bas
-        var texts = new VBoxContainer { Position = new Vector2(Px(4), Px(pictureBottom + 2)), Size = new Vector2(w - Px(8), 0) };
-        texts.AddThemeConstantOverride("separation", 0);
-        card.AddChild(texts);
-        void Centered(string text, int size, Color color)
+            picture.Modulate = new Color(0.55f, 0.55f, 0.55f);
+
+        // à droite : le nom, les capacités, les caractéristiques, ce qu'il en reste et le prix
+        // une hauteur fixe : la fenêtre garde sa taille (et les flèches leur place) d'une créature à l'autre
+        var column = new VBoxContainer
+        {
+            Position = new Vector2(columnX, top - ArtPx(2)), Size = new Vector2(columnWidth, 0), CustomMinimumSize = new Vector2(0, Px(228)),
+        };
+        column.AddThemeConstantOverride("separation", (int)ArtPx(2));
+        window.AddChild(column);
+        Label Line(Control parent, string text, int size, Color color)
         {
             var label = MakeLabel(text, size, color);
-            label.HorizontalAlignment = HorizontalAlignment.Center;
             label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            label.CustomMinimumSize = new Vector2(w - Px(8), 0);
-            texts.AddChild(label);
+            label.CustomMinimumSize = new Vector2(columnWidth, 0);
+            parent.AddChild(label);
+            return label;
         }
-        void Gap() => texts.AddChild(new Control { CustomMinimumSize = new Vector2(0, ArtPx(4)) });
-        Centered(creature.Name, 15, TextColor);
-        Centered(Texts.CreatureLevel(creature), 11, SoftTextColor);
-        Gap();
-        // les boutons comptés depuis le bas de la carte : le dernier à 4 pixels d'art du bord
-        float bottom = card.CustomMinimumSize.Y - ArtPx(4);
-        Button Action(string text, int fromBottom)
+        void Gap(float artPixels) => column.AddChild(new Control { CustomMinimumSize = new Vector2(0, ArtPx(artPixels)) });
+        // le nom est dans le titre (« Recruter des Griffons ») : ici, le niveau et les capacités
+        Line(column, Texts.CreatureLevel(creature), 15, SoftTextColor);
+        Gap(4);
+        var stats = new GridContainer { Columns = 4 };
+        stats.AddThemeConstantOverride("h_separation", (int)ArtPx(8));
+        stats.AddThemeConstantOverride("v_separation", 0);
+        foreach (var (name, value) in Texts.RecruitStats(creature))
         {
-            var button = MakeButton(text, 13);
-            Sized(button, w - Px(16), ButtonHeight);
-            button.Position = new Vector2(Px(8), bottom - (fromBottom + 1) * ButtonHeight - fromBottom * ButtonGap);
-            card.AddChild(button);
-            return button;
+            stats.AddChild(MakeLabel(name, 14, SoftTextColor));
+            var number = MakeLabel(value, 14, TextColor);
+            number.CustomMinimumSize = new Vector2(Px(70), 0);
+            stats.AddChild(number);
         }
+        column.AddChild(stats);
+        Gap(4);
+
+        // en bas, sous l'image ou sous la colonne (la plus basse) : les flèches vers l'habitation d'avant ou d'après, le
+        // rang de celle-ci entre les deux ; à droite l'icône qui agit (recruter, construire), puis celle qui ferme (annuler,
+        // Échap) ; la fenêtre s'arrête juste dessous
+        Button Bottom(string icon, string text, Action pressed)
+        {
+            float rowY = Math.Max(top + pictureSize.Y, column.Position.Y + column.GetCombinedMinimumSize().Y) + ArtPx(6);
+            float y = rowY + SnapDown((IconButtonSide - ButtonHeight) / 2f);
+            Button Step(char direction, int step)
+            {
+                var button = QuietButton(FixedButton("", 12, new Vector2(ArtPx(28), ButtonHeight)));
+                button.TooltipText = step < 0 ? Texts.PreviousCreature : Texts.NextCreature;
+                var arrow = Picture(Arrow(direction, QuietTextColor), Vector2.Zero, Vector2.Zero);
+                arrow.Size = arrow.Texture.GetSize();
+                arrow.Position = ((button.Size - arrow.Size) / 2).Floor();
+                button.AddChild(arrow);
+                var next = dwellings[(index + step + dwellings.Count) % dwellings.Count].Creature;
+                button.Pressed += () => OpenRecruitWindow(next, single);
+                window.AddChild(button);
+                return button;
+            }
+            Step('<', -1).Position = new Vector2(WindowMargin, y);
+            Step('>', +1).Position = new Vector2(WindowMargin + pictureSize.X - ArtPx(28), y);
+            var level = MakeLabel(Texts.RecruitLevel(index + 1, dwellings.Count), 14, SoftTextColor);
+            level.HorizontalAlignment = HorizontalAlignment.Center;
+            level.VerticalAlignment = VerticalAlignment.Center;
+            level.Position = new Vector2(WindowMargin + ArtPx(28), y);
+            level.Size = new Vector2(pictureSize.X - ArtPx(56), ButtonHeight);
+            window.AddChild(level);
+            var close = IconButtons.Make("annuler", Texts.CloseButton, "Échap", CloseWindow);
+            close.Position = new Vector2(columnX + columnWidth - IconButtonSide, rowY);
+            window.AddChild(close);
+            var action = IconButtons.Make(icon, text, "", pressed);
+            action.Position = new Vector2(close.Position.X - ButtonGap - IconButtonSide, rowY);
+            window.AddChild(action);
+            // la fenêtre à sa hauteur, un peu sous le haut de la vue (elle peut couvrir la rangée de la garnison)
+            window.Size = new Vector2(window.Size.X, rowY + IconButtonSide + WindowMargin);
+            window.Position = new Vector2(MathF.Floor((window.GetParent<Control>().Size.X - window.Size.X) / 2), ArtPx(24));
+            return action;
+        }
+
         if (!built)
         {
-            Centered(Texts.ToBuildFirst(dwelling), 13, TextColor);
-            Action(Texts.GoBuild, 0).Pressed += OpenBuild;
-            return card;
+            Line(column, Texts.ToBuildFirst(dwelling).Replace("\n", " "), 15, TextColor);
+            Bottom("construire", Texts.GoBuild, OpenBuild);
+            return;
         }
         int available = town.Available.GetValueOrDefault(creature);
-        Centered(Texts.AvailableLine(available, town.WeeklyGrowth(creature)), 12, TextColor);
-        Centered(Texts.PriceLine(creature), 12, TextColor);
-        Gap();
-        Centered(Texts.CreatureStats(creature), 11, SoftTextColor);
+        Line(column, Texts.AvailableLine(available, town.WeeklyGrowth(creature)), 15, TextColor);
+        column.AddChild(CostRow(Texts.UnitPrice, creature.Cost, 1));
+        Gap(4);
+
+        // le nombre : moins, le curseur, plus, le nombre choisi, Max ; puis le prix total (ou pourquoi on ne peut pas)
         var hero = _state.VisitingHero(town);
         bool hasRoom = town.Garrison.CanReceive(creature) || (hero != null && hero.Army.CanReceive(creature));
         int max = hasRoom ? town.MaxRecruitable(creature, _state.CurrentPlayer) : 0;
-        var more = Action(Texts.RecruitMore, 1);
-        more.Disabled = available == 0;
-        more.Pressed += () => OpenRecruit(town, creature);
-        var all = Action(Texts.RecruitAllButton(max), 0);
-        all.Disabled = max == 0;
-        all.Pressed += () =>
+        var amount = new HBoxContainer();
+        amount.AddThemeConstantOverride("separation", (int)ArtPx(4));
+        column.AddChild(amount);
+        var slider = new HSlider
         {
-            _state.Recruit(town, creature, max);
-            AfterRecruit();
+            MinValue = 0, MaxValue = max, Step = 1, Value = max, Editable = max > 0, FocusMode = Control.FocusModeEnum.None,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
         };
-        return card;
+        Button Small(string text, Action pressed)
+        {
+            var button = FixedButton(text, 15, new Vector2(ArtPx(24), ButtonHeight), disabled: max == 0);
+            QuietButton(button);
+            button.Pressed += pressed;
+            return button;
+        }
+        amount.AddChild(Small("−", () => slider.Value -= 1));
+        amount.AddChild(slider);
+        amount.AddChild(Small("+", () => slider.Value += 1));
+        var count = MakeLabel("", 18, TextColor);
+        count.CustomMinimumSize = new Vector2(Px(56), 0);
+        count.HorizontalAlignment = HorizontalAlignment.Center;
+        count.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        amount.AddChild(count);
+        var maxButton = MakeButton(Texts.MaxButton, 15);
+        Sized(maxButton, ArtPx(48), ButtonHeight);
+        maxButton.Disabled = max == 0;
+        QuietButton(maxButton);
+        maxButton.Pressed += () => slider.Value = max;
+        amount.AddChild(maxButton);
+        // le total, et la place d'un avertissement de deux lignes : la fenêtre ne bouge pas quand il apparaît
+        var total = new VBoxContainer { CustomMinimumSize = new Vector2(0, TextSize(15) + 2 * TextSize(12)) };
+        column.AddChild(total);
+        Line(column, Texts.RecruitDestination, 12, SoftTextColor);
+
+        var recruit = Bottom("recruter", Texts.RecruitButton, () =>
+        {
+            _state.Recruit(town, creature, (int)slider.Value);
+            AfterRecruit();
+        });
+
+        void Update()
+        {
+            int n = (int)slider.Value;
+            count.Text = n.ToString();
+            recruit.Disabled = n == 0;
+            IconButtons.Dim(new[] { recruit });
+            Clear(total);
+            if (Texts.CannotRecruit(available, hasRoom, max) is { } problem)
+            {
+                Line(total, problem, 14, WarningColor);
+                return;
+            }
+            total.AddChild(CostRow(Texts.TotalPrice, creature.Cost, n));
+            if (_state.RecruitOverloads(town, creature, n) is { } risky)
+                Line(total, Texts.CommandWarning(risky.CommandLimit), 12, WarningColor);
+        }
+        slider.ValueChanged += _ => Update();
+        Update();
+        _reopen = () => Callable.From(() =>
+        {
+            if (_window != null && _town == town)
+                OpenRecruitWindow(creature, single);
+        }).CallDeferred();
+    }
+
+    private static readonly Color WarningColor = MapRenderer.Rgb(230, 150, 120);
+
+    /// <summary>« Prix : [or] 60 [cristal] 1 » : un prix avec l'icône de chaque ressource, × <paramref name="times"/>.</summary>
+    private static HBoxContainer CostRow(string label, Dictionary<ResourceType, int> cost, int times)
+    {
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", (int)ArtPx(3));
+        row.AddChild(MakeLabel(label, 15, TextColor));
+        foreach (var (resource, amount) in cost.OrderBy(c => c.Key))
+        {
+            row.AddChild(new ResourceIcon
+            {
+                Resource = resource, CustomMinimumSize = V(18, 18), SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            });
+            row.AddChild(MakeLabel((amount * times).ToString(), 15, TextColor));
+        }
+        return row;
     }
 
     /// <summary>La taverne : les deux héros qu'elle propose, leur prix, et « Recruter ».</summary>
@@ -1114,7 +1260,7 @@ public partial class TownScreen : CanvasLayer
         text.CustomMinimumSize = new Vector2(sceneSize.X, 0);
         float textHeight = Snap(oneLine.Y * lines);
         var window = OpenWindow(new Vector2(sceneSize.X + 2 * WindowMargin, top + sceneSize.Y + ArtPx(4) + textHeight + WindowMargin),
-            Texts.GuildTitle(town), overView: true);
+            Texts.GuildTitle(town), overView: true, padded: false);
         var scene = new SceneBackdrop { SceneName = $"academie-{town.Faction}", Faction = town.Faction, Size = sceneSize, Position = new Vector2(WindowMargin, top) };
         window.AddChild(scene);
         var lectern = new LecternView { TooltipText = Texts.OpenGuildBookHint, ShowImage = !scene.HasImage, GlowColor = scene.Light };
@@ -1131,109 +1277,6 @@ public partial class TownScreen : CanvasLayer
         // développement : « --guild-book » ouvre aussitôt le grimoire (capture)
         if (OS.GetCmdlineUserArgs().Contains("--guild-book"))
             Callable.From(lectern.Open).CallDeferred();
-    }
-
-    // ----------------------------------------------------------- nombre à recruter
-
-    private void BuildRecruitWindow()
-    {
-        // Voile sombre qui bloque l'écran de ville tant que la fenêtre est ouverte
-        _recruitOverlay = new ColorRect { Color = new Color(0, 0, 0, 0.6f), Size = _screen, Visible = false, MouseFilter = Control.MouseFilterEnum.Stop };
-        _root.AddChild(_recruitOverlay);
-
-        var size = V(560, 320);
-        var window = new Panel { Position = (_screen - size) / 2, Size = size };
-        window.AddThemeStyleboxOverride("panel", Frame(PanelColor));
-        _recruitOverlay.AddChild(window);
-
-        _recruitTitle = At(MakeLabel("", 20, TextColor), 20, 14);
-        window.AddChild(_recruitTitle);
-        // l'image à gauche, et à côté : caractéristiques, disponibles et prix, ce qu'on peut payer, où vont les recrues
-        _recruitPlacePosition = V(14, 48);
-        _recruitPlace = V(76, 100);
-        _recruitPicture = new Control { Position = _recruitPlacePosition, Size = _recruitPlace, MouseFilter = Control.MouseFilterEnum.Ignore };
-        window.AddChild(_recruitPicture);
-        _recruitStats = At(MakeLabel("", 13, SoftTextColor), 96, 50);
-        window.AddChild(_recruitStats);
-        _recruitInfo = At(MakeLabel("", 14, TextColor), 96, 92);
-        window.AddChild(_recruitInfo);
-        var where = At(MakeLabel(Texts.RecruitDestination, 12, SoftTextColor), 96, 132);
-        where.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        where.CustomMinimumSize = new Vector2(size.X - Px(116), 0);
-        window.AddChild(where);
-
-        _recruitSlider = new HSlider { Position = V(20, 176), Size = new Vector2(size.X - Px(40), Px(24)), Step = 1, FocusMode = Control.FocusModeEnum.None };
-        _recruitSlider.ValueChanged += _ => UpdateRecruitTotal();
-        window.AddChild(_recruitSlider);
-        _recruitTotal = At(MakeLabel("", 16, TextColor), 20, 208);
-        _recruitTotal.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _recruitTotal.CustomMinimumSize = new Vector2(size.X - Px(40), 0);
-        window.AddChild(_recruitTotal);
-
-        _recruitMax = MakeButton(Texts.MaxButton, 15);
-        _recruitMax.Position = new Vector2(Px(20), size.Y - Px(60));
-        Sized(_recruitMax, Px(100), ButtonHeight);
-        _recruitMax.Pressed += () => _recruitSlider.Value = _recruitSlider.MaxValue;
-        window.AddChild(_recruitMax);
-
-        _recruitButton = MakeButton(Texts.RecruitButton, 15);
-        _recruitButton.Position = new Vector2(size.X - Px(300), size.Y - Px(60));
-        Sized(_recruitButton, Px(140), ButtonHeight);
-        _recruitButton.Pressed += ConfirmRecruit;
-        window.AddChild(_recruitButton);
-
-        var cancel = MakeButton(Texts.CancelButton, 15);
-        cancel.Position = new Vector2(size.X - Px(150), size.Y - Px(60));
-        Sized(cancel, Px(130), ButtonHeight);
-        cancel.Pressed += () => _recruitOverlay.Visible = false;
-        window.AddChild(cancel);
-    }
-
-    private void OpenRecruit(Town town, CreatureType type)
-    {
-        _recruitType = type;
-        var player = _state.CurrentPlayer;
-        int available = town.Available.GetValueOrDefault(type);
-        var hero = _state.VisitingHero(town);
-        bool hasRoom = town.Garrison.CanReceive(type) || (hero != null && hero.Army.CanReceive(type));
-        int max = hasRoom ? town.MaxRecruitable(type, player) : 0;
-
-        _recruitTitle.Text = Texts.RecruitTitle(type);
-        // l'image de combat ×2 (coupée si la créature est trop grande)
-        Clear(_recruitPicture);
-        if (CreaturePicture(type, new Rect2(Vector2.Zero, _recruitPlace)) is { } picture)
-            _recruitPicture.AddChild(picture);
-        _recruitStats.Text = Texts.CreatureStats(type);
-        _recruitInfo.Text = $"{Texts.RecruitInfo(type, available)}\n{Texts.Affordable(max)}";
-        _recruitSlider.MinValue = 0;
-        _recruitSlider.MaxValue = max;
-        _recruitSlider.Value = max;
-        _recruitSlider.Editable = max > 0;
-        _recruitMax.Disabled = max == 0;
-        UpdateRecruitTotal(Texts.CannotRecruit(available, hasRoom, max));
-        // au premier plan : les fenêtres ouvertes après lui (celle des créatures) ne doivent pas le cacher ni prendre ses clics
-        _recruitOverlay.MoveToFront();
-        _recruitOverlay.Visible = true;
-    }
-
-    private void UpdateRecruitTotal(string? problem = null)
-    {
-        if (_recruitType is not { } type)
-            return;
-        int count = (int)_recruitSlider.Value;
-        string text = problem ?? Texts.RecruitTotal(type, count);
-        if (problem == null && _town is { } town && _state.RecruitOverloads(town, type, count) is { } risky)
-            text += "\n" + Texts.CommandWarning(risky.CommandLimit);
-        _recruitTotal.Text = text;
-        _recruitButton.Disabled = count == 0;
-    }
-
-    private void ConfirmRecruit()
-    {
-        if (_town is { } town && _recruitType is { } type)
-            _state.Recruit(town, type, (int)_recruitSlider.Value);
-        _recruitOverlay.Visible = false;
-        AfterRecruit();
     }
 
     /// <summary>

@@ -29,19 +29,33 @@ public class SceneVilleTests
     }
 
     [Fact]
-    public void Chaque_place_de_la_scene_a_ses_images()
+    public void La_scene_des_morts_vivants_couvre_ses_batiments()
     {
-        var scene = Scene("chateau");
-        Assert.True(File.Exists(Path.Combine(Folder("chateau"), "fond.png")));
-        foreach (var place in scene.Places)
+        // le chantier naval reste à peindre (au bord droit, avec un peu d'eau)
+        var scene = Scene("morts-vivants");
+        var buildings = TestData.Data.Buildings.OfFaction("morts-vivants").Where(b => b.Id != "chantier-naval").ToList();
+        Assert.Empty(buildings.Where(b => scene.Find(b.Id) == null).Select(b => b.Id));
+        Assert.NotNull(scene.Home);
+        var shown = scene.Shown(Chain(buildings, buildings.Single(b => b.Id == "capitole"))).ToList();
+        Assert.Equal("capitole", Assert.Single(shown).Place.Id);
+    }
+
+    [Theory]
+    [InlineData("chateau")]
+    [InlineData("morts-vivants")]
+    public void Chaque_place_de_la_scene_a_ses_images(string faction)
+    {
+        var scene = Scene(faction);
+        Assert.True(File.Exists(Path.Combine(Folder(faction), "fond.png")));
+        foreach (var place in scene.Home is { } home ? scene.Places.Append(home) : scene.Places)
         {
-            Assert.True(File.Exists(Path.Combine(Folder("chateau"), place.Id + ".png")), place.Id);
+            Assert.True(File.Exists(Path.Combine(Folder(faction), place.Id + ".png")), place.Id);
             if (place.ShadowX != null)
-                Assert.True(File.Exists(Path.Combine(Folder("chateau"), place.Id + "-ombre.png")), place.Id);
+                Assert.True(File.Exists(Path.Combine(Folder(faction), place.Id + "-ombre.png")), place.Id);
             if (place.FrontX != null)
-                Assert.True(File.Exists(Path.Combine(Folder("chateau"), place.Id + "-devant.png")), place.Id);
+                Assert.True(File.Exists(Path.Combine(Folder(faction), place.Id + "-devant.png")), place.Id);
             foreach (var rune in place.Runes ?? new())
-                Assert.True(File.Exists(Path.Combine(Folder("chateau"), $"rune-{rune[2]}.png")), place.Id);
+                Assert.True(File.Exists(Path.Combine(Folder(faction), $"rune-{rune[2]}.png")), place.Id);
         }
     }
 

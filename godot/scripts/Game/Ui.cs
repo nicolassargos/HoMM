@@ -81,8 +81,8 @@ public static class Ui
     /// <summary>Largeur du bouton « Fermer » des grandes fenêtres, toujours en haut à droite.</summary>
     public static readonly float CloseButtonWidth = ArtPx(64);
 
-    /// <summary>Marge entre le bord d'une fenêtre et son contenu (le bord du cadre fait 17 pixels d'art), et écart entre deux boutons voisins.</summary>
-    public static readonly float WindowMargin = ArtPx(18), ButtonGap = ArtPx(4);
+    /// <summary>Marge entre le bord d'une fenêtre et son contenu (le bord du cadre fait 17 pixels d'art, et l'air au-dedans 7), et écart entre deux boutons voisins.</summary>
+    public static readonly float WindowMargin = ArtPx(24), ButtonGap = ArtPx(4);
 
     /// <summary>
     /// Les tailles du texte, les seules où la police reste nette : un pixel de la police y fait un pixel d'art (2 pixels
@@ -254,7 +254,8 @@ public static class Ui
         // un bouton garde tout son milieu (« buttonPlainBand » : seulement la bande sans détail, pour des bords à clous) :
         // une pierre texturée répétée par petites bandes laissait des raccords visibles
         _buttonImage = Art.GetImage("ui/button") is { } button
-            ? Enlarged(ButtonPlainBand ? WithoutRepeatedDetails(button, ButtonCorner) : StoneGrained(WithLargeMiddle(Trimmed(button), ButtonCorner), ButtonCorner), ButtonScale) : null;
+            ? Enlarged(ButtonPlainBand ? WithoutRepeatedDetails(button, ButtonCorner)
+                : StoneGrained(WithLargeMiddle(WithUniformMiddle(Trimmed(button), ButtonCorner), ButtonCorner), ButtonCorner), ButtonScale) : null;
     }
 
     /// <summary>L'image réduite à sa partie non transparente.</summary>
@@ -305,6 +306,42 @@ public static class Ui
         return box;
     }
 
+    /// <summary>Les bouts sculptés de la plaque du nom (<c>art/ui/plaque.png</c>), en pixels d'art : le reste s'étire.</summary>
+    private const int PlateEnd = 26;
+
+    private static readonly Dictionary<Color, StyleBox> TitlePlates = new();
+
+    /// <summary>
+    /// La plaque sculptée du nom d'une ville (bois et volutes d'or, comme le cadre des fenêtres), remplie de
+    /// <paramref name="fill"/> : ses deux bouts gardent leur dessin, le milieu (rendu uni dans l'image) s'étire à
+    /// la largeur du texte. Sa hauteur est celle de l'image (×2, <see cref="TitlePlateHeight"/>). Sans image, le cadre mince.
+    /// </summary>
+    public static StyleBox TitlePlate(Color fill)
+    {
+        if (TitlePlates.TryGetValue(fill, out var cached))
+            return cached;
+        if (Art.GetImage("ui/plaque") is not { } source)
+            return ThinFrame(fill);
+        var image = Enlarged(FillInside(Trimmed(source), fill, 0), FrameScale);
+        int h = image.GetHeight();
+        var box = new StyleBoxTexture
+        {
+            Texture = ImageTexture.CreateFromImage(image),
+            AxisStretchHorizontal = StyleBoxTexture.AxisStretchMode.Stretch,
+            AxisStretchVertical = StyleBoxTexture.AxisStretchMode.Stretch,
+            TextureMarginLeft = PlateEnd * FrameScale, TextureMarginRight = PlateEnd * FrameScale,
+            // une seule rangée du milieu s'étirerait si le contenu était plus haut que la plaque
+            TextureMarginTop = h / 2 - 1, TextureMarginBottom = h - h / 2 - 1,
+        };
+        box.ContentMarginLeft = box.ContentMarginRight = ArtPx(PlateEnd + 4);
+        box.ContentMarginTop = box.ContentMarginBottom = ArtPx(5);
+        TitlePlates[fill] = box;
+        return box;
+    }
+
+    /// <summary>La hauteur de la plaque du nom à l'écran (en pixels).</summary>
+    public static float TitlePlateHeight => Art.GetImage("ui/plaque") is { } plate ? Trimmed(plate).GetHeight() * FrameScale : 0;
+
     /// <summary>L'épaisseur du cadre mince à l'écran (en pixels), pour poser le contenu dedans.</summary>
     public static float ThinFrameBorder()
     {
@@ -323,6 +360,9 @@ public static class Ui
         if (_buttonImage == null)
             return Box(flatColor, border, 2, 2, 2, 2, radius: 6);
         var box = Sliced(_buttonImage, ButtonCorner * ButtonScale, (int)Px(ButtonCorner + 8), (int)Px(5));
+        // le milieu est uni (WithUniformMiddle) : étiré plutôt que répété, il n'a aucun raccord
+        if (!ButtonPlainBand)
+            box.AxisStretchHorizontal = box.AxisStretchVertical = StyleBoxTexture.AxisStretchMode.Stretch;
         box.ModulateColor = tint;
         return box;
     }
@@ -425,6 +465,29 @@ public static class Ui
     /// grain du fond (<see cref="Grain"/>) ne revienne que toutes les <see cref="FrameMiddle"/> pixels.
     /// </summary>
     private const int FrameMiddle = 64;
+
+    /// <summary>
+    /// L'image dont toutes les colonnes entre les coins sont celle du milieu, et toutes les rangées entre les coins celle
+    /// du milieu : répétée pour allonger un bouton, elle ne laisse aucun raccord (les petites marques près des rivets du
+    /// bouton de bois, répétées, faisaient des traits sur un long bouton).
+    /// </summary>
+    private static Image WithUniformMiddle(Image image, int corner)
+    {
+        int w = image.GetWidth(), h = image.GetHeight();
+        for (int y = 0; y < h; y++)
+        {
+            var middle = image.GetPixel(w / 2, y);
+            for (int x = corner; x < w - corner; x++)
+                image.SetPixel(x, y, middle);
+        }
+        for (int x = 0; x < w; x++)
+        {
+            var middle = image.GetPixel(x, h / 2);
+            for (int y = corner; y < h - corner; y++)
+                image.SetPixel(x, y, middle);
+        }
+        return image;
+    }
 
     /// <summary>Le cadre avec un milieu de <see cref="FrameMiddle"/> pixels de côté (la bande du milieu répétée).</summary>
     private static Image WithLargeMiddle(Image image, int corner)
@@ -939,6 +1002,31 @@ public static class Ui
         return button;
     }
 
+    /// <summary>Le trait et le texte des petits boutons discrets (<see cref="QuietButton"/>) : un bronze terne, un or pâle.</summary>
+    public static readonly Color QuietLineColor = MapRenderer.Rgb(112, 88, 50), QuietTextColor = MapRenderer.Rgb(206, 178, 120);
+
+    /// <summary>
+    /// Un petit bouton discret (−, +, Max, les flèches) à côté des grands boutons de bois rouge, qui restent les actions
+    /// principales : un fond sombre et plat, un seul trait de bronze, le texte d'or pâle ; il s'éclaire au survol (choix
+    /// de l'utilisateur, 2026-11-26, parmi un double filet d'or, sans cadre, creusé et une plaque sans bord).
+    /// </summary>
+    public static T QuietButton<T>(T button) where T : Button
+    {
+        StyleBox Style(Color fill) => Box(fill, QuietLineColor, 2, 2, 2, 2);
+        button.AddThemeStyleboxOverride("normal", Style(DarkPanelColor));
+        button.AddThemeStyleboxOverride("hover", Style(MapRenderer.Rgb(58, 44, 30)));
+        button.AddThemeStyleboxOverride("pressed", Style(MapRenderer.Rgb(20, 15, 10)));
+        button.AddThemeStyleboxOverride("disabled", Style(DarkPanelColor));
+        button.AddThemeColorOverride("font_color", QuietTextColor);
+        // le texte d'un bouton de taille fixe est un Label posé dessus (FixedButton)
+        foreach (var child in button.GetChildren())
+            if (child is Label text && !button.Disabled)
+                text.AddThemeColorOverride("font_color", QuietTextColor);
+        button.MouseEntered += () => button.Modulate = button.Disabled ? Colors.White : new Color(1.3f, 1.3f, 1.3f);
+        button.MouseExited += () => button.Modulate = Colors.White;
+        return button;
+    }
+
     /// <summary>
     /// Donne à un contrôle (souvent un bouton) sa taille : la largeur arrondie à la grille, et une hauteur commune
     /// (<see cref="ButtonHeight"/>, <see cref="SmallButtonHeight"/>, <see cref="LargeButtonHeight"/>…).
@@ -967,6 +1055,23 @@ public static class Ui
         label.MouseFilter = Control.MouseFilterEnum.Ignore;
         button.AddChild(label);
         return button;
+    }
+
+    /// <summary>
+    /// Le paysage de la faction d'une créature (<c>art/ui/fonds-troupes/&lt;faction&gt;.png</c>, ×2), posé en bas de
+    /// <paramref name="place"/> et coupé par elle, comme Heroes 2 ; null si la faction n'en a pas.
+    /// </summary>
+    public static Control? CreatureBackdrop(CreatureType type, Rect2 place)
+    {
+        if (Art.Get($"ui/fonds-troupes/{type.Faction}") is not { } backdrop)
+            return null;
+        var inside = new Control
+        {
+            Position = place.Position, Size = place.Size, ClipContents = true, MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        var size = backdrop.GetSize() * 2;
+        inside.AddChild(Picture(backdrop, new Vector2(MathF.Floor((place.Size.X - size.X) / 2), place.Size.Y - size.Y), size));
+        return inside;
     }
 
     /// <summary>Une image à cette taille (le mode « taille libre » d'abord : sinon l'image garderait sa propre taille).</summary>

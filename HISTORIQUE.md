@@ -3102,6 +3102,19 @@ choix de l'utilisateur) :
   ville neutre, ailleurs) ; une montagne seulement à côté ne suffit pas (essayé : la mine paraissait posée à côté).
   Mesuré sur les cartes 5, 12 et 42 : 23 mines creusées sur 45 adossées (test `MontagnesTests`), une sur dix avant.
   Une même graine donne une carte un peu différente d'avant.
+- ✅ **Les mines creusées dans la roche** (2026-11-27, branche `mines-v2`, choix de l'utilisateur) : l'or, les gemmes,
+  le cristal, le mercure et le soufre sont **toujours** adossés à une montagne (pas la scierie ni le minerai). Sans place
+  adossée, `MapGenerator.TryPlaceDugMine` élève derrière la mine un petit massif de `mountains.json` (niveau 1 ou plus,
+  sur des cases libres, sans route, rivière, ville ni case gardée, pas trop près d'un départ) ; ces petits massifs ne
+  deviennent pas de la forêt (`_mineBacks`, dans `ForestSmallMountains`). Une mine gardée garde aussi sa case devant
+  libre, pour son gardien : 87 % des mines précieuses gardées sur 12 cartes, contre 83 % avant. Mesuré sur les cartes
+  5, 12 et 42 : 72 mines creusées sur 72 adossées (`MontagnesTests`). Chaque mine a une nouvelle image, la mine et sa
+  roche d'un seul tenant (PixelLab, 96 × 96 ; recette dans `tools/art/METHODE.md`), `objects/mine-<ressource>-mountain.png` :
+  dessinée avec le shader des pentes (le sol de dessous) et sans ombre portée, comme un massif ; choisies par
+  l'utilisateur dans le jeu (or s11-1, cristal s33-2, gemmes s11-1, mercure s22-4, soufre s22-3). Les rails de la mine
+  d'or disparaissaient au fondu : `fondre.py --pentes-seules`. **Reste** : parfois une bande de sol entre la mine et le
+  massif élevé derrière elle ; une tache de terre devant certaines entrées ne prend pas la couleur du sable ou de la
+  neige ; les pieds (ombre de contact) des nouvelles images. Une même graine donne une autre carte qu'avant.
 - ✅ **Les montagnes au bord de deux sols** (2026-11-17, branche `montagnes-deux-sols`) : choisir le jeu d'images d'après
   le sol devant le pied de chaque massif ne suffisait pas (une image n'a qu'un sol : fausse d'un côté de la frontière). À
   la place, un shader (`shaders/mountain_slopes.gdshader`, sur `DecorLayer`) : chaque pixel de pente (vert franc dans

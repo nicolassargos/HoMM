@@ -91,6 +91,9 @@ public class VilleBarbaresTests
         var state = new GameState(7, TestData.Data, 54, 40, opponents: 1, opponentFactions: new[] { Barbarians });
         state.ChooseRules(new GameRules(VictoryCondition.DefeatOpponents));
         state.Players[0].Heroes[0].Army.Add(TestData.Creatures.Get("ange"), 50);
+        var rival = state.Players[1];
+        // la classe se vérifie au départ : le héros peut tomber en deux semaines
+        Assert.Equal("barbare", rival.Heroes[0].Class?.Id);
         for (int day = 0; day < 14; day++)
         {
             state.EndTurn();
@@ -100,8 +103,6 @@ public class VilleBarbaresTests
                 state.EndTurn();
             }
         }
-        var rival = state.Players[1];
-        Assert.Equal("barbare", rival.Heroes[0].Class?.Id);
         var castle = rival.Towns.First(t => t.Faction == Barbarians);
         Assert.True(castle.Has("taniere-loups"));
         Assert.True(castle.Has("taverne"));

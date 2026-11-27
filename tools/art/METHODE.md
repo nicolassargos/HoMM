@@ -818,7 +818,8 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
   remarqué par l'utilisateur). Installée en `objects/mine-<ressource>-mountain.png` : le jeu la dessine avec le shader des
   pentes (elles prennent le sol de dessous, plus d'image par sol) et sans ombre portée, comme un massif. Montrer les
   candidats **en jeu**, chacun installé tour à tour (`--center=mine-gold`, `mine-backed` : une mine adossée), sur une page
-  de choix. Une tache de terre brune devant l'entrée ne se fond pas (pas verte) : à éviter.
+  de choix. Une tache de terre brune devant l'entrée ne se fond pas (pas verte) : à éviter. Choisies (2026-11-27) : or s11-1,
+  cristal s33-2, gemmes s11-1, mercure s22-4, soufre s22-3 (archive `2026-11-27-mines-creusees`).
 
 ## Héros de la carte (48 × 48, 2026-11-14)
 - **Générer à la taille du jeu** (« pro » à 48, 25 candidats pour 0,08 $) avec une image choisie comme style : plus

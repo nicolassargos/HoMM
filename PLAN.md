@@ -228,7 +228,7 @@ une option, une ville au plus par zone, une scierie et une mine de minerai gard�
 défaut : prendre toutes les villes (les parties longues sont acceptées) ; rivières, ruisseaux et ponts en images ; les
 rives par tronçons, avec des roseaux et de l'herbe sur les plages ; les ruisseaux (profondeur, mares, rives, pierres,
 roseaux, un delta à bras) ; des rives arrondies ; l'herbe (taches sèches et drues, touffes, bouquets de fleurs) ; les routes (un arbre entre villes, mines et ports ; une sorte par zone selon la faction ; en courbes douces, 2026-11-20, dessinées en courbes
-arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19) ; des zones 2,5 fois plus grandes, comme les régions de Heroes 3 (2026-11-20) ; plus aucune terre sans chemin : ouverte à travers la forêt, remplie d'arbres, ou atteinte par un **portail** gardé qui cache une grande récompense (2026-11-21) ; le marais refait, avec ses mares, ses roseaux et ses boues (2026-11-24).
+arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en massifs posés comme dans Heroes 3, qui se fondent dans l'herbe, le sable ou le marais, et les mines creusées à leur flanc (2026-11-17), toujours, dans la roche de leur nouvelle image (2026-11-27) ; un sol par zone (de grandes régions de sable et de marais), le départ et les villes neutres au sol de leur faction, un héros sans ralentissement sur le sien ; le sol rocheux des Nains et la terre brûlée de l'Enfer, aux fissures rougeoyantes animées (2026-11-18) ; la neige de la Tour, les forêts de chaque sol (2026-11-19) ; des zones 2,5 fois plus grandes, comme les régions de Heroes 3 (2026-11-20) ; plus aucune terre sans chemin : ouverte à travers la forêt, remplie d'arbres, ou atteinte par un **portail** gardé qui cache une grande récompense (2026-11-21) ; le marais refait, avec ses mares, ses roseaux et ses boues (2026-11-24).
 **Reste** :
 - **Les sols** : **six sols suffisent** (herbe, sable, marais, roche, neige, terre brûlée ; choix de l'utilisateur,
   2026-11-20) : pas un par faction, des factions les partagent ; plus tard, des **variantes** d'un même sol pour les
@@ -236,7 +236,7 @@ arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en mass
   aussi avoir **plus d'un sol** : les Nains la roche ou la neige, la Tour la neige ou le sable, l'Enfer la terre brûlée
   ou le sable, les morts-vivants le marais ou la roche (✅ 2026-11-20). Peut-être plus tard un sol souterrain pour le Donjon,
   s'il y a un souterrain. Des thèmes de cartes (la répartition se réglera alors) ; le sol
-  des factions encore sur l'herbe, à décider ; les arbres verts des mines creusées (elles iront plutôt au flanc des montagnes) ;
+  des factions encore sur l'herbe, à décider ;
   l'équilibre : les factions sans sol propre perdent le plus (voir `HISTORIQUE.md`).
 - **Retouches de la carte** (demandées par l'utilisateur, 2026-11-24, dans cet ordre) : ✅ le marais ; un peu la roche
   (remise à plus tard : l'utilisateur y réfléchit ; essais dans `art-candidats/archives/2026-11-24-roche`) ;

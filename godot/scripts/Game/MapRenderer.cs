@@ -202,6 +202,11 @@ public static class MapRenderer
     private static Texture2D? MineImage(Mine mine)
     {
         var name = $"objects/mine-{Art.Name(mine.Resource)}";
+        if (Art.Get($"{name}-mountain") is { } dug)
+        {
+            MountainMines.Add(dug);
+            return dug;
+        }
         if (Map is { } map && map.InBounds(mine.Position) && map.GetTerrain(mine.Position) is var ground && ground != TerrainType.Grass
             && Art.Get($"{name}-{Art.Name(ground)}") is { } own)
             return own;
@@ -251,6 +256,14 @@ public static class MapRenderer
         _ => null,
     };
 
+    /// <summary>
+    /// Les images des mines creusées au flanc d'une montagne (« mine-gold-mountain »…, 2026-11-26) : dessinées comme les
+    /// massifs, leurs pentes vertes prennent le sol qui est dessous (<see cref="DecorLayer.SlopeMark"/>), sans ombre portée.
+    /// </summary>
+    private static readonly HashSet<Texture2D> MountainMines = new();
+
+    public static bool IsMountainMine(Texture2D image) => MountainMines.Contains(image);
+
     public static void DrawObject(CanvasItem ci, MapObject obj, Vector2 o, double time)
     {
         var c = o + V(T / 2f, T / 2f);
@@ -261,7 +274,7 @@ public static class MapRenderer
             var area = ObjectArea(obj, o);
             if (obj is BlessingSite { Sea: true } or Flotsam or SeaChest or AbandonedShip or Boat or MonsterGuard { Type.Sea: true })
                 area.Position += V(0, MathF.Round((float)Math.Sin(time * 2.5) * 1.5f)); // ce qui flotte se balance
-            var drawn = DrawArt(ci, image, area);
+            var drawn = DrawArt(ci, image, area, IsMountainMine(image) ? DecorLayer.SlopeMark : Colors.White);
             // Le drapeau du propriétaire reste dessiné par-dessus (en haut à gauche de la mine)
             if (obj is Mine mine)
                 DrawFlag(ci, area.Position + new Vector2(0.3f * T, 0.45f * T), ColorOf(mine.Owner), 0);
@@ -478,10 +491,10 @@ public static class MapRenderer
     /// pixels ont la même taille partout). Elle est posée sur le bas de <paramref name="area"/> et centrée ; une image plus
     /// grande que la zone en déborde (vers le haut et sur les côtés).
     /// </summary>
-    private static Rect2 DrawArt(CanvasItem ci, Texture2D image, Rect2 area)
+    private static Rect2 DrawArt(CanvasItem ci, Texture2D image, Rect2 area, Color? mark = null)
     {
         var drawn = ArtRect(image, area);
-        ci.DrawTextureRect(image, drawn, false);
+        ci.DrawTextureRect(image, drawn, false, mark ?? Colors.White);
         return drawn;
     }
 

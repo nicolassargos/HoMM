@@ -117,6 +117,7 @@ public partial class ActorLayer : Node2D
 
     /// <summary>Les pièces triées de la carte : une par objet, une par héros (voir <see cref="MapPiece"/>).</summary>
     private readonly Dictionary<MapObject, MapPiece> _objects = new();
+    private ShaderMaterial? _slopes;
     private readonly Dictionary<Hero, MapPiece> _heroes = new();
 
     /// <summary>
@@ -133,6 +134,9 @@ public partial class ActorLayer : Node2D
             // le pied : le bas de la surface de l'objet (une ville, une mine : leur rangée du bas)
             piece.Position = new Vector2(o.X + t / 2f, MapRenderer.ObjectBottom(obj, o));
             piece.Paint = ci => MapRenderer.DrawObject(ci, obj, o, _time);
+            // une mine au flanc d'une montagne : ses pentes prennent le sol, comme les massifs (le shader du décor)
+            if (obj is Mine && piece.Material == null && MapRenderer.ObjectArt(obj, o) is { } art && MapRenderer.IsMountainMine(art.Image))
+                piece.Material = _slopes ??= new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/mountain_slopes.gdshader") };
         });
         // le héros choisi du joueur a un anneau doré à ses pieds (pas pendant le tour d'un adversaire) ; un héros sur la
         // case d'un objet (l'entrée d'une mine) passe devant lui

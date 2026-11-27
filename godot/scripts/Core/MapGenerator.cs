@@ -890,11 +890,79 @@ public sealed class MapGenerator
         new[] { -1, 0, 1 }.Count(dx =>
             _map.InBounds(entrance.Offset(dx, -2)) && _map.GetTerrain(entrance.Offset(dx, -2)) == TerrainType.Mountain);
 
-    /// <summary>Une mine qu'on creuse (toutes sauf la scierie) : elle cherche le flanc d'une montagne.</summary>
-    private static bool Dug(ResourceType resource) => resource != ResourceType.Wood;
+    /// <summary>
+    /// Une mine qu'on creuse dans la montagne : l'or, les gemmes, le cristal, le mercure et le soufre (choix de
+    /// l'utilisateur, 2026-11-26 : la scierie et la mine de minerai, à ciel ouvert, se posent n'importe où).
+    /// </summary>
+    private static bool Dug(ResourceType resource) => resource is not (ResourceType.Wood or ResourceType.Ore);
 
     /// <summary>1 si la mine a le dos contre la montagne (2 des 3 cases derrière elle au moins), sinon 0.</summary>
     private int Backed(Cell entrance) => MountainBack(entrance) >= 2 ? 1 : 0;
+
+    /// <summary>
+    /// Pose une mine creusée en <paramref name="entrance"/> : telle quelle si la montagne est déjà derrière elle, sinon en
+    /// dressant derrière elle une petite montagne (un massif dont les cases couvrent au moins deux des trois cases juste
+    /// derrière la mine, sur des cases libres ; choix de l'utilisateur, 2026-11-26 : une mine creusée est toujours au flanc
+    /// d'une montagne). Les cases de la nouvelle montagne ne servent plus à rien d'autre (<see cref="_mineCells"/>).
+    /// </summary>
+    private Mine? TryPlaceDugMine(Cell entrance, ResourceType resource, HashSet<Cell> freeSet, bool guarded = true)
+    {
+        // une mine gardée, un abord dégagé (les deux places de son gardien et la case sous celle d'où l'on entre libres) :
+        // au flanc d'une montagne, elle tombait plus souvent dans un creux étroit où son gardien aurait fermé le chemin
+        if (guarded && (GuardSpotsFor(entrance, freeSet).Count < 2 || !freeSet.Contains(entrance.Offset(0, 2))
+                        || !_map.IsPassable(entrance.Offset(0, 2))))
+            return null;
+        var back = new[] { -1, 0, 1 }.Select(dx => entrance.Offset(dx, -2)).ToHashSet();
+        if (Backed(entrance) == 1)
+        {
+            var placed = TryPlaceMine(entrance, resource, freeSet);
+            if (placed != null)
+                _mineBacks.UnionWith(back);
+            return placed;
+        }
+        var footprint = Mine.FootprintAt(entrance).Append(entrance.Offset(0, 1)).ToHashSet();
+        if (_data == null || !Mine.FootprintAt(entrance).All(freeSet.Contains))
+            return null;
+        bool Raisable(Cell c) =>
+            _map.InBounds(c) && !footprint.Contains(c)
+            && (_map.GetTerrain(c) == TerrainType.Mountain
+                || freeSet.Contains(c) && _map.IsPassable(c) && !_map.HasRoad(c) && _map.GetRiver(c) == RiverKind.None
+                   && !IsSea(c) && !_reserved.Contains(c) && !_keptFree.Contains(c) && !_mineCells.Contains(c)
+                   && _map.OccupantAt(c) == null && !InStartingTown(c) && DistanceToStart(c) > 3);
+        // de préférence un grand sommet, puis une montagne étroite, un morceau de chaîne, un contrefort
+        foreach (var shape in _data.Massifs.All.Where(s => s.Tier >= 1 && s.Ground == TerrainType.Grass)
+                     .OrderByDescending(s => s.Tier).ThenBy(_ => _massifRng.Next()).ToList())
+            foreach (var target in back)
+                foreach (var (dx, dy) in shape.Cells)
+                {
+                    var at = target.Offset(-dx, -dy);
+                    var cells = shape.CellsAt(at).ToList();
+                    if (cells.Count(back.Contains) < 2 || cells.Any(c => c.Y > entrance.Y - 2) || !cells.All(Raisable)
+                        || OverWater(shape, at))
+                        continue;
+                    var raised = cells.Where(c => _map.GetTerrain(c) != TerrainType.Mountain)
+                        .Select(c => (Cell: c, Terrain: _map.GetTerrain(c))).ToList();
+                    foreach (var (c, _) in raised)
+                        _map.SetTerrain(c, TerrainType.Mountain);
+                    if (TryPlaceMine(entrance, resource, freeSet) is { } mine)
+                    {
+                        AddMassif(new MountainMassif(shape.Id, at));
+                        _mineBacks.UnionWith(back);
+                        foreach (var (c, _) in raised)
+                        {
+                            freeSet.Remove(c);
+                            _mineCells.Add(c);
+                        }
+                        return mine;
+                    }
+                    foreach (var (c, terrain) in raised)
+                        _map.SetTerrain(c, terrain);
+                }
+        return null;
+    }
+
+    /// <summary>Les cases juste derrière les mines creusées : leur montagne reste, même petite (<see cref="ForestSmallMountains"/>).</summary>
+    private readonly HashSet<Cell> _mineBacks = new();
 
     /// <summary>Les mines posées dans la zone de départ d'un joueur (bois, minerai, ressource principale) : sans gardien.</summary>
     private readonly HashSet<MapObject> _startZoneMines = new();
@@ -2976,7 +3044,8 @@ public sealed class MapGenerator
     /// <summary>
     /// Les petites taches de montagne (moins de <see cref="MinMountainCells"/> cases qui se touchent, souvent les restes d'une
     /// tache coupée par une ville, une route ou un lieu) deviennent de la forêt (2026-11-17, demandé par l'utilisateur) :
-    /// elle bloque aussi le passage, la partie ne change pas, et des arbres se fondent mieux qu'un sommet isolé.
+    /// elle bloque aussi le passage, la partie ne change pas, et des arbres se fondent mieux qu'un sommet isolé. Sauf la
+    /// montagne d'une mine creusée, adossée à elle.
     /// </summary>
     private void ForestSmallMountains()
     {
@@ -2990,7 +3059,7 @@ public sealed class MapGenerator
                 foreach (var n in Neighbours(group[i]))
                     if (_map.InBounds(n) && _map.GetTerrain(n) == TerrainType.Mountain && seen.Add(n))
                         group.Add(n);
-            if (group.Count < MinMountainCells)
+            if (group.Count < MinMountainCells && !group.Any(_mineBacks.Contains))
                 foreach (var c in group)
                     _map.SetTerrain(c, TerrainType.Forest);
         }
@@ -3193,14 +3262,17 @@ public sealed class MapGenerator
                     free.Where(c => Home(c) && Steps(c) >= 3).OrderBy(c => SquaredDistance(c, start)),
                     free.Where(c => _zones.Count == 0 || !otherStarts.Contains(ZoneAt(c))).OrderBy(c => SquaredDistance(c, start)),
                 };
-                foreach (var spots in tries)
+                // une mine creusée : d'abord au flanc d'une montagne (dressée s'il le faut), sinon n'importe où
+                var placed = (Dug(resource) ? new[] { true, false } : new[] { false })
+                    .SelectMany(dug => tries.Select(spots => (Dug: dug, Spots: spots)))
+                    .Select(t => t.Spots.ThenBy(c => c.Y).ThenBy(c => c.X)
+                        .Select(c => t.Dug ? TryPlaceDugMine(c, resource, freeSet, guarded: false) : TryPlaceMine(c, resource, freeSet))
+                        .FirstOrDefault(m => m != null))
+                    .FirstOrDefault(m => m != null);
+                if (placed != null)
                 {
-                    var placed = spots.ThenBy(c => c.Y).ThenBy(c => c.X).Select(c => TryPlaceMine(c, resource, freeSet)).FirstOrDefault(m => m != null);
-                    if (placed == null)
-                        continue;
                     startMines.Add(resource);
                     _startZoneMines.Add(placed);
-                    break;
                 }
             }
         }
@@ -3219,12 +3291,10 @@ public sealed class MapGenerator
                     ? Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y)) is >= 10 and <= 16
                     : neighbours.Contains(ZoneAt(c).Index) && Math.Max(Math.Abs(c.X - start.X), Math.Abs(c.Y - start.Y)) >= 8)
                 .OrderBy(c => SquaredDistance(c, start)).ThenBy(c => c.Y).ThenBy(c => c.X).ToList();
-            foreach (var cell in spots)
-                if (TryPlaceMine(cell, second, freeSet) is not null)
-                {
-                    startMines.Add(second);
-                    break;
-                }
+            var placed = spots.Select(c => Dug(second) ? TryPlaceDugMine(c, second, freeSet) : null).FirstOrDefault(m => m != null)
+                ?? spots.Select(c => TryPlaceMine(c, second, freeSet)).FirstOrDefault(m => m != null);
+            if (placed != null)
+                startMines.Add(second);
         }
 
         // Une scierie et une mine de minerai près de chaque ville neutre (choix de l'utilisateur, 2026-11-14), dans sa zone
@@ -3325,8 +3395,9 @@ public sealed class MapGenerator
                 .Concat(balanced.Where(c => zoneIndex != null && ZoneOf(c) != zoneIndex)).ToList();
             Mine? mine = null;
             if (Dug(resource))
-                foreach (var c in order.Where(c => (zoneIndex == null || ZoneOf(c) == zoneIndex) && Backed(c) == 1))
-                    if ((mine = TryPlaceMine(c, resource, freeSet)) != null)
+                foreach (var c in order.Where(c => (zoneIndex == null || ZoneOf(c) == zoneIndex) && Backed(c) == 1)
+                             .Concat(order))
+                    if ((mine = TryPlaceDugMine(c, resource, freeSet)) != null)
                         break;
             foreach (var c in order)
             {

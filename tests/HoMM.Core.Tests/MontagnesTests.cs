@@ -47,15 +47,16 @@ public class MontagnesTests
     }
 
     [Fact]
-    public void Les_mines_creusees_s_adossent_souvent_a_une_montagne()
+    public void Les_mines_creusees_s_adossent_a_une_montagne()
     {
-        // comme dans Heroes 3 : une mine (sauf la scierie) au flanc d'une montagne, deux des trois cases juste derrière elle
-        // sont de la montagne ; sur des cartes normales (celle de 54 × 40 n'a plus que 2 × 2 grandes zones, peu de murs)
+        // comme dans Heroes 3 : une mine creusée (or, gemmes, cristal, mercure, soufre) au flanc d'une montagne, deux des trois
+        // cases juste derrière elle sont de la montagne ; sans montagne libre, le générateur en dresse une derrière elle
+        // (choix de l'utilisateur, 2026-11-26) ; la scierie et la mine de minerai se posent n'importe où
         int total = 0, backed = 0;
         foreach (int seed in new[] { 5, 12, 42 })
         {
             var map = new GameState(seed, TestData.Data, MapSize.Normal).Map;
-            foreach (var mine in map.Objects.OfType<Mine>().Where(m => m.Resource != ResourceType.Wood))
+            foreach (var mine in map.Objects.OfType<Mine>().Where(m => m.Resource is not (ResourceType.Wood or ResourceType.Ore)))
             {
                 total++;
                 var e = mine.Position;
@@ -63,9 +64,7 @@ public class MontagnesTests
                     backed++;
             }
         }
-        // 30 % (40 avant le 2026-11-20 : chaque zone a maintenant ses mines, elles ne vont plus toutes où il y a des montagnes ;
-        // et les routes en courbe prennent plus de place au pied des montagnes)
-        Assert.True(backed * 100 >= total * 30, $"{backed} mines adossées sur {total}");
+        Assert.True(backed == total, $"{backed} mines adossées sur {total}");
     }
 
     [Fact]

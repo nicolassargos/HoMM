@@ -734,7 +734,7 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
   **couture qui serpente** là où les deux peintures se ressemblent le plus (`composer_bleues.py`). Un pic coupé net par
   le haut de son calque : `pointe.py` refait la pointe ; des lignes peintes : `effacer_lignes.py` (chaque colonne reprend
   le pixel propre du dessus ou du dessous ; recopier un bloc voisin se voit, rectangle répété). Les montagnes bleues de
-  C2 sont gardées pour la Tour de magie.
+  C2 sont gardées pour les Arcanes.
 - **L'utilisateur retouche à la main** : les calques des montagnes, chaque bâtiment (`peints/<id>.png`, même taille),
   le sol, le décor ; `refaire-a3.bat` puis `refaire-scenes.bat` refont tout. Coût de la scène entière, essais compris :
   environ 6 $.

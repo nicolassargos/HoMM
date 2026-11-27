@@ -69,7 +69,7 @@ dans `HISTORIQUE.md` (« Les factions : conception et chiffres »).
 | **Morts-vivants** | la nécromancie | Nécromancien (Nécromancie) | Colosse d'os → Colosse funèbre | mercure | gemmes |
 | **Barbares** | la horde, la Rage | Barbare (Chef de guerre) | Béhémoth → Béhémoth ancien | soufre | cristal |
 | **Forêt** | tireurs, régénération | Rôdeur (Chasseur) | Troll → Troll ancien | gemmes | cristal |
-| **Tour de magie** | façonnés, bibliothèque des arcanes | Magicien (Érudit) | Géant → Titan | gemmes | mercure |
+| **Arcanes** | façonnés, bibliothèque des arcanes | Magicien (Érudit) | Géant → Titan | gemmes | mercure |
 | **Enfer** | le feu, le prix du sang | Démoniste (Pacte) | Démon → Archidémon | mercure | soufre |
 | **Donjon** | la Terreur | Seigneur des abîmes (Effroi) | Hydre → (à choisir) | soufre | mercure |
 | **Nains** | l'obstination, les runes et le cristal | Thane (Obstination) | Roi de cristal → Roi des ancêtres | cristal | soufre |
@@ -77,7 +77,8 @@ dans `HISTORIQUE.md` (« Les factions : conception et chiffres »).
 ✅ Toutes jouables : créatures et capacités, ville, classe et héros, ville et héros sur la carte ; images des créatures
 (les Nains : 2026-11-16, branche `creatures-nains-images`, des nains caricaturés, chacun le sien, loin des clichés : choix
 de l'utilisateur ; détail dans `HISTORIQUE.md`). La faction neutre garde les monstres de la carte (le Dragon rouge, les
-pirates).
+pirates). La **Tour de magie** devient les **Arcanes** (2026-11-27, choix de l'utilisateur : « tour de magie »
+se lit « tour de passe-passe ») ; son identifiant reste `tour`.
 **Reste** :
 - **Nains, deux créatures remplacées** (choix de l'utilisateur, 2026-11-16) : le **Sapeur** (niveau 5, à la place du
   Lance-flammes : un mineur qui creuse sous le champ, ressort à côté d'un ennemi et frappe le premier, capacité
@@ -189,7 +190,7 @@ amélioration garde la place de son bâtiment, avec sa propre image : 18 places,
 |---|---|---|
 | Morts-vivants | **Cortège funèbre** | après chaque combat gagné par un héros du joueur, où qu'il soit, les morts des deux camps reviennent à la ville : des Squelettes à recruter la semaine suivante |
 | Barbares | **La Marmite** | on y jette de petites créatures, il en sort de plus fortes (4 Gobelins → 1 Orc, 3 Loups → 1 Ogre…) |
-| Tour de magie | **La Tour qui pousse** | un étage de plus par semaine, **5 au plus** (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
+| Arcanes | **La Tour qui pousse** | un étage de plus par semaine, **5 au plus** (visible dans l'image de la ville) ; +1 puissance par étage aux héros qui la visitent |
 | Château | **Les Hérauts** | plus un héros a gagné de combats, plus les monstres neutres proposent de le rejoindre ; héros de taverne moins chers |
 | Nains | **Le Grand Comptoir** ✅ | compte pour 2 marchés de plus (meilleurs taux d'échange) |
 | Donjon | **Tourbillon de mana** ✅ | une fois par semaine, les points de sort d'un héros qui le visite sont doublés |

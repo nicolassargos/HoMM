@@ -5,7 +5,7 @@ using Xunit;
 namespace HoMM.Core.Tests;
 
 /// <summary>
-/// La Tour de magie jouable (étape 2, décidée avec l'utilisateur, 2026-11-09) : ses habitations, la bibliothèque des
+/// Les Arcanes jouables (étape 2, décidée avec l'utilisateur, 2026-11-09) : leurs habitations, la bibliothèque des
 /// arcanes (un sort de plus par niveau de la guilde), la classe Magicien et son talent Érudit.
 /// </summary>
 public class VilleTourTests

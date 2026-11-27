@@ -1285,7 +1285,7 @@ creusée dans la roche autour d'un gouffre qui luit de rose et de violet, `objec
    **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui frappe le sol avec sa colonne
    pourrait toucher une zone (les cases autour de sa cible) : une règle à concevoir avec la session règles.
 
-#### La Tour de magie
+#### Les Arcanes (d'abord « Tour de magie »)
 Décidée avec l'utilisateur (2026-11-09).
 - **Philosophie : le savoir.** Une cité de savants qui lient les esprits et animent la pierre et le métal : des mages,
   des créatures **façonnées** (gargouilles, golems) et des géants gardiens de la Tour.
@@ -2840,7 +2840,7 @@ des profondeurs (glisser vers sa cible, les fissures, peut-être avaler) ; **à 
 ralentissent certaines petites cartes. **À revoir** (idée de l'utilisateur, 2026-11-14) : l'attaque du Géant (Tour) qui
 frappe le sol pourrait toucher une zone : une règle à concevoir avec la session règles.
 
-##### La Tour de magie (jouable)
+##### Les Arcanes (jouables)
 Le savoir : des mages, des créatures **façonnées** (résistent à la magie : moitié des dégâts des sorts, aucun sort
 néfaste) et des géants. Marque : **la bibliothèque des arcanes** (un sort de plus par niveau de guilde). Classe
 **Magicien** (talent Érudit). Créatures : Gnome, Gargouille, Golem de pierre (→ Golem d'airain), Naga, Djinn, Mage

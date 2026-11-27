@@ -186,7 +186,7 @@ public sealed class Town : MapObject
     public static readonly int[] GuildSpellsPerLevel = { 3, 3, 2, 2 };
 
     /// <summary>
-    /// La bibliothèque des arcanes (la marque de la Tour de magie) : la guilde de ses villes offre un sort de plus par
+    /// La bibliothèque des arcanes (la marque des Arcanes) : la guilde de ses villes offre un sort de plus par
     /// niveau (4 sur 5, 4 sur 5, 3 sur 5, 3 sur 3).
     /// </summary>
     public const string ArcaneLibraryFaction = "tour";

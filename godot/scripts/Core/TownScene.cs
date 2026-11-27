@@ -39,7 +39,7 @@ public sealed record TownSceneFloat(int X, int Y, string Image);
 public sealed class TownScene
 {
     private sealed record SceneFile(int Width, int Height, List<TownScenePlace> Buildings, TownScenePlace? Home = null,
-        List<int[]>? Smoke = null);
+        List<int[]>? Smoke = null, List<int[]>? Mist = null, List<int[]>? Bats = null);
 
     public int Width { get; }
     public int Height { get; }
@@ -54,10 +54,20 @@ public sealed class TownScene
     /// </summary>
     public IReadOnlyList<int[]> Smoke { get; }
 
+    /// <summary>
+    /// Des bancs de brume qui glissent sur le sol : [x, y, largeur, hauteur, devant] ; devant = 0 derrière tous les
+    /// bâtiments (au pied de la forêt), 1 devant eux (au ras du sol, au premier plan).
+    /// </summary>
+    public IReadOnlyList<int[]> Mist { get; }
+
+    /// <summary>Des chauves-souris qui volent en boucle : [x, y, rayon en x, rayon en y, nombre], devant tout.</summary>
+    public IReadOnlyList<int[]> Bats { get; }
+
     public TownScene(int width, int height, IEnumerable<TownScenePlace> places, TownScenePlace? home = null,
-        IEnumerable<int[]>? smoke = null)
+        IEnumerable<int[]>? smoke = null, IEnumerable<int[]>? mist = null, IEnumerable<int[]>? bats = null)
     {
         (Width, Height, Places, Home, Smoke) = (width, height, places.ToList(), home, (smoke ?? []).ToList());
+        (Mist, Bats) = ((mist ?? []).ToList(), (bats ?? []).ToList());
         foreach (var twice in Places.GroupBy(p => p.Id).Where(g => g.Count() > 1))
             throw new FormatException($"Scène de ville : le bâtiment {twice.Key} a deux places.");
     }
@@ -65,7 +75,7 @@ public sealed class TownScene
     public static TownScene FromJson(string json)
     {
         var file = GameData.Parse<SceneFile>(json, "scène de ville");
-        return new TownScene(file.Width, file.Height, file.Buildings, file.Home, file.Smoke);
+        return new TownScene(file.Width, file.Height, file.Buildings, file.Home, file.Smoke, file.Mist, file.Bats);
     }
 
     /// <summary>La demeure du héros est montrée tant qu'aucun bâtiment construit n'a de murs (le fort et ses suites).</summary>

@@ -31,9 +31,8 @@ public class SceneVilleTests
     [Fact]
     public void La_scene_des_morts_vivants_couvre_ses_batiments()
     {
-        // le chantier naval reste à peindre (au bord droit, avec un peu d'eau)
         var scene = Scene("morts-vivants");
-        var buildings = TestData.Data.Buildings.OfFaction("morts-vivants").Where(b => b.Id != "chantier-naval").ToList();
+        var buildings = TestData.Data.Buildings.OfFaction("morts-vivants").ToList();
         Assert.Empty(buildings.Where(b => scene.Find(b.Id) == null).Select(b => b.Id));
         Assert.NotNull(scene.Home);
         var shown = scene.Shown(Chain(buildings, buildings.Single(b => b.Id == "capitole"))).ToList();

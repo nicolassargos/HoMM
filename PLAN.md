@@ -346,7 +346,8 @@ refait pièce par pièce (méthode dans `tools/art/METHODE.md`) ; 14 bâtiments 
 forêt et les montagnes repeints. ✅ **Dans le jeu** (2026-11-26 et 27, PR #285 et #289) : la forge en décor, sa
 fumée, la magie de la guilde animée (niveau 4 redessiné par le jeu, niveau 5 peint et animé sur place, ses livres et ses
 crânes en orbite), des chauves-souris et de la brume ; tout tourne sur un même tour de 24 secondes (sauf la magie de la
-guilde 4). **Reste** : le chantier naval au bord droit (un quai, un peu d'eau) ; les habitations améliorées ; d'autres
+guilde 4). ✅ Le chantier naval (2026-11-27) : un quai de planches, un peu d'eau noire et un navire coupé par le bord
+droit, parmi les tombes. **Reste** : les habitations améliorées ; d'autres
 petites animations si l'envie vient (les lanternes, l'orbe de la tour de la liche, des feux follets).
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,
 affiché ×2** sur toute la largeur de l'écran comme tout le pixel art (choix de l'utilisateur, 2026-11-21, avec la

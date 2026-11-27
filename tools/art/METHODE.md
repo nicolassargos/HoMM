@@ -803,6 +803,10 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   dessinées par le jeu, pas peintes. Les chauves-souris en pixels d'art (trois poses d'ailes, le haut éclairé par la
   lune) : sombres sur un ciel presque noir, elles se lisent surtout devant les montagnes et la lune. La brume, un
   shader en quelques paliers de transparence ; une épaisseur fixe sur toute la largeur cache la répétition des voiles.
+- **Le chantier naval des morts-vivants** : peint à sa place par PixelLab (« repeindre » un rectangle de la scène) ;
+  les bords du rectangle restent nets, et repeindre une bande par-dessus en laisse d'autres. Ce qui a marché : faire
+  découper par PixelLab le quai, l'eau et le navire seuls (`retoucher` sans `--fond`), recaler la découpe par
+  corrélation et la poser en bâtiment sur le fond intact : son contour est celui des objets, pas du rectangle.
 - La forge des morts-vivants est **un décor** peint dans le fond (le jeu n'a pas de forge) ; sa fumée, une cheminée de
   la scène (`smoke`), dessinée par `TownSmoke`.
 - Coût du tout : environ 1 € de concept et de fond, le reste en générations de l'abonnement (quelques centaines).

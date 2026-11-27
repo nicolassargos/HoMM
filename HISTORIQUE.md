@@ -3156,8 +3156,11 @@ choix de l'utilisateur) :
   roche d'un seul tenant (PixelLab, 96 × 96 ; recette dans `tools/art/METHODE.md`), `objects/mine-<ressource>-mountain.png` :
   dessinée avec le shader des pentes (le sol de dessous) et sans ombre portée, comme un massif ; choisies par
   l'utilisateur dans le jeu (or s11-1, cristal s33-2, gemmes s11-1, mercure s22-4, soufre s22-3). Les rails de la mine
-  d'or disparaissaient au fondu : `fondre.py --pentes-seules`. **Reste** : parfois une bande de sol entre la mine et le
-  massif élevé derrière elle ; une tache de terre devant certaines entrées ne prend pas la couleur du sable ou de la
+  d'or disparaissaient au fondu : `fondre.py --pentes-seules`. Une bande de sol séparait la mine du massif derrière elle
+  (sous sa roche, 8 à 30 pixels de pente qui prennent la couleur du sol ; la roche de la mine ne monte qu'à son sommet) :
+  un massif dont toute la rangée du bas est juste derrière une mine creusée est dessiné plus bas (`DecorLayer.BehindMineDrop`,
+  la bande de pente et 20 pixels de plus, une case au plus, sur les cases de la mine, qui le recouvre ; branche
+  `mines-ecart`). **Reste** : une tache de terre devant certaines entrées ne prend pas la couleur du sable ou de la
   neige ; les pieds (ombre de contact) des nouvelles images. Une même graine donne une autre carte qu'avant.
 - ✅ **Les montagnes au bord de deux sols** (2026-11-17, branche `montagnes-deux-sols`) : choisir le jeu d'images d'après
   le sol devant le pied de chaque massif ne suffisait pas (une image n'a qu'un sol : fausse d'un côté de la frontière). À

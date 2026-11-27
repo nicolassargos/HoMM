@@ -799,6 +799,10 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   trous) : la découper par PixelLab (« keep only the … tower ; everything else becomes background », sans `--fond`),
   recaler la découpe par corrélation, garder les couleurs de la peinture, celles de PixelLab seulement là où elles
   s'en écartent beaucoup (les racines qu'il ajoute au pied).
+- **Chauves-souris et brume** (`TownBats`, `TownMist`, `bats` et `mist` dans `scene.json`, écrits par `jeu.py`) :
+  dessinées par le jeu, pas peintes. Les chauves-souris en pixels d'art (trois poses d'ailes, le haut éclairé par la
+  lune) : sombres sur un ciel presque noir, elles se lisent surtout devant les montagnes et la lune. La brume, un
+  shader en quelques paliers de transparence ; une épaisseur fixe sur toute la largeur cache la répétition des voiles.
 - La forge des morts-vivants est **un décor** peint dans le fond (le jeu n'a pas de forge) ; sa fumée, une cheminée de
   la scène (`smoke`), dessinée par `TownSmoke`.
 - Coût du tout : environ 1 € de concept et de fond, le reste en générations de l'abonnement (quelques centaines).

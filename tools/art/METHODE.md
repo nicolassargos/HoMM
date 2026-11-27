@@ -734,7 +734,7 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
   **couture qui serpente** là où les deux peintures se ressemblent le plus (`composer_bleues.py`). Un pic coupé net par
   le haut de son calque : `pointe.py` refait la pointe ; des lignes peintes : `effacer_lignes.py` (chaque colonne reprend
   le pixel propre du dessus ou du dessous ; recopier un bloc voisin se voit, rectangle répété). Les montagnes bleues de
-  C2 sont gardées pour la Tour de magie.
+  C2 sont gardées pour les Arcanes.
 - **L'utilisateur retouche à la main** : les calques des montagnes, chaque bâtiment (`peints/<id>.png`, même taille),
   le sol, le décor ; `refaire-a3.bat` puis `refaire-scenes.bat` refont tout. Coût de la scène entière, essais compris :
   environ 6 $.
@@ -1041,6 +1041,9 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   l'herbe), et les couleurs de la ville écrites dans la description (« jagged snow-capped mountain peaks… grey-blue rock
   with warm tan and brown slopes… lush rolling green hills… round trees… wildflowers… rich saturated colours »). Deux
   graines, 8 images, toutes dans le bon style ; montrées en vraies captures de l'écran de ville (page de choix).
+  Pour les morts-vivants (2026-11-27), la même recette marche la nuit : le paysage du Château comme modèle (la
+  composition), un morceau du fond de leur ville comme style (`fond.crop((180, 30, 283, 150))`), et la nuit dans la
+  description (lune, montagnes enneigées, forêt morte, brume, tombes) ; graines 3 et 7, choisie la 3-2.
 - **Le solde PixelLab est partagé entre les sessions** (2026-11-09) : pour connaître le prix d'un lot, lire le `solde`
   juste avant et juste après (une autre session peut générer en même temps). `pixellab.py pro` à 32 × 32 (64 icônes) :
   0,08 $ le lot, vérifié.

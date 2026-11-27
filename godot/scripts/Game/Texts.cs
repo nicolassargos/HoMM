@@ -1442,7 +1442,7 @@ public static class Texts
         "chateau" => "Château",
         "morts-vivants" => "Morts-vivants",
         "foret" => "Forêt",
-        "tour" => "Tour de magie",
+        "tour" => "Arcanes",
         _ => Capitalize(faction),
     };
 

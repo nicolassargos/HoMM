@@ -436,6 +436,7 @@
   "objects/town-morts-vivants": {"pieds": [[[17, 113], [143, 113]]], "verifie": true},
   "objects/town-nains": {"pieds": [[[14, 102], [79, 110]], [[145, 102], [83, 111]]], "verifie": true, "opacite": 0.8},
   "objects/town-tour": {"pieds": [[[16, 90], [67, 111]], [[68, 111], [92, 111]], [[94, 113], [143, 85]]], "verifie": true, "opacite": 0.9},
-  "objects/water-wheel": {"pieds": [[[23, 34], [47, 42]]], "verifie": true, "opacite": 0.7},
+  "objects/water-wheel": {"pieds": [[[7, 59], [64, 66]]], "verifie": false, "opacite": 0.7},
+  "objects/water-wheel-left": {"pieds": [[[15, 66], [72, 59]]], "verifie": false, "opacite": 0.7},
   "objects/windmill": {"pieds": [[[10, 57], [36, 57]]], "verifie": true, "opacite": 0.7}
 }

@@ -741,7 +741,7 @@ et PixelLab **peint chaque rendu** sans en changer la forme. Scripts et essais :
 
 ### Morts-vivants : peinte dans le concept, pièce par pièce (2026-11-25 et 26)
 Pas de maquette 3D cette fois : le concept choisi (`v1-41`, 792 × 241) est la scène, défaite puis refaite. Scripts et
-essais : `art-candidats/en-cours/ville-morts-vivants-scene/` (`batiments/` pour la suite). Abonnement PixelLab « Pixel
+essais : `art-candidats/archives/2026-11-27-ville-morts-vivants-scene/ville-morts-vivants-scene/` (`batiments/` pour la suite). Abonnement PixelLab « Pixel
 Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une dizaine, rien en dollars.
 - **Le fond vide** : PixelLab retire chaque bâtiment dans un recadrage, de l'avant vers l'arrière (`retirer.py`) ; la
   découpe est ce qui a changé. Un bâtiment peut dépasser sa boîte de 12 px ; ses morceaux doivent être surtout dedans.

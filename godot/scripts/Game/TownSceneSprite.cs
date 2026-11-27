@@ -25,14 +25,15 @@ void fragment() {
     vec4 color = texture(TEXTURE, UV);
     if (glow && color.a > 0.5 && color.g > color.r + 0.137 && color.g > color.b + 0.078) {
         vec2 p = floor(UV / TEXTURE_PIXEL_SIZE);
-        // dans un anneau, la lumière tourne ; ailleurs (les rubans), elle monte en tournant autour de la tour
-        float wave = sin(p.y * 0.28 + atan(1.0, (p.x - glow_axis) / 18.0) * 2.0 + TIME * 3.0);
+        // dans un anneau, la lumière tourne ; ailleurs (les rubans), elle monte en tournant autour de la tour ;
+        // des tours de 2 et 3 secondes : tout revient au même instant à chaque tour de l'orbite (TownMagic, 24 secondes)
+        float wave = sin(p.y * 0.28 + atan(1.0, (p.x - glow_axis) / 18.0) * 2.0 + TIME * PI);
         for (int i = 0; i < glow_ring_count; i++) {
             vec4 r = glow_rings[i];
             vec2 q = (p - r.xy) / (r.zw + vec2(3.0, 5.0));
             float d = dot(q, q);
             if (d > 0.35 && d < 1.4)
-                wave = sin(atan((p.y - r.y) / r.w, (p.x - r.x) / r.z) * 3.0 - TIME * 2.2);
+                wave = sin(atan((p.y - r.y) / r.w, (p.x - r.x) / r.z) * 3.0 - TIME * TAU / 3.0);
         }
         color.rgb = min(color.rgb * (0.72 + 0.5 * pow(clamp(wave, 0.0, 1.0), 2.0)), vec3(1.0));
     }

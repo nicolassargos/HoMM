@@ -792,6 +792,13 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   livres et crânes en orbite **dessinés à la main** (8 px : ceux de la peinture étaient illisibles seuls). Voir
   l'animation dans le jeu : `--write-movie <dossier>/f.png --fixed-fps 10 --quit-after 100` (avec `--town`, une
   `--capture` lointaine : `--capture-delay=60`), puis un GIF.
+- **Une animation qui boucle** : chaque mouvement d'une même scène tourne en un temps qui divise celui du plus lent
+  (la guilde 5 : l'orbite en 24 s, les cristaux en 3 et 4 s, la lueur peinte en 2 et 3 s). Le GIF d'un tour entier
+  revient alors pile à son début ; le vérifier en comparant la première image et celle d'un tour plus loin.
+- Une étape découpée **par différence** avec le fond perd ses pierres proches du fond (la guilde 3 : traînées bleues,
+  trous) : la découper par PixelLab (« keep only the … tower ; everything else becomes background », sans `--fond`),
+  recaler la découpe par corrélation, garder les couleurs de la peinture, celles de PixelLab seulement là où elles
+  s'en écartent beaucoup (les racines qu'il ajoute au pied).
 - La forge des morts-vivants est **un décor** peint dans le fond (le jeu n'a pas de forge) ; sa fumée, une cheminée de
   la scène (`smoke`), dessinée par `TownSmoke`.
 - Coût du tout : environ 1 € de concept et de fond, le reste en générations de l'abonnement (quelques centaines).

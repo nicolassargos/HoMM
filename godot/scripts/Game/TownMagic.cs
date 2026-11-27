@@ -18,6 +18,9 @@ public partial class TownMagic : Control
     private static readonly Color Edge = new(0.5f, 0.82f, 0.56f), Glyph = new(0.7f, 0.97f, 0.68f),
         Band = new(0.16f, 0.4f, 0.22f, 0.75f), Ribbon = new(0.6f, 0.95f, 0.62f), RibbonTail = new(0.32f, 0.66f, 0.4f);
     private const float Back = 0.55f;  // la clarté de ce qui passe derrière la tour
+    // un tour de l'orbite ; les cristaux flottent en 4 secondes et respirent en 3 (la lueur peinte du shader, en 2 et
+    // 3) : tout revient au même instant à chaque tour, l'animation boucle sans saut
+    private const float OrbitTime = 24;
 
     private readonly TownSceneMagic _magic;
     private readonly bool _front;
@@ -52,14 +55,14 @@ public partial class TownMagic : Control
             foreach (var (f, n) in (_magic.Floats ?? new()).Select((f, n) => (f, n)))
             {
                 // le cristal monte et descend d'un pixel ou deux, sa lueur respire
-                float bob = MathF.Round(1.5f * MathF.Sin(_time * 1.6f + n * 2.1f));
-                float glow = 0.92f + 0.14f * MathF.Sin(_time * 2.3f + n * 1.3f);
+                float bob = MathF.Round(1.5f * MathF.Sin(_time * MathF.Tau / 4 + n * 2.1f));
+                float glow = 0.92f + 0.14f * MathF.Sin(_time * MathF.Tau / 3 + n * 1.3f);
                 Image(_images[f.Image], new Vector2(f.X, f.Y + bob), new Color(glow, glow, glow));
             }
         if (_magic.Orbit is { } o && _magic.Orbiters is { Count: > 0 } orbiters)
             for (int k = 0; k < orbiters.Count; k++)
             {
-                float a = _time * MathF.Tau / 24f + k * MathF.Tau / orbiters.Count;
+                float a = _time * MathF.Tau / OrbitTime + k * MathF.Tau / orbiters.Count;
                 bool front = MathF.Sin(a) > 0;
                 if (front != _front)
                     continue;

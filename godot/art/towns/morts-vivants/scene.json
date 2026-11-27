@@ -50,11 +50,9 @@
   },
   {
    "id": "guilde-mages-3",
-   "x": 351,
+   "x": 348,
    "y": 1,
-   "depth": 88.0,
-   "shadowX": 352,
-   "shadowY": 9
+   "depth": 88.0
   },
   {
    "id": "guilde-mages-4",

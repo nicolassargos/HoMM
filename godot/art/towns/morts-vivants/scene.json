@@ -231,11 +231,11 @@
   },
   {
    "id": "taverne",
-   "x": 384,
+   "x": 388,
    "y": 159,
    "depth": 28.0,
    "shadowX": 384,
-   "shadowY": 199,
+   "shadowY": 172,
    "frontX": 379,
    "frontY": 246
   },

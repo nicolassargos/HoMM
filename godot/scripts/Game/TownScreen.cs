@@ -524,6 +524,9 @@ public partial class TownScreen : CanvasLayer
         var shown = scene.Shown(town.BuiltBuildings).ToList();
         foreach (var (building, place) in shown.Where(s => s.Place.ShadowX != null))
             _buildingShadows[building.Id] = Layer(place.Id + "-ombre", place.ShadowX!.Value, place.ShadowY!.Value);
+        // la fumée des cheminées du fond, dessinée par le jeu, derrière les bâtiments
+        foreach (var chimney in scene.Smoke)
+            _sceneLayer.AddChild(new TownSmoke(chimney[0] * 31 + chimney[1]) { Position = new Vector2(chimney[0], chimney[1]) * ArtScale });
         // avant le fort, la demeure du héros à sa place, à sa profondeur parmi les bâtiments ; un clic : recruter (toutes
         // les habitations, comme le fort et ses suites)
         var home = scene.HomeShown(town.BuiltBuildings) ? scene.Home : null;
@@ -534,11 +537,16 @@ public partial class TownScreen : CanvasLayer
                 ShowHome(home);
                 home = null;
             }
+            // sa magie animée : ce qui passe derrière lui d'abord, le reste après lui
+            if (place.Magic != null)
+                _sceneLayer.AddChild(new TownMagic(place.Magic, false, n => Art.Get(folder + n)!));
             var sprite = new TownSceneSprite(Art.GetImage(folder + place.Id)!)
             {
                 Position = new Vector2(place.X, place.Y) * ArtScale, TooltipText = Texts.BuildingTooltip(town, building),
             };
             sprite.GuiInput += e => ClickBuilding(e, town, building);
+            if (place.Magic?.GlowAxis is { } axis)
+                sprite.Glow(new Vector2(place.X, place.Y), axis, place.Magic.GlowRings ?? new());
             _sceneLayer.AddChild(sprite);
             _buildingBoxes[building.Id] = sprite;
             // le décor qui passe devant lui, tout de suite : les bâtiments plus proches le couvrent encore
@@ -546,6 +554,8 @@ public partial class TownScreen : CanvasLayer
                 Layer(place.Id + "-devant", place.FrontX.Value, place.FrontY!.Value);
             foreach (var (rune, n) in (place.Runes ?? new()).Select((r, n) => (r, n)))
                 Float(Layer($"rune-{rune[2]}", rune[0], rune[1]), n);
+            if (place.Magic != null)
+                _sceneLayer.AddChild(new TownMagic(place.Magic, true, n => Art.Get(folder + n)!));
         }
         if (home != null)
             ShowHome(home);

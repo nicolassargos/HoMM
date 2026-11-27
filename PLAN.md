@@ -340,6 +340,12 @@ la guilde (des runes de lumière qui dérivent autour), des bâtiments repeints 
 être au premier plan : le sol y est plus haut que le bas du cadre) ; caché quand la Commanderie est bâtie.
 **Reste** pour le Château : les habitations améliorées (plus tard, avec les créatures améliorées) ; l'onglet du nom qui cache le bas du milieu de la
 scène. Puis les sept autres factions (les morts-vivants d'abord).
+✅ **La scène des morts-vivants peinte** (2026-11-25 et 26, branche `ville-morts-vivants-scene`) : le concept défait puis
+refait pièce par pièce (méthode dans `tools/art/METHODE.md`) ; 14 bâtiments repeints, les quatre étapes du château
+(demeure, fort, citadelle, château fort), la guilde de 1 à 5 niveaux, la salle du village jusqu'au capitole, le sol, la
+forêt et les montagnes repeints. **Reste** : la mettre dans le jeu ; la fumée de la forge dessinée et animée par le
+jeu, puis d'autres petites animations ; le chantier naval au bord droit (un quai, un peu d'eau) ; les habitations
+améliorées ; peut-être la brume verte d'un essai de la guilde 3.
 Conçue avec l'utilisateur (2026-11-07). Chaque faction a sa **scène** (`art/towns/<faction>/` : un fond de **960 × 270,
 affiché ×2** sur toute la largeur de l'écran comme tout le pixel art (choix de l'utilisateur, 2026-11-21, avec la
 disposition de l'écran ; d'abord 640 × 195 à ×3, puis 960 × 292), et `scene.json` : pour chaque bâtiment, son pied, sa profondeur et son image `<id>.png`) ; chaque

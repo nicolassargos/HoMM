@@ -1,0 +1,279 @@
+{
+ "width": 960,
+ "height": 270,
+ "buildings": [
+  {
+   "id": "chateau-fort",
+   "x": 415,
+   "y": 4,
+   "depth": 200.0,
+   "shadowX": 415,
+   "shadowY": 139
+  },
+  {
+   "id": "citadelle",
+   "x": 415,
+   "y": 26,
+   "depth": 200.0,
+   "shadowX": 418,
+   "shadowY": 139
+  },
+  {
+   "id": "fort",
+   "x": 422,
+   "y": 33,
+   "depth": 200.0,
+   "shadowX": 417,
+   "shadowY": 139
+  },
+  {
+   "id": "charnier",
+   "x": 722,
+   "y": 102,
+   "depth": 98.0
+  },
+  {
+   "id": "guilde-mages-1",
+   "x": 351,
+   "y": 51,
+   "depth": 88.0,
+   "shadowX": 386,
+   "shadowY": 149
+  },
+  {
+   "id": "guilde-mages-2",
+   "x": 351,
+   "y": 12,
+   "depth": 88.0,
+   "shadowX": 352,
+   "shadowY": 20
+  },
+  {
+   "id": "guilde-mages-3",
+   "x": 348,
+   "y": 1,
+   "depth": 88.0
+  },
+  {
+   "id": "guilde-mages-4",
+   "x": 355,
+   "y": 1,
+   "depth": 88.0,
+   "shadowX": 350,
+   "shadowY": 9,
+   "magic": {
+    "rings": [
+     [
+      382,
+      114,
+      24,
+      8,
+      5
+     ]
+    ],
+    "swirls": [
+     [
+      382,
+      38,
+      104,
+      15,
+      20
+     ]
+    ],
+    "floats": [
+     {
+      "x": 356,
+      "y": 39,
+      "image": "magie-4-cristal-1"
+     },
+     {
+      "x": 396,
+      "y": 15,
+      "image": "magie-4-cristal-2"
+     },
+     {
+      "x": 399,
+      "y": 39,
+      "image": "magie-4-cristal-3"
+     },
+     {
+      "x": 367,
+      "y": 87,
+      "image": "magie-4-cristal-4"
+     }
+    ]
+   }
+  },
+  {
+   "id": "guilde-mages-5",
+   "x": 343,
+   "y": 1,
+   "depth": 88.0,
+   "shadowX": 343,
+   "shadowY": 9,
+   "magic": {
+    "orbit": [
+     385,
+     47,
+     42,
+     17
+    ],
+    "glowAxis": 382,
+    "glowRings": [
+     [
+      382,
+      114,
+      24,
+      8
+     ],
+     [
+      383,
+      158,
+      34,
+      13
+     ]
+    ],
+    "floats": [
+     {
+      "x": 356,
+      "y": 39,
+      "image": "magie-5-cristal-1"
+     },
+     {
+      "x": 396,
+      "y": 15,
+      "image": "magie-5-cristal-2"
+     },
+     {
+      "x": 399,
+      "y": 39,
+      "image": "magie-5-cristal-3"
+     }
+    ],
+    "orbiters": [
+     "magie-5-livre-1",
+     "magie-5-crane-1",
+     "magie-5-livre-2",
+     "magie-5-livre-3",
+     "magie-5-crane-2"
+    ]
+   }
+  },
+  {
+   "id": "tour-liche",
+   "x": 164,
+   "y": 11,
+   "depth": 80.0
+  },
+  {
+   "id": "crypte",
+   "x": 264,
+   "y": 128,
+   "depth": 73.0
+  },
+  {
+   "id": "capitole",
+   "x": 519,
+   "y": 41,
+   "depth": 58.0
+  },
+  {
+   "id": "cortege-funebre",
+   "x": 689,
+   "y": 128,
+   "depth": 58.0,
+   "shadowX": 732,
+   "shadowY": 167
+  },
+  {
+   "id": "grand-hotel-ville",
+   "x": 519,
+   "y": 75,
+   "depth": 58.0
+  },
+  {
+   "id": "hotel-ville",
+   "x": 522,
+   "y": 89,
+   "depth": 58.0
+  },
+  {
+   "id": "salle-village",
+   "x": 539,
+   "y": 119,
+   "depth": 58.0,
+   "shadowX": 509,
+   "shadowY": 166
+  },
+  {
+   "id": "ossuaire",
+   "x": 298,
+   "y": 137,
+   "depth": 44.0,
+   "shadowX": 272,
+   "shadowY": 195
+  },
+  {
+   "id": "etang-noyees",
+   "x": 775,
+   "y": 160,
+   "depth": 38.0,
+   "shadowX": 774,
+   "shadowY": 196
+  },
+  {
+   "id": "taverne",
+   "x": 384,
+   "y": 159,
+   "depth": 28.0,
+   "shadowX": 384,
+   "shadowY": 199,
+   "frontX": 379,
+   "frontY": 246
+  },
+  {
+   "id": "antre-araignees",
+   "x": 77,
+   "y": 137,
+   "depth": 25.0,
+   "shadowX": 45,
+   "shadowY": 194
+  },
+  {
+   "id": "marche",
+   "x": 505,
+   "y": 206,
+   "depth": 22.0
+  },
+  {
+   "id": "cimetiere",
+   "x": 187,
+   "y": 195,
+   "depth": 18.0,
+   "shadowX": 165,
+   "shadowY": 237
+  },
+  {
+   "id": "silo",
+   "x": 715,
+   "y": 195,
+   "depth": 0.0,
+   "shadowX": 697,
+   "shadowY": 234
+  }
+ ],
+ "smoke": [
+  [
+   676,
+   133
+  ]
+ ],
+ "home": {
+  "id": "demeure",
+  "x": 484,
+  "y": 33,
+  "depth": 200.0,
+  "shadowX": 466,
+  "shadowY": 139
+ }
+}

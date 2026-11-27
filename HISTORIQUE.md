@@ -2600,6 +2600,28 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   hauteur est celle de l'image (×2) ; le centre prend le sombre des panneaux. Le nom, le revenu et la construction
   du jour et les flèches d'une ville à l'autre y tiennent sur une ligne. À cheval sur le bas de la vue, moitié sur
   l'image, moitié sur les places des troupes (idée de l'utilisateur), par-dessus elles mais sous les fenêtres.
+- ✅ **La revue de toutes les captures** (2026-11-27, branche `revue-interface`) : `tools/captures.py` prend aussi
+  la ville des morts-vivants, le marché, les onglets Compétences et Magie du héros, les arbres de compétences, l'offre
+  de la Diplomatie, les options du combat et Recruter sur une habitation à bâtir (35 écrans) ; une page où l'on écrit
+  une remarque par écran (`page_choix.py`, archivée avec ses réponses dans `art-candidats/archives/`). Remarques de
+  l'utilisateur, en bref : bons tels quels l'onglet Magie, la ville (et celle des morts-vivants), Recruter, la taverne,
+  la guilde, la vitrine du combat ; à reprendre dans une session chacun la carte (et le pont qui ne suit pas les
+  chemins), l'écran du héros (portrait en pied, artefacts, onglets, caractéristiques, icônes et arbre des
+  compétences), le royaume, Construire, le marché, la carte au trésor, la barre du combat (boutons sur le bord, pas
+  d'accès au menu ni pour quitter, héros ennemi petit), la fin de partie (musique, image), des icônes des
+  caractéristiques, Recruter sur une habitation à bâtir (montrer le bâtiment). La liste est dans `PLAN.md`.
+  - **La passe commune sur les fenêtres**, faite tout de suite : de l'air dans les petites fenêtres (`GameDialog` :
+    la marge de `WindowMargin`, 48 pixels, au lieu de 36, à peine le bord du cadre) ; **fermer en bas** : les fenêtres
+    de la ville ont une rangée du bas avec l'icône Annuler (`OpenWindow`, `closeButton`), Nouvelle partie et
+    Charger / Sauvegarder aussi (`ScreenWindow.BuildFrame`, `padded` : le contenu décalé de l'air en plus, l'icône
+    posée par la fenêtre, `CloseIcon`) ; l'écran du héros et le royaume gardent « Fermer » en haut en attendant leur
+    session. Les lignes des sauvegardes en **boutons discrets** (la ligne choisie s'éclaire, un trait d'or :
+    `MarkSelected`). La **Diplomatie** sans titre, centrée, ses choix en boutons à icône (`recruter`, `fuir`, `auto` ;
+    le texte au survol) ; la **fin de partie** sans titre. Les fenêtres sans titre n'affichent plus le « Alert! » de
+    Godot. La liste de Construire raccourcie pour sa rangée du bas.
+  - **Le coffre et l'attaque d'un adversaire** centrés comme la Diplomatie, en boutons larges : l'icône en haut au milieu,
+    le texte dessous (`IconButtons.MakeWide`) : quatre icônes nouvelles (`or`, `experience`, `tactique`, `rapide` ; PixelLab,
+    voir `tools/art/METHODE.md`). Le choix avant un combat contre un héros prend la même fenêtre.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

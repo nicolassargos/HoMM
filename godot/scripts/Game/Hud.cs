@@ -750,7 +750,7 @@ public partial class Hud : CanvasLayer
         var player = _state.Players[0];
         var dialog = new GameDialog
         {
-            Title = Texts.GameOverTitle, OkButtonText = Texts.MainMenuButton, Exclusive = true, Unresizable = true,
+            OkButtonText = Texts.MainMenuButton, Exclusive = true, Unresizable = true, // sans titre : « Victoire ! » le dit
         };
         dialog.AddButton(Texts.ReviewMapButton, false, "review");
         var content = new VBoxContainer { CustomMinimumSize = V(520, 0) };
@@ -949,17 +949,14 @@ public partial class Hud : CanvasLayer
     public void ShowDefenseChoice(string attacker, string? town, Action tactical, Action quick) =>
         ShowBattleChoice(attacker, tactical, quick, Texts.DefenseChoiceTitle, Texts.DefenseChoiceText(attacker, town));
 
+    /// <summary>
+    /// Diriger le combat ou le combat rapide : le texte centré, deux boutons larges, l'icône et le texte (remarques de
+    /// l'utilisateur, 2026-11-27). Fermer la fenêtre, c'est le diriger.
+    /// </summary>
     public void ShowBattleChoice(string opponent, Action tactical, Action quick, string? title = null, string? text = null) => Enqueue(done =>
     {
-        var dialog = new GameDialog
-        {
-            Title = title ?? Texts.BattleChoiceTitle,
-            DialogText = text ?? Texts.BattleChoiceText(opponent),
-            OkButtonText = Texts.TacticalButton,
-            Exclusive = true,
-            Unresizable = true,
-        };
-        dialog.AddButton(Texts.QuickButton, false, "quick");
+        var dialog = new GameDialog { Title = title ?? Texts.BattleChoiceTitle, Exclusive = true, Unresizable = true };
+        dialog.GetOkButton().Hide();
         bool chosen = false;
         void Choose(Action then)
         {
@@ -970,9 +967,20 @@ public partial class Hud : CanvasLayer
             done();
             then();
         }
-        dialog.Confirmed += () => Choose(tactical);
+        var content = new VBoxContainer();
+        content.AddThemeConstantOverride("separation", (int)Px(12));
+        var intro = MakeLabel(text ?? Texts.BattleChoiceText(opponent), 15, TextColor);
+        intro.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        intro.HorizontalAlignment = HorizontalAlignment.Center;
+        intro.CustomMinimumSize = V(380, 0);
+        content.AddChild(intro);
+        var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        buttons.AddThemeConstantOverride("separation", (int)ButtonGap);
+        buttons.AddChild(IconButtons.MakeWide("tactique", Texts.TacticalButton, Px(170), () => Choose(tactical)));
+        buttons.AddChild(IconButtons.MakeWide("rapide", Texts.QuickButton, Px(170), () => Choose(quick)));
+        content.AddChild(buttons);
+        dialog.AddChild(content);
         dialog.Canceled += () => Choose(tactical);
-        dialog.CustomAction += _ => Choose(quick);
         AddChild(dialog);
         dialog.PopupCentered(new Vector2I((int)Px(480), 0));
     });
@@ -1179,33 +1187,26 @@ public partial class Hud : CanvasLayer
             dialog.QueueFree();
             done();
         }
+        // tout centré, comme la Diplomatie : le héros, le texte, puis les deux choix, l'icône et ce qu'ils rapportent
         var content = new VBoxContainer();
-        content.AddThemeConstantOverride("separation", (int)Px(10));
-        var top = new HBoxContainer();
-        top.AddThemeConstantOverride("separation", (int)Px(12));
+        content.AddThemeConstantOverride("separation", (int)Px(12));
         if (Art.Portrait(chest.Hero.Name) is { } portrait)
-            top.AddChild(new TextureRect
+            content.AddChild(new TextureRect
             {
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
                 TextureFilter = CanvasItem.TextureFilterEnum.Nearest, Texture = portrait,
                 CustomMinimumSize = new Vector2(128, 128), // le portrait ×2
+                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
             });
         var intro = MakeLabel(Texts.ChestText(chest), 15, TextColor);
         intro.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        intro.CustomMinimumSize = V(340, 0);
-        intro.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-        top.AddChild(intro);
-        content.AddChild(top);
+        intro.HorizontalAlignment = HorizontalAlignment.Center;
+        intro.CustomMinimumSize = V(380, 0);
+        content.AddChild(intro);
         var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
-        buttons.AddThemeConstantOverride("separation", (int)Px(10));
-        foreach (var (gold, text) in new[] { (true, Texts.ChestGold(chest.Chest)), (false, Texts.ChestExperience(chest.Chest)) })
-        {
-            var button = MakeButton(text, 16);
-            Sized(button, Px(230), LargeButtonHeight);
-            bool picked = gold;
-            button.Pressed += () => Choose(picked);
-            buttons.AddChild(button);
-        }
+        buttons.AddThemeConstantOverride("separation", (int)ButtonGap);
+        buttons.AddChild(IconButtons.MakeWide("or", Texts.ChestGold(chest.Chest), Px(170), () => Choose(true)));
+        buttons.AddChild(IconButtons.MakeWide("experience", Texts.ChestExperience(chest.Chest), Px(170), () => Choose(false)));
         content.AddChild(buttons);
         dialog.AddChild(content);
         dialog.Canceled += () => Choose(true);
@@ -1215,11 +1216,12 @@ public partial class Hud : CanvasLayer
 
     /// <summary>
     /// Un gardien propose de rejoindre le héros (Diplomatie) ou s'enfuit : la troupe, ce qu'elle propose, et les choix
-    /// possibles (accepter, les laisser partir, combattre ou les poursuivre). Fermer la fenêtre, c'est combattre.
+    /// possibles (accepter, les laisser partir, combattre ou les poursuivre). Fermer la fenêtre, c'est combattre. Sans
+    /// titre, tout centré, les choix en boutons à icône (leur texte au survol ; remarques de l'utilisateur, 2026-11-27).
     /// </summary>
     public void ShowEncounter(GuardEncounter encounter, Action<EncounterChoice> choose) => Enqueue(done =>
     {
-        var dialog = new GameDialog { Title = Texts.EncounterTitle(encounter), Exclusive = true, Unresizable = true };
+        var dialog = new GameDialog { Exclusive = true, Unresizable = true };
         dialog.GetOkButton().Hide();
         bool chosen = false;
         void Choose(EncounterChoice choice)
@@ -1231,39 +1233,36 @@ public partial class Hud : CanvasLayer
             dialog.QueueFree();
             done();
         }
+        // la troupe en haut, au milieu, puis ce qu'elle propose, puis les choix
         var content = new VBoxContainer();
-        content.AddThemeConstantOverride("separation", (int)Px(10));
-        var top = new HBoxContainer();
-        top.AddThemeConstantOverride("separation", (int)Px(12));
+        content.AddThemeConstantOverride("separation", (int)Px(12));
         var stack = new CreatureStack(encounter.Guard.Type, encounter.Guard.Count);
         if (CreaturePicture(stack.Type, new Rect2(Vector2.Zero, V(120, 120))) is { } picture)
         {
-            var frame = new Panel { CustomMinimumSize = V(120, 120) };
+            var frame = new Panel { CustomMinimumSize = V(120, 120), SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter };
             frame.AddThemeStyleboxOverride("panel", Inset(DarkPanelColor));
             frame.AddChild(picture);
-            top.AddChild(frame);
+            content.AddChild(frame);
         }
         var intro = MakeLabel(Texts.EncounterText(encounter), 15, TextColor);
         intro.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        intro.HorizontalAlignment = HorizontalAlignment.Center;
         intro.CustomMinimumSize = V(380, 0);
-        intro.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-        top.AddChild(intro);
-        content.AddChild(top);
+        content.AddChild(intro);
         var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
-        buttons.AddThemeConstantOverride("separation", (int)Px(10));
-        void Add(string text, EncounterChoice choice, bool enabled = true)
+        buttons.AddThemeConstantOverride("separation", (int)ButtonGap);
+        void Add(string icon, string text, EncounterChoice choice, bool enabled = true)
         {
-            var button = MakeButton(text, 15);
-            Sized(button, Px(170), LargeButtonHeight);
+            var button = IconButtons.Make(icon, text, "", () => Choose(choice));
             button.Disabled = !enabled;
-            button.Pressed += () => Choose(choice);
+            IconButtons.Dim(new[] { button });
             buttons.AddChild(button);
         }
         if (encounter.Offer is { } offer)
-            Add(Texts.EncounterJoin(encounter), EncounterChoice.Join, offer.CanAccept);
+            Add("recruter", Texts.EncounterJoin(encounter), EncounterChoice.Join, offer.CanAccept);
         if (encounter.Flees)
-            Add(Texts.EncounterLetFlee, EncounterChoice.LetFlee);
-        Add(Texts.EncounterFight(encounter), EncounterChoice.Fight);
+            Add("fuir", Texts.EncounterLetFlee, EncounterChoice.LetFlee);
+        Add("auto", Texts.EncounterFight(encounter), EncounterChoice.Fight);
         content.AddChild(buttons);
         dialog.AddChild(content);
         dialog.Canceled += () => Choose(EncounterChoice.Fight);

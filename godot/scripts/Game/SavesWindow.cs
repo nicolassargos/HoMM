@@ -34,7 +34,7 @@ public partial class SavesWindow : ScreenWindow
     public void Build(Vector2 screenSize, bool overMenu = false)
     {
         _size = V(760, 540);
-        BuildFrame(screenSize, new Rect2((screenSize - _size) / 2, _size), veilAll: overMenu);
+        BuildFrame(screenSize, new Rect2((screenSize - _size) / 2, _size), veilAll: overMenu, padded: true);
         Layer = 8; // au-dessus de tout (aussi du menu principal)
 
         _nameLabel = At(MakeLabel(Texts.SaveNameLabel, 15, SoftTextColor), 20, 62);
@@ -57,13 +57,18 @@ public partial class SavesWindow : ScreenWindow
         _rows.AddThemeConstantOverride("separation", (int)Px(4));
         scroll.AddChild(_rows);
 
+        // en bas : Supprimer à gauche ; à droite Charger (ou Sauvegarder) et l'icône qui ferme
+        var close = CloseIcon();
+        close.Position = new Vector2(_size.X - Px(20) - IconButtonSide, _size.Y - Px(16) - IconButtonSide);
+        Window.AddChild(close);
+        float rowY = close.Position.Y + SnapDown((IconButtonSide - ButtonHeight) / 2);
         _action = MakeButton("", 16);
-        _action.Position = new Vector2(_size.X - Px(20 + 200), _size.Y - Px(56));
+        _action.Position = new Vector2(close.Position.X - ButtonGap - Px(200), rowY);
         Sized(_action, Px(200), ButtonHeight);
         _action.Pressed += Act;
         Window.AddChild(_action);
         _delete = MakeButton(Texts.DeleteSave, 14);
-        _delete.Position = new Vector2(Px(20), _size.Y - Px(56));
+        _delete.Position = new Vector2(Px(20), rowY);
         Sized(_delete, Px(160), ButtonHeight);
         _delete.Pressed += AskDelete;
         Window.AddChild(_delete);
@@ -84,7 +89,7 @@ public partial class SavesWindow : ScreenWindow
         // la liste commence sous le nom (pour sauvegarder), sinon sous le titre
         float top = Px(saving ? 104 : 60);
         _scroll.Position = new Vector2(Px(20), top);
-        _scroll.Size = new Vector2(_size.X - Px(40), _size.Y - top - Px(70));
+        _scroll.Size = new Vector2(_size.X - Px(40), _size.Y - top - Px(30) - IconButtonSide);
         _area.Position = _scroll.Position - V(6, 6);
         _area.Size = _scroll.Size + V(12, 12);
         _name.Text = defaultName;
@@ -108,7 +113,8 @@ public partial class SavesWindow : ScreenWindow
             _rows.AddChild(MakeLabel(Texts.NoSave, 15, SoftTextColor));
         foreach (var entry in entries)
         {
-            var button = MakeButton("", 14);
+            // une ligne discrète, pas un bouton de bois rouge : la liste ne fait plus un mur rouge
+            var button = QuietButton(MakeButton("", 14));
             button.CustomMinimumSize = new Vector2(_size.X - Px(60), Px(56));
             var lines = new VBoxContainer
             {

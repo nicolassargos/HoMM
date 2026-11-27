@@ -736,7 +736,7 @@ public static class Ui
         theme.SetFontSize("title_font_size", "Window", TextSize(16));
         // les petites fenêtres (GameDialog) n'ont pas de bordure de Godot : leur fond est le cadre du jeu
         var inside = (StyleBox)Frame(PanelColor).Duplicate();
-        inside.SetContentMarginAll(Px(24));
+        inside.SetContentMarginAll(WindowMargin);
         theme.SetStylebox("panel", "AcceptDialog", inside);
         theme.SetConstant("buttons_separation", "AcceptDialog", (int)Px(12));
         // les boutons du bas des petites fenêtres : la hauteur commune, et assez larges (un « OK » seul était minuscule)
@@ -1024,6 +1024,7 @@ public static class Ui
                 text.AddThemeColorOverride("font_color", QuietTextColor);
         button.MouseEntered += () => button.Modulate = button.Disabled ? Colors.White : new Color(1.3f, 1.3f, 1.3f);
         button.MouseExited += () => button.Modulate = Colors.White;
+        button.SetMeta("quiet", true);
         return button;
     }
 
@@ -1165,7 +1166,12 @@ public static class Ui
         }
     }
 
-    /// <summary>Marque un bouton comme choisi (taille de carte, sauvegarde) : plus sombre, comme enfoncé.</summary>
+    /// <summary>
+    /// Marque un bouton comme choisi (taille de carte, sauvegarde) : plus sombre, comme enfoncé ; un bouton discret
+    /// (<see cref="QuietButton"/>) s'éclaire et prend un trait d'or.
+    /// </summary>
     public static void MarkSelected(Button button) =>
-        button.AddThemeStyleboxOverride("normal", ButtonBox(new Color(0.58f, 0.58f, 0.6f), MapRenderer.Rgb(70, 50, 20), SilverColor));
+        button.AddThemeStyleboxOverride("normal", button.HasMeta("quiet")
+            ? Box(MapRenderer.Rgb(66, 50, 32), BorderColor, 2, 2, 2, 2)
+            : ButtonBox(new Color(0.58f, 0.58f, 0.6f), MapRenderer.Rgb(70, 50, 20), SilverColor));
 }

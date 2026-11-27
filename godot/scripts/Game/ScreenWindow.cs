@@ -18,11 +18,17 @@ public partial class ScreenWindow : CanvasLayer
     public bool IsOpen => Visible;
     public event Action? Closed;
 
+    /// <summary>La marge des fenêtres d'avant le cadre de bois (12 pixels d'art), sur laquelle leur contenu est placé.</summary>
+    private static readonly float OldWindowMargin = ArtPx(12);
+
     /// <summary>
     /// Prépare le voile et le cadre ; <paramref name="window"/> : la place de la fenêtre à l'écran (en pixels). Le voile
     /// laisse voir la barre des ressources, sauf <paramref name="veilAll"/> (au menu principal, où il n'y en a pas).
+    /// <paramref name="padded"/> : le contenu, placé à la main pour l'ancienne marge, est décalé de l'air en plus tout
+    /// autour (le cadre grandit d'autant), et la fenêtre n'a pas « Fermer » en haut : elle pose elle-même l'icône qui
+    /// ferme dans sa rangée du bas (<see cref="CloseIcon"/> ; choix de l'utilisateur, 2026-11-27).
     /// </summary>
-    protected void BuildFrame(Vector2 screenSize, Rect2 window, bool veilAll = false)
+    protected void BuildFrame(Vector2 screenSize, Rect2 window, bool veilAll = false, bool padded = false)
     {
         float top = veilAll ? 0 : Hud.TopBarHeight;
         Layer = 4; // au-dessus de la carte et du panneau, sous l'écran de ville
@@ -39,20 +45,31 @@ public partial class ScreenWindow : CanvasLayer
                 Position = new Vector2(screenSize.X - Hud.PanelWidth, 0), Size = new Vector2(Hud.PanelWidth, top),
                 Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Stop,
             });
-        var frame = new Panel { Position = window.Position, Size = window.Size };
+        float pad = padded ? WindowMargin - OldWindowMargin : 0;
+        var frame = new Panel { Position = window.Position - new Vector2(pad, pad), Size = window.Size + new Vector2(2 * pad, 2 * pad) };
         frame.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         AddChild(frame);
         Window = frame;
+        if (padded)
+        {
+            Window = new Control { Position = new Vector2(pad, pad), Size = window.Size, MouseFilter = Control.MouseFilterEnum.Ignore };
+            frame.AddChild(Window);
+        }
         // le titre et « Fermer » sur une même ligne, à la marge commune des fenêtres
         _title = MakeLabel("", 20, TextColor);
         _title.Position = new Vector2(WindowMargin, WindowMargin + (ButtonHeight - TitleText) / 2);
         frame.AddChild(_title);
+        if (padded)
+            return;
         var close = Sized(MakeButton(Texts.CloseButton, 14), CloseButtonWidth, ButtonHeight);
         close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
         close.Position = new Vector2(window.Size.X - WindowMargin - CloseButtonWidth, WindowMargin);
         close.Pressed += Close;
         frame.AddChild(close);
     }
+
+    /// <summary>L'icône qui ferme la fenêtre (annuler, Échap), à poser dans sa rangée du bas.</summary>
+    protected Button CloseIcon() => IconButtons.Make("annuler", Texts.CloseButton, "Échap", Close);
 
     protected void SetTitle(string title) => _title.Text = title;
 

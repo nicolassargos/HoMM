@@ -1059,6 +1059,13 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   « … up into a small castle tower » (le héros est sous la garnison), un lot de 64 chacune, choisies au premier tour
   (`donner-heros` 56, `laisser-garnison` 9). De même l'icône Annuler (2026-11-26, « a thick bold X cross mark made of
   two crossed heavy bars, meaning cancel or close… », graine 21) : n° 44, `icons/annuler.png`.
+  Puis le coffre et l'attaque d'un adversaire (2026-11-27, graine 21, un lot chacune, choisies au premier tour) : `or`
+  (« a small heap of thick round coins with one coin standing upright in front, meaning gold » : n° 3, sorti doré, gardé
+  tel quel), `experience` (« a round laurel wreath of leaves with a ribbon tied at the bottom… » : 31), `tactique` (un
+  cavalier des échecs : 57), `rapide` (un éclair sur deux épées croisées : 2). **Refusé par PixelLab** (« against
+  policy », trois fois) : « a five-pointed star inside a laurel wreath » (l'étoile, sans doute) ; trois lots lancés en
+  même temps l'ont été aussi, puis sont passés un à un. L'icône d'or ne va pas pour « Payer » (l'utilisateur) : il
+  faudra la sienne, avec une main.
 - **Artefacts** (2026-11-21, `art/artifacts/<id>.png`, d'abord **24 × 24**, refaits en 48 : voir plus bas) :
   PixelLab « pro » 24 × 24, **le coffre de la carte (`objects/chest.png`) comme image de style**, 64 candidats par
   artefact (0,08 $). Début de la description, le même pour tous : « single small fantasy item lying alone, drawn in the

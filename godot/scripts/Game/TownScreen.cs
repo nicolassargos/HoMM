@@ -695,10 +695,12 @@ public partial class TownScreen : CanvasLayer
     /// Ouvre une fenêtre par-dessus la ville. <paramref name="overView"/> : seulement sur la vue de la ville (la garnison
     /// et le héros restent utilisables), sinon sur tout l'écran. <paramref name="padded"/> : le contenu, placé à la main
     /// pour l'ancienne marge, est posé dans une place de <paramref name="size"/> décalée de l'air en plus tout autour (la
-    /// fenêtre grandit d'autant) ; sans lui, le contenu se place lui-même d'après <see cref="WindowMargin"/>. Une
+    /// fenêtre grandissant d'autant) ; sans lui, le contenu se place lui-même d'après <see cref="WindowMargin"/>. Une
     /// fenêtre plus haute que la vue ne dépasse pas du haut de l'écran : elle descend sur la garnison.
+    /// <paramref name="closeButton"/> : une rangée en bas, l'icône qui ferme (annuler, Échap) à droite, comme toutes les
+    /// fenêtres (choix de l'utilisateur, 2026-11-27) ; sans elle, la fenêtre a son propre bouton (Recruter).
     /// </summary>
-    private Control OpenWindow(Vector2 size, string title, bool overView, bool closeAtTop = true, bool padded = true)
+    private Control OpenWindow(Vector2 size, string title, bool overView, bool closeButton = true, bool padded = true)
     {
         CloseWindow();
         var veil = new ColorRect
@@ -709,7 +711,7 @@ public partial class TownScreen : CanvasLayer
         };
         _root.AddChild(veil);
         float pad = padded ? WindowMargin - OldWindowMargin : 0;
-        var outer = size + new Vector2(2 * pad, 2 * pad);
+        var outer = size + new Vector2(2 * pad, 2 * pad + (closeButton ? IconButtonSide + ArtPx(6) : 0));
         var window = new Panel
         {
             Position = new Vector2(MathF.Floor((veil.Size.X - outer.X) / 2), MathF.Max(ArtPx(8), MathF.Floor((veil.Size.Y - outer.Y) / 2))),
@@ -717,17 +719,15 @@ public partial class TownScreen : CanvasLayer
         };
         window.AddThemeStyleboxOverride("panel", Frame(PanelColor));
         veil.AddChild(window);
-        // le titre et « Fermer » comme dans les grandes fenêtres (ScreenWindow)
+        // le titre en haut à gauche, comme dans les grandes fenêtres (ScreenWindow)
         var heading = MakeLabel(title, 20, TextColor);
         heading.Position = new Vector2(WindowMargin, WindowMargin + (ButtonHeight - TitleText) / 2);
         window.AddChild(heading);
         _window = veil;
-        if (closeAtTop)
+        if (closeButton)
         {
-            var close = Sized(MakeButton(Texts.CloseButton, 14), CloseButtonWidth, ButtonHeight);
-            close.TooltipText = Texts.KeyTooltip(Texts.CloseButton, "Échap");
-            close.Position = new Vector2(outer.X - WindowMargin - CloseButtonWidth, WindowMargin);
-            close.Pressed += CloseWindow;
+            var close = IconButtons.Make("annuler", Texts.CloseButton, "Échap", CloseWindow);
+            close.Position = outer - new Vector2(WindowMargin + IconButtonSide, WindowMargin + IconButtonSide);
             window.AddChild(close);
         }
         if (!padded)
@@ -755,7 +755,9 @@ public partial class TownScreen : CanvasLayer
         var buildings = town.Buildings.Where(b => ShownInBuild(town, b)).ToList();
         int rows = Math.Max(1, (buildings.Count + 2) / 3);
         // la fenêtre suit son contenu, sans dépasser l'écran (la grille défile alors)
-        float listHeight = Math.Min(rows * 136 - 10, (_screen.Y - Hud.TopBarHeight) / Ui.Scale - 40 - 84 - 20);
+        // la liste aussi haute que l'écran le permet, moins l'air autour de la fenêtre et sa rangée du bas (l'icône qui ferme)
+        float extra = 2 * (WindowMargin - OldWindowMargin) + IconButtonSide + ArtPx(6);
+        float listHeight = Math.Min(rows * 136 - 10, (_screen.Y - Hud.TopBarHeight - extra) / Ui.Scale - 40 - 84 - 20);
         var window = OpenWindow(V(1000, 84 + listHeight + 36), Texts.BuildTitle(town), overView: false);
         window.AddChild(At(MakeLabel(Texts.ToBuild, 14, SoftTextColor), 24, 56));
         // les cartes (à plat) dans une zone creusée
@@ -885,7 +887,7 @@ public partial class TownScreen : CanvasLayer
         float columnWidth = Px(470);
         // la hauteur se règle à la fin, d'après le contenu (voir Bottom)
         var window = OpenWindow(new Vector2(columnX + columnWidth + WindowMargin, top + pictureSize.Y), Texts.RecruitTitle(creature),
-            overView: true, closeAtTop: false, padded: false);
+            overView: true, closeButton: false, padded: false);
 
         bool built = town.Has(dwelling.Id);
         var picture = new Panel { Position = new Vector2(WindowMargin, top), Size = pictureSize, MouseFilter = Control.MouseFilterEnum.Ignore };

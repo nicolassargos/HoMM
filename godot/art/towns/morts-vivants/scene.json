@@ -4,7 +4,7 @@
  "buildings": [
   {
    "id": "chateau-fort",
-   "x": 415,
+   "x": 418,
    "y": 4,
    "depth": 200.0,
    "shadowX": 415,
@@ -42,11 +42,9 @@
   },
   {
    "id": "guilde-mages-2",
-   "x": 351,
+   "x": 352,
    "y": 12,
-   "depth": 88.0,
-   "shadowX": 352,
-   "shadowY": 20
+   "depth": 88.0
   },
   {
    "id": "guilde-mages-3",
@@ -175,7 +173,9 @@
    "id": "chantier-naval",
    "x": 857,
    "y": 129,
-   "depth": 60.0
+   "depth": 60.0,
+   "shadowX": 921,
+   "shadowY": 129
   },
   {
    "id": "capitole",
@@ -257,7 +257,7 @@
    "y": 195,
    "depth": 18.0,
    "shadowX": 165,
-   "shadowY": 237
+   "shadowY": 206
   },
   {
    "id": "silo",
@@ -326,6 +326,6 @@
   "y": 33,
   "depth": 200.0,
   "shadowX": 466,
-  "shadowY": 139
+  "shadowY": 132
  }
 }

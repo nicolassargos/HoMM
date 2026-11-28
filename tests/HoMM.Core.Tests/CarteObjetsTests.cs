@@ -127,6 +127,53 @@ public class CarteObjetsTests
     }
 
     [Fact]
+    public void Le_feu_de_camp_donne_son_or_et_sa_ressource()
+    {
+        var (state, fire) = GameNextTo(c => new Campfire(c, 500, ResourceType.Sulfur, 3));
+        var player = state.CurrentHero!.Owner;
+        int gold = player.Resources[ResourceType.Gold], sulfur = player.Resources.GetValueOrDefault(ResourceType.Sulfur);
+
+        Visit(state, fire);
+
+        Assert.Equal(gold + 500, player.Resources[ResourceType.Gold]);
+        Assert.Equal(sulfur + 3, player.Resources[ResourceType.Sulfur]);
+        Assert.DoesNotContain(fire, state.Map.Objects);
+    }
+
+    [Fact]
+    public void Le_parchemin_enseigne_son_sort_et_reste_pour_qui_le_connait_deja()
+    {
+        var spell = TestData.Spells.All.First(s => s.Level == 3);
+        var (state, scroll) = GameNextTo(c => new SpellScroll(c, spell));
+        var hero = state.CurrentHero!;
+        hero.Learn(spell);
+
+        Visit(state, scroll);
+
+        Assert.Contains(state.TakeEvents(), e => e is ScrollRead { Learned: false });
+        Assert.Contains(scroll, state.Map.Objects);
+
+        var (other, fresh) = GameNextTo(c => new SpellScroll(c, spell));
+        Visit(other, fresh);
+        Assert.True(other.CurrentHero!.Knows(spell));
+        Assert.DoesNotContain(fresh, other.Map.Objects);
+    }
+
+    [Fact]
+    public void Les_restes_d_un_aventurier_donnent_son_artefact_sinon_son_or()
+    {
+        var artifact = TestData.Data.Artifacts.All.First(a => a.Rank == ArtifactRank.Minor);
+        var (state, remains) = GameNextTo(c => new Remains(c, 400, artifact));
+        Visit(state, remains);
+        Assert.Contains(artifact, state.CurrentHero!.Artifacts);
+
+        var (other, empty) = GameNextTo(c => new Remains(c, 400));
+        int gold = other.CurrentHero!.Owner.Resources[ResourceType.Gold];
+        Visit(other, empty);
+        Assert.Equal(gold + 400, other.CurrentHero!.Owner.Resources[ResourceType.Gold]);
+    }
+
+    [Fact]
     public void Le_moulin_donne_chaque_semaine_au_premier_qui_passe()
     {
         var (state, mill) = GameNextTo(c => new WeeklyProducer(c, ResourceType.Crystal));
@@ -242,6 +289,14 @@ public class CarteObjetsTests
         Assert.Equal(shrine.Stat, again.Stat);
         Assert.Contains(state.CurrentHero!.Id, again.Visitors);
         Assert.Equal(map.Objects.OfType<SageHut>().Select(h => h.Spell.Id), loaded.Map.Objects.OfType<SageHut>().Select(h => h.Spell.Id));
+        // les petits trésors (2026-11-28)
+        Assert.Contains(map.Objects, o => o is Campfire);
+        Assert.Contains(map.Objects, o => o is SpellScroll);
+        Assert.Contains(map.Objects, o => o is Remains);
+        Assert.Equal(map.Objects.OfType<Campfire>().Select(f => (f.Gold, f.Resource, f.Amount)),
+            loaded.Map.Objects.OfType<Campfire>().Select(f => (f.Gold, f.Resource, f.Amount)));
+        Assert.Equal(map.Objects.OfType<SpellScroll>().Select(s => s.Spell.Id), loaded.Map.Objects.OfType<SpellScroll>().Select(s => s.Spell.Id));
+        Assert.Equal(map.Objects.OfType<Remains>().Select(w => (w.Gold, w.Artifact?.Id)), loaded.Map.Objects.OfType<Remains>().Select(w => (w.Gold, w.Artifact?.Id)));
     }
 
     [Fact]

@@ -420,7 +420,8 @@ public static class ComputerPlayer
         {
             double weight = obj switch
             {
-                ResourcePile or TreasureChest or Flotsam or SeaChest => 1,
+                ResourcePile or TreasureChest or Flotsam or SeaChest or Campfire or Remains => 1,
+                SpellScroll scroll when !hero.Knows(scroll.Spell) => 1.2,
                 ArtifactPile => 0.5, // un artefact sert toute la partie
                 Lighthouse lighthouse when lighthouse.Owner != player => 0.8,
                 // un navire abandonné : son trésor vaut le combat, si l'équipage se bat sans trop de pertes

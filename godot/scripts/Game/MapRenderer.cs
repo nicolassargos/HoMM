@@ -228,6 +228,9 @@ public static class MapRenderer
     {
         ResourcePile pile => Art.Get($"objects/pile-{Art.Name(pile.Resource)}"),
         TreasureChest => Art.Get("objects/chest"),
+        Campfire => Art.Get("objects/campfire"),
+        SpellScroll => Art.Get("objects/scroll"),
+        Remains => Art.Get("objects/remains"),
         // sur la carte, une image deux fois plus petite (l'objet réduit de moitié, montré ×2 comme le reste de la carte) ;
         // l'image entière, faite pour l'écran du héros, y était plus grande que le héros à cheval
         ArtifactPile pile => Art.Get($"artifacts/map/{pile.Artifact.Id}") ?? Art.Get($"artifacts/{pile.Artifact.Id}"),

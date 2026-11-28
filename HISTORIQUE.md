@@ -3203,6 +3203,10 @@ choix de l'utilisateur) :
   Mesuré sur six cartes de 72 × 72 : 24 roues pour 24 moulins, toutes sur un ruisseau (`CarteObjetsTests`). Une image
   plus grande (80 × 70, PixelLab ; recette dans `tools/art/METHODE.md`), retournée quand le ruisseau est à gauche. Une
   même graine donne une autre carte qu'avant.
+- ✅ **Des forêts brûlées plus clairsemées** (2026-11-28, branche `arbres-variete`, demandé par l'utilisateur : « we
+  can't see the trees, just a mass of pixels ») : sur la terre brûlée, une case de forêt n'a plus que deux arbres, trois
+  une fois sur trois (`DecorLayer.BurntThird`), au lieu de quatre et parfois un cinquième ; on voit chaque arbre mort et
+  ses fentes rougeoyantes.
 - ✅ **Le fond visible sous l'eau des rives** (2026-11-28, branche `rives-v3`, choix de l'utilisateur) : il trouvait
   certaines rives trop nettes. Premier tour, écarté : de petites anses (la rive avance ou recule de 6 à 9 pixels d'art,
   par un bruit), l'herbe assombrie contre l'eau, la terre mêlée à l'eau sur 4 à 6 rangées au lieu de 2 : invisible à la

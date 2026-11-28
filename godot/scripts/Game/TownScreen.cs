@@ -1074,11 +1074,11 @@ public partial class TownScreen : CanvasLayer
         return row;
     }
 
-    /// <summary>La taverne : les deux héros qu'elle propose, leur prix, et « Recruter ».</summary>
     /// <summary>
-    /// Le marché : donner une ressource pour en recevoir une autre (<see cref="Market"/>). Deux rangées de boutons (ce
-    /// qu'on donne, avec ce qu'on en a ; ce qu'on reçoit, avec le prix d'une unité), le nombre à recevoir au curseur, le
-    /// marché conclu avant de valider.
+    /// Le marché, comme Heroes 3 (choix de l'utilisateur, 2026-11-28) : deux grilles côte à côte, ce qu'on donne (avec ce
+    /// qu'on en a) et ce qu'on reçoit (le prix d'une unité), chaque ressource en tuile discrète, sa grande icône au milieu
+    /// et son nombre dessous, l'or seul sur la dernière rangée ; dessous, l'échange en icônes, le nombre à recevoir au
+    /// curseur ; en bas, le marché conclu, puis Échanger et Annuler (<see cref="Market"/>).
     /// </summary>
     private void OpenMarket()
     {
@@ -1086,73 +1086,134 @@ public partial class TownScreen : CanvasLayer
         int markets = Market.Count(player);
         if (_town == null || markets == 0)
             return;
-        var window = OpenWindow(V(860, 372), Texts.MarketTitle, overView: true);
-        window.AddChild(At(MakeLabel(Texts.MarketRates(markets), 13, SoftTextColor), 24, 56));
-
         int have = player.Resources.GetValueOrDefault(_marketGive);
         int max = Market.MaxReceivable(_marketGive, _marketReceive, have, markets);
         _marketCount = Math.Clamp(_marketCount, 0, max);
 
-        Button ResourceButton(ResourceType resource, string text, bool chosen, Action pressed)
+        // les tailles, en pixels d'art : une tuile (l'icône de 32 ×2, le nombre dessous), une grille de 3 colonnes
+        float tileWidth = ArtPx(68), tileHeight = ArtPx(56), tileGap = ArtPx(8), areaPad = ArtPx(10), headingHeight = ArtPx(18);
+        float areaWidth = 3 * tileWidth + 2 * tileGap + 2 * areaPad;
+        float areaHeight = areaPad + headingHeight + 3 * tileHeight + 2 * tileGap + areaPad;
+        float areaGap = ArtPx(16);
+        float innerWidth = 2 * areaWidth + areaGap;
+        float top = WindowMargin + ButtonHeight + ArtPx(4);
+        // la hauteur se règle à la fin, d'après le contenu
+        var window = OpenWindow(new Vector2(innerWidth + 2 * WindowMargin, top), Texts.MarketTitle, overView: true, closeButton: false, padded: false);
+        var rates = MakeLabel(Texts.MarketRates(markets), 13, SoftTextColor);
+        rates.Position = new Vector2(WindowMargin, top);
+        // sur deux lignes si elle ne tient pas sur une
+        int rateLines = (int)MathF.Ceiling(rates.GetMinimumSize().X / innerWidth);
+        rates.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        rates.CustomMinimumSize = new Vector2(innerWidth, 0);
+        window.AddChild(rates);
+        float gridsY = top + rateLines * TextSize(13) + ArtPx(8);
+
+        // la grille : les autres ressources d'abord, l'or seul en bas, au milieu (comme Heroes 3)
+        var order = ResourceInfo.All.Where(r => r != ResourceType.Gold).Append(ResourceType.Gold).ToList();
+        void Grid(float x, string heading, Func<ResourceType, string> text, ResourceType chosen, bool give)
         {
-            var button = MakeButton(text, 13);
-            button.ToggleMode = true;
-            button.ButtonPressed = chosen;
-            button.Alignment = HorizontalAlignment.Right;
-            Sized(button, Px(110), ButtonHeight);
-            button.TooltipText = Texts.Capitalize(Texts.Resource(resource));
-            button.AddChild(new ResourceIcon { Resource = resource, Position = V(6, 10), Size = V(20, 20), MouseFilter = Control.MouseFilterEnum.Ignore });
-            button.Pressed += pressed;
-            // la ressource choisie : un cadre d'argent bien visible
-            if (chosen)
+            window.AddChild(SunkenArea(new Vector2(x, gridsY), new Vector2(areaWidth, areaHeight)));
+            var label = MakeLabel(heading, 14, TextColor);
+            label.Position = new Vector2(x + areaPad, gridsY + areaPad - ArtPx(2));
+            window.AddChild(label);
+            for (int i = 0; i < order.Count; i++)
             {
-                var frame = new Panel { Size = button.CustomMinimumSize, MouseFilter = Control.MouseFilterEnum.Ignore };
-                frame.AddThemeStyleboxOverride("panel", Box(new Color(0, 0, 0, 0), SilverColor, 3, 3, 3, 3));
-                button.AddChild(frame);
+                var resource = order[i];
+                int column = i < 6 ? i % 3 : 1, row = i / 3;
+                // la ressource donnée ne se reçoit pas : grisée
+                bool same = !give && resource == _marketGive;
+                var tile = QuietButton(FixedButton("", 13, new Vector2(tileWidth, tileHeight), disabled: same));
+                tile.Position = new Vector2(x + areaPad + column * (tileWidth + tileGap), gridsY + areaPad + headingHeight + row * (tileHeight + tileGap));
+                tile.TooltipText = Texts.Capitalize(Texts.Resource(resource));
+                var icon = new ResourceIcon
+                {
+                    Resource = resource, Large = true, Size = new Vector2(ArtPx(32), ArtPx(32)), MouseFilter = Control.MouseFilterEnum.Ignore,
+                    Position = new Vector2(SnapDown((tileWidth - ArtPx(32)) / 2), ArtPx(5)),
+                };
+                if (same)
+                    icon.Modulate = new Color(1, 1, 1, 0.4f);
+                tile.AddChild(icon);
+                var number = MakeLabel(text(resource), 13, same ? DimColor : QuietTextColor);
+                number.HorizontalAlignment = HorizontalAlignment.Center;
+                number.Position = new Vector2(0, ArtPx(39));
+                number.Size = new Vector2(tileWidth, TextSize(13));
+                tile.AddChild(number);
+                if (resource == chosen && !same)
+                {
+                    MarkSelected(tile);
+                    number.AddThemeColorOverride("font_color", TextColor);
+                }
+                tile.Pressed += () =>
+                {
+                    if (give)
+                        _marketGive = resource;
+                    else
+                        _marketReceive = resource;
+                    OpenMarket();
+                };
+                window.AddChild(tile);
             }
+        }
+        Grid(WindowMargin, Texts.MarketGive, r => player.Resources.GetValueOrDefault(r).ToString(), _marketGive, give: true);
+        Grid(WindowMargin + areaWidth + areaGap, Texts.MarketReceive, r => Texts.MarketUnitPrice(_marketGive, r, markets), _marketReceive, give: false);
+
+        // l'échange : ce qu'on donne → ce qu'on reçoit, en grandes icônes ; le nombre à recevoir : −, le curseur, +, Max
+        float stripY = gridsY + areaHeight + ArtPx(8), stripHeight = ArtPx(52);
+        window.AddChild(SunkenArea(new Vector2(WindowMargin, stripY), new Vector2(innerWidth, stripHeight)));
+        float middle = stripY + stripHeight / 2;
+        float x = WindowMargin + ArtPx(12);
+        Label Amount(ResourceType resource)
+        {
+            window.AddChild(new ResourceIcon
+            {
+                Resource = resource, Large = true, Size = new Vector2(ArtPx(32), ArtPx(32)), MouseFilter = Control.MouseFilterEnum.Ignore,
+                Position = new Vector2(x, SnapDown(middle - ArtPx(16))),
+            });
+            var label = MakeLabel("", 18, TextColor);
+            label.Position = new Vector2(x + ArtPx(38), SnapDown(middle - TextSize(18) / 2));
+            window.AddChild(label);
+            x += ArtPx(38 + 44);
+            return label;
+        }
+        var given = Amount(_marketGive);
+        var arrow = Picture(Arrow('>', BorderColor), Vector2.Zero, Vector2.Zero);
+        arrow.Size = arrow.Texture.GetSize() * 2;
+        arrow.Position = new Vector2(x, SnapDown(middle - arrow.Size.Y / 2));
+        window.AddChild(arrow);
+        x += arrow.Size.X + ArtPx(12);
+        var received = Amount(_marketReceive);
+
+        var amount = new HBoxContainer();
+        amount.AddThemeConstantOverride("separation", (int)ArtPx(4));
+        float amountX = x + ArtPx(12), amountRight = WindowMargin + innerWidth - ArtPx(12);
+        amount.Position = new Vector2(amountX, SnapDown(middle - ButtonHeight / 2));
+        amount.Size = new Vector2(amountRight - amountX, ButtonHeight);
+        window.AddChild(amount);
+        var slider = new HSlider
+        {
+            MinValue = 0, MaxValue = Math.Max(0, max), Step = 1, Value = _marketCount, Editable = max > 0, FocusMode = Control.FocusModeEnum.None,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+        };
+        Button Small(string text, float width, Action pressed)
+        {
+            var button = QuietButton(FixedButton(text, 15, new Vector2(width, ButtonHeight), disabled: max == 0));
+            button.Pressed += pressed;
             return button;
         }
-        HBoxContainer Row(string label, float y)
-        {
-            window.AddChild(At(MakeLabel(label, 15, TextColor), 24, y));
-            var row = new HBoxContainer { Position = V(24, y + 22) };
-            row.AddThemeConstantOverride("separation", (int)Px(6));
-            window.AddChild(row);
-            return row;
-        }
-        var giveRow = Row(Texts.MarketGive, 82);
-        foreach (var resource in ResourceInfo.All)
-            giveRow.AddChild(ResourceButton(resource, player.Resources.GetValueOrDefault(resource).ToString(), resource == _marketGive,
-                () => { _marketGive = resource; OpenMarket(); }));
-        var receiveRow = Row(Texts.MarketReceive, 156);
-        foreach (var resource in ResourceInfo.All)
-            receiveRow.AddChild(ResourceButton(resource, Texts.MarketUnitPrice(_marketGive, resource, markets), resource == _marketReceive,
-                () => { _marketReceive = resource; OpenMarket(); }));
+        amount.AddChild(Small("−", ArtPx(24), () => slider.Value -= 1));
+        amount.AddChild(slider);
+        amount.AddChild(Small("+", ArtPx(24), () => slider.Value += 1));
+        amount.AddChild(Small(Texts.MaxButton, ArtPx(48), () => slider.Value = max));
 
-        // le nombre à recevoir, et le marché conclu
-        var slider = new HSlider { Position = V(24, 244), Size = V(560, 24), MinValue = 0, MaxValue = Math.Max(0, max), Step = 1, Value = _marketCount, Editable = max > 0 };
-        window.AddChild(slider);
-        var max_ = MakeButton(Texts.MaxButton, 13);
-        max_.Position = V(600, 238);
-        Sized(max_, Px(80), ButtonHeight);
-        max_.Disabled = max == 0;
-        window.AddChild(max_);
-        var deal = At(MakeLabel("", 15, TextColor), 24, 284);
+        // en bas : le marché conclu à gauche ; à droite Échanger, puis Annuler (Échap) ; la fenêtre s'arrête juste dessous
+        float rowY = stripY + stripHeight + ArtPx(8);
+        var deal = MakeLabel("", 15, TextColor);
+        deal.Position = new Vector2(WindowMargin, rowY + SnapDown((IconButtonSide - TextSize(15)) / 2));
         window.AddChild(deal);
-        var trade = MakeButton(Texts.TradeButton, 15);
-        trade.Position = V(620, 316);
-        Sized(trade, Px(170), ButtonHeight);
-        window.AddChild(trade);
-        void Show()
-        {
-            int count = (int)slider.Value;
-            deal.Text = max == 0 ? Texts.MarketNothing(_marketGive, _marketReceive)
-                : Texts.MarketDeal(_marketGive, Market.Cost(_marketGive, _marketReceive, count, markets), _marketReceive, count);
-            trade.Disabled = count == 0;
-        }
-        slider.ValueChanged += v => { _marketCount = (int)v; Show(); };
-        max_.Pressed += () => slider.Value = max;
-        trade.Pressed += () =>
+        var close = IconButtons.Make("annuler", Texts.CloseButton, "Échap", CloseWindow);
+        close.Position = new Vector2(WindowMargin + innerWidth - IconButtonSide, rowY);
+        window.AddChild(close);
+        var trade = IconButtons.Make("echanger", Texts.TradeButton, "", () =>
         {
             if (_state.Trade(_marketGive, _marketReceive, (int)slider.Value) > 0)
             {
@@ -1160,7 +1221,23 @@ public partial class TownScreen : CanvasLayer
                 Refresh();
                 OpenMarket();
             }
-        };
+        });
+        trade.Position = new Vector2(close.Position.X - ButtonGap - IconButtonSide, rowY);
+        window.AddChild(trade);
+        // la fenêtre à sa hauteur, un peu sous le haut de la vue (elle peut couvrir la rangée de la garnison)
+        window.Size = new Vector2(window.Size.X, rowY + IconButtonSide + WindowMargin);
+        window.Position = new Vector2(MathF.Floor((window.GetParent<Control>().Size.X - window.Size.X) / 2), ArtPx(24));
+
+        void Show()
+        {
+            int count = (int)slider.Value;
+            int cost = Market.Cost(_marketGive, _marketReceive, count, markets);
+            given.Text = max == 0 ? "" : cost.ToString();
+            received.Text = max == 0 ? "" : count.ToString();
+            deal.Text = max == 0 ? Texts.MarketNothing(_marketGive, _marketReceive) : Texts.MarketDeal(_marketGive, cost, _marketReceive, count);
+            trade.Disabled = count == 0;
+        }
+        slider.ValueChanged += v => { _marketCount = (int)v; Show(); };
         Show();
     }
 

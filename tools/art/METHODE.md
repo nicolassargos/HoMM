@@ -1062,7 +1062,9 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   Puis le coffre et l'attaque d'un adversaire (2026-11-27, graine 21, un lot chacune, choisies au premier tour) : `or`
   (« a small heap of thick round coins with one coin standing upright in front, meaning gold » : n° 3, sorti doré, gardé
   tel quel), `experience` (« a round laurel wreath of leaves with a ribbon tied at the bottom… » : 31), `tactique` (un
-  cavalier des échecs : 57), `rapide` (un éclair sur deux épées croisées : 2). **Refusé par PixelLab** (« against
+  cavalier des échecs : 57), `rapide` (un éclair sur deux épées croisées : 2). Puis `echanger` pour le marché (2026-11-28, graine 21, « two thick
+  bold arrows side by side pointing in opposite directions, the top one pointing right and the bottom one pointing
+  left, meaning trade or exchange » : n° 1, au premier tour ; 10 générations de l'abonnement, aucun crédit). **Refusé par PixelLab** (« against
   policy », trois fois) : « a five-pointed star inside a laurel wreath » (l'étoile, sans doute) ; trois lots lancés en
   même temps l'ont été aussi, puis sont passés un à un. L'icône d'or ne va pas pour « Payer » (l'utilisateur) : il
   faudra la sienne, avec une main.

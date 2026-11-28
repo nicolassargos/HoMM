@@ -41,18 +41,25 @@ public partial class SmoothGround : ColorRect
     private static void ApplyDevelopmentSettings(ShaderMaterial material)
     {
         var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--ground="));
-        if (arg == null)
-            return;
-        foreach (var setting in arg["--ground=".Length..].Split(',', StringSplitOptions.RemoveEmptyEntries))
+        if (arg != null)
+            ApplySettings(material, arg["--ground=".Length..]);
+    }
+
+    /// <summary>Donne au shader les réglages « nom:valeur,nom:r/g/b,… ».</summary>
+    private static void ApplySettings(ShaderMaterial material, string settings)
+    {
+        foreach (var setting in settings.Split(',', StringSplitOptions.RemoveEmptyEntries))
         {
             var parts = setting.Split(':');
             var numbers = parts.Length == 2 ? parts[1].Split('/').Select(s => float.TryParse(s, System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out float v) ? v : float.NaN).ToArray() : Array.Empty<float>();
-            // un nombre, ou une couleur « r/g/b » (de 0 à 1)
+            // un nombre, une couleur « r/g/b » (de 0 à 1), ou quatre nombres « a/b/c/d »
             if (numbers.Length == 1 && !float.IsNaN(numbers[0]))
                 material.SetShaderParameter(parts[0], numbers[0]);
             else if (numbers.Length == 3 && !numbers.Any(float.IsNaN))
                 material.SetShaderParameter(parts[0], new Vector3(numbers[0], numbers[1], numbers[2]));
+            else if (numbers.Length == 4 && !numbers.Any(float.IsNaN))
+                material.SetShaderParameter(parts[0], new Vector4(numbers[0], numbers[1], numbers[2], numbers[3]));
             else
                 GD.PrintErr($"Réglage du sol illisible : {setting}");
         }
@@ -364,11 +371,66 @@ public partial class SmoothGround : ColorRect
             material.SetShaderParameter(name, value * k);
         ApplyDevelopmentSettings(material);
 
-        return new SmoothGround
+        var smooth = new SmoothGround
         {
             Material = material,
             Size = new Vector2(width, height) * MapRenderer.TileSize,
             MouseFilter = MouseFilterEnum.Ignore,
         };
+        smooth.ReadPresets(material);
+        return smooth;
+    }
+
+    // Développement : « -- --ground-cycle=A;K=seabed:0.9,seabed_width:10;L=… » : des essais du sol, passés en jeu de l'un à
+    // l'autre par la touche F7 (le nom de l'essai en haut de l'écran) ; un essai sans réglages garde le sol de départ
+    private readonly List<(string Name, string Settings)> _presets = new();
+    private readonly Dictionary<string, Variant> _start = new();
+    private int _preset;
+    private Label? _presetLabel;
+
+    private void ReadPresets(ShaderMaterial material)
+    {
+        var arg = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--ground-cycle="));
+        if (arg == null)
+            return;
+        foreach (var preset in arg["--ground-cycle=".Length..].Split(';', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = preset.Split('=', 2);
+            _presets.Add((parts[0], parts.Length == 2 ? parts[1] : ""));
+            // la valeur de départ de chaque réglage touché (vide : celle du shader), pour y revenir
+            foreach (var setting in parts.Length == 2 ? parts[1].Split(',', StringSplitOptions.RemoveEmptyEntries) : Array.Empty<string>())
+            {
+                var name = setting.Split(':')[0];
+                if (!_start.ContainsKey(name))
+                    _start[name] = material.GetShaderParameter(name);
+            }
+        }
+        var layer = new CanvasLayer { Layer = 100 };
+        _presetLabel = new Label { Position = new Vector2(860, 70), Scale = new Vector2(2, 2) };
+        _presetLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
+        _presetLabel.AddThemeConstantOverride("outline_size", 6);
+        layer.AddChild(_presetLabel);
+        AddChild(layer);
+        ShowPreset();
+    }
+
+    private void ShowPreset()
+    {
+        if (Material is not ShaderMaterial material || _presets.Count == 0)
+            return;
+        foreach (var (name, value) in _start)
+            material.SetShaderParameter(name, value);
+        ApplySettings(material, _presets[_preset].Settings);
+        _presetLabel!.Text = $"Essai {_presets[_preset].Name}  (F7 : suivant)";
+    }
+
+    public override void _UnhandledKeyInput(InputEvent @event)
+    {
+        if (_presets.Count > 0 && @event is InputEventKey { Pressed: true, Echo: false, Keycode: Key.F7 })
+        {
+            _preset = (_preset + 1) % _presets.Count;
+            ShowPreset();
+            GetViewport().SetInputAsHandled();
+        }
     }
 }

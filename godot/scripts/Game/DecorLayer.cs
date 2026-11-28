@@ -19,8 +19,130 @@ public partial class DecorLayer : Node2D
 {
     public AdventureMap Map { get; set; } = null!;
 
-    private static Texture2D[] Trees =>
-        Art.VariantsOf("decor/pine").Concat(Art.VariantsOf("decor/oak")).Concat(Art.VariantsOf("decor/autumn")).ToArray();
+    /// <summary>Les formes des arbres de l'herbe (2026-11-28 : plus seulement ronds ou pointus), chacune avec ses variantes.</summary>
+    private static readonly string[] GrassTreeShapes =
+    {
+        "decor/pine", "decor/oak", "decor/autumn", "decor/tree-poplar", "decor/tree-birch", "decor/tree-willow",
+        "decor/tree-crooked", "decor/tree-fir", "decor/tree-young",
+    };
+
+    private static Texture2D[]? _trees;
+
+    /// <summary>
+    /// Les arbres de l'herbe, chaque forme aussi souvent que les autres quel que soit son nombre de variantes : chaque image
+    /// revient autant de fois qu'il le faut (une forme de deux variantes, deux fois plus que celle de quatre).
+    /// </summary>
+    private static Texture2D[] Trees => _trees ??= Evenly(GrassTreeShapes);
+
+    /// <summary>
+    /// Les bosquets (2026-11-28, idée de l'utilisateur) : chaque forme a sa carte de présence, un bruit doux d'environ
+    /// GroveSize cases ; élevé à la puissance GroveFocus, il laisse dominer deux ou trois formes à chaque endroit. Chaque
+    /// forêt paraît ainsi plus uniforme, et la carte reste variée d'une forêt à l'autre ; GroveMix : la part d'une forme
+    /// absente, pour qu'il reste quelques arbres d'autres sortes.
+    /// </summary>
+    private const float GroveSize = 6f, GroveFocus = 4f, GroveMix = 0.04f;
+
+    private static Texture2D[][]? _groveShapes;
+
+    /// <summary>
+    /// Les résineux (sapins, épicéas) restent entre eux (l'utilisateur, 2026-11-28) : un autre bruit doux sépare les bois de
+    /// résineux des bois de feuillus ; au-dessus de ConiferLevel, les résineux, en dessous, les feuillus, mêlés le long de
+    /// la limite ; ConiferStray : la part de l'autre sorte qui reste dans chaque bois (quelques arbres, pas tout à fait purs).
+    /// </summary>
+    private static readonly string[] Conifers = { "decor/pine", "decor/tree-fir" };
+
+    private const float ConiferLevel = 0.55f, ConiferStray = 0.1f;
+
+    /// <summary>Le poids de chaque forme d'arbre de l'herbe sur la case (x, y) (voir <see cref="GroveSize"/>).</summary>
+    private static float[] GroveWeights(int x, int y, int count)
+    {
+        var weights = new float[count];
+        float n = SmoothNoise(x / GroveSize + 101.9f, y / GroveSize + 57.1f);
+        float conifer = Math.Clamp((n - ConiferLevel) / 0.15f + 0.5f, ConiferStray, 1 - ConiferStray);
+        // la part de chaque sorte (résineux, feuillus), puis les formes de la sorte selon leurs bruits
+        float coniferSum = 0, leafySum = 0;
+        for (int i = 0; i < count; i++)
+        {
+            weights[i] = GroveMix + MathF.Pow(SmoothNoise(x / GroveSize + 17.3f * i, y / GroveSize + 31.7f * i), GroveFocus);
+            if (Conifers.Contains(GrassTreeShapes[i]))
+                coniferSum += weights[i];
+            else
+                leafySum += weights[i];
+        }
+        for (int i = 0; i < count; i++)
+            weights[i] *= Conifers.Contains(GrassTreeShapes[i]) ? conifer / coniferSum : (1 - conifer) / leafySum;
+        return weights;
+    }
+
+    /// <summary>Un arbre de l'herbe tiré selon les poids des formes, puis une de ses variantes.</summary>
+    private static Texture2D GroveTree(float[] weights, Random rng)
+    {
+        var shapes = _groveShapes!;
+        float pick = (float)rng.NextDouble() * weights.Sum();
+        int i = 0;
+        while (i < shapes.Length - 1 && (pick -= weights[i]) > 0)
+            i++;
+        return shapes[i][rng.Next(shapes[i].Length)];
+    }
+
+    /// <summary>
+    /// La part d'une case, depuis son bord, que la rive peut prendre (le shader du sol la fait onduler jusque dans la case
+    /// de terre, et arrondit les coins) : le pied d'un arbre reste au-delà, sinon il paraît planté dans l'eau.
+    /// </summary>
+    private const float ShoreMargin = 0.45f;
+
+    /// <summary>
+    /// Le pied d'un arbre de la case (x, y), en pixels de la carte, ramené loin des bords qui touchent un lac, la mer ou une
+    /// rivière (2026-11-28 : des arbres paraissaient pousser dans l'eau, l'utilisateur).
+    /// </summary>
+    private static Vector2 AwayFromWater(AdventureMap map, int x, int y, Vector2 foot)
+    {
+        const float t = MapRenderer.TileSize;
+        bool Wet(int dx, int dy)
+        {
+            var c = new Cell(x + dx, y + dy);
+            return map.InBounds(c) && (map.GetTerrain(c) == TerrainType.Water || map.GetRiver(c) == RiverKind.River);
+        }
+        var o = new Vector2(x, y) * t;
+        var local = foot - o;
+        float lo = t * ShoreMargin, hi = t * (1 - ShoreMargin);
+        if (Wet(-1, 0)) local.X = Math.Max(local.X, lo);
+        if (Wet(1, 0)) local.X = Math.Min(local.X, hi);
+        if (Wet(0, -1)) local.Y = Math.Max(local.Y, lo);
+        if (Wet(0, 1)) local.Y = Math.Min(local.Y, hi);
+        // un coin d'eau seul (en diagonale) : la rive arrondie y entre en quart de cercle
+        foreach (var (dx, dy) in new[] { (-1, -1), (1, -1), (-1, 1), (1, 1) })
+            if (Wet(dx, dy) && !Wet(dx, 0) && !Wet(0, dy))
+            {
+                var corner = new Vector2(dx > 0 ? t : 0, dy > 0 ? t : 0);
+                var away = local - corner;
+                float reach = t * ShoreMargin * 1.2f;
+                if (away.Length() < reach)
+                    local = corner + (away.Length() > 0.01f ? away.Normalized() : new Vector2(-dx, -dy).Normalized()) * reach;
+            }
+        return o + local;
+    }
+
+    /// <summary>Un bruit doux de 0 à 1 (des valeurs tirées aux points entiers, mêlées en courbe entre eux).</summary>
+    private static float SmoothNoise(float x, float y)
+    {
+        int x0 = (int)MathF.Floor(x), y0 = (int)MathF.Floor(y);
+        float fx = x - x0, fy = y - y0;
+        fx = fx * fx * (3 - 2 * fx);
+        fy = fy * fy * (3 - 2 * fy);
+        float V(int i, int j) => Seed(i + 1000, j + 2000) % 10000 / 10000f;
+        float top = V(x0, y0) + (V(x0 + 1, y0) - V(x0, y0)) * fx;
+        float bottom = V(x0, y0 + 1) + (V(x0 + 1, y0 + 1) - V(x0, y0 + 1)) * fx;
+        return top + (bottom - top) * fy;
+    }
+
+    private static Texture2D[] Evenly(string[] shapes)
+    {
+        var groups = shapes.Select(Art.VariantsOf).Where(g => g.Length > 0).ToList();
+        int Lcm(int a, int b) { int x = a, y = b; while (y != 0) (x, y) = (y, x % y); return a / x * b; }
+        int each = groups.Aggregate(1, (m, g) => Lcm(m, g.Length));
+        return groups.SelectMany(g => g.SelectMany(image => Enumerable.Repeat(image, each / g.Length))).ToArray();
+    }
 
     /// <summary>
     /// Les arbres d'une forêt sur ce sol (2026-11-19) : ceux du sol (decor/tree-sand, tree-snow…) s'il y en a, des sapins
@@ -76,16 +198,20 @@ public partial class DecorLayer : Node2D
 
     /// <summary>True pour l'image d'un arbre (tous les sols, brûlés compris) : il penche dans le vent.</summary>
     public static bool IsTree(Texture2D image) =>
-        (_treeImages ??= new[] { "decor/pine", "decor/oak", "decor/autumn" }
+        (_treeImages ??= GrassTreeShapes
             .Concat(Enum.GetValues<TerrainType>().Select(g => $"decor/tree-{Art.Name(g)}"))
             .SelectMany(Art.VariantsOf).ToHashSet()).Contains(image);
 
     /// <summary>
     /// True pour un arbre qui perd des feuilles dans le vent (<see cref="LeafLayer"/>) : les chênes, les arbres d'automne,
-    /// ceux du marais ; pas les sapins, les palmiers ni les arbres brûlés.
+    /// ceux du marais, les arbres à feuilles de l'herbe ; pas les sapins, les épicéas, les palmiers ni les arbres brûlés.
     /// </summary>
     public static bool SheddingLeaves(Texture2D image) =>
-        (_leafyImages ??= new[] { "decor/oak", "decor/autumn", "decor/tree-swamp" }.SelectMany(Art.VariantsOf).ToHashSet()).Contains(image);
+        (_leafyImages ??= new[]
+        {
+            "decor/oak", "decor/autumn", "decor/tree-swamp", "decor/tree-poplar", "decor/tree-birch", "decor/tree-willow",
+            "decor/tree-crooked", "decor/tree-young",
+        }.SelectMany(Art.VariantsOf).ToHashSet()).Contains(image);
 
     private ShaderMaterial? _material;
 
@@ -161,6 +287,10 @@ public partial class DecorLayer : Node2D
                     // dans le désert, une palmeraie plus clairsemée : trois arbres, sans le cinquième
                     var ground = forestGrounds.GetValueOrDefault(new Cell(x, y), TerrainType.Grass);
                     var own = TreesOn(ground);
+                    // les arbres de l'herbe : en bosquets (voir GroveSize)
+                    _groveShapes ??= GrassTreeShapes.Select(Art.VariantsOf).Where(g => g.Length > 0).ToArray();
+                    var grove = own == trees ? GroveWeights(x, y, _groveShapes.Length) : null;
+                    Texture2D Pick() => grove != null ? GroveTree(grove, rng) : own[rng.Next(own.Length)];
                     // sur la terre brûlée, les arbres morts, sombres sur un sol sombre, se fondaient en une masse : deux
                     // seulement par case, parfois trois, pour voir chacun
                     bool sparse = ground == TerrainType.Sand || ground == TerrainType.Burnt;
@@ -170,12 +300,13 @@ public partial class DecorLayer : Node2D
                     for (int col = 0; col < 2; col++)
                     {
                         var at = o + new Vector2((12 + col * 24) * k + R(-6, 7, rng), (20 + row * 22) * k + R(-4, 5, rng));
-                        var tree = own[rng.Next(own.Length)];
+                        at = AwayFromWater(map, x, y, at);
+                        var tree = Pick();
                         if (row * 2 + col != gap && row * 2 + col != gap2)
                             sprites.Add((at, tree));
                     }
                     if (!sparse && rng.Next(2) == 0)
-                        sprites.Add((o + new Vector2(R(6, 42, rng), R(14, 48, rng)), own[rng.Next(own.Length)]));
+                        sprites.Add((AwayFromWater(map, x, y, o + new Vector2(R(6, 42, rng), R(14, 48, rng))), Pick()));
                     break;
 
                 case TerrainType.Mountain when peaks.Length > 0 && map.Massifs.Count == 0:

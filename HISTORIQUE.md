@@ -3203,6 +3203,18 @@ choix de l'utilisateur) :
   Mesuré sur six cartes de 72 × 72 : 24 roues pour 24 moulins, toutes sur un ruisseau (`CarteObjetsTests`). Une image
   plus grande (80 × 70, PixelLab ; recette dans `tools/art/METHODE.md`), retournée quand le ruisseau est à gauche. Une
   même graine donne une autre carte qu'avant.
+- ✅ **Des arbres de l'herbe plus variés, en bosquets** (2026-11-28, branche `arbres-herbe`, demandé par l'utilisateur :
+  « they almost all are round-shaped ») : six formes de plus (`decor/tree-poplar`, `tree-birch`, `tree-willow`,
+  `tree-crooked`, `tree-fir`, `tree-young`), quatre variantes chacune, Retro Diffusion 24 × 32 (1,44 $) ; l'utilisateur
+  les a presque toutes aimées : toutes gardées. La tache d'herbe dessous retirée (`sans_socle.py`, `--buisson` pour les
+  épicéas : sans cela, leurs branches basses partaient) ; les bouleaux, trop jaunes, et les épicéas, trop bleus, ramenés
+  vers le vert (la teinte des pixels de couleur rapprochée de 85° et 135°, saturation × 0,85). En **bosquets** (idée
+  de l'utilisateur : chaque forêt plus uniforme, la carte variée) : chaque forme a son bruit doux d'environ 6 cases,
+  élevé à la puissance 4 (deux ou trois formes dominent par endroit, 4 % des autres restent). Les **résineux** (sapins,
+  épicéas) restent entre eux (l'utilisateur) : un autre bruit sépare bois de résineux et bois de feuillus ; on tire
+  d'abord la sorte (un arbre sur dix de l'autre sorte), puis la forme. Des arbres paraissaient pousser dans l'eau (le
+  pied tiré près d'un bord de case où le shader fait onduler la rive) : le pied reste à 45 % de case des bords qui
+  touchent un lac, la mer ou une rivière, et loin d'un coin d'eau seul (`DecorLayer.AwayFromWater`).
 - ✅ **Des forêts brûlées plus clairsemées** (2026-11-28, branche `arbres-variete`, demandé par l'utilisateur : « we
   can't see the trees, just a mass of pixels ») : sur la terre brûlée, une case de forêt n'a plus que deux arbres, trois
   une fois sur trois (`DecorLayer.BurntThird`), au lieu de quatre et parfois un cinquième ; on voit chaque arbre mort et

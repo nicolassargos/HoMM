@@ -3203,6 +3203,24 @@ choix de l'utilisateur) :
   Mesuré sur six cartes de 72 × 72 : 24 roues pour 24 moulins, toutes sur un ruisseau (`CarteObjetsTests`). Une image
   plus grande (80 × 70, PixelLab ; recette dans `tools/art/METHODE.md`), retournée quand le ruisseau est à gauche. Une
   même graine donne une autre carte qu'avant.
+- ✅ **Moins de tas, de petits trésors variés** (2026-11-28, branche `repartition-objets`, premier pas de « une meilleure
+  répartition des objets », demandé par l'utilisateur). Mesuré sur 50 cartes de Heroes 3 (`tools/cartes/objets_h3.py`) et
+  sur les nôtres (`Objets_comme_Heroes3`), pour 1000 cases de terre, médianes : tas 18 contre 38, petits trésors (feux de
+  camp, coffres, parchemins…) 11 contre 6, lieux 23 contre 11, monstres 37 contre 20, habitations 3 contre 0 ; nos coffres,
+  artefacts et mines ont presque tous leur propre gardien (80 à 93 %, un tiers dans Heroes 3, où un monstre garde plutôt
+  l'entrée d'un coin à plusieurs trésors). Fait (choix de l'utilisateur : le point 1 d'abord) : **24 tas** au lieu de 42
+  par carte de 40 × 30, et trois petits trésors nouveaux, Retro Diffusion 32 × 32 : le **feu de camp**
+  (`Campfire`, 5 : 400 à 600 or et 4 à 6 bois ou minerai, ou 2 à 4 d'une rare ; sans gardien), le **parchemin**
+  (`SpellScroll`, 2 : un sort de niveau 1-2, 2-3 ou 3-4 selon le danger de la case, gardé à partir du niveau 3 ; il reste
+  pour un autre si le héros connaît le sort), la **tombe d'un aventurier** (`Remains`, 3 : un artefact mineur une fois
+  sur deux, sinon 300 à 500 or ; sans gardien). Pour elle, quatre tours (2,10 $ en tout) : des os épars, un squelette
+  couché (choisi, puis écarté en jeu : « doesn't work well on the map »), une tombe à l'épée, un squelette assis, un sac
+  renversé, un chariot ; l'utilisateur : « just draw a tombstone » : une pierre tombale grise, sa touffe d'herbe retirée
+  (`sans_socle.py … 0.3`). Maintenant : tas 22,
+  petits trésors 15 pour 1000 cases. Équilibre : la simulation seule gagne la carte normale vers le jour 227 (224 avant),
+  la grande pas plus qu'avant en 400 jours ; un adversaire après six semaines : 46 500, 61 100, 78 900 (36 800, 57 700,
+  68 000 avant). `--center=campfire`, `scroll`, `remains` (la tombe). **Reste**, proposé : des coins gardés à plusieurs trésors, plus
+  de lieux de sortes nouvelles, les habitations sur la carte.
 - ✅ **Des arbres de l'herbe plus variés, en bosquets** (2026-11-28, branche `arbres-herbe`, demandé par l'utilisateur :
   « they almost all are round-shaped ») : six formes de plus (`decor/tree-poplar`, `tree-birch`, `tree-willow`,
   `tree-crooked`, `tree-fir`, `tree-young`), quatre variantes chacune, Retro Diffusion 24 × 32 (1,44 $) ; l'utilisateur

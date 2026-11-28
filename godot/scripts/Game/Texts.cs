@@ -98,6 +98,9 @@ public static class Texts
     {
         ResourcePile pile => $"Tas de {Resource(pile.Resource)}",
         TreasureChest => "Coffre au trésor",
+        Campfire => "Feu de camp",
+        SpellScroll scroll => $"Parchemin ({scroll.Spell.Name})",
+        Remains => "Tombe d'un aventurier",
         ArtifactPile pile => $"Artefact : {pile.Artifact.Name}",
         Obelisk => "Obélisque",
         Boat => "Bateau",
@@ -294,6 +297,7 @@ public static class Texts
     {
         Shrine shrine when hero != null && shrine.Visitors.Contains(hero.Id) => $" (déjà visité par {hero.Name})",
         SageHut hut when hero != null && hero.Knows(hut.Spell) => $" ({hero.Name} connaît ce sort)",
+        SpellScroll scroll when hero != null && hero.Knows(scroll.Spell) => $" ({hero.Name} connaît ce sort)",
         WeeklyProducer { Stocked: false } => " (vide cette semaine)",
         ObservationTower tower when tower.Visitors.Contains(viewer.Id) => " (déjà visitée)",
         BlessingSite site when hero != null && site.AlreadyGiven(hero) => $" ({hero.Name} en a déjà la bénédiction)",
@@ -609,7 +613,12 @@ public static class Texts
     public static string ArtifactFoundTitle => "Un artefact !";
 
     public static string ArtifactFoundText(ArtifactFound found) =>
-        (found.Object is TreasureChest ? $"Au fond du coffre, {found.Hero.Name} trouve un artefact : " : $"{found.Hero.Name} ramasse un artefact : ")
+        (found.Object switch
+        {
+            TreasureChest => $"Au fond du coffre, {found.Hero.Name} trouve un artefact : ",
+            Remains => $"Sur la tombe d'un aventurier, {found.Hero.Name} trouve un artefact : ",
+            _ => $"{found.Hero.Name} ramasse un artefact : ",
+        })
         + $"{found.Artifact.Name}.\n{Bonus(found.Artifact)}.";
 
     public static string TreasureDugText(TreasureDug dug) =>
@@ -849,6 +858,9 @@ public static class Texts
         ShrineVisited shrine => $"{shrine.Hero.Name} a déjà prié à cet autel.",
         SageVisited { Learned: true } sage => $"Le sage enseigne {sage.Hut.Spell.Name} à {sage.Hero.Name}.",
         SageVisited sage => $"{sage.Hero.Name} connaît déjà le sort du sage ({sage.Hut.Spell.Name}).",
+        CampfireFound f => $"Un feu de camp abandonné : vous trouvez {f.Campfire.Gold} or et {f.Campfire.Amount} {Resource(f.Campfire.Resource)}.",
+        ScrollRead { Learned: true } r => $"{r.Hero.Name} lit le parchemin et apprend {r.Scroll.Spell.Name}.",
+        ScrollRead r => $"{r.Hero.Name} connaît déjà le sort du parchemin ({r.Scroll.Spell.Name}) : il le laisse.",
         BlessingVisited { Gained: true, Site: { Sea: true, Blessing: Blessing.Morale } } b => $"La bouée guide le bateau de {b.Hero.Name} : +1 moral jusqu'au prochain combat.",
         BlessingVisited { Gained: true, Site.Sea: true } b => $"Les sirènes chantent pour {b.Hero.Name} : +1 chance jusqu'au prochain combat.",
         BlessingVisited { Gained: true, Site.Blessing: Blessing.Morale } b => $"{b.Hero.Name} se recueille au temple : +1 moral jusqu'au prochain combat.",

@@ -832,6 +832,14 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   de la pierre), force 0,8 ; les petits ponts à partir des grands réduits, force 0,5.
 - Retro Diffusion dessine la pierre presque de côté et grise froide : la réchauffer vers la pierre du temple (rouge × 1,2).
 
+## Petits trésors de la carte (2026-11-28)
+- Retro Diffusion `rd_tile__tile_object` 32 × 32, comme les coffres et les tas ; « three-quarter view from above,
+  isolated object, no ground ». Le feu de camp et le parchemin passent du premier coup.
+- Des **os épars** (crâne, casque, épée, sac posés côte à côte) ne se lisent pas : « not convincing ». Un **squelette
+  entier** couché se lit sur la page de choix, pas sur la carte (il semble danser ; écarté en jeu). Ce qui marche : **une
+  forme simple et pleine**, une pierre tombale grise (l'idée de l'utilisateur). Regarder un petit objet **en jeu** avant
+  de le garder. Sa touffe d'herbe se retire avec `sans_socle.py entree sortie 0.3` (pour qu'il aille sur tous les sols).
+
 ## Grands objets de la carte (mines…)
 - **Méthode** : des **pièces** séparées faites par Retro Diffusion (`assets.json`, groupe `pieces/` : cabane, chariot,
   chevalet, souches, entrée de mine, chariot sur rails…), **sans socle**, puis **assemblées** aux proportions de Heroes

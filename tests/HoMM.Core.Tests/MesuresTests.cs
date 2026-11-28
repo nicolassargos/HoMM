@@ -486,6 +486,75 @@ public class MesuresTests(ITestOutputHelper output)
     }
 
     /// <summary>
+    /// Les objets comme les mesure tools/cartes/objets_h3.py dans Heroes 3 (2026-11-28) : combien de chaque sorte pour 1000
+    /// cases de terre, la part gardée (un monstre à 2 cases au plus de l'entrée), les trésors en groupes (un autre à 3 cases
+    /// au plus), les monstres loin de tout objet, la distance d'un trésor à la ville la plus proche. Quartiles bas / médiane
+    /// / haut, une valeur par carte.
+    /// </summary>
+    [Mesure]
+    public void Objets_comme_Heroes3()
+    {
+        foreach (var size in new[] { MapSize.Normal, MapSize.Large })
+        {
+            var per1000 = new Dictionary<string, List<double>>();
+            var guarded = new Dictionary<string, List<double>>();
+            var grouped = new List<double>();
+            var freeMonsters = new List<double>();
+            var townDistance = new List<double>();
+            foreach (int seed in Seeds)
+            {
+                var map = new GameState(seed, TestData.Data, size).Map;
+                int land = 0;
+                for (int y = 0; y < map.Height; y++)
+                for (int x = 0; x < map.Width; x++)
+                    if (!map.IsWater(new Cell(x, y)))
+                        land++;
+                string? Kind(MapObject o) => o switch
+                {
+                    MonsterGuard => "monstres",
+                    ArtifactPile => "artefacts",
+                    ResourcePile => "ressources",
+                    TreasureChest or Campfire or SpellScroll or Remains => "petits trésors",
+                    Mine => "mines",
+                    Town => "villes",
+                    Shrine or SageHut or WeeklyProducer or BlessingSite or ObservationTower or Obelisk or Portal => "lieux",
+                    _ => null,
+                };
+                var items = map.Objects.Where(o => !map.IsWater(o.Position)).Select(o => (Kind: Kind(o), o.Position)).Where(i => i.Kind != null).ToList();
+                foreach (var kind in new[] { "artefacts", "ressources", "petits trésors", "mines", "villes", "monstres", "lieux" })
+                    (per1000.TryGetValue(kind, out var l) ? l : per1000[kind] = new List<double>()).Add(1000.0 * items.Count(i => i.Kind == kind) / land);
+                var monsters = items.Where(i => i.Kind == "monstres").Select(i => i.Position).ToList();
+                int Distance(Cell a, Cell b) => Math.Max(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
+                bool NearMonster(Cell c) => monsters.Any(m => Distance(m, c) <= 2);
+                foreach (var kind in new[] { "artefacts", "ressources", "petits trésors", "mines", "lieux" })
+                {
+                    var cells = items.Where(i => i.Kind == kind).Select(i => i.Position).ToList();
+                    if (cells.Count > 0)
+                        (guarded.TryGetValue(kind, out var l) ? l : guarded[kind] = new List<double>()).Add(100.0 * cells.Count(NearMonster) / cells.Count);
+                }
+                var treasures = items.Where(i => i.Kind is "artefacts" or "ressources" or "petits trésors").Select(i => i.Position).ToList();
+                if (treasures.Count > 1)
+                    grouped.Add(100.0 * treasures.Count(p => treasures.Any(t => t != p && Distance(t, p) <= 3)) / treasures.Count);
+                var others = items.Where(i => i.Kind is not ("monstres" or "villes")).Select(i => i.Position).ToList();
+                if (monsters.Count > 0)
+                    freeMonsters.Add(100.0 * monsters.Count(m => !others.Any(o => Distance(o, m) <= 2)) / monsters.Count);
+                var towns = items.Where(i => i.Kind == "villes").Select(i => i.Position).ToList();
+                if (towns.Count > 0)
+                    townDistance.AddRange(treasures.Select(p => (double)towns.Min(t => Distance(t, p))));
+            }
+            string Q(List<double> v, string f = "F1")
+            {
+                var s = v.OrderBy(x => x).ToList();
+                return s.Count == 0 ? "-" : $"{s[s.Count / 4].ToString(f)} / {s[s.Count / 2].ToString(f)} / {s[3 * s.Count / 4].ToString(f)}";
+            }
+            output.WriteLine($"{size} : pour 1000 cases de terre : " + string.Join(", ", per1000.Select(k => $"{k.Key} {Q(k.Value)}")));
+            output.WriteLine("  part gardée % : " + string.Join(", ", guarded.Select(k => $"{k.Key} {Q(k.Value, "F0")}")));
+            output.WriteLine($"  trésors en groupes {Q(grouped, "F0")} % ; monstres loin de tout objet {Q(freeMonsters, "F0")} % ; "
+                + $"distance d'un trésor à la ville {Q(townDistance, "F0")} (moins de 10 : {100 * townDistance.Count(d => d < 10) / Math.Max(1, townDistance.Count)} %)");
+        }
+    }
+
+    /// <summary>
     /// Les villes neutres de chaque sol, par faction (2026-11-20 : les seconds sols des factions, qui comptent moitié moins
     /// que le sol principal) : sur des cartes grandes, toutes les graines.
     /// </summary>

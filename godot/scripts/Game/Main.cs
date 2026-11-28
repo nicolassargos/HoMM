@@ -391,6 +391,9 @@ public partial class Main : Node2D
             ArtifactPile { Artifact.Rank: ArtifactRank.Major } => "major-artifact",
             ArtifactPile => "artifact",
             Mine mine => $"mine-{Art.Name(mine.Resource)}",
+            Campfire => "campfire",
+            SpellScroll => "scroll",
+            Remains => "remains",
             _ => null,
         };
         if (OS.GetCmdlineUserArgs().Contains("--center=obelisk") && _state.Obelisks.FirstOrDefault() is { } firstObelisk)

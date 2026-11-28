@@ -114,7 +114,19 @@ public sealed class MapGenerator
 
     /// <summary>Coffres et tas de ressources, pour une carte de 40 × 30 (plus sur une grande carte).</summary>
     public int ChestCount { get; init; } = 6;
-    public int PileCount { get; init; } = 42; // 28 avant (la carte paraissait vide)
+    public int PileCount { get; init; } = 24; // 28, puis 42 (la carte paraissait vide), puis 24 avec les petits trésors (2026-11-28)
+
+    /// <summary>
+    /// Les petits trésors (2026-11-28, mesurés sur 50 cartes de Heroes 3 : tools/cartes/objets_h3.py, deux fois moins de
+    /// tas et deux fois plus de petits trésors que nous) : feux de camp, parchemins, tombes d'aventuriers, pour une
+    /// carte de 40 × 30.
+    /// </summary>
+    public int CampfireCount { get; init; } = 5;
+    public int ScrollCount { get; init; } = 2;
+    public int RemainsCount { get; init; } = 3;
+
+    /// <summary>Un parchemin d'un sort de ce niveau ou plus est gardé, comme un artefact majeur.</summary>
+    private const int GuardedScrollLevel = 3;
 
     /// <summary>
     /// Artefacts posés, pour une carte de 40 × 30 ; la part des coffres qui en cachent un (mineur) ; la taille du gardien
@@ -3435,6 +3447,15 @@ public sealed class MapGenerator
             if (!Place(c => new ResourcePile(c, type, _rng), "trésor"))
                 break;
         }
+        // le feu de camp : or et une ressource, plus souvent commune (comme les tas)
+        for (int i = 0; i < Scaled(CampfireCount); i++)
+        {
+            var type = pileTypes[_rng.Next(2, pileTypes.Length)];
+            if (ResourceInfo.IsRare(type))
+                type = ResourceInfo.Rare[_rng.Next(ResourceInfo.Rare.Length)];
+            if (!Place(c => new Campfire(c, type, _rng), "trésor"))
+                break;
+        }
 
         // Les artefacts (choix de l'utilisateur, 2026-11-21) : les mineurs près du départ, les majeurs plus loin, quelques
         // reliques dans les zones les plus dangereuses (les deux derniers gardés, voir PlaceGuards) ; chacun une fois au plus
@@ -3465,6 +3486,29 @@ public sealed class MapGenerator
                 pool.Remove(found);
             }
         }
+        // la tombe d'un aventurier : un artefact mineur une fois sur deux (s'il en reste), sinon de l'or
+        for (int i = 0; i < Scaled(RemainsCount); i++)
+        {
+            Remains? remains = null;
+            if (!Place(c => remains = new Remains(c, _rng.Next(3, 6) * 100), "trésor"))
+                break;
+            if (_rng.Next(2) == 0 && DrawArtifact(ArtifactRank.Minor) is { Rank: ArtifactRank.Minor } found)
+            {
+                remains!.Artifact = found;
+                pool.Remove(found);
+            }
+        }
+        // le parchemin : un sort de niveau 1 ou 2 près du départ, 2 ou 3 plus loin, 3 ou 4 dans les zones les plus dangereuses
+        var spells = _data.Spells.All.OrderBy(sp => sp.Id).ToList();
+        SpellType ScrollSpell(Cell c)
+        {
+            int low = Danger(c) switch { < 0.35 => 1, < 0.8 => 2, _ => 3 };
+            var choices = spells.Where(sp => sp.Level == low || sp.Level == low + 1).ToList();
+            return choices.Count > 0 ? choices[_rng.Next(choices.Count)] : spells[_rng.Next(spells.Count)];
+        }
+        for (int i = 0; i < Scaled(ScrollCount) && spells.Count > 0; i++)
+            if (!Place(c => new SpellScroll(c, ScrollSpell(c)), "trésor"))
+                break;
     }
 
     /// <summary>Les artefacts pas encore posés sur la carte (chacun une fois au plus).</summary>
@@ -4123,7 +4167,7 @@ public sealed class MapGenerator
         // les mines de la zone de départ ne sont pas gardées (comme dans Heroes 3) : elles assurent à chacun de quoi bâtir,
         // sans combat risqué dès les premiers jours
         var guarded = _map.Objects
-            .Where(o => o is Mine or TreasureChest or ArtifactPile { Artifact.Rank: not ArtifactRank.Minor } && !_startZoneMines.Contains(o))
+            .Where(o => o is Mine or TreasureChest or ArtifactPile { Artifact.Rank: not ArtifactRank.Minor } or SpellScroll { Spell.Level: >= GuardedScrollLevel } && !_startZoneMines.Contains(o))
             .OrderBy(o => o.Position.Y).ThenBy(o => o.Position.X)
             .ToList();
         // le plus à l'étroit d'abord (le moins de places possibles pour son gardien) : dans une zone où les objets se

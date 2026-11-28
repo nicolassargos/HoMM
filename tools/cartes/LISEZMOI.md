@@ -15,6 +15,8 @@ cartes elles-mêmes sont dans `maps references/` (non suivi par git) ; on n'en c
   grande, sols par carte).
 - `zones_h3.py dossier` : les zones vues du joueur (les régions où l'on marche, séparées par les obstacles et les
   monstres) : leur nombre, leur taille, la région d'une case typique, par taille de carte.
+- `objets_h3.py dossier` : les objets (monstres, artefacts, tas, petits trésors, mines, habitations, lieux) pour 1000
+  cases de terre, la part gardée, les trésors en groupes, leur distance aux villes.
 - `road_h2.py` : une carte de Heroes 2 (`.mp2`) ; une route est une image du fond de la série ROAD (30), comme fheroes2.
 - `routes_h2.py dossier` : les mêmes mesures pour Heroes 2.
 - `sinuosite_h3.py dossier [près loin]` : les détours des routes de Heroes 3 (le chemin par la route entre deux de ses
@@ -42,3 +44,7 @@ fait environ 710 cases sur les cartes de 72 × 72, 350 sur 108 × 108, 260 sur 1
 Mesuré (2026-11-21, 50 cartes, `sinuosite_h3.py`) : le chemin par la route divisé par la distance à vol d'oiseau, médianes
 1,19 entre 10 et 20 cases, 1,10 entre 5 et 8 (les nôtres : 1,32 et 1,24). Les routes de Heroes 3 ne font pas plus de
 détours, mais changent de direction toutes les 1 à 3 cases, en escaliers irréguliers, et sont dessinées en courbes.
+
+Mesuré (2026-11-28, 50 cartes, `objets_h3.py`, médianes pour 1000 cases de terre) : 37 monstres, 18 tas, 11 petits trésors,
+4 artefacts, 5,5 mines, 3 habitations, 23 lieux ; un tiers des trésors a un monstre à 2 cases au plus (deux tiers des
+mines) ; 85 % des trésors en ont un autre à 3 cases au plus. À comparer avec la mesure `Objets_comme_Heroes3`.

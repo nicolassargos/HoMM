@@ -176,6 +176,92 @@ public sealed class ArtifactPile : MapObject
     }
 }
 
+/// <summary>Le héros a trouvé un feu de camp abandonné : son or et sa ressource.</summary>
+public sealed record CampfireFound(Hero Hero, Campfire Campfire) : ObjectVisited(Hero, Campfire);
+
+/// <summary>
+/// Un feu de camp abandonné, comme Heroes 3 (2026-11-28) : 400 à 600 or et une ressource (4 à 6 bois ou minerai, 2 à 4
+/// d'une rare). Sans gardien.
+/// </summary>
+public sealed class Campfire : MapObject
+{
+    public Campfire(Cell position, ResourceType resource, Random rng)
+        : this(position, rng.Next(4, 7) * 100, resource, ResourceInfo.IsRare(resource) ? rng.Next(2, 5) : rng.Next(4, 7))
+    {
+    }
+
+    public Campfire(Cell position, int gold, ResourceType resource, int amount) : base(position)
+    {
+        Gold = gold;
+        Resource = resource;
+        Amount = amount;
+    }
+
+    public int Gold { get; }
+    public ResourceType Resource { get; }
+    public int Amount { get; }
+
+    public override ObjectVisited Visit(Hero hero)
+    {
+        var resources = hero.Owner.Resources;
+        resources[ResourceType.Gold] = resources.GetValueOrDefault(ResourceType.Gold) + Gold;
+        resources[Resource] = resources.GetValueOrDefault(Resource) + Amount;
+        return new CampfireFound(hero, this);
+    }
+}
+
+/// <summary>Le héros a lu un parchemin. <paramref name="Learned"/> : faux s'il connaissait déjà le sort (le parchemin reste).</summary>
+public sealed record ScrollRead(Hero Hero, SpellScroll Scroll, bool Learned) : ObjectVisited(Hero, Scroll);
+
+/// <summary>
+/// Un parchemin (2026-11-28) : il enseigne un sort, tiré à la création de la carte selon le danger de sa case. Il
+/// disparaît une fois appris ; un héros qui connaît déjà le sort le laisse à un autre.
+/// </summary>
+public sealed class SpellScroll : MapObject
+{
+    public SpellScroll(Cell position, SpellType spell) : base(position) => Spell = spell;
+
+    public SpellType Spell { get; }
+
+    private bool _read;
+
+    public override bool RemovedOnVisit => _read;
+
+    public override ObjectVisited Visit(Hero hero)
+    {
+        _read = hero.Learn(Spell);
+        return new ScrollRead(hero, this, _read);
+    }
+}
+
+/// <summary>
+/// La tombe d'un aventurier (2026-11-28) : un artefact mineur une fois sur deux, sinon 300 à 500 or. Sans gardien.
+/// </summary>
+public sealed class Remains : MapObject
+{
+    public Remains(Cell position, int gold, ArtifactType? artifact = null) : base(position)
+    {
+        Gold = gold;
+        Artifact = artifact;
+    }
+
+    public int Gold { get; }
+
+    /// <summary>L'artefact mineur qu'il portait, sinon de l'or.</summary>
+    public ArtifactType? Artifact { get; internal set; }
+
+    public override ObjectVisited Visit(Hero hero)
+    {
+        if (Artifact != null)
+        {
+            hero.Equip(Artifact);
+            return new ArtifactFound(hero, this, Artifact);
+        }
+        hero.Owner.Resources[ResourceType.Gold] = hero.Owner.Resources.GetValueOrDefault(ResourceType.Gold) + Gold;
+        return new ResourcesFound(hero, this, ResourceType.Gold, Gold);
+    }
+}
+
 /// <summary>Le héros a visité un obélisque. <paramref name="FirstVisit"/> : un nouveau morceau de la carte au trésor.</summary>
 public sealed record ObeliskVisited(Hero Hero, Obelisk Obelisk, bool FirstVisit) : ObjectVisited(Hero, Obelisk);
 

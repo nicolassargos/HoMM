@@ -2641,6 +2641,26 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   nom au survol) ; le **choix d'un niveau** (la grande en haut de chaque bouton) ; l'**écran du héros** (trois par
   rangée : la grande, le nom, la valeur ; ce que fait la caractéristique passe au survol ; le moral et la chance à la
   sixième place), en attendant la session de l'écran du héros.
+- ✅ **La fenêtre Construire refaite** (2026-11-28, branche `ville-construire` ; remarque de la revue : « à refaire
+  entièrement »). Trois maquettes (A façon Heroes 3 : une grille de vignettes ; B façon Heroes 2 : une liste et le
+  bâtiment choisi en grand ; C : les habitations en rangée, la ville dessous, le détail en bas) ; choisie : **A**.
+  - **Les vignettes** : l'image de chaque bâtiment de la scène de la ville, réduite sans flou pour tenir dans une boîte
+    (`tools/art/vignettes_ville.py <faction>` ou `tout`, à relancer quand une image de la scène change) :
+    `towns/<faction>/vignettes/<id>.png` (72 × 52), `vignettes/grand/` (150 × 110), `vignettes/recrue/` (95 × 112).
+    Seuls le Château et les morts-vivants ont une scène : ailleurs, la créature pour une habitation, rien sinon.
+  - **La grille** (`OpenBuild`) : 4 cartes par rangée, la ville d'abord puis les habitations du niveau 1 au 7 ; sur
+    chaque carte la vignette ×2 sur un fond sombre et le nom sur une barre de la couleur de son état (`BuildLook` :
+    vert peut être construit, rouge pas aujourd'hui (ressources, ou déjà un bâtiment ce jour), gris il faut d'autres
+    bâtiments, la vignette assombrie, or terni construit, « ✓ »). Sous la grille, le bâtiment survolé (ce qu'il fait,
+    son prix en icônes, en rouge ce qui manque) et la légende ; l'icône Annuler en bas à droite. La grille défile si
+    elle ne tient pas sur l'écran.
+  - **La fenêtre d'un bâtiment** (`OpenBuilding`, un clic sur une carte) : la grande vignette, ce qu'il fait, ce
+    qu'il demande (`Texts.BuildingRequirements` : « Il faut : Écuries ✓ »), son prix en icônes, pourquoi on ne peut
+    pas ; Construire et Annuler (qui revient à la grille). Capture : `--town-window=build:<id>`.
+  - **Recruter sur une habitation à bâtir** (remarque de la revue : on voyait la créature, pas le bâtiment) : le
+    bâtiment dans le paysage de la faction, son prix et ce qu'il demande ; « Construire… » ouvre sa fenêtre, Annuler
+    revient à Recruter.
+  - Texte retiré : `ToBuild`.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

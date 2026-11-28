@@ -1385,10 +1385,24 @@ public static class Texts
     public static string HeroHome => "Demeure du héros\nLe fort la remplacera\nClic : recruter les créatures";
 
     public static string BuildTitle(Town town) => $"Construire à {town.Name}";
-    public static string ToBuild => "Un bâtiment par jour";
     public static string BuiltMark => "✓ Construit";
     public static string ToBuildFirst(BuildingType dwelling) => $"{dwelling.Name}\nà construire";
     public static string GoBuild => "Construire…";
+    public static string BuildHint => "Un bâtiment par jour. Survolez un bâtiment : ce qu'il fait et son prix ; cliquez : sa fenêtre.";
+
+    /// <summary>Les couleurs de la fenêtre Construire, dans l'ordre de <c>TownScreen.BuildLook</c>.</summary>
+    public static readonly string[] BuildLegend = { "peut être construit", "pas aujourd'hui", "il faut d'autres bâtiments", "construit" };
+
+    /// <summary>« Il faut : Tour des archers ✓, Écuries (à construire) » ; vide s'il ne demande rien.</summary>
+    public static string BuildingRequirements(Town town, BuildingType building)
+    {
+        var parts = building.RequirementChoices.Select(choices =>
+        {
+            string names = string.Join(" ou ", town.Buildings.Where(b => choices.Contains(b.Id)).Select(b => b.Name).Take(choices.Count()));
+            return choices.Any(town.Has) ? $"{names} ✓" : $"{names} (à construire)";
+        }).ToList();
+        return parts.Count == 0 ? "" : "Il faut : " + string.Join(", ", parts);
+    }
 
     /// <summary>« niveau 3 · vole » : le niveau d'une créature et ses capacités.</summary>
     public static string CreatureLevel(CreatureType type) =>

@@ -668,11 +668,14 @@ public partial class TownScreen : CanvasLayer
 
     // ----------------------------------------------------------- les fenêtres
 
-    /// <summary>Développement : ouvre une fenêtre de la ville (« build », « recruit » ou « recruit:moine » : sur cette créature, « tavern », « count ») pour une capture.</summary>
+    /// <summary>Développement : ouvre une fenêtre de la ville (« build », « build:monastere » : la fenêtre de ce bâtiment, « recruit » ou « recruit:moine » : sur cette créature, « tavern », « count ») pour une capture.</summary>
     public void ShowWindow(string which)
     {
         if (which == "build")
             OpenBuild();
+        else if (which.StartsWith("build:") && _town is { } here
+                 && here.Buildings.FirstOrDefault(b => b.Id == which["build:".Length..]) is { } building)
+            OpenBuilding(building, OpenBuild);
         else if (which == "recruit")
             OpenRecruitWindow(null);
         else if (which.StartsWith("recruit:") && _town is { } shown)
@@ -745,34 +748,146 @@ public partial class TownScreen : CanvasLayer
     }
 
     /// <summary>
-    /// La fenêtre Construire : tous les bâtiments de la ville, dans l'ordre des données, ceux qui sont déjà construits
-    /// parmi les autres (marqués « Construit ») ; une carte par bâtiment, 3 par rangée.
+    /// La fenêtre Construire, comme Heroes 3 (choix de l'utilisateur, 2026-11-28) : une grille de vignettes, 4 par rangée,
+    /// la ville d'abord puis les habitations du niveau 1 au niveau 7 ; le nom de chaque bâtiment sur une barre de la
+    /// couleur de son état (peut être construit, pas aujourd'hui, il faut d'autres bâtiments, construit). Au survol, ce
+    /// qu'il fait et son prix sous la grille ; un clic ouvre sa fenêtre (<see cref="OpenBuilding"/>).
     /// </summary>
     private void OpenBuild()
     {
         if (_town is not { } town)
             return;
-        var buildings = town.Buildings.Where(b => ShownInBuild(town, b)).ToList();
-        int rows = Math.Max(1, (buildings.Count + 2) / 3);
-        // la fenêtre suit son contenu, sans dépasser l'écran (la grille défile alors)
-        // la liste aussi haute que l'écran le permet, moins l'air autour de la fenêtre et sa rangée du bas (l'icône qui ferme)
-        float extra = 2 * (WindowMargin - OldWindowMargin) + IconButtonSide + ArtPx(6);
-        float listHeight = Math.Min(rows * 136 - 10, (_screen.Y - Hud.TopBarHeight - extra) / Ui.Scale - 40 - 84 - 20);
-        var window = OpenWindow(V(1000, 84 + listHeight + 36), Texts.BuildTitle(town), overView: false);
-        window.AddChild(At(MakeLabel(Texts.ToBuild, 14, SoftTextColor), 24, 56));
-        // les cartes (à plat) dans une zone creusée
-        window.AddChild(SunkenArea(V(12, 80), V(976, listHeight + 16)));
+        // la ville d'abord, puis les habitations, de la plus petite à la plus grande (l'ordre des données sinon)
+        var buildings = town.Buildings.Where(b => ShownInBuild(town, b))
+            .OrderBy(b => town.DwellingCreature(b)?.Tier ?? 0).ToList();
+        float cardWidth = ArtPx(168), cardHeight = ArtPx(80), gap = ArtPx(8), pad = ArtPx(8);
+        int rows = Math.Max(1, (buildings.Count + 3) / 4);
+        float gridWidth = 4 * cardWidth + 3 * gap, gridHeight = rows * cardHeight + (rows - 1) * gap;
+        float top = WindowMargin + ButtonHeight + ArtPx(4);
+        float gridY = top + TextSize(13) + ArtPx(8);
+        // en bas : la ligne du survol et la légende, à côté de l'icône qui ferme
+        float footer = Math.Max(IconButtonSide, TextSize(15) + ArtPx(4) + TextSize(12));
+        // la grille aussi haute que l'écran le permet (elle défile sinon)
+        float room = _screen.Y - ArtPx(16) - (gridY + 2 * pad + ArtPx(8) + footer + WindowMargin);
+        float shownHeight = Math.Min(gridHeight, room);
+        float scrollBar = shownHeight < gridHeight ? ArtPx(10) : 0;
+        float innerWidth = gridWidth + 2 * pad + scrollBar;
+        var window = OpenWindow(new Vector2(innerWidth + 2 * WindowMargin, top), Texts.BuildTitle(town), overView: false,
+            closeButton: false, padded: false);
+        var hint = MakeLabel(Texts.BuildHint, 13, SoftTextColor);
+        hint.Position = new Vector2(WindowMargin, top);
+        window.AddChild(hint);
+        window.AddChild(SunkenArea(new Vector2(WindowMargin, gridY), new Vector2(innerWidth, shownHeight + 2 * pad)));
         var scroll = new ScrollContainer
         {
-            Position = V(19, 88), Size = V(966, listHeight), HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            Position = new Vector2(WindowMargin + pad, gridY + pad), Size = new Vector2(gridWidth + scrollBar, shownHeight),
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
         };
         window.AddChild(scroll);
-        var grid = new GridContainer { Columns = 3 };
-        grid.AddThemeConstantOverride("h_separation", (int)Px(10));
-        grid.AddThemeConstantOverride("v_separation", (int)Px(10));
+        var grid = new GridContainer { Columns = 4 };
+        grid.AddThemeConstantOverride("h_separation", (int)gap);
+        grid.AddThemeConstantOverride("v_separation", (int)gap);
         scroll.AddChild(grid);
+
+        // sous la grille : ce que fait le bâtiment survolé et son prix ; la légende des couleurs
+        float rowY = gridY + shownHeight + 2 * pad + ArtPx(8);
+        var info = new HBoxContainer { Position = new Vector2(WindowMargin, rowY) };
+        info.AddThemeConstantOverride("separation", (int)ArtPx(6));
+        window.AddChild(info);
+        var legend = new HBoxContainer { Position = new Vector2(WindowMargin, rowY + TextSize(15) + ArtPx(4)) };
+        legend.AddThemeConstantOverride("separation", (int)ArtPx(3));
+        window.AddChild(legend);
+        foreach (var state in new[] { BuildLook.Ok, BuildLook.NotToday, BuildLook.Missing, BuildLook.Built })
+        {
+            var chip = new ColorRect { Color = LookColors(state).Fill, CustomMinimumSize = new Vector2(ArtPx(6), ArtPx(6)), SizeFlagsVertical = Control.SizeFlags.ShrinkCenter };
+            legend.AddChild(chip);
+            var word = MakeLabel(Texts.BuildLegend[(int)state], 12, SoftTextColor);
+            legend.AddChild(word);
+            legend.AddChild(new Control { CustomMinimumSize = new Vector2(ArtPx(6), 0) });
+        }
+        void Show(BuildingType? building)
+        {
+            foreach (var child in info.GetChildren())
+            {
+                info.RemoveChild(child);
+                child.QueueFree();
+            }
+            if (building == null)
+                return;
+            info.AddChild(MakeLabel($"{building.Name} : {Texts.BuildingEffect(town, building)}", 15, TextColor));
+            if (!town.Has(building.Id))
+                info.AddChild(CostIcons(building.Cost, _state.CurrentPlayer));
+        }
         foreach (var building in buildings)
-            grid.AddChild(BuildCard(town, building));
+        {
+            var card = BuildCard(town, building, new Vector2(cardWidth, cardHeight));
+            card.MouseEntered += () => Show(building);
+            card.MouseExited += () => Show(null);
+            card.Pressed += () => OpenBuilding(building, OpenBuild);
+            grid.AddChild(card);
+        }
+
+        var close = IconButtons.Make("annuler", Texts.CloseButton, "Échap", CloseWindow);
+        close.Position = new Vector2(WindowMargin + innerWidth - IconButtonSide, rowY);
+        window.AddChild(close);
+        window.Size = new Vector2(window.Size.X, rowY + footer + WindowMargin);
+        var screen = window.GetParent<Control>().Size;
+        window.Position = new Vector2(MathF.Floor((screen.X - window.Size.X) / 2), MathF.Max(ArtPx(8), MathF.Floor((screen.Y - window.Size.Y) / 2)));
+    }
+
+    /// <summary>L'état d'un bâtiment dans Construire, d'où la couleur de sa barre (l'ordre de <see cref="Texts.BuildLegend"/>).</summary>
+    private enum BuildLook { Ok, NotToday, Missing, Built }
+
+    private static BuildLook LookOf(Town town, BuildingType building, BuildResult result) =>
+        town.Has(building.Id) ? BuildLook.Built
+        : result switch
+        {
+            BuildResult.Ok => BuildLook.Ok,
+            BuildResult.NotEnoughResources or BuildResult.AlreadyBuiltToday => BuildLook.NotToday,
+            _ => BuildLook.Missing,
+        };
+
+    /// <summary>Le fond et le texte de la barre du nom : vert, rouge sombre, gris, or terni.</summary>
+    private static (Color Fill, Color Text) LookColors(BuildLook look) => look switch
+    {
+        BuildLook.Ok => (MapRenderer.Rgb(62, 95, 42), TextColor),
+        BuildLook.NotToday => (MapRenderer.Rgb(110, 42, 32), TextColor),
+        BuildLook.Missing => (MapRenderer.Rgb(58, 53, 46), MapRenderer.Rgb(154, 144, 124)),
+        _ => (MapRenderer.Rgb(90, 74, 38), MapRenderer.Rgb(240, 220, 160)),
+    };
+
+    /// <summary>
+    /// La vignette d'un bâtiment (<c>towns/&lt;faction&gt;/vignettes[/grand|/recrue]/&lt;id&gt;.png</c>, faites par
+    /// <c>tools/art/vignettes_ville.py</c> d'après la scène de la ville), ×2, posée en bas et au milieu de
+    /// <paramref name="place"/> ; pour une faction sans scène, la créature d'une habitation, sinon rien.
+    /// </summary>
+    private static Control? BuildingPicture(Town town, BuildingType building, Rect2 place, string size = "")
+    {
+        string folder = size == "" ? "vignettes" : $"vignettes/{size}";
+        if (Art.Get($"towns/{town.Faction}/{folder}/{building.Id}") is { } image)
+        {
+            var picture = image.GetSize() * 2;
+            return Picture(image, place.Position + new Vector2(SnapDown((place.Size.X - picture.X) / 2), place.Size.Y - picture.Y), picture);
+        }
+        return town.DwellingCreature(building) is { } creature ? CreaturePicture(creature, place, place.Size.Y - Px(4)) : null;
+    }
+
+    /// <summary>Un prix en icônes ; une ressource qui manque au joueur en rouge.</summary>
+    private static HBoxContainer CostIcons(IReadOnlyDictionary<ResourceType, int> cost, Player player)
+    {
+        var row = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkCenter };
+        row.AddThemeConstantOverride("separation", (int)ArtPx(3));
+        foreach (var (resource, amount) in cost.OrderBy(c => c.Key))
+        {
+            row.AddChild(new ResourceIcon
+            {
+                Resource = resource, CustomMinimumSize = new Vector2(ArtPx(16), ArtPx(16)), SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            });
+            row.AddChild(MakeLabel(amount.ToString(), 15, player.Resources.GetValueOrDefault(resource) < amount ? WarningColor : TextColor));
+            row.AddChild(new Control { CustomMinimumSize = new Vector2(ArtPx(4), 0) });
+        }
+        return row;
     }
 
     /// <summary>
@@ -798,63 +913,96 @@ public partial class TownScreen : CanvasLayer
         return area;
     }
 
-    private Control BuildCard(Town town, BuildingType building)
+    /// <summary>Une carte de Construire : la vignette du bâtiment sur un fond sombre, son nom sur la barre de la couleur de son état.</summary>
+    private Button BuildCard(Town town, BuildingType building, Vector2 size)
     {
-        bool built = town.Has(building.Id);
-        var result = town.CanBuild(building, _state.CurrentPlayer);
-        var card = new Panel { CustomMinimumSize = V(314, 126) };
-        card.AddThemeStyleboxOverride("panel", Plate(PanelColor, result == BuildResult.Ok ? GoodColor : null));
-        if (result is BuildResult.MissingRequirement)
-            card.Modulate = new Color(1, 1, 1, 0.6f);
-        var x = 8f;
-        if (town.DwellingCreature(building) is { } creature && CreaturePicture(creature, new Rect2(V(4, 6), V(52, 52))) is { } image)
+        var look = LookOf(town, building, town.CanBuild(building, _state.CurrentPlayer));
+        var (fill, text) = LookColors(look);
+        var card = new Button { CustomMinimumSize = size, FocusMode = Control.FocusModeEnum.None, ClipContents = true };
+        foreach (var name in new[] { "normal", "hover", "pressed", "disabled", "focus" })
+            card.AddThemeStyleboxOverride(name, Inset(MapRenderer.Rgb(18, 13, 8)));
+        float barHeight = ArtPx(19);
+        if (BuildingPicture(town, building, new Rect2(ArtPx(4), ArtPx(2), size.X - ArtPx(8), size.Y - barHeight - ArtPx(4))) is { } picture)
         {
-            card.AddChild(image);
-            x = 62;
+            if (look == BuildLook.Missing)
+                picture.Modulate = new Color(0.5f, 0.5f, 0.5f);
+            card.AddChild(picture);
         }
-        card.AddChild(At(MakeLabel(building.Name, 15, TextColor), x, 6));
-        var effect = MakeLabel(Texts.BuildingEffect(town, building), 12, SoftTextColor);
-        effect.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        effect.CustomMinimumSize = V(306 - x, 0);
-        effect.Position = V(x, 26);
-        // deux lignes au plus, et le prix sur une ligne coupée au bord de la carte (le texte entier au survol)
-        effect.MaxLinesVisible = 2;
-        effect.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-        card.AddChild(effect);
-        // le texte après la taille : sinon l'étiquette garde la largeur du texte entier
-        var cost = At(MakeLabel("", 12, TextColor), x, 62);
-        cost.ClipText = true;
-        cost.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-        cost.Size = V(306 - x, 20);
-        cost.Text = Texts.Cost(building.Cost);
-        card.AddChild(cost);
-        card.TooltipText = $"{Texts.BuildingEffect(town, building)}\n{Texts.Cost(building.Cost)}";
-        if (built)
-        {
-            card.AddThemeStyleboxOverride("panel", Plate(DarkPanelColor)); // construit : en retrait
-            card.AddChild(At(MakeLabel(Texts.BuiltMark, 13, GoodColor), x, 86));
-            return card;
-        }
-        // un bouton seulement si l'on peut construire ; sinon, pourquoi (ressources, bâtiments requis…)
-        string status = Texts.BuildStatus(result, town, building);
-        if (result != BuildResult.Ok)
-        {
-            var why = MakeLabel(status, 12, result is BuildResult.MissingRequirement ? DimColor : SoftTextColor);
-            why.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            why.CustomMinimumSize = V(306 - x, 0);
-            why.Position = V(x, 84);
-            card.AddChild(why);
-            return card;
-        }
-        var action = FixedButton(status, 13, new Vector2(Px(298), ButtonHeight));
-        action.Position = V(8, 82);
-        action.Pressed += () =>
-        {
-            if (_state.Build(town, building.Id) == BuildResult.Ok)
-                CloseWindow(); // l'apparition du bâtiment se voit sur la ville (événement BuildingBuilt)
-        };
-        card.AddChild(action);
+        var bar = new Panel { Position = new Vector2(0, size.Y - barHeight), Size = new Vector2(size.X, barHeight), MouseFilter = Control.MouseFilterEnum.Ignore };
+        bar.AddThemeStyleboxOverride("panel", Box(fill, fill.Darkened(0.4f), 2, 2, 2, 2));
+        card.AddChild(bar);
+        var label = MakeLabel(look == BuildLook.Built ? $"✓ {building.Name}" : building.Name, 13, text);
+        label.HorizontalAlignment = HorizontalAlignment.Center;
+        label.VerticalAlignment = VerticalAlignment.Center;
+        label.ClipText = true;
+        label.Size = bar.Size;
+        bar.AddChild(label);
+        card.MouseEntered += () => card.Modulate = new Color(1.2f, 1.2f, 1.2f);
+        card.MouseExited += () => card.Modulate = Colors.White;
         return card;
+    }
+
+    /// <summary>
+    /// La fenêtre d'un bâtiment (un clic dans Construire, ou une habitation à bâtir dans Recruter) : sa vignette en grand,
+    /// ce qu'il fait, les bâtiments qu'il demande, son prix en icônes (en rouge ce qui manque), pourquoi on ne peut pas ;
+    /// en bas, Construire (s'il ne l'est pas déjà) et Annuler, qui revient à <paramref name="back"/>.
+    /// </summary>
+    private void OpenBuilding(BuildingType building, Action back)
+    {
+        if (_town is not { } town)
+            return;
+        var player = _state.CurrentPlayer;
+        var result = town.CanBuild(building, player);
+        bool built = town.Has(building.Id);
+        float imageWidth = ArtPx(158), imageHeight = ArtPx(118), columnWidth = ArtPx(220);
+        float top = WindowMargin + ButtonHeight + ArtPx(6);
+        float columnX = WindowMargin + imageWidth + ArtPx(12);
+        var window = OpenWindow(new Vector2(columnX + columnWidth + WindowMargin, top), building.Name, overView: true, closeButton: false, padded: false);
+        window.AddChild(SunkenArea(new Vector2(WindowMargin, top), new Vector2(imageWidth, imageHeight)));
+        if (BuildingPicture(town, building, new Rect2(WindowMargin + ArtPx(4), top + ArtPx(2), imageWidth - ArtPx(8), imageHeight - ArtPx(6)), "grand") is { } picture)
+            window.AddChild(picture);
+
+        var column = new VBoxContainer { Position = new Vector2(columnX, top - ArtPx(2)), Size = new Vector2(columnWidth, 0) };
+        column.AddThemeConstantOverride("separation", (int)ArtPx(4));
+        window.AddChild(column);
+        void Line(string text, int size, Color color)
+        {
+            var label = MakeLabel(text, size, color);
+            label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            label.CustomMinimumSize = new Vector2(columnWidth, 0);
+            column.AddChild(label);
+        }
+        Line(Texts.BuildingEffect(town, building), 15, TextColor);
+        if (Texts.BuildingRequirements(town, building) is { Length: > 0 } requirements)
+            Line(requirements, 13, SoftTextColor);
+        if (built)
+            Line(Texts.BuiltMark, 15, GoodColor);
+        else
+        {
+            column.AddChild(CostIcons(building.Cost, player));
+            // pourquoi on ne peut pas (les bâtiments qui manquent sont déjà dits plus haut)
+            if (result is not (BuildResult.Ok or BuildResult.MissingRequirement))
+                Line(Texts.BuildStatus(result, town, building), 13, WarningColor);
+        }
+
+        float rowY = Math.Max(top + imageHeight, column.Position.Y + column.GetCombinedMinimumSize().Y) + ArtPx(8);
+        var close = IconButtons.Make("annuler", Texts.CloseButton, "Échap", back);
+        close.Position = new Vector2(columnX + columnWidth - IconButtonSide, rowY);
+        window.AddChild(close);
+        if (!built)
+        {
+            var build = IconButtons.Make("construire", Texts.BuildButton, "", () =>
+            {
+                if (_state.Build(town, building.Id) == BuildResult.Ok)
+                    CloseWindow(); // l'apparition du bâtiment se voit sur la ville (événement BuildingBuilt)
+            });
+            build.Position = new Vector2(close.Position.X - ButtonGap - IconButtonSide, rowY);
+            build.Disabled = result != BuildResult.Ok;
+            window.AddChild(build);
+        }
+        window.Size = new Vector2(window.Size.X, rowY + IconButtonSide + WindowMargin);
+        var screen = window.GetParent<Control>().Size;
+        window.Position = new Vector2(MathF.Floor((screen.X - window.Size.X) / 2), MathF.Max(ArtPx(8), MathF.Floor((screen.Y - window.Size.Y) / 2)));
     }
 
     /// <summary>
@@ -896,10 +1044,16 @@ public partial class TownScreen : CanvasLayer
         var inside = new Rect2(rim, rim, backdropSize.X, backdropSize.Y);
         if (CreatureBackdrop(creature, inside) is { } landscape)
             picture.AddChild(landscape);
-        if (CreaturePicture(creature, inside, inside.Size.Y - Px(10)) is { } image)
+        // une habitation à bâtir : le bâtiment dans le paysage, pas la créature (remarque de l'utilisateur, 2026-11-27)
+        bool showBuilding = !built && Art.Get($"towns/{town.Faction}/vignettes/recrue/{dwelling.Id}") != null;
+        if (showBuilding && BuildingPicture(town, dwelling, new Rect2(inside.Position + new Vector2(ArtPx(4), 0), inside.Size - new Vector2(ArtPx(8), ArtPx(4))), "recrue") is { } building)
+            picture.AddChild(building);
+        else if (CreaturePicture(creature, inside, inside.Size.Y - Px(10)) is { } image)
+        {
             picture.AddChild(image);
-        if (!built)
-            picture.Modulate = new Color(0.55f, 0.55f, 0.55f);
+            if (!built)
+                picture.Modulate = new Color(0.55f, 0.55f, 0.55f);
+        }
 
         // à droite : le nom, les capacités, les caractéristiques, ce qu'il en reste et le prix
         // une hauteur fixe : la fenêtre garde sa taille (et les flèches leur place) d'une créature à l'autre
@@ -977,7 +1131,10 @@ public partial class TownScreen : CanvasLayer
         if (!built)
         {
             Line(column, Texts.ToBuildFirst(dwelling).Replace("\n", " "), 15, TextColor);
-            Bottom("construire", Texts.GoBuild, OpenBuild);
+            column.AddChild(CostIcons(dwelling.Cost, _state.CurrentPlayer));
+            if (Texts.BuildingRequirements(town, dwelling) is { Length: > 0 } requirements)
+                Line(column, requirements, 13, SoftTextColor);
+            Bottom("construire", Texts.GoBuild, () => OpenBuilding(dwelling, () => OpenRecruitWindow(creature, single)));
             return;
         }
         int available = town.Available.GetValueOrDefault(creature);

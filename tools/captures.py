@@ -40,6 +40,7 @@ ECRANS = [
     ("14-ville", ["--town"]),
     ("14b-ville-morts-vivants", ["--town", "--faction=morts-vivants"]),
     ("15-ville-construire", ["--town", "--town-window=build"]),
+    ("15b-ville-construire-batiment", ["--town", "--town-window=build:monastere"]),
     ("16-ville-recruter", ["--town", "--town-window=recruit"]),
     ("17-ville-recruter-a-construire", ["--town", "--town-window=recruit:moine"]),
     ("18-ville-taverne", ["--town", "--town-window=tavern"]),

@@ -341,8 +341,8 @@ la guilde, la vitrine du combat.
   sous des onglets) ; **le royaume** (icônes, villes centrées, « on peut construire » marqué) ; **la fenêtre
   Construire**, à refaire ; ✅ **le marché** (2026-11-28, branche `ville-marche` : façon Heroes 3) ; **la carte au trésor**, à refaire ; **la barre du combat**
   (des boutons sur le bord, aucun accès au menu principal ni pour quitter ; le héros ennemi trop petit) ; **la fin de
-  partie** (sa musique, une petite animation ou image) ; des **icônes** pour l'attaque, la défense, la puissance, le
-  savoir et le charisme ; **Recruter sur une habitation à bâtir** montre la créature, pas le bâtiment (son but n'est
+  partie** (sa musique, une petite animation ou image) ; ✅ des **icônes** pour l'attaque, la défense, la puissance, le
+  savoir et le charisme (2026-11-28, branche `icones-caracteristiques`) ; **Recruter sur une habitation à bâtir** montre la créature, pas le bâtiment (son but n'est
   pas clair). Le livre de sorts : une autre session y travaille.
 **Reste** : des icônes sur les autres écrans, au fil des besoins ; une icône « Payer » (une main qui donne des pièces :
 l'icône d'or n'y va pas, remarque de l'utilisateur) ; des icônes pour le niveau ;

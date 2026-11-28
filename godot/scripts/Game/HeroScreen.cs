@@ -30,7 +30,7 @@ public partial class HeroScreen : ScreenWindow
     private ProgressBar _experienceBar = null!;
     private Label _movementText = null!;
     private ProgressBar _movementBar = null!;
-    private readonly List<(HeroStat? Stat, Label Name, Label Value, Label Effect)> _stats = new();
+    private readonly List<(HeroStat? Stat, Control Cell, Label Name, Label Value)> _stats = new();
     private Label _morale = null!;
     private Label _luck = null!;
     private ArmySlots _army = null!;
@@ -146,31 +146,39 @@ public partial class HeroScreen : ScreenWindow
         Window.AddChild(At(MakeLabel(Texts.MovementWord, 13, SoftTextColor), 166, 134));
         (_movementBar, _movementText) = Bar(V(166, 152), MovementColor);
 
-        // les caractéristiques, en colonne
-        float y = 196;
-        foreach (HeroStat? stat in new HeroStat?[] { HeroStat.Attack, HeroStat.Defense, HeroStat.Power, HeroStat.Knowledge, null })
+        // les caractéristiques, trois par rangée : la grande icône (48 × 48, ×2), dessous le nom, puis la valeur ; ce qu'elle
+        // fait au survol (en attendant la session de l'écran du héros) ; le moral et la chance à la place de la sixième
+        float cellWidth = Px(84), iconSide = ArtPx(48);
+        var cells = new HeroStat?[] { HeroStat.Attack, HeroStat.Defense, HeroStat.Power, HeroStat.Knowledge, null };
+        for (int i = 0; i < cells.Length; i++)
         {
-            var name = At(MakeLabel("", 16, TextColor), 24, y);
-            // le nombre au bout de la ligne du nom (l'explication passe dessous)
-            var value = At(MakeLabel("", 16, TextColor), 210, y);
-            value.Size = V(50, 24);
-            value.HorizontalAlignment = HorizontalAlignment.Right;
-            var effect = At(MakeLabel("", 12, SoftTextColor), 24, y + 20);
-            // une ligne, coupée avant la page de droite (le texte entier au survol)
-            effect.ClipText = true;
-            effect.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-            effect.Size = V(258, 20);
-            foreach (var label in new[] { name, value, effect })
+            var stat = cells[i];
+            var cell = new Control
             {
-                label.MouseFilter = Control.MouseFilterEnum.Stop; // pour l'info-bulle
-                Window.AddChild(label);
+                Position = V(24, 186) + new Vector2(i % 3 * cellWidth, i / 3 * Px(100)), Size = new Vector2(cellWidth, iconSide + TextSize(13) + TextSize(16) + ArtPx(5)),
+                MouseFilter = Control.MouseFilterEnum.Stop,
+            };
+            if (StatIcon(stat, large: true) is { } icon)
+                cell.AddChild(Picture(icon, new Vector2(SnapDown((cellWidth - iconSide) / 2), 0), new Vector2(iconSide, iconSide)));
+            var name = MakeLabel("", 13, SoftTextColor);
+            name.Position = new Vector2(0, iconSide + ArtPx(2));
+            name.Size = new Vector2(cellWidth, TextSize(13));
+            var value = MakeLabel("", 16, TextColor);
+            value.Position = new Vector2(0, name.Position.Y + TextSize(13) + ArtPx(3));
+            value.Size = new Vector2(cellWidth, TextSize(16));
+            foreach (var label in new[] { name, value })
+            {
+                label.HorizontalAlignment = HorizontalAlignment.Center;
+                cell.AddChild(label);
             }
-            _stats.Add((stat, name, value, effect));
-            y += 46;
+            Window.AddChild(cell);
+            _stats.Add((stat, cell, name, value));
         }
         // le moral et la chance de l'armée (le détail au survol)
-        _morale = At(MakeLabel("", 16, TextColor), 24, y + 4);
-        _luck = At(MakeLabel("", 16, TextColor), 150, y + 4);
+        _morale = MakeLabel("", 16, TextColor);
+        _morale.Position = V(24, 186) + new Vector2(2 * cellWidth + ArtPx(6), Px(100) + ArtPx(14));
+        _luck = MakeLabel("", 16, TextColor);
+        _luck.Position = _morale.Position + new Vector2(0, ArtPx(14));
         foreach (var label in new[] { _morale, _luck })
         {
             label.MouseFilter = Control.MouseFilterEnum.Stop;
@@ -493,7 +501,7 @@ public partial class HeroScreen : ScreenWindow
         _movementText.Text = $"{hero.Movement} / {hero.DayMovement}";
         _movementBar.MaxValue = hero.DayMovement;
         _movementBar.Value = hero.Movement;
-        foreach (var (stat, name, value, effect) in _stats)
+        foreach (var (stat, cell, name, value) in _stats)
         {
             name.Text = Texts.StatFullName(stat);
             value.Text = (stat switch
@@ -504,8 +512,7 @@ public partial class HeroScreen : ScreenWindow
                 HeroStat.Knowledge => hero.Knowledge,
                 _ => hero.Charisma,
             }).ToString();
-            effect.Text = Texts.StatEffect(stat, hero);
-            name.TooltipText = value.TooltipText = effect.TooltipText = Texts.StatTooltip(stat, hero);
+            cell.TooltipText = Texts.StatTooltip(stat, hero);
         }
         var morale = Morale.OfArmy(hero);
         var luck = Morale.LuckOf(hero);

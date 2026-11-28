@@ -2622,6 +2622,15 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   - **Le coffre et l'attaque d'un adversaire** centrés comme la Diplomatie, en boutons larges : l'icône en haut au milieu,
     le texte dessous (`IconButtons.MakeWide`) : quatre icônes nouvelles (`or`, `experience`, `tactique`, `rapide` ; PixelLab,
     voir `tools/art/METHODE.md`). Le choix avant un combat contre un héros prend la même fenêtre.
+- ✅ **Le marché refait** (2026-11-28, branche `ville-marche` ; remarque de la revue : « icônes pas bonnes, décalées,
+  boutons trop petits »). Trois maquettes (HTML avec les vraies images du jeu, prises par Chrome sans fenêtre) : A façon
+  Heroes 3 (deux grilles côte à côte), B deux rangées de tuiles hautes, C façon Heroes 2 (deux listes, l'échange au
+  milieu) ; choisie : **A**. `TownScreen.OpenMarket` : deux zones creusées, « Donner » (ce qu'on a) et « Recevoir » (le
+  prix d'une unité), chaque ressource en **tuile discrète** de 68 × 56 pixels d'art (son icône de 32 ×2 au milieu, le
+  nombre dessous ; la choisie marquée par `MarkSelected`), 3 par rangée, l'or seul en bas au milieu ; la ressource
+  donnée grisée dans « Recevoir ». Dessous, l'échange (icône, nombre, flèche, icône, nombre ; les icônes ×2 comme dans
+  les tuiles : ×3 aurait cassé la règle du ×2), puis −, le curseur, + et Max discrets ; en bas, le marché conclu et les
+  icônes **Échanger** (nouvelle, `icons/echanger.png`) et Annuler. Le taux sur deux lignes s'il ne tient pas sur une.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

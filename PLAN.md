@@ -335,7 +335,7 @@ la guilde, la vitrine du combat.
   suit pas les chemins) ; **l'écran du héros** (un portrait en pied par héros au lieu de la silhouette, les places des
   artefacts, les onglets, les caractéristiques ; une icône par compétence et un petit arbre plutôt que des onglets
   sous des onglets) ; **le royaume** (icônes, villes centrées, « on peut construire » marqué) ; **la fenêtre
-  Construire**, à refaire ; **le marché**, à refaire ; **la carte au trésor**, à refaire ; **la barre du combat**
+  Construire**, à refaire ; ✅ **le marché** (2026-11-28, branche `ville-marche` : façon Heroes 3) ; **la carte au trésor**, à refaire ; **la barre du combat**
   (des boutons sur le bord, aucun accès au menu principal ni pour quitter ; le héros ennemi trop petit) ; **la fin de
   partie** (sa musique, une petite animation ou image) ; des **icônes** pour l'attaque, la défense, la puissance, le
   savoir et le charisme ; **Recruter sur une habitation à bâtir** montre la créature, pas le bâtiment (son but n'est

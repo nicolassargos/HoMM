@@ -115,7 +115,12 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   Arbres des sols (2026-11-19, 24 × 32) : finir la description par « single tree, … isolated object, no ground ».
   Arbres brûlés : fins et sombres, on ne voit que des pixels ; demander un tronc épais, des reflets de cendre grise sur
   les bords, des branches épaisses et peu nombreuses, des fentes orange, « clear readable silhouette, strong light and
-  dark contrast ». Même lisibles, quatre par case font une masse sombre : deux ou trois (2026-11-28). Les palmiers sortent vert vif : les ternir vers l'olive (moins saturés, un peu plus sombres). Sous les
+  dark contrast ». Même lisibles, quatre par case font une masse sombre : deux ou trois (2026-11-28).
+  Arbres de l'herbe (2026-11-28) : des formes plutôt que des variantes (peuplier, bouleau, saule, chêne tordu, épicéa,
+  jeune arbre : « une forme » dans la description suffit, Retro Diffusion la tient). Retirer la tache d'herbe avec
+  `sans_socle.py`, sauf les résineux (`--buisson` : leurs branches basses sont vertes). Les teintes vives (bouleau
+  jaune, épicéa bleu) se voient de loin : les rapprocher du vert. Mêlées au hasard, neuf formes font un fouillis ; en
+  bosquets (un bruit par forme, les résineux à part), la forêt paraît naturelle. Les palmiers sortent vert vif : les ternir vers l'olive (moins saturés, un peu plus sombres). Sous les
   arbres de la neige, retirer la tache de neige (pixels clairs et bleutés du bas, pas le tronc blanc des bouleaux).
 - Portraits : 64 × 64, style « retro », des visages marqués plutôt qu'idéalisés, trouvés d'après le nom du héros.
   28 portraits de plus (2026-11-07, 5,58 $ : 3 candidats chacun, 3 refaits) : barbares, chevaliers, sorciers, mages,

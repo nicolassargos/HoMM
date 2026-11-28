@@ -249,7 +249,7 @@ arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en mass
 - **Les rives** : ✅ le sable vu sous l'eau, sur la moitié des côtes (2026-11-28) ; **reste** : des détails sur les rives (rochers, bois flotté, petites falaises : des images), des côtes plus découpées (le générateur) ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
 - **L'herbe** : embellir les fleurs (l'utilisateur, plus tard) ; le bord des routes suivra.
-- **Les arbres** : ✅ des forêts brûlées clairsemées (2026-11-28) ; **reste** : des arbres de l'herbe plus variés (pas tous ronds : peuplier, bouleau, saule, chêne tordu, épicéa, jeune arbre).
+- **Les arbres** : ✅ des forêts brûlées clairsemées ; ✅ des arbres de l'herbe de neuf formes, en bosquets, les résineux entre eux (2026-11-28).
 - **Les portails** : leur gardien et leurs récompenses, à revoir en jouant.
 - **Plus tard** : un style de sol par zone de faction (herbe fleurie du Château, sèche des Barbares, morte des
   morts-vivants…) ; une route enneigée ; un coût de marche par sorte de route (pavés 50 %, gravier 65 %, terre 75 %) ;

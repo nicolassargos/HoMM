@@ -31,6 +31,9 @@ public partial class DecorLayer : Node2D
         : ground == TerrainType.Rock && Art.VariantsOf("decor/pine") is { Length: > 0 } pines ? pines
         : Trees;
 
+    /// <summary>Sur la terre brûlée, une case de forêt sur tant garde trois arbres (les autres, deux).</summary>
+    private const int BurntThird = 3;
+
     /// <summary>Les arbres des pentes (sapins et chênes, pas d'automne) : entre les massifs et à leur pied, comme dans Heroes 3.</summary>
     private static Texture2D[] SlopeTrees => Art.VariantsOf("decor/pine").Concat(Art.VariantsOf("decor/oak")).ToArray();
 
@@ -158,14 +161,17 @@ public partial class DecorLayer : Node2D
                     // dans le désert, une palmeraie plus clairsemée : trois arbres, sans le cinquième
                     var ground = forestGrounds.GetValueOrDefault(new Cell(x, y), TerrainType.Grass);
                     var own = TreesOn(ground);
-                    bool sparse = ground == TerrainType.Sand;
+                    // sur la terre brûlée, les arbres morts, sombres sur un sol sombre, se fondaient en une masse : deux
+                    // seulement par case, parfois trois, pour voir chacun
+                    bool sparse = ground == TerrainType.Sand || ground == TerrainType.Burnt;
                     int gap = sparse ? rng.Next(4) : -1;
+                    int gap2 = ground == TerrainType.Burnt && rng.Next(BurntThird) != 0 ? (gap + 1 + rng.Next(3)) % 4 : -1;
                     for (int row = 0; row < 2; row++)
                     for (int col = 0; col < 2; col++)
                     {
                         var at = o + new Vector2((12 + col * 24) * k + R(-6, 7, rng), (20 + row * 22) * k + R(-4, 5, rng));
                         var tree = own[rng.Next(own.Length)];
-                        if (row * 2 + col != gap)
+                        if (row * 2 + col != gap && row * 2 + col != gap2)
                             sprites.Add((at, tree));
                     }
                     if (!sparse && rng.Next(2) == 0)

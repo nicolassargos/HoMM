@@ -251,7 +251,7 @@ arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en mass
 - **L'herbe** : embellir les fleurs (l'utilisateur, plus tard) ; le bord des routes suivra.
 - **Les arbres** : ✅ des forêts brûlées clairsemées ; ✅ des arbres de l'herbe de neuf formes, en bosquets, les résineux entre eux (2026-11-28).
 - **La répartition des objets** (demandée par l'utilisateur, 2026-11-28 ; mesurée sur Heroes 3, `tools/cartes/objets_h3.py`) :
-  ✅ moins de tas, trois petits trésors nouveaux (feu de camp, parchemin, restes d'un aventurier) ; **reste**, proposé :
+  ✅ moins de tas, trois petits trésors nouveaux (feu de camp, parchemin, tombe d'un aventurier) ; **reste**, proposé :
   des coins gardés à plusieurs trésors (un gardien pour plusieurs), plus de lieux de sortes nouvelles, les habitations.
 - **Les portails** : leur gardien et leurs récompenses, à revoir en jouant.
 - **Plus tard** : un style de sol par zone de faction (herbe fleurie du Château, sèche des Barbares, morte des

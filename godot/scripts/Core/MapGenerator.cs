@@ -118,7 +118,8 @@ public sealed class MapGenerator
 
     /// <summary>
     /// Les petits trésors (2026-11-28, mesurés sur 50 cartes de Heroes 3 : tools/cartes/objets_h3.py, deux fois moins de
-    /// tas et deux fois plus de petits trésors que nous) : feux de camp, parchemins, restes d'aventuriers, pour une carte de 40 × 30.
+    /// tas et deux fois plus de petits trésors que nous) : feux de camp, parchemins, tombes d'aventuriers, pour une
+    /// carte de 40 × 30.
     /// </summary>
     public int CampfireCount { get; init; } = 5;
     public int ScrollCount { get; init; } = 2;
@@ -3485,7 +3486,7 @@ public sealed class MapGenerator
                 pool.Remove(found);
             }
         }
-        // les restes d'un aventurier : un artefact mineur une fois sur deux (s'il en reste), sinon de l'or
+        // la tombe d'un aventurier : un artefact mineur une fois sur deux (s'il en reste), sinon de l'or
         for (int i = 0; i < Scaled(RemainsCount); i++)
         {
             Remains? remains = null;

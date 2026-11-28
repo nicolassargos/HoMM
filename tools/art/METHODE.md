@@ -836,7 +836,9 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
 - Retro Diffusion `rd_tile__tile_object` 32 × 32, comme les coffres et les tas ; « three-quarter view from above,
   isolated object, no ground ». Le feu de camp et le parchemin passent du premier coup.
 - Des **os épars** (crâne, casque, épée, sac posés côte à côte) ne se lisent pas : « not convincing ». Un **squelette
-  entier**, couché, à la silhouette nette, se lit (choisi). Ce qui reste : il peut sembler danser.
+  entier** couché se lit sur la page de choix, pas sur la carte (il semble danser ; écarté en jeu). Ce qui marche : **une
+  forme simple et pleine**, une pierre tombale grise (l'idée de l'utilisateur). Regarder un petit objet **en jeu** avant
+  de le garder. Sa touffe d'herbe se retire avec `sans_socle.py entree sortie 0.3` (pour qu'il aille sur tous les sols).
 
 ## Grands objets de la carte (mines…)
 - **Méthode** : des **pièces** séparées faites par Retro Diffusion (`assets.json`, groupe `pieces/` : cabane, chariot,

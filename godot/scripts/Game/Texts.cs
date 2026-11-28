@@ -100,7 +100,7 @@ public static class Texts
         TreasureChest => "Coffre au trésor",
         Campfire => "Feu de camp",
         SpellScroll scroll => $"Parchemin ({scroll.Spell.Name})",
-        Remains => "Restes d'un aventurier",
+        Remains => "Tombe d'un aventurier",
         ArtifactPile pile => $"Artefact : {pile.Artifact.Name}",
         Obelisk => "Obélisque",
         Boat => "Bateau",
@@ -616,7 +616,7 @@ public static class Texts
         (found.Object switch
         {
             TreasureChest => $"Au fond du coffre, {found.Hero.Name} trouve un artefact : ",
-            Remains => $"Parmi les os, {found.Hero.Name} trouve un artefact : ",
+            Remains => $"Sur la tombe d'un aventurier, {found.Hero.Name} trouve un artefact : ",
             _ => $"{found.Hero.Name} ramasse un artefact : ",
         })
         + $"{found.Artifact.Name}.\n{Bonus(found.Artifact)}.";

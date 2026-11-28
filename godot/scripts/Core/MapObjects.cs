@@ -235,7 +235,7 @@ public sealed class SpellScroll : MapObject
 }
 
 /// <summary>
-/// Les restes d'un aventurier (2026-11-28) : un artefact mineur une fois sur deux, sinon 300 à 500 or. Sans gardien.
+/// La tombe d'un aventurier (2026-11-28) : un artefact mineur une fois sur deux, sinon 300 à 500 or. Sans gardien.
 /// </summary>
 public sealed class Remains : MapObject
 {

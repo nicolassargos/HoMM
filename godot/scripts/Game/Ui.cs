@@ -853,6 +853,19 @@ public static class Ui
     }
 
     /// <summary>
+    /// L'icône d'une caractéristique (null : le charisme), à montrer ×2 : 16 × 16 (le panneau de la carte) ou 48 × 48
+    /// (<paramref name="large"/> : l'écran du héros, le choix d'un niveau ; choisies par l'utilisateur, 2026-11-28).
+    /// </summary>
+    public static Texture2D? StatIcon(HeroStat? stat, bool large = false) => Art.Get("icons/" + stat switch
+    {
+        HeroStat.Attack => "attack",
+        HeroStat.Defense => "defense",
+        HeroStat.Power => "power",
+        HeroStat.Knowledge => "knowledge",
+        _ => "charisma",
+    } + (large ? "-grand" : ""));
+
+    /// <summary>
     /// Une petite flèche en pixels d'art (triangle plein, ombré d'un pixel sombre), agrandie comme le cadre :
     /// vers le bas (liste déroulante), la gauche ou la droite (sélecteur).
     /// </summary>

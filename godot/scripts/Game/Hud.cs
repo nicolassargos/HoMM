@@ -297,18 +297,26 @@ public partial class Hud : CanvasLayer
         _heroLevel.Position = new Vector2(textX, Px(20));
         card.AddChild(_heroLevel);
 
-        // les caractéristiques, chacune expliquée au survol : Att, Déf sur une ligne ; Pui, Sav ; puis Cha
+        // les caractéristiques, leur icône (16 × 16, ×2) et leur valeur, chacune expliquée au survol : Att, Déf, Pui sur
+        // une ligne ; Sav, Cha
         var stats = new (HeroStat? Stat, int Column, int Row)[]
         {
-            (HeroStat.Attack, 0, 0), (HeroStat.Defense, 1, 0), (HeroStat.Power, 0, 1), (HeroStat.Knowledge, 1, 1), (null, 0, 2),
+            (HeroStat.Attack, 0, 0), (HeroStat.Defense, 1, 0), (HeroStat.Power, 2, 0), (HeroStat.Knowledge, 0, 1), (null, 1, 1),
         };
-        float column = textWidth / 2;
+        float column = SnapDown(textWidth / 3), iconSide = ArtPx(16);
         foreach (var (stat, col, row) in stats)
         {
+            var cell = new Control
+            {
+                Position = new Vector2(textX + col * column, Px(34) + row * (iconSide + ArtPx(1))), Size = new Vector2(column, iconSide),
+                MouseFilter = Control.MouseFilterEnum.Stop,
+            };
+            card.AddChild(cell);
+            if (StatIcon(stat) is { } icon)
+                cell.AddChild(Picture(icon, Vector2.Zero, new Vector2(iconSide, iconSide)));
             var label = MakeLabel("", 12, TextColor);
-            label.Position = new Vector2(textX + col * column, Px(34 + row * 14));
-            label.MouseFilter = Control.MouseFilterEnum.Stop;
-            card.AddChild(label);
+            label.Position = new Vector2(iconSide + ArtPx(2), SnapDown((iconSide - TextSize(12)) / 2));
+            cell.AddChild(label);
             if (stat is { } s)
                 _statLabels[s] = label;
             else
@@ -383,11 +391,11 @@ public partial class Hud : CanvasLayer
             _portrait.Texture = Art.Portrait(hero.Name);
             foreach (var (stat, label) in _statLabels)
             {
-                label.Text = $"{Texts.StatShort(stat)} {StatValue(hero, stat)}";
-                label.TooltipText = Texts.StatTooltip(stat, hero);
+                label.Text = StatValue(hero, stat).ToString();
+                label.GetParent<Control>().TooltipText = Texts.StatTooltip(stat, hero);
             }
-            _charisma.Text = $"{Texts.StatShort(null)} {hero.Charisma}";
-            _charisma.TooltipText = Texts.StatTooltip(null, hero);
+            _charisma.Text = hero.Charisma.ToString();
+            _charisma.GetParent<Control>().TooltipText = Texts.StatTooltip(null, hero);
             RefreshArtifacts(hero);
             _movementBar.MaxValue = hero.DayMovement;
             _movementBar.Value = hero.Movement;
@@ -400,7 +408,7 @@ public partial class Hud : CanvasLayer
             _heroLevel.Text = "";
             _portrait.Texture = null;
             foreach (var label in _statLabels.Values.Append(_charisma))
-                label.Text = label.TooltipText = "";
+                label.Text = label.GetParent<Control>().TooltipText = "";
             RefreshArtifacts(null);
             _movementBar.Value = 0;
             _movementText.Text = "";
@@ -1099,7 +1107,7 @@ public partial class Hud : CanvasLayer
         buttons.AddThemeConstantOverride("separation", (int)Px(10));
         foreach (var stat in choice.Options)
         {
-            var size = V(170, 120);
+            var size = V(170, 120) + new Vector2(0, ArtPx(52));
             var button = MakeButton("", 14);
             button.CustomMinimumSize = size;
             button.TooltipText = Texts.StatTooltip(stat, choice.Hero);
@@ -1110,6 +1118,13 @@ public partial class Hud : CanvasLayer
                 MouseFilter = Control.MouseFilterEnum.Ignore,
             };
             lines.AddThemeConstantOverride("separation", (int)Px(2));
+            // l'icône de la caractéristique (48 × 48, ×2) en haut, au milieu
+            if (StatIcon(stat, large: true) is { } icon)
+            {
+                var picture = Picture(icon, Vector2.Zero, Vector2.Zero);
+                picture.CustomMinimumSize = new Vector2(size.X - Px(16), ArtPx(48));
+                lines.AddChild(picture);
+            }
             foreach (var (text, fontSize, color) in new[]
                      {
                          (Texts.StatFullName(stat), 16, TextColor),

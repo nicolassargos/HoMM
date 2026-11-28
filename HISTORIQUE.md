@@ -2631,6 +2631,16 @@ Une fois les écrans fixés (étape 7) et le contenu en place.
   donnée grisée dans « Recevoir ». Dessous, l'échange (icône, nombre, flèche, icône, nombre ; les icônes ×2 comme dans
   les tuiles : ×3 aurait cassé la règle du ×2), puis −, le curseur, + et Max discrets ; en bas, le marché conclu et les
   icônes **Échanger** (nouvelle, `icons/echanger.png`) et Annuler. Le taux sur deux lignes s'il ne tient pas sur une.
+- ✅ **Les icônes des caractéristiques** (2026-11-28, branche `icones-caracteristiques`, remarque de la revue) : une
+  grande de 48 × 48 (`icons/<attack|defense|power|knowledge|charisma>-grand.png`) et une petite de 16 × 16
+  (`icons/<…>.png`), comme les ressources, montrées ×2 (`Ui.StatIcon`). Choisies par l'utilisateur après trois tours
+  (méthode dans `tools/art/METHODE.md`) : la masse d'armes, le bouclier rond, la main à la flamme bleue, trois livres
+  debout, la bannière à la couronne. Les petites sont les grandes **simplement réduites** (choix de l'utilisateur,
+  devant 64 redessinées par PixelLab pour chacune). Où elles vont (choix de l'utilisateur) : le **panneau de la carte**
+  (les petites et la valeur, Att Déf Pui puis Sav Cha : les abréviations « Att »… et `Texts.StatShort` retirées, le
+  nom au survol) ; le **choix d'un niveau** (la grande en haut de chaque bouton) ; l'**écran du héros** (trois par
+  rangée : la grande, le nom, la valeur ; ce que fait la caractéristique passe au survol ; le moral et la chance à la
+  sixième place), en attendant la session de l'écran du héros.
 - Animations des créatures avec PixelLab (étape 6, essai sur l'Épéiste).
 - Fonds de champ de bataille et obstacles ; le héros sur la carte ; les bâtiments des villes en images détaillées.
 - Petits détails et équilibrage fin.

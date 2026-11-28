@@ -1064,7 +1064,18 @@ Architect » : 10 000 générations ; une retouche (`retoucher`) en coûte une d
   tel quel), `experience` (« a round laurel wreath of leaves with a ribbon tied at the bottom… » : 31), `tactique` (un
   cavalier des échecs : 57), `rapide` (un éclair sur deux épées croisées : 2). Puis `echanger` pour le marché (2026-11-28, graine 21, « two thick
   bold arrows side by side pointing in opposite directions, the top one pointing right and the bottom one pointing
-  left, meaning trade or exchange » : n° 1, au premier tour ; 10 générations de l'abonnement, aucun crédit). **Refusé par PixelLab** (« against
+  left, meaning trade or exchange » : n° 1, au premier tour ; 10 générations de l'abonnement, aucun crédit).
+  **Les icônes des caractéristiques** (2026-11-28, `icons/<stat>-grand.png` en 48 × 48, `icons/<stat>.png` en 16 × 16) :
+  pas en argent gravé (ce ne sont pas des boutons) mais **peintes, en couleur**, comme les artefacts : « pro » 48 × 48
+  (25 candidats), le coffre de la carte comme style, fond transparent, la même description de départ que les
+  artefacts (« one fantasy game icon filling the whole square edge to edge… a characterful design, not a generic clip
+  art: »). Trois tours : des objets simples (épée, bouclier, main au feu, livre, bannière) ; des **vignettes peintes
+  sur un fond de cuir**, à la Heroes 3 (poing qui brise une planche, mage aux éclairs…) : **écartées**, l'utilisateur
+  préfère l'objet seul ; puis deux autres objets par caractéristique. Choisis : masse d'armes (attaque-c 4), bouclier
+  rond (defense 25), main à la flamme bleue (puissance 22), trois livres debout (savoir-c 5), bannière (charisme 7).
+  En 16 × 16 : 64 redessinées par PixelLab (« pro » 16 × 16, la grande comme modèle) ; l'utilisateur a pris la
+  grande **simplement réduite** au tiers (`reduire.py … 0.3333 16 16`) pour les cinq : le contour sombre s'y perd, les
+  livres deviennent une tache, mais elles restent lisibles à côté de leur nombre. **Refusé par PixelLab** (« against
   policy », trois fois) : « a five-pointed star inside a laurel wreath » (l'étoile, sans doute) ; trois lots lancés en
   même temps l'ont été aussi, puis sont passés un à un. L'icône d'or ne va pas pour « Payer » (l'utilisateur) : il
   faudra la sienne, avec une main.

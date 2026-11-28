@@ -952,16 +952,6 @@ public static class Texts
         + $"Points de sort {hero.SpellPoints} / {hero.MaxSpellPoints}\n"
         + string.Join(", ", hero.Army.Stacks.Select(Stack));
 
-    /// <summary>Abréviation d'une caractéristique, pour la fiche du héros (« Att »).</summary>
-    public static string StatShort(HeroStat? stat) => stat switch
-    {
-        HeroStat.Attack => "Att",
-        HeroStat.Defense => "Déf",
-        HeroStat.Power => "Pui",
-        HeroStat.Knowledge => "Sav",
-        _ => "Cha",
-    };
-
     /// <summary>Ce que fait une caractéristique (null : le charisme).</summary>
     public static string StatTooltip(HeroStat? stat, Hero hero) => stat switch
     {

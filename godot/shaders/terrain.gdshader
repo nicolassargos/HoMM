@@ -264,10 +264,38 @@ uniform vec3 mud_color = vec3(0.36, 0.29, 0.2);
 // shallow_color), qui s'efface vers le large en shallow_steps paliers tramés au bord ondulé ; au large, de deep_start à
 // deep_end pixels de la terre, l'eau fonce (mêlée de deep à deep_color), en paliers tramés ; les rivières, étroites,
 // foncent plus tôt et plus fort (river_deep_start, river_deep_end, river_deep)
-uniform float shallow_width = 14.0;
+uniform float shallow_width = 10.0;
 uniform float shallow = 0.75;
 uniform float shallow_steps = 3.0;
 uniform vec3 shallow_color = vec3(0.45, 0.78, 0.82);
+// le fond qu'on voit sous l'eau contre la rive (2026-11-28) : sur seabed_width pixels d'art, l'eau prend la couleur du
+// fond (le sable, ou la vase brune le long des rives d'herbe), de seabed contre la rive à rien au large, en seabed_steps
+// paliers tramés ; elle semble descendre doucement au lieu de s'arrêter sur une ligne
+uniform float seabed = 0.95;
+uniform float seabed_width = 10.0;
+uniform float seabed_steps = 6.0;
+uniform float seabed_mud = 0.6;
+// la teinte de l'eau sur ce fond (0 : le fond tel quel, 1 : la couleur de l'eau claire)
+uniform float seabed_tint = 0.55;
+// des reflets du soleil qui dansent sur ce fond (des lignes claires, en réseau, qui bougent lentement) : leur force, la
+// taille de leurs mailles (pixels d'art)
+uniform float seabed_glints = 0.8;
+uniform float seabed_glint_scale = 6.0;
+uniform float seabed_glint_width = 0.06;
+// le fond change le long des côtes (un bruit doux de seabed_vary_scale pixels d'art, si seabed_vary > 0) : au milieu du
+// bruit, les réglages ci-dessus ; en bas, ceux de seabed_low ; en haut, ceux de seabed_high (chacun : la force du fond, sa
+// largeur, sa teinte, la largeur de l'eau claire). Choix de l'utilisateur (2026-11-28), après des essais en jeu : la
+// moitié des côtes sans fond visible, l'eau claire sur 14 pixels (comme avant), l'autre moitié avec le fond et ses
+// reflets, en tronçons de quelques cases
+uniform float seabed_vary = 1.0;
+uniform float seabed_vary_scale = 45.0;
+uniform vec4 seabed_low = vec4(0.0, 10.0, 0.55, 14.0);
+uniform vec4 seabed_high = vec4(0.95, 10.0, 0.55, 10.0);
+// les reflets avec ces réglages, et où le bruit passe à ceux du bas et à ceux du haut (de 0 à 1 ; 0,5 : la moitié des côtes)
+uniform float seabed_low_glints = 0.0;
+uniform float seabed_high_glints = 0.8;
+uniform float seabed_low_edge = 0.5;
+uniform float seabed_high_edge = 2.0;
 uniform float deep_start = 10.0;
 uniform float deep_end = 76.0;
 uniform float deep = 0.35;
@@ -1156,10 +1184,33 @@ void fragment() {
 	if (in_water && (shallow > 0.0 || deep > 0.0)) {
 		float d = water_depth(p, river);
 		float ripple = (noise((p + 0.5) / 14.0 + vec2(17.0, 29.0)) * 2.0 - 1.0) * 1.5;
+		// les réglages du fond à cet endroit de la côte (voir seabed_vary)
+		vec4 bed_set = vec4(seabed, seabed_width, seabed_tint, shallow_width);
+		float glints = seabed_glints;
+		if (seabed_vary > 0.0) {
+			float n = noise((p + 0.5) / seabed_vary_scale + vec2(57.0, 23.0));
+			float low = 1.0 - smoothstep(seabed_low_edge - 0.06, seabed_low_edge + 0.06, n);
+			float high = smoothstep(seabed_high_edge - 0.06, seabed_high_edge + 0.06, n);
+			bed_set = mix(mix(bed_set, seabed_low, low), seabed_high, high);
+			glints = mix(mix(glints, seabed_low_glints, low), seabed_high_glints, high);
+		}
+		float shallow_w = bed_set.w;
 		// toute claire sur le premier tiers, puis de moins en moins
-		float clear = 1.0 - clamp((d + ripple - shallow_width * 0.3) / max(shallow_width * 0.7, 1.0), 0.0, 1.0);
+		float clear = 1.0 - clamp((d + ripple - shallow_w * 0.3) / max(shallow_w * 0.7, 1.0), 0.0, 1.0);
 		clear = clamp(floor(clear * shallow_steps + bayer(p)) / shallow_steps, 0.0, 1.0);
 		color = mix(color, shallow_color, shallow * clear);
+		if (bed_set.x > 0.0) {
+			float bed = 1.0 - clamp((d + ripple) / max(bed_set.y, 1.0), 0.0, 1.0);
+			bed = clamp(floor(bed * seabed_steps + bayer(p)) / seabed_steps, 0.0, 1.0);
+			vec3 floor_color = mix(tile_color(sand, p), mud_color, bank_kind(p) < bank_grass ? seabed_mud : 0.0);
+			color = mix(color, mix(floor_color, shallow_color, bed_set.z), bed_set.x * bed);
+			if (glints > 0.0 && bed > 0.0) {
+				float at = (wave_at >= 0.0 ? wave_at : TIME) * 0.15;
+				vec2 q = (p + 0.5) / seabed_glint_scale;
+				float net = abs(noise(q + vec2(at, at * 0.6)) - noise(q * 1.3 + vec2(-at * 0.8, at) + vec2(5.0, 9.0)));
+				if (net < seabed_glint_width) color = mix(color, vec3(0.92, 0.98, 0.9), glints * bed);
+			}
+		}
 		// la rivière cède la place au lac ou à la mer en douceur, là où l'eau des cases l'emporte
 		float open = river > 0.0 ? smoothstep(0.3, 0.9, water_part(p)) : 1.0;
 		float start = mix(river_deep_start, deep_start, open);

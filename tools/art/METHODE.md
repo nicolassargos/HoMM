@@ -106,6 +106,10 @@ les clés et le dossier `art-candidats/` sont décrits dans `CLAUDE.md` ; l'hist
   Vagues (2026-11-24) : une vague se lit comme telle si elle garde sa forme en avançant (rattachée à la rive en face),
   ralentit en arrivant, pâlit sans rapetisser, est brisée en morceaux plus épais au milieu, et si certaines manquent ;
   la régler en jeu (le mouvement ne se juge pas sur une capture). Sur une baie ou un coude, l'effacer plutôt que la tordre.
+  Rives (2026-11-28) : des changements de quelques pixels, choisis sur des captures agrandies, ne se voient pas à la
+  vraie taille : montrer les essais du sol en jeu (`--ground-cycle`, F7) ou en captures 1:1. L'eau se lit transparente
+  quand on voit le fond dessous (le sable teinté d'eau, des reflets qui bougent), pas quand la bande claire s'élargit.
+  Mêler deux réglages le long des côtes par un bruit doux plaît (choisi parmi des mélanges et des réglages seuls).
   Neige (2026-11-19) : les cases du sable recolorées en blanc bleuté, de faible contraste. Les congères étirées en
   longues bandes font des nuages : des congères rondes, l'ombre bleutée d'un seul côté.
   Arbres des sols (2026-11-19, 24 × 32) : finir la description par « single tree, … isolated object, no ground ».

@@ -3172,6 +3172,16 @@ choix de l'utilisateur) :
   Mesuré sur six cartes de 72 × 72 : 24 roues pour 24 moulins, toutes sur un ruisseau (`CarteObjetsTests`). Une image
   plus grande (80 × 70, PixelLab ; recette dans `tools/art/METHODE.md`), retournée quand le ruisseau est à gauche. Une
   même graine donne une autre carte qu'avant.
+- ✅ **Le fond visible sous l'eau des rives** (2026-11-28, branche `rives-v3`, choix de l'utilisateur) : il trouvait
+  certaines rives trop nettes. Premier tour, écarté : de petites anses (la rive avance ou recule de 6 à 9 pixels d'art,
+  par un bruit), l'herbe assombrie contre l'eau, la terre mêlée à l'eau sur 4 à 6 rangées au lieu de 2 : invisible à la
+  vraie taille (« I barely see the difference »). Une bande d'eau claire deux fois plus large ne se lit pas non plus
+  comme de l'eau transparente. Ce qui se lit : **le sable vu sous l'eau** contre la rive (`seabed` 0,95 sur 10 pixels,
+  teinté pour moitié de l'eau claire, `seabed_tint` 0,55 ; une vase brune le long des rives d'herbe), et des **reflets
+  du soleil** en réseau de lignes claires qui bougent lentement (`seabed_glints`). Choisi en jeu (F7 d'un essai à
+  l'autre) : la moitié des côtes ainsi, l'autre moitié comme avant (sans fond, eau claire sur 14 pixels), par un bruit
+  doux en tronçons de quelques cases (`seabed_vary`, `seabed_low`, `seabed_low_edge` 0,5, `seabed_vary_scale` 45).
+  Pour les essais : `--ground-cycle=A;B=réglages;…` (F7 passe d'un essai à l'autre en jeu).
 - ✅ **Les montagnes au bord de deux sols** (2026-11-17, branche `montagnes-deux-sols`) : choisir le jeu d'images d'après
   le sol devant le pied de chaque massif ne suffisait pas (une image n'a qu'un sol : fausse d'un côté de la frontière). À
   la place, un shader (`shaders/mountain_slopes.gdshader`, sur `DecorLayer`) : chaque pixel de pente (vert franc dans

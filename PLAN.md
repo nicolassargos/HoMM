@@ -246,7 +246,7 @@ arrondies comme dans Heroes 3, 2026-11-21 ; leur dessin) ; les montagnes en mass
   (un tiers de moins) ; de petites animations, comme la terre brûlée : ✅ les vagues des lacs et de la mer ; ✅ les arbres
   et les feuilles dans le vent ; ✅ le bug de Quitter dans les options (une deuxième boîte par-dessus la première) ; ✅ l'ordre du dessin
   (le décor, les objets et les héros triés ensemble).
-- **Les rives** : l'utilisateur les travaillera encore ; **revoir les routes ensuite**, et quand les zones seront plus
+- **Les rives** : ✅ le sable vu sous l'eau, sur la moitié des côtes (2026-11-28) ; **reste** : des détails sur les rives (rochers, bois flotté, petites falaises : des images), des côtes plus découpées (le générateur) ; **revoir les routes ensuite**, et quand les zones seront plus
   variées (une route dans les zones sans ville, la quantité de routes).
 - **L'herbe** : embellir les fleurs (l'utilisateur, plus tard) ; le bord des routes suivra.
 - **Les portails** : leur gardien et leurs récompenses, à revoir en jouant.
